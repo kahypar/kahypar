@@ -2,17 +2,18 @@
 #define HYPERGRAPH_HPP_
 
 #include <vector>
+#include <limits>
 
 #include "../definitions.hpp"
 #include "../macros.hpp"
 
-namespace hypergraph {
+namespace hgr {
 
 class Hypergraph{
  public:
-  Hypergraph(const HyperNodeID num_hypernodes, const HyperEdgeID num_hyperedges,
-             const hMetisHyperEdgeIndexVector index_vector,
-             const hMetisHyperEdgeVector edge_vector) :
+  Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges//,
+             /*  const hMetisHyperEdgeIndexVector index_vector,
+                 const hMetisHyperEdgeVector edge_vector*/) :
       number_of_hypernodes_(num_hypernodes),
       number_of_hyperedges_(num_hyperedges) {
 
@@ -28,32 +29,84 @@ class Hypergraph{
   /* ToDo: Design operations a la GetAdjacentHypernodes GetIncidentHyperedges */
 
   /* Accessors and mutators */
-  HyperEdgeID hypernode_degree(HyperNodeID hypernode) const;
-  HyperNodeID hyperedge_size(HyperEdgeID hyperedge) const;
+  inline HyperEdgeID hypernode_degree(HyperNodeID hypernode) const {
+    ASSERT(!hypernodes_[hypernode].isInvalid(), "Invalid HypernodeID");
+    ASSERT(hypernode < hypernodes_.size(), "HypernodeID out of bounds");
 
-  HyperNodeWeight hypernode_weight(HyperNodeID hypernode) const;
-  void set_hypernode_weight(HyperNodeID hypernode, HyperNodeWeight weight);
+    return hypernodes_[hypernode].size;
+  }
   
-  HyperEdgeWeight hyperedge_weight(HyperEdgeID hyperedge) const;
-  void set_hyperedge_weight(HyperEdgeID hyperedge, HyperEdgeWeight weight);
+  inline HyperNodeID hyperedge_size(HyperEdgeID hyperedge) const {
+    ASSERT(!hyperedges_[hyperedge].isInvalid(), "Invalid HyperedgeID");
+    ASSERT(hyperedge < hyperedges_.size(), "HyperedgeID out of bounds");
+
+    return hyperedges_[hyperedge].size;
+  }
+
+  inline HyperNodeWeight hypernode_weight(HyperNodeID hypernode) const {
+    ASSERT(!hypernodes_[hypernode].isInvalid(), "Invalid HypernodeID");
+    ASSERT(hypernode < hypernodes_.size(), "HypernodeID out of bounds");
+
+    return hypernodes_[hypernode].weight;
+  } 
+
+  inline void set_hypernode_weight(HyperNodeID hypernode,
+                                   HyperNodeWeight weight) {
+    ASSERT(!hypernodes_[hypernode].isInvalid(), "Invalid HypernodeID");
+    ASSERT(hypernode < hypernodes_.size(), "HypernodeID out of bounds");
+
+    hypernodes_[hypernode].weight = weight;
+  }
   
-  HyperNodeID number_of_hypernodes() const { return number_of_hypernodes_; }
-  HyperEdgeID number_of_hyperedges() const { return number_of_hyperedges_; }
-  HyperNodeID number_of_pins() const { return number_of_pins_; }
+ inline  HyperEdgeWeight hyperedge_weight(HyperEdgeID hyperedge) const {
+    ASSERT(!hyperedges_[hyperedge].isInvalid(), "Invalid HyperedgeID");
+    ASSERT(hyperedge < hyperedges_.size(), "HyperedgeID out of bounds");
+
+    return hyperedges_[hyperedge].weight;
+  }
+  
+  inline void set_hyperedge_weight(HyperEdgeID hyperedge,
+                                   HyperEdgeWeight weight) {
+    ASSERT(hyperedge < hyperedges_.size(), "HyperedgeID out of bounds");
+    ASSERT(!hyperedges_[hyperedge].isInvalid(), "Invalid HyperedgeID");
+
+    hyperedges_[hyperedge].weight = weight;
+  }
+  
+  inline HyperNodeID number_of_hypernodes() const {
+    return number_of_hypernodes_;
+  }
+
+  inline HyperEdgeID number_of_hyperedges() const {
+    return number_of_hyperedges_;
+  }
+
+  inline HyperNodeID number_of_pins() const {
+    return number_of_pins_;
+  }
   
  private:
   typedef unsigned int InternalVertexID;
 
-  void ClearHypernode(HyperNodeID hypernode);
-  void RemoveHypernode(HyperNodeID hypernode);
+  void ClearHypernodeVertex(HyperNodeID hypernode);
+  void RemoveHypernodeVertex(HyperNodeID hypernode);
 
-  void ClearHyperedge(HyperEdgeID hypernode);
-  void RemoveHyperedge(HyperEdgeID hypernode)
+  void ClearHyperedgeVertex(HyperEdgeID hypernode);
+  void RemoveHyperedgeVertex(HyperEdgeID hypernode);
 
   void AddEdge(HyperNodeID hypernode, HyperEdgeID hyperedge);
   void RemoveEdge(HyperNodeID hypernode, HyperEdgeID hyperedge);
 
   struct InternalVertex {
+    inline void Invalidate() {
+      ASSERT(!isInvalid(), "Vertex is already invalidated");
+      begin = std::numeric_limits<InternalVertexID>::max();
+    }
+
+    inline bool isInvalid() const {
+      return begin == std::numeric_limits<InternalVertexID>::max();
+    }
+    
     InternalVertexID begin;
     InternalVertexID size;  
   };
@@ -79,5 +132,7 @@ class Hypergraph{
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 };
 
-} // namespace hypergraph
+
+
+} // namespace hgr
 #endif  // HYPERGRAPH_HPP_
