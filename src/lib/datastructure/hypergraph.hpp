@@ -11,19 +11,26 @@
 namespace hgr {
 
 #define forall_incident_hyperedges(he,hn) \
-  for (VertexID i = hypernodes_[hn].begin(), \
-                  end = hypernodes_[hn].begin() + hypernodes_[hn].size(); i < end; ++i) { \
+  for (HyperNodesSizeType i = hypernodes_[hn].begin(), \
+                        end = hypernodes_[hn].begin() + hypernodes_[hn].size(); i < end; ++i) { \
   HyperEdgeID he = edges_[i];
 
 #define forall_pins(hn,he) \
-  for (VertexID i = hyperedges_[he].begin(), \
-              end = hyperedges_[he].begin() + hyperedges_[he].size(); i < end; ++i) { \
+  for (HyperEdgesSizeType i = hyperedges_[he].begin(), \
+                        end = hyperedges_[he].begin() + hyperedges_[he].size(); i < end; ++i) { \
   HyperNodeID hn = edges_[i];
 
 #define endfor }
 
+template <typename _HyperNodeType, typename _HyperEdgeType,
+          typename _HyperNodeWeightType, typename _HyperEdgeWeightType>
 class Hypergraph{
  public:
+  typedef _HyperNodeType HyperNodeID;
+  typedef _HyperEdgeType HyperEdgeID;
+  typedef _HyperNodeWeightType HyperNodeWeight;
+  typedef _HyperEdgeWeightType HyperEdgeWeight;
+  
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
              const hMetisHyperEdgeVector& edge_vector) :
@@ -77,9 +84,16 @@ class Hypergraph{
     }
   }
 
-  void Connect(HyperNodeID hn_handle, HyperEdgeID he_handle);
+  void Contract(HyperNodeID hn_handle_u, HyperNodeID hn_handle_v) {
+    ASSERT(hn_handle_u < num_hypernodes_ && hn_handle_v < num_hyperedges_,
+           "HypernodeID out of bounds");
+    ASSERT(!hypernodes_[hn_handle_u].isInvalid() && !hypernodes_[hn_handle_v].isInvalid(),
+           "Hypernode is invalid!");
+    HyperNode &u = hypernodes_[hn_handle_u];
+    HyperNode &v = hypernodes_[hn_handle_v];
+  }
 
-  void UnConnect(HyperNodeID hn_handle, HyperEdgeID he_handle) {
+  void Disconnect(HyperNodeID hn_handle, HyperEdgeID he_handle) {
     ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
     ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
     ASSERT(!hypernodes_[hn_handle].isInvalid(),"Hypernode is invalid!");
@@ -181,7 +195,7 @@ class Hypergraph{
   
  private:
   typedef unsigned int VertexID;
-
+  
   template <typename VertexTypeTraits>
   class InternalVertex {
    public:
@@ -238,9 +252,12 @@ class Hypergraph{
 
   typedef InternalVertex<HyperNodeTraits> HyperNode;
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
-  typedef std::vector<HyperNode>::iterator HyperNodeIterator;
-  typedef std::vector<HyperEdge>::iterator HyperEdgeIterator;
-  typedef std::vector<VertexID>::iterator EdgeIterator;
+  typedef typename std::vector<HyperNode>::iterator HyperNodeIterator;
+  typedef typename std::vector<HyperEdge>::iterator HyperEdgeIterator;
+  typedef typename std::vector<VertexID>::iterator EdgeIterator;
+  typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
+  typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
+  typedef typename std::vector<VertexID>::size_type DegreeSizeType;
 
   template <typename T>
   inline void ClearVertex(VertexID vertex, T& container) {
