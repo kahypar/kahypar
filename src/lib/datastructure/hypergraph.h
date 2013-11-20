@@ -5,8 +5,8 @@
 #include <limits>
 #include <algorithm>
 
-#include "../definitions.hpp"
-#include "../macros.hpp"
+#include "../definitions.h"
+#include "../macros.h"
 
 namespace hgr {
 
@@ -87,12 +87,10 @@ class Hypergraph{
 
   // ToDo: This method should return a memento to reconstruct the changes!
   void Contract(HyperNodeID hn_handle_u, HyperNodeID hn_handle_v) {
-    ASSERT(hn_handle_u < num_hypernodes_ && hn_handle_v < num_hypernodes_,
-           "HypernodeID out of bounds");
     ASSERT(!hypernodes_[hn_handle_u].isInvalid() && !hypernodes_[hn_handle_v].isInvalid(),
            "Hypernode is invalid!");
-    HyperNode &u = hypernodes_[hn_handle_u];
-    HyperNode &v = hypernodes_[hn_handle_v];
+    HyperNode &u = hypernode(hn_handle_u);
+    HyperNode &v = hypernode(hn_handle_v);
 
     u.set_weight(u.weight() + v.weight());
     
@@ -137,37 +135,33 @@ class Hypergraph{
 }
 
   void Disconnect(HyperNodeID hn_handle, HyperEdgeID he_handle) {
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
     ASSERT(!hypernodes_[hn_handle].isInvalid(),"Hypernode is invalid!");
     ASSERT(!hyperedges_[he_handle].isInvalid(),"Hyperedge is invalid!");
-    ASSERT(std::count(edges_.begin() + hypernodes_[hn_handle].begin(),
-                      edges_.begin() + hypernodes_[hn_handle].begin() +
-                      hypernodes_[hn_handle].size(), he_handle) == 1,
+    ASSERT(std::count(edges_.begin() + hypernode(hn_handle).begin(),
+                      edges_.begin() + hypernode(hn_handle).begin() +
+                      hypernode(hn_handle).size(), he_handle) == 1,
            "Hypernode not connected to hyperedge");
-    ASSERT(std::count(edges_.begin() + hyperedges_[he_handle].begin(),
-                      edges_.begin() + hyperedges_[he_handle].begin() +
-                      hyperedges_[he_handle].size(), hn_handle) == 1,
+    ASSERT(std::count(edges_.begin() + hyperedge(he_handle).begin(),
+                      edges_.begin() + hyperedge(he_handle).begin() +
+                      hyperedge(he_handle).size(), hn_handle) == 1,
            "Hyperedge does not contain hypernode");
     RemoveEdge(hn_handle, he_handle, hypernodes_);
     RemoveEdge(he_handle, hn_handle, hyperedges_);
   }
   
   void RemoveHyperNode(HyperNodeID hn_handle) {
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(!hypernodes_[hn_handle].isInvalid(),"Hypernode is invalid!");
+    ASSERT(!hypernode(hn_handle).isInvalid(),"Hypernode is invalid!");
     forall_incident_hyperedges(he_handle, hn_handle) {
       RemoveEdge(he_handle, hn_handle, hyperedges_);
+      --current_num_pins_;
     } endfor
     ClearVertex(hn_handle, hypernodes_);
     RemoveVertex(hn_handle, hypernodes_);
-    --current_num_pins_;
     --current_num_hypernodes_;
   }
   
   void RemoveHyperEdge(HyperEdgeID he_handle) {
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
-    ASSERT(!hyperedges_[he_handle].isInvalid(),"Hyperedge is invalid!");
+    ASSERT(!hyperedge(he_handle).isInvalid(),"Hyperedge is invalid!");
     forall_pins(hn_handle, he_handle) {
       RemoveEdge(hn_handle, he_handle, hypernodes_);
       --current_num_pins_;
@@ -181,62 +175,54 @@ class Hypergraph{
 
   /* Accessors and mutators */
   inline HyperEdgeID hypernode_degree(HyperNodeID hn_handle) const {
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(!hypernodes_[hn_handle].isInvalid(), "Invalid HypernodeID");
-    
-    return hypernodes_[hn_handle].size();
+    ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");    
+    return hypernode(hn_handle).size();
   }
   
   inline HyperNodeID hyperedge_size(HyperEdgeID he_handle) const {
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
-    ASSERT(!hyperedges_[he_handle].isInvalid(), "Invalid HyperedgeID");
-
-    return hyperedges_[he_handle].size();
+    ASSERT(!hyperedge(he_handle).isInvalid(), "Invalid HyperedgeID");
+    return hyperedge(he_handle).size();
   }
 
   inline HyperNodeWeight hypernode_weight(HyperNodeID hn_handle) const {
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(!hypernodes_[hn_handle].isInvalid(), "Invalid HypernodeID");
-
-    return hypernodes_[hn_handle].weight();
+    ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");
+    return hypernode(hn_handle).weight();
   } 
 
   inline void set_hypernode_weight(HyperNodeID hn_handle,
                                    HyperNodeWeight weight) {
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(!hypernodes_[hn_handle].isInvalid(), "Invalid HypernodeID");
-
-    hypernodes_[hn_handle].set_weight(weight);
+    ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");
+    hypernode(hn_handle).set_weight(weight);
   }
   
-  inline  HyperEdgeWeight hyperedge_weight(HyperEdgeID he_handle) const {
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
-    ASSERT(!hyperedges_[he_handle].isInvalid(), "Invalid HyperedgeID");
-
-    return hyperedges_[he_handle].weight();
+  inline HyperEdgeWeight hyperedge_weight(HyperEdgeID he_handle) const {
+    ASSERT(!hyperedge(he_handle).isInvalid(), "Invalid HyperedgeID");
+    return hyperedge(he_handle).weight();
   }
   
   inline void set_hyperedge_weight(HyperEdgeID he_handle,
                                    HyperEdgeWeight weight) {
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
-    ASSERT(!hyperedges_[he_handle].isInvalid(), "Invalid HyperedgeID");
-
-    hyperedges_[he_handle].set_weight(weight);
+    ASSERT(!hyperedge(he_handle).isInvalid(), "Invalid HyperedgeID");
+    hyperedge(he_handle).set_weight(weight);
   }
   
   inline HyperNodeID number_of_hypernodes() const {
-    return num_hypernodes_;
+    return current_num_hypernodes_;
   }
 
   inline HyperEdgeID number_of_hyperedges() const {
-    return num_hyperedges_;
+    return current_num_hyperedges_;
   }
 
   inline HyperNodeID number_of_pins() const {
-    return num_pins_;
+    return current_num_pins_;
   }
   
  private:
+  FRIEND_TEST(HypergraphTest, RemovesHypernodes);
+  FRIEND_TEST(HypergraphTest, InitializesInternalHypergraphRepresentation);
+  FRIEND_TEST(HypergraphTest, DisconnectsHypernodeFromHyperedge);
+  
   typedef unsigned int VertexID;
   
   template <typename VertexTypeTraits>
@@ -319,12 +305,10 @@ class Hypergraph{
   // this to only add the corresponding entry and let the caller handle the consistency issues!
   void AddEdge(HyperNodeID hn_handle, HyperEdgeID he_handle) {
     // TODO: Assert via TypeInfo that we create an edge from Hypernode to Hyperedge
-    ASSERT(hn_handle < num_hypernodes_, "HypernodeID out of bounds");
-    ASSERT(!hypernodes_[hn_handle].isInvalid(), "Invalid HypernodeID");
-    ASSERT(he_handle < num_hyperedges_, "HyperedgeID out of bounds");
-    ASSERT(!hyperedges_[he_handle].isInvalid(), "Invalid HyperedgeID");
+    ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");
+    ASSERT(!hyperedge(he_handle).isInvalid(), "Invalid HyperedgeID");
     
-    HyperNode &hn = hypernodes_[hn_handle];
+    HyperNode &hn = hypernode(hn_handle);
     if (hn.begin() + hn.size() != edges_.size()) {
       edges_.insert(edges_.end(), edges_.begin() + hn.begin(),
                     edges_.begin() + hn.begin() + hn.size());
@@ -359,7 +343,26 @@ class Hypergraph{
     return std::make_pair(edges_.begin() + hyperedges_[v].begin(),
                           edges_.begin() + hyperedges_[v].begin() + hyperedges_[v].size());
   }
+
+  inline const HyperNode& hypernode(HyperNodeID id) const{
+    ASSERT(id < num_hypernodes_, "Hypernode does not exist");
+    return hypernodes_[id];
+  }
+
+  inline const HyperEdge& hyperedge(HyperEdgeID id) const {
+    ASSERT(id < num_hyperedges_, "Hyperedge does not exist");
+    return hyperedges_[id];
+  }
  
+  // To avoid code duplication we implement non-const version in terms of const version
+  inline HyperNode& hypernode(HyperNodeID id) {
+    return const_cast<HyperNode&>(static_cast<const Hypergraph&>(*this).hypernode(id));
+  }
+
+  inline HyperEdge& hyperedge(HyperEdgeID id) {
+    return const_cast<HyperEdge&>(static_cast<const Hypergraph&>(*this).hyperedge(id));
+  }
+
   const HyperNodeID num_hypernodes_;
   const HyperEdgeID num_hyperedges_;
   const HyperNodeID num_pins_;
