@@ -46,26 +46,27 @@ class Hypergraph{
 
     VertexID edge_vector_index = 0;
     for (HyperEdgeID i = 0; i < num_hyperedges_; ++i) {
-      hyperedges_[i].set_begin(edge_vector_index);
+      hyperedge(i).set_begin(edge_vector_index);
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
-        hyperedges_[i].increase_size();
+        hyperedge(i).increase_size();
         edges_[pin_index] = edge_vector[pin_index];
-        hypernodes_[edge_vector[pin_index]].increase_size();
+        hypernode(edge_vector[pin_index]).increase_size();
         ++edge_vector_index;
       }
     }
 
-    hypernodes_[0].set_begin(num_pins_);
-    for (HyperNodeID i = 0; i < num_hypernodes_; ++i) {
-      hypernodes_[i + 1].set_begin(hypernodes_[i].begin() + hypernodes_[i].size());
-      hypernodes_[i].set_size(0);
+    hypernode(0).set_begin(num_pins_);
+    for (HyperNodeID i = 0; i < num_hypernodes_ - 1; ++i) {
+      hypernode(i + 1).set_begin(hypernode(i).begin() + hypernode(i).size());
+      hypernode(i).set_size(0);
     }
-
+    hypernode(num_hypernodes - 1).set_size(0);
+    
     for (HyperEdgeID i = 0; i < num_hyperedges_; ++i) {
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         HyperNodeID pin = edge_vector[pin_index];
-        edges_[hypernodes_[pin].begin() + hypernodes_[pin].size()] = i;
-        hypernodes_[pin].increase_size();
+        edges_[hypernode(pin).begin() + hypernode(pin).size()] = i;
+        hypernode(pin).increase_size();
       }
     }    
   }
@@ -73,12 +74,12 @@ class Hypergraph{
   // ToDo: add a "pretty print" function...
   void DEBUG_print() {
     for (HyperEdgeID i = 0; i < num_hyperedges_; ++i) {
-          PRINT("hyperedge " << i << ": begin=" << hyperedges_[i].begin() << " size="
-                << hyperedges_[i].size() << " weight=" << hyperedges_[i].weight());
+      PRINT("hyperedge " << i << ": begin=" << hyperedge(i).begin() << " size="
+            << hyperedge(i).size() << " weight=" << hyperedge(i).weight());
     }
     for (HyperNodeID i = 0; i < num_hypernodes_; ++i) {
-      PRINT("hypernode " << i << ": begin=" << hypernodes_[i].begin() << " size="
-            << hypernodes_[i].size()  << " weight=" << hypernodes_[i].weight());
+      PRINT("hypernode " << i << ": begin=" << hypernode(i).begin() << " size="
+            << hypernode(i).size()  << " weight=" << hypernode(i).weight());
     }
     for (VertexID i = 0; i < edges_.size(); ++i) {
       PRINT("edges_[" << i <<"]=" << edges_[i]);
@@ -87,7 +88,7 @@ class Hypergraph{
 
   // ToDo: This method should return a memento to reconstruct the changes!
   void Contract(HyperNodeID hn_handle_u, HyperNodeID hn_handle_v) {
-    ASSERT(!hypernodes_[hn_handle_u].isInvalid() && !hypernodes_[hn_handle_v].isInvalid(),
+    ASSERT(!hypernode(hn_handle_u).isInvalid() && !hypernode(hn_handle_v).isInvalid(),
            "Hypernode is invalid!");
     HyperNode &u = hypernode(hn_handle_u);
     HyperNode &v = hypernode(hn_handle_v);
@@ -121,7 +122,7 @@ class Hypergraph{
       if (edge_to_u != w_end) {
         // u and v are contained in the same hyperedge. therefore we don't need to update u and
         // can just cut off the last entry!
-        hyperedges_[*he_it].decrease_size();
+        hyperedge(*he_it).decrease_size();
       } else {
         // otherwise we have to add a new edge between hypernode vertex u and hyperedge vertex w
         // we reuse the slot of v in w, to make the corresponding connection from hyperedge PoV
@@ -135,8 +136,8 @@ class Hypergraph{
 }
 
   void Disconnect(HyperNodeID hn_handle, HyperEdgeID he_handle) {
-    ASSERT(!hypernodes_[hn_handle].isInvalid(),"Hypernode is invalid!");
-    ASSERT(!hyperedges_[he_handle].isInvalid(),"Hyperedge is invalid!");
+    ASSERT(!hypernode(hn_handle).isInvalid(),"Hypernode is invalid!");
+    ASSERT(!hyperedge(he_handle).isInvalid(),"Hyperedge is invalid!");
     ASSERT(std::count(edges_.begin() + hypernode(hn_handle).begin(),
                       edges_.begin() + hypernode(hn_handle).begin() +
                       hypernode(hn_handle).size(), he_handle) == 1,
@@ -345,7 +346,7 @@ class Hypergraph{
   }
 
   inline const HyperNode& hypernode(HyperNodeID id) const{
-    ASSERT(id < num_hypernodes_, "Hypernode does not exist");
+    ASSERT(id < num_hypernodes_, "Hypernode " << id << " does not exist");
     return hypernodes_[id];
   }
 
