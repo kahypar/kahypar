@@ -172,9 +172,9 @@ class Hypergraph{
     --current_num_hyperedges_;
   }
 
-  /* ToDo: Design operations a la GetAdjacentHypernodes GetIncidentHyperedges */
+  // ToDo: Design operations a la GetAdjacentHypernodes GetIncidentHyperedges
 
-  /* Accessors and mutators */
+  // Accessors and mutators
   inline HyperEdgeID hypernode_degree(HyperNodeID hn_handle) const {
     ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");    
     return hypernode(hn_handle).size();
