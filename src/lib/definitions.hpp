@@ -1,6 +1,8 @@
 #ifndef DEFINITIONS_HPP_
 #define DEFINITIONS_HPP_
 
+#include <vector>
+
 typedef unsigned int HyperNodeID;
 typedef unsigned int HyperEdgeID;
 typedef unsigned int HyperNodeWeight;
