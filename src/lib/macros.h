@@ -1,5 +1,5 @@
-#ifndef MACROS_HPP_
-#define MACROS_HPP_
+#ifndef MACROS_H_
+#define MACROS_H_
 
 #ifndef NDEBUG
 #define USE_ASSERTIONS
@@ -37,4 +37,4 @@
 #endif
 
 
-#endif  // MACROS_HPP_
+#endif  // MACROS_H_

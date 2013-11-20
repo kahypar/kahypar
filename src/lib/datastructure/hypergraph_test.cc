@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "../definitions.hpp"
-#include "hypergraph.hpp"
+#include "../definitions.h"
+#include "hypergraph.h"
 
 int main(int, char**) {
 

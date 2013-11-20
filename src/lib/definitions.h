@@ -1,5 +1,5 @@
-#ifndef DEFINITIONS_HPP_
-#define DEFINITIONS_HPP_
+#ifndef DEFINITIONS_H_
+#define DEFINITIONS_H_
 
 #include <vector>
 
@@ -13,4 +13,4 @@ typedef unsigned int PartitionID;
 typedef std::vector<size_t> hMetisHyperEdgeIndexVector;
 typedef std::vector<HyperNodeID> hMetisHyperEdgeVector;
 
-#endif  // DEFINITIONS_HPP_
+#endif  // DEFINITIONS_H_
