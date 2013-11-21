@@ -95,16 +95,18 @@ class Hypergraph{
   typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
   typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
 
-  class HypernodeIterator : public std::vector<HyperNode>::iterator {
-    typedef typename std::vector<HyperNode>::iterator Base;
-    typedef typename HyperNode::IDType IDType;
+  template <typename VertexType>
+  class VertexIterator : public std::vector<VertexType>::iterator {
+    typedef typename std::vector<VertexType>::iterator Base;
+    typedef VertexIterator<VertexType> Self;
+    typedef typename VertexType::IDType IDType;
    public:
-    HypernodeIterator() :
+    VertexIterator() :
         Base(),
         id_(0),
         max_id_(0) {}
 
-    HypernodeIterator(const Base &base, IDType id, IDType max_id) :
+    VertexIterator(const Base &base, IDType id, IDType max_id) :
         Base(base),
         id_(id),
         max_id_(max_id) {
@@ -117,7 +119,7 @@ class Hypergraph{
       return id_;
     }
 
-    HypernodeIterator& operator++() {
+    Self& operator++() {
       ASSERT(id_ < max_id_, "Hypernode iterator out of bounds");
       do {
         Base::operator++();
@@ -126,13 +128,13 @@ class Hypergraph{
       return *this;
     }
 
-    HypernodeIterator operator++(int) {
-      HypernodeIterator copy = *this;
+    Self operator++(int) {
+      Self copy = *this;
       this->operator++();
       return copy;
     }
 
-    HypernodeIterator& operator--() {
+    Self& operator--() {
       ASSERT(id_ > 0, "Hypernode iterator out of bounds");
       do {
         Base::operator--();
@@ -141,10 +143,14 @@ class Hypergraph{
       return *this;
     }
 
-    HypernodeIterator operator--(int) {
-      HypernodeIterator copy = *this;
+    Self operator--(int) {
+      Self copy = *this;
       this->operator--();
       return copy;
+    }
+
+    bool operator!=(const Self& rhs) {
+      return id_ != rhs.id_;
     }
     
    private:
@@ -158,7 +164,8 @@ class Hypergraph{
   typedef _HyperNodeWeightType HyperNodeWeight;
   typedef _HyperEdgeWeightType HyperEdgeWeight;
   typedef typename std::vector<VertexID>::const_iterator const_incidence_iterator;
-  typedef HypernodeIterator const_hypernode_iterator;
+  typedef VertexIterator<HyperNode> const_hypernode_iterator;
+  typedef VertexIterator<HyperEdge> const_hyperedge_iterator;
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
@@ -231,8 +238,9 @@ class Hypergraph{
 
   inline std::pair<const_hypernode_iterator, const_hypernode_iterator>
   GetAllHypernodes() {
-    return std::make_pair(HypernodeIterator(hypernodes_.begin(), 0, num_hypernodes_),
-                          HypernodeIterator());
+    return std::make_pair(const_hypernode_iterator(hypernodes_.begin(), 0, num_hypernodes_),
+                          const_hypernode_iterator(hypernodes_.begin(), num_hypernodes_,
+                                                   num_hypernodes_));
   }
   
   // ToDo: This method should return a memento to reconstruct the changes!

@@ -13,6 +13,7 @@ class AHypergraph : public Test {
  public:
   typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
   typedef typename HypergraphType::const_incidence_iterator ConstIncidenceIterator;
+  typedef typename HypergraphType::const_hypernode_iterator ConstHypernodeIterator;
   
   AHypergraph() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
@@ -201,6 +202,18 @@ TEST_F(AHypergraph, AllowsIterationOverPinsOfHyperedge) {
     ASSERT_THAT(*iter, Eq(*(hypergraph.incidence_array_.begin() + hypergraph.hyperedge(1).begin() + i)));
     ++i;
   }
+}
+
+TEST_F(AHypergraph, AllowsIterationOverAllHypernodes) {
+  ConstHypernodeIterator begin;
+  ConstHypernodeIterator end;
+  std::tie(begin, end) = hypergraph.GetAllHypernodes();
+  int i = 0;
+  for (ConstHypernodeIterator iter = begin; iter != end; ++iter) {
+    ASSERT_THAT(*iter, Eq(i));
+    ++i;
+  }
+  ASSERT_THAT(i, Eq(7));
 }
 
 TEST_F(AHypernodeIterator, StartsWithFirstHypernodeOnIteration) {
