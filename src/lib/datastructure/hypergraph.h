@@ -220,9 +220,13 @@ class Hypergraph{
   }
   
  private:
-  FRIEND_TEST(HypergraphTest, RemovesHypernodes);
-  FRIEND_TEST(HypergraphTest, InitializesInternalHypergraphRepresentation);
-  FRIEND_TEST(HypergraphTest, DisconnectsHypernodeFromHyperedge);
+  FRIEND_TEST(AHypergraph, InitializesInternalHypergraphRepresentation);
+  FRIEND_TEST(AHypergraph, DisconnectsHypernodeFromHyperedge);
+  FRIEND_TEST(AHypergraph, InvalidatesRemovedHypernode);  
+  FRIEND_TEST(AHypergraph, RemovesHyperedges);
+  FRIEND_TEST(AHypergraph, InvalidatesRemovedHyperedge);
+  FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
+  FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
   
   typedef unsigned int VertexID;
   
