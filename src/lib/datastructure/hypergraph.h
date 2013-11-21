@@ -5,7 +5,6 @@
 #include <limits>
 #include <algorithm>
 
-#include "../definitions.h"
 #include "../macros.h"
 
 namespace hgr {
@@ -25,11 +24,83 @@ namespace hgr {
 template <typename _HyperNodeType, typename _HyperEdgeType,
           typename _HyperNodeWeightType, typename _HyperEdgeWeightType>
 class Hypergraph{
+ private:
+  typedef unsigned int VertexID;
+  // Iterators that abstract away the duality of entries in the edge_ array.
+  // For hypernodes, the entries correspond to the handles of the incident hyperedges.
+  // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
+  // Outside the Hypergraph class, both are represented by const_incidence_iterator
+  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
+  typedef typename std::vector<VertexID>::iterator HeHandleIterator;
+  
+  template <typename VertexTypeTraits>
+  class InternalVertex {
+   public:
+    typedef typename VertexTypeTraits::WeightType WeightType;
+    typedef typename VertexTypeTraits::IDType IDType;
+
+    InternalVertex(IDType begin, IDType size,
+                   WeightType weight) :
+        begin_(begin),
+        size_(size),
+        weight_(weight) {}
+
+    InternalVertex() :
+        begin_(0),
+        size_(0),
+        weight_(0) {}
+    
+    inline void Invalidate() {
+      ASSERT(!isInvalid(), "Vertex is already invalidated");
+      begin_ = std::numeric_limits<VertexID>::max();
+    }
+
+    inline bool isInvalid() const {
+      return begin_ == std::numeric_limits<VertexID>::max();
+    }
+
+    inline IDType begin() const { return begin_; }
+    inline void set_begin(IDType begin) { begin_ = begin; }
+
+    inline IDType size() const { return size_; }
+    inline void set_size(IDType size) { size_ = size; }
+    inline void increase_size() { ++size_; }
+    inline void decrease_size() {
+      ASSERT(size_ > 0, "Size out of bounds");
+      --size_;
+      if (size_ == 0) { Invalidate(); }
+    }
+    
+    inline WeightType weight() const { return weight_; }
+    inline void set_weight(WeightType weight) { weight_ = weight; }
+    
+   private:
+    IDType begin_;
+    IDType size_;
+    WeightType weight_;
+  };
+
+  struct HyperNodeTraits {
+    typedef HyperNodeWeight WeightType;
+    typedef HyperNodeID IDType;
+  };
+    
+  struct HyperEdgeTraits {
+    typedef HyperNodeWeight WeightType;
+    typedef HyperEdgeID IDType;
+  };
+  
+  typedef InternalVertex<HyperNodeTraits> HyperNode;
+  typedef InternalVertex<HyperEdgeTraits> HyperEdge;
+  typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
+  typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
+  
  public:
   typedef _HyperNodeType HyperNodeID;
   typedef _HyperEdgeType HyperEdgeID;
   typedef _HyperNodeWeightType HyperNodeWeight;
   typedef _HyperEdgeWeightType HyperEdgeWeight;
+  typedef typename std::vector<VertexID>::const_iterator const_incidence_iterator;
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
@@ -84,6 +155,20 @@ class Hypergraph{
     for (VertexID i = 0; i < edges_.size(); ++i) {
       PRINT("edges_[" << i <<"]=" << edges_[i]);
     }
+  }
+
+  inline std::pair<const_incidence_iterator, const_incidence_iterator>
+  GetIncidentHyperedges(HyperNodeID hn_handle) const {
+    return std::make_pair(edges_.begin() + hypernode(hn_handle).begin(),
+                          edges_.begin() + hypernode(hn_handle).begin() +
+                          hypernode(hn_handle).size());
+  }
+
+  inline std::pair<const_incidence_iterator, const_incidence_iterator>
+  GetPins(HyperEdgeID he_handle) const {
+    return std::make_pair(edges_.begin() + hyperedge(he_handle).begin(),
+                          edges_.begin() + hyperedge(he_handle).begin() +
+                          hyperedge(he_handle).size());
   }
 
   // ToDo: This method should return a memento to reconstruct the changes!
@@ -167,8 +252,6 @@ class Hypergraph{
     --current_num_hyperedges_;
   }
 
-  // ToDo: Design operations a la GetAdjacentHypernodes GetIncidentHyperedges
-
   // Accessors and mutators
   inline HyperEdgeID hypernode_degree(HyperNodeID hn_handle) const {
     ASSERT(!hypernode(hn_handle).isInvalid(), "Invalid HypernodeID");    
@@ -223,76 +306,9 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
   FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
-  
-  typedef unsigned int VertexID;
-  
-  template <typename VertexTypeTraits>
-  class InternalVertex {
-   public:
-    typedef typename VertexTypeTraits::WeightType WeightType;
-
-    InternalVertex(VertexID begin, VertexID size,
-                   WeightType weight) :
-        begin_(begin),
-        size_(size),
-        weight_(weight) {}
-
-    InternalVertex() :
-        begin_(0),
-        size_(0),
-        weight_(0) {}
-    
-    inline void Invalidate() {
-      ASSERT(!isInvalid(), "Vertex is already invalidated");
-      begin_ = std::numeric_limits<VertexID>::max();
-    }
-
-    inline bool isInvalid() const {
-      return begin_ == std::numeric_limits<VertexID>::max();
-    }
-
-    inline VertexID begin() const { return begin_; }
-    inline void set_begin(VertexID begin) { begin_ = begin; }
-
-    inline VertexID size() const { return size_; }
-    inline void set_size(VertexID size) { size_ = size; }
-    inline void increase_size() { ++size_; }
-    inline void decrease_size() {
-      ASSERT(size_ > 0, "Size out of bounds");
-      --size_;
-      if (size_ == 0) { Invalidate(); }
-    }
-    
-    inline WeightType weight() const { return weight_; }
-    inline void set_weight(WeightType weight) { weight_ = weight; }
-    
-   private:
-    VertexID begin_;
-    VertexID size_;
-    WeightType weight_;
-  };
-
-  struct HyperNodeTraits {
-    typedef HyperNodeWeight WeightType;    
-  };
-    
-  struct HyperEdgeTraits {
-    typedef HyperNodeWeight WeightType;    
-  };
-
-  typedef InternalVertex<HyperNodeTraits> HyperNode;
-  typedef InternalVertex<HyperEdgeTraits> HyperEdge;
-  typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
-  typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
-  typedef typename std::vector<VertexID>::size_type DegreeSizeType;
-  typedef typename std::vector<HyperNode>::iterator HyperNodeIterator; // ToDo: make own iterator
-  typedef typename std::vector<HyperEdge>::iterator HyperEdgeIterator; // ToDo: make own iterator
-
-  // Iterators that abstract away the duality of entries in the edge_ array.
-  // For hypernodes, the entries correspond to the handles of the incident hyperedges.
-  // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
-  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
-  typedef typename std::vector<VertexID>::iterator HeHandleIterator;
+  FRIEND_TEST(AHypergraph, AllowsIterationOverIncidentHyperedges);
+  FRIEND_TEST(AHypergraph, AllowsIterationOverPinsOfHyperedge);
+  FRIEND_TEST(AHypergraph, AllowsIterationOverAllValidHypernodes);
 
   template <typename T>
   inline void ClearVertex(VertexID vertex, T& container) {

@@ -15,8 +15,9 @@ class AHypergraph : public ::testing::Test {
                  hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {
   }
 
-  hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> hypergraph;
-  
+  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+  typedef typename HypergraphType::const_incidence_iterator ConstIncidenceIterator;
+  HypergraphType hypergraph;
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
@@ -162,6 +163,26 @@ TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
   EXPECT_THAT(hypergraph.hyperedge_size(0), Eq(2));
   hypergraph.Contract(0,2);
   ASSERT_THAT(hypergraph.hyperedge_size(0), Eq(1));
+}
+
+TEST_F(AHypergraph, AllowsIterationOverIncidentHyperedges) {
+  ConstIncidenceIterator begin, end;
+  std::tie(begin, end) = hypergraph.GetIncidentHyperedges(3);
+  int i = 0;
+  for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
+    ASSERT_THAT(*iter, Eq(*(hypergraph.edges_.begin() + hypergraph.hypernode(3).begin() + i)));
+    ++i;
+  }
+}
+
+TEST_F(AHypergraph, AllowsIterationOverPinsOfHyperedge) {
+  ConstIncidenceIterator begin, end;
+  std::tie(begin, end) = hypergraph.GetPins(1);
+  int i = 0;
+  for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
+    ASSERT_THAT(*iter, Eq(*(hypergraph.edges_.begin() + hypergraph.hyperedge(1).begin() + i)));
+    ++i;
+  }
 }
 
 } // namespace hgr
