@@ -48,12 +48,12 @@ TEST_F(AHypergraph, ReturnsHyperEdgeSize) {
 
 TEST_F(AHypergraph, SetsAndGetsHyperNodeWeight) {
   hypergraph.set_hypernode_weight(0, 42);
-  ASSERT_THAT(hypergraph.hypernode_weight(0), ::testing::Eq(42));
+  ASSERT_THAT(hypergraph.hypernode_weight(0), Eq(42));
 }
 
 TEST_F(AHypergraph, SetsAndGetsHyperEdgeWeight) {
   hypergraph.set_hyperedge_weight(1, 23);
-  ASSERT_THAT(hypergraph.hyperedge_weight(1), ::testing::Eq(23));
+  ASSERT_THAT(hypergraph.hyperedge_weight(1), Eq(23));
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfHypernodes) {
