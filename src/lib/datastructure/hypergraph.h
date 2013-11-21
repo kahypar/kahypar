@@ -11,13 +11,13 @@
 namespace hgr {
 
 #define forall_incident_hyperedges(he,hn) \
-  for (HyperNodesSizeType i = hypernodes_[hn].begin(), \
-                        end = hypernodes_[hn].begin() + hypernodes_[hn].size(); i < end; ++i) { \
+  for (HyperNodesSizeType i = hypernode(hn).begin(),                    \
+                        end = hypernode(hn).begin() + hypernode(hn).size(); i < end; ++i) { \
   HyperEdgeID he = edges_[i];
 
 #define forall_pins(hn,he) \
-  for (HyperEdgesSizeType j = hyperedges_[he].begin(), \
-                        end = hyperedges_[he].begin() + hyperedges_[he].size(); j < end; ++j) { \
+  for (HyperEdgesSizeType j = hyperedge(he).begin(),                    \
+                        end = hyperedge(he).begin() + hyperedge(he).size(); j < end; ++j) { \
   HyperNodeID hn = edges_[j];
 
 #define endfor }
@@ -88,47 +88,42 @@ class Hypergraph{
 
   // ToDo: This method should return a memento to reconstruct the changes!
   void Contract(HyperNodeID hn_handle_u, HyperNodeID hn_handle_v) {
-    ASSERT(!hypernode(hn_handle_u).isInvalid() && !hypernode(hn_handle_v).isInvalid(),
-           "Hypernode is invalid!");
-    HyperNode &u = hypernode(hn_handle_u);
-    HyperNode &v = hypernode(hn_handle_v);
-
-    u.set_weight(u.weight() + v.weight());
+    using std::swap;
     
-    EdgeIterator edge_to_u;
-    EdgeIterator w_end;
-    EdgeIterator he_it_begin, he_it_end;
-    std::tie(he_it_begin, he_it_end) = HyperEdges(hn_handle_v);
-    for (EdgeIterator he_it = he_it_begin; he_it != he_it_end; ++he_it) {
-      PRINT("Analyzing HE " << *he_it);
+    ASSERT(!hypernode(hn_handle_u).isInvalid(),"Hypernode " << hn_handle_u << " is invalid!");
+    ASSERT(!hypernode(hn_handle_v).isInvalid(),"Hypernode " << hn_handle_v << " is invalid!");
 
-      EdgeIterator pin_it_begin, pin_it_end;
-      std::tie(pin_it_begin, pin_it_end) = Pins(*he_it);
-      ASSERT(pin_it_begin != pin_it_end, "Hyperedge " << *he_it << " is empty");
-      --pin_it_end;
-      edge_to_u = w_end = pin_it_end;
-      for (EdgeIterator pin_it = pin_it_begin; pin_it != pin_it_end; ++pin_it) {
-        if (*pin_it == hn_handle_v) {
-          PRINT("swapped");
-          std::swap(*pin_it, *w_end);
-          --pin_it;
-        } else if (*pin_it == hn_handle_u) {
-          edge_to_u = pin_it;
-          PRINT("Found " << hn_handle_u << " in Hyperedge " << *he_it << " on Pos "
-                << std::distance(edges_.begin(), pin_it));
+    hypernode(hn_handle_u).set_weight(hypernode(hn_handle_u).weight() +
+                                      hypernode(hn_handle_v).weight());
+    
+    PinHandleIterator slot_of_u, last_pin_slot;
+    PinHandleIterator pins_begin, pins_end;
+    HeHandleIterator hes_begin, hes_end;
+    std::tie(hes_begin, hes_end) = HandlesOfIncidentHyperEdges(hn_handle_v);
+    for (HeHandleIterator he_iter = hes_begin; he_iter != hes_end; ++he_iter) {
+      std::tie(pins_begin, pins_end) = HandlesOfPins(*he_iter);
+      ASSERT(pins_begin != pins_end, "Hyperedge " << *he_iter << " is empty");
+      slot_of_u = last_pin_slot = pins_end - 1;
+      for (PinHandleIterator pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
+        if (*pin_iter == hn_handle_v) {
+          swap(*pin_iter, *last_pin_slot);
+          --pin_iter;
+        } else if (*pin_iter == hn_handle_u) {
+          slot_of_u = pin_iter;
         }
       }
-      ASSERT(*w_end == hn_handle_v, "v is not last entry in adjacency array!");
-      if (edge_to_u != w_end) {
-        // u and v are contained in the same hyperedge. therefore we don't need to update u and
-        // can just cut off the last entry!
-        hyperedge(*he_it).decrease_size();
+      ASSERT(*last_pin_slot == hn_handle_v, "v is not last entry in adjacency array!");
+
+      if (slot_of_u != last_pin_slot) {
+        // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
+        // can just cut off the last entry in the edge array of e that now contains v.
+        hyperedge(*he_iter).decrease_size();
       } else {
-        // otherwise we have to add a new edge between hypernode vertex u and hyperedge vertex w
-        // we reuse the slot of v in w, to make the corresponding connection from hyperedge PoV
-        // and add a new edge (u,w) to establish the connection from hypernode PoV
-        *w_end = hn_handle_u;
-        AddEdge(hn_handle_u, *he_it);
+        // Hyperedge e does not contain u. Therefore we use the entry of v in e's edge array to
+        // store the information that u is now connected to e and add the edge (u,e) to indicate
+        // this conection also from the hypernode's point of view.
+        *last_pin_slot = hn_handle_u;
+        AddEdge(hn_handle_u, *he_iter);
       }
     }
     ClearVertex(hn_handle_v, hypernodes_);
@@ -287,12 +282,17 @@ class Hypergraph{
 
   typedef InternalVertex<HyperNodeTraits> HyperNode;
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
-  typedef typename std::vector<HyperNode>::iterator HyperNodeIterator; // ToDo: make own iterator
-  typedef typename std::vector<HyperEdge>::iterator HyperEdgeIterator; // ToDo: make own iterator
-  typedef typename std::vector<VertexID>::iterator EdgeIterator;
   typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
   typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
   typedef typename std::vector<VertexID>::size_type DegreeSizeType;
+  typedef typename std::vector<HyperNode>::iterator HyperNodeIterator; // ToDo: make own iterator
+  typedef typename std::vector<HyperEdge>::iterator HyperEdgeIterator; // ToDo: make own iterator
+
+  // Iterators that abstract away the duality of entries in the edge_ array.
+  // For hypernodes, the entries correspond to the handles of the incident hyperedges.
+  // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
+  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
+  typedef typename std::vector<VertexID>::iterator HeHandleIterator;
 
   template <typename T>
   inline void ClearVertex(VertexID vertex, T& container) {
@@ -328,6 +328,7 @@ class Hypergraph{
   template <typename Handle1, typename Handle2, typename Container >
   inline void RemoveEdge(Handle1 u, Handle2 v, Container& container) {
    typename Container::reference &vertex = container[u];
+   typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
     
     EdgeIterator begin = edges_.begin() + vertex.begin();
@@ -339,22 +340,26 @@ class Hypergraph{
     std::swap(*begin, *last_entry);
     vertex.decrease_size();    
   }
-
-  inline std::pair<EdgeIterator, EdgeIterator> HyperEdges(HyperNodeID v) {
-    return std::make_pair(edges_.begin() + hypernodes_[v].begin(),
-                          edges_.begin() + hypernodes_[v].begin() + hypernodes_[v].size());
+  
+  // Accessor for handles of incident hyperedges of a hypernode
+  inline std::pair<HeHandleIterator, HeHandleIterator> HandlesOfIncidentHyperEdges(HyperNodeID v) {
+    return std::make_pair(edges_.begin() + hypernode(v).begin(),
+                          edges_.begin() + hypernode(v).begin() + hypernode(v).size());
   }
 
-  inline std::pair<EdgeIterator, EdgeIterator> Pins(HyperEdgeID v) {
-    return std::make_pair(edges_.begin() + hyperedges_[v].begin(),
-                          edges_.begin() + hyperedges_[v].begin() + hyperedges_[v].size());
+  // Accessor for handles of hypernodes contained in hyperedge (aka pins)
+  inline std::pair<PinHandleIterator, PinHandleIterator> HandlesOfPins(HyperEdgeID v) {
+    return std::make_pair(edges_.begin() + hyperedge(v).begin(),
+                          edges_.begin() + hyperedge(v).begin() + hyperedge(v).size());
   }
 
+  // Accessor for hypernode-related information
   inline const HyperNode& hypernode(HyperNodeID id) const{
     ASSERT(id < num_hypernodes_, "Hypernode " << id << " does not exist");
     return hypernodes_[id];
   }
 
+  // Accessor for hyperedge-related information
   inline const HyperEdge& hyperedge(HyperEdgeID id) const {
     ASSERT(id < num_hyperedges_, "Hyperedge does not exist");
     return hyperedges_[id];
