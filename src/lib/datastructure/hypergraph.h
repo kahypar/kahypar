@@ -99,9 +99,9 @@ class Hypergraph{
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
     HeHandleIterator hes_begin, hes_end;
-    std::tie(hes_begin, hes_end) = HandlesOfIncidentHyperEdges(hn_handle_v);
+    std::tie(hes_begin, hes_end) = GetHandlesOfIncidentHyperEdges(hn_handle_v);
     for (HeHandleIterator he_iter = hes_begin; he_iter != hes_end; ++he_iter) {
-      std::tie(pins_begin, pins_end) = HandlesOfPins(*he_iter);
+      std::tie(pins_begin, pins_end) = GetHandlesOfPins(*he_iter);
       ASSERT(pins_begin != pins_end, "Hyperedge " << *he_iter << " is empty");
       slot_of_u = last_pin_slot = pins_end - 1;
       for (PinHandleIterator pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
@@ -342,13 +342,13 @@ class Hypergraph{
   }
   
   // Accessor for handles of incident hyperedges of a hypernode
-  inline std::pair<HeHandleIterator, HeHandleIterator> HandlesOfIncidentHyperEdges(HyperNodeID v) {
+  inline std::pair<HeHandleIterator, HeHandleIterator> GetHandlesOfIncidentHyperEdges(HyperNodeID v) {
     return std::make_pair(edges_.begin() + hypernode(v).begin(),
                           edges_.begin() + hypernode(v).begin() + hypernode(v).size());
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
-  inline std::pair<PinHandleIterator, PinHandleIterator> HandlesOfPins(HyperEdgeID v) {
+  inline std::pair<PinHandleIterator, PinHandleIterator> GetHandlesOfPins(HyperEdgeID v) {
     return std::make_pair(edges_.begin() + hyperedge(v).begin(),
                           edges_.begin() + hyperedge(v).begin() + hyperedge(v).size());
   }
