@@ -227,6 +227,7 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, InvalidatesRemovedHyperedge);
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
+  FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
   
   typedef unsigned int VertexID;
   

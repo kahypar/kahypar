@@ -71,45 +71,45 @@ TEST_F(AHypergraph, ReturnsNumberOfPins) {
 TEST_F(AHypergraph, DecrementsNumberOfHypernodesOnHypernodeRemoval) {
   EXPECT_THAT(hypergraph.number_of_hypernodes(), Eq(7));
   hypergraph.RemoveHyperNode(6);
-  EXPECT_THAT(hypergraph.number_of_hypernodes(), Eq(6));
+  ASSERT_THAT(hypergraph.number_of_hypernodes(), Eq(6));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHypernodeRemoval) {
   EXPECT_THAT(hypergraph.number_of_pins(), Eq(12));
   hypergraph.RemoveHyperNode(6);
-  EXPECT_THAT(hypergraph.number_of_pins(), Eq(10));
+  ASSERT_THAT(hypergraph.number_of_pins(), Eq(10));
 }
 
 TEST_F(AHypergraph, DecrementsSizeOfAffectedHyperedgesOnHypernodeRemoval) {
  EXPECT_THAT(hypergraph.hyperedge_size(3), Eq(3));
  EXPECT_THAT(hypergraph.hyperedge_size(2), Eq(3));
  hypergraph.RemoveHyperNode(6);
- EXPECT_THAT(hypergraph.hyperedge_size(3), Eq(2));
- EXPECT_THAT(hypergraph.hyperedge_size(2), Eq(2));
+ ASSERT_THAT(hypergraph.hyperedge_size(3), Eq(2));
+ ASSERT_THAT(hypergraph.hyperedge_size(2), Eq(2));
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHypernode) {  
   EXPECT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(false));
   hypergraph.RemoveHyperNode(6);
-  EXPECT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(true));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
   EXPECT_THAT(hypergraph.number_of_hyperedges(), Eq(4));
   hypergraph.RemoveHyperEdge(2);
-  EXPECT_THAT(hypergraph.number_of_hyperedges(), Eq(3));
+  ASSERT_THAT(hypergraph.number_of_hyperedges(), Eq(3));
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
   EXPECT_THAT(hypergraph.hyperedge(2).isInvalid(), Eq(false));
   hypergraph.RemoveHyperEdge(2);
-  EXPECT_THAT(hypergraph.hyperedge(2).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hyperedge(2).isInvalid(), Eq(true));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHyperedgeRemoval) {
   EXPECT_THAT(hypergraph.number_of_pins(), Eq(12));
   hypergraph.RemoveHyperEdge(2);
-  EXPECT_THAT(hypergraph.number_of_pins(), Eq(9));
+  ASSERT_THAT(hypergraph.number_of_pins(), Eq(9));
 }
 
 TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval) {
@@ -117,27 +117,51 @@ TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemo
   EXPECT_THAT(hypergraph.hypernode(4).size(), Eq(2));
   EXPECT_THAT(hypergraph.hypernode(6).size(), Eq(2));
   hypergraph.RemoveHyperEdge(2);
-  EXPECT_THAT(hypergraph.hypernode(3).size(), Eq(1));
-  EXPECT_THAT(hypergraph.hypernode(4).size(), Eq(1));
-  EXPECT_THAT(hypergraph.hypernode(6).size(), Eq(1));
+  ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(1));
+  ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(1));
+  ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(1));
 }
 
 TEST_F(AHypergraph, DecrementsHypernodeDegreeAfterDisconnectingAHypernodeFromHyperedge) {
   EXPECT_THAT(hypergraph.hypernode_degree(4), Eq(2));
   hypergraph.Disconnect(4, 2);
-  EXPECT_THAT(hypergraph.hypernode_degree(4), Eq(1));
+  ASSERT_THAT(hypergraph.hypernode_degree(4), Eq(1));
 }
 
 TEST_F(AHypergraph, DecrementsHyperedgeSizeAfterDisconnectingAHypernodeFromHyperedge) {
   EXPECT_THAT(hypergraph.hyperedge_size(2), Eq(3));
   hypergraph.Disconnect(4, 2);
-  EXPECT_THAT(hypergraph.hyperedge_size(2), Eq(2));
+  ASSERT_THAT(hypergraph.hyperedge_size(2), Eq(2));
 }
 
 TEST_F(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge) {
   EXPECT_THAT(hypergraph.hypernode(4).isInvalid(), Eq(false));
   hypergraph.Disconnect(4, 2);
-  EXPECT_THAT(hypergraph.hypernode(4).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernode(4).isInvalid(), Eq(false));
+}
+
+TEST_F(AHypergraph, InvalidatesContractedHypernode) {
+  EXPECT_THAT(hypergraph.hypernode(2).isInvalid(), Eq(false));
+  hypergraph.Contract(0,2);
+  ASSERT_THAT(hypergraph.hypernode(2).isInvalid(), Eq(true));
+}
+
+TEST_F(AHypergraph, RelinksHyperedgesOfContractedHypernodeToRepresentative) {
+  EXPECT_THAT(hypergraph.hypernode_degree(0), Eq(2));
+  hypergraph.Contract(0,2);
+  ASSERT_THAT(hypergraph.hypernode_degree(0), Eq(3));
+}
+
+TEST_F(AHypergraph, AddsHypernodeWeightOfContractedNodeToRepresentative) {
+  EXPECT_THAT(hypergraph.hypernode_weight(0), Eq(1));
+  hypergraph.Contract(0,2);
+  ASSERT_THAT(hypergraph.hypernode_weight(0), Eq(2));
+}
+
+TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
+  EXPECT_THAT(hypergraph.hyperedge_size(0), Eq(2));
+  hypergraph.Contract(0,2);
+  ASSERT_THAT(hypergraph.hyperedge_size(0), Eq(1));
 }
 
 } // namespace hgr
