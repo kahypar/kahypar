@@ -170,7 +170,7 @@ TEST_F(AHypergraph, AllowsIterationOverIncidentHyperedges) {
   std::tie(begin, end) = hypergraph.GetIncidentHyperedges(3);
   int i = 0;
   for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(*(hypergraph.edges_.begin() + hypergraph.hypernode(3).begin() + i)));
+    ASSERT_THAT(*iter, Eq(*(hypergraph.incidence_array_.begin() + hypergraph.hypernode(3).begin() + i)));
     ++i;
   }
 }
@@ -180,7 +180,7 @@ TEST_F(AHypergraph, AllowsIterationOverPinsOfHyperedge) {
   std::tie(begin, end) = hypergraph.GetPins(1);
   int i = 0;
   for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(*(hypergraph.edges_.begin() + hypergraph.hyperedge(1).begin() + i)));
+    ASSERT_THAT(*iter, Eq(*(hypergraph.incidence_array_.begin() + hypergraph.hyperedge(1).begin() + i)));
     ++i;
   }
 }

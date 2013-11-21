@@ -12,12 +12,12 @@ namespace hgr {
 #define forall_incident_hyperedges(he,hn) \
   for (HyperNodesSizeType i = hypernode(hn).begin(),                    \
                         end = hypernode(hn).begin() + hypernode(hn).size(); i < end; ++i) { \
-  HyperEdgeID he = edges_[i];
+  HyperEdgeID he = incidence_array_[i];
 
 #define forall_pins(hn,he) \
   for (HyperEdgesSizeType j = hyperedge(he).begin(),                    \
                         end = hyperedge(he).begin() + hyperedge(he).size(); j < end; ++j) { \
-  HyperNodeID hn = edges_[j];
+  HyperNodeID hn = incidence_array_[j];
 
 #define endfor }
 
@@ -113,14 +113,14 @@ class Hypergraph{
       current_num_pins_(num_pins_),
       hypernodes_(num_hypernodes_, HyperNode(0,0,1)),
       hyperedges_(num_hyperedges_, HyperEdge(0,0,1)),
-      edges_(2 * num_pins_,0) {
+      incidence_array_(2 * num_pins_,0) {
 
     VertexID edge_vector_index = 0;
     for (HyperEdgeID i = 0; i < num_hyperedges_; ++i) {
       hyperedge(i).set_begin(edge_vector_index);
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         hyperedge(i).increase_size();
-        edges_[pin_index] = edge_vector[pin_index];
+        incidence_array_[pin_index] = edge_vector[pin_index];
         hypernode(edge_vector[pin_index]).increase_size();
         ++edge_vector_index;
       }
@@ -136,7 +136,7 @@ class Hypergraph{
     for (HyperEdgeID i = 0; i < num_hyperedges_; ++i) {
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         HyperNodeID pin = edge_vector[pin_index];
-        edges_[hypernode(pin).begin() + hypernode(pin).size()] = i;
+        incidence_array_[hypernode(pin).begin() + hypernode(pin).size()] = i;
         hypernode(pin).increase_size();
       }
     }    
@@ -152,22 +152,22 @@ class Hypergraph{
       PRINT("hypernode " << i << ": begin=" << hypernode(i).begin() << " size="
             << hypernode(i).size()  << " weight=" << hypernode(i).weight());
     }
-    for (VertexID i = 0; i < edges_.size(); ++i) {
-      PRINT("edges_[" << i <<"]=" << edges_[i]);
+    for (VertexID i = 0; i < incidence_array_.size(); ++i) {
+      PRINT("incidence_array_[" << i <<"]=" << incidence_array_[i]);
     }
   }
 
   inline std::pair<const_incidence_iterator, const_incidence_iterator>
   GetIncidentHyperedges(HyperNodeID hn_handle) const {
-    return std::make_pair(edges_.begin() + hypernode(hn_handle).begin(),
-                          edges_.begin() + hypernode(hn_handle).begin() +
+    return std::make_pair(incidence_array_.begin() + hypernode(hn_handle).begin(),
+                          incidence_array_.begin() + hypernode(hn_handle).begin() +
                           hypernode(hn_handle).size());
   }
 
   inline std::pair<const_incidence_iterator, const_incidence_iterator>
   GetPins(HyperEdgeID he_handle) const {
-    return std::make_pair(edges_.begin() + hyperedge(he_handle).begin(),
-                          edges_.begin() + hyperedge(he_handle).begin() +
+    return std::make_pair(incidence_array_.begin() + hyperedge(he_handle).begin(),
+                          incidence_array_.begin() + hyperedge(he_handle).begin() +
                           hyperedge(he_handle).size());
   }
 
@@ -218,12 +218,12 @@ class Hypergraph{
   void Disconnect(HyperNodeID hn_handle, HyperEdgeID he_handle) {
     ASSERT(!hypernode(hn_handle).isInvalid(),"Hypernode is invalid!");
     ASSERT(!hyperedge(he_handle).isInvalid(),"Hyperedge is invalid!");
-    ASSERT(std::count(edges_.begin() + hypernode(hn_handle).begin(),
-                      edges_.begin() + hypernode(hn_handle).begin() +
+    ASSERT(std::count(incidence_array_.begin() + hypernode(hn_handle).begin(),
+                      incidence_array_.begin() + hypernode(hn_handle).begin() +
                       hypernode(hn_handle).size(), he_handle) == 1,
            "Hypernode not connected to hyperedge");
-    ASSERT(std::count(edges_.begin() + hyperedge(he_handle).begin(),
-                      edges_.begin() + hyperedge(he_handle).begin() +
+    ASSERT(std::count(incidence_array_.begin() + hyperedge(he_handle).begin(),
+                      incidence_array_.begin() + hyperedge(he_handle).begin() +
                       hyperedge(he_handle).size(), hn_handle) == 1,
            "Hyperedge does not contain hypernode");
     RemoveEdge(hn_handle, he_handle, hypernodes_);
@@ -331,13 +331,13 @@ class Hypergraph{
     ASSERT(!hyperedge(he_handle).isInvalid(), "Invalid HyperedgeID");
     
     HyperNode &hn = hypernode(hn_handle);
-    if (hn.begin() + hn.size() != edges_.size()) {
-      edges_.insert(edges_.end(), edges_.begin() + hn.begin(),
-                    edges_.begin() + hn.begin() + hn.size());
-      hn.set_begin(edges_.size() - hn.size());
+    if (hn.begin() + hn.size() != incidence_array_.size()) {
+      incidence_array_.insert(incidence_array_.end(), incidence_array_.begin() + hn.begin(),
+                    incidence_array_.begin() + hn.begin() + hn.size());
+      hn.set_begin(incidence_array_.size() - hn.size());
     }
-    ASSERT(hn.begin() + hn.size() == edges_.size(), "AddEdge inconsistency");
-    edges_.push_back(he_handle);
+    ASSERT(hn.begin() + hn.size() == incidence_array_.size(), "AddEdge inconsistency");
+    incidence_array_.push_back(he_handle);
     hn.increase_size();
   }
 
@@ -347,7 +347,7 @@ class Hypergraph{
    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
     
-    EdgeIterator begin = edges_.begin() + vertex.begin();
+    EdgeIterator begin = incidence_array_.begin() + vertex.begin();
     ASSERT(vertex.size() > 0, "InternalVertex is empty!");
     EdgeIterator last_entry =  begin + vertex.size() - 1;
     while (*begin != v) {
@@ -359,14 +359,14 @@ class Hypergraph{
   
   // Accessor for handles of incident hyperedges of a hypernode
   inline std::pair<HeHandleIterator, HeHandleIterator> GetHandlesOfIncidentHyperEdges(HyperNodeID v) {
-    return std::make_pair(edges_.begin() + hypernode(v).begin(),
-                          edges_.begin() + hypernode(v).begin() + hypernode(v).size());
+    return std::make_pair(incidence_array_.begin() + hypernode(v).begin(),
+                          incidence_array_.begin() + hypernode(v).begin() + hypernode(v).size());
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
   inline std::pair<PinHandleIterator, PinHandleIterator> GetHandlesOfPins(HyperEdgeID v) {
-    return std::make_pair(edges_.begin() + hyperedge(v).begin(),
-                          edges_.begin() + hyperedge(v).begin() + hyperedge(v).size());
+    return std::make_pair(incidence_array_.begin() + hyperedge(v).begin(),
+                          incidence_array_.begin() + hyperedge(v).begin() + hyperedge(v).size());
   }
 
   // Accessor for hypernode-related information
@@ -400,7 +400,7 @@ class Hypergraph{
   
   std::vector<HyperNode> hypernodes_;
   std::vector<HyperEdge> hyperedges_;
-  std::vector<VertexID> edges_; 
+  std::vector<VertexID> incidence_array_; 
 
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 };
