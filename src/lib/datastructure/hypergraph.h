@@ -94,6 +94,63 @@ class Hypergraph{
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
   typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
   typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
+
+  class HypernodeIterator : public std::vector<HyperNode>::iterator {
+    typedef typename std::vector<HyperNode>::iterator Base;
+    typedef typename HyperNode::IDType IDType;
+   public:
+    HypernodeIterator() :
+        Base(),
+        id_(0),
+        max_id_(0) {}
+
+    HypernodeIterator(const Base &base, IDType id, IDType max_id) :
+        Base(base),
+        id_(id),
+        max_id_(max_id) {
+      if (id_ != max_id_ && Base::operator*().isInvalid()) {
+        this->operator++();
+      }
+    }
+
+    IDType operator*() {
+      return id_;
+    }
+
+    HypernodeIterator& operator++() {
+      ASSERT(id_ < max_id_, "Hypernode iterator out of bounds");
+      do {
+        Base::operator++();
+        ++id_;
+      } while(id_ < max_id_  && Base::operator*().isInvalid()); 
+      return *this;
+    }
+
+    HypernodeIterator operator++(int) {
+      HypernodeIterator copy = *this;
+      this->operator++();
+      return copy;
+    }
+
+    HypernodeIterator& operator--() {
+      ASSERT(id_ > 0, "Hypernode iterator out of bounds");
+      do {
+        Base::operator--();
+        --id_;
+      } while(id_ > 0  && Base::operator*().isInvalid());
+      return *this;
+    }
+
+    HypernodeIterator operator--(int) {
+      HypernodeIterator copy = *this;
+      this->operator--();
+      return copy;
+    }
+    
+   private:
+    IDType id_;
+    IDType max_id_;
+  };
   
  public:
   typedef _HyperNodeType HyperNodeID;
@@ -101,6 +158,7 @@ class Hypergraph{
   typedef _HyperNodeWeightType HyperNodeWeight;
   typedef _HyperEdgeWeightType HyperEdgeWeight;
   typedef typename std::vector<VertexID>::const_iterator const_incidence_iterator;
+  typedef HypernodeIterator const_hypernode_iterator;
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
@@ -171,6 +229,12 @@ class Hypergraph{
                           hyperedge(he_handle).size());
   }
 
+  inline std::pair<const_hypernode_iterator, const_hypernode_iterator>
+  GetAllHypernodes() {
+    return std::make_pair(HypernodeIterator(hypernodes_.begin(), 0, num_hypernodes_),
+                          HypernodeIterator());
+  }
+  
   // ToDo: This method should return a memento to reconstruct the changes!
   void Contract(HyperNodeID hn_handle_u, HyperNodeID hn_handle_v) {
     using std::swap;

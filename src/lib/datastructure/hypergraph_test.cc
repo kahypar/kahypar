@@ -7,17 +7,35 @@
 namespace hgr {
 
 using ::testing::Eq;
+using ::testing::Test;
 
-class AHypergraph : public ::testing::Test {
+class AHypergraph : public Test {
  public:
+  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+  typedef typename HypergraphType::const_incidence_iterator ConstIncidenceIterator;
+  
   AHypergraph() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
                  hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {
   }
 
-  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-  typedef typename HypergraphType::const_incidence_iterator ConstIncidenceIterator;
   HypergraphType hypergraph;
+};
+
+class AHypernodeIterator : public Test {
+ public:
+  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+  typedef typename HypergraphType::const_hypernode_iterator ConstHypernodeIterator;
+
+  AHypernodeIterator() :
+      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
+      begin(),
+      end() {}
+
+  HypergraphType hypergraph;
+  ConstHypernodeIterator begin;
+  ConstHypernodeIterator end;
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
@@ -183,6 +201,37 @@ TEST_F(AHypergraph, AllowsIterationOverPinsOfHyperedge) {
     ASSERT_THAT(*iter, Eq(*(hypergraph.incidence_array_.begin() + hypergraph.hyperedge(1).begin() + i)));
     ++i;
   }
+}
+
+TEST_F(AHypernodeIterator, StartsWithFirstHypernodeOnIteration) {
+  std::tie(begin, end) = hypergraph.GetAllHypernodes();
+  ASSERT_THAT((*begin), Eq(0));
+}
+
+TEST_F(AHypernodeIterator, BeginsWithTheFirstValidWhenIteratingOverHypernodes) {
+  hypergraph.RemoveHyperNode(0);
+  std::tie(begin, end) = hypergraph.GetAllHypernodes();
+  ASSERT_THAT(*begin, Eq(1));
+}
+
+TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenForwardIteratingOverHypernodes) {
+  hypergraph.RemoveHyperNode(1);
+  hypergraph.RemoveHyperNode(2);
+  std::tie(begin, end) = hypergraph.GetAllHypernodes();
+  ++begin;
+  ASSERT_THAT(*begin, Eq(3));
+}
+
+TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenBackwardIteratingOverHypernodes) {
+  std::tie(begin, end) = hypergraph.GetAllHypernodes();
+  ++begin;
+  ++begin;
+  ++begin;
+  EXPECT_THAT(*begin, Eq(3));
+  hypergraph.RemoveHyperNode(1);
+  hypergraph.RemoveHyperNode(2);
+  --begin;
+  ASSERT_THAT(*begin, Eq(0));
 }
 
 } // namespace hgr
