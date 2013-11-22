@@ -326,9 +326,6 @@ class Hypergraph{
   void contract(HypernodeID u, HypernodeID v) {
     using std::swap;
     
-    ASSERT(!hypernode(u).isInvalid(),"Hypernode " << u << " is invalid!");
-    ASSERT(!hypernode(v).isInvalid(),"Hypernode " << v << " is invalid!");
-
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     
     PinHandleIterator slot_of_u, last_pin_slot;
@@ -366,8 +363,6 @@ class Hypergraph{
 }
 
   void disconnect(HypernodeID u, HyperedgeID e) {
-    ASSERT(!hypernode(u).isInvalid(),"Hypernode is invalid!");
-    ASSERT(!hyperedge(e).isInvalid(),"Hyperedge is invalid!");
     ASSERT(std::count(_incidence_array.begin() + hypernode(u).firstEntry(),
                       _incidence_array.begin() + hypernode(u).firstInvalidEntry(), e) == 1,
            "Hypernode not connected to hyperedge");
