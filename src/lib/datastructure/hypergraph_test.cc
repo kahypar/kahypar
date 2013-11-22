@@ -187,7 +187,8 @@ TEST_F(AHypergraph, InvalidatesContractedHypernode) {
 TEST_F(AHypergraph, RelinksHyperedgesOfContractedHypernodeToRepresentative) {
   EXPECT_THAT(hypergraph.hypernodeDegree(0), Eq(2));
   hypergraph.contract(0,2);
-  ASSERT_THAT(hypergraph.hypernodeDegree(0), Eq(3));
+  hypergraph.contract(0,4);
+  ASSERT_THAT(hypergraph.hypernodeDegree(0), Eq(4));
 }
 
 TEST_F(AHypergraph, AddsHypernodeWeightOfContractedNodeToRepresentative) {

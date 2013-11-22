@@ -37,17 +37,17 @@ namespace hgr {
 #define endfor }}
 
 // internal macros:
-#define __forall_incident_hyperedges(he,hn) \
+#define __forall_incident_hyperedges(he,hn)                             \
   {                                                                     \
-  for (HypernodeID i = hypernode(hn).firstEntry(),                      \
-                 end = hypernode(hn).firstInvalidEntry(); i < end; ++i) { \
-  HyperedgeID he = _incidence_array[i];
+  for (HyperedgeID __i = hypernode(hn).firstEntry(),                    \
+                 __end = hypernode(hn).firstInvalidEntry(); __i < __end; ++__i) { \
+  HyperedgeID he = _incidence_array[__i];
 
-#define __forall_pins(hn,he) \
+#define __forall_pins(hn,he)                                            \
   {                                                                     \
-  for (HyperedgeID j = hyperedge(he).firstEntry(),                      \
-                 end = hyperedge(he).firstInvalidEntry(); j < end; ++j) { \
-  HypernodeID hn = _incidence_array[j];
+  for (HyperedgeID __j = hyperedge(he).firstEntry(),                    \
+                 __end = hyperedge(he).firstInvalidEntry(); __j < __end; ++__j) { \
+  HypernodeID hn = _incidence_array[__j];
 
 template <typename HypernodeType_, typename HyperedgeType_,
           typename HypernodeWeightType_, typename HyperedgeWeightType_>
@@ -237,21 +237,67 @@ class Hypergraph{
     }    
   }
 
-  // ToDo: add a "pretty print" function...
-  void DEBUG_print() {
+  // ToDo: make proper functions that can be called not just in debug mode
+#ifndef NDEBUG
+  void DEBUGprintHyperedgeInfo() {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       PRINT("hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
             << hyperedge(i).size() << " weight=" << hyperedge(i).weight());
     }
+  }
+
+  void DEBUGprintHypernodeInfo() {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       PRINT("hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
             << hypernode(i).size()  << " weight=" << hypernode(i).weight());
     }
+  }
+
+  void DEBUGprintIncidenceArray() {
     for (VertexID i = 0; i < _incidence_array.size(); ++i) {
       PRINT("_incidence_array[" << i <<"]=" << _incidence_array[i]);
     }
   }
 
+  void DEBUGprintHyperedges() {
+    PRINT("Hyperedges:");
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      if (!hyperedge(i).isInvalid()) {
+        PRINT_SAME_LINE(i << ": ");
+        __forall_pins(pin, i) {
+          PRINT_SAME_LINE(pin << " ");
+        } endfor
+      }else {
+        PRINT_SAME_LINE(i << " -- invalid --");
+      }
+      PRINT(" ");
+    }
+  }
+
+  void DEBUGprintHypernodes() {
+    PRINT("Hypernodes:");
+    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+      if (!hypernode(i).isInvalid()) {
+        PRINT_SAME_LINE(i << ": ");
+        __forall_incident_hyperedges(he, i) {
+          PRINT_SAME_LINE(he << " ");
+        } endfor
+      }else {
+        PRINT_SAME_LINE(i << " -- invalid --");
+      }
+      PRINT(" ");
+    }
+  }
+
+  void DEBUGprintAll() {
+    DEBUGprintHypernodeInfo();
+    DEBUGprintHyperedgeInfo();
+    DEBUGprintHypernodes();
+    DEBUGprintHyperedges();
+    DEBUGprintIncidenceArray();
+  }
+#endif
+  
   std::pair<ConstIncidenceIterator, ConstIncidenceIterator>
   incidentHyperedges(HypernodeID u) const {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),

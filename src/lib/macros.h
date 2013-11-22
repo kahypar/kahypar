@@ -17,8 +17,10 @@
 
 #ifdef PRINT_DEBUG_MSGS
   #define PRINT(x) do { (std::cout << x << std::endl); } while (0)
+  #define PRINT_SAME_LINE(x) do { (std::cout << x); } while (0)
 #else
   #define PRINT(x)
+  #define PRINT_SAME_LINE(x)
 #endif
 
 #ifdef USE_ASSERTIONS
