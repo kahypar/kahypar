@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <limits>
 #include <vector>
-#include <limits>
-#include <algorithm>
 
 #include "../macros.h"
 
@@ -58,42 +56,11 @@ class Hypergraph{
         _size(0),
         _weight(0) {}
     
-<<<<<<< Temporary merge branch 1
     void invalidate() {
-=======
-<<<<<<< HEAD
-    inline void Invalidate() {
-=======
-    void invalidate() {
->>>>>>> definitions within class correspond to implicit inline
->>>>>>> Temporary merge branch 2
       ASSERT(!isInvalid(), "Vertex is already invalidated");
       _begin = std::numeric_limits<VertexID>::max();
     }
 
-<<<<<<< Temporary merge branch 1
-=======
-<<<<<<< HEAD
-    inline bool isInvalid() const {
-      return begin_ == std::numeric_limits<VertexID>::max();
-    }
-
-    inline IDType begin() const { return begin_; }
-    inline void set_begin(IDType begin) { begin_ = begin; }
-
-    inline IDType size() const { return size_; }
-    inline void set_size(IDType size) { size_ = size; }
-    inline void increase_size() { ++size_; }
-    inline void decrease_size() {
-      ASSERT(size_ > 0, "Size out of bounds");
-      --size_;
-      if (size_ == 0) { Invalidate(); }
-    }
-    
-    inline WeightType weight() const { return weight_; }
-    inline void set_weight(WeightType weight) { weight_ = weight; }
-=======
->>>>>>> Temporary merge branch 2
     bool isInvalid() const {
       return _begin == std::numeric_limits<VertexID>::max();
     }
@@ -115,10 +82,6 @@ class Hypergraph{
     
     WeightType weight() const { return _weight; }
     void setWeight(WeightType weight) { _weight = weight; }
-<<<<<<< Temporary merge branch 1
-=======
->>>>>>> definitions within class correspond to implicit inline
->>>>>>> Temporary merge branch 2
     
    private:
     IDType _begin;
@@ -138,8 +101,6 @@ class Hypergraph{
   
   typedef InternalVertex<HyperNodeTraits> HyperNode;
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
-  typedef typename std::vector<HyperNode>::size_type HyperNodesSizeType;
-  typedef typename std::vector<HyperEdge>::size_type HyperEdgesSizeType;
 
   template <typename VertexType>
   class VertexIterator : public std::vector<VertexType>::iterator {
@@ -205,10 +166,6 @@ class Hypergraph{
   };
   
  public:
-  typedef _HyperNodeType HyperNodeID;
-  typedef _HyperEdgeType HyperEdgeID;
-  typedef _HyperNodeWeightType HyperNodeWeight;
-  typedef _HyperEdgeWeightType HyperEdgeWeight;
   typedef typename std::vector<VertexID>::const_iterator const_incidence_iterator;
   typedef VertexIterator<HyperNode> const_hypernode_iterator;
   typedef VertexIterator<HyperEdge> const_hyperedge_iterator;
@@ -268,30 +225,6 @@ class Hypergraph{
     }
   }
 
-<<<<<<< Temporary merge branch 1
-=======
-<<<<<<< HEAD
-  inline std::pair<const_incidence_iterator, const_incidence_iterator>
-  GetIncidentHyperedges(HyperNodeID hn_handle) const {
-    return std::make_pair(incidence_array_.begin() + hypernode(hn_handle).begin(),
-                          incidence_array_.begin() + hypernode(hn_handle).begin() +
-                          hypernode(hn_handle).size());
-  }
-
-  inline std::pair<const_incidence_iterator, const_incidence_iterator>
-  GetPins(HyperEdgeID he_handle) const {
-    return std::make_pair(incidence_array_.begin() + hyperedge(he_handle).begin(),
-                          incidence_array_.begin() + hyperedge(he_handle).begin() +
-                          hyperedge(he_handle).size());
-  }
-
-  inline std::pair<const_hypernode_iterator, const_hypernode_iterator>
-  GetAllHypernodes() {
-    return std::make_pair(const_hypernode_iterator(hypernodes_.begin(), 0, num_hypernodes_),
-                          const_hypernode_iterator(hypernodes_.begin(), num_hypernodes_,
-                                                   num_hypernodes_));
-=======
->>>>>>> Temporary merge branch 2
   std::pair<const_incidence_iterator, const_incidence_iterator>
   incidentHyperedges(HypernodeID u) const {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
@@ -309,7 +242,6 @@ class Hypergraph{
     return std::make_pair(const_hypernode_iterator(_hypernodes.begin(), 0, _num_hypernodes),
                           const_hypernode_iterator(_hypernodes.begin(), _num_hypernodes,
                                                    _num_hypernodes));
->>>>>>> definitions within class correspond to implicit inline
   }
   
   // ToDo: This method should return a memento to reconstruct the changes!
@@ -423,9 +355,8 @@ class Hypergraph{
     return _current_num_hyperedges;
   }
 
-  HypernodeID numPins() const {
+  HypernodeID numPins() const  {
     return _current_num_pins;
->>>>>>> definitions within class correspond to implicit inline
   }
   
  private:
@@ -442,29 +373,13 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, AllowsIterationOverAllValidHypernodes);
 
   template <typename T>
-<<<<<<< Temporary merge branch 1
   void clearVertex(VertexID vertex, T& container) {
-=======
-<<<<<<< HEAD
-  inline void ClearVertex(VertexID vertex, T& container) {
-=======
-  void clearVertex(VertexID vertex, T& container) {
->>>>>>> definitions within class correspond to implicit inline
->>>>>>> Temporary merge branch 2
     ASSERT(vertex < container.size(), "VertexID out of bounds");
     container[vertex].setSize(0);
   }
 
   template <typename T>
-<<<<<<< Temporary merge branch 1
   void removeVertex(VertexID vertex, T& container) {
-=======
-<<<<<<< HEAD
-  inline void RemoveVertex(VertexID vertex, T& container) {
-=======
-  void removeVertex(VertexID vertex, T& container) {
->>>>>>> definitions within class correspond to implicit inline
->>>>>>> Temporary merge branch 2
     ASSERT(vertex < container.size(), "VertexID out of bounds");
     ASSERT(container[vertex].size() == 0, "Vertex is not cleared");
     container[vertex].invalidate();
@@ -488,15 +403,7 @@ class Hypergraph{
   }
 
   template <typename Handle1, typename Handle2, typename Container >
-<<<<<<< Temporary merge branch 1
   void removeEdge(Handle1 u, Handle2 v, Container& container) {
-=======
-<<<<<<< HEAD
-  inline void RemoveEdge(Handle1 u, Handle2 v, Container& container) {
-=======
-  void removeEdge(Handle1 u, Handle2 v, Container& container) {
->>>>>>> definitions within class correspond to implicit inline
->>>>>>> Temporary merge branch 2
    typename Container::reference &vertex = container[u];
    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
@@ -512,41 +419,6 @@ class Hypergraph{
   }
   
   // Accessor for handles of incident hyperedges of a hypernode
-<<<<<<< Temporary merge branch 1
-=======
-<<<<<<< HEAD
-  inline std::pair<HeHandleIterator, HeHandleIterator> GetHandlesOfIncidentHyperEdges(HyperNodeID v) {
-    return std::make_pair(incidence_array_.begin() + hypernode(v).begin(),
-                          incidence_array_.begin() + hypernode(v).begin() + hypernode(v).size());
-  }
-
-  // Accessor for handles of hypernodes contained in hyperedge (aka pins)
-  inline std::pair<PinHandleIterator, PinHandleIterator> GetHandlesOfPins(HyperEdgeID v) {
-    return std::make_pair(incidence_array_.begin() + hyperedge(v).begin(),
-                          incidence_array_.begin() + hyperedge(v).begin() + hyperedge(v).size());
-  }
-
-  // Accessor for hypernode-related information
-  inline const HyperNode& hypernode(HyperNodeID id) const{
-    ASSERT(id < num_hypernodes_, "Hypernode " << id << " does not exist");
-    return hypernodes_[id];
-  }
-
-  // Accessor for hyperedge-related information
-  inline const HyperEdge& hyperedge(HyperEdgeID id) const {
-    ASSERT(id < num_hyperedges_, "Hyperedge does not exist");
-    return hyperedges_[id];
-  }
- 
-  // To avoid code duplication we implement non-const version in terms of const version
-  inline HyperNode& hypernode(HyperNodeID id) {
-    return const_cast<HyperNode&>(static_cast<const Hypergraph&>(*this).hypernode(id));
-  }
-
-  inline HyperEdge& hyperedge(HyperEdgeID id) {
-    return const_cast<HyperEdge&>(static_cast<const Hypergraph&>(*this).hyperedge(id));
-=======
->>>>>>> Temporary merge branch 2
   std::pair<HeHandleIterator, HeHandleIterator> indicentHyperedgeHandles(HypernodeID u) {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
@@ -577,7 +449,6 @@ class Hypergraph{
 
   HyperEdge& hyperedge(HyperedgeID e) {
     return const_cast<HyperEdge&>(static_cast<const Hypergraph&>(*this).hyperedge(e));
->>>>>>> definitions within class correspond to implicit inline
   }
 
   const HypernodeID _num_hypernodes;
