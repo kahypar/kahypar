@@ -9,17 +9,45 @@
 
 namespace hgr {
 
-#define forall_incident_hyperedges(he,hn) \
-  for (HypernodeID i = hypernode(hn).firstEntry(),                    \
+// external macros:
+#define forall_hypernodes(hn, graph)                                    \
+  {                                                                     \
+  ConstHypernodeIterator __begin, __end;                                \
+  std::tie(__begin, __end) = graph.hypernodes();                        \
+  for (ConstHypernodeIterator hn = __begin; hn != __end; ++hn) {
+
+#define forall_hyperedges(he, graph)                                    \
+  {                                                                     \
+  ConstHyperedgeIterator __begin, __end;                                \
+  std::tie(__begin, __end) = graph.hyperedges();                        \
+  for (ConstHyperedgeIterator he = __begin; he != __end; ++he) {
+
+#define forall_incident_hyperedges(he, hn, graph)                       \
+  {                                                                     \
+  ConstIncidenceIterator __begin, __end;                                \
+  std::tie(__begin, __end) = graph.incidentHyperedges(hn);              \
+  for (ConstIncidenceIterator he = __begin; he != __end; ++he) {
+
+#define forall_pins(pin, he, graph)                                     \
+  {                                                                     \
+  ConstIncidenceIterator __begin, __end;                                \
+  std::tie(__begin, __end) = graph.pins(he);                            \
+  for (ConstIncidenceIterator pin = __begin; pin != __end; ++pin) {
+
+#define endfor }}
+
+// internal macros:
+#define __forall_incident_hyperedges(he,hn) \
+  {                                                                     \
+  for (HypernodeID i = hypernode(hn).firstEntry(),                      \
                  end = hypernode(hn).firstInvalidEntry(); i < end; ++i) { \
   HyperedgeID he = _incidence_array[i];
 
-#define forall_pins(hn,he) \
-  for (HyperedgeID j = hyperedge(he).firstEntry(),                    \
-                        end = hyperedge(he).firstInvalidEntry(); j < end; ++j) { \
+#define __forall_pins(hn,he) \
+  {                                                                     \
+  for (HyperedgeID j = hyperedge(he).firstEntry(),                      \
+                 end = hyperedge(he).firstInvalidEntry(); j < end; ++j) { \
   HypernodeID hn = _incidence_array[j];
-
-#define endfor }
 
 template <typename HypernodeType_, typename HyperedgeType_,
           typename HypernodeWeightType_, typename HyperedgeWeightType_>
@@ -165,9 +193,9 @@ class Hypergraph{
   };
   
  public:
-  typedef typename std::vector<VertexID>::const_iterator const_incidence_iterator;
-  typedef VertexIterator<HyperNode> const_hypernode_iterator;
-  typedef VertexIterator<HyperEdge> const_hyperedge_iterator;
+  typedef typename std::vector<VertexID>::const_iterator ConstIncidenceIterator;
+  typedef VertexIterator<HyperNode> ConstHypernodeIterator;
+  typedef VertexIterator<HyperEdge> ConstHyperedgeIterator;
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
@@ -224,26 +252,26 @@ class Hypergraph{
     }
   }
 
-  std::pair<const_incidence_iterator, const_incidence_iterator>
+  std::pair<ConstIncidenceIterator, ConstIncidenceIterator>
   incidentHyperedges(HypernodeID u) const {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
-  std::pair<const_incidence_iterator, const_incidence_iterator> pins(HyperedgeID e) const {
+  std::pair<ConstIncidenceIterator, ConstIncidenceIterator> pins(HyperedgeID e) const {
     return std::make_pair(_incidence_array.begin() + hyperedge(e).firstEntry(),
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<const_hypernode_iterator, const_hypernode_iterator> hypernodes() {
-    return std::make_pair(const_hypernode_iterator(&_hypernodes, 0, _num_hypernodes),
-                          const_hypernode_iterator(&_hypernodes, _num_hypernodes,
+  std::pair<ConstHypernodeIterator, ConstHypernodeIterator> hypernodes() {
+    return std::make_pair(ConstHypernodeIterator(&_hypernodes, 0, _num_hypernodes),
+                          ConstHypernodeIterator(&_hypernodes, _num_hypernodes,
                                                    _num_hypernodes));
   }
 
-  std::pair<const_hyperedge_iterator, const_hyperedge_iterator> hyperedges() {
-    return std::make_pair(const_hyperedge_iterator(&_hyperedges, 0, _num_hyperedges),
-                          const_hyperedge_iterator(&_hyperedges, _num_hyperedges,
+  std::pair<ConstHyperedgeIterator, ConstHyperedgeIterator> hyperedges() {
+    return std::make_pair(ConstHyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
+                          ConstHyperedgeIterator(&_hyperedges, _num_hyperedges,
                                                    _num_hyperedges));
   }
   
@@ -306,7 +334,7 @@ class Hypergraph{
   
   void removeHypernode(HypernodeID u) {
     ASSERT(!hypernode(u).isInvalid(),"Hypernode is invalid!");
-    forall_incident_hyperedges(e, u) {
+    __forall_incident_hyperedges(e, u) {
       removeEdge(e, u, _hyperedges);
       --_current_num_pins;
     } endfor
@@ -317,7 +345,7 @@ class Hypergraph{
   
   void removeHyperedge(HyperedgeID e) {
     ASSERT(!hyperedge(e).isInvalid(),"Hyperedge is invalid!");
-    forall_pins(u, e) {
+    __forall_pins(u, e) {
       removeEdge(u, e, _hypernodes);
       --_current_num_pins;
     } endfor
@@ -374,7 +402,9 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
-
+  FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);
+  FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
+  
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {
     ASSERT(vertex < container.size(), "VertexID out of bounds");

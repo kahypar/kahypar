@@ -10,44 +10,28 @@ namespace hgr {
 using ::testing::Eq;
 using ::testing::Test;
 
+typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+typedef typename HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
+typedef typename HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
+typedef typename HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;
+typedef typename HypergraphType::HypernodeID HypernodeID;
+typedef typename HypergraphType::HyperedgeID HyperedgeID;
+
 class AHypergraph : public Test {
  public:
-  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-  
   AHypergraph() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
                  hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
-
   HypergraphType hypergraph;
-};
-
-class AnIncidenceIterator : public Test {
- public:
-  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-  typedef typename HypergraphType::const_incidence_iterator ConstIncidenceIterator;
-  
-  AnIncidenceIterator() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      begin(),
-      end() {}
-
-  HypergraphType hypergraph;
-  ConstIncidenceIterator begin;
-  ConstIncidenceIterator end;
 };
 
 class AHypernodeIterator : public Test {
  public:
-  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-  typedef typename HypergraphType::const_hypernode_iterator ConstHypernodeIterator;
-
   AHypernodeIterator() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
                  hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       begin(),
       end() {}
-
   HypergraphType hypergraph;
   ConstHypernodeIterator begin;
   ConstHypernodeIterator end;
@@ -55,18 +39,22 @@ class AHypernodeIterator : public Test {
 
 class AHyperedgeIterator : public Test {
  public:
-  typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-  typedef typename HypergraphType::const_hyperedge_iterator ConstHyperedgeIterator;
-
   AHyperedgeIterator() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
                  hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       begin(),
       end() {}
-
   HypergraphType hypergraph;
   ConstHyperedgeIterator begin;
   ConstHyperedgeIterator end;
+};
+
+class AHypergraphMacro : public Test {
+ public:
+  AHypergraphMacro() :
+      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+  HypergraphType hypergraph;
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
@@ -214,34 +202,6 @@ TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
   ASSERT_THAT(hypergraph.hyperedgeSize(0), Eq(1));
 }
 
-TEST_F(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges) {
-  std::tie(begin, end) = hypergraph.incidentHyperedges(3);
-  int i = 0;
-  for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hypernode(3).firstEntry() + i)));
-    ++i;
-  }
-}
-
-TEST_F(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge) {
-  std::tie(begin, end) = hypergraph.pins(1);
-  int i = 0;
-  for (ConstIncidenceIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hyperedge(1).firstEntry() + i)));
-    ++i;
-  }
-}
-
-TEST_F(AHypernodeIterator, AllowsIterationOverAllHypernodes) {
-  std::tie(begin, end) = hypergraph.hypernodes();
-  int i = 0;
-  for (ConstHypernodeIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(i));
-    ++i;
-  }
-  ASSERT_THAT(i, Eq(7));
-}
-
 TEST_F(AHypernodeIterator, StartsWithFirstHypernode) {
   std::tie(begin, end) = hypergraph.hypernodes();
   ASSERT_THAT((*begin), Eq(0));
@@ -304,14 +264,42 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
   ASSERT_THAT(*begin, Eq(0));
 }
 
-TEST_F(AHyperedgeIterator, AllowsIterationOverAllHyperedges) {
-  std::tie(begin, end) = hypergraph.hyperedges();
+TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
+  ConstHypernodeIterator hn_iter;
+  HypernodeID hypernode_count = 0;
+  forall_hypernodes(hn_iter, hypergraph) {
+    ASSERT_THAT(*hn_iter, Eq(hypernode_count));
+    ++hypernode_count;
+  } endfor
+  ASSERT_THAT(hypernode_count, Eq(7));
+}
+
+TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
+  ConstHyperedgeIterator he_iter;
+  HyperedgeID hyperedge_count = 0;
+  forall_hyperedges(he_iter, hypergraph) {
+    ASSERT_THAT(*he_iter, Eq(hyperedge_count));
+    ++hyperedge_count;
+  } endfor
+  ASSERT_THAT(hyperedge_count, Eq(4));
+}
+
+TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
+  ConstIncidenceIterator he_iter;
   int i = 0;
-  for (ConstHyperedgeIterator iter = begin; iter != end; ++iter) {
-    ASSERT_THAT(*iter, Eq(i));
+  forall_incident_hyperedges(he_iter, 6, hypergraph) {
+  ASSERT_THAT(*he_iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hypernode(6).firstEntry() + i)));
     ++i;
-  }
-  ASSERT_THAT(i, Eq(4));
+  } endfor
+}
+
+TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
+  ConstIncidenceIterator pin_iter;
+  int i = 0;
+  forall_pins(pin_iter, 2, hypergraph) {
+  ASSERT_THAT(*pin_iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hyperedge(2).firstEntry() + i)));
+    ++i;
+  } endfor
 }
 
 } // namespace hgr
