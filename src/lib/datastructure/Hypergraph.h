@@ -56,32 +56,32 @@ class Hypergraph{
         _size(0),
         _weight(0) {}
     
-    inline void invalidate() {
+    void invalidate() {
       ASSERT(!isInvalid(), "Vertex is already invalidated");
       _begin = std::numeric_limits<VertexID>::max();
     }
 
-    inline bool isInvalid() const {
+    bool isInvalid() const {
       return _begin == std::numeric_limits<VertexID>::max();
     }
 
-    inline IDType firstEntry() const { return _begin; }
-    inline void setFirstEntry(IDType begin) { _begin = begin; }
+    IDType firstEntry() const { return _begin; }
+    void setFirstEntry(IDType begin) { _begin = begin; }
 
-    inline IDType firstInvalidEntry() const { return _begin + _size; }
+    IDType firstInvalidEntry() const { return _begin + _size; }
 
-    inline IDType size() const { return _size; }
-    inline void setSize(IDType size) { _size = size; }
+    IDType size() const { return _size; }
+    void setSize(IDType size) { _size = size; }
     
-    inline void increaseSize() { ++_size; }
-    inline void decreaseSize() {
+    void increaseSize() { ++_size; }
+    void decreaseSize() {
       ASSERT(_size > 0, "Size out of bounds");
       --_size;
       if (_size == 0) { invalidate(); }
     }
     
-    inline WeightType weight() const { return _weight; }
-    inline void setWeight(WeightType weight) { _weight = weight; }
+    WeightType weight() const { return _weight; }
+    void setWeight(WeightType weight) { _weight = weight; }
     
    private:
     IDType _begin;
@@ -225,19 +225,19 @@ class Hypergraph{
     }
   }
 
-  inline std::pair<const_incidence_iterator, const_incidence_iterator>
+  std::pair<const_incidence_iterator, const_incidence_iterator>
   incidentHyperedges(HypernodeID u) const {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
-  inline std::pair<const_incidence_iterator, const_incidence_iterator>
+  std::pair<const_incidence_iterator, const_incidence_iterator>
   pins(HyperedgeID e) const {
     return std::make_pair(_incidence_array.begin() + hyperedge(e).firstEntry(),
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  inline std::pair<const_hypernode_iterator, const_hypernode_iterator>
+  std::pair<const_hypernode_iterator, const_hypernode_iterator>
   hypernodes() {
     return std::make_pair(const_hypernode_iterator(_hypernodes.begin(), 0, _num_hypernodes),
                           const_hypernode_iterator(_hypernodes.begin(), _num_hypernodes,
@@ -323,39 +323,39 @@ class Hypergraph{
   }
 
   // Accessors and mutators
-  inline HyperedgeID hypernodeDegree(HypernodeID u) const {
+  HyperedgeID hypernodeDegree(HypernodeID u) const {
     return hypernode(u).size();
   }
   
-  inline HypernodeID hyperedgeSize(HyperedgeID e) const {
+  HypernodeID hyperedgeSize(HyperedgeID e) const {
     return hyperedge(e).size();
   }
 
-  inline HypernodeWeight hypernodeWeight(HypernodeID u) const {
+  HypernodeWeight hypernodeWeight(HypernodeID u) const {
     return hypernode(u).weight();
   } 
 
-  inline void setHypernodeWeight(HypernodeID u, HypernodeWeight weight) {
+  void setHypernodeWeight(HypernodeID u, HypernodeWeight weight) {
     hypernode(u).setWeight(weight);
   }
   
-  inline HyperedgeWeight hyperedgeWeight(HyperedgeID e) const {
+  HyperedgeWeight hyperedgeWeight(HyperedgeID e) const {
     return hyperedge(e).weight();
   }
   
-  inline void setHyperedgeWeight(HyperedgeID e, HyperedgeWeight weight) {
+  void setHyperedgeWeight(HyperedgeID e, HyperedgeWeight weight) {
     hyperedge(e).setWeight(weight);
   }
   
-  inline HypernodeID numHypernodes() const {
+  HypernodeID numHypernodes() const {
     return _current_num_hypernodes;
   }
 
-  inline HyperedgeID numHyperdeges() const {
+  HyperedgeID numHyperdeges() const {
     return _current_num_hyperedges;
   }
 
-  inline HypernodeID numPins() const {
+  HypernodeID numPins() const {
     return _current_num_pins;
   }
   
@@ -373,13 +373,13 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, AllowsIterationOverAllValidHypernodes);
 
   template <typename T>
-  inline void clearVertex(VertexID vertex, T& container) {
+  void clearVertex(VertexID vertex, T& container) {
     ASSERT(vertex < container.size(), "VertexID out of bounds");
     container[vertex].setSize(0);
   }
 
   template <typename T>
-  inline void removeVertex(VertexID vertex, T& container) {
+  void removeVertex(VertexID vertex, T& container) {
     ASSERT(vertex < container.size(), "VertexID out of bounds");
     ASSERT(container[vertex].size() == 0, "Vertex is not cleared");
     container[vertex].invalidate();
@@ -403,7 +403,7 @@ class Hypergraph{
   }
 
   template <typename Handle1, typename Handle2, typename Container >
-  inline void removeEdge(Handle1 u, Handle2 v, Container& container) {
+  void removeEdge(Handle1 u, Handle2 v, Container& container) {
    typename Container::reference &vertex = container[u];
    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
@@ -419,35 +419,35 @@ class Hypergraph{
   }
   
   // Accessor for handles of incident hyperedges of a hypernode
-  inline std::pair<HeHandleIterator, HeHandleIterator> indicentHyperedgeHandles(HypernodeID u) {
+  std::pair<HeHandleIterator, HeHandleIterator> indicentHyperedgeHandles(HypernodeID u) {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
-  inline std::pair<PinHandleIterator, PinHandleIterator> pinHandles(HyperedgeID u) {
+  std::pair<PinHandleIterator, PinHandleIterator> pinHandles(HyperedgeID u) {
     return std::make_pair(_incidence_array.begin() + hyperedge(u).firstEntry(),
                           _incidence_array.begin() + hyperedge(u).firstInvalidEntry());
   }
 
   // Accessor for hypernode-related information
-  inline const HyperNode& hypernode(HypernodeID u) const{
+  const HyperNode& hypernode(HypernodeID u) const{
     ASSERT(u < _num_hypernodes, "Hypernode " << u << " does not exist");
     return _hypernodes[u];
   }
 
   // Accessor for hyperedge-related information
-  inline const HyperEdge& hyperedge(HyperedgeID e) const {
+  const HyperEdge& hyperedge(HyperedgeID e) const {
     ASSERT(e < _num_hyperedges, "Hyperedge does not exist");
     return _hyperedges[e];
   }
  
   // To avoid code duplication we implement non-const version in terms of const version
-  inline HyperNode& hypernode(HypernodeID u) {
+  HyperNode& hypernode(HypernodeID u) {
     return const_cast<HyperNode&>(static_cast<const Hypergraph&>(*this).hypernode(u));
   }
 
-  inline HyperEdge& hyperedge(HyperedgeID e) {
+  HyperEdge& hyperedge(HyperedgeID e) {
     return const_cast<HyperEdge&>(static_cast<const Hypergraph&>(*this).hyperedge(e));
   }
 
