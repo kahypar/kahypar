@@ -1,5 +1,5 @@
-#ifndef HYPERGRAPH_H_
-#define HYPERGRAPH_H_
+#ifndef LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#define LIB_DATASTRUCTURE_HYPERGRAPH_H_
 
 #include <vector>
 #include <limits>
@@ -478,4 +478,4 @@ class Hypergraph{
 };
 
 } // namespace hgr
-#endif  // HYPERGRAPH_H_
+#endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_
