@@ -1,5 +1,5 @@
-#ifndef MACROS_H_
-#define MACROS_H_
+#ifndef LIB_MACROS_H_
+#define LIB_MACROS_H_
 
 #ifndef NDEBUG
 #define USE_ASSERTIONS
@@ -37,4 +37,4 @@
 #endif
 
 
-#endif  // MACROS_H_
+#endif  // LIB_MACROS_H_
