@@ -231,18 +231,23 @@ class Hypergraph{
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
-  std::pair<const_incidence_iterator, const_incidence_iterator>
-  pins(HyperedgeID e) const {
+  std::pair<const_incidence_iterator, const_incidence_iterator> pins(HyperedgeID e) const {
     return std::make_pair(_incidence_array.begin() + hyperedge(e).firstEntry(),
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<const_hypernode_iterator, const_hypernode_iterator>
-  hypernodes() {
+  std::pair<const_hypernode_iterator, const_hypernode_iterator> hypernodes() {
     return std::make_pair(const_hypernode_iterator(_hypernodes.begin(), 0, _num_hypernodes),
-                          const_hypernode_iterator(_hypernodes.begin(), _num_hypernodes,
+                          const_hypernode_iterator(_hypernodes.end(), _num_hypernodes,
                                                    _num_hypernodes));
   }
+
+  std::pair<const_hyperedge_iterator, const_hyperedge_iterator> hyperedges() {
+    return std::make_pair(const_hyperedge_iterator(_hyperedges.begin(), 0, _num_hyperedges),
+                          const_hyperedge_iterator(_hyperedges.end(), _num_hyperedges,
+                                                   _num_hyperedges));
+  }
+  
   
   // ToDo: This method should return a memento to reconstruct the changes!
   void contract(HypernodeID u, HypernodeID v) {
@@ -368,9 +373,8 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
   FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
-  FRIEND_TEST(AHypergraph, AllowsIterationOverIncidentHyperedges);
-  FRIEND_TEST(AHypergraph, AllowsIterationOverPinsOfHyperedge);
-  FRIEND_TEST(AHypergraph, AllowsIterationOverAllValidHypernodes);
+  FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges);
+  FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
 
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {
