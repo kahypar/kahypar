@@ -322,7 +322,7 @@ class Hypergraph{
     --_current_num_hyperedges;
   }
 
-  // Accessors and mutators
+  // Accessors and mutators.
   HyperedgeID hypernodeDegree(HypernodeID u) const {
     return hypernode(u).size();
   }
