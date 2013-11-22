@@ -103,22 +103,22 @@ class Hypergraph{
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
 
   template <typename VertexType>
-  class VertexIterator : public std::vector<VertexType>::iterator {
-    typedef typename std::vector<VertexType>::iterator Base;
+  class VertexIterator {
     typedef VertexIterator<VertexType> Self;
+    typedef std::vector<VertexType> ContainerType;
     typedef typename VertexType::IDType IDType;
    public:
     VertexIterator() :
-        Base(),
         _id(0),
-        _max_id(0) {}
+        _max_id(0),
+        _container(nullptr) {}
 
-    VertexIterator(const Base& base, IDType id, IDType max_id) :
-        Base(base),
+    VertexIterator(const ContainerType* container, IDType id, IDType max_id) :
         _id(id),
-        _max_id(max_id) {
-      if (_id != _max_id && Base::operator*().isInvalid()) {
-        this->operator++();
+        _max_id(max_id),
+        _container(container) {
+      if (_id != _max_id && (*_container)[_id].isInvalid()) {
+        operator++();
       }
     }
 
@@ -129,30 +129,28 @@ class Hypergraph{
     Self& operator++() {
       ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
       do {
-        Base::operator++();
         ++_id;
-      } while(_id < _max_id  && Base::operator*().isInvalid()); 
+      } while(_id < _max_id  && (*_container)[_id].isInvalid()); 
       return *this;
     }
 
     Self operator++(int) {
       Self copy = *this;
-      this->operator++();
+      operator++();
       return copy;
     }
 
     Self& operator--() {
       ASSERT(_id > 0, "Hypernode iterator out of bounds");
       do {
-        Base::operator--();
         --_id;
-      } while(_id > 0  && Base::operator*().isInvalid());
+      } while(_id > 0  && (*_container)[_id].isInvalid());
       return *this;
     }
 
     Self operator--(int) {
       Self copy = *this;
-      this->operator--();
+      operator--();
       return copy;
     }
 
@@ -163,6 +161,7 @@ class Hypergraph{
    private:
     IDType _id;
     IDType _max_id;
+    const ContainerType* _container;
   };
   
  public:
@@ -237,14 +236,14 @@ class Hypergraph{
   }
 
   std::pair<const_hypernode_iterator, const_hypernode_iterator> hypernodes() {
-    return std::make_pair(const_hypernode_iterator(_hypernodes.begin(), 0, _num_hypernodes),
-                          const_hypernode_iterator(_hypernodes.end(), _num_hypernodes,
+    return std::make_pair(const_hypernode_iterator(&_hypernodes, 0, _num_hypernodes),
+                          const_hypernode_iterator(&_hypernodes, _num_hypernodes,
                                                    _num_hypernodes));
   }
 
   std::pair<const_hyperedge_iterator, const_hyperedge_iterator> hyperedges() {
-    return std::make_pair(const_hyperedge_iterator(_hyperedges.begin(), 0, _num_hyperedges),
-                          const_hyperedge_iterator(_hyperedges.end(), _num_hyperedges,
+    return std::make_pair(const_hyperedge_iterator(&_hyperedges, 0, _num_hyperedges),
+                          const_hyperedge_iterator(&_hyperedges, _num_hyperedges,
                                                    _num_hyperedges));
   }
   
