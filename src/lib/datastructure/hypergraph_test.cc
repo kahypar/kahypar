@@ -61,7 +61,6 @@ TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   EXPECT_THAT(hypergraph.numHypernodes(), Eq(7));
   EXPECT_THAT(hypergraph.numHyperdeges(), Eq(4));
   EXPECT_THAT(hypergraph.numPins(), Eq(12));
-
   EXPECT_THAT(hypergraph.hypernode(0).size(), Eq(2));
   EXPECT_THAT(hypergraph.hypernode(1).size(), Eq(1));
   EXPECT_THAT(hypergraph.hypernode(2).size(), Eq(2));
