@@ -199,7 +199,9 @@ class Hypergraph{
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
-             const hMetisHyperEdgeVector& edge_vector) :
+             const hMetisHyperEdgeVector& edge_vector,
+             const hMetisHyperEdgeWeightVector* hyperedge_weights,
+             const hMetisHyperNodeWeightVector* hypernode_weights) :
       _num_hypernodes(num_hypernodes),
       _num_hyperedges(num_hyperedges),
       _num_pins(edge_vector.size()),
@@ -234,7 +236,20 @@ class Hypergraph{
         _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
         hypernode(pin).increaseSize();
       }
-    }    
+    }
+
+    if (hyperedge_weights != NULL) {
+      for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+        hyperedge(i).setWeight((*hyperedge_weights)[i]);
+      }
+    }
+
+    if (hypernode_weights != NULL) {
+      for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+        hypernode(i).setWeight((*hypernode_weights)[i]);
+      }
+    }
+    
   }
 
   // ToDo: make proper functions that can be called not just in debug mode

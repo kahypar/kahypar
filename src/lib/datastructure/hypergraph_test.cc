@@ -21,40 +21,36 @@ class AHypergraph : public Test {
  public:
   AHypergraph() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr) {}
   HypergraphType hypergraph;
 };
 
-class AHypernodeIterator : public Test {
+class AHypernodeIterator : public AHypergraph {
  public:
   AHypernodeIterator() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
+      AHypergraph(),
       begin(),
       end() {}
-  HypergraphType hypergraph;
+
   ConstHypernodeIterator begin;
   ConstHypernodeIterator end;
 };
 
-class AHyperedgeIterator : public Test {
+class AHyperedgeIterator : public AHypergraph {
  public:
   AHyperedgeIterator() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
+      AHypergraph(),
       begin(),
       end() {}
-  HypergraphType hypergraph;
+
   ConstHyperedgeIterator begin;
   ConstHyperedgeIterator end;
 };
 
-class AHypergraphMacro : public Test {
+class AHypergraphMacro : public AHypergraph {
  public:
   AHypergraphMacro() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
-  HypergraphType hypergraph;
+      AHypergraph() {}
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {

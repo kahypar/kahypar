@@ -12,5 +12,7 @@ typedef unsigned int PartitionID;
 
 typedef std::vector<size_t> hMetisHyperEdgeIndexVector;
 typedef std::vector<HyperNodeID> hMetisHyperEdgeVector;
+typedef std::vector<HyperNodeWeight> hMetisHyperNodeWeightVector;
+typedef std::vector<HyperEdgeWeight> hMetisHyperEdgeWeightVector;
 
 #endif  // LIB_DEFINITIONS_H_
