@@ -8,6 +8,15 @@
 #include "../definitions.h"
 
 namespace io {
+
+enum HypergraphTypes {
+  kUnweighted = 0,
+  kEdgeWeights = 1,
+  kNodeWeights = 10,
+  kEdgeAndNodeWeights = 11,
+};
+
+
 void parseHGRHeader(std::ifstream& file, HyperEdgeID& num_hyperedges, HyperNodeID& num_hypernodes,
                     int& hypergraph_type) {
   if(file) {
@@ -32,13 +41,16 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
                          hMetisHyperEdgeVector& edge_vector,
                          hMetisHyperEdgeWeightVector* hyperedge_weights,
                          hMetisHyperNodeWeightVector* hypernode_weights) {
-  int hypergraph_type = 0;
+  int hypergraph_type = kUnweighted;
   parseHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
-  ASSERT(hypergraph_type == 0 || hypergraph_type == 1 || hypergraph_type == 10
-         || hypergraph_type == 11, "Hypergraph in file has wrong type");
+  ASSERT(hypergraph_type == kUnweighted || hypergraph_type == kEdgeWeights ||
+         hypergraph_type == kNodeWeights || hypergraph_type == kEdgeAndNodeWeights,
+         "Hypergraph in file has wrong type");
 
-  bool has_hyperedge_weights = hypergraph_type == 1 || hypergraph_type == 11 ? true : false;
-  bool has_hypernode_weights = hypergraph_type == 10 || hypergraph_type == 11 ? true : false;
+  bool has_hyperedge_weights = hypergraph_type == kEdgeWeights
+                               || hypergraph_type == kEdgeAndNodeWeights ? true : false;
+  bool has_hypernode_weights = hypergraph_type == kNodeWeights
+                               || hypergraph_type == kEdgeAndNodeWeights ? true : false;
   
   index_vector.push_back(edge_vector.size());
 
