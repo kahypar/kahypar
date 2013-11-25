@@ -51,15 +51,17 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
                                || hypergraph_type == kEdgeAndNodeWeights ? true : false;
   bool has_hypernode_weights = hypergraph_type == kNodeWeights
                                || hypergraph_type == kEdgeAndNodeWeights ? true : false;
-  
-  index_vector.push_back(edge_vector.size());
 
+  index_vector.reserve(num_hyperedges + /*sentinel*/ 1);
+  index_vector.push_back(edge_vector.size());
+  
   std::string line;
   for (HyperEdgeID i = 0; i < num_hyperedges; ++i) {
     std::getline(file,line);
     std::istringstream line_stream(line);
     if (has_hyperedge_weights) {
       ASSERT(hyperedge_weights != nullptr, "Hypergraph has hyperedge weights");
+      hyperedge_weights->reserve(num_hyperedges);
       HyperEdgeWeight edge_weight;
       line_stream >> edge_weight;
       hyperedge_weights->push_back(edge_weight);
@@ -76,6 +78,7 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
 
   if (has_hypernode_weights) {
     ASSERT(hypernode_weights != nullptr, "Hypergraph has hypernode weights");
+    hypernode_weights->reserve(num_hypernodes);
     for (HyperNodeID i = 0; i < num_hypernodes; ++i) {
       std::getline(file,line);
       std::istringstream line_stream(line);
