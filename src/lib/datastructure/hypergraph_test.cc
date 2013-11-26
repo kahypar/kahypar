@@ -209,6 +209,13 @@ TEST_F(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction) {
   ASSERT_THAT(hypergraph.hyperedge(3).weight(), Eq(1));
 }
 
+TEST_F(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction) {
+  hypergraph.contract(0,2);
+  ASSERT_THAT(hypergraph.hyperedgeSize(0), Eq(1));
+  
+  ASSERT_THAT(hypergraph.hyperedge(0).isInvalid(), Eq(false));
+}
+
 TEST_F(AHypernodeIterator, StartsWithFirstHypernode) {
   std::tie(begin, end) = hypergraph.hypernodes();
   ASSERT_THAT((*begin), Eq(0));

@@ -461,6 +461,7 @@ class Hypergraph{
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
+  FRIEND_TEST(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction);
   
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {
