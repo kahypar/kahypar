@@ -456,6 +456,7 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
   FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
+  FRIEND_TEST(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);

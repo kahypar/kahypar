@@ -198,6 +198,17 @@ TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
   ASSERT_THAT(hypergraph.hyperedgeSize(0), Eq(1));
 }
 
+TEST_F(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction) {
+  EXPECT_THAT(hypergraph.hypernodeDegree(0), Eq(2));
+  hypergraph.contract(5,6);
+  hypergraph.contract(0,5);
+  ASSERT_THAT(hypergraph.hypernodeDegree(0), Eq(4));
+  ASSERT_THAT(hypergraph.hyperedge(0).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hyperedge(3).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hyperedge(0).weight(), Eq(1));
+  ASSERT_THAT(hypergraph.hyperedge(3).weight(), Eq(1));
+}
+
 TEST_F(AHypernodeIterator, StartsWithFirstHypernode) {
   std::tie(begin, end) = hypergraph.hypernodes();
   ASSERT_THAT((*begin), Eq(0));
