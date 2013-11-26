@@ -90,6 +90,6 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
   
 }
 
-}
+} // namespace io
 
 #endif  // LIB_IO_HYPERGRAPHIO_H_
