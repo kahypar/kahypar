@@ -2,3 +2,4 @@
 *.cpp~
 *.a
 *.o
+build/*
