@@ -191,11 +191,20 @@ class Hypergraph{
     IDType _max_id;
     const ContainerType* _container;
   };
+
+  struct Memento {
+    Memento(HyperNodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
+            HypernodeID v_, HypernodeID v_first_entry_, HypernodeID v_size_) :
+        u(u_), u_first_entry(u_first_entry_), u_size(u_size_),
+        v(v_), v_first_entry(v_first_entry_), v_size(v_size_) {}
+    HypernodeID u, u_first_entry, u_size, v, v_first_entry, v_size;
+  };
   
  public:
   typedef typename std::vector<VertexID>::const_iterator ConstIncidenceIterator;
   typedef VertexIterator<HyperNode> ConstHypernodeIterator;
   typedef VertexIterator<HyperEdge> ConstHyperedgeIterator;
+  typedef Memento ContractionMemento;
   
   Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
@@ -338,10 +347,14 @@ class Hypergraph{
   
   
   // ToDo: This method should return a memento to reconstruct the changes!
-  void contract(HypernodeID u, HypernodeID v) {
+  ContractionMemento contract(HypernodeID u, HypernodeID v) {
     using std::swap;
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
+    HypernodeID u_offset = hypernode(u).firstEntry();
+    HypernodeID u_size = hypernode(u).size();
+    HypernodeID v_offset = hypernode(v).firstEntry();
+    HypernodeID v_size = hypernode(v).size();
     
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
@@ -374,7 +387,8 @@ class Hypergraph{
       }
     }
     clearVertex(v, _hypernodes);
-    removeVertex(v, _hypernodes);    
+    removeVertex(v, _hypernodes);
+    return ContractionMemento(u, u_offset, u_size, v, v_offset, v_size);
 }
 
   void disconnect(HypernodeID u, HyperedgeID e) {
@@ -457,11 +471,12 @@ class Hypergraph{
   FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
   FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
   FRIEND_TEST(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction);
+  FRIEND_TEST(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
-  FRIEND_TEST(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction);
+  FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
   
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {

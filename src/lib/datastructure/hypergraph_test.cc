@@ -10,12 +10,13 @@ namespace hgr {
 using ::testing::Eq;
 using ::testing::Test;
 
-typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
-typedef typename HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
-typedef typename HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
-typedef typename HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;
-typedef typename HypergraphType::HypernodeID HypernodeID;
-typedef typename HypergraphType::HyperedgeID HyperedgeID;
+typedef hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+typedef HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
+typedef HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
+typedef HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;
+typedef HypergraphType::HypernodeID HypernodeID;
+typedef HypergraphType::HyperedgeID HyperedgeID;
+typedef HypergraphType::ContractionMemento Memento;
 
 class AHypergraph : public Test {
  public:
@@ -49,8 +50,12 @@ class AHyperedgeIterator : public AHypergraph {
 
 class AHypergraphMacro : public AHypergraph {
  public:
-  AHypergraphMacro() :
-      AHypergraph() {}
+  AHypergraphMacro() : AHypergraph() {}
+};
+
+class AContractionMemento : public AHypergraph {
+ public:
+  AContractionMemento() : AHypergraph() {}
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
@@ -302,7 +307,8 @@ TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   ConstIncidenceIterator he_iter;
   int i = 0;
   forall_incident_hyperedges(he_iter, 6, hypergraph) {
-  ASSERT_THAT(*he_iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hypernode(6).firstEntry() + i)));
+  ASSERT_THAT(*he_iter, Eq(*(hypergraph._incidence_array.begin() +
+                             hypergraph.hypernode(6).firstEntry() + i)));
     ++i;
   } endfor
 }
@@ -311,9 +317,29 @@ TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
   ConstIncidenceIterator pin_iter;
   int i = 0;
   forall_pins(pin_iter, 2, hypergraph) {
-  ASSERT_THAT(*pin_iter, Eq(*(hypergraph._incidence_array.begin() + hypergraph.hyperedge(2).firstEntry() + i)));
+  ASSERT_THAT(*pin_iter, Eq(*(hypergraph._incidence_array.begin() +
+                              hypergraph.hyperedge(2).firstEntry() + i)));
     ++i;
   } endfor
+}
+
+TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
+  HypernodeID u_id = 4;
+  HypernodeID u_offset = hypergraph.hypernode(u_id).firstEntry();
+  HypernodeID u_size = hypergraph.hypernode(u_id).size();
+  HypernodeID v_id = 6;
+  HypernodeID v_offset = hypergraph.hypernode(v_id).firstEntry();
+  HypernodeID v_size = hypergraph.hypernode(v_id).size();
+
+  Memento memento = hypergraph.contract(4,6);
+
+  ASSERT_THAT(memento.u, Eq(u_id));
+  ASSERT_THAT(memento.u_first_entry, Eq(u_offset));
+  ASSERT_THAT(memento.u_size, Eq(u_size));
+  ASSERT_THAT(memento.v, Eq(v_id));
+  ASSERT_THAT(memento.v_first_entry, Eq(v_offset));
+  ASSERT_THAT(memento.v_size, Eq(v_size));
+
 }
 
 } // namespace hgr
