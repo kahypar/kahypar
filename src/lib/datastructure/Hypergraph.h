@@ -2,8 +2,11 @@
 #define LIB_DATASTRUCTURE_HYPERGRAPH_H_
 
 #include <algorithm>
+#include <bitset>
 #include <limits>
 #include <vector>
+
+#include <boost/dynamic_bitset.hpp>
 
 #include "../macros.h"
 
@@ -219,8 +222,9 @@ class Hypergraph{
       _current_num_pins(_num_pins),
       _hypernodes(_num_hypernodes, HyperNode(0,0,1)),
       _hyperedges(_num_hyperedges, HyperEdge(0,0,1)),
-      _incidence_array(2 * _num_pins,0) {
-
+      _incidence_array(2 * _num_pins,0),
+      _processed_hyperedges(_num_hyperedges) {
+    
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).setFirstEntry(edge_vector_index);
@@ -346,8 +350,7 @@ class Hypergraph{
   }
   
   
-  // ToDo: This method should return a memento to reconstruct the changes!
-  ContractionMemento contract(HypernodeID u, HypernodeID v) {
+  Memento contract(HypernodeID u, HypernodeID v) {
     using std::swap;
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
@@ -359,7 +362,7 @@ class Hypergraph{
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
     HeHandleIterator hes_begin, hes_end;
-    std::tie(hes_begin, hes_end) = indicentHyperedgeHandles(v);
+    std::tie(hes_begin, hes_end) = incidentHyperedgeHandles(v);
     for (HeHandleIterator he_iter = hes_begin; he_iter != hes_end; ++he_iter) {
       std::tie(pins_begin, pins_end) = pinHandles(*he_iter);
       ASSERT(pins_begin != pins_end, "Hyperedge " << *he_iter << " is empty");
@@ -375,10 +378,12 @@ class Hypergraph{
       ASSERT(*last_pin_slot == v, "v is not last entry in adjacency array!");
 
       if (slot_of_u != last_pin_slot) {
+        // Case 1:
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
         hyperedge(*he_iter).decreaseSize();
       } else {
+        // Case 2:
         // Hyperedge e does not contain u. Therefore we use the entry of v in e's edge array to
         // store the information that u is now connected to e and add the edge (u,e) to indicate
         // this conection also from the hypernode's point of view.
@@ -388,7 +393,50 @@ class Hypergraph{
     }
     clearVertex(v, _hypernodes);
     removeVertex(v, _hypernodes);
-    return ContractionMemento(u, u_offset, u_size, v, v_offset, v_size);
+    return Memento(u, u_offset, u_size, v, v_offset, v_size);
+  }
+
+  void uncontract(Memento& memento) {
+    reEnableContractedHypernode(memento);
+
+    if (hypernode(memento.u).size() - memento.u_size > 0) {
+      // Undo case 2 opeations: i.e. Entry of pin v in HE was reused to store connection to u
+      ASSERT(hypernode(memento.u).firstInvalidEntry() == _incidence_array.size(),
+             "Hyperedges of representative are not at the end of incidence array");
+      
+      for (HyperEdgeID i = hypernode(memento.u).firstEntry() + memento.u_size - 1;
+           i < hypernode(memento.u).firstEntry() + hypernode(memento.u).size(); ++i) {
+        ASSERT(i < _incidence_array.size(), "Index out of bounds");
+        HyperedgeID he_to_relink_to_v = _incidence_array[i];
+        
+        // Set last incidence entry for this HE to v because this slot was
+        // used to store the new edge to representative u during contraction
+        ASSERT(_incidence_array[hyperedge(he_to_relink_to_v).firstInvalidEntry() - 1] == memento.u,
+               "Pins of HE " << he_to_relink_to_v << " are inconsitent");
+        _incidence_array[hyperedge(he_to_relink_to_v).firstInvalidEntry() - 1] = memento.v;
+
+        // Remember which hyperedges were added to u so we don't need to process them when
+        // undoing case 1 operations.
+        _processed_hyperedges[he_to_relink_to_v] = 1;
+      }
+      
+      HeHandleIterator u_begin, u_end;
+      std::tie(u_begin, u_end) = incidentHyperedgeHandles(memento.u);
+      ASSERT(u_end == _incidence_array.end(),
+             "Hyperedges of representative are not at the end of incidence array");
+      _incidence_array.erase(u_begin, u_end);
+    }
+    
+    restoreRepresentative(memento);
+
+    // Undo case 1 operations: i.e. HN v was just cut off by decreasing size of HE
+    __forall_incident_hyperedges(he, memento.v) {
+      if (!_processed_hyperedges[he]) {
+        hyperedge(he).increaseSize();
+      }
+      _processed_hyperedges.reset(he);
+    } endfor
+    
 }
 
   void disconnect(HypernodeID u, HyperedgeID e) {
@@ -477,6 +525,19 @@ class Hypergraph{
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
   FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
+  FRIEND_TEST(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode);
+  FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
+  
+  void reEnableContractedHypernode(Memento& memento) {
+    hypernode(memento.v).setFirstEntry(memento.v_first_entry);
+    hypernode(memento.v).setSize(memento.v_size);
+  }
+
+  void restoreRepresentative(Memento& memento) {
+    hypernode(memento.u).setFirstEntry(memento.u_first_entry);
+    hypernode(memento.u).setSize(memento.u_size);
+    hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
+  }
   
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {
@@ -525,7 +586,7 @@ class Hypergraph{
   }
   
   // Accessor for handles of incident hyperedges of a hypernode
-  std::pair<HeHandleIterator, HeHandleIterator> indicentHyperedgeHandles(HypernodeID u) {
+  std::pair<HeHandleIterator, HeHandleIterator> incidentHyperedgeHandles(HypernodeID u) {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
@@ -568,7 +629,7 @@ class Hypergraph{
   std::vector<HyperNode> _hypernodes;
   std::vector<HyperEdge> _hyperedges;
   std::vector<VertexID> _incidence_array; 
-
+  boost::dynamic_bitset<uint64_t> _processed_hyperedges;
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 };
 

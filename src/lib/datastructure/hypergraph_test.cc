@@ -58,6 +58,11 @@ class AContractionMemento : public AHypergraph {
   AContractionMemento() : AHypergraph() {}
 };
 
+class AnUncontractionOperation : public AHypergraph {
+ public:
+  AnUncontractionOperation() : AHypergraph() {}
+};
+
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numHypernodes(), Eq(7));
   ASSERT_THAT(hypergraph.numHyperdeges(), Eq(4));
@@ -339,7 +344,88 @@ TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
   ASSERT_THAT(memento.v, Eq(v_id));
   ASSERT_THAT(memento.v_first_entry, Eq(v_offset));
   ASSERT_THAT(memento.v_size, Eq(v_size));
-
 }
 
+TEST_F(AnUncontractionOperation, NeedsAContractionMementoAsInput) {
+  Memento memento = hypergraph.contract(4,6);
+  hypergraph.uncontract(memento);
+}
+
+TEST_F(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode) {
+  Memento memento = hypergraph.contract(4,6);
+  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(true));
+
+  hypergraph.uncontract(memento);
+  
+  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(false));
+}
+
+TEST_F(AnUncontractionOperation, ResetsWeightOfRepresentative) {
+  ASSERT_THAT(hypergraph.hypernodeWeight(4), Eq(1));
+  Memento memento = hypergraph.contract(4,6);
+  ASSERT_THAT(hypergraph.hypernodeWeight(4), Eq(2));
+  
+  hypergraph.uncontract(memento);
+  
+  ASSERT_THAT(hypergraph.hypernodeWeight(4), Eq(1));
+}
+
+TEST_F(AnUncontractionOperation, DisconnectsHyperedgesAddedToRepresenativeDuringContraction) {
+  ASSERT_THAT(hypergraph.hypernodeDegree(4), Eq(2));
+  Memento memento = hypergraph.contract(4,6);
+  ASSERT_THAT(hypergraph.hypernodeDegree(4), Eq(3));
+
+  hypergraph.uncontract(memento);
+  ASSERT_THAT(hypergraph.hypernodeDegree(4), Eq(2));
+}
+
+TEST_F(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction) {
+  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(24));
+  Memento memento = hypergraph.contract(4,6);
+  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(27));
+
+  hypergraph.uncontract(memento);
+  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(24));
+}
+
+TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAddedToRepresentative) {
+  ConstIncidenceIterator begin, end;
+  std::tie(begin, end) = hypergraph.pins(3);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(1));
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(1));
+  Memento memento = hypergraph.contract(4,6);
+  std::tie(begin, end) = hypergraph.pins(3);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(0));
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(0));
+
+  hypergraph.uncontract(memento);
+  
+  std::tie(begin, end) = hypergraph.pins(3);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(1));
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 6), Eq(1));
+}
+
+TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistingAtRepresentative) {
+  ConstIncidenceIterator begin, end;
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+  std::tie(begin, end) = hypergraph.pins(1);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+  Memento memento = hypergraph.contract(3,4);
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(0));
+  std::tie(begin, end) = hypergraph.pins(1);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(0));
+
+  hypergraph.uncontract(memento);
+  
+  std::tie(begin, end) = hypergraph.pins(2);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+  std::tie(begin, end) = hypergraph.pins(1);
+  ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+}
+  
 } // namespace hgr
