@@ -115,22 +115,25 @@ class Hypergraph{
     void setWeight(WeightType weight) { _weight = weight; }
 
     bool operator==(const InternalVertex<VertexTypeTraits> & rhs) const {
-      return _begin == rhs.firstEntry() &&
-          _size == rhs.size() &&
-          _weight == rhs.weight();
+      return _begin == rhs.firstEntry() && _size == rhs.size() && _weight == rhs.weight();
     }
+    
     bool operator!=(const InternalVertex<VertexTypeTraits>& rhs) const {
       return !operator==(this,rhs);
     }
+    
     bool operator< (const InternalVertex<VertexTypeTraits>& rhs) const{
       return _begin == rhs.firstEntry();
     }
+    
     bool operator> (const InternalVertex<VertexTypeTraits>& rhs) const {
       return  operator<(rhs,this);
     }
+    
     bool operator<=(const InternalVertex<VertexTypeTraits>& rhs) const {
       return !operator>(this,rhs);
     }
+    
     bool operator>=(const InternalVertex<VertexTypeTraits>& rhs)const {
       return !operator<(this,rhs);
     }
@@ -420,7 +423,7 @@ class Hypergraph{
   }
 
   void uncontract(Memento& memento) {
-    reEnableContractedHypernode(memento);
+    restoreContractedHypernode(memento);
     ++_current_num_hypernodes;
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
@@ -551,7 +554,7 @@ class Hypergraph{
   FRIEND_TEST(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode);
   FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
   
-  void reEnableContractedHypernode(Memento& memento) {
+  void restoreContractedHypernode(Memento& memento) {
     hypernode(memento.v).setFirstEntry(memento.v_first_entry);
     hypernode(memento.v).setSize(memento.v_size);
   }
