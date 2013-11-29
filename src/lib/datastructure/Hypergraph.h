@@ -153,7 +153,7 @@ class Hypergraph{
   
   typedef InternalVertex<HyperNodeTraits> HyperNode;
   typedef InternalVertex<HyperEdgeTraits> HyperEdge;
-
+  
   template <typename VertexType>
   class VertexIterator {
     typedef VertexIterator<VertexType> Self;
@@ -209,7 +209,7 @@ class Hypergraph{
     bool operator!=(const Self& rhs) {
       return _id != rhs._id;
     }
-    
+
    private:
     IDType _id;
     IDType _max_id;
@@ -403,6 +403,7 @@ class Hypergraph{
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
         hyperedge(*he_iter).decreaseSize();
+        --_current_num_pins;
       } else {
         // Case 2:
         // Hyperedge e does not contain u. Therefore we use the entry of v in e's edge array to
@@ -414,50 +415,51 @@ class Hypergraph{
     }
     clearVertex(v, _hypernodes);
     removeVertex(v, _hypernodes);
+    --_current_num_hypernodes;
     return Memento(u, u_offset, u_size, v, v_offset, v_size);
   }
 
   void uncontract(Memento& memento) {
     reEnableContractedHypernode(memento);
+    ++_current_num_hypernodes;
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
-      // Undo case 2 opeations: i.e. Entry of pin v in HE was reused to store connection to u
-      ASSERT(hypernode(memento.u).firstInvalidEntry() == _incidence_array.size(),
-             "Hyperedges of representative are not at the end of incidence array");
-      
-      for (HyperEdgeID i = hypernode(memento.u).firstEntry() + memento.u_size - 1;
-           i < hypernode(memento.u).firstEntry() + hypernode(memento.u).size(); ++i) {
+      // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
+      // Set incidence entry containing u for this HE e back to v, because this slot was used
+      // to store the new edge to representative u during contraction as u was not a pin of e.
+      for (HyperEdgeID i = hypernode(memento.u).firstEntry() + memento.u_size;
+           i < hypernode(memento.u).firstInvalidEntry(); ++i) {
         ASSERT(i < _incidence_array.size(), "Index out of bounds");
-        HyperedgeID he_to_relink_to_v = _incidence_array[i];
-        
-        // Set last incidence entry for this HE to v because this slot was
-        // used to store the new edge to representative u during contraction
-        ASSERT(_incidence_array[hyperedge(he_to_relink_to_v).firstInvalidEntry() - 1] == memento.u,
-               "Pins of HE " << he_to_relink_to_v << " are inconsitent");
-        _incidence_array[hyperedge(he_to_relink_to_v).firstInvalidEntry() - 1] = memento.v;
 
-        // Remember which hyperedges were added to u so we don't need to process them when
-        // undoing case 1 operations.
-        _processed_hyperedges[he_to_relink_to_v] = 1;
+        resetReusedPinSlotToOriginalValue(_incidence_array[i], memento);
+
+        // Remember that this hyperedge is processed. The state of this hyperedge now resembles
+        // the state before contraction. Thus we don't need to process them any further.
+        _processed_hyperedges[_incidence_array[i]] = 1;
       }
-      
-      HeHandleIterator u_begin, u_end;
-      std::tie(u_begin, u_end) = incidentHyperedgeHandles(memento.u);
-      ASSERT(u_end == _incidence_array.end(),
-             "Hyperedges of representative are not at the end of incidence array");
-      _incidence_array.erase(u_begin, u_end);
+
+      // Check if we can remove the dynamically added incidence entries for u:
+      // If the old incidence entries are located before the current ones, than the
+      // contraction we are currently undoing was responsible moving the incidence entries
+      // of u to the end of the incidence array. Thus we can remove these entries now.
+      // Otherwise these entries will still be needed by upcoming uncontract operations.
+      if (memento.u_first_entry < hypernode(memento.u).firstEntry()) {
+        _incidence_array.erase(_incidence_array.begin() + hypernode(memento.u).firstEntry(),
+                               _incidence_array.end());
+      }
     }
     
     restoreRepresentative(memento);
 
-    // Undo case 1 operations: i.e. HN v was just cut off by decreasing size of HE
+    // Undo case 1 operations (i.e. Pin v was just cut off by decreasing size of HE e):
+    // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     __forall_incident_hyperedges(he, memento.v) {
       if (!_processed_hyperedges[he]) {
         hyperedge(he).increaseSize();
+        ++_current_num_pins;
       }
       _processed_hyperedges.reset(he);
     } endfor
-    
 }
 
   void disconnect(HypernodeID u, HyperedgeID e) {
@@ -529,7 +531,7 @@ class Hypergraph{
   HypernodeID numPins() const  {
     return _current_num_pins;
   }
-  
+    
  private:
   FRIEND_TEST(AHypergraph, InitializesInternalHypergraphRepresentation);
   FRIEND_TEST(AHypergraph, DisconnectsHypernodeFromHyperedge);
@@ -559,6 +561,19 @@ class Hypergraph{
     hypernode(memento.u).setSize(memento.u_size);
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
   }
+
+  void resetReusedPinSlotToOriginalValue(HyperedgeID he, Memento& memento) {
+    PinHandleIterator pin_begin, pin_end;
+    std::tie(pin_begin, pin_end) = pinHandles(he);
+    ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
+    --pin_end;
+    while (*pin_end != memento.u) {
+      --pin_end;
+    }
+    ASSERT(*pin_end == memento.u && std::distance(_incidence_array.begin(), pin_begin)
+           <= std::distance(_incidence_array.begin(), pin_end), "Reused slot not found");
+    *pin_end = memento.v;
+  }
   
   template <typename T>
   void clearVertex(VertexID vertex, T& container) {
@@ -576,7 +591,6 @@ class Hypergraph{
   // Current version copies all previous entries to ensure consistency. We might change
   // this to only add the corresponding entry and let the caller handle the consistency issues!
   void addForwardEdge(HypernodeID u, HyperedgeID e) {
-    // TODO: Assert via TypeInfo that we create an edge from Hypernode to Hyperedge
     ASSERT(!hyperedge(e).isInvalid(), "Invalid HyperedgeID");
     
     HyperNode &nodeU = hypernode(u);
@@ -652,7 +666,42 @@ class Hypergraph{
   std::vector<VertexID> _incidence_array; 
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
+
+  template <typename HNType, typename HEType, typename HNWType, typename HEWType>
+  friend bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expected,
+                                const Hypergraph<HNType, HEType, HNWType, HEWType>& actual);
 };
+
+template <typename HNType, typename HEType, typename HNWType, typename HEWType>
+bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expected,
+                       const Hypergraph<HNType, HEType, HNWType, HEWType>& actual) {
+  ASSERT(expected._current_num_hypernodes == actual._current_num_hypernodes,
+         "Expected: _current_num_hypernodes= " << expected._current_num_hypernodes << "\n"
+         << "  Actual: _current_num_hypernodes= " <<  actual._current_num_hypernodes);
+  ASSERT(expected._current_num_hyperedges == actual._current_num_hyperedges,
+         "Expected: _current_num_hyperedges= " << expected._current_num_hyperedges << "\n"
+         << "  Actual: _current_num_hyperedges= " <<  actual._current_num_hyperedges);
+  ASSERT(expected._current_num_pins == actual._current_num_pins,
+         "Expected: _current_num_pins= " << expected._current_num_pins << "\n"
+         << "  Actual: _current_num_pins= " <<  actual._current_num_pins);
+  ASSERT(expected._hypernodes == actual._hypernodes, "expected._hypernodes != actual._hypernodes");
+  ASSERT(expected._hyperedges == actual._hyperedges, "expected._hyperedges != actual._hyperedges");
+
+  std::vector<unsigned int> expected_incidence_array(expected._incidence_array);
+  std::vector<unsigned int> actual_incidence_array(actual._incidence_array);
+  std::sort(expected_incidence_array.begin(), expected_incidence_array.end());
+  std::sort(actual_incidence_array.begin(), actual_incidence_array.end());
+
+  ASSERT(expected_incidence_array == actual_incidence_array,
+         "expected._incidence_array != actual._incidence_array");
+  
+  return expected._current_num_hypernodes == actual._current_num_hypernodes &&
+      expected._current_num_hyperedges == actual._current_num_hyperedges &&
+      expected._current_num_pins == actual._current_num_pins &&
+      expected._hypernodes == actual._hypernodes &&
+      expected._hyperedges == actual._hyperedges &&
+      expected_incidence_array == actual_incidence_array;
+}
 
 } // namespace hgr
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

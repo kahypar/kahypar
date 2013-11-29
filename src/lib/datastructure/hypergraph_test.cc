@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stack>
 
 #include "gmock/gmock.h"
 
@@ -61,6 +62,16 @@ class AContractionMemento : public AHypergraph {
 class AnUncontractionOperation : public AHypergraph {
  public:
   AnUncontractionOperation() : AHypergraph() {}
+};
+
+class AnUncontractedHypergraph : public AHypergraph {
+ public:
+  AnUncontractedHypergraph() :
+      AHypergraph(),
+      modified_hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
+                          hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr) {}
+
+  HypergraphType modified_hypergraph;
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
@@ -426,6 +437,24 @@ TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistin
   ASSERT_THAT(std::count(begin, end, 4), Eq(1));
   std::tie(begin, end) = hypergraph.pins(1);
   ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+}
+
+TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
+  std::stack<Memento> contraction_history;
+  contraction_history.emplace(modified_hypergraph.contract(4,6));
+  contraction_history.emplace(modified_hypergraph.contract(3,4));
+  contraction_history.emplace(modified_hypergraph.contract(0,2));
+  contraction_history.emplace(modified_hypergraph.contract(0,1));
+  contraction_history.emplace(modified_hypergraph.contract(0,5));
+  contraction_history.emplace(modified_hypergraph.contract(0,3));
+  ASSERT_THAT(modified_hypergraph.hypernodeWeight(0), Eq(7));
+
+  while (!contraction_history.empty()) {
+    modified_hypergraph.uncontract(contraction_history.top());
+    contraction_history.pop();
+  }
+  
+  ASSERT_THAT(verifyEquivalence(hypergraph, modified_hypergraph), Eq(true));
 }
   
 } // namespace hgr
