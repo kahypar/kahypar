@@ -18,6 +18,7 @@ add_definitions("-pthread -W -Weffc++ -Wall -Wextra -Wunused -DPARANOID -std=c++
 enable_testing()
 add_subdirectory(src/lib/datastructure)
 add_subdirectory(src/lib/io)
+add_subdirectory(src/partition)
 
 
 

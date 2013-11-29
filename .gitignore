@@ -2,4 +2,7 @@
 *.cpp~
 *.a
 *.o
+*.txt~
+*.cc~
+*.h~
 build/*
