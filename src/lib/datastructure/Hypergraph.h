@@ -113,6 +113,27 @@ class Hypergraph{
     
     WeightType weight() const { return _weight; }
     void setWeight(WeightType weight) { _weight = weight; }
+
+    bool operator==(const InternalVertex<VertexTypeTraits> & rhs) const {
+      return _begin == rhs.firstEntry() &&
+          _size == rhs.size() &&
+          _weight == rhs.weight();
+    }
+    bool operator!=(const InternalVertex<VertexTypeTraits>& rhs) const {
+      return !operator==(this,rhs);
+    }
+    bool operator< (const InternalVertex<VertexTypeTraits>& rhs) const{
+      return _begin == rhs.firstEntry();
+    }
+    bool operator> (const InternalVertex<VertexTypeTraits>& rhs) const {
+      return  operator<(rhs,this);
+    }
+    bool operator<=(const InternalVertex<VertexTypeTraits>& rhs) const {
+      return !operator>(this,rhs);
+    }
+    bool operator>=(const InternalVertex<VertexTypeTraits>& rhs)const {
+      return !operator<(this,rhs);
+    }
     
    private:
     IDType _begin;
