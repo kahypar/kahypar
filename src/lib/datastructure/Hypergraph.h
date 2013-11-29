@@ -571,6 +571,7 @@ class Hypergraph{
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
     while (*pin_end != memento.u) {
+      ASSERT(pin_end != pin_begin, "Pin " <<  memento.u << " not found in pinlist of HE " << he);
       --pin_end;
     }
     ASSERT(*pin_end == memento.u && std::distance(_incidence_array.begin(), pin_begin)
@@ -609,9 +610,9 @@ class Hypergraph{
 
   template <typename Handle1, typename Handle2, typename Container >
   void removeEdge(Handle1 u, Handle2 v, Container& container) {
-    using std::swap
+    using std::swap;
     typename Container::reference &vertex = container[u];
-   typedef typename std::vector<VertexID>::iterator EdgeIterator;
+    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
     
     EdgeIterator begin = _incidence_array.begin() + vertex.firstEntry();
