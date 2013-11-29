@@ -609,7 +609,8 @@ class Hypergraph{
 
   template <typename Handle1, typename Handle2, typename Container >
   void removeEdge(Handle1 u, Handle2 v, Container& container) {
-   typename Container::reference &vertex = container[u];
+    using std::swap
+    typename Container::reference &vertex = container[u];
    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
     
@@ -619,7 +620,7 @@ class Hypergraph{
     while (*begin != v) {
       ++begin;
     }
-    std::swap(*begin, *last_entry);
+    swap(*begin, *last_entry);
     vertex.decreaseSize();    
   }
   
