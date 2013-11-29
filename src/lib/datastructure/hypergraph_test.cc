@@ -3,7 +3,6 @@
 
 #include "gmock/gmock.h"
 
-#include "../definitions.h"
 #include "Hypergraph.h"
 
 namespace hgr {
@@ -11,7 +10,7 @@ namespace hgr {
 using ::testing::Eq;
 using ::testing::Test;
 
-typedef hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+typedef hgr::HypergraphType HypergraphType;
 typedef HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
 typedef HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
 typedef HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;

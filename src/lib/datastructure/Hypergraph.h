@@ -8,6 +8,7 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include "../definitions.h"
 #include "../macros.h"
 
 namespace hgr {
@@ -220,7 +221,7 @@ class Hypergraph{
   };
 
   struct Memento {
-    Memento(HyperNodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
+    Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
             HypernodeID v_, HypernodeID v_first_entry_, HypernodeID v_size_) :
         u(u_), u_first_entry(u_first_entry_), u_size(u_size_),
         v(v_), v_first_entry(v_first_entry_), v_size(v_size_) {}
@@ -233,7 +234,7 @@ class Hypergraph{
   typedef VertexIterator<HyperEdge> ConstHyperedgeIterator;
   typedef Memento ContractionMemento;
   
-  Hypergraph(HyperNodeID num_hypernodes, HyperEdgeID num_hyperedges,
+  Hypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
              const hMetisHyperEdgeVector& edge_vector,
              const hMetisHyperEdgeWeightVector* hyperedge_weights,
@@ -707,6 +708,8 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
       expected._hyperedges == actual._hyperedges &&
       expected_incidence_array == actual_incidence_array;
 }
+
+typedef Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
 
 } // namespace hgr
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

@@ -2,7 +2,6 @@
 
 #include "gmock/gmock.h"
 
-#include "../definitions.h"
 #include "../datastructure/Hypergraph.h"
 #include "HypergraphIO.h"
 
@@ -12,7 +11,9 @@ using ::testing::Eq;
 using ::testing::ContainerEq;
 using ::testing::Test;
 
-typedef typename hgr::Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+typedef hgr::HypergraphType HypergraphType;
+typedef HypergraphType::HypernodeID HypernodeID;
+typedef HypergraphType::HyperedgeID HyperedgeID;
 
 class AnUnweightedHypergraph : public Test {
  public:
@@ -36,8 +37,8 @@ class AnUnweightedHypergraph : public Test {
   
   std::string _filename;
   std::ifstream _file;
-  HyperEdgeID _num_hyperedges;
-  HyperNodeID _num_hypernodes;
+  HyperedgeID _num_hyperedges;
+  HypernodeID _num_hypernodes;
   int _hypergraph_type;
   hMetisHyperEdgeIndexVector _control_index_vector;
   hMetisHyperEdgeVector _control_edge_vector;
@@ -88,8 +89,8 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 TEST(AFunction, ParsesFirstLineOfaHGRFile) {
   std::string filename("test_instances/unweighted_hypergraph.hgr");
   std::ifstream file(filename);
-  HyperEdgeID num_hyperedges = 0;
-  HyperNodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+  HypernodeID num_hypernodes = 0;
   int hypergraph_type = 0;
   parseHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
   ASSERT_THAT(num_hyperedges, Eq(4));

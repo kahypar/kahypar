@@ -5,9 +5,13 @@
 #include <iostream>
 #include <sstream>
 
-#include "../definitions.h"
+#include "../datastructure/Hypergraph.h"
 
 namespace io {
+
+typedef hgr::HypergraphType HypergraphType;
+typedef HypergraphType::HypernodeID HypernodeID;
+typedef HypergraphType::HyperedgeID HyperedgeID;
 
 enum HypergraphTypes {
   kUnweighted = 0,
@@ -17,7 +21,7 @@ enum HypergraphTypes {
 };
 
 
-void parseHGRHeader(std::ifstream& file, HyperEdgeID& num_hyperedges, HyperNodeID& num_hypernodes,
+void parseHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges, HypernodeID& num_hypernodes,
                     int& hypergraph_type) {
   if(file) {
     std::string line;
@@ -35,8 +39,8 @@ void parseHGRHeader(std::ifstream& file, HyperEdgeID& num_hyperedges, HyperNodeI
   }
 }
 
-void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
-                         HyperEdgeID &num_hyperedges,
+void parseHypergraphFile(std::ifstream& file, HypernodeID &num_hypernodes,
+                         HyperedgeID &num_hyperedges,
                          hMetisHyperEdgeIndexVector& index_vector,
                          hMetisHyperEdgeVector& edge_vector,
                          hMetisHyperEdgeWeightVector* hyperedge_weights,
@@ -56,7 +60,7 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
   index_vector.push_back(edge_vector.size());
   
   std::string line;
-  for (HyperEdgeID i = 0; i < num_hyperedges; ++i) {
+  for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
     std::getline(file,line);
     std::istringstream line_stream(line);
     if (has_hyperedge_weights) {
@@ -66,7 +70,7 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
       line_stream >> edge_weight;
       hyperedge_weights->push_back(edge_weight);
     }
-    HyperNodeID pin;
+    HypernodeID pin;
     while (line_stream >> pin) {
       // Hypernode IDs start from 0
       --pin;
@@ -79,7 +83,7 @@ void parseHypergraphFile(std::ifstream& file, HyperNodeID &num_hypernodes,
   if (has_hypernode_weights) {
     ASSERT(hypernode_weights != nullptr, "Hypergraph has hypernode weights");
     hypernode_weights->reserve(num_hypernodes);
-    for (HyperNodeID i = 0; i < num_hypernodes; ++i) {
+    for (HypernodeID i = 0; i < num_hypernodes; ++i) {
       std::getline(file,line);
       std::istringstream line_stream(line);
       HyperNodeWeight node_weight;
