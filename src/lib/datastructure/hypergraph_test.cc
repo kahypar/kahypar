@@ -219,6 +219,18 @@ TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
   ASSERT_THAT(hypergraph.hyperedgeSize(0), Eq(1));
 }
 
+TEST_F(AHypergraph, ReducesNumberOfPinsOnContraction) {
+  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  hypergraph.contract(3,4);
+  ASSERT_THAT(hypergraph.numPins(), Eq(10));
+}
+
+TEST_F(AHypergraph, ReducesTheNumberOfHypernodesOnContraction) {
+  ASSERT_THAT(hypergraph.numHypernodes(), Eq(7));
+  hypergraph.contract(3,4);
+  ASSERT_THAT(hypergraph.numHypernodes(), Eq(6));  
+}
+
 TEST_F(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction) {
   ASSERT_THAT(hypergraph.hypernodeDegree(0), Eq(2));
   hypergraph.contract(5,6);
