@@ -4,8 +4,14 @@
 #include "../lib/datastructure/Hypergraph.h"
 
 using ::testing::Test;
+using ::testing::Eq;
+using ::testing::DoubleEq;
+
+using defs::hMetisHyperEdgeIndexVector;
+using defs::hMetisHyperEdgeVector;
 
 typedef hgr::HypergraphType HypergraphType;
+typedef Coarsener<defs::RatingType> CoarsenerType;
 
 class ACoarsener : public Test {
  public:
@@ -21,11 +27,19 @@ class ACoarsener : public Test {
 };
 
 TEST_F(ACoarsener, TakesAHypergraphAContractionLimitAndAThresholdForNodeWeightAsInput) {
-  Coarsener coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  CoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
 }
 
 TEST_F(ACoarsener, UsesACoarseningHistoryToRememberAndUndoContractions) {
-  Coarsener coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  CoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
   coarsener.coarsen();
   coarsener.uncoarsen();
+}
+
+TEST_F(ACoarsener, CalculatesHeavyEdgeRating) {
+  CoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  ASSERT_THAT(coarsener.rate(0).value, Eq(1));
+  ASSERT_THAT(coarsener.rate(0).target, Eq(2));
+  ASSERT_THAT(coarsener.rate(3).value, DoubleEq(5.0/6));
+  ASSERT_THAT(coarsener.rate(3).target, Eq(4));
 }
