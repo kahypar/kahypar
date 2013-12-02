@@ -107,7 +107,8 @@ public:
         }
       } endfor
     } endfor
-          
+
+    _equal_ratings.clear();
     _equal_ratings.emplace_back(0, static_cast<RatingType>(0));
     RatingType tmp = 0.0;
     while (!_used_entries.empty()) {
