@@ -13,6 +13,11 @@
 
 namespace hgr {
 
+  using defs::hMetisHyperEdgeIndexVector;
+  using defs::hMetisHyperEdgeVector;
+  using defs::hMetisHyperEdgeWeightVector;
+  using defs::hMetisHyperNodeWeightVector;
+  
 // external macros:
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
@@ -431,7 +436,7 @@ class Hypergraph{
       // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
       // Set incidence entry containing u for this HE e back to v, because this slot was used
       // to store the new edge to representative u during contraction as u was not a pin of e.
-      for (HyperEdgeID i = hypernode(memento.u).firstEntry() + memento.u_size;
+      for (HyperedgeID i = hypernode(memento.u).firstEntry() + memento.u_size;
            i < hypernode(memento.u).firstInvalidEntry(); ++i) {
         ASSERT(i < _incidence_array.size(), "Index out of bounds");
 
@@ -523,12 +528,24 @@ class Hypergraph{
   void setHyperedgeWeight(HyperedgeID e, HyperedgeWeight weight) {
     hyperedge(e).setWeight(weight);
   }
+
+  HypernodeID initialNumHypernodes() const {
+    return _num_hypernodes;
+  }
+
+  HyperedgeID initialNumHyperedges() const {
+    return _num_hyperedges;
+  }
+  
+  HypernodeID initialNumPins()  const {
+    return _num_pins;
+  }
   
   HypernodeID numHypernodes() const {
     return _current_num_hypernodes;
   }
 
-  HyperedgeID numHyperdeges() const {
+  HyperedgeID numHyperedges() const {
     return _current_num_hyperedges;
   }
 
@@ -709,7 +726,8 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
       expected_incidence_array == actual_incidence_array;
 }
 
-typedef Hypergraph<HyperNodeID,HyperEdgeID,HyperNodeWeight,HyperEdgeWeight> HypergraphType;
+typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
+    defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
 
 } // namespace hgr
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

@@ -75,7 +75,7 @@ class AnUncontractedHypergraph : public AHypergraph {
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numHypernodes(), Eq(7));
-  ASSERT_THAT(hypergraph.numHyperdeges(), Eq(4));
+  ASSERT_THAT(hypergraph.numHyperedges(), Eq(4));
   ASSERT_THAT(hypergraph.numPins(), Eq(12));
   ASSERT_THAT(hypergraph.hypernode(0).size(), Eq(2));
   ASSERT_THAT(hypergraph.hypernode(1).size(), Eq(1));
@@ -114,7 +114,7 @@ TEST_F(AHypergraph, ReturnsNumberOfHypernodes) {
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfHyperedges) {
-  ASSERT_THAT(hypergraph.numHyperdeges(), Eq(4));
+  ASSERT_THAT(hypergraph.numHyperedges(), Eq(4));
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfPins) {
@@ -148,9 +148,9 @@ TEST_F(AHypergraph, InvalidatesRemovedHypernode) {
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
-  ASSERT_THAT(hypergraph.numHyperdeges(), Eq(4));
+  ASSERT_THAT(hypergraph.numHyperedges(), Eq(4));
   hypergraph.removeHyperedge(2);
-  ASSERT_THAT(hypergraph.numHyperdeges(), Eq(3));
+  ASSERT_THAT(hypergraph.numHyperedges(), Eq(3));
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
@@ -466,6 +466,24 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   }
   
   ASSERT_THAT(verifyEquivalence(hypergraph, modified_hypergraph), Eq(true));
+}
+
+TEST_F(AHypergraph, ReturnsInitialNumberOfHypernodesAfterHypergraphModification) {
+  ASSERT_THAT(hypergraph.initialNumHypernodes(), Eq(7));
+  hypergraph.removeHypernode(6);
+  ASSERT_THAT(hypergraph.initialNumHypernodes(), Eq(7));
+}
+
+TEST_F(AHypergraph, ReturnsInitialNumberOfPinsAfterHypergraphModification) {
+  ASSERT_THAT(hypergraph.initialNumPins(), Eq(12));
+  hypergraph.removeHypernode(6);
+  ASSERT_THAT(hypergraph.initialNumPins(), Eq(12));
+}
+
+TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
+  ASSERT_THAT(hypergraph.initialNumHyperedges(), Eq(4));
+  hypergraph.removeHyperedge(2);
+  ASSERT_THAT(hypergraph.initialNumHyperedges(), Eq(4));
 }
   
 } // namespace hgr

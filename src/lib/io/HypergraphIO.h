@@ -9,9 +9,16 @@
 
 namespace io {
 
+using defs::hMetisHyperEdgeIndexVector;
+using defs::hMetisHyperEdgeVector;
+using defs::hMetisHyperEdgeWeightVector;
+using defs::hMetisHyperNodeWeightVector;
+
 typedef hgr::HypergraphType HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
+typedef HypergraphType::HyperedgeWeight HyperedgeWeight;
+typedef HypergraphType::HypernodeWeight HypernodeWeight;
 
 enum HypergraphTypes {
   kUnweighted = 0,
@@ -66,7 +73,7 @@ void parseHypergraphFile(std::ifstream& file, HypernodeID &num_hypernodes,
     if (has_hyperedge_weights) {
       ASSERT(hyperedge_weights != nullptr, "Hypergraph has hyperedge weights");
       hyperedge_weights->reserve(num_hyperedges);
-      HyperEdgeWeight edge_weight;
+      HyperedgeWeight edge_weight;
       line_stream >> edge_weight;
       hyperedge_weights->push_back(edge_weight);
     }
@@ -86,7 +93,7 @@ void parseHypergraphFile(std::ifstream& file, HypernodeID &num_hypernodes,
     for (HypernodeID i = 0; i < num_hypernodes; ++i) {
       std::getline(file,line);
       std::istringstream line_stream(line);
-      HyperNodeWeight node_weight;
+      HypernodeWeight node_weight;
       line_stream >> node_weight;
       hypernode_weights->push_back(node_weight);
     }
