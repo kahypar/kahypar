@@ -11,21 +11,20 @@
 
 namespace partition {
 
- typedef hgr::HypergraphType HypergraphType;
- typedef hgr::HypergraphType::HypernodeID HypernodeID;
- typedef hgr::HypergraphType::ContractionMemento Memento;
- typedef hgr::HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
- typedef hgr::HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++" // See Modern C++ Design
-template <typename RatingType_, template <class> class _TieBreakingPolicy>
+ template <class Hypergraph, typename RatingType_, template <class> class _TieBreakingPolicy>
 class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
  public:
   typedef RatingType_ RatingType;
-  typedef _TieBreakingPolicy<HypernodeID> TieBreakingPolicy;
   
- private:    
+ private:
+  typedef _TieBreakingPolicy<HypernodeID> TieBreakingPolicy;
+  typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef typename Hypergraph::ContractionMemento Memento;
+  typedef typename Hypergraph::ConstIncidenceIterator ConstIncidenceIterator;
+  typedef typename Hypergraph::ConstHypernodeIterator ConstHypernodeIterator;
+  
   struct HeavyEdgeRating {
     HypernodeID target;
     RatingType value;
@@ -41,7 +40,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
   };
     
  public:  
-  Coarsener(HypergraphType& hypergraph, int coarsening_limit, int threshold_node_weight) :
+  Coarsener(Hypergraph& hypergraph, int coarsening_limit, int threshold_node_weight) :
       _hypergraph(hypergraph),
       _coarsening_limit(coarsening_limit),
       _threshold_node_weight(threshold_node_weight),
@@ -116,7 +115,7 @@ private:
         <= _threshold_node_weight;
   }
   
-  HypergraphType& _hypergraph;
+  Hypergraph& _hypergraph;
   const int _coarsening_limit;
   const int _threshold_node_weight;
   std::stack<Memento> _coarsening_history;

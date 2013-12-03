@@ -14,10 +14,10 @@ using defs::hMetisHyperEdgeVector;
 namespace partition {
 
 typedef hgr::HypergraphType HypergraphType;
-typedef Coarsener<defs::RatingType, FirstRatingWins> CoarsenerType;
-typedef Coarsener<defs::RatingType, FirstRatingWins> FirstWinsCoarsener;
-typedef Coarsener<defs::RatingType, LastRatingWins> LastWinsCoarsener;
-typedef Coarsener<defs::RatingType, RandomRatingWins> RandomWinsCoarsener;
+typedef Coarsener<HypergraphType, defs::RatingType, FirstRatingWins> CoarsenerType;
+typedef Coarsener<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsCoarsener;
+typedef Coarsener<HypergraphType, defs::RatingType, LastRatingWins> LastWinsCoarsener;
+typedef Coarsener<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsCoarsener;
 
 class ACoarsener : public Test {
  public:
