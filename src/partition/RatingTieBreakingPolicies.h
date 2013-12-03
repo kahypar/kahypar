@@ -8,8 +8,8 @@
 
 namespace partition {
 
+template <typename T>
 struct LastRatingWins {
-  template <typename T>
   static T select(std::vector<T>& equal_ratings) {
     return equal_ratings.back();
   }
@@ -17,8 +17,8 @@ struct LastRatingWins {
   ~LastRatingWins() {}
 };
 
+template <typename T>
 struct FirstRatingWins {
-  template <typename T>
   static T select(std::vector<T>& equal_ratings) {
     return equal_ratings.front();
   }
@@ -26,9 +26,9 @@ struct FirstRatingWins {
   ~FirstRatingWins() {}
 };
 
+template <typename T>
 struct RandomRatingWins {
  public:
-  template <typename T>
   static T select(std::vector<T>& equal_ratings) {
     return equal_ratings[ dist(gen) % equal_ratings.size()];
   }
@@ -39,8 +39,10 @@ struct RandomRatingWins {
   static boost::random::uniform_int_distribution<> dist;
 };
 
-boost::random::uniform_int_distribution<> RandomRatingWins::dist(1,std::numeric_limits<int>::max());
-boost::random::mt19937 RandomRatingWins::gen(time(0));
+template <typename T>
+boost::random::uniform_int_distribution<> RandomRatingWins<T>::dist(1,std::numeric_limits<int>::max());
+template <typename T>
+boost::random::mt19937 RandomRatingWins<T>::gen(time(0));
 
 } // namespace partition
 
