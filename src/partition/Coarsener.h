@@ -7,6 +7,7 @@
 
 #include "RatingTieBreakingPolicies.h"
 #include "../lib/datastructure/Hypergraph.h"
+#include "../lib/datastructure/PriorityQueue.h"
 
 namespace partition {
 
@@ -48,7 +49,8 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
       _tmp_edge_ratings(_hypergraph.initialNumHypernodes(), static_cast<RatingType>(0)),
       _visited_hypernodes(_hypergraph.initialNumHypernodes()),
       _used_entries(),
-      _equally_rated_nodes() {}
+      _equally_rated_nodes(),
+      _prio_queue(_hypergraph.initialNumHypernodes(), _hypergraph.initialNumHypernodes()) {}
   
   void coarsen() {
     //    _coarsening_history.push(_hypergraph.contract(0,2));
@@ -122,6 +124,7 @@ private:
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
   std::stack<HypernodeID> _used_entries;
   std::vector<HypernodeID> _equally_rated_nodes;
+  PriorityQueue<RatingType> _prio_queue;
 };
 #pragma GCC diagnostic pop
 
