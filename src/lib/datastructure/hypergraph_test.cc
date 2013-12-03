@@ -142,9 +142,9 @@ TEST_F(AHypergraph, DecrementsSizeOfAffectedHyperedgesOnHypernodeRemoval) {
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHypernode) {  
-  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(6), Eq(true));
   hypergraph.removeHypernode(6);
-  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(6), Eq(false));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
@@ -154,9 +154,9 @@ TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
-  ASSERT_THAT(hypergraph.hyperedge(2).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hyperedgeIsValid(2), Eq(true));
   hypergraph.removeHyperedge(2);
-  ASSERT_THAT(hypergraph.hyperedge(2).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hyperedgeIsValid(2), Eq(false));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHyperedgeRemoval) {
@@ -188,15 +188,15 @@ TEST_F(AHypergraph, DecrementsHyperedgeSizeAfterDisconnectingAHypernodeFromHyper
 }
 
 TEST_F(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge) {
-  ASSERT_THAT(hypergraph.hypernode(4).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(4), Eq(true));
   hypergraph.disconnect(4, 2);
-  ASSERT_THAT(hypergraph.hypernode(4).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(4), Eq(true));
 }
 
 TEST_F(AHypergraph, InvalidatesContractedHypernode) {
-  ASSERT_THAT(hypergraph.hypernode(2).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(2), Eq(true));
   hypergraph.contract(0,2);
-  ASSERT_THAT(hypergraph.hypernode(2).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(2), Eq(false));
 }
 
 TEST_F(AHypergraph, RelinksHyperedgesOfContractedHypernodeToRepresentative) {
@@ -235,17 +235,17 @@ TEST_F(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction) {
   hypergraph.contract(5,6);
   hypergraph.contract(0,5);
   ASSERT_THAT(hypergraph.hypernodeDegree(0), Eq(4));
-  ASSERT_THAT(hypergraph.hyperedge(0).isInvalid(), Eq(false));
-  ASSERT_THAT(hypergraph.hyperedge(3).isInvalid(), Eq(false));
-  ASSERT_THAT(hypergraph.hyperedge(0).weight(), Eq(1));
-  ASSERT_THAT(hypergraph.hyperedge(3).weight(), Eq(1));
+  ASSERT_THAT(hypergraph.hyperedgeIsValid(0), Eq(true));
+  ASSERT_THAT(hypergraph.hyperedgeIsValid(3), Eq(true));
+  ASSERT_THAT(hypergraph.hyperedgeWeight(0), Eq(1));
+  ASSERT_THAT(hypergraph.hyperedgeWeight(3), Eq(1));
 }
 
 TEST_F(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction) {
   hypergraph.contract(0,2);
   ASSERT_THAT(hypergraph.hyperedgeSize(0), Eq(1));
   
-  ASSERT_THAT(hypergraph.hyperedge(0).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hyperedgeIsValid(0), Eq(true));
 }
 
 TEST_F(AHypernodeIterator, StartsWithFirstHypernode) {
@@ -375,11 +375,11 @@ TEST_F(AnUncontractionOperation, NeedsAContractionMementoAsInput) {
 
 TEST_F(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode) {
   Memento memento = hypergraph.contract(4,6);
-  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(true));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(6), Eq(false));
 
   hypergraph.uncontract(memento);
   
-  ASSERT_THAT(hypergraph.hypernode(6).isInvalid(), Eq(false));
+  ASSERT_THAT(hypergraph.hypernodeIsValid(6), Eq(true));
 }
 
 TEST_F(AnUncontractionOperation, ResetsWeightOfRepresentative) {

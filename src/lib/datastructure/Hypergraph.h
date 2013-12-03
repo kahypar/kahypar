@@ -529,6 +529,14 @@ class Hypergraph{
     hyperedge(e).setWeight(weight);
   }
 
+  bool hypernodeIsValid(HypernodeID u) {
+    return !hypernode(u).isInvalid();
+  }
+
+  bool hyperedgeIsValid(HyperedgeID e) {
+    return !hyperedge(e).isInvalid();
+  }
+
   HypernodeID initialNumHypernodes() const {
     return _num_hypernodes;
   }
@@ -556,20 +564,13 @@ class Hypergraph{
  private:
   FRIEND_TEST(AHypergraph, InitializesInternalHypergraphRepresentation);
   FRIEND_TEST(AHypergraph, DisconnectsHypernodeFromHyperedge);
-  FRIEND_TEST(AHypergraph, InvalidatesRemovedHypernode);  
   FRIEND_TEST(AHypergraph, RemovesHyperedges);
-  FRIEND_TEST(AHypergraph, InvalidatesRemovedHyperedge);
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
-  FRIEND_TEST(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge);
-  FRIEND_TEST(AHypergraph, InvalidatesContractedHypernode);
-  FRIEND_TEST(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction);
-  FRIEND_TEST(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverIncidentHyperedges);
   FRIEND_TEST(AnIncidenceIterator, AllowsIterationOverPinsOfHyperedge);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllIncidentHyperedges);
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
   FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
-  FRIEND_TEST(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode);
   FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
   
   void restoreContractedHypernode(Memento& memento) {
