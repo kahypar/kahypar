@@ -19,20 +19,20 @@ namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++" // See Modern C++ Design
 template <typename RatingType_, class TieBreakingPolicy>
- class Coarsener : public TieBreakingPolicy  {
-public:
-    typedef RatingType_ RatingType;
+class Coarsener : public TieBreakingPolicy  {
+ public:
+  typedef RatingType_ RatingType;
+  
+ private:    
+  struct HeavyEdgeRating {
+    HypernodeID target;
+    RatingType value;
+    HeavyEdgeRating(HypernodeID trgt, RatingType val) :
+        target(trgt),
+        value(val) {}
+  };
     
-private:    
-struct HeavyEdgeRating {
-  HypernodeID target;
-  RatingType value;
- HeavyEdgeRating(HypernodeID trgt, RatingType val) :
-  target(trgt),
-  value(val) {}
-};
-    
-public:  
+ public:  
   Coarsener(HypergraphType& hypergraph, int coarsening_limit, int threshold_node_weight) :
       _hypergraph(hypergraph),
       _coarsening_limit(coarsening_limit),
@@ -42,7 +42,7 @@ public:
       _visited_hypernodes(_hypergraph.initialNumHypernodes()),
       _used_entries(),
       _equal_ratings() {}
-
+  
   void coarsen() {
     //    _coarsening_history.push(_hypergraph.contract(0,2));
     forall_hypernodes(hn, _hypergraph) {
@@ -65,7 +65,7 @@ public:
       forall_pins(v, *he, _hypergraph) {
         if (*v != u) {
           _tmp_edge_ratings[*v] += static_cast<RatingType>(_hypergraph.hyperedgeWeight(*he))
-                         / (_hypergraph.hyperedgeSize(*he) - 1);
+                                   / (_hypergraph.hyperedgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
             _visited_hypernodes[*v] = 1;
             _used_entries.push(*v);
@@ -80,7 +80,7 @@ public:
     while (!_used_entries.empty()) {
       tmp = _tmp_edge_ratings[_used_entries.top()] /
             (_hypergraph.hypernodeWeight(u) * _hypergraph.hypernodeWeight(_used_entries.top()));
-// PRINT("r(" << u << "," << _used_entries.top() << ")=" << tmp); 
+      // PRINT("r(" << u << "," << _used_entries.top() << ")=" << tmp); 
       if (_equal_ratings.back().value < tmp) {
         _equal_ratings.clear();
         _equal_ratings.emplace_back(_used_entries.top(), tmp);
