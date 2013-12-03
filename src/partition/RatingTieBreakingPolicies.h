@@ -1,6 +1,8 @@
 #ifndef PARTITION_RATINGTIEBREAKINGPOLICIES_H_
 #define PARTITION_RATINGTIEBREAKINGPOLICIES_H_
 
+#include <ctime>
+
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 
@@ -38,7 +40,7 @@ struct RandomRatingWins {
 };
 
 boost::random::uniform_int_distribution<> RandomRatingWins::dist(1,std::numeric_limits<int>::max());
-boost::random::mt19937 RandomRatingWins::gen;
+boost::random::mt19937 RandomRatingWins::gen(time(0));
 
 } // namespace partition
 
