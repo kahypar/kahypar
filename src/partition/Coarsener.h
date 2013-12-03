@@ -90,7 +90,6 @@ class Coarsener : public TieBreakingPolicy  {
       _tmp_edge_ratings[_used_entries.top()] = 0.0;
       _visited_hypernodes[_used_entries.top()] = 0;
       _used_entries.pop();
-      // ToDo: collect equals for tiebraking!
     }
     return TieBreakingPolicy::select(_equal_ratings);
   }
