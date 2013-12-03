@@ -22,19 +22,19 @@ namespace hgr {
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
   ConstHypernodeIterator __begin, __end;                                \
-  std::tie(__begin, __end) = graph.hypernodes();                        \
+  std::tie(__begin, __end) = graph.nodes();                             \
   for (ConstHypernodeIterator hn = __begin; hn != __end; ++hn) {
 
 #define forall_hyperedges(he, graph)                                    \
   {                                                                     \
   ConstHyperedgeIterator __begin, __end;                                \
-  std::tie(__begin, __end) = graph.hyperedges();                        \
+  std::tie(__begin, __end) = graph.edges();                             \
   for (ConstHyperedgeIterator he = __begin; he != __end; ++he) {
 
 #define forall_incident_hyperedges(he, hn, graph)                       \
   {                                                                     \
   ConstIncidenceIterator __begin, __end;                                \
-  std::tie(__begin, __end) = graph.incidentHyperedges(hn);              \
+  std::tie(__begin, __end) = graph.incidentEdges(hn);              \
   for (ConstIncidenceIterator he = __begin; he != __end; ++he) {
 
 #define forall_pins(pin, he, graph)                                     \
@@ -357,7 +357,7 @@ class Hypergraph{
 #endif
   
   std::pair<ConstIncidenceIterator, ConstIncidenceIterator>
-  incidentHyperedges(HypernodeID u) const {
+  incidentEdges(HypernodeID u) const {
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
@@ -367,13 +367,13 @@ class Hypergraph{
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<ConstHypernodeIterator, ConstHypernodeIterator> hypernodes() {
+  std::pair<ConstHypernodeIterator, ConstHypernodeIterator> nodes() {
     return std::make_pair(ConstHypernodeIterator(&_hypernodes, 0, _num_hypernodes),
                           ConstHypernodeIterator(&_hypernodes, _num_hypernodes,
                                                    _num_hypernodes));
   }
 
-  std::pair<ConstHyperedgeIterator, ConstHyperedgeIterator> hyperedges() {
+  std::pair<ConstHyperedgeIterator, ConstHyperedgeIterator> edges() {
     return std::make_pair(ConstHyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
                           ConstHyperedgeIterator(&_hyperedges, _num_hyperedges,
                                                    _num_hyperedges));
@@ -482,7 +482,7 @@ class Hypergraph{
     removeEdge(e, u, _hyperedges);
   }
   
-  void removeHypernode(HypernodeID u) {
+  void removeNode(HypernodeID u) {
     ASSERT(!hypernode(u).isInvalid(),"Hypernode is invalid!");
     __forall_incident_hyperedges(e, u) {
       removeEdge(e, u, _hyperedges);
@@ -493,7 +493,7 @@ class Hypergraph{
     --_current_num_hypernodes;
   }
   
-  void removeHyperedge(HyperedgeID e) {
+  void removeEdge(HyperedgeID e) {
     ASSERT(!hyperedge(e).isInvalid(),"Hyperedge is invalid!");
     __forall_pins(u, e) {
       removeEdge(u, e, _hypernodes);
@@ -505,43 +505,43 @@ class Hypergraph{
   }
 
   // Accessors and mutators.
-  HyperedgeID hypernodeDegree(HypernodeID u) const {
+  HyperedgeID nodeDegree(HypernodeID u) const {
     return hypernode(u).size();
   }
   
-  HypernodeID hyperedgeSize(HyperedgeID e) const {
+  HypernodeID edgeSize(HyperedgeID e) const {
     return hyperedge(e).size();
   }
 
-  HypernodeWeight hypernodeWeight(HypernodeID u) const {
+  HypernodeWeight nodeWeight(HypernodeID u) const {
     return hypernode(u).weight();
   } 
 
-  void setHypernodeWeight(HypernodeID u, HypernodeWeight weight) {
+  void setNodeWeight(HypernodeID u, HypernodeWeight weight) {
     hypernode(u).setWeight(weight);
   }
   
-  HyperedgeWeight hyperedgeWeight(HyperedgeID e) const {
+  HyperedgeWeight edgeWeight(HyperedgeID e) const {
     return hyperedge(e).weight();
   }
   
-  void setHyperedgeWeight(HyperedgeID e, HyperedgeWeight weight) {
+  void setEdgeWeight(HyperedgeID e, HyperedgeWeight weight) {
     hyperedge(e).setWeight(weight);
   }
 
-  bool hypernodeIsValid(HypernodeID u) {
+  bool nodeIsValid(HypernodeID u) {
     return !hypernode(u).isInvalid();
   }
 
-  bool hyperedgeIsValid(HyperedgeID e) {
+  bool edgeIsValid(HyperedgeID e) {
     return !hyperedge(e).isInvalid();
   }
 
-  HypernodeID initialNumHypernodes() const {
+  HypernodeID initialNumNodes() const {
     return _num_hypernodes;
   }
 
-  HyperedgeID initialNumHyperedges() const {
+  HyperedgeID initialNumEdges() const {
     return _num_hyperedges;
   }
   
@@ -549,11 +549,11 @@ class Hypergraph{
     return _num_pins;
   }
   
-  HypernodeID numHypernodes() const {
+  HypernodeID numNodes() const {
     return _current_num_hypernodes;
   }
 
-  HyperedgeID numHyperedges() const {
+  HyperedgeID numEdges() const {
     return _current_num_hyperedges;
   }
 

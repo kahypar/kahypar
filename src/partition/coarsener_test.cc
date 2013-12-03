@@ -90,7 +90,7 @@ TEST_F(ACoarsener, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
 TEST_F(ACoarsener, DISABLED_SelectsNodePairToContractBasedOnHighestRating) {
   FirstWinsCoarsener coarsener(hypergraph, coarsening_limit, /*threshold*/ 5);
   coarsener.coarsen();
-  ASSERT_THAT(hypergraph.hypernodeIsValid(2), Eq(false));
+  ASSERT_THAT(hypergraph.nodeIsValid(2), Eq(false));
 }
 
 } // namespace partition

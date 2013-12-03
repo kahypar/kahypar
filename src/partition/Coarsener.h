@@ -46,11 +46,11 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
       _coarsening_limit(coarsening_limit),
       _threshold_node_weight(threshold_node_weight),
       _coarsening_history(),
-      _tmp_edge_ratings(_hypergraph.initialNumHypernodes(), static_cast<RatingType>(0)),
-      _visited_hypernodes(_hypergraph.initialNumHypernodes()),
+      _tmp_edge_ratings(_hypergraph.initialNumNodes(), static_cast<RatingType>(0)),
+      _visited_hypernodes(_hypergraph.initialNumNodes()),
       _used_entries(),
       _equally_rated_nodes(),
-      _prio_queue(_hypergraph.initialNumHypernodes(), _hypergraph.initialNumHypernodes()) {}
+      _prio_queue(_hypergraph.initialNumNodes(), _hypergraph.initialNumNodes()) {}
   
   void coarsen() {
     //    _coarsening_history.push(_hypergraph.contract(0,2));
@@ -73,8 +73,8 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
     forall_incident_hyperedges(he,  u, _hypergraph) {
       forall_pins(v, *he, _hypergraph) {
         if (*v != u && belowThresholdNodeWeight(*v, u) ) {
-          _tmp_edge_ratings[*v] += static_cast<RatingType>(_hypergraph.hyperedgeWeight(*he))
-                                   / (_hypergraph.hyperedgeSize(*he) - 1);
+          _tmp_edge_ratings[*v] += static_cast<RatingType>(_hypergraph.edgeWeight(*he))
+                                   / (_hypergraph.edgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
             _visited_hypernodes[*v] = 1;
             _used_entries.push(*v);
@@ -88,7 +88,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     while (!_used_entries.empty()) {
       tmp = _tmp_edge_ratings[_used_entries.top()] /
-            (_hypergraph.hypernodeWeight(u) * _hypergraph.hypernodeWeight(_used_entries.top()));
+            (_hypergraph.nodeWeight(u) * _hypergraph.nodeWeight(_used_entries.top()));
       // PRINT("r(" << u << "," << _used_entries.top() << ")=" << tmp); 
       if (max_rating < tmp) {
         max_rating = tmp;
@@ -112,7 +112,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
   
 private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) {
-    return _hypergraph.hypernodeWeight(v) + _hypergraph.hypernodeWeight(u)
+    return _hypergraph.nodeWeight(v) + _hypergraph.nodeWeight(u)
         <= _threshold_node_weight;
   }
   
