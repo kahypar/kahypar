@@ -4,9 +4,8 @@
 #include <stack>
 
 #include <boost/dynamic_bitset.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
 
+#include "RatingTieBreakingPolicies.h"
 #include "../lib/datastructure/Hypergraph.h"
 
 namespace partition {
@@ -17,47 +16,14 @@ namespace partition {
  typedef hgr::HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
  typedef hgr::HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
 
-struct LastRatingWins {
-  template <typename T>
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings.back();
-  }
- protected:
-  ~LastRatingWins() {}
-};
-
-struct FirstRatingWins {
-  template <typename T>
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings.front();
-  }
- protected:
-  ~FirstRatingWins() {}
-};
-
-struct RandomRatingWins {
-public:
-  template <typename T>
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings[ dist(gen) % equal_ratings.size()];
-  }
-protected:
-  ~RandomRatingWins() {}
-private:
-static boost::random::mt19937 gen;
-static boost::random::uniform_int_distribution<> dist;
-};
-
-boost::random::uniform_int_distribution<> RandomRatingWins::dist(1,std::numeric_limits<int>::max());
-boost::random::mt19937 RandomRatingWins::gen;
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++" // See Modern C++ Design
 template <typename RatingType_, class TieBreakingPolicy>
  class Coarsener : public TieBreakingPolicy  {
 public:
     typedef RatingType_ RatingType;
     
-private:
-    
+private:    
 struct HeavyEdgeRating {
   HypernodeID target;
   RatingType value;
@@ -139,6 +105,7 @@ private:
   std::stack<HypernodeID> _used_entries;
   std::vector<HeavyEdgeRating> _equal_ratings;
 };
+#pragma GCC diagnostic pop
 
 } // namespace partition
 
