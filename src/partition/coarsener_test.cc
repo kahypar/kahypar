@@ -15,9 +15,9 @@ namespace partition {
 
 typedef hgr::HypergraphType HypergraphType;
 typedef Coarsener<defs::RatingType, FirstRatingWins> CoarsenerType;
-typedef Coarsener<defs::RatingType, FirstRatingWins> FirstWinsCoarsenerType;
-typedef Coarsener<defs::RatingType, LastRatingWins> LastWinsCoarsenerType;
-typedef Coarsener<defs::RatingType, RandomRatingWins> RandomWinsCoarsenerType;
+typedef Coarsener<defs::RatingType, FirstRatingWins> FirstWinsCoarsener;
+typedef Coarsener<defs::RatingType, LastRatingWins> LastWinsCoarsener;
+typedef Coarsener<defs::RatingType, RandomRatingWins> RandomWinsCoarsener;
 
 class ACoarsener : public Test {
  public:
@@ -37,7 +37,7 @@ TEST_F(ACoarsener, TakesAHypergraphAContractionLimitAndAThresholdForNodeWeightAs
 }
 
 TEST_F(ACoarsener, UsesACoarseningHistoryToRememberAndUndoContractions) {
-  RandomWinsCoarsenerType coarsener (hypergraph, coarsening_limit, threshold_node_weight);
+  RandomWinsCoarsener coarsener (hypergraph, coarsening_limit, threshold_node_weight);
   coarsener.coarsen();
   coarsener.uncoarsen();
 }
@@ -51,7 +51,7 @@ TEST_F(ACoarsener, CalculatesHeavyEdgeRating) {
 }
 
 TEST_F(ACoarsener, WithFirstWinsPolicyUsesFirstRatingEntryOfEqualRatings) {
-  FirstWinsCoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  FirstWinsCoarsener coarsener(hypergraph, coarsening_limit, threshold_node_weight);
   ASSERT_THAT(coarsener.rate(6).value, DoubleEq(0.5));
   ASSERT_THAT(coarsener.rate(6).target, Eq(5));
   ASSERT_THAT(coarsener.rate(5).value, DoubleEq(0.5));
@@ -59,7 +59,7 @@ TEST_F(ACoarsener, WithFirstWinsPolicyUsesFirstRatingEntryOfEqualRatings) {
 }
 
 TEST_F(ACoarsener, WithLastWinsPolicyUsesLastRatingEntryOfEqualRatings) {
-  LastWinsCoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  LastWinsCoarsener coarsener(hypergraph, coarsening_limit, threshold_node_weight);
   ASSERT_THAT(coarsener.rate(6).value, DoubleEq(0.5));
   ASSERT_THAT(coarsener.rate(6).target, Eq(3));
   ASSERT_THAT(coarsener.rate(5).value, DoubleEq(0.5));
@@ -67,11 +67,30 @@ TEST_F(ACoarsener, WithLastWinsPolicyUsesLastRatingEntryOfEqualRatings) {
 }
 
 TEST_F(ACoarsener, WithRandomWinsPolicyUsesRandomRatingEntryOfEqualRatings) {
-  RandomWinsCoarsenerType coarsener(hypergraph, coarsening_limit, threshold_node_weight);
+  RandomWinsCoarsener coarsener(hypergraph, coarsening_limit, threshold_node_weight);
   ASSERT_THAT(coarsener.rate(6).value, DoubleEq(0.5));
   ASSERT_THAT(coarsener.rate(6).target, AnyOf(5,2,4,3));
   ASSERT_THAT(coarsener.rate(5).value, DoubleEq(0.5));
   ASSERT_THAT(coarsener.rate(5).target, AnyOf(2,6));
+}
+
+TEST_F(ACoarsener, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
+  FirstWinsCoarsener coarsener(hypergraph, coarsening_limit, /*threshold*/ 2);
+  ASSERT_THAT(coarsener.rate(0).target, Eq(2));
+  ASSERT_THAT(coarsener.rate(0).value, Eq(1));
+  ASSERT_THAT(coarsener.rate(0).valid, Eq(true));
+  
+  hypergraph.contract(0,2);
+  
+  ASSERT_THAT(coarsener.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
+  ASSERT_THAT(coarsener.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
+  ASSERT_THAT(coarsener.rate(0).valid, Eq(false));
+}
+
+TEST_F(ACoarsener, DISABLED_SelectsNodePairToContractBasedOnHighestRating) {
+  FirstWinsCoarsener coarsener(hypergraph, coarsening_limit, /*threshold*/ 5);
+  coarsener.coarsen();
+  ASSERT_THAT(hypergraph.hypernodeIsValid(2), Eq(false));
 }
 
 } // namespace partition
