@@ -656,9 +656,9 @@ class Hypergraph{
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
-  std::pair<PinHandleIterator, PinHandleIterator> pinHandles(HyperedgeID u) {
-    return std::make_pair(_incidence_array.begin() + hyperedge(u).firstEntry(),
-                          _incidence_array.begin() + hyperedge(u).firstInvalidEntry());
+  std::pair<PinHandleIterator, PinHandleIterator> pinHandles(HyperedgeID he) {
+    return std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
+                          _incidence_array.begin() + hyperedge(he).firstInvalidEntry());
   }
 
   // Accessor for hypernode-related information
