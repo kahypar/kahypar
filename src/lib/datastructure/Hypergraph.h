@@ -382,6 +382,8 @@ class Hypergraph{
   
   Memento contract(HypernodeID u, HypernodeID v) {
     using std::swap;
+    ASSERT(!hypernode(u).isInvalid(), "Hypernode " << u << " is invalid");
+    ASSERT(!hypernode(v).isInvalid(), "Hypernode " << u << " is invalid");
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
@@ -429,6 +431,9 @@ class Hypergraph{
   }
 
   void uncontract(Memento& memento) {
+    ASSERT(!hypernode(memento.u).isInvalid(), "Hypernode " << memento.u << " is invalid");
+    ASSERT(hypernode(memento.v).isInvalid(), "Hypernode " << memento.v << " is not invalid");
+    
     restoreContractedHypernode(memento);
     ++_current_num_hypernodes;
 
