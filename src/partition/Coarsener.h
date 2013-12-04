@@ -14,7 +14,8 @@ using datastructure::PriorityQueue;
 namespace partition {
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++" // See Modern C++ Design
+#pragma GCC diagnostic ignored "-Weffc++"
+// See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor 
 template <class Hypergraph, typename RatingType_, template <class> class _TieBreakingPolicy>
 class Coarsener : public _TieBreakingPolicy<typename Hypergraph::HypernodeID>  {
  public:
@@ -22,6 +23,7 @@ class Coarsener : public _TieBreakingPolicy<typename Hypergraph::HypernodeID>  {
   
  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef typename Hypergraph::ContractionMemento Memento;
   typedef typename Hypergraph::ConstIncidenceIterator ConstIncidenceIterator;
   typedef typename Hypergraph::ConstHypernodeIterator ConstHypernodeIterator;
@@ -46,25 +48,55 @@ class Coarsener : public _TieBreakingPolicy<typename Hypergraph::HypernodeID>  {
       _hypergraph(hypergraph),
       _coarsening_limit(coarsening_limit),
       _threshold_node_weight(threshold_node_weight),
-      _coarsening_history(),
+      _history(),
       _tmp_edge_ratings(_hypergraph.initialNumNodes(), static_cast<RatingType>(0)),
       _visited_hypernodes(_hypergraph.initialNumNodes()),
       _used_entries(),
       _equally_rated_nodes(),
-      _prio_queue(_hypergraph.initialNumNodes(), _hypergraph.initialNumNodes()) {}
+      _pq(_hypergraph.initialNumNodes(), _hypergraph.initialNumNodes()),
+      _contraction_targets(_hypergraph.initialNumNodes()) {}
   
   void coarsen() {
-    //    _coarsening_history.push(_hypergraph.contract(0,2));
+    HeavyEdgeRating rating;
     forall_hypernodes(hn, _hypergraph) {
-      HeavyEdgeRating rating = rate(*hn);
-      PRINT("HN " << *hn << ": (" << *hn << "," << rating.target << ")=" << rating.value);
+      rating = rate(*hn);
+      if (rating.valid) {
+        _pq.insert(*hn, rating.value);
+        _contraction_targets[*hn] = rating.target;
+      }
     } endfor
+
+    HypernodeID rep_node;
+    boost::dynamic_bitset<uint64_t> hypernode_rerated(_hypergraph.initialNumNodes());
+    while (!_pq.empty() && _hypergraph.numNodes() > _coarsening_limit) {
+      rep_node = _pq.max();
+      PRINT("Contracting: (" << rep_node << ","
+            << _contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
+
+      performContraction(rep_node);
+
+      rating = rate(rep_node);
+      hypernode_rerated[rep_node] = 1;
+      updatePQandContractionTargets(rep_node, rating);
+
+      // ToDo: This can be done more fine grained if we know which HEs are affected: see p. 31
+      forall_incident_hyperedges(he, rep_node, _hypergraph) {
+        forall_pins(pin, *he, _hypergraph) {
+          if (!hypernode_rerated[*pin]) {
+            rating = rate(*pin);
+            hypernode_rerated[*pin] = 1;
+            updatePQandContractionTargets(*pin, rating);
+          }
+        } endfor
+      } endfor
+      hypernode_rerated.reset();
+    }  
   }
 
   void uncoarsen() {
-    while(!_coarsening_history.empty()) {
-      _hypergraph.uncontract(_coarsening_history.top());
-      _coarsening_history.pop();
+    while(!_history.empty()) {
+      _hypergraph.uncontract(_history.top());
+      _history.pop();
     }
   }
 
@@ -112,20 +144,37 @@ class Coarsener : public _TieBreakingPolicy<typename Hypergraph::HypernodeID>  {
   }
   
  private:
-  bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) {
+  FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
+  
+  bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
     return _hypergraph.nodeWeight(v) + _hypergraph.nodeWeight(u)
         <= _threshold_node_weight;
   }
+
+  void performContraction(HypernodeID rep_node) {
+    _history.push(_hypergraph.contract(rep_node, _contraction_targets[rep_node]));
+    _pq.remove(_contraction_targets[rep_node]);
+  }
+
+  void updatePQandContractionTargets(HypernodeID hn, const HeavyEdgeRating& rating) {
+    if (rating.valid) {
+      _pq.update(hn, rating.value);
+      _contraction_targets[hn] = rating.target;
+    } else {
+      _pq.remove(hn);
+    }
+  }
   
   Hypergraph& _hypergraph;
-  const int _coarsening_limit;
-  const int _threshold_node_weight;
-  std::stack<Memento> _coarsening_history;
+  const HypernodeID _coarsening_limit;
+  const HypernodeWeight _threshold_node_weight;
+  std::stack<Memento> _history;
   std::vector<RatingType> _tmp_edge_ratings;
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
   std::stack<HypernodeID> _used_entries;
   std::vector<HypernodeID> _equally_rated_nodes;
-  PriorityQueue<HypernodeID, RatingType> _prio_queue;
+  PriorityQueue<HypernodeID, RatingType> _pq;
+  std::vector<HypernodeID> _contraction_targets;
 };
 #pragma GCC diagnostic pop
 

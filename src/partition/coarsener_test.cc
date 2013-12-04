@@ -88,10 +88,12 @@ TEST_F(ACoarsener, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(coarsener.rate(0).valid, Eq(false));
 }
 
-TEST_F(ACoarsener, DISABLED_SelectsNodePairToContractBasedOnHighestRating) {
-  FirstWinsCoarsener coarsener(hypergraph, coarsening_limit, /*threshold*/ 5);
+TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
+  FirstWinsCoarsener coarsener(hypergraph, 6, /*threshold*/ 5);
   coarsener.coarsen();
   ASSERT_THAT(hypergraph.nodeIsValid(2), Eq(false));
+  ASSERT_THAT(coarsener._history.top().u, Eq(0));
+  ASSERT_THAT(coarsener._history.top().v, Eq(2));
 }
 
 } // namespace partition

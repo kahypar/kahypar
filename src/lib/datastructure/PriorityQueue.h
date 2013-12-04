@@ -36,8 +36,8 @@ class PriorityQueue{
     return size() == 0;
   }
 
-  void insert(IDType hn, KeyType key) {
-    _heap.push(hn, -key);
+  void insert(IDType id, KeyType key) {
+    _heap.push(id, -key);
   }
 
   void deleteMax() {
@@ -52,12 +52,16 @@ class PriorityQueue{
     return -_heap.getMinKey();
   }
 
-  void update(IDType hn, KeyType key) {
-    _heap.updateKey(hn, -key);
+  bool contains(IDType id) const {
+    return _heap.contains(id);
   }
 
-  void remove(IDType hn) {
-    _heap.deleteNode(hn);
+  void update(IDType id, KeyType key) {
+    _heap.updateKey(id, -key);
+  }
+
+  void remove(IDType id) {
+    _heap.deleteNode(id);
   }
   
  private:
