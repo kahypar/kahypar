@@ -7,8 +7,7 @@
 
 #include "HeapStatisticData.hpp"
 
-namespace utility{
-namespace datastructure{
+namespace external {
 
 HeapStatisticData::HeapStatisticData(){
 	std::for_each( data, data+NUM_ITEMS, utility::algorithm::assign<unsigned int>(0) );
@@ -43,6 +42,4 @@ std::string HeapStatisticData::toString() const {
 
 std::string HeapStatisticData::description[NUM_ITEMS];
 
-
-}
-}
+} // namespace external

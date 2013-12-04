@@ -17,8 +17,7 @@
 #include <vector>
 #include <tr1/unordered_map>
 
-namespace utility{
-namespace datastructure{
+namespace external {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -149,9 +148,9 @@ protected:
 	google::dense_hash_map< id_slot, size_t > node_positions;
 };
 #endif
-
-}
-}
 #pragma GCC diagnostic pop
+
+} // namespace external
+
 
 #endif /* QUEUESTORAGES_HPP_ */

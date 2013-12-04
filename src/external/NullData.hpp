@@ -8,7 +8,7 @@
 #ifndef NULLDATA_HPP_
 #define NULLDATA_HPP_
 
-namespace utility{
+namespace external {
 
 class NullData{
 	//contains nothing, NULL data base class optimization should yield edges without extra data
@@ -20,7 +20,7 @@ public:
 	{}
 };
 
-}
+} // namespace external
 
 
 #endif /* NULLDATA_HPP_ */

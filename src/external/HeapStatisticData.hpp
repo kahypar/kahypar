@@ -14,8 +14,7 @@
 
 #include "Functors.hpp"
 
-namespace utility{
-namespace datastructure{
+namespace external {
 
 class HeapStatisticData{
 public:
@@ -44,8 +43,7 @@ private:
 	static std::string description[NUM_ITEMS];
 };
 
-}
-}
+} // namespace external
 
 
 #endif /* HEAPSTATISTICALDATA_HPP_ */

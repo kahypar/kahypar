@@ -23,9 +23,7 @@
 #include "HeapStatisticData.hpp"
 #include "DataElement.h"
 
-namespace utility{
-
-namespace datastructure{
+namespace external {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -351,7 +349,6 @@ protected:
 	}
 };
 #pragma GCC diagnostic pop
-}
-}
+} // namespace external
 
 #endif /* BINARY_HEAP_HPP_ */

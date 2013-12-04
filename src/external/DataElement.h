@@ -11,9 +11,8 @@
 #include "exception.h"
 #include "NullData.hpp"
 
-namespace utility{
+namespace external {
 
-namespace datastructure{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template< typename id_slot, typename key_slot, typename data_element_slot >
@@ -58,8 +57,7 @@ struct DataElement< id_slot, key_slot, NullData  >{
 	size_t heap_index;
 };
 #pragma GCC diagnostic pop
-}
-}
+} // namespace external
 
 
 #endif /* DATAELEMENT_H_ */

@@ -13,8 +13,7 @@
 	#include <functional>
 #endif
 
-namespace utility{
-namespace algorithm{
+namespace external {
 
 template< typename TYPE >
 class assign : public std::unary_function<TYPE,void>{
@@ -27,8 +26,7 @@ private:
 	TYPE type;
 };
 
-}
-}
+} // namespace external
 
 
 #endif /* FUNCTORS_HPP_ */
