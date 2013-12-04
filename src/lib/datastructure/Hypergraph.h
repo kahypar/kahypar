@@ -11,7 +11,7 @@
 #include "../definitions.h"
 #include "../macros.h"
 
-namespace hgr {
+namespace datastructure {
 
   using defs::hMetisHyperEdgeIndexVector;
   using defs::hMetisHyperEdgeVector;
@@ -730,5 +730,5 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
     defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
 
-} // namespace hgr
+} // namespace datastructure
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

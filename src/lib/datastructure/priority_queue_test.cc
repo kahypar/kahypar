@@ -7,6 +7,8 @@ using ::testing::Eq;
 using ::testing::DoubleEq;
 using ::testing::Test;
 
+namespace datastructure {
+
 class APriorityQueue : public Test {
  public:
   APriorityQueue() :
@@ -68,3 +70,5 @@ TEST_F(APriorityQueue, BehavesAsExpectedOnDeletionOfCurrentMaximum) {
   ASSERT_THAT(prio_queue.max(), Eq(1));
   ASSERT_THAT(prio_queue.maxKey(), DoubleEq(0.833333));
 }
+
+} // namespace datastructure

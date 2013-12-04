@@ -11,7 +11,7 @@ using ::testing::Eq;
 using ::testing::ContainerEq;
 using ::testing::Test;
 
-typedef hgr::HypergraphType HypergraphType;
+typedef datastructure::HypergraphType HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 

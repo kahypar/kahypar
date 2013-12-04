@@ -5,12 +5,12 @@
 
 #include "Hypergraph.h"
 
-namespace hgr {
+namespace datastructure {
 
 using ::testing::Eq;
 using ::testing::Test;
 
-typedef hgr::HypergraphType HypergraphType;
+typedef datastructure::HypergraphType HypergraphType;
 typedef HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
 typedef HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
 typedef HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;
@@ -486,4 +486,4 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
 }
   
-} // namespace hgr
+} // namespace datastructure

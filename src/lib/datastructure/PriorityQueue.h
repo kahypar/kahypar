@@ -8,6 +8,8 @@
 
 using external::BinaryHeap;
 
+namespace datastructure {
+
 // ToDo: We need a more robust solution for min and max values!
 struct MetaKey {
   static double max() {
@@ -62,5 +64,7 @@ class PriorityQueue{
   Heap _heap;
   DISALLOW_COPY_AND_ASSIGN(PriorityQueue);
 };
+
+} // namespace datastructure
 
 #endif  // LIB_DATASTRUCTURE_PRIORITYQUEUE_H_

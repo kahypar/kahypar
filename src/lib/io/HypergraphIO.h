@@ -14,7 +14,7 @@ using defs::hMetisHyperEdgeVector;
 using defs::hMetisHyperEdgeWeightVector;
 using defs::hMetisHyperNodeWeightVector;
 
-typedef hgr::HypergraphType HypergraphType;
+typedef datastructure::HypergraphType HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::HyperedgeWeight HyperedgeWeight;

@@ -9,6 +9,8 @@
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
 
+using datastructure::PriorityQueue;
+
 namespace partition {
 
 #pragma GCC diagnostic push
