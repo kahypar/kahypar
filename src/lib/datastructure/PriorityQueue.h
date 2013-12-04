@@ -8,8 +8,6 @@
 
 using utility::datastructure::BinaryHeap;
 
-typedef hgr::HypergraphType::HypernodeID HypernodeID;
-
 // ToDo: We need a more robust solution for min and max values!
 struct MetaKey {
   static double max() {
@@ -20,12 +18,12 @@ struct MetaKey {
   }
 };
 
-template <typename KeyType>
+template <typename IDType, typename KeyType>
 class PriorityQueue{
-  typedef BinaryHeap<HypernodeID, KeyType, MetaKey> Heap;
+  typedef BinaryHeap<IDType, KeyType, MetaKey> Heap;
   
  public:
-  PriorityQueue(HypernodeID size, size_t reserve_size) :
+  PriorityQueue(IDType size, size_t reserve_size) :
       _heap(size, reserve_size) { }
 
   size_t size() const {
@@ -36,7 +34,7 @@ class PriorityQueue{
     return size() == 0;
   }
 
-  void insert(HypernodeID hn, KeyType key) {
+  void insert(IDType hn, KeyType key) {
     _heap.push(hn, -key);
   }
 
@@ -44,7 +42,7 @@ class PriorityQueue{
     _heap.deleteMin();
   }
 
-  HypernodeID max() const {
+  IDType max() const {
     return _heap.getMin();
   }
 
@@ -52,11 +50,11 @@ class PriorityQueue{
     return -_heap.getMinKey();
   }
 
-  void update(HypernodeID hn, KeyType key) {
+  void update(IDType hn, KeyType key) {
     _heap.updateKey(hn, -key);
   }
 
-  void remove(HypernodeID hn) {
+  void remove(IDType hn) {
     _heap.deleteNode(hn);
   }
   
