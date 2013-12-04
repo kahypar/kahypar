@@ -13,17 +13,17 @@ namespace partition {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++" // See Modern C++ Design
- template <class Hypergraph, typename RatingType_, template <class> class _TieBreakingPolicy>
-class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
+template <class Hypergraph, typename RatingType_, template <class> class _TieBreakingPolicy>
+class Coarsener : public _TieBreakingPolicy<typename Hypergraph::HypernodeID>  {
  public:
   typedef RatingType_ RatingType;
   
  private:
-  typedef _TieBreakingPolicy<HypernodeID> TieBreakingPolicy;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::ContractionMemento Memento;
   typedef typename Hypergraph::ConstIncidenceIterator ConstIncidenceIterator;
   typedef typename Hypergraph::ConstHypernodeIterator ConstHypernodeIterator;
+  typedef _TieBreakingPolicy<HypernodeID> TieBreakingPolicy;
   
   struct HeavyEdgeRating {
     HypernodeID target;
@@ -38,7 +38,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
         value(std::numeric_limits<RatingType>::min()),
         valid(false) {}
   };
-    
+  
  public:  
   Coarsener(Hypergraph& hypergraph, int coarsening_limit, int threshold_node_weight) :
       _hypergraph(hypergraph),
@@ -81,7 +81,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
         }
       } endfor
     } endfor
-
+          
     _equally_rated_nodes.clear();
     RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
@@ -109,7 +109,7 @@ class Coarsener : public _TieBreakingPolicy<HypernodeID>  {
     return ret;
   }
   
-private:
+ private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) {
     return _hypergraph.nodeWeight(v) + _hypergraph.nodeWeight(u)
         <= _threshold_node_weight;
@@ -123,7 +123,7 @@ private:
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
   std::stack<HypernodeID> _used_entries;
   std::vector<HypernodeID> _equally_rated_nodes;
-  PriorityQueue<RatingType> _prio_queue;
+  PriorityQueue<HypernodeID, RatingType> _prio_queue;
 };
 #pragma GCC diagnostic pop
 

@@ -18,6 +18,7 @@ typedef Coarsener<HypergraphType, defs::RatingType, FirstRatingWins> CoarsenerTy
 typedef Coarsener<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsCoarsener;
 typedef Coarsener<HypergraphType, defs::RatingType, LastRatingWins> LastWinsCoarsener;
 typedef Coarsener<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsCoarsener;
+typedef hgr::HypergraphType::HypernodeID HypernodeID;
 
 class ACoarsener : public Test {
  public:
