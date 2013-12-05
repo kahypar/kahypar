@@ -22,27 +22,27 @@ namespace datastructure {
 // Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
-  ConstHypernodeIterator __begin, __end;                                \
+  HypernodeIterator __begin, __end;                                \
   std::tie(__begin, __end) = graph.nodes();                             \
-  for (ConstHypernodeIterator hn = __begin; hn != __end; ++hn) {
+  for (HypernodeIterator hn = __begin; hn != __end; ++hn) {
 
 #define forall_hyperedges(he, graph)                                    \
   {                                                                     \
-  ConstHyperedgeIterator __begin, __end;                                \
+  HyperedgeIterator __begin, __end;                                \
   std::tie(__begin, __end) = graph.edges();                             \
-  for (ConstHyperedgeIterator he = __begin; he != __end; ++he) {
+  for (HyperedgeIterator he = __begin; he != __end; ++he) {
 
 #define forall_incident_hyperedges(he, hn, graph)                       \
   {                                                                     \
-  ConstIncidenceIterator __begin, __end;                                \
+  IncidenceIterator __begin, __end;                                \
   std::tie(__begin, __end) = graph.incidentEdges(hn);              \
-  for (ConstIncidenceIterator he = __begin; he != __end; ++he) {
+  for (IncidenceIterator he = __begin; he != __end; ++he) {
 
 #define forall_pins(pin, he, graph)                                     \
   {                                                                     \
-  ConstIncidenceIterator __begin, __end;                                \
+  IncidenceIterator __begin, __end;                                \
   std::tie(__begin, __end) = graph.pins(he);                            \
-  for (ConstIncidenceIterator pin = __begin; pin != __end; ++pin) {
+  for (IncidenceIterator pin = __begin; pin != __end; ++pin) {
 
 #define endfor }}
 
@@ -244,9 +244,9 @@ class Hypergraph{
   };
   
  public:
-  typedef typename std::vector<VertexID>::const_iterator ConstIncidenceIterator;
-  typedef VertexIterator<HyperNode> ConstHypernodeIterator;
-  typedef VertexIterator<HyperEdge> ConstHyperedgeIterator;
+  typedef typename std::vector<VertexID>::const_iterator IncidenceIterator;
+  typedef VertexIterator<HyperNode> HypernodeIterator;
+  typedef VertexIterator<HyperEdge> HyperedgeIterator;
   typedef Memento ContractionMemento;
   
   Hypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
@@ -366,28 +366,28 @@ class Hypergraph{
   }
 #endif
   
-  std::pair<ConstIncidenceIterator, ConstIncidenceIterator>
+  std::pair<IncidenceIterator, IncidenceIterator>
   incidentEdges(HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
                           _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
-  std::pair<ConstIncidenceIterator, ConstIncidenceIterator> pins(HyperedgeID e) const {
+  std::pair<IncidenceIterator, IncidenceIterator> pins(HyperedgeID e) const {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
     return std::make_pair(_incidence_array.begin() + hyperedge(e).firstEntry(),
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<ConstHypernodeIterator, ConstHypernodeIterator> nodes() {
-    return std::make_pair(ConstHypernodeIterator(&_hypernodes, 0, _num_hypernodes),
-                          ConstHypernodeIterator(&_hypernodes, _num_hypernodes,
+  std::pair<HypernodeIterator, HypernodeIterator> nodes() {
+    return std::make_pair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
+                          HypernodeIterator(&_hypernodes, _num_hypernodes,
                                                    _num_hypernodes));
   }
 
-  std::pair<ConstHyperedgeIterator, ConstHyperedgeIterator> edges() {
-    return std::make_pair(ConstHyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
-                          ConstHyperedgeIterator(&_hyperedges, _num_hyperedges,
+  std::pair<HyperedgeIterator, HyperedgeIterator> edges() {
+    return std::make_pair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
+                          HyperedgeIterator(&_hyperedges, _num_hyperedges,
                                                    _num_hyperedges));
   }
   

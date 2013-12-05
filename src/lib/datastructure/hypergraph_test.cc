@@ -11,9 +11,9 @@ using ::testing::Eq;
 using ::testing::Test;
 
 typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::ConstIncidenceIterator ConstIncidenceIterator;
-typedef HypergraphType::ConstHypernodeIterator ConstHypernodeIterator;
-typedef HypergraphType::ConstHyperedgeIterator ConstHyperedgeIterator;
+typedef HypergraphType::IncidenceIterator IncidenceIterator;
+typedef HypergraphType::HypernodeIterator HypernodeIterator;
+typedef HypergraphType::HyperedgeIterator HyperedgeIterator;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::ContractionMemento Memento;
@@ -33,8 +33,8 @@ class AHypernodeIterator : public AHypergraph {
       begin(),
       end() {}
 
-  ConstHypernodeIterator begin;
-  ConstHypernodeIterator end;
+  HypernodeIterator begin;
+  HypernodeIterator end;
 };
 
 class AHyperedgeIterator : public AHypergraph {
@@ -44,8 +44,8 @@ class AHyperedgeIterator : public AHypergraph {
       begin(),
       end() {}
 
-  ConstHyperedgeIterator begin;
-  ConstHyperedgeIterator end;
+  HyperedgeIterator begin;
+  HyperedgeIterator end;
 };
 
 class AHypergraphMacro : public AHypergraph {
@@ -311,7 +311,7 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
-  ConstHypernodeIterator hn_iter;
+  HypernodeIterator hn_iter;
   HypernodeID hypernode_count = 0;
   forall_hypernodes(hn_iter, hypergraph) {
     ASSERT_THAT(*hn_iter, Eq(hypernode_count));
@@ -321,7 +321,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
-  ConstHyperedgeIterator he_iter;
+  HyperedgeIterator he_iter;
   HyperedgeID hyperedge_count = 0;
   forall_hyperedges(he_iter, hypergraph) {
     ASSERT_THAT(*he_iter, Eq(hyperedge_count));
@@ -331,7 +331,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
-  ConstIncidenceIterator he_iter;
+  IncidenceIterator he_iter;
   int i = 0;
   forall_incident_hyperedges(he_iter, 6, hypergraph) {
   ASSERT_THAT(*he_iter, Eq(*(hypergraph._incidence_array.begin() +
@@ -341,7 +341,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
-  ConstIncidenceIterator pin_iter;
+  IncidenceIterator pin_iter;
   int i = 0;
   forall_pins(pin_iter, 2, hypergraph) {
   ASSERT_THAT(*pin_iter, Eq(*(hypergraph._incidence_array.begin() +
@@ -407,7 +407,7 @@ TEST_F(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction) {
 }
 
 TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAddedToRepresentative) {
-  ConstIncidenceIterator begin, end;
+  IncidenceIterator begin, end;
   std::tie(begin, end) = hypergraph.pins(3);
   ASSERT_THAT(std::count(begin, end, 6), Eq(1));
   std::tie(begin, end) = hypergraph.pins(2);
@@ -427,7 +427,7 @@ TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAddedToRepres
 }
 
 TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistingAtRepresentative) {
-  ConstIncidenceIterator begin, end;
+  IncidenceIterator begin, end;
   std::tie(begin, end) = hypergraph.pins(2);
   ASSERT_THAT(std::count(begin, end, 4), Eq(1));
   std::tie(begin, end) = hypergraph.pins(1);
