@@ -96,12 +96,12 @@ class Hypergraph{
         _weight(0),
         _valid(true) {}
     
-    void invalidate() {
-      ASSERT(!isInvalid(), "Vertex is already invalidated");
+    void disable() {
+      ASSERT(!isDisabled(), "Vertex is already disabled");
       _valid = false;
     }
 
-    bool isInvalid() const {
+    bool isDisabled() const {
       return _valid == false;
     }
 
@@ -124,7 +124,7 @@ class Hypergraph{
     void decreaseSize() {
       ASSERT(_size > 0, "Size out of bounds");
       --_size;
-      if (_size == 0) { invalidate(); }
+      if (_size == 0) { disable(); }
     }
     
     WeightType weight() const { return _weight; }
@@ -189,7 +189,7 @@ class Hypergraph{
         _id(id),
         _max_id(max_id),
         _container(container) {
-      if (_id != _max_id && (*_container)[_id].isInvalid()) {
+      if (_id != _max_id && (*_container)[_id].isDisabled()) {
         operator++();
       }
     }
@@ -202,7 +202,7 @@ class Hypergraph{
       ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
       do {
         ++_id;
-      } while(_id < _max_id  && (*_container)[_id].isInvalid()); 
+      } while(_id < _max_id  && (*_container)[_id].isDisabled()); 
       return *this;
     }
 
@@ -216,7 +216,7 @@ class Hypergraph{
       ASSERT(_id > 0, "Hypernode iterator out of bounds");
       do {
         --_id;
-      } while(_id > 0  && (*_container)[_id].isInvalid());
+      } while(_id > 0  && (*_container)[_id].isDisabled());
       return *this;
     }
 
@@ -330,7 +330,7 @@ class Hypergraph{
   void DEBUGprintHyperedges() {
     PRINT("Hyperedges:");
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isInvalid()) {
+      if (!hyperedge(i).isDisabled()) {
         PRINT_SAME_LINE(i << ": ");
         __forall_pins(pin, i) {
           PRINT_SAME_LINE(pin << " ");
@@ -345,7 +345,7 @@ class Hypergraph{
   void DEBUGprintHypernodes() {
     PRINT("Hypernodes:");
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isInvalid()) {
+      if (!hypernode(i).isDisabled()) {
         PRINT_SAME_LINE(i << ": ");
         __forall_incident_hyperedges(he, i) {
           PRINT_SAME_LINE(he << " ");
@@ -392,8 +392,8 @@ class Hypergraph{
   
   Memento contract(HypernodeID u, HypernodeID v) {
     using std::swap;
-    ASSERT(!hypernode(u).isInvalid(), "Hypernode " << u << " is invalid");
-    ASSERT(!hypernode(v).isInvalid(), "Hypernode " << u << " is invalid");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is invalid");
+    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << u << " is invalid");
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
@@ -432,14 +432,14 @@ class Hypergraph{
         addForwardEdge(u, *he_iter);
       }
     }
-    hypernode(v).invalidate();
+    hypernode(v).disable();
     --_current_num_hypernodes;
     return Memento(u, u_offset, u_size, v);
   }
 
   void uncontract(Memento& memento) {
-    ASSERT(!hypernode(memento.u).isInvalid(), "Hypernode " << memento.u << " is invalid");
-    ASSERT(hypernode(memento.v).isInvalid(), "Hypernode " << memento.v << " is not invalid");
+    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is invalid");
+    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
     
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
@@ -495,27 +495,27 @@ class Hypergraph{
   }
   
   void removeNode(HypernodeID u) {
-    ASSERT(!hypernode(u).isInvalid(),"Hypernode is invalid!");
+    ASSERT(!hypernode(u).isDisabled(),"Hypernode is invalid!");
     __forall_incident_hyperedges(e, u) {
       removeEdge(e, u, _hyperedges);
       --_current_num_pins;
     } endfor
-   hypernode(u).invalidate();
+   hypernode(u).disable();
     --_current_num_hypernodes;
   }
   
   void removeEdge(HyperedgeID e) {
-    ASSERT(!hyperedge(e).isInvalid(),"Hyperedge is invalid!");
+    ASSERT(!hyperedge(e).isDisabled(),"Hyperedge is invalid!");
     __forall_pins(u, e) {
       removeEdge(u, e, _hypernodes);
       --_current_num_pins;
     } endfor
-    hyperedge(e).invalidate();
+    hyperedge(e).disable();
     --_current_num_hyperedges;
   }
 
   void activateEdge(HyperedgeID e) {
-    ASSERT(hyperedge(e).isInvalid(),"Hyperedge is invalid!");
+    ASSERT(hyperedge(e).isDisabled(),"Hyperedge is invalid!");
     hyperedge(e).enable();
   }
 
@@ -545,11 +545,11 @@ class Hypergraph{
   }
 
   bool nodeIsValid(HypernodeID u) const {
-    return !hypernode(u).isInvalid();
+    return !hypernode(u).isDisabled();
   }
 
   bool edgeIsValid(HyperedgeID e) const {
-    return !hyperedge(e).isInvalid();
+    return !hyperedge(e).isDisabled();
   }
 
   HypernodeID initialNumNodes() const {
@@ -611,7 +611,7 @@ class Hypergraph{
   // Current version copies all previous entries to ensure consistency. We might change
   // this to only add the corresponding entry and let the caller handle the consistency issues!
   void addForwardEdge(HypernodeID u, HyperedgeID e) {
-    ASSERT(!hyperedge(e).isInvalid(), "Invalid HyperedgeID");
+    ASSERT(!hyperedge(e).isDisabled(), "Invalid HyperedgeID");
     
     HyperNode &nodeU = hypernode(u);
     if (nodeU.firstInvalidEntry() != _incidence_array.size()) {
@@ -629,7 +629,7 @@ class Hypergraph{
     using std::swap;
     typename Container::reference &vertex = container[u];
     typedef typename std::vector<VertexID>::iterator EdgeIterator;
-    ASSERT(!vertex.isInvalid(), "InternalVertex is invalid");
+    ASSERT(!vertex.isDisabled(), "InternalVertex is invalid");
     
     EdgeIterator begin = _incidence_array.begin() + vertex.firstEntry();
     ASSERT(vertex.size() > 0, "InternalVertex is empty!");
