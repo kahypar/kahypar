@@ -552,11 +552,11 @@ class Hypergraph{
     hyperedge(e).setWeight(weight);
   }
 
-  bool nodeIsValid(HypernodeID u) const {
+  bool nodeIsEnabled(HypernodeID u) const {
     return !hypernode(u).isDisabled();
   }
 
-  bool edgeIsValid(HyperedgeID e) const {
+  bool edgeIsEnabled(HyperedgeID e) const {
     return !hyperedge(e).isDisabled();
   }
 
