@@ -5,7 +5,6 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "RatingTieBreakingPolicies.h"
 #include "Rater.h"
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
@@ -27,12 +26,12 @@ class Coarsener{
   typedef typename Rater::RatingType RatingType;
   
   struct CoarseningMemento {
-    size_t first_entry; // start of removed hyperedges
-    size_t size; // # removed hyperedges
+    size_t one_pin_hes_begin; // start of removed hyperedges
+    size_t one_pin_hes_size; // # removed hyperedges
     Memento contraction_memento;
-    CoarseningMemento(size_t first_entry_, size_t size_, Memento contraction_memento_) :
-        first_entry(first_entry_),
-        size(size_),
+    CoarseningMemento(size_t one_pin_hes_begin_, size_t one_pin_hes_size_, Memento contraction_memento_) :
+        one_pin_hes_begin(one_pin_hes_begin_),
+        one_pin_hes_size(one_pin_hes_size_),
         contraction_memento(contraction_memento_) {}
   };
   
@@ -89,7 +88,8 @@ class Coarsener{
   }
 
   void reEnabledSingleNodeHyperedges(CoarseningMemento& memento) {
-    for (size_t i = memento.first_entry; i < memento.first_entry + memento.size; ++i) {
+    for (size_t i = memento.one_pin_hes_begin;
+         i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
       ASSERT(i < _removed_hyperedges.size(), "Index out of bounds");
       _hypergraph.enableEdge(_removed_hyperedges[i]);
     }
@@ -124,13 +124,15 @@ class Coarsener{
   }
 
   void deleteSingleNodeHyperedges(HypernodeID u) {
-    _history.top().first_entry = _removed_hyperedges.size();
+    ASSERT(_history.top().contraction_memento.u == u,
+           "Current coarsening memento does not belong to hypernode" << u);
+    _history.top().one_pin_hes_begin = _removed_hyperedges.size();
     IncidenceIterator begin, end;
     std::tie(begin, end) = _hypergraph.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
       if (_hypergraph.edgeSize(*he_it) == 1) {
         _removed_hyperedges.push_back(*he_it);
-        ++_history.top().size;
+        ++_history.top().one_pin_hes_size;
         _hypergraph.removeEdge(*he_it);
         --he_it;
         --end;
