@@ -19,6 +19,7 @@ namespace datastructure {
   using defs::hMetisHyperNodeWeightVector;
   
 // external macros:
+// Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
   ConstHypernodeIterator __begin, __end;                                \
@@ -86,24 +87,33 @@ class Hypergraph{
                    WeightType weight) :
         _begin(begin),
         _size(size),
-        _weight(weight) {}
+        _weight(weight),
+        _valid(true) {}
 
     InternalVertex() :
         _begin(0),
         _size(0),
-        _weight(0) {}
+        _weight(0),
+        _valid(true) {}
     
     void invalidate() {
       ASSERT(!isInvalid(), "Vertex is already invalidated");
-      _begin = std::numeric_limits<VertexID>::max();
+      _valid = false;
     }
 
     bool isInvalid() const {
-      return _begin == std::numeric_limits<VertexID>::max();
+      return _valid == false;
+    }
+
+    void enable() {
+      _valid = true;
     }
 
     IDType firstEntry() const { return _begin; }
-    void setFirstEntry(IDType begin) { _begin = begin; }
+    void setFirstEntry(IDType begin) {
+      _begin = begin;
+      _valid = true;
+    }
 
     IDType firstInvalidEntry() const { return _begin + _size; }
 
@@ -148,6 +158,7 @@ class Hypergraph{
     IDType _begin;
     IDType _size;
     WeightType _weight;
+    bool _valid;
   };
 
   struct HyperNodeTraits {
@@ -227,10 +238,9 @@ class Hypergraph{
 
   struct Memento {
     Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
-            HypernodeID v_, HypernodeID v_first_entry_, HypernodeID v_size_) :
-        u(u_), u_first_entry(u_first_entry_), u_size(u_size_),
-        v(v_), v_first_entry(v_first_entry_), v_size(v_size_) {}
-    HypernodeID u, u_first_entry, u_size, v, v_first_entry, v_size;
+            HypernodeID v_) :
+        u(u_), u_first_entry(u_first_entry_), u_size(u_size_), v(v_)  {}
+    HypernodeID u, u_first_entry, u_size, v;
   };
   
  public:
@@ -388,8 +398,6 @@ class Hypergraph{
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
     HypernodeID u_size = hypernode(u).size();
-    HypernodeID v_offset = hypernode(v).firstEntry();
-    HypernodeID v_size = hypernode(v).size();
     
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
@@ -424,17 +432,16 @@ class Hypergraph{
         addForwardEdge(u, *he_iter);
       }
     }
-    clearVertex(v, _hypernodes);
-    removeVertex(v, _hypernodes);
+    hypernode(v).invalidate();
     --_current_num_hypernodes;
-    return Memento(u, u_offset, u_size, v, v_offset, v_size);
+    return Memento(u, u_offset, u_size, v);
   }
 
   void uncontract(Memento& memento) {
     ASSERT(!hypernode(memento.u).isInvalid(), "Hypernode " << memento.u << " is invalid");
     ASSERT(hypernode(memento.v).isInvalid(), "Hypernode " << memento.v << " is not invalid");
     
-    restoreContractedHypernode(memento);
+    hypernode(memento.v).enable();
     ++_current_num_hypernodes;
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
@@ -509,6 +516,11 @@ class Hypergraph{
     --_current_num_hyperedges;
   }
 
+  void activateEdge(HyperedgeID e) {
+    ASSERT(hyperedge(e).isInvalid(),"Hyperedge is invalid!");
+    hyperedge(e).enable();
+  }
+
   // Accessors and mutators.
   HyperedgeID nodeDegree(HypernodeID u) const {
     return hypernode(u).size();
@@ -578,11 +590,6 @@ class Hypergraph{
   FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
   FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
   
-  void restoreContractedHypernode(Memento& memento) {
-    hypernode(memento.v).setFirstEntry(memento.v_first_entry);
-    hypernode(memento.v).setSize(memento.v_size);
-  }
-
   void restoreRepresentative(Memento& memento) {
     hypernode(memento.u).setFirstEntry(memento.u_first_entry);
     hypernode(memento.u).setSize(memento.u_size);

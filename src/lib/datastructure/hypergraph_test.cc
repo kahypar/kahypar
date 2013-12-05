@@ -355,8 +355,6 @@ TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
   HypernodeID u_offset = hypergraph.hypernode(u_id).firstEntry();
   HypernodeID u_size = hypergraph.hypernode(u_id).size();
   HypernodeID v_id = 6;
-  HypernodeID v_offset = hypergraph.hypernode(v_id).firstEntry();
-  HypernodeID v_size = hypergraph.hypernode(v_id).size();
 
   Memento memento = hypergraph.contract(4,6);
 
@@ -364,8 +362,6 @@ TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
   ASSERT_THAT(memento.u_first_entry, Eq(u_offset));
   ASSERT_THAT(memento.u_size, Eq(u_size));
   ASSERT_THAT(memento.v, Eq(v_id));
-  ASSERT_THAT(memento.v_first_entry, Eq(v_offset));
-  ASSERT_THAT(memento.v_size, Eq(v_size));
 }
 
 TEST_F(AnUncontractionOperation, NeedsAContractionMementoAsInput) {
