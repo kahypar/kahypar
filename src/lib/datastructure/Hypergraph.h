@@ -500,8 +500,7 @@ class Hypergraph{
       removeEdge(e, u, _hyperedges);
       --_current_num_pins;
     } endfor
-    clearVertex(u, _hypernodes);
-    removeVertex(u, _hypernodes);
+   hypernode(u).invalidate();
     --_current_num_hypernodes;
   }
   
@@ -511,8 +510,7 @@ class Hypergraph{
       removeEdge(u, e, _hypernodes);
       --_current_num_pins;
     } endfor
-    clearVertex(e, _hyperedges);
-    removeVertex(e, _hyperedges);
+    hyperedge(e).invalidate();
     --_current_num_hyperedges;
   }
 
@@ -610,19 +608,6 @@ class Hypergraph{
     *pin_end = memento.v;
   }
   
-  template <typename T>
-  void clearVertex(VertexID vertex, T& container) {
-    ASSERT(vertex < container.size(), "VertexID out of bounds");
-    container[vertex].setSize(0);
-  }
-
-  template <typename T>
-  void removeVertex(VertexID vertex, T& container) {
-    ASSERT(vertex < container.size(), "VertexID out of bounds");
-    ASSERT(container[vertex].size() == 0, "Vertex is not cleared");
-    container[vertex].invalidate();
-  }
-
   // Current version copies all previous entries to ensure consistency. We might change
   // this to only add the corresponding entry and let the caller handle the consistency issues!
   void addForwardEdge(HypernodeID u, HyperedgeID e) {
