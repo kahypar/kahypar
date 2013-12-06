@@ -74,21 +74,21 @@ class AnUncontractedHypergraph : public AHypergraph {
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
-  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+    ASSERT_THAT(hypergraph.numNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
   ASSERT_THAT(hypergraph.numPins(), Eq(12));
-  ASSERT_THAT(hypergraph.hypernode(0).size(), Eq(2));
-  ASSERT_THAT(hypergraph.hypernode(1).size(), Eq(1));
-  ASSERT_THAT(hypergraph.hypernode(2).size(), Eq(2));
-  ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(2));
-  ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(2));
-  ASSERT_THAT(hypergraph.hypernode(5).size(), Eq(1));
-  ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
+  ASSERT_THAT(hypergraph.nodeDegree(2), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(3), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(4), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(5), Eq(1));
+  ASSERT_THAT(hypergraph.nodeDegree(6), Eq(2));
 
-  ASSERT_THAT(hypergraph.hyperedge(0).size(), Eq(2));
-  ASSERT_THAT(hypergraph.hyperedge(1).size(), Eq(4));
-  ASSERT_THAT(hypergraph.hyperedge(2).size(), Eq(3));
-  ASSERT_THAT(hypergraph.hyperedge(3).size(), Eq(3));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
+  ASSERT_THAT(hypergraph.edgeSize(2), Eq(3));
+  ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));  
 }
 
 TEST_F(AHypergraph, ReturnsHyperNodeDegree) {

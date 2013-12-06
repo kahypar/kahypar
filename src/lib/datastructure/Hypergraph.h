@@ -452,7 +452,7 @@ class Hypergraph{
       for (HyperedgeID i = hypernode(memento.u).firstEntry() + memento.u_size;
            i < hypernode(memento.u).firstInvalidEntry(); ++i) {
         ASSERT(i < _incidence_array.size(), "Index out of bounds");
-
+        PRINT("*** resetting reused Pinslot of HE " << _incidence_array[i] << " from " << memento.u << " to " << memento.v);
         resetReusedPinSlotToOriginalValue(_incidence_array[i], memento);
 
         // Remember that this hyperedge is processed. The state of this hyperedge now resembles
@@ -477,6 +477,7 @@ class Hypergraph{
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     __forall_incident_hyperedges(he, memento.v) {
       if (!_processed_hyperedges[he]) {
+        PRINT("*** increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
         hyperedge(he).increaseSize();
         ++_current_num_pins;
@@ -494,6 +495,7 @@ class Hypergraph{
            "Hyperedge does not contain hypernode");
     removeEdge(u, e, _hypernodes);
     removeEdge(e, u, _hyperedges);
+    --_current_num_pins;
   }
   
   void removeNode(HypernodeID u) {
@@ -517,8 +519,24 @@ class Hypergraph{
   }
 
   void enableEdge(HyperedgeID e) {
-    ASSERT(hyperedge(e).isDisabled(),"Hyperedge is disabled!");
+    ASSERT(hyperedge(e).isDisabled(),"HE " << e << " is already enabled!");
     hyperedge(e).enable();
+    ++_current_num_hyperedges;
+  }
+
+  void restoreParallelHyperedge(HyperedgeID representative, HyperedgeID removed) {
+    enableEdge(removed);
+    setEdgeWeight(representative, edgeWeight(representative) - edgeWeight(removed));
+    __forall_pins(pin, representative) {
+      ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
+                        _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), removed)
+             == 0,
+             "HN " << pin << " is already connected to HE " << removed);
+      hypernode(pin).increaseSize();
+      ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == removed,
+             "Incorrect restore of HE " << removed);
+      ++_current_num_pins;
+    } endfor
   }
 
   // Accessors and mutators.
@@ -585,7 +603,6 @@ class Hypergraph{
   }
     
  private:
-  FRIEND_TEST(AHypergraph, InitializesInternalHypergraphRepresentation);
   FRIEND_TEST(AHypergraph, DisconnectsHypernodeFromHyperedge);
   FRIEND_TEST(AHypergraph, RemovesHyperedges);
   FRIEND_TEST(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval);
