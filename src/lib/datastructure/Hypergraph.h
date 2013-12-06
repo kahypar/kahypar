@@ -365,6 +365,30 @@ class Hypergraph{
     DEBUGprintIncidenceArray();
   }
 #endif
+
+  void printEdgeState(HyperedgeID e) {
+    if (!hyperedge(e).isDisabled()) {
+      std::cout << "HE " << e << ": ";
+      __forall_pins(pin, e) {
+        std::cout << pin << " ";
+      } endfor
+    }else {
+      std::cout << e << " -- invalid --";
+    }
+    std::cout << std::endl;
+  }
+
+  void printNodeState(HypernodeID u) {
+    if (!hypernode(u).isDisabled()) {
+      std::cout << "HN " << u << ": ";
+      __forall_incident_hyperedges(he, u) {
+        std::cout << he << " ";
+      } endfor
+    }else {
+      std::cout << u << " -- invalid --";
+    }
+    std::cout << std::endl;
+  }
   
   std::pair<IncidenceIterator, IncidenceIterator>
   incidentEdges(HypernodeID u) const {
@@ -395,6 +419,8 @@ class Hypergraph{
     using std::swap;
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(!hypernode(v).isDisabled(), "Hypernode " << u << " is disabled");
+
+    PRINT("*** contracting (" << u << "," << v << ")");
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
@@ -441,6 +467,8 @@ class Hypergraph{
   void uncontract(Memento& memento) {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
+
+    PRINT("*** uncontracting (" << memento.u << "," << memento.v << ")");
     
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
@@ -518,10 +546,24 @@ class Hypergraph{
     --_current_num_hyperedges;
   }
 
-  void enableEdge(HyperedgeID e) {
-    ASSERT(hyperedge(e).isDisabled(),"HE " << e << " is already enabled!");
-    hyperedge(e).enable();
-    ++_current_num_hyperedges;
+  void restoreSingleNodeHyperedge(HyperedgeID e) {
+    enableEdge(e);
+    __forall_pins(pin, e) {
+      ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
+                        _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), e)
+             == 0,
+             "HN " << pin << " is already connected to HE " << e);
+      PRINT("*** re-adding pin  " << pin << " to HE " << e);
+      PRINT("before:");
+      printNodeState(pin);
+      hypernode(pin).increaseSize();
+      PRINT("after:");
+      printNodeState(pin);
+      ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
+             "Incorrect restore of HE " << e);
+      ++_current_num_pins;
+      printEdgeState(e);
+    } endfor
   }
 
   void restoreParallelHyperedge(HyperedgeID representative, HyperedgeID removed) {
@@ -612,6 +654,12 @@ class Hypergraph{
   FRIEND_TEST(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge);
   FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
   FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
+
+  void enableEdge(HyperedgeID e) {
+    ASSERT(hyperedge(e).isDisabled(),"HE " << e << " is already enabled!");
+    hyperedge(e).enable();
+    ++_current_num_hyperedges;
+  }
   
   void restoreRepresentative(Memento& memento) {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
