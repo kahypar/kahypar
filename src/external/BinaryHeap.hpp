@@ -15,7 +15,7 @@
 #include <atomic>
 #include <vector>
 #include <map>
-#include <tr1/unordered_map>
+#include <unordered_map>
 
 #include <limits>
 #include <cstring>

@@ -15,7 +15,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
-#include <tr1/unordered_map>
+#include <unordered_map>
 
 namespace external {
 
@@ -122,7 +122,7 @@ public:
 		node_positions.clear();
 	}
 protected:
-	std::tr1::unordered_map< id_slot, size_t > node_positions;
+	std::unordered_map< id_slot, size_t > node_positions;
 };
 
 #ifdef USE_GOOGLE_DATASTRUCTURES
