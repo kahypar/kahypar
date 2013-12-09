@@ -38,6 +38,13 @@ TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
 }
 
+TEST_F(ACoarsener, DecreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne) {
+  coarsener.coarsen(6);
+  ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
+
+  ASSERT_THAT(hypergraph.numPins(), Eq(10));
+}
+
 TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
@@ -69,6 +76,11 @@ TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedge
 TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
  coarsener.coarsen(2);
  ASSERT_THAT(hypergraph.numEdges(), Eq(1));
+}
+
+TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
+ coarsener.coarsen(2);
+ ASSERT_THAT(hypergraph.numPins(), Eq(2));
 }
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
