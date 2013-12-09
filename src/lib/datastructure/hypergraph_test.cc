@@ -364,11 +364,6 @@ TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
   ASSERT_THAT(memento.v, Eq(v_id));
 }
 
-TEST_F(AnUncontractionOperation, NeedsAContractionMementoAsInput) {
-  Memento memento = hypergraph.contract(4,6);
-  hypergraph.uncontract(memento);
-}
-
 TEST_F(AnUncontractionOperation, ReEnablesTheInvalidatedHypernode) {
   Memento memento = hypergraph.contract(4,6);
   ASSERT_THAT(hypergraph.nodeIsEnabled(6), Eq(false));
@@ -444,6 +439,16 @@ TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistin
   ASSERT_THAT(std::count(begin, end, 4), Eq(1));
   std::tie(begin, end) = hypergraph.pins(1);
   ASSERT_THAT(std::count(begin, end, 4), Eq(1));
+}
+
+TEST_F(AnUncontractionOperation, RestoresNumberOfPinsOnUncontraction) {
+  hypergraph.uncontract(hypergraph.contract(3,4));
+  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+}
+
+TEST_F(AnUncontractionOperation, RestoresHyperedgeSizeOfHyperedgesAffectedByContraction) {
+  hypergraph.uncontract(hypergraph.contract(0,2));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
 }
 
 TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
