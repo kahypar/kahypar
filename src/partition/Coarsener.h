@@ -62,7 +62,7 @@ class Coarsener{
       _hypergraph(hypergraph),
       _rater(_hypergraph, threshold_node_weight),
       _history(),
-      _removed_hyperedges(),
+      removed_single_node_hyperedges(),
       _removed_parallel_hyperedges(),
       _pq(_hypergraph.initialNumNodes(), _hypergraph.initialNumNodes()) {}
   
@@ -112,9 +112,9 @@ class Coarsener{
   void restoreSingleNodeHyperedges(CoarseningMemento& memento) {
     for (size_t i = memento.one_pin_hes_begin;
          i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
-      ASSERT(i < _removed_hyperedges.size(), "Index out of bounds");
-      // PRINT("*** restore single-node HE " << _removed_hyperedges[i]);
-      _hypergraph.restoreSingleNodeHyperedge(_removed_hyperedges[i]);
+      ASSERT(i < removed_single_node_hyperedges.size(), "Index out of bounds");
+      // PRINT("*** restore single-node HE " << removed_single_node_hyperedges[i]);
+      _hypergraph.restoreSingleNodeHyperedge(removed_single_node_hyperedges[i]);
     }
   }
 
@@ -160,12 +160,12 @@ class Coarsener{
   void removeSingleNodeHyperedges(HypernodeID u) {
     ASSERT(_history.top().contraction_memento.u == u,
            "Current coarsening memento does not belong to hypernode" << u);
-    _history.top().one_pin_hes_begin = _removed_hyperedges.size();
+    _history.top().one_pin_hes_begin = removed_single_node_hyperedges.size();
     IncidenceIterator begin, end;
     std::tie(begin, end) = _hypergraph.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
       if (_hypergraph.edgeSize(*he_it) == 1) {
-        _removed_hyperedges.push_back(*he_it);
+        removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
         // PRINT("*** removing single-node HE " << *he_it);
         // _hypergraph.printEdgeState(*he_it);
@@ -242,7 +242,7 @@ class Coarsener{
   Hypergraph& _hypergraph;
   Rater _rater;
   std::stack<CoarseningMemento> _history;
-  std::vector<HyperedgeID> _removed_hyperedges;
+  std::vector<HyperedgeID> removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   PriorityQueue<HypernodeID, RatingType> _pq;
 };
