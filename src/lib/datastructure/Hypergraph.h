@@ -59,6 +59,13 @@ namespace datastructure {
                  __end = hyperedge(he).firstInvalidEntry(); __j < __end; ++__j) { \
   HypernodeID hn = _incidence_array[__j];
 
+enum class HypergraphWeightType : int8_t {
+  Unweighted = 0,
+  EdgeWeights = 1,
+  NodeWeights = 10,
+  EdgeAndNodeWeights = 11,
+};
+
 template <typename HypernodeType_, typename HyperedgeType_,
           typename HypernodeWeightType_, typename HyperedgeWeightType_>
 class Hypergraph{
@@ -284,6 +291,7 @@ class Hypergraph{
       _num_hypernodes(num_hypernodes),
       _num_hyperedges(num_hyperedges),
       _num_pins(edge_vector.size()),
+      _type(HypergraphWeightType::Unweighted),
       _current_num_hypernodes(_num_hypernodes),
       _current_num_hyperedges(_num_hyperedges),
       _current_num_pins(_num_pins),
@@ -320,18 +328,29 @@ class Hypergraph{
       }
     }
 
+    bool has_hyperedge_weights = false;
     if (hyperedge_weights != NULL) {
+      has_hyperedge_weights = true;
       for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
         hyperedge(i).setWeight((*hyperedge_weights)[i]);
       }
     }
 
+    bool has_hypernode_weights = false;
     if (hypernode_weights != NULL) {
+      has_hypernode_weights = true;
       for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
         hypernode(i).setWeight((*hypernode_weights)[i]);
       }
     }
-    
+
+    if (has_hyperedge_weights && has_hypernode_weights) {
+      _type = HypergraphWeightType::EdgeAndNodeWeights;
+    } else if (has_hyperedge_weights) {
+      _type = HypergraphWeightType::EdgeWeights;
+    } else if (has_hypernode_weights) {
+      _type = HypergraphWeightType::NodeWeights;
+    }
   }
 
   // ToDo: make proper functions that can be called not just in debug mode
@@ -430,13 +449,13 @@ class Hypergraph{
                           _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<HypernodeIterator, HypernodeIterator> nodes() {
+  std::pair<HypernodeIterator, HypernodeIterator> nodes() const {
     return std::make_pair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
                           HypernodeIterator(&_hypernodes, _num_hypernodes,
                                                    _num_hypernodes));
   }
 
-  std::pair<HyperedgeIterator, HyperedgeIterator> edges() {
+  std::pair<HyperedgeIterator, HyperedgeIterator> edges() const {
     return std::make_pair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
                           HyperedgeIterator(&_hyperedges, _num_hyperedges,
                                                    _num_hyperedges));
@@ -613,6 +632,10 @@ class Hypergraph{
     } endfor
   }
 
+  HypergraphWeightType type() const {
+    return _type;
+  }
+
   // Accessors and mutators.
   HyperedgeID nodeDegree(HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
@@ -785,6 +808,7 @@ class Hypergraph{
   const HypernodeID _num_hypernodes;
   const HyperedgeID _num_hyperedges;
   const HypernodeID _num_pins;
+  HypergraphWeightType  _type;
 
   HypernodeID _current_num_hypernodes;
   HyperedgeID _current_num_hyperedges;
