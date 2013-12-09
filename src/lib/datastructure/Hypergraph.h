@@ -335,66 +335,64 @@ class Hypergraph{
   }
 
   // ToDo: make proper functions that can be called not just in debug mode
-#ifndef NDEBUG
-  void DEBUGprintHyperedgeInfo() {
+  void printHyperedgeInfo() {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      PRINT("hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
-            << hyperedge(i).size() << " weight=" << hyperedge(i).weight());
+      std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
+                << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
     }
   }
 
-  void DEBUGprintHypernodeInfo() {
+  void printHypernodeInfo() {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      PRINT("hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
-            << hypernode(i).size()  << " weight=" << hypernode(i).weight());
+      std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
+                << hypernode(i).size()  << " weight=" << hypernode(i).weight() << std::endl;
     }
   }
 
-  void DEBUGprintIncidenceArray() {
+  void printIncidenceArray() {
     for (VertexID i = 0; i < _incidence_array.size(); ++i) {
-      PRINT("_incidence_array[" << i <<"]=" << _incidence_array[i]);
+      std::cout << "_incidence_array[" << i <<"]=" << _incidence_array[i] << std::endl;
     }
   }
 
-  void DEBUGprintHyperedges() {
-    PRINT("Hyperedges:");
+  void printHyperedges() {
+    std::cout << "Hyperedges:" << std::endl;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       if (!hyperedge(i).isDisabled()) {
-        PRINT_SAME_LINE(i << ": ");
+        std::cout << i << ": ";
         __forall_pins(pin, i) {
-          PRINT_SAME_LINE(pin << " ");
+          std::cout << pin << " ";
         } endfor
       }else {
-        PRINT_SAME_LINE(i << " -- invalid --");
+        std::cout << i << " -- invalid --";
       }
-      PRINT(" ");
+      std::cout << std::endl;
     }
   }
 
-  void DEBUGprintHypernodes() {
-    PRINT("Hypernodes:");
+  void printHypernodes() {
+    std::cout << "Hypernodes:" << std::endl;
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       if (!hypernode(i).isDisabled()) {
-        PRINT_SAME_LINE(i << ": ");
+        std::cout << i << ": ";
         __forall_incident_hyperedges(he, i) {
-          PRINT_SAME_LINE(he << " ");
+          std::cout << he << " ";
         } endfor
       }else {
-        PRINT_SAME_LINE(i << " -- invalid --");
+        std::cout << i << " -- invalid --";
       }
-      PRINT(" ");
+      std::cout << std::endl;
     }
   }
 
-  void DEBUGprintAll() {
-    DEBUGprintHypernodeInfo();
-    DEBUGprintHyperedgeInfo();
-    DEBUGprintHypernodes();
-    DEBUGprintHyperedges();
-    DEBUGprintIncidenceArray();
+  void printAll() {
+    printHypernodeInfo();
+    printHyperedgeInfo();
+    printHypernodes();
+    printHyperedges();
+    printIncidenceArray();
   }
-#endif
-
+  
   void printEdgeState(HyperedgeID e) {
     if (!hyperedge(e).isDisabled()) {
       std::cout << "HE " << e << ": ";
