@@ -22,27 +22,27 @@ namespace datastructure {
 // Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
-  HypernodeIterator __begin, __end;                                \
+  datastructure::HypernodeIterator __begin, __end;                      \
   std::tie(__begin, __end) = graph.nodes();                             \
-  for (HypernodeIterator hn = __begin; hn != __end; ++hn) {
+  for (datastructure::HypernodeIterator hn = __begin; hn != __end; ++hn) {
 
 #define forall_hyperedges(he, graph)                                    \
   {                                                                     \
-  HyperedgeIterator __begin, __end;                                \
+  datastructure::HyperedgeIterator __begin, __end;                      \
   std::tie(__begin, __end) = graph.edges();                             \
-  for (HyperedgeIterator he = __begin; he != __end; ++he) {
+  for (datastructure::HyperedgeIterator he = __begin; he != __end; ++he) {
 
 #define forall_incident_hyperedges(he, hn, graph)                       \
   {                                                                     \
-  IncidenceIterator __begin, __end;                                \
-  std::tie(__begin, __end) = graph.incidentEdges(hn);              \
-  for (IncidenceIterator he = __begin; he != __end; ++he) {
+  datastructure::IncidenceIterator __begin, __end;                      \
+  std::tie(__begin, __end) = graph.incidentEdges(hn);                   \
+  for (datastructure::IncidenceIterator he = __begin; he != __end; ++he) {
 
 #define forall_pins(pin, he, graph)                                     \
   {                                                                     \
-  IncidenceIterator __begin, __end;                                \
+  datastructure::IncidenceIterator __begin, __end;                      \
   std::tie(__begin, __end) = graph.pins(he);                            \
-  for (IncidenceIterator pin = __begin; pin != __end; ++pin) {
+  for (datastructure::IncidenceIterator pin = __begin; pin != __end; ++pin) {
 
 #define endfor }}
 
@@ -836,6 +836,9 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
     defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
+typedef HypergraphType::HypernodeIterator HypernodeIterator;
+typedef HypergraphType::HyperedgeIterator HyperedgeIterator;
+typedef HypergraphType::IncidenceIterator IncidenceIterator;
 
 } // namespace datastructure
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

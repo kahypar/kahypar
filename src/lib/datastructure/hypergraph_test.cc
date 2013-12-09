@@ -11,9 +11,6 @@ using ::testing::Eq;
 using ::testing::Test;
 
 typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::IncidenceIterator IncidenceIterator;
-typedef HypergraphType::HypernodeIterator HypernodeIterator;
-typedef HypergraphType::HyperedgeIterator HyperedgeIterator;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::ContractionMemento Memento;
