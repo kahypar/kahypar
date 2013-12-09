@@ -106,29 +106,56 @@ class Hypergraph{
     }
 
     void enable() {
+      ASSERT(isDisabled(), "Vertex is already enabled");
       _valid = true;
     }
 
-    IDType firstEntry() const { return _begin; }
+    IDType firstEntry() const {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      return _begin;
+    }
+    
     void setFirstEntry(IDType begin) {
+      ASSERT(!isDisabled(), "Vertex is disabled");
       _begin = begin;
       _valid = true;
     }
 
-    IDType firstInvalidEntry() const { return _begin + _size; }
+    IDType firstInvalidEntry() const {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      return _begin + _size;
+    }
 
-    IDType size() const { return _size; }
-    void setSize(IDType size) { _size = size; }
+    IDType size() const {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      return _size;
+    }
+    void setSize(IDType size) {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      _size = size;
+    }
     
-    void increaseSize() { ++_size; }
+    void increaseSize() {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      ++_size;
+    }
+    
     void decreaseSize() {
+      ASSERT(!isDisabled(), "Vertex is disabled");
       ASSERT(_size > 0, "Size out of bounds");
       --_size;
       if (_size == 0) { disable(); }
     }
     
-    WeightType weight() const { return _weight; }
-    void setWeight(WeightType weight) { _weight = weight; }
+    WeightType weight() const {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      return _weight;
+    }
+    
+    void setWeight(WeightType weight) {
+      ASSERT(!isDisabled(), "Vertex is disabled");
+      _weight = weight;
+    }
 
     bool operator==(const InternalVertex<VertexTypeTraits> & rhs) const {
       return _begin == rhs.firstEntry() && _size == rhs.size() && _weight == rhs.weight();
