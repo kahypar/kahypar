@@ -110,19 +110,20 @@ class Coarsener{
   }
 
   void restoreSingleNodeHyperedges(CoarseningMemento& memento) {
-    // for (size_t i = memento.one_pin_hes_begin;
-    //      i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
-    //   ASSERT(i < _removed_hyperedges.size(), "Index out of bounds");
-    //   PRINT("*** restore single-node HE " << _removed_hyperedges[i]);
-    //   _hypergraph.restoreSingleNodeHyperedge(_removed_hyperedges[i]);
-    // }
+    for (size_t i = memento.one_pin_hes_begin;
+         i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
+      ASSERT(i < _removed_hyperedges.size(), "Index out of bounds");
+      // PRINT("*** restore single-node HE " << _removed_hyperedges[i]);
+      _hypergraph.restoreSingleNodeHyperedge(_removed_hyperedges[i]);
+    }
   }
 
   void restoreParallelHyperedges(CoarseningMemento& memento) {
     for (size_t i = memento.parallel_hes_begin;
          i < memento.parallel_hes_begin + memento.parallel_hes_size; ++i) {
       ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
-      PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
+      // PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id
+      //       << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
       _hypergraph.restoreParallelHyperedge(_removed_parallel_hyperedges[i].representative_id,
                                            _removed_parallel_hyperedges[i].removed_id);
     }
@@ -157,22 +158,22 @@ class Coarsener{
   }
 
   void removeSingleNodeHyperedges(HypernodeID u) {
-    // ASSERT(_history.top().contraction_memento.u == u,
-    //        "Current coarsening memento does not belong to hypernode" << u);
-    // _history.top().one_pin_hes_begin = _removed_hyperedges.size();
-    // IncidenceIterator begin, end;
-    // std::tie(begin, end) = _hypergraph.incidentEdges(u);
-    // for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
-    //   if (_hypergraph.edgeSize(*he_it) == 1) {
-    //     _removed_hyperedges.push_back(*he_it);
-    //     ++_history.top().one_pin_hes_size;
-    //     PRINT("*** removing single-node HE " << *he_it);
-    //     _hypergraph.printEdgeState(*he_it);
-    //     _hypergraph.removeEdge(*he_it);
-    //     --he_it;
-    //     --end;
-    //   }
-    // }
+    ASSERT(_history.top().contraction_memento.u == u,
+           "Current coarsening memento does not belong to hypernode" << u);
+    _history.top().one_pin_hes_begin = _removed_hyperedges.size();
+    IncidenceIterator begin, end;
+    std::tie(begin, end) = _hypergraph.incidentEdges(u);
+    for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
+      if (_hypergraph.edgeSize(*he_it) == 1) {
+        _removed_hyperedges.push_back(*he_it);
+        ++_history.top().one_pin_hes_size;
+        // PRINT("*** removing single-node HE " << *he_it);
+        // _hypergraph.printEdgeState(*he_it);
+        _hypergraph.removeEdge(*he_it);
+        --he_it;
+        --end;
+      }
+    }
   }
 
   void removeParallelHyperedges(HypernodeID u) {
@@ -209,7 +210,7 @@ class Coarsener{
                                       + _hypergraph.edgeWeight(fingerprints[j].id));
             _hypergraph.removeEdge(fingerprints[j].id);
             _removed_parallel_hyperedges.emplace_back(fingerprints[i].id, fingerprints[j].id);
-            PRINT("*** removed HE " << fingerprints[j].id << " which was parallel to " << fingerprints[i].id);
+            // PRINT("*** removed HE " << fingerprints[j].id << " which was parallel to " << fingerprints[i].id);
             ++_history.top().parallel_hes_size;
           }
         }

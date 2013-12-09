@@ -422,7 +422,7 @@ class Hypergraph{
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(!hypernode(v).isDisabled(), "Hypernode " << u << " is disabled");
 
-    PRINT("*** contracting (" << u << "," << v << ")");
+    //PRINT("*** contracting (" << u << "," << v << ")");
     
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
@@ -470,7 +470,7 @@ class Hypergraph{
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
 
-    PRINT("*** uncontracting (" << memento.u << "," << memento.v << ")");
+    //PRINT("*** uncontracting (" << memento.u << "," << memento.v << ")");
     
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
@@ -491,7 +491,7 @@ class Hypergraph{
       // to store the new edge to representative u during contraction as u was not a pin of e.
       __forall_incident_hyperedges(he, memento.u) {
         if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
-          PRINT("*** resetting reused Pinslot of HE " << he << " from " << memento.u << " to " << memento.v);
+          //PRINT("*** resetting reused Pinslot of HE " << he << " from " << memento.u << " to " << memento.v);
           resetReusedPinSlotToOriginalValue(he, memento);
 
           // Remember that this hyperedge is processed. The state of this hyperedge now resembles
@@ -517,7 +517,7 @@ class Hypergraph{
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     __forall_incident_hyperedges(he, memento.v) {
       if (!_processed_hyperedges[he]) {
-        PRINT("*** increasing size of HE " << he);
+        //PRINT("*** increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
         hyperedge(he).increaseSize();
         ++_current_num_pins;
@@ -565,12 +565,8 @@ class Hypergraph{
                         _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), e)
              == 0,
              "HN " << pin << " is already connected to HE " << e);
-      PRINT("*** re-adding pin  " << pin << " to HE " << e);
-      PRINT("before:");
-      printNodeState(pin);
+      //PRINT("*** re-adding pin  " << pin << " to HE " << e);
       hypernode(pin).increaseSize();
-      PRINT("after:");
-      printNodeState(pin);
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
              "Incorrect restore of HE " << e);
       ++_current_num_pins;

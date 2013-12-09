@@ -32,13 +32,13 @@ class ACoarsener : public Test {
   CoarsenerType coarsener;
 };
 
-TEST_F(ACoarsener, DISABLED_RemovesHyperedgesOfSizeOneDuringCoarsening) {
+TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
 }
 
-TEST_F(ACoarsener, DISABLED_ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
+TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
@@ -68,13 +68,12 @@ TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedge
 }
 TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
  coarsener.coarsen(2);
- ASSERT_THAT(hypergraph.numEdges(), Eq(1)); // ASSUMING WE CURRENTLY DO NOT DELETE SINGLE NODE HES 
+ ASSERT_THAT(hypergraph.numEdges(), Eq(1));
 }
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   coarsener.coarsen(2);
   coarsener.uncoarsen();
-  hypergraph.DEBUGprintAll();
   ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
