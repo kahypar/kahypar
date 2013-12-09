@@ -466,7 +466,7 @@ class Hypergraph{
     return Memento(u, u_offset, u_size, v);
   }
 
-  void uncontract(Memento& memento) {
+  void uncontract(const Memento& memento) {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
 
@@ -668,14 +668,14 @@ class Hypergraph{
     ++_current_num_hyperedges;
   }
   
-  void restoreRepresentative(Memento& memento) {
+  void restoreRepresentative(const Memento& memento) {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     hypernode(memento.u).setFirstEntry(memento.u_first_entry);
     hypernode(memento.u).setSize(memento.u_size);
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
   }
 
-  void resetReusedPinSlotToOriginalValue(HyperedgeID he, Memento& memento) {
+  void resetReusedPinSlotToOriginalValue(HyperedgeID he, const Memento& memento) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     PinHandleIterator pin_begin, pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
