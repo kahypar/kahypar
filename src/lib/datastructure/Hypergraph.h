@@ -286,8 +286,8 @@ class Hypergraph{
   Hypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const hMetisHyperEdgeIndexVector& index_vector,
              const hMetisHyperEdgeVector& edge_vector,
-             const hMetisHyperEdgeWeightVector* hyperedge_weights,
-             const hMetisHyperNodeWeightVector* hypernode_weights) :
+             const hMetisHyperEdgeWeightVector* hyperedge_weights = nullptr,
+             const hMetisHyperNodeWeightVector* hypernode_weights = nullptr) :
       _num_hypernodes(num_hypernodes),
       _num_hyperedges(num_hyperedges),
       _num_pins(edge_vector.size()),

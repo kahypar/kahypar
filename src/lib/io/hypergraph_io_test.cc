@@ -23,13 +23,11 @@ TEST(AFunction, ParsesFirstLineOfaHGRFile) {
 TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
   hMetisHyperEdgeIndexVector index_vector;
   hMetisHyperEdgeVector edge_vector;
-  parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                      nullptr, nullptr);
+  parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector);
   
   ASSERT_THAT(index_vector, ContainerEq(_control_index_vector));
   ASSERT_THAT(edge_vector, ContainerEq(_control_edge_vector));
-  HypergraphType hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                            nullptr, nullptr);  
+  HypergraphType hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector);  
 }
 
 TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
@@ -38,13 +36,13 @@ TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
   hMetisHyperEdgeWeightVector hyperedge_weights;
 
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                      &hyperedge_weights, nullptr);
+                      &hyperedge_weights);
   
   ASSERT_THAT(index_vector, ContainerEq(_control_index_vector));
   ASSERT_THAT(edge_vector, ContainerEq(_control_edge_vector));
   ASSERT_THAT(hyperedge_weights, ContainerEq(_control_hyperedge_weights));
   HypergraphType hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                            &hyperedge_weights, nullptr);  
+                            &hyperedge_weights);  
 }
 
 TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
@@ -83,9 +81,9 @@ TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
   writeHypergraphFile(*_hypergraph, _filename);
 
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, _written_index_vector,
-                      _written_edge_vector, nullptr, nullptr);  
+                      _written_edge_vector);  
   HypergraphType hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
-                             _written_edge_vector, nullptr, nullptr);
+                             _written_edge_vector);
   
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }
@@ -96,7 +94,7 @@ TEST_F(AHypergraphWithHyperedgeWeights, CanBeWrittenToFile) {
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, _written_index_vector,
                       _written_edge_vector, &_written_hyperedge_weights, nullptr);
   HypergraphType hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
-                             _written_edge_vector, &_written_hyperedge_weights, nullptr);
+                             _written_edge_vector, &_written_hyperedge_weights);
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }
 

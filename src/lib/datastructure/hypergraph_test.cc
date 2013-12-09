@@ -19,7 +19,7 @@ class AHypergraph : public Test {
  public:
   AHypergraph() :
       hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr) {}
+                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
   HypergraphType hypergraph;
 };
 
@@ -65,13 +65,13 @@ class AnUncontractedHypergraph : public AHypergraph {
   AnUncontractedHypergraph() :
       AHypergraph(),
       modified_hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                          hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr) {}
+                          hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
 
   HypergraphType modified_hypergraph;
 };
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
-    ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
   ASSERT_THAT(hypergraph.numPins(), Eq(12));
   ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));

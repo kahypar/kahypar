@@ -41,8 +41,8 @@ void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernodes,
                          HyperedgeID &num_hyperedges,
                          hMetisHyperEdgeIndexVector& index_vector,
                          hMetisHyperEdgeVector& edge_vector,
-                         hMetisHyperEdgeWeightVector* hyperedge_weights,
-                         hMetisHyperNodeWeightVector* hypernode_weights) {
+                         hMetisHyperEdgeWeightVector* hyperedge_weights = nullptr,
+                         hMetisHyperNodeWeightVector* hypernode_weights = nullptr) {
   HypergraphWeightType hypergraph_type = HypergraphWeightType::Unweighted;
   std::ifstream file(filename);
   if(file) {

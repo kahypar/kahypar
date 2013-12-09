@@ -95,8 +95,7 @@ class AnUnweightedHypergraph : public Test {
 
   void SetUp() {
     _filename = "test_instances/unweighted_hypergraph.hgr.out";
-    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                     nullptr, nullptr);
+    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector);
   }
 
   void TearDown() {
@@ -127,7 +126,7 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
   void SetUp() {
     _filename = "test_instances/weighted_hyperedges_hypergraph.hgr.out";
     _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                     &_hyperedge_weights, nullptr);
+                                     &_hyperedge_weights);
   }
   
   hMetisHyperEdgeWeightVector _hyperedge_weights;
@@ -173,6 +172,5 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 };
 
 } // namespace io
-
 
 #endif  // _LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
