@@ -570,7 +570,6 @@ class Hypergraph{
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
              "Incorrect restore of HE " << e);
       ++_current_num_pins;
-      printEdgeState(e);
     } endfor
   }
 
