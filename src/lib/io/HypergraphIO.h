@@ -121,6 +121,7 @@ void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filena
     } endfor
     out_stream << std::endl;
   } endfor
+        
   if (hypergraph.type() == HypergraphWeightType::NodeWeights ||
       hypergraph.type() == HypergraphWeightType::EdgeAndNodeWeights)  {
     forall_hypernodes(hn, hypergraph) {

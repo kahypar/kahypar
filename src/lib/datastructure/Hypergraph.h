@@ -353,7 +353,6 @@ class Hypergraph{
     }
   }
 
-  // ToDo: make proper functions that can be called not just in debug mode
   void printHyperedgeInfo() {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
