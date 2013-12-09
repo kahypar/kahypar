@@ -263,7 +263,9 @@ class Hypergraph{
       _hypernodes(_num_hypernodes, HyperNode(0,0,1)),
       _hyperedges(_num_hyperedges, HyperEdge(0,0,1)),
       _incidence_array(2 * _num_pins,0),
-      _processed_hyperedges(_num_hyperedges) {
+      _processed_hyperedges(_num_hyperedges),
+      _active_hyperedges_u(_num_hyperedges),
+      _active_hyperedges_v(_num_hyperedges) {
     
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -473,20 +475,30 @@ class Hypergraph{
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
 
+    _active_hyperedges_v.reset();
+    __forall_incident_hyperedges(he, memento.v) {
+      _active_hyperedges_v[he] = 1;
+    } endfor
+
+    _active_hyperedges_u.reset();
+    for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
+      _active_hyperedges_u[_incidence_array[i]] = 1;
+    }
+
     if (hypernode(memento.u).size() - memento.u_size > 0) {
       // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
       // Set incidence entry containing u for this HE e back to v, because this slot was used
       // to store the new edge to representative u during contraction as u was not a pin of e.
-      for (HyperedgeID i = hypernode(memento.u).firstEntry() + memento.u_size;
-           i < hypernode(memento.u).firstInvalidEntry(); ++i) {
-        ASSERT(i < _incidence_array.size(), "Index out of bounds");
-        PRINT("*** resetting reused Pinslot of HE " << _incidence_array[i] << " from " << memento.u << " to " << memento.v);
-        resetReusedPinSlotToOriginalValue(_incidence_array[i], memento);
+      __forall_incident_hyperedges(he, memento.u) {
+        if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
+          PRINT("*** resetting reused Pinslot of HE " << he << " from " << memento.u << " to " << memento.v);
+          resetReusedPinSlotToOriginalValue(he, memento);
 
-        // Remember that this hyperedge is processed. The state of this hyperedge now resembles
-        // the state before contraction. Thus we don't need to process them any further.
-        _processed_hyperedges[_incidence_array[i]] = 1;
-      }
+          // Remember that this hyperedge is processed. The state of this hyperedge now resembles
+          // the state before contraction. Thus we don't need to process them any further.
+          _processed_hyperedges[he] = 1;
+        }
+      } endfor
 
       // Check if we can remove the dynamically added incidence entries for u:
       // If the old incidence entries are located before the current ones, than the
@@ -762,6 +774,8 @@ class Hypergraph{
   std::vector<HyperEdge> _hyperedges;
   std::vector<VertexID> _incidence_array; 
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
+  boost::dynamic_bitset<uint64_t> _active_hyperedges_u;
+  boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 
   template <typename HNType, typename HEType, typename HNWType, typename HEWType>
