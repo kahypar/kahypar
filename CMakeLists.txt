@@ -19,6 +19,7 @@ enable_testing()
 add_subdirectory(src/lib/datastructure)
 add_subdirectory(src/lib/io)
 add_subdirectory(src/partition)
+add_subdirectory(src/playground)
 
 
 
