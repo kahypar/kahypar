@@ -13,7 +13,7 @@ endif()
 
 set (CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-add_definitions("-pthread -W -Wall -Wextra -Wunused -DPARANOID -Weffc++ -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -W -Wall -Wextra -Wunused -pedantic -DPARANOID -Weffc++ -std=c++11")
 
 enable_testing()
 add_subdirectory(src/lib/datastructure)
