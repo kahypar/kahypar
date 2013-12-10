@@ -59,7 +59,7 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
       forall_pins(v, *he, _hg) {
         if (*v != u && belowThresholdNodeWeight(*v, u) ) {
           _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
-                                   / (_hg.edgeSize(*he) - 1);
+                              / (_hg.edgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
             _visited_hypernodes[*v] = 1;
             _used_entries.push(*v);
@@ -98,8 +98,7 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
  private:
 
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
-    return _hg.nodeWeight(v) + _hg.nodeWeight(u)
-        <= _threshold_node_weight;
+    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _threshold_node_weight;
   }
   
   Hypergraph& _hg;
