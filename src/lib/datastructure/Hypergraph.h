@@ -387,7 +387,7 @@ class Hypergraph{
     }
   }
 
-  void printAll() {
+  void printGraphState() {
     printHypernodeInfo();
     printHyperedgeInfo();
     printHypernodes();
