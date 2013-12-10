@@ -59,24 +59,24 @@ class Coarsener{
   
  public:  
   Coarsener(Hypergraph& hypergraph,  HypernodeWeight threshold_node_weight) :
-      _HG(hypergraph),
-      _rater(_HG, threshold_node_weight),
+      _hg(hypergraph),
+      _rater(_hg, threshold_node_weight),
       _history(),
       removed_single_node_hyperedges(),
       _removed_parallel_hyperedges(),
       _fingerprints(),
-      _contained_hypernodes(_HG.initialNumNodes()),
-      _pq(_HG.initialNumNodes(), _HG.initialNumNodes()) {}
+      _contained_hypernodes(_hg.initialNumNodes()),
+      _pq(_hg.initialNumNodes(), _hg.initialNumNodes()) {}
   
   void coarsen(int limit) {
     ASSERT(_pq.empty(), "coarsen() can only be called once");
     HeavyEdgeRating rating;
-    std::vector<HypernodeID> contraction_targets(_HG.initialNumNodes());
+    std::vector<HypernodeID> contraction_targets(_hg.initialNumNodes());
     rateAllHypernodes(contraction_targets);
 
     HypernodeID rep_node;
-    boost::dynamic_bitset<uint64_t> rerated_hypernodes(_HG.initialNumNodes());
-    while (!_pq.empty() && _HG.numNodes() > limit) {
+    boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
+    while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
       //PRINT("Contracting: (" << rep_node << ","
       //      << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
@@ -98,7 +98,7 @@ class Coarsener{
     while(!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
-      _HG.uncontract(_history.top().contraction_memento);
+      _hg.uncontract(_history.top().contraction_memento);
       _history.pop();
     }
   }
@@ -107,7 +107,7 @@ class Coarsener{
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
   
   void performContraction(HypernodeID rep_node, std::vector<HypernodeID>& contraction_targets) {
-    _history.emplace(_HG.contract(rep_node, contraction_targets[rep_node]));
+    _history.emplace(_hg.contract(rep_node, contraction_targets[rep_node]));
     _pq.remove(contraction_targets[rep_node]);
   }
 
@@ -116,7 +116,7 @@ class Coarsener{
          i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
       ASSERT(i < removed_single_node_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore single-node HE " << removed_single_node_hyperedges[i]);
-      _HG.restoreEdge(removed_single_node_hyperedges[i]);
+      _hg.restoreEdge(removed_single_node_hyperedges[i]);
     }
   }
 
@@ -126,16 +126,16 @@ class Coarsener{
       ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id
       //       << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
-      _HG.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
-      _HG.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
-                                _HG.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
-                                _HG.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
+      _hg.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
+      _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
+                                _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
+                                _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
     }
   }
 
   void rateAllHypernodes(std::vector<HypernodeID>& contraction_targets) {
     HeavyEdgeRating rating;
-    forall_hypernodes(hn, _HG) {
+    forall_hypernodes(hn, _hg) {
       rating = _rater.rate(*hn);
       if (rating.valid) {
         _pq.insert(*hn, rating.value);
@@ -149,8 +149,8 @@ class Coarsener{
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes) {
     // ToDo: This can be done more fine grained if we know which HEs are affected: see p. 31
     HeavyEdgeRating rating;
-    forall_incident_hyperedges(he, rep_node, _HG) {
-      forall_pins(pin, *he, _HG) {
+    forall_incident_hyperedges(he, rep_node, _hg) {
+      forall_pins(pin, *he, _hg) {
         if (!rerated_hypernodes[*pin]) {
           rating = _rater.rate(*pin);
           rerated_hypernodes[*pin] = 1;
@@ -166,14 +166,14 @@ class Coarsener{
            "Current coarsening memento does not belong to hypernode" << u);
     _history.top().one_pin_hes_begin = removed_single_node_hyperedges.size();
     IncidenceIterator begin, end;
-    std::tie(begin, end) = _HG.incidentEdges(u);
+    std::tie(begin, end) = _hg.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
-      if (_HG.edgeSize(*he_it) == 1) {
+      if (_hg.edgeSize(*he_it) == 1) {
         removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
         // PRINT("*** removing single-node HE " << *he_it);
-        // _HG.printEdgeState(*he_it);
-        _HG.removeEdge(*he_it);
+        // _hg.printEdgeState(*he_it);
+        _hg.removeEdge(*he_it);
         --he_it;
         --end;
       }
@@ -206,7 +206,7 @@ class Coarsener{
 
   bool isParallelHyperedge(HyperedgeID he) const {
     bool is_parallel = true;
-    forall_pins(pin, he, _HG) {
+    forall_pins(pin, he, _hg) {
       if (!_contained_hypernodes[*pin]) {
         is_parallel = false;
         break;
@@ -217,16 +217,16 @@ class Coarsener{
 
   void fillProbeBitset(HyperedgeID he) {
     _contained_hypernodes.reset();
-    forall_pins(pin, he, _HG) {
+    forall_pins(pin, he, _hg) {
       _contained_hypernodes[*pin] = 1;
     } endfor
   }
 
   void removeParallelHyperedge(HyperedgeID representative, HyperedgeID to_remove) {
-    _HG.setEdgeWeight(representative,
-                              _HG.edgeWeight(representative)
-                              + _HG.edgeWeight(to_remove));
-    _HG.removeEdge(to_remove);
+    _hg.setEdgeWeight(representative,
+                              _hg.edgeWeight(representative)
+                              + _hg.edgeWeight(to_remove));
+    _hg.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
     // PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
     ++_history.top().parallel_hes_size;
@@ -234,12 +234,12 @@ class Coarsener{
 
   void createFingerprints(HypernodeID u) {
     _fingerprints.clear();
-    forall_incident_hyperedges(he, u, _HG) {
+    forall_incident_hyperedges(he, u, _hg) {
       HyperedgeID hash = /* seed */ 42;
-      forall_pins(pin, *he, _HG) {
+      forall_pins(pin, *he, _hg) {
         hash ^= *pin;
       } endfor
-      _fingerprints.emplace_back(*he, hash, _HG.edgeSize(*he));
+      _fingerprints.emplace_back(*he, hash, _hg.edgeSize(*he));
     } endfor
   }
 
@@ -253,7 +253,7 @@ class Coarsener{
     }
   }
   
-  Hypergraph& _HG;
+  Hypergraph& _hg;
   Rater _rater;
   std::stack<CoarseningMemento> _history;
   std::vector<HyperedgeID> removed_single_node_hyperedges;

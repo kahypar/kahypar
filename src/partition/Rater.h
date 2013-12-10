@@ -45,21 +45,21 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
  public:
   typedef HeavyEdgeRating Rating;
   Rater(Hypergraph& hypergraph, HypernodeWeight threshold_node_weight) :
-      _HG(hypergraph),
+      _hg(hypergraph),
       _threshold_node_weight(threshold_node_weight),
-      _tmp_ratings(_HG.initialNumNodes()),
+      _tmp_ratings(_hg.initialNumNodes()),
       _used_entries(),
-      _visited_hypernodes(_HG.initialNumNodes()),
+      _visited_hypernodes(_hg.initialNumNodes()),
       _equally_rated_nodes() {}
 
   HeavyEdgeRating rate(HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
-    forall_incident_hyperedges(he,  u, _HG) {
-      forall_pins(v, *he, _HG) {
+    forall_incident_hyperedges(he,  u, _hg) {
+      forall_pins(v, *he, _hg) {
         if (*v != u && belowThresholdNodeWeight(*v, u) ) {
-          _tmp_ratings[*v] += static_cast<RatingType>(_HG.edgeWeight(*he))
-                                   / (_HG.edgeSize(*he) - 1);
+          _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
+                                   / (_hg.edgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
             _visited_hypernodes[*v] = 1;
             _used_entries.push(*v);
@@ -73,7 +73,7 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
-            (_HG.nodeWeight(u) * _HG.nodeWeight(_used_entries.top()));
+            (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
       // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp); 
       if (max_rating < tmp) {
         max_rating = tmp;
@@ -98,11 +98,11 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
  private:
 
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
-    return _HG.nodeWeight(v) + _HG.nodeWeight(u)
+    return _hg.nodeWeight(v) + _hg.nodeWeight(u)
         <= _threshold_node_weight;
   }
   
-  Hypergraph& _HG;
+  Hypergraph& _hg;
   const HypernodeWeight _threshold_node_weight;
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;
