@@ -376,30 +376,14 @@ class Hypergraph{
   void printHyperedges() {
     std::cout << "Hyperedges:" << std::endl;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isDisabled()) {
-        std::cout << i << ": ";
-        __forall_pins(pin, i) {
-          std::cout << pin << " ";
-        } endfor
-      }else {
-        std::cout << i << " -- invalid --";
-      }
-      std::cout << std::endl;
+      printEdgeState(i);
     }
   }
 
   void printHypernodes() {
     std::cout << "Hypernodes:" << std::endl;
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isDisabled()) {
-        std::cout << i << ": ";
-        __forall_incident_hyperedges(he, i) {
-          std::cout << he << " ";
-        } endfor
-      }else {
-        std::cout << i << " -- invalid --";
-      }
-      std::cout << std::endl;
+      printNodeState(i);
     }
   }
 
@@ -580,7 +564,9 @@ class Hypergraph{
     removeEdge(e, u, _hyperedges);
     --_current_num_pins;
   }
-  
+
+  // Deletes incidence information on incident hyperedges, but leaves
+  // this information intact on the hypernode vertex, because it is just disabled!
   void removeNode(HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(),"Hypernode is disabled!");
     __forall_incident_hyperedges(e, u) {
@@ -591,6 +577,10 @@ class Hypergraph{
     --_current_num_hypernodes;
   }
   
+  // Deletes incidence information on pins, but leaves this information intact on
+  // the hyperedge vertex, because it is just disabled! This information is used to
+  // restore removed edges e.g. in the case of a single-node hyperedge or a parallel
+  // hyperedge.
   void removeEdge(HyperedgeID e) {
     ASSERT(!hyperedge(e).isDisabled(),"Hyperedge is disabled!");
     __forall_pins(u, e) {
@@ -601,7 +591,7 @@ class Hypergraph{
     --_current_num_hyperedges;
   }
 
-  void restoreSingleNodeHyperedge(HyperedgeID e) {
+  void restoreEdge(HyperedgeID e) {
     enableEdge(e);
     __forall_pins(pin, e) {
       ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
@@ -612,21 +602,6 @@ class Hypergraph{
       hypernode(pin).increaseSize();
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
              "Incorrect restore of HE " << e);
-      ++_current_num_pins;
-    } endfor
-  }
-
-  void restoreParallelHyperedge(HyperedgeID representative, HyperedgeID removed) {
-    enableEdge(removed);
-    setEdgeWeight(representative, edgeWeight(representative) - edgeWeight(removed));
-    __forall_pins(pin, representative) {
-      ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
-                        _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), removed)
-             == 0,
-             "HN " << pin << " is already connected to HE " << removed);
-      hypernode(pin).increaseSize();
-      ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == removed,
-             "Incorrect restore of HE " << removed);
       ++_current_num_pins;
     } endfor
   }

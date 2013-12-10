@@ -116,7 +116,7 @@ class Coarsener{
          i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
       ASSERT(i < removed_single_node_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore single-node HE " << removed_single_node_hyperedges[i]);
-      _hypergraph.restoreSingleNodeHyperedge(removed_single_node_hyperedges[i]);
+      _hypergraph.restoreEdge(removed_single_node_hyperedges[i]);
     }
   }
 
@@ -126,8 +126,10 @@ class Coarsener{
       ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id
       //       << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
-      _hypergraph.restoreParallelHyperedge(_removed_parallel_hyperedges[i].representative_id,
-                                           _removed_parallel_hyperedges[i].removed_id);
+      _hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
+      _hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
+                                _hypergraph.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
+                                _hypergraph.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
     }
   }
 
