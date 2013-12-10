@@ -8,22 +8,22 @@ using ::testing::Eq;
 using ::testing::DoubleEq;
 using ::testing::AnyOf;
 
-using defs::hMetisHyperEdgeIndexVector;
-using defs::hMetisHyperEdgeVector;
+using datastructure::HypergraphType;
+using datastructure::HyperedgeIndexVector;
+using datastructure::HyperedgeVector;
+using datastructure::HypernodeID;
+using datastructure::HypernodeWeight;
 
 namespace partition {
 
-typedef datastructure::HypergraphType HypergraphType;
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> CoarsenerType;
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HypernodeWeight HypernodeWeight;
 
 class ACoarsener : public Test {
  public:
   ACoarsener() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr),
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       threshold_node_weight(5),
       coarsener(hypergraph, threshold_node_weight) {}
   

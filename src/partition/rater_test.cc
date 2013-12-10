@@ -8,14 +8,15 @@ using ::testing::Eq;
 using ::testing::DoubleEq;
 using ::testing::AnyOf;
 
-using defs::hMetisHyperEdgeIndexVector;
-using defs::hMetisHyperEdgeVector;
+using datastructure::HypergraphType;
+using datastructure::HypernodeWeight;
+using datastructure::HyperedgeIndexVector;
+using datastructure::HyperedgeVector;
+using datastructure::HyperedgeVector;
+using datastructure::HypernodeID;
 
 namespace partition {
 
-typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::HypernodeWeight HypernodeWeight;
-typedef HypergraphType::HypernodeID HypernodeID;
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
@@ -23,8 +24,8 @@ typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRate
 class AFirstWinsRater : public Test {
  public:
   AFirstWinsRater() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr),
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       threshold_node_weight(2),
       rater(hypergraph, threshold_node_weight) {}
   HypergraphType hypergraph;
@@ -35,8 +36,8 @@ class AFirstWinsRater : public Test {
 class ALastWinsRater : public Test {
  public:
   ALastWinsRater() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr),
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       threshold_node_weight(2),
       rater(hypergraph, threshold_node_weight) {}
   HypergraphType hypergraph;
@@ -47,8 +48,8 @@ class ALastWinsRater : public Test {
 class ARandomWinsRater : public Test {
  public:
   ARandomWinsRater() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}, nullptr, nullptr),
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       threshold_node_weight(2),
       rater(hypergraph, threshold_node_weight) {}
   HypergraphType hypergraph;
@@ -96,6 +97,5 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
-
 
 } // namespace partition

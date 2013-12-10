@@ -12,11 +12,6 @@
 #include "../macros.h"
 
 namespace datastructure {
-
-  using defs::hMetisHyperEdgeIndexVector;
-  using defs::hMetisHyperEdgeVector;
-  using defs::hMetisHyperEdgeWeightVector;
-  using defs::hMetisHyperNodeWeightVector;
   
 // external macros:
 // Causion when modifying hypergraph during iteration!
@@ -74,6 +69,10 @@ class Hypergraph{
   typedef HyperedgeType_ HyperedgeID;
   typedef HypernodeWeightType_ HypernodeWeight;
   typedef HyperedgeWeightType_ HyperedgeWeight;
+  typedef std::vector<size_t>  HyperedgeIndexVector;
+  typedef std::vector<HypernodeID> HyperedgeVector;
+  typedef std::vector<HypernodeWeight> HypernodeWeightVector;
+  typedef std::vector<HyperedgeWeight> HyperedgeWeightVector;
   
  private:
   typedef unsigned int VertexID;
@@ -284,10 +283,10 @@ class Hypergraph{
   typedef Memento ContractionMemento;
   
   Hypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
-             const hMetisHyperEdgeIndexVector& index_vector,
-             const hMetisHyperEdgeVector& edge_vector,
-             const hMetisHyperEdgeWeightVector* hyperedge_weights = nullptr,
-             const hMetisHyperNodeWeightVector* hypernode_weights = nullptr) :
+             const HyperedgeIndexVector& index_vector,
+             const HyperedgeVector& edge_vector,
+             const HyperedgeWeightVector* hyperedge_weights = nullptr,
+             const HypernodeWeightVector* hypernode_weights = nullptr) :
       _num_hypernodes(num_hypernodes),
       _num_hyperedges(num_hyperedges),
       _num_pins(edge_vector.size()),
@@ -834,9 +833,17 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
     defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
+typedef HypergraphType::HypernodeID HypernodeID;
+typedef HypergraphType::HyperedgeID HyperedgeID;
+typedef HypergraphType::HypernodeWeight HypernodeWeight;
+typedef HypergraphType::HyperedgeWeight HyperedgeWeight;
 typedef HypergraphType::HypernodeIterator HypernodeIterator;
 typedef HypergraphType::HyperedgeIterator HyperedgeIterator;
 typedef HypergraphType::IncidenceIterator IncidenceIterator;
+typedef HypergraphType::HyperedgeIndexVector HyperedgeIndexVector;
+typedef HypergraphType::HyperedgeVector HyperedgeVector;
+typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
+typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 
 } // namespace datastructure
 #endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_

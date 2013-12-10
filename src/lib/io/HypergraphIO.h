@@ -8,18 +8,16 @@
 #include "../datastructure/Hypergraph.h"
 
 namespace io {
-
-using defs::hMetisHyperEdgeIndexVector;
-using defs::hMetisHyperEdgeVector;
-using defs::hMetisHyperEdgeWeightVector;
-using defs::hMetisHyperNodeWeightVector;
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+using datastructure::HyperedgeID;
 using datastructure::HypergraphWeightType;
-
-typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HyperedgeID HyperedgeID;
-typedef HypergraphType::HyperedgeWeight HyperedgeWeight;
-typedef HypergraphType::HypernodeWeight HypernodeWeight;
+using datastructure::HyperedgeWeight;
+using datastructure::HypernodeWeight;
+using datastructure::HyperedgeIndexVector;
+using datastructure::HyperedgeVector;
+using datastructure::HyperedgeWeightVector;
+using datastructure::HypernodeWeightVector;
 
 void parseHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges, HypernodeID& num_hypernodes,
                     HypergraphWeightType& hypergraph_type) {
@@ -39,10 +37,10 @@ void parseHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges, HypernodeI
 
 void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernodes,
                          HyperedgeID &num_hyperedges,
-                         hMetisHyperEdgeIndexVector& index_vector,
-                         hMetisHyperEdgeVector& edge_vector,
-                         hMetisHyperEdgeWeightVector* hyperedge_weights = nullptr,
-                         hMetisHyperNodeWeightVector* hypernode_weights = nullptr) {
+                         HyperedgeIndexVector& index_vector,
+                         HyperedgeVector& edge_vector,
+                         HyperedgeWeightVector* hyperedge_weights = nullptr,
+                         HypernodeWeightVector* hypernode_weights = nullptr) {
   HypergraphWeightType hypergraph_type = HypergraphWeightType::Unweighted;
   std::ifstream file(filename);
   if(file) {

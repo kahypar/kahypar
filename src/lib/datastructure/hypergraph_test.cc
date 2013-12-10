@@ -18,8 +18,8 @@ typedef HypergraphType::ContractionMemento Memento;
 class AHypergraph : public Test {
  public:
   AHypergraph() :
-      hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
   HypergraphType hypergraph;
 };
 
@@ -64,8 +64,8 @@ class AnUncontractedHypergraph : public AHypergraph {
  public:
   AnUncontractedHypergraph() :
       AHypergraph(),
-      modified_hypergraph(7,4, hMetisHyperEdgeIndexVector {0,2,6,9,/*sentinel*/12},
-                          hMetisHyperEdgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+      modified_hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                          HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
 
   HypergraphType modified_hypergraph;
 };

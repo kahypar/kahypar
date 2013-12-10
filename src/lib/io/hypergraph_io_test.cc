@@ -21,8 +21,8 @@ TEST(AFunction, ParsesFirstLineOfaHGRFile) {
 }
 
 TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
-  hMetisHyperEdgeIndexVector index_vector;
-  hMetisHyperEdgeVector edge_vector;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector);
   
   ASSERT_THAT(index_vector, ContainerEq(_control_index_vector));
@@ -31,9 +31,9 @@ TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
 }
 
 TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
-  hMetisHyperEdgeIndexVector index_vector;
-  hMetisHyperEdgeVector edge_vector;
-  hMetisHyperEdgeWeightVector hyperedge_weights;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  HyperedgeWeightVector hyperedge_weights;
 
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
                       &hyperedge_weights);
@@ -46,9 +46,9 @@ TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
 }
 
 TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
-  hMetisHyperEdgeIndexVector index_vector;
-  hMetisHyperEdgeVector edge_vector;
-  hMetisHyperEdgeWeightVector hypernode_weights;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  HypernodeWeightVector hypernode_weights;
 
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
                       nullptr, &hypernode_weights);
@@ -61,10 +61,10 @@ TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
 }
 
 TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergraph) {
-  hMetisHyperEdgeIndexVector index_vector;
-  hMetisHyperEdgeVector edge_vector;
-  hMetisHyperEdgeWeightVector hypernode_weights;
-  hMetisHyperEdgeWeightVector hyperedge_weights;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  HypernodeWeightVector hypernode_weights;
+  HyperedgeWeightVector hyperedge_weights;
 
   parseHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
                       &hyperedge_weights, &hypernode_weights);

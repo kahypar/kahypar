@@ -12,10 +12,6 @@ namespace io {
 
 using ::testing::Test;
 
-typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HyperedgeID HyperedgeID;
-
 class AnUnweightedHypergraphFile : public Test {
  public:
   AnUnweightedHypergraphFile() :
@@ -34,8 +30,8 @@ class AnUnweightedHypergraphFile : public Test {
   HyperedgeID _num_hyperedges;
   HypernodeID _num_hypernodes;
   int _hypergraph_type;
-  hMetisHyperEdgeIndexVector _control_index_vector;
-  hMetisHyperEdgeVector _control_edge_vector;
+  HyperedgeIndexVector _control_index_vector;
+  HyperedgeVector _control_edge_vector;
 };
 
 class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
@@ -48,7 +44,7 @@ class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
     _filename = "test_instances/weighted_hyperedges_hypergraph.hgr";
   }
   
-  hMetisHyperEdgeWeightVector _control_hyperedge_weights;
+  HyperedgeWeightVector _control_hyperedge_weights;
 };
 
 class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
@@ -61,7 +57,7 @@ class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
     _filename = "test_instances/weighted_hypernodes_hypergraph.hgr";
   }
 
-  hMetisHyperEdgeWeightVector _control_hypernode_weights;
+  HyperedgeWeightVector _control_hypernode_weights;
 };
 
 class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraphFile {
@@ -75,8 +71,8 @@ class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHyper
     _filename = "test_instances/weighted_hyperedges_and_hypernodes_hypergraph.hgr";
   }
   
-  hMetisHyperEdgeWeightVector _control_hyperedge_weights;
-  hMetisHyperEdgeWeightVector _control_hypernode_weights;
+  HyperedgeWeightVector _control_hyperedge_weights;
+  HypernodeWeightVector _control_hypernode_weights;
 };
 
 class AnUnweightedHypergraph : public Test {
@@ -107,10 +103,10 @@ class AnUnweightedHypergraph : public Test {
   HyperedgeID _num_hyperedges;
   HypernodeID _num_hypernodes;
   int _hypergraph_type;
-  hMetisHyperEdgeIndexVector _index_vector;
-  hMetisHyperEdgeVector _edge_vector;
-  hMetisHyperEdgeIndexVector _written_index_vector;
-  hMetisHyperEdgeVector _written_edge_vector;
+  HyperedgeIndexVector _index_vector;
+  HyperedgeVector _edge_vector;
+  HyperedgeIndexVector _written_index_vector;
+  HyperedgeVector _written_edge_vector;
   std::ifstream _written_file;
   HypergraphType* _hypergraph;
   DISALLOW_COPY_AND_ASSIGN(AnUnweightedHypergraph);
@@ -129,8 +125,8 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
                                      &_hyperedge_weights);
   }
   
-  hMetisHyperEdgeWeightVector _hyperedge_weights;
-  hMetisHyperEdgeWeightVector _written_hyperedge_weights;
+  HyperedgeWeightVector _hyperedge_weights;
+  HyperedgeWeightVector _written_hyperedge_weights;
 };
 
 class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
@@ -146,8 +142,8 @@ class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
                                      nullptr, &_hypernode_weights);
   }
 
-  hMetisHyperEdgeWeightVector _hypernode_weights;
-  hMetisHyperEdgeWeightVector _written_hypernode_weights;
+  HypernodeWeightVector _hypernode_weights;
+  HypernodeWeightVector _written_hypernode_weights;
 };
 
 class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraph {
@@ -165,10 +161,10 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
                             &_hyperedge_weights, &_hypernode_weights);
   }
   
-  hMetisHyperEdgeWeightVector _hyperedge_weights;
-  hMetisHyperEdgeWeightVector _hypernode_weights;
-  hMetisHyperEdgeWeightVector _written_hyperedge_weights;
-  hMetisHyperEdgeWeightVector _written_hypernode_weights;
+  HyperedgeWeightVector _hyperedge_weights;
+  HypernodeWeightVector _hypernode_weights;
+  HyperedgeWeightVector _written_hyperedge_weights;
+  HypernodeWeightVector _written_hypernode_weights;
 };
 
 } // namespace io
