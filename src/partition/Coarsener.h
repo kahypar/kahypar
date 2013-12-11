@@ -78,7 +78,7 @@ class Coarsener{
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      //PRINT("Contracting: (" << rep_node << ","
+      // PRINT("Contracting: (" << rep_node << ","
       //      << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
 
       performContraction(rep_node, contraction_targets);
@@ -88,7 +88,6 @@ class Coarsener{
       rating = _rater.rate(rep_node);
       rerated_hypernodes[rep_node] = 1;
       updatePQandContractionTargets(rep_node, rating, contraction_targets);
-
       reRateAffectedHypernodes(rep_node, contraction_targets, rerated_hypernodes);
     }
    
@@ -248,7 +247,7 @@ class Coarsener{
     if (rating.valid) {
       _pq.update(hn, rating.value);
       contraction_targets[hn] = rating.target;
-    } else {
+    } else if (_pq.contains(hn)) {
       _pq.remove(hn);
     }
   }

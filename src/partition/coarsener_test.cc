@@ -3,10 +3,11 @@
 #include "Coarsener.h"
 #include "../lib/datastructure/Hypergraph.h"
 
-using ::testing::Test;
-using ::testing::Eq;
-using ::testing::DoubleEq;
 using ::testing::AnyOf;
+using ::testing::DoubleEq;
+using ::testing::Eq;
+using ::testing::Le;
+using ::testing::Test;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -25,6 +26,19 @@ class ACoarsener : public Test {
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       threshold_node_weight(5),
+      coarsener(hypergraph, threshold_node_weight) {}
+  
+  HypergraphType hypergraph;
+  HypernodeWeight threshold_node_weight;
+  CoarsenerType coarsener;
+};
+
+class ACoarsenerWithThresholdWeight3 : public Test {
+ public:
+  ACoarsenerWithThresholdWeight3() :
+      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
+      threshold_node_weight(3),
       coarsener(hypergraph, threshold_node_weight) {}
   
   HypergraphType hypergraph;
@@ -90,6 +104,14 @@ TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
+}
+
+TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
+  coarsener.coarsen(2);
+  forall_hypernodes(hn, hypergraph) {
+    ASSERT_THAT(hypergraph.nodeWeight(*hn), Le(3));
+  } endfor
+  ASSERT_THAT(hypergraph.numNodes(), Eq(3));
 }
 
 } // namespace partition
