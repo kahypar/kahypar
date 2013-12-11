@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+
 include(gmock)
 
 add_gmock_test(hypergraph_test hypergraph_test.cc)

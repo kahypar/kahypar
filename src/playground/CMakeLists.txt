@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+
 #set_source_files_properties(hmetis_lib_test.cc PROPERTIES COMPILE_FLAGS -m32)
 #add_executable(hmetis_lib_test hmetis_lib_test.cc)
 #set_target_properties(hmetis_lib_test PROPERTIES LINK_FLAGS -m32)
