@@ -117,7 +117,6 @@ class Hypergraph{
     }
 
     IDType firstEntry() const {
-      ASSERT(!isDisabled(), "Vertex is disabled");
       return _begin;
     }
     
@@ -128,12 +127,10 @@ class Hypergraph{
     }
 
     IDType firstInvalidEntry() const {
-      ASSERT(!isDisabled(), "Vertex is disabled");
       return _begin + _size;
     }
 
     IDType size() const {
-      ASSERT(!isDisabled(), "Vertex is disabled");
       return _size;
     }
     void setSize(IDType size) {
@@ -154,7 +151,6 @@ class Hypergraph{
     }
     
     WeightType weight() const {
-      ASSERT(!isDisabled(), "Vertex is disabled");
       return _weight;
     }
     
