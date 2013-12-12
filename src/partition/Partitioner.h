@@ -27,6 +27,7 @@ class Partitioner{
     Coarsener coarsener(hypergraph, _config.threshold_node_weight);
     coarsener.coarsen(_config.coarsening_limit);
     performInitialPartitioning(hypergraph);
+    coarsener.uncoarsen();
   }
   
  private:

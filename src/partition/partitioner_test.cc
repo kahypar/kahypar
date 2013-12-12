@@ -37,4 +37,15 @@ TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
   ASSERT_THAT(hypergraph.partitionIndex(3), Eq(1));
 }
 
+TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
+  partitioner.partition(hypergraph);
+  ASSERT_THAT(hypergraph.partitionIndex(0), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(3), Eq(1));
+  ASSERT_THAT(hypergraph.partitionIndex(4), Eq(1));
+  ASSERT_THAT(hypergraph.partitionIndex(5), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(6), Eq(1));
+}
+
 } // namespace partition
