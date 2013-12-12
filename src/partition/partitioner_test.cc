@@ -6,13 +6,14 @@
 #include "Configuration.h"
 #include "Partitioner.h"
 
+namespace partition {
 using ::testing::Test;
 using ::testing::Eq;
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 
-namespace partition {
+
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;

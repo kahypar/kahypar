@@ -1,6 +1,8 @@
 #ifndef PARTITION_CONFIGURATION_H_
 #define PARTITION_CONFIGURATION_H_
 
+namespace partition {
+
 template <class Hypergraph>
 struct Configuration{
   typename Hypergraph::HypernodeWeight threshold_node_weight;
@@ -10,5 +12,7 @@ struct Configuration{
       threshold_node_weight(threshold),
       coarsening_limit(limit) {}
 };
+
+} // namespace partition
 
 #endif  // PARTITION_CONFIGURATION_H_
