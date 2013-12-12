@@ -100,7 +100,7 @@ void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernodes,
 }
 
 template <class Hypergraph>
-void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filename) {  
+void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filename, bool normalized = false) {  
   std::ofstream out_stream(filename.c_str());
   out_stream << hypergraph.numEdges() << " " << hypergraph.numNodes() << " ";
 
@@ -115,7 +115,11 @@ void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filena
       out_stream << hypergraph.edgeWeight(*he) << " ";
     }
     forall_pins(pin, *he, hypergraph) {
-      out_stream << *pin + 1 << " ";
+      if (normalized) {
+        out_stream << (*pin / hypergraph.numNodes()) + 1 << " ";
+      } else {
+        out_stream <<  *pin + 1 << " ";
+      }
     } endfor
     out_stream << std::endl;
   } endfor
