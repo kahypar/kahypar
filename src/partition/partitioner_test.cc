@@ -24,8 +24,14 @@ class APartitioner : public Test {
   APartitioner() :
       hypergraph(7, 4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(5, 2),
-      partitioner(config) {}
+      config(),
+      partitioner(config) {
+    config.coarsening_limit = 2;
+    config.threshold_node_weight = 5;
+    config.graph_filename = "Test";
+    config.coarse_graph_filename = "coarse_test.hgr";
+    config.partition_filename = "coarse_test.hgr.part.2";
+  }
   
   HypergraphType hypergraph;
   PartitionConfig config;

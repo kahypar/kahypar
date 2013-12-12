@@ -46,11 +46,12 @@ class Partitioner{
     CoarsenedToHmetisMapping hg_to_hmetis;
     createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
   
-    io::writeHypergraphForhMetisPartitioning(hg, "test.hgr.out", hg_to_hmetis);
-    std::system("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 test.hgr.out 2");
+    io::writeHypergraphForhMetisPartitioning(hg, _config.coarse_graph_filename, hg_to_hmetis);
+    std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
+                 + _config.coarse_graph_filename + " 2").c_str());
 
     std::vector<PartitionID> partitioning;
-    io::readPartitionFile("test.hgr.out.part.2", partitioning);
+    io::readPartitionFile(_config.partition_filename, partitioning);
 
     for (size_t i = 0; i < partitioning.size(); ++i) {
       hg.setPartitionIndex(hmetis_to_hg[i], partitioning[i]);
