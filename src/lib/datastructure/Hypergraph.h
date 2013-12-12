@@ -602,7 +602,11 @@ class Hypergraph{
   }
 
   HypergraphWeightType type() const {
-    return _type;
+    if (isModified()) {
+      return HypergraphWeightType::EdgeAndNodeWeights;
+    } else {
+          return _type;
+    }
   }
 
   // Accessors and mutators.
@@ -679,6 +683,11 @@ class Hypergraph{
   FRIEND_TEST(AContractionMemento, StoresOldStateOfInvolvedHypernodes);
   FRIEND_TEST(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction);
 
+  bool isModified() const {
+    return  _current_num_pins != _num_pins || _current_num_hypernodes != _num_hypernodes ||
+        _current_num_hyperedges != _num_hyperedges;
+  }
+  
   void enableEdge(HyperedgeID e) {
     ASSERT(hyperedge(e).isDisabled(),"HE " << e << " is already enabled!");
     hyperedge(e).enable();
