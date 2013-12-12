@@ -9,9 +9,8 @@
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
 
-using datastructure::PriorityQueue;
-
 namespace partition {
+using datastructure::PriorityQueue;
 
 template <class Hypergraph, class Rater>
 class Coarsener{

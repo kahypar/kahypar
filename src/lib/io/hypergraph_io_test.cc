@@ -4,7 +4,6 @@
 #include "HypergraphIO_TestFixtures.h"
 
 namespace io {
-
 using ::testing::Eq;
 using ::testing::ContainerEq;
 

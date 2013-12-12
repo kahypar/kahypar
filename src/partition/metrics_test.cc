@@ -10,10 +10,12 @@
 namespace metrics {
 using ::testing::Test;
 using ::testing::Eq;
+
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
+
 using partition::Rater;
 using partition::FirstRatingWins;
 using partition::Coarsener;

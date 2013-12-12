@@ -3,11 +3,10 @@
 #include "PriorityQueue.h"
 #include "../definitions.h"
 
+namespace datastructure {
 using ::testing::Eq;
 using ::testing::DoubleEq;
 using ::testing::Test;
-
-namespace datastructure {
 
 class APriorityQueue : public Test {
  public:

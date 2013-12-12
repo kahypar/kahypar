@@ -6,9 +6,8 @@
 #include "Hypergraph.h"
 #include "../macros.h"
 
-using external::BinaryHeap;
-
 namespace datastructure {
+using external::BinaryHeap;
 
 // ToDo: We need a more robust solution for min and max values!
 struct MetaKey {

@@ -3,6 +3,7 @@
 #include "Coarsener.h"
 #include "../lib/datastructure/Hypergraph.h"
 
+namespace partition {
 using ::testing::AnyOf;
 using ::testing::DoubleEq;
 using ::testing::Eq;
@@ -14,8 +15,6 @@ using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 using datastructure::HypernodeWeight;
-
-namespace partition {
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> CoarsenerType;

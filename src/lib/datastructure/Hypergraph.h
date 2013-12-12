@@ -12,7 +12,6 @@
 #include "../macros.h"
 
 namespace datastructure {
-
 using defs::PartitionID;
 
 // external macros:

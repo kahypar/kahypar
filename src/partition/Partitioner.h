@@ -9,7 +9,6 @@
 #include "Configuration.h"
 
 namespace partition {
-
 using defs::PartitionID;
 
 template <class Hypergraph, class Coarsener>

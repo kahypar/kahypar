@@ -9,7 +9,6 @@
 #include "../datastructure/Hypergraph.h"
 
 namespace io {
-
 using ::testing::Test;
 
 class AnUnweightedHypergraphFile : public Test {

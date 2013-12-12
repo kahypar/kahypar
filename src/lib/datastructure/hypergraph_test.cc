@@ -6,7 +6,6 @@
 #include "Hypergraph.h"
 
 namespace datastructure {
-
 using ::testing::Eq;
 using ::testing::Test;
 

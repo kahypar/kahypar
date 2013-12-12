@@ -9,10 +9,10 @@
 namespace partition {
 using ::testing::Test;
 using ::testing::Eq;
+
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
-
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
