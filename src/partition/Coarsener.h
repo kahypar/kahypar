@@ -61,7 +61,7 @@ class Coarsener{
       _hg(hypergraph),
       _rater(_hg, threshold_node_weight),
       _history(),
-      removed_single_node_hyperedges(),
+      _removed_single_node_hyperedges(),
       _removed_parallel_hyperedges(),
       _fingerprints(),
       _contained_hypernodes(_hg.initialNumNodes()),
@@ -113,9 +113,9 @@ class Coarsener{
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
     for (size_t i = memento.one_pin_hes_begin;
          i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
-      ASSERT(i < removed_single_node_hyperedges.size(), "Index out of bounds");
-      // PRINT("*** restore single-node HE " << removed_single_node_hyperedges[i]);
-      _hg.restoreEdge(removed_single_node_hyperedges[i]);
+      ASSERT(i < _removed_single_node_hyperedges.size(), "Index out of bounds");
+      // PRINT("*** restore single-node HE " << _removed_single_node_hyperedges[i]);
+      _hg.restoreEdge(_removed_single_node_hyperedges[i]);
     }
   }
 
@@ -164,12 +164,12 @@ class Coarsener{
   void removeSingleNodeHyperedges(HypernodeID u) {
     ASSERT(_history.top().contraction_memento.u == u,
            "Current coarsening memento does not belong to hypernode" << u);
-    _history.top().one_pin_hes_begin = removed_single_node_hyperedges.size();
+    _history.top().one_pin_hes_begin = _removed_single_node_hyperedges.size();
     IncidenceIterator begin, end;
     std::tie(begin, end) = _hg.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
       if (_hg.edgeSize(*he_it) == 1) {
-        removed_single_node_hyperedges.push_back(*he_it);
+        _removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
         // PRINT("*** removing single-node HE " << *he_it);
         // _hg.printEdgeState(*he_it);
@@ -258,7 +258,7 @@ class Coarsener{
   Hypergraph& _hg;
   Rater _rater;
   std::stack<CoarseningMemento> _history;
-  std::vector<HyperedgeID> removed_single_node_hyperedges;
+  std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
