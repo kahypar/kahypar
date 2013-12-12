@@ -499,6 +499,7 @@ class Hypergraph{
     
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
+    setPartitionIndex(memento.v, partitionIndex(memento.u));
 
     _active_hyperedges_v.reset();
     __forall_incident_hyperedges(he, memento.v) {

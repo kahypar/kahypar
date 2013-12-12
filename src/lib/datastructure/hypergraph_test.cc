@@ -483,5 +483,15 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
   hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
 }
+
+TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
+  Memento memento = hypergraph.contract(0,2);
+  hypergraph.setPartitionIndex(0,1);
+  
+  hypergraph.uncontract(memento);
+
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
+}
   
 } // namespace datastructure
