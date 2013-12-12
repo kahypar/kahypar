@@ -12,7 +12,9 @@
 #include "../macros.h"
 
 namespace datastructure {
-  
+
+using defs::PartitionID;
+
 // external macros:
 // Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                                    \
@@ -292,7 +294,8 @@ class Hypergraph{
       _current_num_pins(_num_pins),
       _hypernodes(_num_hypernodes, HyperNode(0,0,1)),
       _hyperedges(_num_hyperedges, HyperEdge(0,0,1)),
-      _incidence_array(2 * _num_pins,0),
+      _incidence_array(2 * _num_pins, 0),
+      _partition_indices(_num_hypernodes, 0),
       _processed_hyperedges(_num_hyperedges),
       _active_hyperedges_u(_num_hyperedges),
       _active_hyperedges_v(_num_hyperedges) {
@@ -640,6 +643,16 @@ class Hypergraph{
     hyperedge(e).setWeight(weight);
   }
 
+  PartitionID partitionIndex(HypernodeID u) const {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    return _partition_indices[u];
+  }
+
+  void setPartitionIndex(HypernodeID u, PartitionID index) {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    _partition_indices[u] = index;
+  }
+
   bool nodeIsEnabled(HypernodeID u) const {
     return !hypernode(u).isDisabled();
   }
@@ -794,7 +807,8 @@ class Hypergraph{
   
   std::vector<HyperNode> _hypernodes;
   std::vector<HyperEdge> _hyperedges;
-  std::vector<VertexID> _incidence_array; 
+  std::vector<VertexID> _incidence_array;
+  std::vector<PartitionID> _partition_indices;
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
   boost::dynamic_bitset<uint64_t> _active_hyperedges_u;
   boost::dynamic_bitset<uint64_t> _active_hyperedges_v;

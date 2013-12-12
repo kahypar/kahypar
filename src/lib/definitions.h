@@ -9,7 +9,7 @@ typedef unsigned int HyperEdgeID;
 typedef unsigned int HyperNodeWeight;
 typedef unsigned int HyperEdgeWeight;
 
-typedef unsigned int PartitionID;
+typedef int PartitionID;
 
 typedef double RatingType;
 
