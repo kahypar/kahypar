@@ -12,6 +12,8 @@ using ::testing::Test;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
+using datastructure::HyperedgeWeightVector;
+using datastructure::HypernodeWeightVector;
 using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 using datastructure::HypernodeWeight;
@@ -103,6 +105,42 @@ TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
+}
+
+TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
+  // Artificially constructed hypergraph that enforces the successive removal of
+  // two successive parallel hyperedges.
+  HyperedgeWeightVector edge_weights{1,1,1,1};
+  HypernodeWeightVector node_weights{50,1,1};
+  HypergraphType hypergraph(3,4, HyperedgeIndexVector {0,2,4,6,/*sentinel*/8},
+                     HyperedgeVector {0,1,0,1,0,2,1,2}, &edge_weights,
+                     &node_weights);
+  CoarsenerType coarsener(hypergraph, 4);
+
+  coarsener.coarsen(2);
+  // The following assertion is thrown if parallel hyperedges are restored in the order in which
+  // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
+  // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
+  // coarsening, we have to restore the parallel hyperedges in reverse order!
+  coarsener.uncoarsen();
+}
+
+TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
+  // Artificially constructed hypergraph that enforces the successive removal of
+  // three single-node hyperedges.
+  HyperedgeWeightVector edge_weights{1,1,1};
+  HypernodeWeightVector node_weights{1,1};
+  HypergraphType hypergraph(2,3, HyperedgeIndexVector {0,2,4,/*sentinel*/6},
+                     HyperedgeVector {0,1,0,1,0,1}, &edge_weights,
+                     &node_weights);
+  CoarsenerType coarsener(hypergraph, 4);
+
+  coarsener.coarsen(1);
+  // The following assertion is thrown if parallel hyperedges are restored in the order in which
+  // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
+  // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
+  // coarsening, we have to restore the single-node hyperedges in reverse order!
+  coarsener.uncoarsen();
 }
 
 TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {

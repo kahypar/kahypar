@@ -25,10 +25,10 @@ class Coarsener{
   typedef typename Rater::RatingType RatingType;
   
   struct CoarseningMemento {
-    size_t one_pin_hes_begin;   // start of removed single pin hyperedges
-    size_t one_pin_hes_size;    // # removed single pin hyperedges
-    size_t parallel_hes_begin;  // start of removed parallel hyperedges
-    size_t parallel_hes_size;   // # removed parallel hyperedges
+    int one_pin_hes_begin;   // start of removed single pin hyperedges
+    int one_pin_hes_size;    // # removed single pin hyperedges
+    int parallel_hes_begin;  // start of removed parallel hyperedges
+    int parallel_hes_size;   // # removed parallel hyperedges
     Memento contraction_memento;
     CoarseningMemento(Memento contraction_memento_) :
         one_pin_hes_begin(0),
@@ -112,8 +112,8 @@ class Coarsener{
   }
 
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
-    for (size_t i = memento.one_pin_hes_begin;
-         i < memento.one_pin_hes_begin + memento.one_pin_hes_size; ++i) {
+    for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
+         i >= memento.one_pin_hes_begin; --i) {
       ASSERT(i < _removed_single_node_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore single-node HE " << _removed_single_node_hyperedges[i]);
       _hg.restoreEdge(_removed_single_node_hyperedges[i]);
@@ -121,15 +121,15 @@ class Coarsener{
   }
 
   void restoreParallelHyperedges(const CoarseningMemento& memento) {
-    for (size_t i = memento.parallel_hes_begin;
-         i < memento.parallel_hes_begin + memento.parallel_hes_size; ++i) {
+    for (int i = memento.parallel_hes_begin + memento.parallel_hes_size - 1;
+         i >= memento.parallel_hes_begin; --i) {
       ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
       // PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id
       //       << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
       _hg.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
       _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
-                                _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
-                                _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
+                        _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
+                        _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
     }
   }
 
