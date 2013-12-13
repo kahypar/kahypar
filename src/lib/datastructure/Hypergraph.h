@@ -6,6 +6,8 @@
 #include <limits>
 #include <vector>
 
+#include "gtest/gtest_prod.h"
+
 #include <boost/dynamic_bitset.hpp>
 
 #include "../definitions.h"
