@@ -121,4 +121,15 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }
 
+TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
+  _partitioner.partition(_hypergraph);
+  writePartitionFile(_hypergraph, _partition_filename);
+  
+  std::vector<PartitionID> read_partition;
+  readPartitionFile(_partition_filename, read_partition);
+  forall_hypernodes(hn, _hypergraph) {
+    ASSERT_THAT(read_partition[*hn], Eq(_hypergraph.partitionIndex(*hn)));
+  } endfor
+}
+
 }

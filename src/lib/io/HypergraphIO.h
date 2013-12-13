@@ -179,6 +179,15 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
   }
 }
 
+template <class Hypergraph>
+inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
+  std::ofstream out_stream(filename.c_str());
+  forall_hypernodes(hn, hypergraph) {
+    out_stream << hypergraph.partitionIndex(*hn) << std::endl;
+  } endfor
+  out_stream.close();
+}
+
 } // namespace io
 
 #endif  // LIB_IO_HYPERGRAPHIO_H_

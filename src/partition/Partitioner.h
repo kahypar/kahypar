@@ -52,6 +52,7 @@ class Partitioner{
 
     std::vector<PartitionID> partitioning;
     io::readPartitionFile(_config.partition_filename, partitioning);
+    ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
 
     for (size_t i = 0; i < partitioning.size(); ++i) {
       hg.setPartitionIndex(hmetis_to_hg[i], partitioning[i]);
