@@ -456,11 +456,11 @@ class Hypergraph{
     
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
-    HeHandleIterator hes_begin, hes_end;
-    std::tie(hes_begin, hes_end) = incidentHyperedgeHandles(v);
-    for (HeHandleIterator he_iter = hes_begin; he_iter != hes_end; ++he_iter) {
-      std::tie(pins_begin, pins_end) = pinHandles(*he_iter);
-      ASSERT(pins_begin != pins_end, "Hyperedge " << *he_iter << " is empty");
+    // Use index-based iteration because case 2 might lead to reallocation!
+    for (HyperedgeID he_it = hypernode(v).firstEntry(); he_it != hypernode(v).firstInvalidEntry();
+         ++he_it) {
+      std::tie(pins_begin, pins_end) = pinHandles(_incidence_array[he_it]);
+      ASSERT(pins_begin != pins_end, "Hyperedge " << _incidence_array[he_it] << " is empty");
       slot_of_u = last_pin_slot = pins_end - 1;
       for (PinHandleIterator pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
         if (*pin_iter == v) {
@@ -476,7 +476,7 @@ class Hypergraph{
         // Case 1:
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
-        hyperedge(*he_iter).decreaseSize();
+        hyperedge(_incidence_array[he_it]).decreaseSize();
         --_current_num_pins;
       } else {
         // Case 2:
@@ -484,7 +484,7 @@ class Hypergraph{
         // store the information that u is now connected to e and add the edge (u,e) to indicate
         // this conection also from the hypernode's point of view.
         *last_pin_slot = u;
-        addForwardEdge(u, *he_iter);
+        addForwardEdge(u, _incidence_array[he_it]);
       }
     }
     hypernode(v).disable();
