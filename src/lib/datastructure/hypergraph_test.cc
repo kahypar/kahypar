@@ -492,5 +492,21 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
 
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
 }
+
+TEST(AnEmptyHyperedge, DoesNotGetDisabledAutomatically) {
+  HypergraphType hypergraph(1, 1, HyperedgeIndexVector {0,/*sentinel*/1},
+                     HyperedgeVector {0});
+
+  hypergraph.disconnect(0, 0);
+  ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
+}
+
+TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {
+  HypergraphType hypergraph(1, 1, HyperedgeIndexVector {0,/*sentinel*/1},
+                     HyperedgeVector {0});
+
+  hypergraph.removeEdge(0);
+  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
+}
   
 } // namespace datastructure

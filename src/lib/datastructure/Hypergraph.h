@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <bitset>
 #include <limits>
+#include <iostream>
 #include <vector>
 
 #include "gtest/gtest_prod.h"
@@ -150,7 +151,6 @@ class Hypergraph{
       ASSERT(!isDisabled(), "Vertex is disabled");
       ASSERT(_size > 0, "Size out of bounds");
       --_size;
-      if (_size == 0) { disable(); }
     }
     
     WeightType weight() const {
