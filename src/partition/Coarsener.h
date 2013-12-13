@@ -153,7 +153,6 @@ class Coarsener{
     forall_incident_hyperedges(he, rep_node, _hg) {
       forall_pins(pin, *he, _hg) {
         if (!rerated_hypernodes[*pin] && !inactive_hypernodes[*pin]) {
-          PRINT("rating pin " << *pin);
           rating = _rater.rate(*pin);
           rerated_hypernodes[*pin] = 1;
           updatePQandContractionTargets(*pin, rating, contraction_targets, inactive_hypernodes);
