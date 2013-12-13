@@ -25,7 +25,7 @@ using datastructure::HypernodeWeightVector;
 
 typedef std::unordered_map<HypernodeID, HypernodeID> Mapping;
 
-inline void parseHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
+inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
                            HypernodeID& num_hypernodes, HypergraphWeightType& hypergraph_type) {
     std::string line;
     std::getline(file, line);
@@ -41,7 +41,7 @@ inline void parseHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
     hypergraph_type = static_cast<HypergraphWeightType>(i);
 }
 
-inline void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernodes,
+inline void readHypergraphFile(std::string& filename, HypernodeID &num_hypernodes,
                                 HyperedgeID &num_hyperedges,
                                 HyperedgeIndexVector& index_vector,
                                 HyperedgeVector& edge_vector,
@@ -51,7 +51,7 @@ inline void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernod
   HypergraphWeightType hypergraph_type = HypergraphWeightType::Unweighted;
   std::ifstream file(filename);
   if(file) {
-    parseHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
+    readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
     ASSERT(hypergraph_type == HypergraphWeightType::Unweighted ||
            hypergraph_type == HypergraphWeightType::EdgeWeights ||
            hypergraph_type == HypergraphWeightType::NodeWeights ||
