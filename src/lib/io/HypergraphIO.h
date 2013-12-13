@@ -47,6 +47,7 @@ inline void parseHypergraphFile(std::string& filename, HypernodeID &num_hypernod
                                 HyperedgeVector& edge_vector,
                                 HyperedgeWeightVector* hyperedge_weights = nullptr,
                                 HypernodeWeightVector* hypernode_weights = nullptr) {
+  ASSERT(!filename.empty(), "No filename for hypergraph file specified");
   HypergraphWeightType hypergraph_type = HypergraphWeightType::Unweighted;
   std::ifstream file(filename);
   if(file) {
@@ -123,6 +124,7 @@ inline void writeHGRHeader(std::ofstream& out_stream, const Hypergraph& hypergra
 
 template <class Hypergraph>
 inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filename) {
+  ASSERT(!filename.empty(), "No filename for hypergraph file specified");
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
   
@@ -148,6 +150,7 @@ template <typename Hypergraph>
 inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
                                                  const std::string& filename,
                                                  const Mapping& mapping) {
+  ASSERT(!filename.empty(), "No filename for hMetis initial partitioning file specified");
   ASSERT(hypergraph.type() == HypergraphWeightType::EdgeAndNodeWeights,
          "Method can only be called for coarsened hypergraphs");
   std::ofstream out_stream(filename.c_str());
@@ -167,6 +170,7 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
 }
 
 inline void readPartitionFile(const std::string& filename, std::vector<PartitionID>& partition) {
+  ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ifstream file(filename);
   if (file) {
     int part;
@@ -181,6 +185,7 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
 
 template <class Hypergraph>
 inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
+  ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
   forall_hypernodes(hn, hypergraph) {
     out_stream << hypergraph.partitionIndex(*hn) << std::endl;
