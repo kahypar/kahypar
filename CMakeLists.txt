@@ -16,6 +16,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -W -Wall -Wextra -Wunused -pedantic -DPARANOID -Weffc++ -std=c++11")
 
 enable_testing()
+add_subdirectory(src/application)
 add_subdirectory(src/lib/datastructure)
 add_subdirectory(src/lib/io)
 add_subdirectory(src/partition)

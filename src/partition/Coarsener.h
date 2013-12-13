@@ -78,16 +78,17 @@ class Coarsener{
     boost::dynamic_bitset<uint64_t> inactive_hypernodes(_hg.initialNumNodes());
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      // PRINT("Contracting: (" << rep_node << ","
-      //      << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
+      PRINT("Contracting: (" << rep_node << ","
+            << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
 
       performContraction(rep_node, contraction_targets);
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
-      
+
       rating = _rater.rate(rep_node);
       rerated_hypernodes[rep_node] = 1;
       updatePQandContractionTargets(rep_node, rating, contraction_targets, inactive_hypernodes);
+
       reRateAffectedHypernodes(rep_node, contraction_targets, rerated_hypernodes, inactive_hypernodes);
     }
    
@@ -152,6 +153,7 @@ class Coarsener{
     forall_incident_hyperedges(he, rep_node, _hg) {
       forall_pins(pin, *he, _hg) {
         if (!rerated_hypernodes[*pin] && !inactive_hypernodes[*pin]) {
+          PRINT("rating pin " << *pin);
           rating = _rater.rate(*pin);
           rerated_hypernodes[*pin] = 1;
           updatePQandContractionTargets(*pin, rating, contraction_targets, inactive_hypernodes);
