@@ -39,9 +39,9 @@ int main (int argc, char *argv[]) {
   HyperedgeVector edge_vector;
 
   PartitionConfig config;
-  config.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
+  config.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/ibm03.hgr";
   config.coarse_graph_filename = "coarse_test.hgr";
-  config.partition_filename = "test.hgr.part.2";
+  config.partition_filename = "coarse_test.hgr.part.2";
   config.coarsening_limit = COARSENING_LIMIT;
   
   io::readHypergraphFile(config.graph_filename, num_hypernodes, num_hyperedges, index_vector,
