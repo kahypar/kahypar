@@ -757,10 +757,11 @@ class Hypergraph{
     
     EdgeIterator begin = _incidence_array.begin() + vertex.firstEntry();
     ASSERT(vertex.size() > 0, "InternalVertex is empty!");
-    EdgeIterator last_entry =  begin + vertex.size() - 1;
+    EdgeIterator last_entry =  _incidence_array.begin() + vertex.firstInvalidEntry() - 1;
     while (*begin != v) {
       ++begin;
     }
+    ASSERT(begin < _incidence_array.begin() + vertex.firstInvalidEntry(), "Iterator out of bounds");
     swap(*begin, *last_entry);
     vertex.decreaseSize();    
   }
