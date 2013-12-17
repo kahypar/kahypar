@@ -78,8 +78,8 @@ class Coarsener{
     boost::dynamic_bitset<uint64_t> inactive_hypernodes(_hg.initialNumNodes());
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      PRINT("Contracting: (" << rep_node << ","
-            << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
+      // PRINT("Contracting: (" << rep_node << ","
+      //       << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
 
       performContraction(rep_node, contraction_targets);
       removeSingleNodeHyperedges(rep_node);
