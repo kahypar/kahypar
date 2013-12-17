@@ -453,6 +453,14 @@ class Hypergraph{
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     HypernodeID u_offset = hypernode(u).firstEntry();
     HypernodeID u_size = hypernode(u).size();
+
+    // The first call to connectHyperedgeToRepresentative copies the old incidence array of the
+    // representative u to the end of the _incidence_array (even in the case that the old entries
+    // are already located at the end, as the result of a previous contraction operation) and then
+    // appends the new hyperedge. The variable is then set to false and succesive calls within the
+    // same contraction operation just append at the end of the _incidence_array.
+    // This behavior is necessary in order to be able to use the old entries during uncontraction.
+    bool first_call = true;
     
     PinHandleIterator slot_of_u, last_pin_slot;
     PinHandleIterator pins_begin, pins_end;
@@ -470,6 +478,7 @@ class Hypergraph{
           slot_of_u = pin_iter;
         }
       }
+      
       ASSERT(*last_pin_slot == v, "v is not last entry in adjacency array!");
 
       if (slot_of_u != last_pin_slot) {
@@ -480,11 +489,9 @@ class Hypergraph{
         --_current_num_pins;
       } else {
         // Case 2:
-        // Hyperedge e does not contain u. Therefore we use the entry of v in e's edge array to
-        // store the information that u is now connected to e and add the edge (u,e) to indicate
-        // this conection also from the hypernode's point of view.
-        *last_pin_slot = u;
-        addForwardEdge(u, _incidence_array[he_it]);
+        // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
+        // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
+        connectHyperedgeToRepresentative(_incidence_array[he_it], u, first_call);
       }
     }
     hypernode(v).disable();
@@ -518,7 +525,8 @@ class Hypergraph{
       // to store the new edge to representative u during contraction as u was not a pin of e.
       __forall_incident_hyperedges(he, memento.u) {
         if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
-          //PRINT("*** resetting reused Pinslot of HE " << he << " from " << memento.u << " to " << memento.v);
+          // PRINT("*** resetting reused Pinslot of HE " << he << " from " << memento.u
+          //       << " to " << memento.v);
           resetReusedPinSlotToOriginalValue(he, memento);
 
           // Remember that this hyperedge is processed. The state of this hyperedge now resembles
@@ -547,6 +555,10 @@ class Hypergraph{
         //PRINT("*** increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
         hyperedge(he).increaseSize();
+        ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
+               "Incorrect case 1 restore of HE " << he << ": "
+               << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
+               << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
         ++_current_num_pins;
       }
       _processed_hyperedges.reset(he);
@@ -731,19 +743,25 @@ class Hypergraph{
     *pin_end = memento.v;
   }
   
-  // Current version copies all previous entries to ensure consistency. We might change
-  // this to only add the corresponding entry and let the caller handle the consistency issues!
-  void addForwardEdge(HypernodeID u, HyperedgeID e) {
+  void connectHyperedgeToRepresentative(HyperedgeID e, HypernodeID u, bool& first_call) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+
+    // Hyperedge e does not contain u. Therefore we use thise entry of v (i.e. the last entry
+    // -- this is ensured by the contract method) in e's edge array to store the information
+    // that u is now connected to e and add the edge (u,e) to indicate this conection also from
+    // the hypernode's point of view.
+    _incidence_array[hyperedge(e).firstInvalidEntry() - 1] = u;
     
     HyperNode &nodeU = hypernode(u);
-    if (nodeU.firstInvalidEntry() != _incidence_array.size()) {
+    if (first_call) {
       _incidence_array.insert(_incidence_array.end(), _incidence_array.begin() + nodeU.firstEntry(),
                               _incidence_array.begin() + nodeU.firstInvalidEntry());
       nodeU.setFirstEntry(_incidence_array.size() - nodeU.size());
+      first_call = false;
     }
-    ASSERT(nodeU.firstInvalidEntry() == _incidence_array.size(), "addForwardEdge inconsistency");
+    ASSERT(nodeU.firstInvalidEntry() == _incidence_array.size(),"Incidence Info of HN " << u
+           << " is not at the end of the incidence array");
     _incidence_array.push_back(e);
     nodeU.increaseSize();
   }
