@@ -352,41 +352,41 @@ class Hypergraph{
     }
   }
 
-  void printHyperedgeInfo() {
+  void printHyperedgeInfo() const {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
                 << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
     }
   }
 
-  void printHypernodeInfo() {
+  void printHypernodeInfo() const {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
                 << hypernode(i).size()  << " weight=" << hypernode(i).weight() << std::endl;
     }
   }
 
-  void printIncidenceArray() {
+  void printIncidenceArray() const  {
     for (VertexID i = 0; i < _incidence_array.size(); ++i) {
       std::cout << "_incidence_array[" << i <<"]=" << _incidence_array[i] << std::endl;
     }
   }
 
-  void printHyperedges() {
+  void printHyperedges() const {
     std::cout << "Hyperedges:" << std::endl;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       printEdgeState(i);
     }
   }
 
-  void printHypernodes() {
+  void printHypernodes() const {
     std::cout << "Hypernodes:" << std::endl;
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       printNodeState(i);
     }
   }
 
-  void printGraphState() {
+  void printGraphState() const {
     printHypernodeInfo();
     printHyperedgeInfo();
     printHypernodes();
@@ -394,7 +394,7 @@ class Hypergraph{
     printIncidenceArray();
   }
   
-  void printEdgeState(HyperedgeID e) {
+  void printEdgeState(HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
       std::cout << "HE " << e << ": ";
       __forall_pins(pin, e) {
@@ -406,7 +406,7 @@ class Hypergraph{
     std::cout << std::endl;
   }
 
-  void printNodeState(HypernodeID u) {
+  void printNodeState(HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
       std::cout << "HN " << u << ": ";
       __forall_incident_hyperedges(he, u) {
