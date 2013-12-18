@@ -8,6 +8,10 @@
 #include "../lib/io/HypergraphIO.h"
 #include "Configuration.h"
 
+#ifndef NDEBUG
+#include "Metrics.h"
+#endif
+
 namespace partition {
 using defs::PartitionID;
 
@@ -26,7 +30,11 @@ class Partitioner{
     Coarsener coarsener(hypergraph, _config.threshold_node_weight);
     coarsener.coarsen(_config.coarsening_limit);
     performInitialPartitioning(hypergraph);
+#ifndef NDEBUG
+    typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
+#endif
     coarsener.uncoarsen();
+    ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
   }
   
  private:
