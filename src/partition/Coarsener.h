@@ -9,6 +9,11 @@
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
 
+#ifndef NSELF_VERIFICATION
+#include "Metrics.h"
+#include "../external/Utils.h"
+#endif
+
 namespace partition {
 using datastructure::PriorityQueue;
 
@@ -101,8 +106,21 @@ class Coarsener{
     while(!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
+
+#ifndef NSELF_VERIFICATION
+      double old_imbalance = metrics::imbalance(_hg);
+      typename Hypergraph::HyperedgeWeight old_cut = metrics::hyperedgeCut(_hg);
+#endif
+      
       _hg.uncontract(_history.top().contraction_memento);
       _history.pop();
+      
+#ifndef NSELF_VERIFICATION
+      double imbalance = metrics::imbalance(_hg);
+      const FloatingPoint<double> old_imb(old_imbalance), new_imb(imbalance);
+      ASSERT(old_imb.AlmostEquals(new_imb), "Imbalance changed during uncontraction");
+      ASSERT(old_cut == metrics::hyperedgeCut(_hg), "MinCut changed during uncontraction");
+#endif
     }
   }
 

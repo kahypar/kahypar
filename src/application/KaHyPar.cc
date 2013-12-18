@@ -1,5 +1,9 @@
 #include <string>
 
+// If not defined, extensive self-verification is performed, which has high impact on
+// total running time.
+#define NSELF_VERIFICATION
+
 #include "../lib/macros.h"
 #include "../lib/definitions.h"
 #include "../lib/datastructure/Hypergraph.h"

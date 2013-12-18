@@ -47,8 +47,6 @@ double imbalance(const Hypergraph& hypergraph) {
     total_weight += hypergraph.nodeWeight(*hn);
   } endfor
 
-  ASSERT(total_weight == hypergraph.numNodes(),
-         "Size of both partitions does not match number of nodes");
   HypernodeWeight max_weight = std::max(partition_sizes[0], partition_sizes[1]);
   return 2.0 * max_weight / total_weight - 1.0;
 }
