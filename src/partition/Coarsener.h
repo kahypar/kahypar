@@ -104,13 +104,13 @@ class Coarsener{
 
   void uncoarsen() {
     while(!_history.empty()) {
-      restoreParallelHyperedges(_history.top());
-      restoreSingleNodeHyperedges(_history.top());
-
 #ifndef NSELF_VERIFICATION
       double old_imbalance = metrics::imbalance(_hg);
       typename Hypergraph::HyperedgeWeight old_cut = metrics::hyperedgeCut(_hg);
 #endif
+      
+      restoreParallelHyperedges(_history.top());
+      restoreSingleNodeHyperedges(_history.top());
       
       _hg.uncontract(_history.top().contraction_memento);
       _history.pop();
