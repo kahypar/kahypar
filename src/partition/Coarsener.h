@@ -80,7 +80,10 @@ class Coarsener{
 
     HypernodeID rep_node;
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
-    boost::dynamic_bitset<uint64_t> inactive_hypernodes(_hg.initialNumNodes());
+
+    // If a HN becomes invalid for contraction its corresponding bit is set to 1.
+    // Used to remember HNs that exist in the graph but are deleted from the PQ.
+    boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
       // PRINT("Contracting: (" << rep_node << ","
@@ -95,9 +98,9 @@ class Coarsener{
 
       rating = _rater.rate(rep_node);
       rerated_hypernodes[rep_node] = 1;
-      updatePQandContractionTargets(rep_node, rating, contraction_targets, inactive_hypernodes);
+      updatePQandContractionTargets(rep_node, rating, contraction_targets, invalid_hypernodes);
 
-      reRateAffectedHypernodes(rep_node, contraction_targets, rerated_hypernodes, inactive_hypernodes);
+      reRateAffectedHypernodes(rep_node, contraction_targets, rerated_hypernodes, invalid_hypernodes);
     }
    
   }
@@ -168,15 +171,15 @@ class Coarsener{
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 std::vector<HypernodeID>& contraction_targets,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
-                                boost::dynamic_bitset<uint64_t>& inactive_hypernodes) {
+                                boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     // ToDo: This can be done more fine grained if we know which HEs are affected: see p. 31
     HeavyEdgeRating rating;
     forall_incident_hyperedges(he, rep_node, _hg) {
       forall_pins(pin, *he, _hg) {
-        if (!rerated_hypernodes[*pin] && !inactive_hypernodes[*pin]) {
+        if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
           rating = _rater.rate(*pin);
           rerated_hypernodes[*pin] = 1;
-          updatePQandContractionTargets(*pin, rating, contraction_targets, inactive_hypernodes);
+          updatePQandContractionTargets(*pin, rating, contraction_targets, invalid_hypernodes);
         }
       } endfor
     } endfor
@@ -267,13 +270,13 @@ class Coarsener{
 
   void updatePQandContractionTargets(HypernodeID hn, const HeavyEdgeRating& rating,
                                      std::vector<HypernodeID>& contraction_targets,
-                                     boost::dynamic_bitset<uint64_t>& inactive_hypernodes) {
+                                     boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {
       _pq.update(hn, rating.value);
       contraction_targets[hn] = rating.target;
     } else if (_pq.contains(hn)) {
       _pq.remove(hn);
-      inactive_hypernodes[hn] = 1;
+      invalid_hypernodes[hn] = 1;
     }
   }
   
