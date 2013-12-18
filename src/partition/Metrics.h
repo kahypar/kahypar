@@ -1,6 +1,8 @@
 #ifndef PARTITION_METRICS_H_
 #define PARTITION_METRICS_H_
 
+#include <cmath>
+
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/definitions.h"
 
@@ -32,6 +34,23 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
     }    
   } endfor
   return cut;
+}
+
+template <class Hypergraph>
+double imbalance(const Hypergraph& hypergraph) {
+  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
+  std::vector<HypernodeWeight> partition_sizes(2, 0);
+  HypernodeWeight total_weight = 0;
+  forall_hypernodes(hn, hypergraph) {
+    ASSERT(hypergraph.partitionIndex(*hn) < 2, "Invalid partition index for hypernode " << *hn);
+    partition_sizes[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
+    total_weight += hypergraph.nodeWeight(*hn);
+  } endfor
+
+  ASSERT(total_weight == hypergraph.numNodes(),
+         "Size of both partitions does not match number of nodes");
+  HypernodeWeight max_weight = std::max(partition_sizes[0], partition_sizes[1]);
+  return 2.0 * max_weight / total_weight - 1.0;
 }
 
 } // namespace metrics

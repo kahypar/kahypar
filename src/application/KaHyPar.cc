@@ -7,6 +7,7 @@
 #include "../partition/Coarsener.h"
 #include "../partition/Rater.h"
 #include "../partition/Partitioner.h"
+#include "../partition/Metrics.h"
 
 using datastructure::Hypergraph;
 using partition::Rater;
@@ -51,6 +52,9 @@ int main (int argc, char *argv[]) {
 
   HypergraphPartitioner partitioner(config);
   partitioner.partition(hypergraph);
+
+  std::cout << "mincut    = " << metrics::hyperedgeCut(hypergraph) << std::endl;
+  std::cout << "imbalance = " << metrics::imbalance(hypergraph) << std::endl;
     
   return 0;
 }
