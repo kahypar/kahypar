@@ -81,6 +81,9 @@ class Coarsener{
       // PRINT("Contracting: (" << rep_node << ","
       //       << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
 
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(contraction_targets[rep_node])
+             <= _rater.thresholdNodeWeight(),
+             "Trying to contract nodes violating maximum node weight");
       performContraction(rep_node, contraction_targets);
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);

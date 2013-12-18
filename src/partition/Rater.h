@@ -95,6 +95,10 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
     return ret;
   };
 
+  HypernodeWeight thresholdNodeWeight() const {
+    return _threshold_node_weight;
+  }
+
  private:
 
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
