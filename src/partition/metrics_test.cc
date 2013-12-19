@@ -10,6 +10,7 @@
 namespace metrics {
 using ::testing::Test;
 using ::testing::Eq;
+using ::testing::DoubleEq;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -34,6 +35,11 @@ class AnUnPartitionedHypergraph : public Test {
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
   
   HypergraphType hypergraph;
+};
+
+class TheDemoHypergraph : public AnUnPartitionedHypergraph {
+ public:
+  TheDemoHypergraph() : AnUnPartitionedHypergraph() {}
 };
 
 class APartitionedHypergraph : public Test {
@@ -62,6 +68,14 @@ TEST_F(AnUnPartitionedHypergraph, HasHyperedgeCutZero) {
 
 TEST_F(APartitionedHypergraph, HasCorrectHyperedgeCut) {
   ASSERT_THAT(hyperedgeCut(hypergraph), Eq(2));
+}
+
+TEST_F(TheDemoHypergraph, HasAvgHyperedgeDegree3) {
+  ASSERT_THAT(avgHyperedgeDegree(hypergraph), DoubleEq(3.0));
+}
+
+TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
+  ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
 
 } // namespace metrics

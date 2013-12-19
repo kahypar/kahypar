@@ -51,6 +51,16 @@ double imbalance(const Hypergraph& hypergraph) {
   return 2.0 * max_weight / total_weight - 1.0;
 }
 
+template <class Hypergraph>
+double avgHyperedgeDegree(const Hypergraph& hypergraph) {
+  return static_cast<double>(hypergraph.numPins()) / hypergraph.numEdges();
+}
+
+template <class Hypergraph>
+double avgHypernodeDegree(const Hypergraph& hypergraph) {
+  return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
+}
+
 } // namespace metrics
 
 #endif  // PARTITION_METRICS_H_
