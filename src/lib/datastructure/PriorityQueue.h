@@ -51,6 +51,10 @@ class PriorityQueue{
     return -_heap.getMinKey();
   }
 
+  KeyType key(IDType id) const {
+    return -_heap.getKey(id);
+  }
+
   bool contains(IDType id) const {
     return _heap.contains(id);
   }
