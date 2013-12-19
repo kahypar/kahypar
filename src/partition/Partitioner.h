@@ -6,6 +6,7 @@
 
 #include "../lib/definitions.h"
 #include "../lib/io/HypergraphIO.h"
+#include "../lib/io/PartitioningOutput.h"
 #include "Configuration.h"
 
 #ifndef NDEBUG
@@ -50,6 +51,8 @@ class Partitioner{
   }
 
   void performInitialPartitioning(Hypergraph& hg) {
+    io::printHypergraphInfo(hg, _config.coarse_graph_filename);
+    
     HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(),0);
     CoarsenedToHmetisMapping hg_to_hmetis;
     createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);

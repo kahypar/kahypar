@@ -7,6 +7,8 @@
 #include "../lib/macros.h"
 #include "../lib/definitions.h"
 #include "../lib/datastructure/Hypergraph.h"
+#include "../lib/io/HypergraphIO.h"
+#include "../lib/io/PartitioningOutput.h"
 #include "../partition/Configuration.h"
 #include "../partition/Coarsener.h"
 #include "../partition/Rater.h"
@@ -53,6 +55,9 @@ int main (int argc, char *argv[]) {
                          edge_vector);
   HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
   config.threshold_node_weight = HYPERNODE_WEIGHT_FRACTION * hypergraph.numNodes();
+
+  io::printHypergraphInfo(hypergraph, config.graph_filename.substr(
+      config.graph_filename.find_last_of("/")+1));
 
   HypergraphPartitioner partitioner(config);
   partitioner.partition(hypergraph);
