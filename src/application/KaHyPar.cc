@@ -32,7 +32,7 @@ typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
 typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 
 static double HYPERNODE_WEIGHT_FRACTION = 0.0375;
-static HypernodeID COARSENING_LIMIT = 100;
+static HypernodeID COARSENING_LIMIT = 200;
 
 int main (int argc, char *argv[]) {
   typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
@@ -46,7 +46,7 @@ int main (int argc, char *argv[]) {
   HyperedgeVector edge_vector;
 
   PartitionConfig config;
-  config.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/ibm03.hgr";
+  config.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
   config.coarse_graph_filename = "coarse_test.hgr";
   config.partition_filename = "coarse_test.hgr.part.2";
   config.coarsening_limit = COARSENING_LIMIT;

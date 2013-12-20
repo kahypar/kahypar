@@ -2,8 +2,7 @@
 #define PARTITION_COARSENER_H_
 
 #include <stack>
-
-#include <boost/dynamic_bitset.hpp>
+#include <unordered_map>
 
 #include "Rater.h"
 #include "../lib/datastructure/Hypergraph.h"
@@ -28,6 +27,7 @@ class Coarsener{
   typedef typename Hypergraph::HypernodeIterator HypernodeIterator;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef typename Rater::RatingType RatingType;
+  typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
   
   struct CoarseningMemento {
     int one_pin_hes_begin;   // start of removed single pin hyperedges
@@ -74,35 +74,40 @@ class Coarsener{
   
   void coarsen(int limit) {
     ASSERT(_pq.empty(), "coarsen() can only be called once");
-    HeavyEdgeRating rating;
-    std::vector<HypernodeID> contraction_targets(_hg.initialNumNodes());
-    rateAllHypernodes(contraction_targets);
+
+    std::vector<HypernodeID> target(_hg.initialNumNodes());
+    TargetToSourcesMap sources;
+    
+    rateAllHypernodes(target, sources);
 
     HypernodeID rep_node;
-    boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
-
-    // If a HN becomes invalid for contraction its corresponding bit is set to 1.
-    // Used to remember HNs that exist in the graph but are deleted from the PQ.
-    boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
+    HypernodeID contracted_node;
+    HeavyEdgeRating rating;
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      // PRINT("Contracting: (" << rep_node << ","
-      //       << contraction_targets[rep_node] << ") prio: " << _pq.maxKey());
+      contracted_node = target[rep_node];
+       // PRINT("Contracting: (" << rep_node << ","
+       //       << target[rep_node] << ") prio: " << _pq.maxKey());
 
-      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(contraction_targets[rep_node])
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
-      performContraction(rep_node, contraction_targets);
+
+      performContraction(rep_node, contracted_node);
+      _pq.remove(contracted_node);
+      removeMappingEntryOfNode(contracted_node, target[contracted_node], sources);
+
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
       rating = _rater.rate(rep_node);
-      rerated_hypernodes[rep_node] = 1;
-      updatePQandContractionTargets(rep_node, rating, contraction_targets, invalid_hypernodes);
+      updatePQandMappings(rep_node, rating, target, sources);
 
-      reRateAffectedHypernodes(rep_node, contraction_targets, rerated_hypernodes, invalid_hypernodes);
+      reRateHypernodesAffectedByContraction(rep_node, contracted_node, target, sources);
+      reRateHypernodesAffectedByContraction(contracted_node, rep_node, target, sources);
+
+      reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
-   
   }
 
   void uncoarsen() {
@@ -130,9 +135,20 @@ class Coarsener{
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
   
-  void performContraction(HypernodeID rep_node, std::vector<HypernodeID>& contraction_targets) {
-    _history.emplace(_hg.contract(rep_node, contraction_targets[rep_node]));
-    _pq.remove(contraction_targets[rep_node]);
+  void performContraction(HypernodeID rep_node, HypernodeID contracted_node) {
+    _history.emplace(_hg.contract(rep_node, contracted_node));
+  }
+
+  void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target,
+                                TargetToSourcesMap& sources) {
+    auto range = sources.equal_range(hn_target);
+    for (auto iter = range.first; iter != range.second; ++iter) {
+      if (iter->second == hn) {
+        //PRINT("********** removing node " << hn << " from entries with key " << target[hn]);
+        sources.erase(iter);
+        break;
+      }
+    }
   }
 
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
@@ -157,33 +173,59 @@ class Coarsener{
     }
   }
 
-  void rateAllHypernodes(std::vector<HypernodeID>& contraction_targets) {
+  void rateAllHypernodes(std::vector<HypernodeID>& target,
+                         TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
     forall_hypernodes(hn, _hg) {
       rating = _rater.rate(*hn);
       if (rating.valid) {
         _pq.insert(*hn, rating.value);
-        contraction_targets[*hn] = rating.target;
+        target[*hn] = rating.target;
+        sources.insert({rating.target, *hn});
       }
     } endfor    
   }
 
-  void reRateAffectedHypernodes(HypernodeID rep_node,
-                                std::vector<HypernodeID>& contraction_targets,
-                                boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
-                                boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
-    // ToDo: This can be done more fine grained if we know which HEs are affected: see p. 31
+  void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
+                                                          TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
-    forall_incident_hyperedges(he, rep_node, _hg) {
-      forall_pins(pin, *he, _hg) {
-        if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
+    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
+                 _history.top().parallel_hes_size; ++i) {
+      forall_pins(pin, _removed_parallel_hyperedges[i].representative_id, _hg) {
           rating = _rater.rate(*pin);
-          rerated_hypernodes[*pin] = 1;
-          updatePQandContractionTargets(*pin, rating, contraction_targets, invalid_hypernodes);
-        }
+          updatePQandMappings(*pin, rating, target, sources);
       } endfor
-    } endfor
-    rerated_hypernodes.reset();
+    }
+  }
+
+  void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
+                                             std::vector<HypernodeID>& target,
+                                             TargetToSourcesMap& sources) {
+    HeavyEdgeRating rating;
+    auto source_range = sources.equal_range(hn);
+    auto source_it = source_range.first;
+    while (source_it != source_range.second) {
+      if (source_it->second == contraction_node) {
+        sources.erase(source_it++);
+      } else {
+        //PRINT("rerating HN " << source_it->second << " which had " << hn << " as target");
+        rating = _rater.rate(source_it->second);
+        if (rating.valid) {
+          _pq.update(source_it->second, rating.value);
+          if (rating.target != target[source_it->second]) {
+            //PRINT("new target is: " << rating.target);
+            target[source_it->second] = rating.target;
+            sources.insert({rating.target, source_it->second});
+            sources.erase(source_it++);
+          } else {
+            ++source_it;
+          }
+        } else if (_pq.contains(source_it->second)) {
+          _pq.remove(source_it->second);
+          sources.erase(source_it++);
+        }
+      }
+    }
   }
 
   void removeSingleNodeHyperedges(HypernodeID u) {
@@ -268,16 +310,20 @@ class Coarsener{
     } endfor
   }
 
-  void updatePQandContractionTargets(HypernodeID hn, const HeavyEdgeRating& rating,
-                                     std::vector<HypernodeID>& contraction_targets,
-                                     boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
+  void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
+                                     std::vector<HypernodeID>& target,
+                                     TargetToSourcesMap& sources) {
     if (rating.valid) {
       _pq.update(hn, rating.value);
-      contraction_targets[hn] = rating.target;
+      if (rating.target != target[hn]) {
+        removeMappingEntryOfNode(hn, target[hn], sources);
+        target[hn] = rating.target;
+        sources.insert({rating.target, hn});
+      }
     } else if (_pq.contains(hn)) {
       _pq.remove(hn);
-      invalid_hypernodes[hn] = 1;
-    }
+      removeMappingEntryOfNode(hn, target[hn], sources);
+    }    
   }
   
   Hypergraph& _hg;
