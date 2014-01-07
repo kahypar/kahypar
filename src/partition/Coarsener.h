@@ -212,9 +212,8 @@ class Coarsener{
         rating = _rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
         auto temp = source_it;
-        ++temp;
-        updatePQandMappings(source_it->second, rating, target, sources);
-        source_it = temp;
+        ++source_it;
+        updatePQandMappings(temp->second, rating, target, sources);
       }
     }
   }
