@@ -10,8 +10,8 @@ namespace partition {
 
 template <typename T>
 struct LastRatingWins {
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings.back();
+  static bool acceptEqual() {
+    return true;
   }
  protected:
   ~LastRatingWins() {}
@@ -19,8 +19,8 @@ struct LastRatingWins {
 
 template <typename T>
 struct FirstRatingWins {
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings.front();
+  static bool acceptEqual() {
+    return false;
   }
  protected:
   ~FirstRatingWins() {}
@@ -29,8 +29,8 @@ struct FirstRatingWins {
 template <typename T>
 struct RandomRatingWins {
  public:
-  static T select(std::vector<T>& equal_ratings) {
-    return equal_ratings[ dist(gen) % equal_ratings.size()];
+  static bool acceptEqual() {
+    return static_cast<bool>(dist(gen));
   }
  protected:
   ~RandomRatingWins() {}
@@ -40,7 +40,7 @@ struct RandomRatingWins {
 };
 
 template <typename T>
-boost::random::uniform_int_distribution<> RandomRatingWins<T>::dist(1,std::numeric_limits<int>::max());
+boost::random::uniform_int_distribution<> RandomRatingWins<T>::dist(0,1);
 template <typename T>
 boost::random::mt19937 RandomRatingWins<T>::gen(time(0));
 

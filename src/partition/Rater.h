@@ -49,8 +49,7 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
       _threshold_node_weight(threshold_node_weight),
       _tmp_ratings(_hg.initialNumNodes()),
       _used_entries(),
-      _visited_hypernodes(_hg.initialNumNodes()),
-      _equally_rated_nodes() {}
+      _visited_hypernodes(_hg.initialNumNodes()) {}
 
   HeavyEdgeRating rate(HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
@@ -68,28 +67,25 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
       } endfor
     } endfor
           
-    _equally_rated_nodes.clear();
     RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
+    HypernodeID target;
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
       // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp); 
-      if (max_rating < tmp) {
+      if (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) {
         max_rating = tmp;
-        _equally_rated_nodes.clear();
-        _equally_rated_nodes.push_back(_used_entries.top());
-      } else if (max_rating == tmp) {
-        _equally_rated_nodes.push_back(_used_entries.top());
+        target = _used_entries.top();
       }
       _tmp_ratings[_used_entries.top()] = 0.0;
       _visited_hypernodes[_used_entries.top()] = 0;
       _used_entries.pop();
     }
     HeavyEdgeRating ret;
-    if (!_equally_rated_nodes.empty()) {
+    if (max_rating != std::numeric_limits<RatingType>::min()) {
       ret.value = max_rating;
-      ret.target = TieBreakingPolicy::select(_equally_rated_nodes);
+      ret.target = target;
       ret.valid = true;
     }
     return ret;
@@ -110,7 +106,6 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
-  std::vector<HypernodeID> _equally_rated_nodes;
 };
 #pragma GCC diagnostic pop
 
