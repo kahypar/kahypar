@@ -210,20 +210,11 @@ class Coarsener{
       } else {
         //PRINT("rerating HN " << source_it->second << " which had " << hn << " as target");
         rating = _rater.rate(source_it->second);
-        if (rating.valid) {
-          _pq.update(source_it->second, rating.value);
-          if (rating.target != target[source_it->second]) {
-            //PRINT("new target is: " << rating.target);
-            target[source_it->second] = rating.target;
-            sources.insert({rating.target, source_it->second});
-            sources.erase(source_it++);
-          } else {
-            ++source_it;
-          }
-        } else if (_pq.contains(source_it->second)) {
-          _pq.remove(source_it->second);
-          sources.erase(source_it++);
-        }
+        // updatePQandMappings might invalidate source_it.
+        auto temp = source_it;
+        ++temp;
+        updatePQandMappings(source_it->second, rating, target, sources);
+        source_it = temp;
       }
     }
   }
