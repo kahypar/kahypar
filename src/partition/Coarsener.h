@@ -211,9 +211,9 @@ class Coarsener{
         //PRINT("rerating HN " << source_it->second << " which had " << hn << " as target");
         rating = _rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
-        auto temp = source_it;
+        HypernodeID source_hn = source_it->second;
         ++source_it;
-        updatePQandMappings(temp->second, rating, target, sources);
+        updatePQandMappings(source_hn, rating, target, sources);
       }
     }
   }
