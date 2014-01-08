@@ -13,7 +13,6 @@ using datastructure::HypergraphType;
 using datastructure::HypernodeWeight;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
-using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
