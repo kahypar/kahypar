@@ -15,6 +15,7 @@
 
 namespace partition {
 using datastructure::PriorityQueue;
+using datastructure::MetaKeyDouble;
 
 template <class Hypergraph, class Rater>
 class Coarsener{
@@ -323,7 +324,7 @@ class Coarsener{
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
-  PriorityQueue<HypernodeID, RatingType> _pq;
+  PriorityQueue<HypernodeID, RatingType, MetaKeyDouble> _pq;
 };
 
 } // namespace partition
