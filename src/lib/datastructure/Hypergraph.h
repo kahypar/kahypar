@@ -408,7 +408,7 @@ class Hypergraph{
 
   void printNodeState(HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
-      std::cout << "HN " << u << ": ";
+      std::cout << "HN " << u << " (" << _partition_indices[u] << "): ";
       __forall_incident_hyperedges(he, u) {
         std::cout << he << " ";
       } endfor
