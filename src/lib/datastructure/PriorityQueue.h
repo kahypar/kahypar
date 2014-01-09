@@ -66,6 +66,10 @@ class PriorityQueue{
   void remove(IDType id) {
     _heap.deleteNode(id);
   }
+
+  void clear() {
+    _heap.clear();
+  }
   
  private:
   Heap _heap;
