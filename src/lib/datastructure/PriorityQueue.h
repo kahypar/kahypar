@@ -10,7 +10,7 @@ namespace datastructure {
 using external::BinaryHeap;
 
 // ToDo: We need a more robust solution for min and max values!
-struct MetaKey {
+struct MetaKeyDouble {
   static double max() {
     return 12345.6789;
   }
@@ -19,12 +19,12 @@ struct MetaKey {
   }
 };
 
-template <typename IDType, typename KeyType>
+template <typename IDType, typename KeyType, typename MetaKey>
 class PriorityQueue{
   typedef BinaryHeap<IDType, KeyType, MetaKey> Heap;
   
  public:
-  PriorityQueue(IDType size, size_t reserve_size) :
+  PriorityQueue(IDType size, size_t reserve_size = 0) :
       _heap(size, reserve_size) { }
 
   size_t size() const {

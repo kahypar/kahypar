@@ -13,7 +13,7 @@ class APriorityQueue : public Test {
   APriorityQueue() :
       prio_queue(3,3) {}
   
-  PriorityQueue<defs::HyperNodeID, defs::RatingType> prio_queue;
+  PriorityQueue<defs::HyperNodeID, defs::RatingType, MetaKeyDouble> prio_queue;
 };
 
 TEST_F(APriorityQueue, IsEmptyWhenCreated) {
