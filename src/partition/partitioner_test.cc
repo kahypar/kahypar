@@ -55,4 +55,16 @@ TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
   ASSERT_THAT(hypergraph.partitionIndex(6), Eq(1));
 }
 
+TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(0,0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(0,1), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,0), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,1), Eq(0));
+  partitioner.partition(hypergraph);
+  ASSERT_THAT(hypergraph.pinCountInPartition(0,0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(0,1), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,0), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,1), Eq(3));
+}
+
 } // namespace partition

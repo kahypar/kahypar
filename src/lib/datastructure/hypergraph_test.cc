@@ -411,7 +411,7 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
 TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
   Memento memento = hypergraph.contract(0,2);
-  hypergraph.setPartitionIndex(0,1);
+  hypergraph.changeNodePartition(0,0,1);
   
   hypergraph.uncontract(memento);
 
@@ -424,6 +424,84 @@ TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {
 
   hypergraph.removeEdge(0);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
+}
+
+TEST_F(AHypergraph, ReducesPinCountOfAffectedHEsOnContraction) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(3));
+  hypergraph.contract(3,4);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(2));
+}
+
+TEST_F(AHypergraph, IncreasesPinCountOfAffectedHEsOnUnContraction) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(3));
+  hypergraph.uncontract(hypergraph.contract(3,4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(3));
+}
+
+TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
+  hypergraph.calculatePartitionPinCounts();
+  ASSERT_THAT(hypergraph.pinCountInPartition(0, 0), Eq(1));
+  ASSERT_THAT(hypergraph.pinCountInPartition(0, 1), Eq(1));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 1), Eq(1));
+  ASSERT_THAT(hypergraph.pinCountInPartition(3, 0), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(3, 1), Eq(3));
+}
+
+TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+  hypergraph.removeEdge(1);
+  ASSERT_THAT(hypergraph._partition_pin_counts[2], Eq(hypergraph.INVALID_COUNT));
+  ASSERT_THAT(hypergraph._partition_pin_counts[3], Eq(hypergraph.INVALID_COUNT));
+}
+
+TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+  hypergraph.removeEdge(1);
+  hypergraph.restoreEdge(1);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+}
+
+TEST_F(AHypergraph, DecrementsPartitionPinCountOnHypernodeRemoval) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,0), Eq(3));
+  hypergraph.removeNode(3);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2,0), Eq(2));
+}
+
+TEST_F(AHypergraph, UpdatesPartitionPinCountsIfANodeChangesPartition) {
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,1), Eq(0));
+  hypergraph.changeNodePartition(1,0,1);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,1), Eq(1));
+}
+
+TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(4), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,1), Eq(0));
+  hypergraph.changeNodePartition(1,0,1);
+  hypergraph.changeNodePartition(4,0,1);
+
+  hypergraph.calculatePartitionPinCount(1);
+  
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1,1), Eq(2));
+}
+
+TEST_F(AnUnPartitionedHypergraph, HasAllNodesInPartitionZero) {
+  forall_hypernodes(hn, hypergraph) {
+    ASSERT_THAT(hypergraph.partitionIndex(*hn), Eq(0));
+  } endfor
 }
   
 } // namespace datastructure
