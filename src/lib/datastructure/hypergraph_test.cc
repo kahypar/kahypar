@@ -114,24 +114,6 @@ TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemo
   ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(1));
 }
 
-TEST_F(AHypergraph, DecrementsHypernodeDegreeAfterDisconnectingAHypernodeFromHyperedge) {
-  ASSERT_THAT(hypergraph.nodeDegree(4), Eq(2));
-  hypergraph.disconnect(4, 2);
-  ASSERT_THAT(hypergraph.nodeDegree(4), Eq(1));
-}
-
-TEST_F(AHypergraph, DecrementsHyperedgeSizeAfterDisconnectingAHypernodeFromHyperedge) {
-  ASSERT_THAT(hypergraph.edgeSize(2), Eq(3));
-  hypergraph.disconnect(4, 2);
-  ASSERT_THAT(hypergraph.edgeSize(2), Eq(2));
-}
-
-TEST_F(AHypergraph, DoesNotInvalidateHypernodeAfterDisconnectingFromHyperedge) {
-  ASSERT_THAT(hypergraph.nodeIsEnabled(4), Eq(true));
-  hypergraph.disconnect(4, 2);
-  ASSERT_THAT(hypergraph.nodeIsEnabled(4), Eq(true));
-}
-
 TEST_F(AHypergraph, InvalidatesContractedHypernode) {
   ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
   hypergraph.contract(0,2);
@@ -434,14 +416,6 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
   hypergraph.uncontract(memento);
 
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
-}
-
-TEST(AnEmptyHyperedge, DoesNotGetDisabledAutomatically) {
-  HypergraphType hypergraph(1, 1, HyperedgeIndexVector {0,/*sentinel*/1},
-                     HyperedgeVector {0});
-
-  hypergraph.disconnect(0, 0);
-  ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
 }
 
 TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {

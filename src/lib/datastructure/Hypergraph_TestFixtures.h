@@ -67,6 +67,22 @@ class AnUncontractedHypergraph : public AHypergraph {
   HypergraphType modified_hypergraph;
 };
 
+class APartitionedHypergraph : public AHypergraph {
+ public:
+  APartitionedHypergraph() :
+      AHypergraph() {
+    hypergraph.changeNodePartition(2,0,1);
+    hypergraph.changeNodePartition(5,0,1);
+    hypergraph.changeNodePartition(6,0,1);
+  }
+};
+
+class AnUnPartitionedHypergraph : public AHypergraph {
+ public:
+  AnUnPartitionedHypergraph() :
+      AHypergraph() {}
+};
+
 } // namespace datastructure
 
 

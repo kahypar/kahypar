@@ -565,16 +565,6 @@ class Hypergraph{
     } endfor
 }
 
-  void disconnect(HypernodeID u, HyperedgeID e) {
-    ASSERT(std::count(_incidence_array.begin() + hypernode(u).firstEntry(),
-                      _incidence_array.begin() + hypernode(u).firstInvalidEntry(), e) == 1,
-           "Hypernode not connected to hyperedge");
-    ASSERT(std::count(_incidence_array.begin() + hyperedge(e).firstEntry(),
-                      _incidence_array.begin() + hyperedge(e).firstInvalidEntry(), u) == 1,
-           "Hyperedge does not contain hypernode");
-    removeEdge(u, e, _hypernodes);
-    removeEdge(e, u, _hyperedges);
-    --_current_num_pins;
   }
 
   // Deletes incidence information on incident hyperedges, but leaves
