@@ -1,7 +1,8 @@
 #include "gmock/gmock.h"
 
-#include "TwoWayFMRefiner.h"
 #include "../lib/datastructure/Hypergraph.h"
+#include "TwoWayFMRefiner.h"
+#include "Metrics.h"
 
 namespace partition {
 using ::testing::Test;
@@ -17,13 +18,10 @@ class ATwoWayFMRefiner : public Test {
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       refiner(hypergraph) {
-    hypergraph.setPartitionIndex(0,0);
-    hypergraph.setPartitionIndex(1,1);
-    hypergraph.setPartitionIndex(2,1);
-    hypergraph.setPartitionIndex(3,0);
-    hypergraph.setPartitionIndex(4,0);
-    hypergraph.setPartitionIndex(5,1);
-    hypergraph.setPartitionIndex(6,1);
+    hypergraph.changeNodePartition(1,0,1);
+    hypergraph.changeNodePartition(2,0,1);
+    hypergraph.changeNodePartition(5,0,1);
+    hypergraph.changeNodePartition(6,0,1);
   }
 
   HypergraphType hypergraph;
@@ -37,25 +35,43 @@ TEST_F(ATwoWayFMRefiner, IdentifiesBorderHypernodes) {
 }
 
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
-  ASSERT_THAT(refiner.gain(1), Eq(1));
-  ASSERT_THAT(refiner.gain(5), Eq(-1));
+  ASSERT_THAT(refiner.computeGain(6), Eq(0));
+  ASSERT_THAT(refiner.computeGain(1), Eq(1));
+  ASSERT_THAT(refiner.computeGain(5), Eq(-1));
 }
 
-TEST_F(ATwoWayFMRefiner, ComputesPartitionSizesOfHE) {
-  refiner.calculatePartitionSizes(0);
-  ASSERT_THAT(refiner.partitionPinCount(0, 0), Eq(1));
-  ASSERT_THAT(refiner.partitionPinCount(0 ,1), Eq(1));
-
-  refiner.calculatePartitionSizes(3);
-  ASSERT_THAT(refiner.partitionPinCount(3, 0), Eq(0));
-  ASSERT_THAT(refiner.partitionPinCount(3, 1), Eq(3));
+TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
+  refiner.activate(1);
+  ASSERT_THAT(refiner._pq[1]->max(), Eq(1));
+  ASSERT_THAT(refiner._pq[1]->maxKey(), Eq(1));
 }
 
-TEST_F(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated) {
-  ASSERT_THAT(refiner.partitionSizesCalculated(0), Eq(false));
-
-  refiner.calculatePartitionSizes(0);
-
-  ASSERT_THAT(refiner.partitionSizesCalculated(0), Eq(true));
+TEST_F(ATwoWayFMRefiner, RefinesAroundUncontractedNodes) {
+  refiner.refine(1,3, metrics::hyperedgeCut(hypergraph));
 }
+
+TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
+  ASSERT_THAT(true, Eq(false));
+}
+
+TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeight) {
+  ASSERT_THAT(true, Eq(false));
+}
+
+TEST_F(ATwoWayFMRefiner, UpdatesUnmarkedNeighbors) {
+  ASSERT_THAT(true, Eq(false));
+}
+
+TEST_F(ATwoWayFMRefiner, RollsBackToTheLowestCutStateReached) {
+  ASSERT_THAT(true, Eq(false));
+}
+
+TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
+  ASSERT_THAT(true, Eq(false));
+}
+
+TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
+  ASSERT_THAT(true, Eq(false));
+}
+
 } // namespace partition
