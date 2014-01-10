@@ -4,70 +4,13 @@
 #include "gmock/gmock.h"
 
 #include "Hypergraph.h"
+#include "Hypergraph_TestFixtures.h"
 
 namespace datastructure {
 using ::testing::Eq;
 using ::testing::Test;
 
-typedef datastructure::HypergraphType HypergraphType;
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::ContractionMemento Memento;
-
-class AHypergraph : public Test {
- public:
-  AHypergraph() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
-  HypergraphType hypergraph;
-};
-
-class AHypernodeIterator : public AHypergraph {
- public:
-  AHypernodeIterator() :
-      AHypergraph(),
-      begin(),
-      end() {}
-
-  HypernodeIterator begin;
-  HypernodeIterator end;
-};
-
-class AHyperedgeIterator : public AHypergraph {
- public:
-  AHyperedgeIterator() :
-      AHypergraph(),
-      begin(),
-      end() {}
-
-  HyperedgeIterator begin;
-  HyperedgeIterator end;
-};
-
-class AHypergraphMacro : public AHypergraph {
- public:
-  AHypergraphMacro() : AHypergraph() {}
-};
-
-class AContractionMemento : public AHypergraph {
- public:
-  AContractionMemento() : AHypergraph() {}
-};
-
-class AnUncontractionOperation : public AHypergraph {
- public:
-  AnUncontractionOperation() : AHypergraph() {}
-};
-
-class AnUncontractedHypergraph : public AHypergraph {
- public:
-  AnUncontractedHypergraph() :
-      AHypergraph(),
-      modified_hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                          HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
-
-  HypergraphType modified_hypergraph;
-};
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numNodes(), Eq(7));
