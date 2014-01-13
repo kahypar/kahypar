@@ -186,20 +186,24 @@ class TwoWayFMRefiner{
       HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
       HypernodeID old_size1 = new_size1 + (to == 1 ? -1 : 1);
 
-      PRINT("old_size0=" << old_size0 << "   " << "new_size0=" << new_size0);
-      PRINT("old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
+      //PRINT("old_size0=" << old_size0 << "   " << "new_size0=" << new_size0);
+      //PRINT("old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
 
       if (_hg.edgeSize(*he) == 2) {
         updatePinsOfHyperedge(*he, (new_size0 == 1 ? 2 : -2));
-      } else if ((old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1)) {
-        updatePinsOfHyperedge(*he, 1); // 0 -> 1
-      }  else if ((old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0)) {
-        updatePinsOfHyperedge(*he, -1); // 1 -> 0
-      } else if ((old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1)) {
+      } else if (pinCountInOnePartitionIncreasedFrom0To1(old_size0, new_size0,
+                                                         old_size1, new_size1)) {
+        updatePinsOfHyperedge(*he, 1);
+      } else if (pinCountInOnePartitionDecreasedFrom1To0(old_size0, new_size0,
+                                                         old_size1, new_size1)) {
+        updatePinsOfHyperedge(*he, -1);
+      } else if (pinCountInOnePartitionDecreasedFrom2To1(old_size0, new_size0,
+                                                         old_size1, new_size1)) {
         // special case if HE consists of only 3 pins
-        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from); // 2 -> 1
-      } else if ((old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2)) {
-        updatePinsOfHyperedge(*he, -1, 0, to); // 1 -> 2
+        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from); 
+      } else if (pinCountInOnePartitionIncreasedFrom1To2(old_size0, new_size0,
+                                                         old_size1, new_size1)) {
+        updatePinsOfHyperedge(*he, -1, 0, to);
      }      
     } endfor
   }
@@ -232,6 +236,26 @@ class TwoWayFMRefiner{
         updatePin(he, *pin, (compare == _hg.partitionIndex(*pin) ? sign1 : sign2));
       }
     } endfor
+  }
+
+  bool pinCountInOnePartitionIncreasedFrom0To1(HypernodeID old_size0, HypernodeID new_size0,
+                                               HypernodeID old_size1, HypernodeID new_size1) {
+    return (old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1);
+  }
+
+  bool pinCountInOnePartitionDecreasedFrom1To0(HypernodeID old_size0, HypernodeID new_size0,
+                                               HypernodeID old_size1, HypernodeID new_size1) {
+    return (old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0);
+  }
+
+  bool pinCountInOnePartitionDecreasedFrom2To1(HypernodeID old_size0, HypernodeID new_size0,
+                                               HypernodeID old_size1, HypernodeID new_size1) {
+    return (old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1);
+  }
+
+  bool pinCountInOnePartitionIncreasedFrom1To2(HypernodeID old_size0, HypernodeID new_size0,
+                                               HypernodeID old_size1, HypernodeID new_size1) {
+    return (old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2);
   }
 
   // need a better method name here!
