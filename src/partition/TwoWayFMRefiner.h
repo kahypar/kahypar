@@ -190,24 +190,17 @@ class TwoWayFMRefiner{
       PRINT("old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
 
       if (_hg.edgeSize(*he) == 2) {
-        update2PinHyperedge(*he, new_size0);
-      } else {
-        if ((old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1)) {
-          updateHyperedgeWith1PinInPartition(*he, 1); // 0 -> 1
-        }  else if ((old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0)) {
-          updateHyperedgeWith1PinInPartition(*he, -1); // 1 -> 0
-        } else if ((old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1)) {
-
-          forall_pins(pin, *he, _hg) {
-            if (!_marked[*pin]) {
-              Gain old_gain = _pq[_hg.partitionIndex(*pin)]->key(*pin);
-              Gain gain_delta = (from == _hg.partitionIndex(*pin) ? 1 : 0) * _hg.edgeWeight(*he);
-              _pq[_hg.partitionIndex(*pin)]->update(*pin, old_gain + gain_delta);
-            }
-          } endfor
-          
-        }
-      } 
+        updatePinsOfHyperedge(*he, (new_size0 == 1 ? 2 : -2));
+      } else if ((old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1)) {
+        updatePinsOfHyperedge(*he, 1); // 0 -> 1
+      }  else if ((old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0)) {
+        updatePinsOfHyperedge(*he, -1); // 1 -> 0
+      } else if ((old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1)) {
+        // special case if HE consists of only 3 pins
+        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from); // 2 -> 1
+      } else if ((old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2)) {
+        updatePinsOfHyperedge(*he, -1, 0, to); // 1 -> 2
+     }      
     } endfor
   }
   
@@ -222,25 +215,30 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, HandlesCase0To1);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase1To0);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
+  FRIEND_TEST(AGainUpdateMethod, HandlesCase1To2);
+  FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
 
-  void update2PinHyperedge(HyperedgeID he, HypernodeID new_size0) {
+  void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
       if (!_marked[*pin]) {
-        Gain gain_delta = (new_size0 == 1 ? 2 : -2) * _hg.edgeWeight(he);
-        Gain old_gain = _pq[_hg.partitionIndex(*pin)]->key(*pin);
-        _pq[_hg.partitionIndex(*pin)]->update(*pin, old_gain + gain_delta);
+        updatePin(he, *pin, sign);
       }
     } endfor
   }
 
-  void updateHyperedgeWith1PinInPartition(HyperedgeID he, Gain sign) {
+  void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
     forall_pins(pin, he, _hg) {
       if (!_marked[*pin]) {
-        Gain old_gain = _pq[_hg.partitionIndex(*pin)]->key(*pin);
-        Gain gain_delta = sign * _hg.edgeWeight(he);
-        _pq[_hg.partitionIndex(*pin)]->update(*pin, old_gain + gain_delta);
+        updatePin(he, *pin, (compare == _hg.partitionIndex(*pin) ? sign1 : sign2));
       }
     } endfor
+  }
+
+  // need a better method name here!
+  void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
+      Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
+      Gain gain_delta = sign * _hg.edgeWeight(he);
+      _pq[_hg.partitionIndex(pin)]->update(pin, old_gain + gain_delta);
   }
 
   void rollback(std::vector<HypernodeID> &performed_moves, int last_index, int min_cut_index,

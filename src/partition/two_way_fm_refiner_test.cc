@@ -213,5 +213,51 @@ TEST(AGainUpdateMethod, HandlesCase2To1) {
   ASSERT_THAT(refiner._pq[1]->key(3), Eq(0));
 }
 
+TEST(AGainUpdateMethod, HandlesCase1To2) {
+  HypergraphType hypergraph(4,1, HyperedgeIndexVector {0,4}, HyperedgeVector {0,1,2,3});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  hypergraph.changeNodePartition(3,0,1);
+  
+  // bypassing activate since neither 0 nor 1 is actually a border node
+  refiner._pq[0]->insert(0, refiner.computeGain(0));
+  refiner._pq[0]->insert(1, refiner.computeGain(1));
+  refiner._pq[0]->insert(2, refiner.computeGain(2));
+  refiner._pq[1]->insert(3, refiner.computeGain(3));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
+  ASSERT_THAT(refiner._pq[1]->key(3), Eq(1));
+
+  hypergraph.changeNodePartition(2,0,1);
+  refiner._marked[2] = true;
+
+  refiner.updateNeighbours(2,0,1);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
+  ASSERT_THAT(refiner._pq[1]->key(3), Eq(0));
+}
+
+TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
+  HypergraphType hypergraph(4,1, HyperedgeIndexVector {0,3}, HyperedgeVector {0,1,2});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  hypergraph.changeNodePartition(2,0,1);
+  
+  // bypassing activate since neither 0 nor 1 is actually a border node
+  refiner._pq[0]->insert(0, refiner.computeGain(0));
+  refiner._pq[0]->insert(1, refiner.computeGain(1));
+  refiner._pq[1]->insert(2, refiner.computeGain(2));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[1]->key(2), Eq(1));
+
+  hypergraph.changeNodePartition(1,0,1);
+  refiner._marked[1] = true;
+
+  refiner.updateNeighbours(1,0,1);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(1));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[1]->key(2), Eq(0));
+}
 
 } // namespace partition
