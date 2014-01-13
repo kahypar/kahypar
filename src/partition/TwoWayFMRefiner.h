@@ -179,12 +179,12 @@ class TwoWayFMRefiner{
     return best_cut;
   }
 
-  void updateNeighbours(HypernodeID moved_node, PartitionID target_partition) {
+  void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
     forall_incident_hyperedges(he, moved_node, _hg) {
       HypernodeID new_size0 = _hg.pinCountInPartition(*he, 0);
       HypernodeID new_size1 = _hg.pinCountInPartition(*he, 1);
-      HypernodeID old_size0 = new_size0 + (target_partition == 0 ? -1 : 1);
-      HypernodeID old_size1 = new_size1 + (target_partition == 1 ? -1 : 1);
+      HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
+      HypernodeID old_size1 = new_size1 + (to == 1 ? -1 : 1);
 
       PRINT("old_size0=" << old_size0 << "   " << "new_size0=" << new_size0);
       PRINT("old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
@@ -193,11 +193,19 @@ class TwoWayFMRefiner{
         update2PinHyperedge(*he, new_size0);
       } else {
         if ((old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1)) {
-          // 0 -> 1
-          updateHyperedgeWith1PinInPartition(*he, 1);
+          updateHyperedgeWith1PinInPartition(*he, 1); // 0 -> 1
         }  else if ((old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0)) {
-          // 1 -> 0
-          updateHyperedgeWith1PinInPartition(*he, -1);
+          updateHyperedgeWith1PinInPartition(*he, -1); // 1 -> 0
+        } else if ((old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1)) {
+
+          forall_pins(pin, *he, _hg) {
+            if (!_marked[*pin]) {
+              Gain old_gain = _pq[_hg.partitionIndex(*pin)]->key(*pin);
+              Gain gain_delta = (from == _hg.partitionIndex(*pin) ? 1 : 0) * _hg.edgeWeight(*he);
+              _pq[_hg.partitionIndex(*pin)]->update(*pin, old_gain + gain_delta);
+            }
+          } endfor
+          
         }
       } 
     } endfor
