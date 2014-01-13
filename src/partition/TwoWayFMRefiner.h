@@ -49,6 +49,7 @@ class TwoWayFMRefiner{
 
   void activate(HypernodeID hn) {
     if (isBorderNode(hn)) {
+      PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn));
       _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
     }
   }
@@ -177,6 +178,38 @@ class TwoWayFMRefiner{
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
     return best_cut;
   }
+
+  void updateNeighbours(HypernodeID moved_node, PartitionID target_partition) {
+    forall_incident_hyperedges(he, moved_node, _hg) {
+      HypernodeID old_size0 = _hg.pinCountInPartition(*he, 0) + (target_partition == 0 ? -1 : 1);
+      HypernodeID old_size1 = _hg.pinCountInPartition(*he, 1) + (target_partition == 1 ? -1 : 1);
+      PRINT("old_size0=" << old_size0 << "   "
+            << "new_size0=" <<_hg.pinCountInPartition(*he, 0));
+      PRINT("old_size1=" << old_size1 << "   "
+            << "new_size1=" <<_hg.pinCountInPartition(*he, 1));
+
+      Gain gain_delta = 0;
+      Gain old_gain = 0;
+      if (_hg.edgeSize(*he) == 2) {
+        forall_pins(pin, *he, _hg) {
+          if (!_marked[*pin]) {
+            if (_hg.pinCountInPartition(*he, 0) == 1) {
+              gain_delta = 2 * _hg.edgeWeight(*he);
+            } else {
+              ASSERT( (_hg.pinCountInPartition(*he, 0) == 0
+                            && _hg.pinCountInPartition(*he, 1) == 2) ||
+                           (_hg.pinCountInPartition(*he, 1) == 0
+                            && _hg.pinCountInPartition(*he, 0) == 2),
+                      "#pins in HE " << *he << " > 2");
+              gain_delta = -2 * _hg.edgeWeight(*he);
+            }
+            old_gain = _pq[_hg.partitionIndex(*pin)]->key(*pin);
+            _pq[_hg.partitionIndex(*pin)]->increaseKey(*pin, old_gain + gain_delta);
+          }
+        } endfor
+      }
+    } endfor
+  }
   
  private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
@@ -184,9 +217,13 @@ class TwoWayFMRefiner{
   FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement);
   FRIEND_TEST(ATwoWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2);
+  FRIEND_TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2);
 
-  void rollback(std::vector<HypernodeID> &performed_moves, size_t last_index, size_t min_cut_index,
+  void rollback(std::vector<HypernodeID> &performed_moves, int last_index, int min_cut_index,
                 Hypergraph& hg) {
+    PRINT("min_cut_index=" << min_cut_index);
+    PRINT("last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = performed_moves[last_index];
       _hg.changeNodePartition(hn, hg.partitionIndex(hn), (hg.partitionIndex(hn) ^ 1));

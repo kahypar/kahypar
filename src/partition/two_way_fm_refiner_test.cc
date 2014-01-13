@@ -11,6 +11,7 @@ using ::testing::Eq;
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
+using datastructure::HyperedgeWeight;
 
 class ATwoWayFMRefiner : public Test {
  public:
@@ -50,28 +51,92 @@ TEST_F(ATwoWayFMRefiner, RefinesAroundUncontractedNodes) {
   refiner.refine(1,3, metrics::hyperedgeCut(hypergraph));
 }
 
-TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
-  ASSERT_THAT(true, Eq(false));
+// TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeight) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, UpdatesUnmarkedNeighbors) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, RollsBackToTheLowestCutStateReached) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, UsesRandomTieBreakingOnEqualCutAcceptance) {
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, ManagesWeightsOfPartitionsExplicitely) {
+//   // remember to adjust partition weights after changing the partition of a node
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
+//   // restore optimal case so that no improvement is possible 
+//   hypergraph.changeNodePartition(1,1,0);
+//   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+
+//   PRINT(".............................");
+//   HyperedgeWeight new_cut = refiner.refine(1, 6, old_cut);
+
+//   ASSERT_THAT(new_cut, Eq(old_cut));
+//   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
+//   ASSERT_THAT(hypergraph.partitionIndex(5), Eq(1));
+//   ASSERT_THAT(true, Eq(false));
+// }
+
+// Ugly: We could seriously need Mocks here!
+TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2) {
+  HypergraphType hypergraph(2,1, HyperedgeIndexVector {0,2}, HyperedgeVector {0, 1});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  ASSERT_THAT(hypergraph.partitionIndex(0), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
+
+  // // bypassing activate since neither 0 nor 1 is actually a border node
+  refiner._pq[0]->insert(0, refiner.computeGain(0));
+  refiner._pq[0]->insert(1, refiner.computeGain(1));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
+
+  hypergraph.changeNodePartition(1,0,1);
+  refiner._marked[1] = true;
+
+  refiner.updateNeighbours(1, 1);
+
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(1));
+  // updateNeighbours does not delete the current max_gain node, neither does it
+  // update its gain
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(-1));
 }
 
-TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeight) {
-  ASSERT_THAT(true, Eq(false));
+TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2) {
+  HypergraphType hypergraph(2,1, HyperedgeIndexVector {0,2}, HyperedgeVector {0, 1});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  hypergraph.changeNodePartition(1,0,1);
+  ASSERT_THAT(hypergraph.partitionIndex(0), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(1));
+  
+  refiner.activate(0);
+  refiner.activate(1);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(1));
+  ASSERT_THAT(refiner._pq[1]->key(1), Eq(1));
+
+  hypergraph.changeNodePartition(1,1,0);
+  refiner._marked[1] = true;
+
+  refiner.updateNeighbours(1, 0);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
+  ASSERT_THAT(refiner._pq[1]->key(1), Eq(1));
 }
 
-TEST_F(ATwoWayFMRefiner, UpdatesUnmarkedNeighbors) {
-  ASSERT_THAT(true, Eq(false));
-}
-
-TEST_F(ATwoWayFMRefiner, RollsBackToTheLowestCutStateReached) {
-  ASSERT_THAT(true, Eq(false));
-}
-
-TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
-  ASSERT_THAT(true, Eq(false));
-}
-
-TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
-  ASSERT_THAT(true, Eq(false));
-}
 
 } // namespace partition
