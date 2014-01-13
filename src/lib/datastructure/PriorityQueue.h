@@ -63,6 +63,14 @@ class PriorityQueue{
     _heap.updateKey(id, -key);
   }
 
+  void increaseKey(IDType id, KeyType key) {
+    _heap.increaseKey(id, -key);
+  }
+
+  void decreaseKey(IDType id, KeyType key) {
+    _heap.decreaseKey(id, -key);
+  }
+
   void remove(IDType id) {
     _heap.deleteNode(id);
   }
