@@ -101,7 +101,7 @@ TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize
   ASSERT_THAT(hypergraph.partitionIndex(0), Eq(0));
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
 
-  // // bypassing activate since neither 0 nor 1 is actually a border node
+  // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._pq[0]->insert(0, refiner.computeGain(0));
   refiner._pq[0]->insert(1, refiner.computeGain(1));
   ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
@@ -136,6 +136,55 @@ TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize
   refiner.updateNeighbours(1, 0);
   ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
   ASSERT_THAT(refiner._pq[1]->key(1), Eq(1));
+}
+
+TEST(AGainUpdateMethod, HandlesCase0To1) {
+  HypergraphType hypergraph(4,1, HyperedgeIndexVector {0,4}, HyperedgeVector {0,1,2,3});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+
+  // bypassing activate since neither 0 nor 1 is actually a border node
+  refiner._pq[0]->insert(0, refiner.computeGain(0));
+  refiner._pq[0]->insert(1, refiner.computeGain(1));
+  refiner._pq[0]->insert(2, refiner.computeGain(2));
+  refiner._pq[0]->insert(3, refiner.computeGain(3));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(3), Eq(-1));
+
+  hypergraph.changeNodePartition(3,0,1);
+  refiner._marked[3] = true;
+
+  refiner.updateNeighbours(3, 1);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(3), Eq(-1));
+}
+
+TEST(AGainUpdateMethod, HandlesCase1To0) {
+  HypergraphType hypergraph(4,1, HyperedgeIndexVector {0,4}, HyperedgeVector {0,1,2,3});
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  hypergraph.changeNodePartition(3,0,1);
+  
+  // bypassing activate since neither 0 nor 1 is actually a border node
+  refiner._pq[0]->insert(0, refiner.computeGain(0));
+  refiner._pq[0]->insert(1, refiner.computeGain(1));
+  refiner._pq[0]->insert(2, refiner.computeGain(2));
+  refiner._pq[1]->insert(3, refiner.computeGain(3));
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(0));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
+  ASSERT_THAT(refiner._pq[1]->key(3), Eq(1));
+
+  hypergraph.changeNodePartition(3,1,0);
+  refiner._marked[3] = true;
+
+  refiner.updateNeighbours(3, 0);
+  ASSERT_THAT(refiner._pq[0]->key(0), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(1), Eq(-1));
+  ASSERT_THAT(refiner._pq[0]->key(2), Eq(-1));
+  ASSERT_THAT(refiner._pq[1]->key(3), Eq(1));
 }
 
 
