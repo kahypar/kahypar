@@ -49,7 +49,11 @@ class TwoWayFMRefiner{
 
   void activate(HypernodeID hn) {
     if (isBorderNode(hn)) {
-      PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn));
+      ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
+      ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
+             "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
+      // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
+      //       << " in PQ " << _hg.partitionIndex(hn) );
       _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
     }
   }
@@ -125,11 +129,14 @@ class TwoWayFMRefiner{
       /////////////////////////      
       Gain gain = from_pq->maxKey();
       HypernodeID hn = from_pq->max();
+      ASSERT(!_marked[hn], "HN " << hn << "is marked and not eligable to be moved");
+      _marked[hn] = 1;
+      from_pq->deleteMax();
       PRINT("*** Moving HN" << hn << " from " << from_partition << " to " << to_partition
             << " (gain: " << gain << ")");
 
       
-      ASSERT(!_marked[hn], "HN " << hn << "is marked and not eligable to be moved");
+
 
       // At some point we need to take the partition weights into consideration
       // to ensure balancing stuff
@@ -141,16 +148,16 @@ class TwoWayFMRefiner{
              << " is already in partition " << _hg.partitionIndex(hn));
       _hg.changeNodePartition(hn, from_partition, to_partition);
       
-      //////////////////////////////////////////////
-      ////////// -----> GAIN UPDATE!!!!!!!
-      if (iteration == 0)
-        _pq[0]->update(3,computeGain(3));
       // how is this handled in ba_ziegler and what does christian do:
       // especially if he deletes nodes from the PQ
       // [ ] lock HEs for gain update! (-> should improve running time without affecting quality)
       // [ ] what about zero-gain updates? does this affect PQ-based impl?
-      //////////////////////////////////////////////
-      /////////////////////////////////////////////
+            updateNeighbours(hn, from_partition, to_partition);
+      // if (iteration == 0) {
+      //   PRINT("foo");
+      //   _pq[0]->update(3,computeGain(3));
+      //   PRINT("bar");
+      // }
       cut -= gain;
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
@@ -164,8 +171,6 @@ class TwoWayFMRefiner{
         min_cut_index = iteration;
       }
       _performed_moves[iteration] = hn;
-      _marked[hn] = 1;
-      from_pq->deleteMax();
       ++iteration;
     }
     
@@ -221,7 +226,9 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase1To2);
   FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
-
+  FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
+  FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
+  
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
       if (!_marked[*pin]) {
@@ -260,9 +267,20 @@ class TwoWayFMRefiner{
 
   // need a better method name here!
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
-      Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
-      Gain gain_delta = sign * _hg.edgeWeight(he);
-      _pq[_hg.partitionIndex(pin)]->update(pin, old_gain + gain_delta);
+    if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
+      if (isBorderNode(he)) {
+        Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
+        Gain gain_delta = sign * _hg.edgeWeight(he);
+        // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
+        //       << " to " << old_gain + gain_delta << " in PQ " << _hg.partitionIndex(pin));
+        _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+      } else {
+        // PRINT("*** deleting pin " << pin << " from PQ " << _hg.partitionIndex(pin));
+        _pq[_hg.partitionIndex(pin)]->remove(pin);
+      }
+    } else {
+        activate(pin);
+    }
   }
 
   void rollback(std::vector<HypernodeID> &performed_moves, int last_index, int min_cut_index,
