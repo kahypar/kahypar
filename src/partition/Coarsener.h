@@ -305,7 +305,7 @@ class Coarsener{
                                      std::vector<HypernodeID>& target,
                                      TargetToSourcesMap& sources) {
     if (rating.valid) {
-      _pq.update(hn, rating.value);
+      _pq.updateKey(hn, rating.value);
       if (rating.target != target[hn]) {
         removeMappingEntryOfNode(hn, target[hn], sources);
         target[hn] = rating.target;
