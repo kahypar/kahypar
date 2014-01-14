@@ -313,15 +313,9 @@ class TwoWayFMRefiner{
     
   bool isBorderNode(HypernodeID hn) {
     bool is_border_node = false;
-    PartitionID partition = _hg.partitionIndex(hn);
     forall_incident_hyperedges(he, hn, _hg) {
-      forall_pins(pin, *he, _hg) {
-        if (partition != _hg.partitionIndex(*pin)) {
-          is_border_node = true;
-          break;
-        } 
-      } endfor
-      if (is_border_node) {
+      if ((_hg.pinCountInPartition(*he, 0) > 0) && (_hg.pinCountInPartition(*he, 1) > 0)) {
+        is_border_node = true;
         break;
       }
     } endfor
