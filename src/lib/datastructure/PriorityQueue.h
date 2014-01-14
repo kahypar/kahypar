@@ -60,6 +60,10 @@ class PriorityQueue{
   }
 
   void update(IDType id, KeyType key) {
+    _heap.update(id, -key);
+  }
+
+  void updateKey(IDType id, KeyType key) {
     _heap.updateKey(id, -key);
   }
 
