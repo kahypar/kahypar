@@ -39,6 +39,7 @@ class TwoWayFMRefiner{
       // ToDo: We could also use different storage to avoid initialization like this
       _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
     _marked(_hg.initialNumNodes()),
+     _just_activated(_hg.initialNumNodes()),
     _performed_moves() {
       _performed_moves.reserve(_hg.initialNumNodes());
     }
@@ -175,6 +176,7 @@ class TwoWayFMRefiner{
   }
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
+    _just_activated.reset();
     forall_incident_hyperedges(he, moved_node, _hg) {
       HypernodeID new_size0 = _hg.pinCountInPartition(*he, 0);
       HypernodeID new_size1 = _hg.pinCountInPartition(*he, 1);
@@ -255,21 +257,21 @@ class TwoWayFMRefiner{
     return (old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2);
   }
 
-  // need a better method name here!
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
     if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
-      if (isBorderNode(he)) {
+      if (isBorderNode(he) && !_just_activated[pin]) {
         Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
         Gain gain_delta = sign * _hg.edgeWeight(he);
-        // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
-        //       << " to " << old_gain + gain_delta << " in PQ " << _hg.partitionIndex(pin));
+         // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
+         //       << " to " << old_gain + gain_delta << " in PQ " << _hg.partitionIndex(pin));
         _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
       } else {
-        // PRINT("*** deleting pin " << pin << " from PQ " << _hg.partitionIndex(pin));
+         // PRINT("*** deleting pin " << pin << " from PQ " << _hg.partitionIndex(pin));
         _pq[_hg.partitionIndex(pin)]->remove(pin);
       }
     } else {
         activate(pin);
+        _just_activated[pin] = true;
     }
   }
 
@@ -316,6 +318,7 @@ class TwoWayFMRefiner{
   std::vector<int> _hyperedge_partition_sizes;
   std::array<RefinementPQ*,NUM_PQS> _pq;
   boost::dynamic_bitset<uint64_t> _marked;
+  boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;
 };
 
