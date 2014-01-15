@@ -29,8 +29,9 @@ class TwoWayFMRefiner{
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
 
-  const HypernodeID INVALID = std::numeric_limits<HypernodeID>::max();
-
+  static const HypernodeID INVALID = std::numeric_limits<HypernodeID>::max();
+  static const int NUM_PQS = 2;
+  
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph) :
       _hg(hypergraph),
@@ -52,8 +53,8 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
-      // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
-      //       << " in PQ " << _hg.partitionIndex(hn) );
+       // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
+       //       << " in PQ " << _hg.partitionIndex(hn) );
       _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
     }
   }
@@ -77,6 +78,9 @@ class TwoWayFMRefiner{
     int min_cut_index = -1;
 
     // or until queues are empty?!
+    // TODO: use stopping criterion derived by Vitaly to stop refinement
+    // instead of setting arbitrary limit. This has to be done before we
+    // actually really use this refinement!
     int fruitless_iterations = 0;
     int LIMIT = 1000;
     int iteration = 0;
@@ -88,55 +92,45 @@ class TwoWayFMRefiner{
         break;
       }
 
+      Gain max_gain = std::numeric_limits<Gain>::min();
+      HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
+      PartitionID from_partition = std::numeric_limits<PartitionID>::min();
+      PartitionID to_partition = std::numeric_limits<PartitionID>::min();
+      
       /////////////////////////
       //make this a selection strategy! --> also look at which strategy is proposed by others!!!!
       // toward-tiebreaking (siehe tomboy)
       ////////////////////////////
-      bool queue0_eligable =(!_pq[0]->empty() /* && BALANCE CONSTRAINT!!!*/);
-      bool queue1_eligable =(!_pq[1]->empty() /* && BALANCE CONSTRAINT!!!*/);
-      bool both_eligible = queue0_eligable && queue1_eligable;
 
-      // What happens if none of the queues is eligable?
-      // look at ba_ziegler & tomboy
-      
-      RefinementPQ* from_pq;
-      PartitionID from_partition;
-      PartitionID to_partition;
-
-      // What if more than one HN has key maxKey? Can we somehow enforce LIFO?
-      if (both_eligible) {    
-        Gain pq0_gain = _pq[0]->maxKey();
-        Gain pq1_gain = _pq[1]->maxKey();
-        if( pq0_gain > pq1_gain) {
-          from_pq = _pq[0];
-          from_partition = 0;
-          to_partition = 1;
-        } else {
-          from_pq = _pq[1];
-          from_partition = 1;
-          to_partition = 0;
-        }
-      } else if (queue0_eligable) {
-        from_pq = _pq[0];
+      if (!_pq[0]->empty()) {
+        max_gain = _pq[0]->maxKey();
+        max_gain_node = _pq[0]->max();
+        _pq[0]->deleteMax();
         from_partition = 0;
         to_partition = 1;
-      } else if (queue1_eligable) {
-        from_pq = _pq[1];
+      }
+
+      ////////////// ----> tie breaking instead of true! :-)
+      if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain)
+                               || (_pq[1]->maxKey() == max_gain && true))) {
+        max_gain = _pq[1]->maxKey();
+        max_gain_node = _pq[1]->max();
+        _pq[1]->deleteMax();
         from_partition = 1;
         to_partition = 0;
       }
-
-      /////////////////////////      
-      Gain gain = from_pq->maxKey();
-      HypernodeID hn = from_pq->max();
-      ASSERT(!_marked[hn], "HN " << hn << "is marked and not eligable to be moved");
-      _marked[hn] = 1;
-      from_pq->deleteMax();
-      PRINT("*** Moving HN" << hn << " from " << from_partition << " to " << to_partition
-            << " (gain: " << gain << ")");
-
       
+      ASSERT(max_gain != std::numeric_limits<Gain>::min() &&
+             max_gain_node != std::numeric_limits<HypernodeID>::max() &&
+             from_partition != std::numeric_limits<PartitionID>::min() &&
+             to_partition != std::numeric_limits<PartitionID>::min(), "Selection strategy failed");
+      ASSERT(!_marked[max_gain_node],
+             "HN " << max_gain_node << "is marked and not eligable to be moved");
 
+      _marked[max_gain_node] = 1;
+
+      PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
+            << " (gain: " << max_gain << ")");
 
       // At some point we need to take the partition weights into consideration
       // to ensure balancing stuff
@@ -144,33 +138,29 @@ class TwoWayFMRefiner{
       // [ ] also consider not placing nodes in the queue that violate balance
       // constraint at the beginning
       
-      ASSERT(_hg.partitionIndex(hn) == from_partition, "HN " << hn
-             << " is already in partition " << _hg.partitionIndex(hn));
-      _hg.changeNodePartition(hn, from_partition, to_partition);
-      
-      // how is this handled in ba_ziegler and what does christian do:
-      // especially if he deletes nodes from the PQ
-      // [ ] lock HEs for gain update! (-> should improve running time without affecting quality)
-      // [ ] what about zero-gain updates? does this affect PQ-based impl?
-            updateNeighbours(hn, from_partition, to_partition);
-      // if (iteration == 0) {
-      //   PRINT("foo");
-      //   _pq[0]->update(3,computeGain(3));
-      //   PRINT("bar");
-      // }
-      cut -= gain;
+      ASSERT(_hg.partitionIndex(max_gain_node) == from_partition, "HN " << max_gain_node
+             << " is already in partition " << _hg.partitionIndex(max_gain_node));
+      _hg.changeNodePartition(max_gain_node, from_partition, to_partition);
+
+      cut -= max_gain;
+      PRINT("cut=" << cut);
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
+      
+      // ToDos for update:
+      // [ ] lock HEs for gain update! (improve running time without quality decrease)
+      // [ ] what about zero-gain updates?
+      updateNeighbours(max_gain_node, from_partition, to_partition);
 
       // Here we might need an Acceptance Criteria as with rebalancing
       // Depending on this Citeria we then set the min_cut index for rollback!
-      if ( cut < best_cut) {
+      if (cut < best_cut) {
         PRINT("improved cut from " << best_cut << " to " << cut);
         best_cut = cut;
         min_cut_index = iteration;
       }
-      _performed_moves[iteration] = hn;
+      _performed_moves[iteration] = max_gain_node;
       ++iteration;
     }
     
@@ -324,7 +314,7 @@ class TwoWayFMRefiner{
   
   Hypergraph& _hg;
   std::vector<int> _hyperedge_partition_sizes;
-  std::array<RefinementPQ*,2> _pq;
+  std::array<RefinementPQ*,NUM_PQS> _pq;
   boost::dynamic_bitset<uint64_t> _marked;
   std::vector<HypernodeID> _performed_moves;
 };
