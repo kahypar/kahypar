@@ -25,13 +25,14 @@ class TwoWayFMRefiner{
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
+  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;
   typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
 
   static const HypernodeID INVALID = std::numeric_limits<HypernodeID>::max();
-  static const int NUM_PQS = 2;
+  static const int K = 2;
   
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph) :
@@ -39,10 +40,14 @@ class TwoWayFMRefiner{
       _hyperedge_partition_sizes(2 * _hg.initialNumEdges(), INVALID),
       // ToDo: We could also use different storage to avoid initialization like this
       _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
-    _marked(_hg.initialNumNodes()),
-     _just_activated(_hg.initialNumNodes()),
-    _performed_moves() {
-      _performed_moves.reserve(_hg.initialNumNodes());
+      _partition_node_count{0,0},
+      _marked(_hg.initialNumNodes()),
+      _just_activated(_hg.initialNumNodes()),
+      _performed_moves() {
+        _performed_moves.reserve(_hg.initialNumNodes());
+        forall_hypernodes(hn, _hg) {
+          _partition_node_count[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
+        } endfor
     }
 
   ~TwoWayFMRefiner() {
@@ -99,11 +104,10 @@ class TwoWayFMRefiner{
       PartitionID from_partition = std::numeric_limits<PartitionID>::min();
       PartitionID to_partition = std::numeric_limits<PartitionID>::min();
       
-      /////////////////////////
-      //make this a selection strategy! --> also look at which strategy is proposed by others!!!!
-      // toward-tiebreaking (siehe tomboy)
-      ////////////////////////////
-
+      // ToDo:
+      // [ ] make this a selection strategy!
+      // [ ] look at which strategy is proposed by others
+      // [ ] toward-tiebreaking (siehe tomboy)
       if (!_pq[0]->empty()) {
         max_gain = _pq[0]->maxKey();
         max_gain_node = _pq[0]->max();
@@ -112,8 +116,8 @@ class TwoWayFMRefiner{
         to_partition = 1;
       }
 
-      if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain)
-                               || (_pq[1]->maxKey() == max_gain && randomize::flipCoin()))) {
+      if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain) ||
+                               (_pq[1]->maxKey() == max_gain && randomize::flipCoin()))) {
         max_gain = _pq[1]->maxKey();
         max_gain_node = _pq[1]->max();
         _pq[1]->deleteMax();
@@ -220,6 +224,7 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
   FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
   FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
+  FRIEND_TEST(ATwoWayFMRefinerInstance, CalculatesNodeCountsInBothPartitions);
   
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
@@ -316,7 +321,8 @@ class TwoWayFMRefiner{
   
   Hypergraph& _hg;
   std::vector<int> _hyperedge_partition_sizes;
-  std::array<RefinementPQ*,NUM_PQS> _pq;
+  std::array<RefinementPQ*,K> _pq;
+  std::array<HypernodeWeight,K> _partition_node_count;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;

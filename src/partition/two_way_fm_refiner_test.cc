@@ -47,6 +47,16 @@ TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
   ASSERT_THAT(refiner._pq[1]->maxKey(), Eq(1));
 }
 
+TEST(ATwoWayFMRefinerInstance, CalculatesNodeCountsInBothPartitions) {
+  HypergraphType hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
+                            HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6});
+  hypergraph.changeNodePartition(1,0,1);
+  hypergraph.changeNodePartition(2,0,1);
+  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
+  ASSERT_THAT(refiner._partition_node_count[0], Eq(5));
+  ASSERT_THAT(refiner._partition_node_count[1], Eq(2));
+}
+
 // TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
 //   ASSERT_THAT(true, Eq(false));
 // }
