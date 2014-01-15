@@ -11,6 +11,7 @@
 #include "../lib/definitions.h"
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
+#include "../tools/RandomFunctions.h"
 #include "Metrics.h"
 
 namespace partition {
@@ -111,9 +112,8 @@ class TwoWayFMRefiner{
         to_partition = 1;
       }
 
-      ////////////// ----> tie breaking instead of true! :-)
       if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain)
-                               || (_pq[1]->maxKey() == max_gain && true))) {
+                               || (_pq[1]->maxKey() == max_gain && randomize::flipCoin()))) {
         max_gain = _pq[1]->maxKey();
         max_gain_node = _pq[1]->max();
         _pq[1]->deleteMax();
