@@ -40,13 +40,13 @@ class TwoWayFMRefiner{
       _hyperedge_partition_sizes(2 * _hg.initialNumEdges(), INVALID),
       // ToDo: We could also use different storage to avoid initialization like this
       _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
-      _partition_node_count{0,0},
+      _partition_size{0,0},
       _marked(_hg.initialNumNodes()),
       _just_activated(_hg.initialNumNodes()),
       _performed_moves() {
         _performed_moves.reserve(_hg.initialNumNodes());
         forall_hypernodes(hn, _hg) {
-          _partition_node_count[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
+          _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
         } endfor
     }
 
@@ -132,7 +132,7 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
 
-      _marked[max_gain_node] = 1;
+   
 
       PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
             << " (gain: " << max_gain << ")");
@@ -142,11 +142,8 @@ class TwoWayFMRefiner{
       // [ ]also consider corking effect
       // [ ] also consider not placing nodes in the queue that violate balance
       // constraint at the beginning
+      moveHypernode(max_gain_node, from_partition, to_partition);
       
-      ASSERT(_hg.partitionIndex(max_gain_node) == from_partition, "HN " << max_gain_node
-             << " is already in partition " << _hg.partitionIndex(max_gain_node));
-      _hg.changeNodePartition(max_gain_node, from_partition, to_partition);
-
       cut -= max_gain;
       PRINT("cut=" << cut);
       ASSERT(cut == metrics::hyperedgeCut(_hg),
@@ -215,8 +212,11 @@ class TwoWayFMRefiner{
   FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement);
   FRIEND_TEST(ATwoWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions);
+  FRIEND_TEST(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements);
   FRIEND_TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2);
   FRIEND_TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2);
+  // ToDo: find better names for testcases
   FRIEND_TEST(AGainUpdateMethod, HandlesCase0To1);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase1To0);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
@@ -224,7 +224,15 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
   FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
   FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
-  FRIEND_TEST(ATwoWayFMRefinerInstance, CalculatesNodeCountsInBothPartitions);
+
+  void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
+    ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn
+           << " is already in partition " << _hg.partitionIndex(hn));
+    _hg.changeNodePartition(hn, from, to);
+    _marked[hn] = 1;
+     _partition_size[from] -= _hg.nodeWeight(hn);
+     _partition_size[to] += _hg.nodeWeight(hn);
+  }
   
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
@@ -322,7 +330,7 @@ class TwoWayFMRefiner{
   Hypergraph& _hg;
   std::vector<int> _hyperedge_partition_sizes;
   std::array<RefinementPQ*,K> _pq;
-  std::array<HypernodeWeight,K> _partition_node_count;
+  std::array<HypernodeWeight,K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;

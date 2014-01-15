@@ -18,43 +18,53 @@ class ATwoWayFMRefiner : public Test {
   ATwoWayFMRefiner() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      refiner(hypergraph) {
+      refiner(nullptr) {
     hypergraph.changeNodePartition(1,0,1);
     hypergraph.changeNodePartition(2,0,1);
     hypergraph.changeNodePartition(5,0,1);
     hypergraph.changeNodePartition(6,0,1);
-  }
 
+    refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
+    
+  }
+  
   HypergraphType hypergraph;
-  TwoWayFMRefiner<HypergraphType> refiner;
+  TwoWayFMRefiner<HypergraphType>* refiner;
+  DISALLOW_COPY_AND_ASSIGN(ATwoWayFMRefiner);
 };
 
 TEST_F(ATwoWayFMRefiner, IdentifiesBorderHypernodes) {
-  ASSERT_THAT(refiner.isBorderNode(0), Eq(true));
-  ASSERT_THAT(refiner.isBorderNode(1), Eq(true));
-  ASSERT_THAT(refiner.isBorderNode(5), Eq(false));
+  ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
+  ASSERT_THAT(refiner->isBorderNode(1), Eq(true));
+  ASSERT_THAT(refiner->isBorderNode(5), Eq(false));
 }
 
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
-  ASSERT_THAT(refiner.computeGain(6), Eq(0));
-  ASSERT_THAT(refiner.computeGain(1), Eq(1));
-  ASSERT_THAT(refiner.computeGain(5), Eq(-1));
+  ASSERT_THAT(refiner->computeGain(6), Eq(0));
+  ASSERT_THAT(refiner->computeGain(1), Eq(1));
+  ASSERT_THAT(refiner->computeGain(5), Eq(-1));
 }
 
 TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
-  refiner.activate(1);
-  ASSERT_THAT(refiner._pq[1]->max(), Eq(1));
-  ASSERT_THAT(refiner._pq[1]->maxKey(), Eq(1));
+  refiner->activate(1);
+  ASSERT_THAT(refiner->_pq[1]->max(), Eq(1));
+  ASSERT_THAT(refiner->_pq[1]->maxKey(), Eq(1));
 }
 
-TEST(ATwoWayFMRefinerInstance, CalculatesNodeCountsInBothPartitions) {
-  HypergraphType hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                            HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6});
-  hypergraph.changeNodePartition(1,0,1);
-  hypergraph.changeNodePartition(2,0,1);
-  TwoWayFMRefiner<HypergraphType> refiner(hypergraph);
-  ASSERT_THAT(refiner._partition_node_count[0], Eq(5));
-  ASSERT_THAT(refiner._partition_node_count[1], Eq(2));
+TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
+  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
+  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+}
+
+
+TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
+  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
+  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  
+  refiner->moveHypernode(1,1,0);
+
+  ASSERT_THAT(refiner->_partition_size[0], Eq(4));
+  ASSERT_THAT(refiner->_partition_size[1], Eq(3));
 }
 
 // TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
@@ -88,7 +98,7 @@ TEST(ATwoWayFMRefinerInstance, CalculatesNodeCountsInBothPartitions) {
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
-  HyperedgeWeight new_cut = refiner.refine(1, 6, old_cut);
+  HyperedgeWeight new_cut = refiner->refine(1, 6, old_cut);
 
   ASSERT_THAT(new_cut, Eq(metrics::hyperedgeCut(hypergraph)));
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
