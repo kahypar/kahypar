@@ -22,10 +22,7 @@ class ATwoWayFMRefiner : public Test {
     hypergraph.changeNodePartition(1,0,1);
     hypergraph.changeNodePartition(2,0,1);
     hypergraph.changeNodePartition(5,0,1);
-    hypergraph.changeNodePartition(6,0,1);
-
-    refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
-    
+    hypergraph.changeNodePartition(6,0,1); 
   }
   
   HypergraphType hypergraph;
@@ -34,30 +31,43 @@ class ATwoWayFMRefiner : public Test {
 };
 
 TEST_F(ATwoWayFMRefiner, IdentifiesBorderHypernodes) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(1), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(5), Eq(false));
 }
 
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(refiner->computeGain(6), Eq(0));
   ASSERT_THAT(refiner->computeGain(1), Eq(1));
   ASSERT_THAT(refiner->computeGain(5), Eq(-1));
 }
 
 TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   refiner->activate(1);
   ASSERT_THAT(refiner->_pq[1]->max(), Eq(1));
   ASSERT_THAT(refiner->_pq[1]->maxKey(), Eq(1));
 }
 
 TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(refiner->_partition_size[0], Eq(3));
   ASSERT_THAT(refiner->_partition_size[1], Eq(4));
 }
 
+TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
+  double old_imbalance = metrics::imbalance(hypergraph);
+  refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15, old_imbalance);
+  double new_imbalance = metrics::imbalance(hypergraph);
+  EXPECT_PRED_FORMAT2(::testing::DoubleLE, new_imbalance, old_imbalance);
+}
+
 
 TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(refiner->_partition_size[0], Eq(3));
   ASSERT_THAT(refiner->_partition_size[1], Eq(4));
   
@@ -67,38 +77,25 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
   ASSERT_THAT(refiner->_partition_size[1], Eq(3));
 }
 
-// TEST_F(ATwoWayFMRefiner, DoesNotInvalidateBalanceConstraint) {
-//   ASSERT_THAT(true, Eq(false));
-// }
-
-// TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeight) {
-//   ASSERT_THAT(true, Eq(false));
-// }
-
-// TEST_F(ATwoWayFMRefiner, UpdatesUnmarkedNeighbors) {
-//   ASSERT_THAT(true, Eq(false));
-// }
-
-// TEST_F(ATwoWayFMRefiner, RollsBackToTheLowestCutStateReached) {
-//   ASSERT_THAT(true, Eq(false));
-// }
-
-// TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
-//   ASSERT_THAT(true, Eq(false));
-// }
+TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
+  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
+  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15,
+                                            metrics::imbalance(hypergraph));
+  ASSERT_THAT(refiner->_partition_size[0], Eq(4));
+  ASSERT_THAT(refiner->_partition_size[1], Eq(3));
+}
 
 // TEST_F(ATwoWayFMRefiner, UsesRandomTieBreakingOnEqualCutAcceptance) {
 //   ASSERT_THAT(true, Eq(false));
 // }
 
-// TEST_F(ATwoWayFMRefiner, ManagesWeightsOfPartitionsExplicitely) {
-//   // remember to adjust partition weights after changing the partition of a node
-//   ASSERT_THAT(true, Eq(false));
-// }
-
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
+  refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
-  HyperedgeWeight new_cut = refiner->refine(1, 6, old_cut);
+  HyperedgeWeight new_cut = refiner->refine(1, 6, old_cut, 0.15,
+                                            metrics::imbalance(hypergraph));
 
   ASSERT_THAT(new_cut, Eq(metrics::hyperedgeCut(hypergraph)));
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));

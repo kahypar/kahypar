@@ -12,6 +12,7 @@
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
 #include "../tools/RandomFunctions.h"
+#include "../external/Utils.h"
 #include "Metrics.h"
 
 namespace partition {
@@ -66,13 +67,20 @@ class TwoWayFMRefiner{
     }
   }
 
-  HyperedgeWeight refine(HypernodeID u, HypernodeID v, HyperedgeWeight initial_cut) {
+  HyperedgeWeight refine(HypernodeID u, HypernodeID v, HyperedgeWeight initial_cut,
+                         double max_imbalance, double initial_imbalance) {
     ASSERT(initial_cut == metrics::hyperedgeCut(_hg),
-           "initial_cut " << initial_cut << "does not equal current cut " << metrics::hyperedgeCut(_hg));
+           "initial_cut " << initial_cut << "does not equal cut induced by hypergraph "
+           << metrics::hyperedgeCut(_hg));
+    ASSERT(FloatingPoint<double>(initial_imbalance).AlmostEquals(
+        FloatingPoint<double>(calculateImbalance())),
+           "initial_imbalance " << initial_imbalance << "does not equal imbalance induced"
+           << " by hypergraph " << calculateImbalance());
     // this is only necessary if we decide to stop refinement after certain number of iterations
     // in the first run, i'd suggest to not do this and instead empty the queues until all hns
     // are marked ---> then we can be sure that the queues are empty (-> ASSERT!) and don't
     // need to clear!
+
     _pq[0]->clear();
     _pq[1]->clear();
     _marked.reset();
@@ -83,7 +91,9 @@ class TwoWayFMRefiner{
     HyperedgeWeight best_cut = initial_cut;
     HyperedgeWeight cut = initial_cut;
     int min_cut_index = -1;
-
+    double imbalance = initial_imbalance;
+    double best_imbalance = initial_imbalance;
+    
     // or until queues are empty?!
     // TODO: use stopping criterion derived by Vitaly to stop refinement
     // instead of setting arbitrary limit. This has to be done before we
@@ -145,6 +155,8 @@ class TwoWayFMRefiner{
       moveHypernode(max_gain_node, from_partition, to_partition);
       
       cut -= max_gain;
+      imbalance = calculateImbalance();
+      
       PRINT("cut=" << cut);
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
@@ -155,10 +167,12 @@ class TwoWayFMRefiner{
       // [ ] what about zero-gain updates?
       updateNeighbours(max_gain_node, from_partition, to_partition);
 
-      // Here we might need an Acceptance Criteria as with rebalancing
-      // Depending on this Citeria we then set the min_cut index for rollback!
-      if (cut < best_cut) {
+      // [ ] Whats missing here atm is the coin flip when cut is equal!!!
+      if (((best_imbalance > max_imbalance) && (imbalance < best_imbalance))
+          || ((imbalance < max_imbalance) && (cut < best_cut))) {
         PRINT("improved cut from " << best_cut << " to " << cut);
+        PRINT("improved imbalance from " << best_imbalance << " to " << imbalance);
+        best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = iteration;
       }
@@ -172,7 +186,7 @@ class TwoWayFMRefiner{
     // [ ] TODO: Testcase and FIX for complete rollback!
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
-    ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
+    // ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
     return best_cut;
   }
 
@@ -224,6 +238,16 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
   FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
   FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
+  FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
+
+  double calculateImbalance() {
+    double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
+                       (_partition_size[0] + _partition_size[1]) - 1.0;
+    ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
+        FloatingPoint<double>(metrics::imbalance(_hg))),
+           "imbalance calculation inconsistent beween fm-refiner and hypergraph");
+    return imbalance;
+  }
 
   void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn
@@ -294,6 +318,8 @@ class TwoWayFMRefiner{
     PRINT("last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = performed_moves[last_index];
+      _partition_size[hg.partitionIndex(hn)] -= _hg.nodeWeight(hn);
+      _partition_size[(hg.partitionIndex(hn) ^ 1)] += _hg.nodeWeight(hn);
       _hg.changeNodePartition(hn, hg.partitionIndex(hn), (hg.partitionIndex(hn) ^ 1));
       --last_index;
     }
