@@ -165,9 +165,13 @@ class TwoWayFMRefiner{
       // [ ] what about zero-gain updates?
       updateNeighbours(max_gain_node, from_partition, to_partition);
 
-      // [ ] Whats missing here atm is the coin flip when cut is equal!!!
-      if (((best_imbalance > max_imbalance) && (imbalance < best_imbalance))
-          || ((imbalance < max_imbalance) && (cut < best_cut))) {
+
+      // right now, we do not allow a decrease in cut in favor of an increase in balance
+      bool improved_cut_within_balance = (cut < best_cut) && (imbalance < max_imbalance);
+      bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut == best_cut);
+      
+      if (improved_balance_equal_cut || improved_cut_within_balance) {
+        ASSERT(cut <= best_cut, "Accepted a node move which decreased cut"); 
         PRINT("improved cut from " << best_cut << " to " << cut);
         PRINT("improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
@@ -184,7 +188,7 @@ class TwoWayFMRefiner{
     // [ ] TODO: Testcase and FIX for complete rollback!
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
-    // ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
+    ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
     return best_cut;
   }
 

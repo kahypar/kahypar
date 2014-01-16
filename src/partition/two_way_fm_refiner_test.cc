@@ -93,8 +93,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
-  HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
-  HyperedgeWeight new_cut = refiner->refine(1, 6, old_cut, 0.15,
+  HyperedgeWeight new_cut = refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15,
                                             metrics::imbalance(hypergraph));
 
   ASSERT_THAT(new_cut, Eq(metrics::hyperedgeCut(hypergraph)));
