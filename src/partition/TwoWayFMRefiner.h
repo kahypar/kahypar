@@ -145,11 +145,8 @@ class TwoWayFMRefiner{
       PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
             << " (gain: " << max_gain << ")");
 
-      // At some point we need to take the partition weights into consideration
-      // to ensure balancing stuff
-      // [ ]also consider corking effect
-      // [ ] also consider not placing nodes in the queue that violate balance
-      // constraint at the beginning
+      // ToDo:
+      // [ ] also consider corking effect
       moveHypernode(max_gain_node, from_partition, to_partition);
       
       cut -= max_gain;
@@ -182,10 +179,6 @@ class TwoWayFMRefiner{
       ++iteration;
     }
     
-    //rollback! to best cut. What if we've seen multiple best cuts?
-    // choose one at random? choose the one with the best balance (read chris's thesis)
-    // and compare with infos from literature
-    // [ ] TODO: Testcase and FIX for complete rollback!
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
