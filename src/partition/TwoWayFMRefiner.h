@@ -32,13 +32,11 @@ class TwoWayFMRefiner{
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
 
-  static const HypernodeID INVALID = std::numeric_limits<HypernodeID>::max();
   static const int K = 2;
   
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph) :
       _hg(hypergraph),
-      _hyperedge_partition_sizes(2 * _hg.initialNumEdges(), INVALID),
       // ToDo: We could also use different storage to avoid initialization like this
       _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
       _partition_size{0,0},
@@ -354,7 +352,6 @@ class TwoWayFMRefiner{
   }
   
   Hypergraph& _hg;
-  std::vector<int> _hyperedge_partition_sizes;
   std::array<RefinementPQ*,K> _pq;
   std::array<HypernodeWeight,K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;
