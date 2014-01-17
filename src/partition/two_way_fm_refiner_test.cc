@@ -65,8 +65,8 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   double old_imbalance = metrics::imbalance(hypergraph);
-
-  refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15, old_imbalance);
+  HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(hypergraph),
                       old_imbalance);
@@ -88,9 +88,10 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(refiner->_partition_size[0], Eq(3));
   ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  double old_imbalance = metrics::imbalance(hypergraph);
+  HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
   
-  refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15,
-                                            metrics::imbalance(hypergraph));
+  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
   
   ASSERT_THAT(refiner->_partition_size[0], Eq(4));
   ASSERT_THAT(refiner->_partition_size[1], Eq(3));
@@ -101,9 +102,10 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
   ASSERT_THAT(hypergraph.partitionIndex(6),Eq(1));
   ASSERT_THAT(hypergraph.partitionIndex(2),Eq(1));
-  
-  refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15,
-                    metrics::imbalance(hypergraph));
+  double old_imbalance = metrics::imbalance(hypergraph);
+  HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+
+  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
 
   ASSERT_THAT(hypergraph.partitionIndex(6),Eq(1));
   ASSERT_THAT(hypergraph.partitionIndex(2),Eq(1));
@@ -111,10 +113,12 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   refiner = new TwoWayFMRefiner<HypergraphType>(hypergraph);
-  HyperedgeWeight new_cut = refiner->refine(1, 6, metrics::hyperedgeCut(hypergraph), 0.15,
-                                            metrics::imbalance(hypergraph));
+  double old_imbalance = metrics::imbalance(hypergraph);
+  HyperedgeWeight cut = metrics::hyperedgeCut(hypergraph);
 
-  ASSERT_THAT(new_cut, Eq(metrics::hyperedgeCut(hypergraph)));
+  refiner->refine(1, 6, cut, 0.15, old_imbalance);
+
+  ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(hypergraph)));
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
   ASSERT_THAT(hypergraph.partitionIndex(5), Eq(1));
 }
