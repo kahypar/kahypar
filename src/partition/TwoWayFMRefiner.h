@@ -59,14 +59,14 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
-       // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
-       //       << " in PQ " << _hg.partitionIndex(hn) );
+        PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
+              << " in PQ " << _hg.partitionIndex(hn) );
       _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
     }
   }
 
-  HyperedgeWeight refine(HypernodeID u, HypernodeID v, HyperedgeWeight initial_cut,
-                         double max_imbalance, double initial_imbalance) {
+  HyperedgeWeight refine(HypernodeID u, HypernodeID v, HyperedgeWeight& initial_cut,
+                         double max_imbalance, double& initial_imbalance) {
     ASSERT(initial_cut == metrics::hyperedgeCut(_hg),
            "initial_cut " << initial_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -74,11 +74,7 @@ class TwoWayFMRefiner{
         FloatingPoint<double>(calculateImbalance())),
            "initial_imbalance " << initial_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << calculateImbalance());
-    // this is only necessary if we decide to stop refinement after certain number of iterations
-    // in the first run, i'd suggest to not do this and instead empty the queues until all hns
-    // are marked ---> then we can be sure that the queues are empty (-> ASSERT!) and don't
-    // need to clear!
-
+    
     _pq[0]->clear();
     _pq[1]->clear();
     _marked.reset();
@@ -92,16 +88,15 @@ class TwoWayFMRefiner{
     double imbalance = initial_imbalance;
     double best_imbalance = initial_imbalance;
     
-    // or until queues are empty?!
-    // TODO: use stopping criterion derived by Vitaly to stop refinement
-    // instead of setting arbitrary limit. This has to be done before we
-    // actually really use this refinement!
-    int fruitless_iterations = 0;
-    int LIMIT = 1000;
+    // TODO:
+    // [ ] make limit a accessible tuning_parameter
+    // [ ] use stopping criterion derived by Vitaly to stop refinement
+    int iterations_without_improvement = 0;
+    int LIMIT = 50;
     int iteration = 0;
     
     // forward
-    while( fruitless_iterations < LIMIT) {
+    while( iterations_without_improvement < LIMIT) {
 
       if (_pq[0]->empty() && _pq[1]->empty()) {
         break;
@@ -140,8 +135,6 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
 
-   
-
       PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
             << " (gain: " << max_gain << ")");
 
@@ -174,6 +167,9 @@ class TwoWayFMRefiner{
         best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = iteration;
+        iterations_without_improvement = 0;
+      } else {
+        ++iterations_without_improvement;
       }
       _performed_moves[iteration] = max_gain_node;
       ++iteration;
