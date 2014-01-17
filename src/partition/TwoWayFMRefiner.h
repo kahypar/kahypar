@@ -119,7 +119,7 @@ class TwoWayFMRefiner{
       }
 
       if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain) ||
-                               (_pq[1]->maxKey() == max_gain && randomize::flipCoin()))) {
+                               (_pq[1]->maxKey() == max_gain && Randomize::flipCoin()))) {
         max_gain = _pq[1]->maxKey();
         max_gain_node = _pq[1]->max();
         _pq[1]->deleteMax();

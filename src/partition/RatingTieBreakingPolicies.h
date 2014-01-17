@@ -27,7 +27,7 @@ template <typename T>
 struct RandomRatingWins {
  public:
   static bool acceptEqual() {
-    return randomize::flipCoin();
+    return Randomize::flipCoin();
   }
  protected:
   ~RandomRatingWins() {}
