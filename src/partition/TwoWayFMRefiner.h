@@ -66,13 +66,13 @@ class TwoWayFMRefiner{
   }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-                         double max_imbalance, double& initial_imbalance) {
+                         double max_imbalance, double& best_imbalance) {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
-    ASSERT(FloatingPoint<double>(initial_imbalance).AlmostEquals(
+    ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
         FloatingPoint<double>(calculateImbalance())),
-           "initial_imbalance " << initial_imbalance << "does not equal imbalance induced"
+           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << calculateImbalance());
     
     _pq[0]->clear();
@@ -85,8 +85,7 @@ class TwoWayFMRefiner{
     HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
-    double imbalance = initial_imbalance;
-    double best_imbalance = initial_imbalance;
+    double imbalance = best_imbalance;
     
     // TODO:
     // [ ] make limit a accessible tuning_parameter
@@ -176,7 +175,8 @@ class TwoWayFMRefiner{
     
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
-    ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
+    ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
+           << initial_cut << " to" << best_cut);
   }
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
