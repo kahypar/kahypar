@@ -8,6 +8,7 @@
 
 #include "../lib/macros.h"
 #include "../lib/datastructure/Hypergraph.h"
+#include "Configuration.h"
 #include "RatingTieBreakingPolicies.h"
 
 namespace partition {
@@ -44,9 +45,9 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
   
  public:
   typedef HeavyEdgeRating Rating;
-  Rater(Hypergraph& hypergraph, HypernodeWeight threshold_node_weight) :
+  Rater(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
       _hg(hypergraph),
-      _threshold_node_weight(threshold_node_weight),
+      _config(config),
       _tmp_ratings(_hg.initialNumNodes()),
       _used_entries(),
       _visited_hypernodes(_hg.initialNumNodes()) {}
@@ -92,17 +93,17 @@ class Rater : public _TieBreakingPolicy<typename Hypergraph::HypernodeID> {
   };
 
   HypernodeWeight thresholdNodeWeight() const {
-    return _threshold_node_weight;
+    return _config.coarsening.threshold_node_weight;
   }
 
  private:
 
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
-    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _threshold_node_weight;
+    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
   }
   
   Hypergraph& _hg;
-  const HypernodeWeight _threshold_node_weight;
+  const Configuration<Hypergraph>& _config;
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;

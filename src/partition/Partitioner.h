@@ -28,8 +28,8 @@ class Partitioner{
       _config(config) {}
 
   void partition(Hypergraph& hypergraph) {
-    Coarsener coarsener(hypergraph, _config.threshold_node_weight);
-    coarsener.coarsen(_config.coarsening_limit);
+    Coarsener coarsener(hypergraph, _config);
+    coarsener.coarsen(_config.coarsening.minimal_node_count);
     performInitialPartitioning(hypergraph);
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
@@ -51,17 +51,17 @@ class Partitioner{
   }
 
   void performInitialPartitioning(Hypergraph& hg) {
-    io::printHypergraphInfo(hg, _config.coarse_graph_filename);
+    io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename);
     
     HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(),0);
     CoarsenedToHmetisMapping hg_to_hmetis;
     createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
-    io::writeHypergraphForhMetisPartitioning(hg, _config.coarse_graph_filename, hg_to_hmetis);
+    io::writeHypergraphForhMetisPartitioning(hg, _config.partitioning.coarse_graph_filename, hg_to_hmetis);
     std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
-                 + _config.coarse_graph_filename + " 2").c_str());
+                 + _config.partitioning.coarse_graph_filename + " 2").c_str());
     std::vector<PartitionID> partitioning;
-    io::readPartitionFile(_config.partition_filename, partitioning);
+    io::readPartitionFile(_config.partitioning.partition_filename, partitioning);
     ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
 
     for (size_t i = 0; i < partitioning.size(); ++i) {

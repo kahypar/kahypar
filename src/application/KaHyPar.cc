@@ -14,6 +14,7 @@
 #include "../partition/Rater.h"
 #include "../partition/Partitioner.h"
 #include "../partition/Metrics.h"
+#include "../tools/RandomFunctions.h"
 
 using datastructure::Hypergraph;
 using partition::Rater;
@@ -46,18 +47,26 @@ int main (int argc, char *argv[]) {
   HyperedgeVector edge_vector;
 
   PartitionConfig config;
-  config.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
-  config.coarse_graph_filename = "coarse_test.hgr";
-  config.partition_filename = "coarse_test.hgr.part.2";
-  config.coarsening_limit = COARSENING_LIMIT;
+  config.partitioning.k = 2;
+  config.partitioning.seed = -1;
+  config.partitioning.balance_constraint = 0.1;
+  config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
+  config.partitioning.coarse_graph_filename = "coarse_test.hgr";
+  config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+
+  Randomize::setSeed(config.partitioning.seed);
   
-  io::readHypergraphFile(config.graph_filename, num_hypernodes, num_hyperedges, index_vector,
+  io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges, index_vector,
                          edge_vector);
   HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  config.threshold_node_weight = HYPERNODE_WEIGHT_FRACTION * hypergraph.numNodes();
+  
+  config.coarsening.threshold_node_weight = HYPERNODE_WEIGHT_FRACTION * hypergraph.numNodes();
+  config.coarsening.minimal_node_count = COARSENING_LIMIT;
 
-  io::printHypergraphInfo(hypergraph, config.graph_filename.substr(
-      config.graph_filename.find_last_of("/")+1));
+  config.two_way_fm.max_number_of_fruitless_moves = 50;
+  
+  io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
+      config.partitioning.graph_filename.find_last_of("/")+1));
 
   HypergraphPartitioner partitioner(config);
   partitioner.partition(hypergraph);

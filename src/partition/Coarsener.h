@@ -6,6 +6,7 @@
 
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
+#include "Configuration.h"
 #include "Rater.h"
 #include "TwoWayFMRefiner.h"
 
@@ -65,9 +66,10 @@ class Coarsener{
   };
   
  public:  
-  Coarsener(Hypergraph& hypergraph,  HypernodeWeight threshold_node_weight) :
+  Coarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
       _hg(hypergraph),
-      _rater(_hg, threshold_node_weight),
+      _config(config),
+      _rater(_hg, _config),
       _history(),
       _removed_single_node_hyperedges(),
       _removed_parallel_hyperedges(),
@@ -114,13 +116,12 @@ class Coarsener{
   }
 
   void uncoarsen() {
-    TwoWayFMRefiner<Hypergraph> refiner(_hg);
+    TwoWayFMRefiner<Hypergraph> refiner(_hg, _config);
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
     while(!_history.empty()) {  
-#ifndef NSELF_VERIFICATION
-      double old_imbalance = current_imbalance;
+#ifndef NDEBUG
       HyperedgeWeight old_cut = current_cut;
 #endif
       
@@ -132,16 +133,14 @@ class Coarsener{
 
       _hg.uncontract(_history.top().contraction_memento);
       refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                     current_cut, 0.1, current_imbalance);
+                     current_cut, _config.partitioning.balance_constraint, current_imbalance);
       _history.pop();
       
-#ifndef NSELF_VERIFICATION
-      // ASSERT(FloatingPoint<double>(old_imbalance).AlmostEquals(
-      //     FloatingPoint<double>(metrics::imbalance(_hg))),
-      //        "Imbalance changed during uncontraction");
       ASSERT(old_cut <= current_cut, "Cut increased during uncontraction");
-#endif
     }
+    ASSERT(current_imbalance <= _config.partitioning.balance_constraint,
+           "balance_constraint is violated after uncontraction:" << current_imbalance
+           << " > " << _config.partitioning.balance_constraint);
   }
 
  private:
@@ -329,6 +328,7 @@ class Coarsener{
   }
   
   Hypergraph& _hg;
+  const Configuration<Hypergraph>& _config;
   Rater _rater;
   std::stack<CoarseningMemento> _history;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;

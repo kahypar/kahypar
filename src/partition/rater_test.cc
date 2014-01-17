@@ -24,10 +24,12 @@ class AFirstWinsRater : public Test {
   AFirstWinsRater() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      threshold_node_weight(2),
-      rater(hypergraph, threshold_node_weight) {}
+      config(),
+      rater(hypergraph, config) {
+    config.coarsening.threshold_node_weight = 2;
+  }
   HypergraphType hypergraph;
-  HypernodeWeight threshold_node_weight;
+  Configuration<HypergraphType> config;
   FirstWinsRater rater;
 };
 
@@ -36,10 +38,12 @@ class ALastWinsRater : public Test {
   ALastWinsRater() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      threshold_node_weight(2),
-      rater(hypergraph, threshold_node_weight) {}
+      config(),
+      rater(hypergraph, config) {
+      config.coarsening.threshold_node_weight = 2;
+  }
   HypergraphType hypergraph;
-  HypernodeWeight threshold_node_weight;
+  Configuration<HypergraphType> config;
   LastWinsRater rater;
 };
 
@@ -48,10 +52,12 @@ class ARandomWinsRater : public Test {
   ARandomWinsRater() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      threshold_node_weight(2),
-      rater(hypergraph, threshold_node_weight) {}
+      config(),
+      rater(hypergraph, config) {
+    config.coarsening.threshold_node_weight = 2;
+  }
   HypergraphType hypergraph;
-  HypernodeWeight threshold_node_weight;
+  Configuration<HypergraphType> config;
   RandomWinsRater rater;
 };
 

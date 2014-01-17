@@ -26,11 +26,13 @@ class ACoarsener : public Test {
   ACoarsener() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      threshold_node_weight(5),
-      coarsener(hypergraph, threshold_node_weight) {}
+      config(),
+      coarsener(hypergraph, config) {
+    config.coarsening.threshold_node_weight = 5;
+  }
   
   HypergraphType hypergraph;
-  HypernodeWeight threshold_node_weight;
+  Configuration<HypergraphType> config;
   CoarsenerType coarsener;
 };
 
@@ -39,11 +41,13 @@ class ACoarsenerWithThresholdWeight3 : public Test {
   ACoarsenerWithThresholdWeight3() :
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      threshold_node_weight(3),
-      coarsener(hypergraph, threshold_node_weight) {}
+      config(),
+      coarsener(hypergraph, config) {
+    config.coarsening.threshold_node_weight = 3;
+  }
   
   HypergraphType hypergraph;
-  HypernodeWeight threshold_node_weight;
+  Configuration<HypergraphType> config;
   CoarsenerType coarsener;
 };
 
@@ -115,7 +119,9 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   HypergraphType hypergraph(3,4, HyperedgeIndexVector {0,2,4,6,/*sentinel*/8},
                      HyperedgeVector {0,1,0,1,0,2,1,2}, &edge_weights,
                      &node_weights);
-  CoarsenerType coarsener(hypergraph, 4);
+  Configuration<HypergraphType> config;
+  config.coarsening.threshold_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(2);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
@@ -133,7 +139,9 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   HypergraphType hypergraph(2,3, HyperedgeIndexVector {0,2,4,/*sentinel*/6},
                      HyperedgeVector {0,1,0,1,0,1}, &edge_weights,
                      &node_weights);
-  CoarsenerType coarsener(hypergraph, 4);
+  Configuration<HypergraphType> config;
+  config.coarsening.threshold_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(1);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which

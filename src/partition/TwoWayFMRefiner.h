@@ -13,6 +13,7 @@
 #include "../lib/datastructure/PriorityQueue.h"
 #include "../tools/RandomFunctions.h"
 #include "../external/Utils.h"
+#include "Configuration.h"
 #include "Metrics.h"
 
 namespace partition {
@@ -35,8 +36,9 @@ class TwoWayFMRefiner{
   static const int K = 2;
   
  public:
-  TwoWayFMRefiner(Hypergraph& hypergraph) :
+  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
       _hg(hypergraph),
+      _config(config),
       // ToDo: We could also use different storage to avoid initialization like this
       _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
       _partition_size{0,0},
@@ -91,11 +93,10 @@ class TwoWayFMRefiner{
     // [ ] make limit a accessible tuning_parameter
     // [ ] use stopping criterion derived by Vitaly to stop refinement
     int iterations_without_improvement = 0;
-    int LIMIT = 50;
     int iteration = 0;
     
     // forward
-    while( iterations_without_improvement < LIMIT) {
+    while( iterations_without_improvement < _config.two_way_fm.max_number_of_fruitless_moves) {
 
       if (_pq[0]->empty() && _pq[1]->empty()) {
         break;
@@ -343,6 +344,7 @@ class TwoWayFMRefiner{
   }
   
   Hypergraph& _hg;
+  const Configuration<Hypergraph>& _config;
   std::array<RefinementPQ*,K> _pq;
   std::array<HypernodeWeight,K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;

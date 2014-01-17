@@ -188,11 +188,11 @@ class APartitionOfAHypergraph : public Test {
       _config(),
       _partitioner(_config),
       _partition_filename("test.part") {
-    _config.coarsening_limit = 2;
-    _config.threshold_node_weight = 5;
-    _config.graph_filename = "APartitionOfAHypergrpahTest";
-    _config.coarse_graph_filename = "APartitionOfAHypergrpahTest.hgr";
-    _config.partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2";
+    _config.coarsening.minimal_node_count = 2;
+    _config.coarsening.threshold_node_weight = 5;
+    _config.partitioning.graph_filename = "APartitionOfAHypergrpahTest";
+    _config.partitioning.coarse_graph_filename = "APartitionOfAHypergrpahTest.hgr";
+    _config.partitioning.partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2";
   }
 
   void TearDown() {

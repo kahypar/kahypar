@@ -49,11 +49,11 @@ class APartitionedHypergraph : public Test {
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       config(),
       partitioner(config) {
-    config.coarsening_limit = 2;
-    config.threshold_node_weight = 5;
-    config.graph_filename = "Test";
-    config.coarse_graph_filename = "coarse_test.hgr";
-    config.partition_filename = "coarse_test.hgr.part.2";
+    config.coarsening.minimal_node_count = 2;
+    config.coarsening.threshold_node_weight = 5;
+    config.partitioning.graph_filename = "Test";
+    config.partitioning.coarse_graph_filename = "coarse_test.hgr";
+    config.partitioning.partition_filename = "coarse_test.hgr.part.2";
     partitioner.partition(hypergraph);
   }
 
