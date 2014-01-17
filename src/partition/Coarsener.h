@@ -4,9 +4,10 @@
 #include <stack>
 #include <unordered_map>
 
-#include "Rater.h"
 #include "../lib/datastructure/Hypergraph.h"
 #include "../lib/datastructure/PriorityQueue.h"
+#include "Rater.h"
+#include "TwoWayFMRefiner.h"
 
 #ifndef NSELF_VERIFICATION
 #include "Metrics.h"
@@ -23,6 +24,7 @@ class Coarsener{
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
+  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::ContractionMemento Memento;
   typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
   typedef typename Hypergraph::HypernodeIterator HypernodeIterator;
@@ -112,23 +114,32 @@ class Coarsener{
   }
 
   void uncoarsen() {
-    while(!_history.empty()) {
+    TwoWayFMRefiner<Hypergraph> refiner(_hg);
+    double current_imbalance = metrics::imbalance(_hg);
+    HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+
+    while(!_history.empty()) {  
 #ifndef NSELF_VERIFICATION
-      double old_imbalance = metrics::imbalance(_hg);
-      typename Hypergraph::HyperedgeWeight old_cut = metrics::hyperedgeCut(_hg);
+      double old_imbalance = current_imbalance;
+      HyperedgeWeight old_cut = current_cut;
 #endif
       
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
-      
+
+      // PRINT("Uncontracting: (" << _history.top().contraction_memento.u << ","
+      //       << _history.top().contraction_memento.v << ")");
+
       _hg.uncontract(_history.top().contraction_memento);
+      refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
+                     current_cut, 0.1, current_imbalance);
       _history.pop();
       
 #ifndef NSELF_VERIFICATION
-      double imbalance = metrics::imbalance(_hg);
-      const FloatingPoint<double> old_imb(old_imbalance), new_imb(imbalance);
-      ASSERT(old_imb.AlmostEquals(new_imb), "Imbalance changed during uncontraction");
-      ASSERT(old_cut == metrics::hyperedgeCut(_hg), "MinCut changed during uncontraction");
+      // ASSERT(FloatingPoint<double>(old_imbalance).AlmostEquals(
+      //     FloatingPoint<double>(metrics::imbalance(_hg))),
+      //        "Imbalance changed during uncontraction");
+      ASSERT(old_cut <= current_cut, "Cut increased during uncontraction");
 #endif
     }
   }
