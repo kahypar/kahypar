@@ -287,7 +287,7 @@ class TwoWayFMRefiner{
 
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
     if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
-      if (isBorderNode(he) && !_just_activated[pin]) {
+      if (isBorderNode(pin) && !_just_activated[pin]) {
         Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
         Gain gain_delta = sign * _hg.edgeWeight(he);
          // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
