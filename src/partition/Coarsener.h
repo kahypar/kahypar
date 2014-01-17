@@ -136,7 +136,7 @@ class Coarsener{
                      current_cut, _config.partitioning.balance_constraint, current_imbalance);
       _history.pop();
       
-      ASSERT(old_cut <= current_cut, "Cut increased during uncontraction");
+      ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
     }
     ASSERT(current_imbalance <= _config.partitioning.balance_constraint,
            "balance_constraint is violated after uncontraction:" << current_imbalance
