@@ -59,16 +59,16 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
-        PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
-              << " in PQ " << _hg.partitionIndex(hn) );
+      // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
+      //         << " in PQ " << _hg.partitionIndex(hn) );
       _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
     }
   }
 
-  HyperedgeWeight refine(HypernodeID u, HypernodeID v, HyperedgeWeight& initial_cut,
+  void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
                          double max_imbalance, double& initial_imbalance) {
-    ASSERT(initial_cut == metrics::hyperedgeCut(_hg),
-           "initial_cut " << initial_cut << "does not equal cut induced by hypergraph "
+    ASSERT(best_cut == metrics::hyperedgeCut(_hg),
+           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(initial_imbalance).AlmostEquals(
         FloatingPoint<double>(calculateImbalance())),
@@ -82,8 +82,8 @@ class TwoWayFMRefiner{
     activate(u);
     activate(v);
 
-    HyperedgeWeight best_cut = initial_cut;
-    HyperedgeWeight cut = initial_cut;
+    HyperedgeWeight initial_cut = best_cut;
+    HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     double imbalance = initial_imbalance;
     double best_imbalance = initial_imbalance;
@@ -135,8 +135,8 @@ class TwoWayFMRefiner{
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
 
-      PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
-            << " (gain: " << max_gain << ")");
+      // PRINT("*** Moving HN" << max_gain_node << " from " << from_partition << " to " << to_partition
+      //       << " (gain: " << max_gain << ")");
 
       // ToDo:
       // [ ] also consider corking effect
@@ -145,7 +145,6 @@ class TwoWayFMRefiner{
       cut -= max_gain;
       imbalance = calculateImbalance();
       
-      PRINT("cut=" << cut);
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
@@ -178,7 +177,6 @@ class TwoWayFMRefiner{
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from " << initial_cut << " to" << best_cut);
-    return best_cut;
   }
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
@@ -305,8 +303,8 @@ class TwoWayFMRefiner{
 
   void rollback(std::vector<HypernodeID> &performed_moves, int last_index, int min_cut_index,
                 Hypergraph& hg) {
-    PRINT("min_cut_index=" << min_cut_index);
-    PRINT("last_index=" << last_index);
+    // PRINT("min_cut_index=" << min_cut_index);
+    // PRINT("last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = performed_moves[last_index];
       _partition_size[hg.partitionIndex(hn)] -= _hg.nodeWeight(hn);
