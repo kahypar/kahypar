@@ -7,6 +7,7 @@
 #include "../lib/definitions.h"
 #include "../lib/io/HypergraphIO.h"
 #include "../lib/io/PartitioningOutput.h"
+#include "../tools/RandomFunctions.h"
 #include "Configuration.h"
 
 #ifndef NDEBUG
@@ -19,6 +20,7 @@ using defs::PartitionID;
 template <class Hypergraph, class Coarsener>
 class Partitioner{
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
+  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
@@ -57,16 +59,43 @@ class Partitioner{
     CoarsenedToHmetisMapping hg_to_hmetis;
     createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
-    io::writeHypergraphForhMetisPartitioning(hg, _config.partitioning.coarse_graph_filename, hg_to_hmetis);
-    std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
-                 + _config.partitioning.coarse_graph_filename + " 2").c_str());
-    std::vector<PartitionID> partitioning;
-    io::readPartitionFile(_config.partitioning.partition_filename, partitioning);
-    ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
+    io::writeHypergraphForhMetisPartitioning(hg, _config.partitioning.coarse_graph_filename,
+                                             hg_to_hmetis);
 
-    for (size_t i = 0; i < partitioning.size(); ++i) {
-      hg.changeNodePartition(hmetis_to_hg[i], hg.partitionIndex(hmetis_to_hg[i]), partitioning[i]);
+    std::vector<PartitionID> partitioning;
+    std::vector<PartitionID> best_partitioning;
+    HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+    HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
+
+    for (int attempt = 0; attempt < _config.partitioning.initial_partitioning_attempts; ++attempt) {
+      int seed = Randomize::newRandomSeed();
+
+      std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
+                   + _config.partitioning.coarse_graph_filename + " 2" + " -seed="
+                   + std::to_string(seed) + " -ufactor=" + std::to_string(
+                       _config.partitioning.balance_constraint * 100)).c_str());
+
+      io::readPartitionFile(_config.partitioning.partition_filename, partitioning);
+      ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
+
+      current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
+
+      if (current_cut < best_cut) {
+        PRINT("attempt " << attempt << " improved initial cut from " << best_cut << " to "
+              << current_cut);
+        best_partitioning.swap(partitioning);
+        best_cut = current_cut;
+      }
+      partitioning.clear();
     }
+
+    ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max(), "No min cut calculated");
+    for (size_t i = 0; i < best_partitioning.size(); ++i) {
+      hg.changeNodePartition(hmetis_to_hg[i], hg.partitionIndex(hmetis_to_hg[i]),
+                             best_partitioning[i]);
+    }
+    ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
+           << "best initial cut");
   }
   
   const Configuration<Hypergraph>& _config;

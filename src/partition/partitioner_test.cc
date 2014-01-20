@@ -31,6 +31,7 @@ class APartitioner : public Test {
     config.partitioning.graph_filename = "Test";
     config.partitioning.coarse_graph_filename = "coarse_test.hgr";
     config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+    config.partitioning.balance_constraint = 0.15;
   }
   
   HypergraphType hypergraph;
@@ -40,8 +41,8 @@ class APartitioner : public Test {
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {      
   partitioner.partition(hypergraph);
-  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));
-  ASSERT_THAT(hypergraph.partitionIndex(3), Eq(1));
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(1));
+  ASSERT_THAT(hypergraph.partitionIndex(3), Eq(0));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {

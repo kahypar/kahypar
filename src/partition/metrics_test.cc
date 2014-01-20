@@ -13,6 +13,7 @@ using ::testing::Eq;
 using ::testing::DoubleEq;
 
 using datastructure::HypergraphType;
+using datastructure::HypernodeID;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
@@ -54,6 +55,7 @@ class APartitionedHypergraph : public Test {
     config.partitioning.graph_filename = "Test";
     config.partitioning.coarse_graph_filename = "coarse_test.hgr";
     config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+    config.partitioning.balance_constraint = 0.15;
     partitioner.partition(hypergraph);
   }
 
@@ -61,6 +63,40 @@ class APartitionedHypergraph : public Test {
   PartitionConfig config;
   HypergraphPartitioner partitioner;
 };
+
+class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
+ public:
+  TheHyperedgeCutCalculationForInitialPartitioning() :
+      AnUnPartitionedHypergraph(),
+      config(),
+      coarsener(hypergraph, config),
+      hg_to_hmetis(),
+      partition() {
+    config.coarsening.minimal_node_count = 2;
+    config.coarsening.threshold_node_weight = 5;
+    config.partitioning.graph_filename = "Test";
+    config.partitioning.coarse_graph_filename = "coarse_cutCalc_test.hgr";
+    config.partitioning.partition_filename = "coarse_cutCalc_test.hgr.part.2";
+    config.partitioning.balance_constraint = 0.15;
+    hg_to_hmetis[1] = 0;
+    hg_to_hmetis[3] = 1;
+    partition.push_back(1);
+    partition.push_back(0);
+  }
+  PartitionConfig config;
+  FirstWinsCoarsener coarsener;
+  std::unordered_map<HypernodeID, HypernodeID> hg_to_hmetis;
+  std::vector<PartitionID> partition;
+};
+
+TEST_F(TheHyperedgeCutCalculationForInitialPartitioning, ReturnsCorrectResult) {
+  coarsener.coarsen(2);
+  ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
+  ASSERT_THAT(hypergraph.nodeDegree(3), Eq(1));
+  hypergraph.changeNodePartition(3,0,1);
+  
+  ASSERT_THAT(hyperedgeCut(hypergraph, hg_to_hmetis, partition), Eq(hyperedgeCut(hypergraph)));
+}
 
 TEST_F(AnUnPartitionedHypergraph, HasHyperedgeCutZero) {
   ASSERT_THAT(hyperedgeCut(hypergraph), Eq(0));

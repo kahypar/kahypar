@@ -36,6 +36,32 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   return cut;
 }
 
+template <class Hypergraph, typename CoarsendToHmetisMapping, typename Partition>
+HyperedgeWeight hyperedgeCut(const Hypergraph& hg,  CoarsendToHmetisMapping&
+                             hg_to_hmetis, Partition& partitioning) {
+  HyperedgeWeight cut = 0;
+  forall_hyperedges(he, hg) {
+    IncidenceIterator begin, end;
+    std::tie(begin, end) = hg.pins(*he);
+    if (begin == end) {
+      continue;
+    }
+    ASSERT(begin != end, "Accessing empty hyperedge");
+
+    PartitionID partition = partitioning[hg_to_hmetis[*begin]];
+    ++begin;
+
+    for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
+      if (partition != partitioning[hg_to_hmetis[*pin_it]]) {
+        //PRINT("** Hyperedge " << *he << " is cut-edge");
+        cut += hg.edgeWeight(*he);
+        break;
+      }
+    }
+  } endfor
+  return cut;
+}
+
 template <class Hypergraph>
 double imbalance(const Hypergraph& hypergraph) {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
