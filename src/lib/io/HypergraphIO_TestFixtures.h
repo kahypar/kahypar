@@ -186,23 +186,22 @@ class APartitionOfAHypergraph : public Test {
       _hypergraph(7, 4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       _config(),
-      _partitioner(_config),
-      _partition_filename("test.part") {
+      _partitioner(_config) {
     _config.coarsening.minimal_node_count = 2;
     _config.coarsening.threshold_node_weight = 5;
     _config.partitioning.graph_filename = "APartitionOfAHypergrpahTest";
-    _config.partitioning.coarse_graph_filename = "APartitionOfAHypergrpahTest.hgr";
-    _config.partitioning.partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2";
+    _config.partitioning.graph_partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2.KaHyPar";
+    _config.partitioning.coarse_graph_filename = "APartitionOfAHypergrpahTest_coarse.hgr";
+    _config.partitioning.coarse_graph_partition_filename = "APartitionOfAHypergrpahTest_coarse.hgr.part.2";
   }
 
   void TearDown() {
-    std::remove(_partition_filename.c_str());
+    std::remove(_config.partitioning.graph_partition_filename.c_str());
   }
   
   HypergraphType _hypergraph;
   PartitionConfig _config;
   HypergraphPartitioner _partitioner;
-  std::string _partition_filename;
 };
 
 } // namespace io

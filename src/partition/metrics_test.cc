@@ -53,8 +53,9 @@ class APartitionedHypergraph : public Test {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
     config.partitioning.graph_filename = "Test";
-    config.partitioning.coarse_graph_filename = "coarse_test.hgr";
-    config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+    config.partitioning.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
+    config.partitioning.coarse_graph_filename = "test_coarse.hgr";
+    config.partitioning.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
     config.partitioning.balance_constraint = 0.15;
     partitioner.partition(hypergraph);
   }
@@ -74,9 +75,10 @@ class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedH
       partition() {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
-    config.partitioning.graph_filename = "Test";
-    config.partitioning.coarse_graph_filename = "coarse_cutCalc_test.hgr";
-    config.partitioning.partition_filename = "coarse_cutCalc_test.hgr.part.2";
+    config.partitioning.graph_filename = "cutCalc_test.hgr";
+    config.partitioning.graph_partition_filename = "cutCalc_test.hgr.part.2.KaHyPar";
+    config.partitioning.coarse_graph_filename = "cutCalc_test_coarse.hgr";
+    config.partitioning.coarse_graph_partition_filename = "cutCalc_test_coarse.hgr.part.2";
     config.partitioning.balance_constraint = 0.15;
     hg_to_hmetis[1] = 0;
     hg_to_hmetis[3] = 1;

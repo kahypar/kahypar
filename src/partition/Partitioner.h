@@ -75,7 +75,7 @@ class Partitioner{
                    + std::to_string(seed) + " -ufactor=" + std::to_string(
                        _config.partitioning.balance_constraint * 100)).c_str());
 
-      io::readPartitionFile(_config.partitioning.partition_filename, partitioning);
+      io::readPartitionFile(_config.partitioning.coarse_graph_partition_filename, partitioning);
       ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
 
       current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);

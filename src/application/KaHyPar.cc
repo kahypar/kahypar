@@ -52,8 +52,9 @@ int main (int argc, char *argv[]) {
   config.partitioning.balance_constraint = 0.1;
   config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
+  config.partitioning.graph_partition_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr.part.2.KaHyPar";
   config.partitioning.coarse_graph_filename = "coarse_test.hgr";
-  config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+  config.partitioning.coarse_graph_partition_filename = "coarse_test.hgr.part.2";
 
   Randomize::setSeed(config.partitioning.seed);
   

@@ -28,9 +28,10 @@ class APartitioner : public Test {
       partitioner(config) {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
-    config.partitioning.graph_filename = "Test";
-    config.partitioning.coarse_graph_filename = "coarse_test.hgr";
-    config.partitioning.partition_filename = "coarse_test.hgr.part.2";
+    config.partitioning.graph_filename = "PartitionerTest.hgr";
+    config.partitioning.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
+    config.partitioning.coarse_graph_filename = "PartitionerTest_coarse.hgr";
+    config.partitioning.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
     config.partitioning.balance_constraint = 0.15;
   }
   
