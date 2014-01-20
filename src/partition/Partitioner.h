@@ -73,7 +73,7 @@ class Partitioner{
       std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
                    + _config.partitioning.coarse_graph_filename + " 2" + " -seed="
                    + std::to_string(seed) + " -ufactor=" + std::to_string(
-                       _config.partitioning.balance_constraint * 100)).c_str());
+                       (_config.partitioning.balance_constraint * 100) / 2)).c_str());
 
       io::readPartitionFile(_config.partitioning.coarse_graph_partition_filename, partitioning);
       ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
