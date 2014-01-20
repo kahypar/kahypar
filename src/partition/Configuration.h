@@ -2,6 +2,8 @@
 #define PARTITION_CONFIGURATION_H_
 
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace partition {
 
@@ -36,7 +38,7 @@ struct Configuration{
   struct TwoWayFMParameters {
     int max_number_of_fruitless_moves;
     TwoWayFMParameters() :
-        max_number_of_fruitless_moves(0) {}
+        max_number_of_fruitless_moves(50) {}
   };
 
   PartitioningParameters partitioning;
@@ -48,6 +50,32 @@ struct Configuration{
       coarsening(),
       two_way_fm() {}
 };
+
+template <class Configuration>
+std::string toString(const Configuration& config) {
+  std::ostringstream oss;
+  oss << std::left;
+  oss << "Partitioning Configuration:"  << std::endl;
+  oss << std::setw(28) << "  Hypergraph: "  << config.partitioning.graph_filename.substr(
+      config.partitioning.graph_filename.find_last_of("/")+1) << std::endl;
+  oss << std::setw(28) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
+      << std::endl;
+  oss << std::setw(28) << "  Partitioning File: " << config.partitioning.partition_filename
+      << std::endl;
+  oss << std::setw(28) << "  k: " << config.partitioning.k << std::endl;
+  oss << std::setw(28) << "  balance constraint: " << config.partitioning.balance_constraint
+      << std::endl;
+  oss << std::setw(28) << "  seed: " << config.partitioning.seed << std::endl;
+  oss << std::setw(28) << "  # initial partitionings: " << config.partitioning.initial_partitioning_attempts
+      << std::endl;
+  oss << "Coarsening Parameters:" << std::endl;
+  oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight << std::endl;
+  oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count << std::endl;
+  oss << "2-Way-FM Refinement Parameters:" << std::endl;
+  oss << std::setw(28) << "  max. # fruitless moves: " << config.two_way_fm.max_number_of_fruitless_moves
+      << std::endl;
+  return oss.str();
+}
 
 } // namespace partition
 
