@@ -55,7 +55,7 @@ template <class Configuration>
 std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
-  oss << "Partitioning Configuration:"  << std::endl;
+  oss << "Partitioning Parameters:"  << std::endl;
   oss << std::setw(28) << "  Hypergraph: "  << config.partitioning.graph_filename.substr(
       config.partitioning.graph_filename.find_last_of("/")+1) << std::endl;
   oss << std::setw(28) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
@@ -69,11 +69,12 @@ std::string toString(const Configuration& config) {
   oss << std::setw(28) << "  # initial partitionings: " << config.partitioning.initial_partitioning_attempts
       << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight << std::endl;
-  oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count << std::endl;
-  oss << "2-Way-FM Refinement Parameters:" << std::endl;
-  oss << std::setw(28) << "  max. # fruitless moves: " << config.two_way_fm.max_number_of_fruitless_moves
+  oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
       << std::endl;
+  oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
+      << std::endl;
+  oss << "2-Way-FM Refinement Parameters:" << std::endl;
+  oss << std::setw(28) << "  max. # fruitless moves: " << config.two_way_fm.max_number_of_fruitless_moves;
   return oss.str();
 }
 

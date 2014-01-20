@@ -65,7 +65,8 @@ int main (int argc, char *argv[]) {
   config.coarsening.minimal_node_count = COARSENING_LIMIT;
 
   config.two_way_fm.max_number_of_fruitless_moves = 50;
-  
+
+  io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
       config.partitioning.graph_filename.find_last_of("/")+1));
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "../../partition/Configuration.h"
 #include "../../partition/Metrics.h"
 
 namespace io {
@@ -17,6 +18,12 @@ void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) 
   std::cout << "# HNs: " << hypergraph.numNodes() << "\t [avg HN degree: "
             << metrics::avgHypernodeDegree(hypergraph) << "]" << std::endl;
   std::cout << "*********************************************************************" << std::endl;
+}
+
+template <class Configuration>
+void printPartitionerConfiguration(const Configuration& config) {
+  std::cout << "*********************Partitioning Configuration**********************" << std::endl;
+  std::cout << toString(config) << std::endl;
 }
 
 }
