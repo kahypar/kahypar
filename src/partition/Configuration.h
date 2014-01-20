@@ -18,6 +18,7 @@ struct Configuration{
   struct PartitioningParameters {
     int k;
     int seed;
+    int initial_partitioning_attempts;
     double balance_constraint;
     std::string graph_filename;
     std::string coarse_graph_filename;
@@ -25,6 +26,7 @@ struct Configuration{
     PartitioningParameters() :
         k(2),
         seed(0),
+        initial_partitioning_attempts(1),
         balance_constraint(1),
         graph_filename(),
         coarse_graph_filename(),

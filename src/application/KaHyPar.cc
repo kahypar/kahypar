@@ -50,6 +50,7 @@ int main (int argc, char *argv[]) {
   config.partitioning.k = 2;
   config.partitioning.seed = -1;
   config.partitioning.balance_constraint = 0.1;
+  config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
   config.partitioning.coarse_graph_filename = "coarse_test.hgr";
   config.partitioning.partition_filename = "coarse_test.hgr.part.2";
