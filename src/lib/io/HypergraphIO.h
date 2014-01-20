@@ -171,6 +171,7 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
 
 inline void readPartitionFile(const std::string& filename, std::vector<PartitionID>& partition) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
+  ASSERT(partition.empty(), "Partition vector is not empty");
   std::ifstream file(filename);
   if (file) {
     int part;
