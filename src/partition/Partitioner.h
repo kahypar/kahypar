@@ -81,8 +81,8 @@ class Partitioner{
       current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
 
       if (current_cut < best_cut) {
-        PRINT("attempt " << attempt << " improved initial cut from " << best_cut << " to "
-              << current_cut);
+        LOG("initialPartition", "attempt " << attempt << " improved initial cut from "
+            << best_cut << " to " << current_cut);
         best_partitioning.swap(partitioning);
         best_cut = current_cut;
       }

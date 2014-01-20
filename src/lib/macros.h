@@ -1,6 +1,10 @@
 #ifndef LIB_MACROS_H_
 #define LIB_MACROS_H_
 
+#ifndef NLOGGING
+#define USE_LOGGING
+#endif
+
 #ifndef NDEBUG
 #define USE_ASSERTIONS
 #define PRINT_DEBUG_MSGS
@@ -38,5 +42,10 @@
   #define ASSERT(cond, msg)
 #endif
 
+#ifdef USE_LOGGING
+  #define LOG(component, msg) do { (std::cout << "log:" << component << "> " << msg << std::endl); } while (0)
+#else
+  #define LOG(component, msg)
+#endif
 
 #endif  // LIB_MACROS_H_

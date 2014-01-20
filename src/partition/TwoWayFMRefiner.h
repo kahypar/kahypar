@@ -90,7 +90,6 @@ class TwoWayFMRefiner{
     double imbalance = best_imbalance;
     
     // TODO:
-    // [ ] make limit a accessible tuning_parameter
     // [ ] use stopping criterion derived by Vitaly to stop refinement
     int iterations_without_improvement = 0;
     int iteration = 0;
@@ -161,8 +160,8 @@ class TwoWayFMRefiner{
       
       if (improved_balance_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a node move which decreased cut"); 
-        PRINT("improved cut from " << best_cut << " to " << cut);
-        PRINT("improved imbalance from " << best_imbalance << " to " << imbalance);
+        LOG("TwoWayFM", "improved cut from " << best_cut << " to " << cut);
+        LOG("TwoWayFM", "improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = iteration;
