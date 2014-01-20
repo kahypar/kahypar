@@ -76,6 +76,8 @@ int main (int argc, char *argv[]) {
 
   std::cout << "mincut    = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "imbalance = " << metrics::imbalance(hypergraph) << std::endl;
+
+  io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
     
   return 0;
 }
