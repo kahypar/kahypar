@@ -46,11 +46,11 @@ int main (int argc, char *argv[]) {
   HyperedgeID num_hyperedges;
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
-
+  
   PartitionConfig config;
   config.partitioning.k = 2;
   config.partitioning.seed = -1;
-  config.partitioning.epsilon = 0.05;
+  config.partitioning.epsilon = 0.1;
   config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
   config.partitioning.graph_partition_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr.part.2.KaHyPar";
@@ -82,8 +82,10 @@ int main (int argc, char *argv[]) {
   HypergraphPartitioner partitioner(config);
   partitioner.partition(hypergraph);
 
-  std::cout << "mincut    = " << metrics::hyperedgeCut(hypergraph) << std::endl;
-  std::cout << "imbalance = " << metrics::imbalance(hypergraph) << std::endl;
+  io::printPartitionerConfiguration(config);
+  io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
+      config.partitioning.graph_filename.find_last_of("/")+1));
+  io::printPartitioningResults(hypergraph);
 
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
     

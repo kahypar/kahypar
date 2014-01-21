@@ -17,13 +17,25 @@ void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) 
             << metrics::avgHyperedgeDegree(hypergraph) << "]" << std::endl;
   std::cout << "# HNs: " << hypergraph.numNodes() << "\t [avg HN degree: "
             << metrics::avgHypernodeDegree(hypergraph) << "]" << std::endl;
-  std::cout << "*********************************************************************" << std::endl;
 }
 
 template <class Configuration>
 void printPartitionerConfiguration(const Configuration& config) {
   std::cout << "*********************Partitioning Configuration**********************" << std::endl;
   std::cout << toString(config) << std::endl;
+}
+
+template <class Hypergraph>
+void printPartitioningResults(const Hypergraph& hypergraph) {
+  int partition_size[2] = {0, 0};
+  forall_hypernodes(hn, hypergraph) {
+    ++partition_size[hypergraph.partitionIndex(*hn)];
+  } endfor
+  std::cout << "***********************2-way Partition Result************************" << std::endl;
+  std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
+  std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
+  std::cout << "| partition 0 | =" << partition_size[0] << std::endl;
+  std::cout << "| partition 1 | =" << partition_size[1] << std::endl;
 }
 
 }
