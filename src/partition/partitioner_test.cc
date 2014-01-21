@@ -32,7 +32,7 @@ class APartitioner : public Test {
     config.partitioning.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
     config.partitioning.coarse_graph_filename = "PartitionerTest_coarse.hgr";
     config.partitioning.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
-    config.partitioning.balance_constraint = 0.15;
+    config.partitioning.epsilon = 0.15;
   }
   
   HypergraphType hypergraph;

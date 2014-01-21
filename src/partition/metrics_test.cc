@@ -56,7 +56,7 @@ class APartitionedHypergraph : public Test {
     config.partitioning.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partitioning.coarse_graph_filename = "test_coarse.hgr";
     config.partitioning.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
-    config.partitioning.balance_constraint = 0.15;
+    config.partitioning.epsilon = 0.15;
     partitioner.partition(hypergraph);
   }
 
@@ -79,7 +79,7 @@ class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedH
     config.partitioning.graph_partition_filename = "cutCalc_test.hgr.part.2.KaHyPar";
     config.partitioning.coarse_graph_filename = "cutCalc_test_coarse.hgr";
     config.partitioning.coarse_graph_partition_filename = "cutCalc_test_coarse.hgr.part.2";
-    config.partitioning.balance_constraint = 0.15;
+    config.partitioning.epsilon = 0.15;
     hg_to_hmetis[1] = 0;
     hg_to_hmetis[3] = 1;
     partition.push_back(1);

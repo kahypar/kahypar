@@ -26,6 +26,7 @@ using partition::Configuration;
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
+typedef HypergraphType::HypernodeWeight HypernodeWeight;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::HyperedgeIndexVector HyperedgeIndexVector;
 typedef HypergraphType::HyperedgeVector HyperedgeVector;
@@ -49,7 +50,7 @@ int main (int argc, char *argv[]) {
   PartitionConfig config;
   config.partitioning.k = 2;
   config.partitioning.seed = -1;
-  config.partitioning.balance_constraint = 0.1;
+  config.partitioning.epsilon = 0.05;
   config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
   config.partitioning.graph_partition_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr.part.2.KaHyPar";
@@ -58,10 +59,17 @@ int main (int argc, char *argv[]) {
 
   Randomize::setSeed(config.partitioning.seed);
   
-  io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges, index_vector,
-                         edge_vector);
+  io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges,
+                         index_vector, edge_vector);
   HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  
+
+  HypernodeWeight hypergraph_weight = 0;
+  forall_hypernodes(hn, hypergraph) {
+    hypergraph_weight += hypergraph.nodeWeight(*hn);
+  } endfor
+
+  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
+        * ceil(hypergraph_weight/static_cast<double>(config.partitioning.k));
   config.coarsening.threshold_node_weight = HYPERNODE_WEIGHT_FRACTION * hypergraph.numNodes();
   config.coarsening.minimal_node_count = COARSENING_LIMIT;
 

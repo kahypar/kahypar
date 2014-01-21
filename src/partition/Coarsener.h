@@ -133,14 +133,14 @@ class Coarsener{
 
       _hg.uncontract(_history.top().contraction_memento);
       refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                     current_cut, _config.partitioning.balance_constraint, current_imbalance);
+                     current_cut, _config.partitioning.epsilon, current_imbalance);
       _history.pop();
       
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
     }
-    ASSERT(current_imbalance <= _config.partitioning.balance_constraint,
+    ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
-           << " > " << _config.partitioning.balance_constraint);
+           << " > " << _config.partitioning.epsilon);
   }
 
  private:

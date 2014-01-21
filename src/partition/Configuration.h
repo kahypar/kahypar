@@ -1,27 +1,33 @@
 #ifndef PARTITION_CONFIGURATION_H_
 #define PARTITION_CONFIGURATION_H_
 
+#include <limits>
+#include <iomanip>
 #include <string>
 #include <sstream>
-#include <iomanip>
 
 namespace partition {
 
 template <class Hypergraph>
 struct Configuration{
+  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
+  typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef typename Hypergraph::PartitionID PartitionID;
+  
   struct CoarseningParameters {
-    typename Hypergraph::HypernodeWeight threshold_node_weight;
-    typename Hypergraph::HypernodeID minimal_node_count;
+    HypernodeWeight threshold_node_weight;
+    HypernodeID minimal_node_count;
     CoarseningParameters() :
         threshold_node_weight(0),
         minimal_node_count(0) {}
   };
 
   struct PartitioningParameters {
-    typename Hypergraph::PartitionID k;
+    PartitionID k;
     int seed;
     int initial_partitioning_attempts;
-    double balance_constraint;
+    double epsilon;
+    HypernodeWeight partition_size_upper_bound;
     std::string graph_filename;
     std::string graph_partition_filename;
     std::string coarse_graph_filename;
@@ -30,7 +36,8 @@ struct Configuration{
         k(2),
         seed(0),
         initial_partitioning_attempts(1),
-        balance_constraint(1),
+        epsilon(1.0),
+        partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
         graph_filename(),
         graph_partition_filename(),
         coarse_graph_filename(),
@@ -70,7 +77,9 @@ std::string toString(const Configuration& config) {
       << config.partitioning.coarse_graph_partition_filename
       << std::endl;
   oss << std::setw(28) << "  k: " << config.partitioning.k << std::endl;
-  oss << std::setw(28) << "  balance constraint: " << config.partitioning.balance_constraint
+  oss << std::setw(28) << "  epsilon: " << config.partitioning.epsilon
+      << std::endl;
+  oss << std::setw(28) << "  L_max: " << config.partitioning.partition_size_upper_bound
       << std::endl;
   oss << std::setw(28) << "  seed: " << config.partitioning.seed << std::endl;
   oss << std::setw(28) << "  # initial partitionings: "
