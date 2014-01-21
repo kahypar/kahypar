@@ -72,11 +72,13 @@ enum class HypergraphWeightType : int8_t {
 };
 
 template <typename HypernodeType_, typename HyperedgeType_,
-          typename HypernodeWeightType_, typename HyperedgeWeightType_>
+          typename HypernodeWeightType_, typename HyperedgeWeightType_,
+          typename PartitionIDType_>
 class Hypergraph{
  public:
   typedef HypernodeType_ HypernodeID;
   typedef HyperedgeType_ HyperedgeID;
+  typedef PartitionIDType_ PartitionID;
   typedef HypernodeWeightType_ HypernodeWeight;
   typedef HyperedgeWeightType_ HyperedgeWeight;
   typedef std::vector<size_t>  HyperedgeIndexVector;
@@ -914,14 +916,14 @@ class Hypergraph{
   boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
   DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 
-  template <typename HNType, typename HEType, typename HNWType, typename HEWType>
-  friend bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expected,
-                                const Hypergraph<HNType, HEType, HNWType, HEWType>& actual);
+  template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
+  friend bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
+                                const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
 };
 
-template <typename HNType, typename HEType, typename HNWType, typename HEWType>
-bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expected,
-                       const Hypergraph<HNType, HEType, HNWType, HEWType>& actual) {
+template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
+bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
+                       const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual) {
   ASSERT(expected._current_num_hypernodes == actual._current_num_hypernodes,
          "Expected: _current_num_hypernodes= " << expected._current_num_hypernodes << "\n"
          << "  Actual: _current_num_hypernodes= " <<  actual._current_num_hypernodes);
@@ -950,10 +952,11 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType>& expec
       expected_incidence_array == actual_incidence_array;
 }
 
-typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
-    defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
+typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID, defs::HyperNodeWeight,
+                   defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
+typedef HypergraphType::PartitionID PartitionID;
 typedef HypergraphType::HypernodeWeight HypernodeWeight;
 typedef HypergraphType::HyperedgeWeight HyperedgeWeight;
 typedef HypergraphType::HypernodeIterator HypernodeIterator;

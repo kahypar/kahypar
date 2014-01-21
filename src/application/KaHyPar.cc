@@ -24,7 +24,7 @@ using partition::FirstRatingWins;
 using partition::Configuration;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
-                   defs::HyperNodeWeight, defs::HyperEdgeWeight> HypergraphType;
+                   defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::HyperedgeIndexVector HyperedgeIndexVector;

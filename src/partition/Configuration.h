@@ -18,7 +18,7 @@ struct Configuration{
   };
 
   struct PartitioningParameters {
-    int k;
+    typename Hypergraph::PartitionID k;
     int seed;
     int initial_partitioning_attempts;
     double balance_constraint;
