@@ -264,22 +264,22 @@ class TwoWayFMRefiner{
   }
 
   bool pinCountInOnePartitionIncreasedFrom0To1(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) {
+                                               HypernodeID old_size1, HypernodeID new_size1) const {
     return (old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1);
   }
 
   bool pinCountInOnePartitionDecreasedFrom1To0(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) {
+                                               HypernodeID old_size1, HypernodeID new_size1) const {
     return (old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0);
   }
 
   bool pinCountInOnePartitionDecreasedFrom2To1(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) {
+                                               HypernodeID old_size1, HypernodeID new_size1) const {
     return (old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1);
   }
 
   bool pinCountInOnePartitionIncreasedFrom1To2(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) {
+                                               HypernodeID old_size1, HypernodeID new_size1) const {
     return (old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2);
   }
 
@@ -314,7 +314,7 @@ class TwoWayFMRefiner{
     }
   }
 
-  Gain computeGain(HypernodeID hn) {
+  Gain computeGain(HypernodeID hn) const {
     Gain gain = 0;
     ASSERT(_hg.partitionIndex(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partitionIndex(hn) ^ 1;
@@ -331,7 +331,7 @@ class TwoWayFMRefiner{
     return gain;
   }
     
-  bool isBorderNode(HypernodeID hn) {
+  bool isBorderNode(HypernodeID hn) const {
     bool is_border_node = false;
     forall_incident_hyperedges(he, hn, _hg) {
       if ((_hg.pinCountInPartition(*he, 0) > 0) && (_hg.pinCountInPartition(*he, 1) > 0)) {
