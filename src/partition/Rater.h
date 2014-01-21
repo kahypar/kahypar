@@ -17,7 +17,7 @@ namespace partition {
 #pragma GCC diagnostic ignored "-Weffc++"
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor 
 template <class Hypergraph, typename RatingType_, class _TieBreakingPolicy>
-class Rater : public _TieBreakingPolicy {
+class Rater {
  public:
   typedef RatingType_ RatingType;
  private:
