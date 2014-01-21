@@ -5,7 +5,6 @@
 
 namespace partition {
 
-template <typename T>
 struct LastRatingWins {
   static bool acceptEqual() {
     return true;
@@ -14,7 +13,6 @@ struct LastRatingWins {
   ~LastRatingWins() {}
 };
 
-template <typename T>
 struct FirstRatingWins {
   static bool acceptEqual() {
     return false;
@@ -23,7 +21,6 @@ struct FirstRatingWins {
   ~FirstRatingWins() {}
 };
 
-template <typename T>
 struct RandomRatingWins {
  public:
   static bool acceptEqual() {
