@@ -22,6 +22,7 @@ using partition::Coarsener;
 using partition::Partitioner;
 using partition::FirstRatingWins;
 using partition::Configuration;
+using partition::StoppingRule;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
@@ -50,7 +51,7 @@ int main (int argc, char *argv[]) {
   PartitionConfig config;
   config.partitioning.k = 2;
   config.partitioning.seed = -1;
-  config.partitioning.epsilon = 0.1;
+  config.partitioning.epsilon = 0.05;
   config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.graph_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr";
   config.partitioning.graph_partition_filename = "/home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr.part.2.KaHyPar";
@@ -73,7 +74,10 @@ int main (int argc, char *argv[]) {
   config.coarsening.threshold_node_weight = HYPERNODE_WEIGHT_FRACTION * hypergraph.numNodes();
   config.coarsening.minimal_node_count = COARSENING_LIMIT;
 
+  config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
   config.two_way_fm.max_number_of_fruitless_moves = 50;
+  config.two_way_fm.alpha = 4;
+  config.two_way_fm.beta = log(num_hypernodes);
 
   io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(

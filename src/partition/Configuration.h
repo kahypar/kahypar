@@ -8,6 +8,8 @@
 
 namespace partition {
 
+enum class StoppingRule { SIMPLE, ADAPTIVE };
+
 template <class Hypergraph>
 struct Configuration{
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
@@ -15,23 +17,15 @@ struct Configuration{
   typedef typename Hypergraph::PartitionID PartitionID;
   
   struct CoarseningParameters {
-    HypernodeWeight threshold_node_weight;
-    HypernodeID minimal_node_count;
     CoarseningParameters() :
         threshold_node_weight(0),
         minimal_node_count(0) {}
+    
+    HypernodeWeight threshold_node_weight;
+    HypernodeID minimal_node_count;
   };
 
   struct PartitioningParameters {
-    PartitionID k;
-    int seed;
-    int initial_partitioning_attempts;
-    double epsilon;
-    HypernodeWeight partition_size_upper_bound;
-    std::string graph_filename;
-    std::string graph_partition_filename;
-    std::string coarse_graph_filename;
-    std::string coarse_graph_partition_filename;
     PartitioningParameters() :
         k(2),
         seed(0),
@@ -42,12 +36,29 @@ struct Configuration{
         graph_partition_filename(),
         coarse_graph_filename(),
         coarse_graph_partition_filename() {}
+
+    PartitionID k;
+    int seed;
+    int initial_partitioning_attempts;
+    double epsilon;
+    HypernodeWeight partition_size_upper_bound;
+    std::string graph_filename;
+    std::string graph_partition_filename;
+    std::string coarse_graph_filename;
+    std::string coarse_graph_partition_filename;
   };
 
   struct TwoWayFMParameters {
-    int max_number_of_fruitless_moves;
     TwoWayFMParameters() :
-        max_number_of_fruitless_moves(50) {}
+        max_number_of_fruitless_moves(50),
+        alpha(4),
+        beta(0.0),
+        stopping_rule(StoppingRule::SIMPLE) {}
+    
+    int max_number_of_fruitless_moves;
+    double alpha;
+    double beta;
+    StoppingRule stopping_rule;
   };
 
   PartitioningParameters partitioning;
@@ -90,8 +101,14 @@ std::string toString(const Configuration& config) {
   oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
       << std::endl;
   oss << "2-Way-FM Refinement Parameters:" << std::endl;
+  oss << std::setw(28) << "  stopping rule: "
+      << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive") << std::endl;
   oss << std::setw(28) << "  max. # fruitless moves: "
-      << config.two_way_fm.max_number_of_fruitless_moves;
+      << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
+  oss << std::setw(28) << "  random walk stop alpha: "
+      << config.two_way_fm.alpha << std::endl;
+  oss << std::setw(28) << "  random walk stop beta : "
+        << config.two_way_fm.beta;
   return oss.str();
 }
 

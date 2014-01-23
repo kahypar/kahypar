@@ -15,6 +15,7 @@
 #include "../external/Utils.h"
 #include "Configuration.h"
 #include "Metrics.h"
+#include "TwoWayFMStopPolicies.h"
 
 namespace partition {
 using datastructure::HypergraphType;
@@ -22,7 +23,18 @@ using datastructure::PriorityQueue;
 using defs::PartitionID;
 
 template <class Hypergraph>
-class TwoWayFMRefiner{
+class Refiner {
+ private:
+  typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
+ public:
+  virtual void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
+                         double max_imbalance, double& best_imbalance) = 0;
+  virtual ~Refiner() {}
+};
+
+template <class Hypergraph, class _StoppingPolicy>
+class TwoWayFMRefiner : public Refiner<Hypergraph> {
  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
@@ -32,6 +44,7 @@ class TwoWayFMRefiner{
   typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
+  typedef _StoppingPolicy StoppingPolicy;
 
   static const int K = 2;
   
@@ -91,16 +104,14 @@ class TwoWayFMRefiner{
     
     // TODO:
     // [ ] use stopping criterion derived by Vitaly to stop refinement
-    int iterations_without_improvement = 0;
     int iteration = 0;
     
     // forward
-    while( iterations_without_improvement < _config.two_way_fm.max_number_of_fruitless_moves) {
+    StoppingPolicy::resetStatistics();
 
-      if (_pq[0]->empty() && _pq[1]->empty()) {
-        break;
-      }
-
+    // best_cut == cut accounts for the case in which we improve the imbalance
+    while (!queuesAreEmpty() && (best_cut == cut ||
+                                 !StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config))) {
       Gain max_gain = std::numeric_limits<Gain>::min();
       HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
       PartitionID from_partition = std::numeric_limits<PartitionID>::min();
@@ -142,6 +153,7 @@ class TwoWayFMRefiner{
       moveHypernode(max_gain_node, from_partition, to_partition);
       
       cut -= max_gain;
+      StoppingPolicy::updateStatistics(max_gain);
       imbalance = calculateImbalance();
       
       ASSERT(cut == metrics::hyperedgeCut(_hg),
@@ -159,20 +171,23 @@ class TwoWayFMRefiner{
       bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut == best_cut);
       
       if (improved_balance_equal_cut || improved_cut_within_balance) {
-        ASSERT(cut <= best_cut, "Accepted a node move which decreased cut"); 
-        LOG("TwoWayFM", "improved cut from " << best_cut << " to " << cut);
+        ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
+        if (cut < best_cut) {
+          LOG("TwoWayFM", "improved cut from " << best_cut << " to " << cut);
+          StoppingPolicy::resetStatistics();
+        }
         LOG("TwoWayFM", "improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = iteration;
-        iterations_without_improvement = 0;
-      } else {
-        ++iterations_without_improvement;
       }
       _performed_moves[iteration] = max_gain_node;
       ++iteration;
     }
     
+    LOG("TwoWayFM", "performed " << iteration << " local search steps: stopped because of "
+        << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true
+            ? "policy" : "empty queue"));    
     rollback(_performed_moves, iteration-1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
@@ -229,7 +244,11 @@ class TwoWayFMRefiner{
   FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
   FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
 
-  double calculateImbalance() {
+  bool queuesAreEmpty() const {
+    return _pq[0]->empty() && _pq[1]->empty();
+  }
+
+  double calculateImbalance() const {
     double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
                        (_partition_size[0] + _partition_size[1]) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
