@@ -11,9 +11,15 @@ if(Boost_FOUND)
   message(status "** Boost Libraries: ${Boost_LIBRARIES}")
 endif()
 
-set (CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+  set( CMAKE_BUILD_TYPE Debug CACHE STRING
+       "Choose the type of build, options are: Debug Release"
+       FORCE )
+endif()
+
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -W -Wall -Wextra -Wunused -pedantic -DPARANOID -Weffc++ -std=c++11")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wunused_result -pedantic -DPARANOID -Weffc++ -std=c++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wextra -std=c++11 -Weffc++ -DNDEBUG -DNLOGGING")
 
 enable_testing()
 add_subdirectory(src/application)
