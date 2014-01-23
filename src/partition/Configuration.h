@@ -19,10 +19,12 @@ struct Configuration{
   struct CoarseningParameters {
     CoarseningParameters() :
         threshold_node_weight(0),
-        minimal_node_count(0) {}
+        minimal_node_count(0),
+        hypernode_weight_fraction(0.0) {}
     
     HypernodeWeight threshold_node_weight;
     HypernodeID minimal_node_count;
+    double hypernode_weight_fraction;
   };
 
   struct PartitioningParameters {
@@ -96,6 +98,8 @@ std::string toString(const Configuration& config) {
   oss << std::setw(28) << "  # initial partitionings: "
       << config.partitioning.initial_partitioning_attempts << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
+  oss << std::setw(28) << "  hypernode weight fraction: " << config.coarsening.hypernode_weight_fraction
+        << std::endl;
   oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
       << std::endl;
   oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
