@@ -70,7 +70,7 @@ class Rater {
           
     RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
-    HypernodeID target;
+    HypernodeID target = std::numeric_limits<HypernodeID>::max();
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
@@ -85,6 +85,7 @@ class Rater {
     }
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
+      ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
