@@ -84,11 +84,11 @@ void setDefaults(Config& config) {
   config.partitioning.k = 2;
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
-  config.partitioning.initial_partitioning_attempts = 10;
-  config.coarsening.minimal_node_count = 200;
+  config.partitioning.initial_partitioning_attempts = 50;
+  config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
   config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
-  config.two_way_fm.max_number_of_fruitless_moves = 50;
+  config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
 }
 
