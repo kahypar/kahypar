@@ -53,7 +53,8 @@ class Partitioner{
   }
 
   void performInitialPartitioning(Hypergraph& hg) {
-    io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename);
+    io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename.substr(
+        _config.partitioning.coarse_graph_filename.find_last_of("/")+1));
     
     HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(),0);
     CoarsenedToHmetisMapping hg_to_hmetis;
@@ -73,7 +74,8 @@ class Partitioner{
       std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
                    + _config.partitioning.coarse_graph_filename + " 2" + " -seed="
                    + std::to_string(seed) + " -ufactor=" + std::to_string(
-                       (_config.partitioning.epsilon * 100) / 2)).c_str());
+                       (_config.partitioning.epsilon * 100) / 2) +
+                   (_config.partitioning.verbose_output ? "" : " > /dev/null")).c_str());
 
       io::readPartitionFile(_config.partitioning.coarse_graph_partition_filename, partitioning);
       ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");

@@ -71,6 +71,9 @@ void configurePartitionerFromCommandLineInput(Config& config, po::variables_map&
       if (vm.count("alpha")) {
         config.two_way_fm.alpha = vm["alpha"].as<double>();
       }
+      if (vm.count("verbose")) {
+        config.partitioning.verbose_output = vm["verbose"].as<bool>();
+      }
     } else {
       exit(0);
     }
@@ -98,6 +101,7 @@ int main (int argc, char *argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()
       ("help", "show help message")
+      ("verbose", po::value<bool>(),       "Verbose partitioner output")
       ("hgr", po::value<std::string>(),    "Filename of the hypergraph to be partitioned")
       ("e",  po::value<double>(),          "Imbalance parameter epsilon")
       ("seed", po::value<int>(),           "Seed for random number generator")
@@ -148,9 +152,6 @@ int main (int argc, char *argv[]) {
   HypergraphPartitioner partitioner(config);
   partitioner.partition(hypergraph);
 
-  io::printPartitionerConfiguration(config);
-  io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
-      config.partitioning.graph_filename.find_last_of("/")+1));
   io::printPartitioningResults(hypergraph);
 
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);

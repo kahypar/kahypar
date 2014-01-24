@@ -34,6 +34,7 @@ struct Configuration{
         initial_partitioning_attempts(1),
         epsilon(1.0),
         partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
+        verbose_output(false),
         graph_filename(),
         graph_partition_filename(),
         coarse_graph_filename(),
@@ -44,6 +45,7 @@ struct Configuration{
     int initial_partitioning_attempts;
     double epsilon;
     HypernodeWeight partition_size_upper_bound;
+    bool verbose_output;
     std::string graph_filename;
     std::string graph_partition_filename;
     std::string coarse_graph_filename;
