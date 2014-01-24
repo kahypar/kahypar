@@ -24,7 +24,7 @@ using datastructure::Hypergraph;
 using partition::Rater;
 using partition::Coarsener;
 using partition::Partitioner;
-using partition::FirstRatingWins;
+using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::StoppingRule;
 
@@ -90,10 +90,10 @@ void setDefaults(Config& config) {
 }
 
 int main (int argc, char *argv[]) {
-  typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-  typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
+  typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
+  typedef Coarsener<HypergraphType, RandomWinsRater> RandomWinsCoarsener;
   typedef Configuration<HypergraphType> PartitionConfig;
-  typedef Partitioner<HypergraphType, FirstWinsCoarsener> HypergraphPartitioner;
+  typedef Partitioner<HypergraphType, RandomWinsCoarsener> HypergraphPartitioner;
 
   po::options_description desc("Allowed options");
   desc.add_options()
