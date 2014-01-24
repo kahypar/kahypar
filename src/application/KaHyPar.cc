@@ -41,42 +41,42 @@ typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 template <typename Config>
 void configurePartitionerFromCommandLineInput(Config& config, po::variables_map& vm) { 
   if (vm.count("hgr") && vm.count("e")) {
-      config.partitioning.graph_filename = vm["hgr"].as<std::string>();
-      config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
-      config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of("/")+1, "coarse_" );
-      config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part.2.KaHyPar";
-      config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename + ".part.2";
-      config.partitioning.epsilon = vm["e"].as<double>();
+    config.partitioning.graph_filename = vm["hgr"].as<std::string>();
+    config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
+    config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of("/")+1, "coarse_" );
+    config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part.2.KaHyPar";
+    config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename + ".part.2";
+    config.partitioning.epsilon = vm["e"].as<double>();
 
-      if (vm.count("seed")) {
-        config.partitioning.seed = vm["seed"].as<int>();
-      }
-      if (vm.count("nruns")) {
-        config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
-      }
-      if (vm.count("s")) {
-        config.coarsening.hypernode_weight_fraction = vm["s"].as<double>();
-      }
-      if (vm.count("t")) {
-        config.coarsening.minimal_node_count = vm["t"].as<HypernodeID>();
-      }
-      if (vm.count("stopFM")) {
-        if(vm["stopFM"].as<std::string>() == "simple") {
-          config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
-        }
-      }
-      if (vm.count("i")) {
-        config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
-      }
-      if (vm.count("alpha")) {
-        config.two_way_fm.alpha = vm["alpha"].as<double>();
-      }
-      if (vm.count("verbose")) {
-        config.partitioning.verbose_output = vm["verbose"].as<bool>();
-      }
-    } else {
-      exit(0);
+    if (vm.count("seed")) {
+      config.partitioning.seed = vm["seed"].as<int>();
     }
+    if (vm.count("nruns")) {
+      config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
+    }
+    if (vm.count("s")) {
+      config.coarsening.hypernode_weight_fraction = vm["s"].as<double>();
+    }
+    if (vm.count("t")) {
+      config.coarsening.minimal_node_count = vm["t"].as<HypernodeID>();
+    }
+    if (vm.count("stopFM")) {
+      if(vm["stopFM"].as<std::string>() == "simple") {
+        config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
+      }
+    }
+    if (vm.count("i")) {
+      config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
+    }
+    if (vm.count("alpha")) {
+      config.two_way_fm.alpha = vm["alpha"].as<double>();
+    }
+    if (vm.count("verbose")) {
+      config.partitioning.verbose_output = vm["verbose"].as<bool>();
+    }
+  } else {
+    exit(0);
+  }
 }
 
 template <typename Config>
