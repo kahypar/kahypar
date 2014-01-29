@@ -9,6 +9,7 @@
 #include "../lib/io/PartitioningOutput.h"
 #include "../tools/RandomFunctions.h"
 #include "Configuration.h"
+#include "TwoWayFMRefiner.h"
 
 #ifndef NDEBUG
 #include "Metrics.h"
@@ -36,8 +37,20 @@ class Partitioner{
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
-    coarsener.uncoarsen();
+    Refiner<Hypergraph>* refiner = nullptr;
+    if (_config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
+      ASSERT(_config.two_way_fm.alpha > 0.0, "alpha not set for adaptive stopping rule");
+      ASSERT(_config.two_way_fm.beta > 0.0, "beta not set for adaptive stopping rule");
+      refiner = new TwoWayFMRefiner<Hypergraph, RandomWalkModelStopsSearch>(hypergraph, _config);
+    } else {
+      ASSERT(_config.two_way_fm.max_number_of_fruitless_moves > 0,
+             "no upper bound on fruitless moves defined for simple stopping rule");
+      refiner = new TwoWayFMRefiner<Hypergraph, NumberOfFruitlessMovesStopsSearch>(hypergraph, _config);
+    }
+    
+    coarsener.uncoarsen(refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
+    delete refiner;
   }
   
  private:

@@ -115,18 +115,7 @@ class Coarsener{
     }
   }
 
-  void uncoarsen() {
-    Refiner<Hypergraph>* refiner = nullptr;
-    if (_config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
-      ASSERT(_config.two_way_fm.alpha > 0.0, "alpha not set for adaptive stopping rule");
-      ASSERT(_config.two_way_fm.beta > 0.0, "beta not set for adaptive stopping rule");
-      refiner = new TwoWayFMRefiner<Hypergraph, RandomWalkModelStopsSearch>(_hg, _config);
-    } else {
-      ASSERT(_config.two_way_fm.max_number_of_fruitless_moves > 0,
-             "no upper bound on fruitless moves defined for simple stopping rule");
-       refiner = new TwoWayFMRefiner<Hypergraph, NumberOfFruitlessMovesStopsSearch>(_hg, _config);
-    }
-
+  void uncoarsen(Refiner<Hypergraph>* refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
@@ -151,7 +140,6 @@ class Coarsener{
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
            << " > " << _config.partitioning.epsilon);
-    delete refiner;
   }
 
  private:

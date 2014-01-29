@@ -1,7 +1,8 @@
 #include "gmock/gmock.h"
 
-#include "Coarsener.h"
 #include "../lib/datastructure/Hypergraph.h"
+#include "Coarsener.h"
+#include "TwoWayFMRefiner.h"
 
 namespace partition {
 using ::testing::AnyOf;
@@ -17,9 +18,16 @@ using datastructure::HypernodeWeightVector;
 using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 using datastructure::HypernodeWeight;
+using datastructure::HyperedgeWeight;
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> CoarsenerType;
+
+template<typename Hypergraph>
+class DummyRefiner : public Refiner<Hypergraph> {
+  void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
+              double, double&) {}
+};
 
 class ACoarsener : public Test {
  public:
@@ -27,13 +35,20 @@ class ACoarsener : public Test {
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       config(),
-      coarsener(hypergraph, config) {
+      coarsener(hypergraph, config),
+      refiner(new DummyRefiner<HypergraphType>()) {
     config.coarsening.threshold_node_weight = 5;
+  }
+
+  void TearDown() {
+    delete refiner;
   }
   
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
+  Refiner<HypergraphType>* refiner;
+  DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
 class ACoarsenerWithThresholdWeight3 : public Test {
@@ -42,13 +57,20 @@ class ACoarsenerWithThresholdWeight3 : public Test {
       hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       config(),
-      coarsener(hypergraph, config) {
+      coarsener(hypergraph, config),
+      refiner(new DummyRefiner<HypergraphType>()) {
     config.coarsening.threshold_node_weight = 3;
+  }
+
+  void TearDown() {
+    delete refiner;
   }
   
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
+  Refiner<HypergraphType>* refiner;
+  DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 
 TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
@@ -68,7 +90,7 @@ TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
-  coarsener.uncoarsen();
+  coarsener.uncoarsen(refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(true));
   ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
@@ -104,7 +126,7 @@ TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   coarsener.coarsen(2);
-  coarsener.uncoarsen();
+  coarsener.uncoarsen(refiner);
   ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
@@ -122,13 +144,15 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-
+  Refiner<HypergraphType>* refiner = new DummyRefiner<HypergraphType>();
+  
   coarsener.coarsen(2);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the parallel hyperedges in reverse order!
-  coarsener.uncoarsen();
+  coarsener.uncoarsen(refiner);
+  delete refiner;
 }
 
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
@@ -142,13 +166,15 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
+  Refiner<HypergraphType>* refiner = new DummyRefiner<HypergraphType>();
 
   coarsener.coarsen(1);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the single-node hyperedges in reverse order!
-  coarsener.uncoarsen();
+  coarsener.uncoarsen(refiner);
+  delete refiner;
 }
 
 TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
