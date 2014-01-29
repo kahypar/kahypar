@@ -3,7 +3,6 @@
 
 #include "../../external/BinaryHeap.hpp"
 
-#include "Hypergraph.h"
 #include "../macros.h"
 
 namespace datastructure {
