@@ -38,6 +38,10 @@ class PriorityQueue{
     _heap.push(id, -key);
   }
 
+  void reInsert(IDType id, KeyType key) {
+    _heap.reinsertingPush(id, -key);
+  }
+
   void deleteMax() {
     _heap.deleteMin();
   }

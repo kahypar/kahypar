@@ -76,7 +76,7 @@ class TwoWayFMRefiner : public Refiner<Hypergraph> {
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
       // PRINT("*** inserting HN " << hn << " with gain " << computeGain(hn)
       //         << " in PQ " << _hg.partitionIndex(hn) );
-      _pq[_hg.partitionIndex(hn)]->insert(hn, computeGain(hn));
+      _pq[_hg.partitionIndex(hn)]->reInsert(hn, computeGain(hn));
     }
   }
 
