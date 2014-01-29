@@ -6,3 +6,5 @@
 *.cc~
 *.h~
 build/*
+release/*
+debug/*
