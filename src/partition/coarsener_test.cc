@@ -40,14 +40,10 @@ class ACoarsener : public Test {
     config.coarsening.threshold_node_weight = 5;
   }
 
-  void TearDown() {
-    delete refiner;
-  }
-  
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  Refiner<HypergraphType>* refiner;
+  std::unique_ptr<Refiner<HypergraphType>> refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
@@ -61,15 +57,11 @@ class ACoarsenerWithThresholdWeight3 : public Test {
       refiner(new DummyRefiner<HypergraphType>()) {
     config.coarsening.threshold_node_weight = 3;
   }
-
-  void TearDown() {
-    delete refiner;
-  }
   
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  Refiner<HypergraphType>* refiner;
+  std::unique_ptr<Refiner<HypergraphType>> refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 
@@ -144,7 +136,7 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  Refiner<HypergraphType>* refiner = new DummyRefiner<HypergraphType>();
+  std::unique_ptr<Refiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
   
   coarsener.coarsen(2);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
@@ -152,7 +144,6 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the parallel hyperedges in reverse order!
   coarsener.uncoarsen(refiner);
-  delete refiner;
 }
 
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
@@ -166,7 +157,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  Refiner<HypergraphType>* refiner = new DummyRefiner<HypergraphType>();
+  std::unique_ptr<Refiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
 
   coarsener.coarsen(1);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
@@ -174,7 +165,6 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the single-node hyperedges in reverse order!
   coarsener.uncoarsen(refiner);
-  delete refiner;
 }
 
 TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
