@@ -102,13 +102,10 @@ class TwoWayFMRefiner : public Refiner<Hypergraph> {
     int min_cut_index = -1;
     double imbalance = best_imbalance;
     
-    // TODO:
-    // [ ] use stopping criterion derived by Vitaly to stop refinement
     int iteration = 0;
+    StoppingPolicy::resetStatistics();
     
     // forward
-    StoppingPolicy::resetStatistics();
-
     // best_cut == cut accounts for the case in which we improve the imbalance
     while (!queuesAreEmpty() && (best_cut == cut ||
                                  !StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config))) {
