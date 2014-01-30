@@ -13,11 +13,12 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
-#include "partition/coarsening/Rater.h"
-#include "partition/Partitioner.h"
 #include "partition/Metrics.h"
+#include "partition/Partitioner.h"
+#include "partition/coarsening/FullHeavyEdgeCoarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/ICoarsener.h"
+#include "partition/coarsening/Rater.h"
 #include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;
@@ -26,10 +27,12 @@ using datastructure::Hypergraph;
 using partition::Rater;
 using partition::ICoarsener;
 using partition::HeuristicHeavyEdgeCoarsener;
+using partition::FullHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::StoppingRule;
+using partition::CoarseningScheme;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
@@ -56,6 +59,11 @@ void configurePartitionerFromCommandLineInput(Config& config, po::variables_map&
     }
     if (vm.count("nruns")) {
       config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
+    }
+    if (vm.count("ctype")) {
+      if(vm["ctype"].as<std::string>() == "heavy_heuristic") {
+        config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_HEURISTIC;
+      }
     }
     if (vm.count("s")) {
       config.coarsening.hypernode_weight_fraction = vm["s"].as<double>();
@@ -88,6 +96,7 @@ void setDefaults(Config& config) {
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
   config.partitioning.initial_partitioning_attempts = 50;
+  config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
   config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
@@ -97,7 +106,8 @@ void setDefaults(Config& config) {
 
 int main (int argc, char *argv[]) {
   typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
-  typedef HeuristicHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsCoarsener;
+  typedef HeuristicHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsHeuristicCoarsener;
+  typedef FullHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsFullCoarsener;
   typedef Configuration<HypergraphType> PartitionConfig;
   typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
@@ -109,9 +119,10 @@ int main (int argc, char *argv[]) {
       ("e",  po::value<double>(),          "Imbalance parameter epsilon")
       ("seed", po::value<int>(),           "Seed for random number generator")
       ("nruns", po::value<int>(),          "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
+      ("ctype", po::value<std::string>(),  "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
       ("s", po::value<double>(),           "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
       ("t", po::value<HypernodeID>(),      "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-      ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive | simple)")
+      ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
       ("i", po::value<int>(),              "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
       ("alpha", po::value<double>(),       "2-Way-FM: Random Walk stop alpha (adaptive)");
   
@@ -153,7 +164,13 @@ int main (int argc, char *argv[]) {
       config.partitioning.graph_filename.find_last_of("/")+1));
 
   HypergraphPartitioner partitioner(config);
-  std::unique_ptr<ICoarsener<HypergraphType> > coarsener(new RandomWinsCoarsener(hypergraph, config));
+  std::unique_ptr<ICoarsener<HypergraphType> > coarsener(nullptr);
+  if (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL) {
+    coarsener.reset(new RandomWinsFullCoarsener(hypergraph, config));
+  } else {
+    coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
+  }  
+
   partitioner.partition(hypergraph, coarsener);
 
   io::printPartitioningResults(hypergraph);

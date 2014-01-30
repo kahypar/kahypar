@@ -9,6 +9,7 @@
 namespace partition {
 
 enum class StoppingRule { SIMPLE, ADAPTIVE };
+enum class CoarseningScheme {HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC};
 
 template <class Hypergraph>
 struct Configuration{
@@ -20,11 +21,13 @@ struct Configuration{
     CoarseningParameters() :
         threshold_node_weight(0),
         minimal_node_count(0),
-        hypernode_weight_fraction(0.0) {}
+        hypernode_weight_fraction(0.0),
+        scheme(CoarseningScheme::HEAVY_EDGE_FULL) {}
     
     HypernodeWeight threshold_node_weight;
     HypernodeID minimal_node_count;
     double hypernode_weight_fraction;
+    CoarseningScheme scheme;
   };
 
   struct PartitioningParameters {
@@ -96,6 +99,9 @@ std::string toString(const Configuration& config) {
   oss << std::setw(28) << "  # initial partitionings: "
       << config.partitioning.initial_partitioning_attempts << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
+  oss << std::setw(28) << "  scheme: " <<
+      (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ? "heavy_full" : "heavy_heuristic")
+      << std::endl;
   oss << std::setw(28) << "  hypernode weight fraction: "
       << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
