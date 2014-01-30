@@ -311,19 +311,23 @@ class Coarsener{
   }
 
   void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
-                                     std::vector<HypernodeID>& target,
-                                     TargetToSourcesMap& sources) {
+                           std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     if (rating.valid) {
       _pq.updateKey(hn, rating.value);
       if (rating.target != target[hn]) {
-        removeMappingEntryOfNode(hn, target[hn], sources);
-        target[hn] = rating.target;
-        sources.insert({rating.target, hn});
+        updateMappings(hn, rating, target, sources);
       }
     } else if (_pq.contains(hn)) {
       _pq.remove(hn);
       removeMappingEntryOfNode(hn, target[hn], sources);
     }    
+  }
+
+  void updateMappings(HypernodeID hn, const HeavyEdgeRating& rating,
+                      std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
+    removeMappingEntryOfNode(hn, target[hn], sources);
+    target[hn] = rating.target;
+    sources.insert({rating.target, hn});
   }
   
   Hypergraph& _hg;
