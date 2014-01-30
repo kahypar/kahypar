@@ -7,6 +7,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
@@ -20,7 +21,7 @@ using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 
 template <class Hypergraph, class Rater>
-class Coarsener{
+class Coarsener : public ICoarsener<Hypergraph> {
  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
