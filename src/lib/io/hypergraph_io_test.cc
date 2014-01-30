@@ -1,5 +1,5 @@
-#include "HypergraphIO.h"
-#include "HypergraphIO_TestFixtures.h"
+#include "lib/io/HypergraphIO.h"
+#include "lib/io/HypergraphIO_TestFixtures.h"
 
 #include "gmock/gmock.h"
 

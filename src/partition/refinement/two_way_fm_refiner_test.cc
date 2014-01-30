@@ -1,9 +1,9 @@
 #include "gmock/gmock.h"
 
-#include "../lib/datastructure/Hypergraph.h"
-#include "TwoWayFMRefiner.h"
-#include "TwoWayFMStopPolicies.h"
-#include "Metrics.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/Metrics.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/TwoWayFMStopPolicies.h"
 
 namespace partition {
 using ::testing::Test;

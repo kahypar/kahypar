@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-#include "../lib/datastructure/Hypergraph.h"
-#include "../lib/definitions.h"
+#include "lib/definitions.h"
+#include "lib/datastructure/Hypergraph.h"
 
 namespace metrics {
 using datastructure::HyperedgeWeight;

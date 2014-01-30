@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(hypergraphpartitioning CXX)
+include_directories(${hypergraphpartitioning_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 find_package(Boost 1.55 COMPONENTS program_options REQUIRED)
@@ -26,6 +27,8 @@ add_subdirectory(src/application)
 add_subdirectory(src/lib/datastructure)
 add_subdirectory(src/lib/io)
 add_subdirectory(src/partition)
+add_subdirectory(src/partition/coarsening)
+add_subdirectory(src/partition/refinement)
 add_subdirectory(src/playground)
 
 

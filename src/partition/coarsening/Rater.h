@@ -6,10 +6,10 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "../lib/macros.h"
-#include "../lib/datastructure/Hypergraph.h"
-#include "Configuration.h"
-#include "RatingTieBreakingPolicies.h"
+#include "lib/macros.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/Configuration.h"
+#include "partition/coarsening/RatingTieBreakingPolicies.h"
 
 namespace partition {
 

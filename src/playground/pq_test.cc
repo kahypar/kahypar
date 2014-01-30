@@ -2,7 +2,7 @@
 #include <array>
 #include "../lib/datastructure/PriorityQueue.h"
 
-int main(int argn, char **argv) {
+int main(int, char**) {
 typedef datastructure::PriorityQueue<int, int, std::numeric_limits<int> > RefinementPQ;
 std::cout << "test:::" << std::endl;
     RefinementPQ* q1 = new RefinementPQ(4876);

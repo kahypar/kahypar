@@ -6,13 +6,11 @@
 #include <limits>
 #include <iostream>
 #include <vector>
-
-#include "gtest/gtest_prod.h"
-
 #include <boost/dynamic_bitset.hpp>
 
-#include "../definitions.h"
-#include "../macros.h"
+#include "gtest/gtest_prod.h"
+#include "lib/definitions.h"
+#include "lib/macros.h"
 
 namespace datastructure {
 using defs::PartitionID;

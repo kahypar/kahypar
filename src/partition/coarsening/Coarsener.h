@@ -4,15 +4,15 @@
 #include <stack>
 #include <unordered_map>
 
-#include "../lib/datastructure/Hypergraph.h"
-#include "../lib/datastructure/PriorityQueue.h"
-#include "Configuration.h"
-#include "Rater.h"
-#include "TwoWayFMRefiner.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "lib/datastructure/PriorityQueue.h"
+#include "partition/Configuration.h"
+#include "partition/coarsening/Rater.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 
 #ifndef NSELF_VERIFICATION
-#include "Metrics.h"
-#include "../external/Utils.h"
+#include "partition/Metrics.h"
+#include "external/Utils.h"
 #endif
 
 namespace partition {

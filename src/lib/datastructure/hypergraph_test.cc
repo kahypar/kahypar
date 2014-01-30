@@ -3,8 +3,8 @@
 
 #include "gmock/gmock.h"
 
-#include "Hypergraph.h"
-#include "Hypergraph_TestFixtures.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "lib/datastructure/Hypergraph_TestFixtures.h"
 
 namespace datastructure {
 using ::testing::Eq;

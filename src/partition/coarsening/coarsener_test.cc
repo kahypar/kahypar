@@ -1,8 +1,8 @@
 #include "gmock/gmock.h"
 
-#include "../lib/datastructure/Hypergraph.h"
-#include "Coarsener.h"
-#include "TwoWayFMRefiner.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/coarsening/Coarsener.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 
 namespace partition {
 using ::testing::AnyOf;

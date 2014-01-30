@@ -6,17 +6,17 @@
 
 #include <boost/program_options.hpp>
 
-#include "../lib/macros.h"
-#include "../lib/definitions.h"
-#include "../lib/datastructure/Hypergraph.h"
-#include "../lib/io/HypergraphIO.h"
-#include "../lib/io/PartitioningOutput.h"
-#include "../partition/Configuration.h"
-#include "../partition/Coarsener.h"
-#include "../partition/Rater.h"
-#include "../partition/Partitioner.h"
-#include "../partition/Metrics.h"
-#include "../tools/RandomFunctions.h"
+#include "lib/macros.h"
+#include "lib/definitions.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "lib/io/HypergraphIO.h"
+#include "lib/io/PartitioningOutput.h"
+#include "partition/Configuration.h"
+#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/Rater.h"
+#include "partition/Partitioner.h"
+#include "partition/Metrics.h"
+#include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;
 

@@ -6,8 +6,8 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "../definitions.h"
-#include "../datastructure/Hypergraph.h"
+#include "lib/definitions.h"
+#include "lib/datastructure/Hypergraph.h"
 
 namespace io {
 using defs::PartitionID;

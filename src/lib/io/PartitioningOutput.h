@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 
-#include "../../partition/Configuration.h"
-#include "../../partition/Metrics.h"
+#include "partition/Configuration.h"
+#include "partition/Metrics.h"
 
 namespace io {
 

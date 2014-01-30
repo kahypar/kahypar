@@ -1,10 +1,10 @@
 #include "gmock/gmock.h"
 
-#include "../lib/macros.h"
-#include "../lib/datastructure/Hypergraph.h"
-#include "Coarsener.h"
-#include "Configuration.h"
-#include "Partitioner.h"
+#include "lib/macros.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/Configuration.h"
+#include "partition/Partitioner.h"
+#include "partition/coarsening/Coarsener.h"
 
 namespace partition {
 using ::testing::Test;

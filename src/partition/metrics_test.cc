@@ -1,11 +1,11 @@
 #include <gmock/gmock.h>
 
-#include "../lib/datastructure/Hypergraph.h"
-#include "Coarsener.h"
-#include "Configuration.h"
-#include "Partitioner.h"
-#include "Metrics.h"
-#include "Rater.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/Configuration.h"
+#include "partition/Metrics.h"
+#include "partition/Partitioner.h"
+#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/Rater.h"
 
 namespace metrics {
 using ::testing::Test;

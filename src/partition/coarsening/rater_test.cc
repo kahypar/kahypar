@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 
-#include "Rater.h"
-#include "../lib/datastructure/Hypergraph.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/coarsening/Rater.h"
 
 namespace partition {
 using ::testing::Test;

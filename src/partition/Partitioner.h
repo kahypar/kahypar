@@ -5,15 +5,15 @@
 #include <memory>
 #include <unordered_map>
 
-#include "../lib/definitions.h"
-#include "../lib/io/HypergraphIO.h"
-#include "../lib/io/PartitioningOutput.h"
-#include "../tools/RandomFunctions.h"
-#include "Configuration.h"
-#include "TwoWayFMRefiner.h"
+#include "lib/definitions.h"
+#include "lib/io/HypergraphIO.h"
+#include "lib/io/PartitioningOutput.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/Configuration.h"
+#include "tools/RandomFunctions.h"
 
 #ifndef NDEBUG
-#include "Metrics.h"
+#include "partition/Metrics.h"
 #endif
 
 namespace partition {

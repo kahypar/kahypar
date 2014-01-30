@@ -1,7 +1,7 @@
 #ifndef PARTITION_RATINGTIEBREAKINGPOLICIES_H_
 #define PARTITION_RATINGTIEBREAKINGPOLICIES_H_
 
-#include "../tools/RandomFunctions.h"
+#include "tools/RandomFunctions.h"
 
 namespace partition {
 

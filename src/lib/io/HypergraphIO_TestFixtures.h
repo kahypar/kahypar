@@ -6,10 +6,10 @@
 
 #include "gmock/gmock.h"
 
-#include "../datastructure/Hypergraph.h"
-#include "../../partition/Rater.h"
-#include "../../partition/Coarsener.h"
-#include "../../partition/Partitioner.h"
+#include "lib/datastructure/Hypergraph.h"
+#include "partition/Partitioner.h"
+#include "partition/coarsening/Rater.h"
+#include "partition/coarsening/Coarsener.h"
 
 namespace io {
 using ::testing::Test;

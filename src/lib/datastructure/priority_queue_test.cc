@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 
-#include "PriorityQueue.h"
-#include "../definitions.h"
+#include "lib/datastructure/PriorityQueue.h"
+#include "lib/definitions.h"
 
 namespace datastructure {
 using ::testing::Eq;

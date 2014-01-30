@@ -2,7 +2,7 @@
 #define LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_
 #include "gmock/gmock.h"
 
-#include "Hypergraph.h"
+#include "lib/datastructure/Hypergraph.h"
 
 namespace datastructure {
 using ::testing::Test;
