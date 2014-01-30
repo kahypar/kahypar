@@ -4,8 +4,8 @@
 - gmock & gtest and the corresponding environment variables GMOCK_DIR and GTEST_DIR
 
 ## Make:
-1. mkdir build && cd build
-2. cmake ..
+1. mkdir <release|debug> && cd <release|debug>
+2. cmake .. -DCMAKE_BUILD_TYPE=<RELEASE|DEBUG>
 3. make
 
 ## Test:
