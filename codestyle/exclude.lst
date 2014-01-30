@@ -1,0 +1,4 @@
+3rdparty/sqlite3pp/src/sqlite3pp.h
+3rdparty/sqlite3pp/src/sqlite3pp.cpp
+3rdparty/sqlite3pp/src/sqlite3ppext.h
+3rdparty/sqlite3pp/src/sqlite3ppext.cpp
