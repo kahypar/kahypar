@@ -4,10 +4,10 @@
 #include "partition/coarsening/Rater.h"
 
 namespace partition {
-using ::testing::Test;
-using ::testing::Eq;
-using ::testing::DoubleEq;
-using ::testing::AnyOf;
+using::testing::Test;
+using::testing::Eq;
+using::testing::DoubleEq;
+using::testing::AnyOf;
 
 using datastructure::HypergraphType;
 using datastructure::HypernodeWeight;
@@ -22,10 +22,10 @@ typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRate
 class AFirstWinsRater : public Test {
  public:
   AFirstWinsRater() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      rater(hypergraph, config) {
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
   }
   HypergraphType hypergraph;
@@ -36,11 +36,11 @@ class AFirstWinsRater : public Test {
 class ALastWinsRater : public Test {
  public:
   ALastWinsRater() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      rater(hypergraph, config) {
-      config.coarsening.threshold_node_weight = 2;
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    rater(hypergraph, config) {
+    config.coarsening.threshold_node_weight = 2;
   }
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
@@ -50,10 +50,10 @@ class ALastWinsRater : public Test {
 class ARandomWinsRater : public Test {
  public:
   ARandomWinsRater() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      rater(hypergraph, config) {
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
   }
   HypergraphType hypergraph;
@@ -85,18 +85,18 @@ TEST_F(ALastWinsRater, UsesLastRatingEntryOfEqualRatings) {
 
 TEST_F(ARandomWinsRater, UsesRandomRatingEntryOfEqualRatings) {
   ASSERT_THAT(rater.rate(6).value, DoubleEq(0.5));
-  ASSERT_THAT(rater.rate(6).target, AnyOf(5,2,4,3));
+  ASSERT_THAT(rater.rate(6).target, AnyOf(5, 2, 4, 3));
   ASSERT_THAT(rater.rate(5).value, DoubleEq(0.5));
-  ASSERT_THAT(rater.rate(5).target, AnyOf(2,6));
+  ASSERT_THAT(rater.rate(5).target, AnyOf(2, 6));
 }
 
 TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).target, Eq(2));
   ASSERT_THAT(rater.rate(0).value, Eq(1));
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
-  
-  hypergraph.contract(0,2);
-  
+
+  hypergraph.contract(0, 2);
+
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));

@@ -5,11 +5,11 @@
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
-using ::testing::AnyOf;
-using ::testing::DoubleEq;
-using ::testing::Eq;
-using ::testing::Le;
-using ::testing::Test;
+using::testing::AnyOf;
+using::testing::DoubleEq;
+using::testing::Eq;
+using::testing::Le;
+using::testing::Test;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -23,7 +23,7 @@ using datastructure::HyperedgeWeight;
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 
-template<typename Hypergraph>
+template <typename Hypergraph>
 class DummyRefiner : public IRefiner<Hypergraph> {
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
               double, double&) {}
@@ -32,36 +32,36 @@ class DummyRefiner : public IRefiner<Hypergraph> {
 class ACoarsener : public Test {
  public:
   ACoarsener() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      coarsener(hypergraph, config),
-      refiner(new DummyRefiner<HypergraphType>()) {
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    coarsener(hypergraph, config),
+    refiner(new DummyRefiner<HypergraphType>()) {
     config.coarsening.threshold_node_weight = 5;
   }
 
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  std::unique_ptr<IRefiner<HypergraphType>> refiner;
+  std::unique_ptr<IRefiner<HypergraphType> > refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
 class ACoarsenerWithThresholdWeight3 : public Test {
  public:
   ACoarsenerWithThresholdWeight3() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      coarsener(hypergraph, config),
-      refiner(new DummyRefiner<HypergraphType>()) {
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    coarsener(hypergraph, config),
+    refiner(new DummyRefiner<HypergraphType>()) {
     config.coarsening.threshold_node_weight = 3;
   }
-  
+
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  std::unique_ptr<IRefiner<HypergraphType>> refiner;
+  std::unique_ptr<IRefiner<HypergraphType> > refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 
@@ -107,13 +107,13 @@ TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedge
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(2));
 }
 TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
- coarsener.coarsen(2);
- ASSERT_THAT(hypergraph.numEdges(), Eq(1));
+  coarsener.coarsen(2);
+  ASSERT_THAT(hypergraph.numEdges(), Eq(1));
 }
 
 TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
- coarsener.coarsen(2);
- ASSERT_THAT(hypergraph.numPins(), Eq(2));
+  coarsener.coarsen(2);
+  ASSERT_THAT(hypergraph.numPins(), Eq(2));
 }
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
@@ -128,16 +128,17 @@ TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
 TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   // Artificially constructed hypergraph that enforces the successive removal of
   // two successive parallel hyperedges.
-  HyperedgeWeightVector edge_weights{1,1,1,1};
-  HypernodeWeightVector node_weights{50,1,1};
-  HypergraphType hypergraph(3,4, HyperedgeIndexVector {0,2,4,6,/*sentinel*/8},
-                     HyperedgeVector {0,1,0,1,0,2,1,2}, &edge_weights,
-                     &node_weights);
+  HyperedgeWeightVector edge_weights {1, 1, 1, 1};
+  HypernodeWeightVector node_weights {50, 1, 1};
+  HypergraphType hypergraph(3, 4, HyperedgeIndexVector {0, 2, 4, 6, /*sentinel*/ 8},
+                            HyperedgeVector {0, 1, 0, 1, 0, 2, 1, 2}, &edge_weights,
+                            &node_weights);
+
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
-  
+  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
+
   coarsener.coarsen(2);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
@@ -149,15 +150,16 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   // Artificially constructed hypergraph that enforces the successive removal of
   // three single-node hyperedges.
-  HyperedgeWeightVector edge_weights{1,1,1};
-  HypernodeWeightVector node_weights{1,1};
-  HypergraphType hypergraph(2,3, HyperedgeIndexVector {0,2,4,/*sentinel*/6},
-                     HyperedgeVector {0,1,0,1,0,1}, &edge_weights,
-                     &node_weights);
+  HyperedgeWeightVector edge_weights {1, 1, 1};
+  HypernodeWeightVector node_weights {1, 1};
+  HypergraphType hypergraph(2, 3, HyperedgeIndexVector {0, 2, 4, /*sentinel*/ 6},
+                            HyperedgeVector {0, 1, 0, 1, 0, 1}, &edge_weights,
+                            &node_weights);
+
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
+  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
 
   coarsener.coarsen(1);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which

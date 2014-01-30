@@ -4,15 +4,15 @@
 #include "lib/definitions.h"
 
 namespace datastructure {
-using ::testing::Eq;
-using ::testing::DoubleEq;
-using ::testing::Test;
+using::testing::Eq;
+using::testing::DoubleEq;
+using::testing::Test;
 
 class APriorityQueue : public Test {
  public:
   APriorityQueue() :
-      prio_queue(3,3) {}
-  
+    prio_queue(3, 3) {}
+
   PriorityQueue<defs::HyperNodeID, defs::RatingType, MetaKeyDouble> prio_queue;
 };
 

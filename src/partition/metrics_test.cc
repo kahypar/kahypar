@@ -4,14 +4,14 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
-#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 
 namespace metrics {
-using ::testing::Test;
-using ::testing::Eq;
-using ::testing::DoubleEq;
+using::testing::Test;
+using::testing::Eq;
+using::testing::DoubleEq;
 
 using datastructure::HypergraphType;
 using datastructure::HypernodeID;
@@ -34,9 +34,9 @@ typedef Partitioner<HypergraphType> HypergraphPartitioner;
 class AnUnPartitionedHypergraph : public Test {
  public:
   AnUnPartitionedHypergraph() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
-  
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}) {}
+
   HypergraphType hypergraph;
 };
 
@@ -48,11 +48,11 @@ class TheDemoHypergraph : public AnUnPartitionedHypergraph {
 class APartitionedHypergraph : public Test {
  public:
   APartitionedHypergraph() :
-      hypergraph(7, 4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
-      config(),
-      partitioner(config),
-      coarsener(new FirstWinsCoarsener(hypergraph, config)) {
+    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
+               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    config(),
+    partitioner(config),
+    coarsener(new FirstWinsCoarsener(hypergraph, config)) {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
     config.partitioning.graph_filename = "Test";
@@ -72,11 +72,11 @@ class APartitionedHypergraph : public Test {
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
  public:
   TheHyperedgeCutCalculationForInitialPartitioning() :
-      AnUnPartitionedHypergraph(),
-      config(),
-      coarsener(hypergraph, config),
-      hg_to_hmetis(),
-      partition() {
+    AnUnPartitionedHypergraph(),
+    config(),
+    coarsener(hypergraph, config),
+    hg_to_hmetis(),
+    partition() {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
     config.partitioning.graph_filename = "cutCalc_test.hgr";
@@ -89,6 +89,7 @@ class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedH
     partition.push_back(1);
     partition.push_back(0);
   }
+
   PartitionConfig config;
   FirstWinsCoarsener coarsener;
   std::unordered_map<HypernodeID, HypernodeID> hg_to_hmetis;
@@ -99,8 +100,8 @@ TEST_F(TheHyperedgeCutCalculationForInitialPartitioning, ReturnsCorrectResult) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
   ASSERT_THAT(hypergraph.nodeDegree(3), Eq(1));
-  hypergraph.changeNodePartition(3,0,1);
-  
+  hypergraph.changeNodePartition(3, 0, 1);
+
   ASSERT_THAT(hyperedgeCut(hypergraph, hg_to_hmetis, partition), Eq(hyperedgeCut(hypergraph)));
 }
 
