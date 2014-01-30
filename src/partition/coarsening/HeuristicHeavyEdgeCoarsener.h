@@ -11,20 +11,22 @@
 namespace partition {
 
 template <class Hypergraph, class Rater>
-class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyEdgeCoarsenerBase<Hypergraph, Rater> {
+class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
+                                    public HeavyEdgeCoarsenerBase<Hypergraph, Rater> {
  private:
   typedef HeavyEdgeCoarsenerBase<Hypergraph,Rater> Base;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
+  
  public:
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
       HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) {}
 
-    ~HeuristicHeavyEdgeCoarsener() {}
+  ~HeuristicHeavyEdgeCoarsener() {}
   
   void coarsen(int limit) {
-   ASSERT(Base::_pq.empty(), "coarsen() can only be called once");
+    ASSERT(Base::_pq.empty(), "coarsen() can only be called once");
 
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
     TargetToSourcesMap sources;
@@ -37,8 +39,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyE
     while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
       rep_node = Base::_pq.max();
       contracted_node = target[rep_node];
-       // PRINT("Contracting: (" << rep_node << ","
-       //       << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+      // PRINT("Contracting: (" << rep_node << ","
+      //       << target[rep_node] << ") prio: " << Base::_pq.maxKey());
 
       ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
              <= Base::_rater.thresholdNodeWeight(),
@@ -59,7 +61,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyE
 
       reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
-  } 
+  }
+  
   void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
     Base::uncoarsen(refiner);
   }
@@ -87,22 +90,21 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyE
         sources.insert({rating.target, *hn});
       }
     } endfor 
-          
   }
 
-   void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
+  void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
                                                           TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
     for (int i = Base::_history.top().parallel_hes_begin; i != Base::_history.top().parallel_hes_begin +
                  Base::_history.top().parallel_hes_size; ++i) {
       forall_pins(pin, Base::_removed_parallel_hyperedges[i].representative_id, Base::_hg) {
-          rating = Base::_rater.rate(*pin);
-          updatePQandMappings(*pin, rating, target, sources);
+        rating = Base::_rater.rate(*pin);
+        updatePQandMappings(*pin, rating, target, sources);
       } endfor
-    }
+            }
   }
 
-    void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
+  void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
                                              std::vector<HypernodeID>& target,
                                              TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
@@ -122,7 +124,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyE
     }
   }
 
-   void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
+  void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
                            std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     if (rating.valid) {
       Base::_pq.updateKey(hn, rating.value);
@@ -143,16 +145,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>, public HeavyE
   }
 
 };
-
-
-
-
-
-
-
-
-  
-
 } // namespace partition
 
 #endif  // PARTITION_COARSENING_HEAVYEDGECOARSENER_H_

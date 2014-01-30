@@ -79,9 +79,6 @@ class HeavyEdgeCoarsenerBase {
 
   virtual ~HeavyEdgeCoarsenerBase() {}
   
-  void coarsen(int limit) {
-  }
-
   void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
