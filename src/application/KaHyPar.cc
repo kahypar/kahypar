@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 
 // If not defined, extensive self-verification is performed, which has high impact on
 // total running time.
@@ -12,6 +13,7 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Coarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/Partitioner.h"
@@ -23,6 +25,7 @@ namespace po = boost::program_options;
 using datastructure::Hypergraph;
 using partition::Rater;
 using partition::Coarsener;
+using partition::ICoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -96,7 +99,7 @@ int main (int argc, char *argv[]) {
   typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
   typedef Coarsener<HypergraphType, RandomWinsRater> RandomWinsCoarsener;
   typedef Configuration<HypergraphType> PartitionConfig;
-  typedef Partitioner<HypergraphType, RandomWinsCoarsener> HypergraphPartitioner;
+  typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -150,7 +153,8 @@ int main (int argc, char *argv[]) {
       config.partitioning.graph_filename.find_last_of("/")+1));
 
   HypergraphPartitioner partitioner(config);
-  partitioner.partition(hypergraph);
+  std::unique_ptr<ICoarsener<HypergraphType> > coarsener(new RandomWinsCoarsener(hypergraph, config));
+  partitioner.partition(hypergraph, coarsener);
 
   io::printPartitioningResults(hypergraph);
 

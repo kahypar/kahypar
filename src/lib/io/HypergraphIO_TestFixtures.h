@@ -9,12 +9,14 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Coarsener.h"
 
 namespace io {
 using ::testing::Test;
 
 using partition::Rater;
+using partition::ICoarsener;
 using partition::Coarsener;
 using partition::Partitioner;
 using partition::FirstRatingWins;
@@ -178,7 +180,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
-typedef Partitioner<HypergraphType, FirstWinsCoarsener> HypergraphPartitioner;
+typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
 class APartitionOfAHypergraph : public Test {
  public:
@@ -186,7 +188,8 @@ class APartitionOfAHypergraph : public Test {
       _hypergraph(7, 4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
                  HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}),
       _config(),
-      _partitioner(_config) {
+      _partitioner(_config),
+      _coarsener(new FirstWinsCoarsener(_hypergraph, _config)) {
     _config.coarsening.minimal_node_count = 2;
     _config.coarsening.threshold_node_weight = 5;
     _config.partitioning.graph_filename = "APartitionOfAHypergrpahTest";
@@ -202,6 +205,7 @@ class APartitionOfAHypergraph : public Test {
   HypergraphType _hypergraph;
   PartitionConfig _config;
   HypergraphPartitioner _partitioner;
+  std::unique_ptr<ICoarsener<HypergraphType>> _coarsener;
 };
 
 } // namespace io
