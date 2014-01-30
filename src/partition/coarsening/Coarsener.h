@@ -115,7 +115,7 @@ class Coarsener{
     }
   }
 
-  void uncoarsen(std::unique_ptr<Refiner<Hypergraph>>& refiner) {
+  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 

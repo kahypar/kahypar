@@ -2,7 +2,7 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/Coarsener.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/IRefiner.h"
 
 namespace partition {
 using ::testing::AnyOf;
@@ -24,7 +24,7 @@ typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Coarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 
 template<typename Hypergraph>
-class DummyRefiner : public Refiner<Hypergraph> {
+class DummyRefiner : public IRefiner<Hypergraph> {
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
               double, double&) {}
 };
@@ -43,7 +43,7 @@ class ACoarsener : public Test {
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  std::unique_ptr<Refiner<HypergraphType>> refiner;
+  std::unique_ptr<IRefiner<HypergraphType>> refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
@@ -61,7 +61,7 @@ class ACoarsenerWithThresholdWeight3 : public Test {
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
-  std::unique_ptr<Refiner<HypergraphType>> refiner;
+  std::unique_ptr<IRefiner<HypergraphType>> refiner;
   DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 
@@ -136,7 +136,7 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<Refiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
+  std::unique_ptr<IRefiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
   
   coarsener.coarsen(2);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
@@ -157,7 +157,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   Configuration<HypergraphType> config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<Refiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
+  std::unique_ptr<IRefiner<HypergraphType>> refiner(new DummyRefiner<HypergraphType>());
 
   coarsener.coarsen(1);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which

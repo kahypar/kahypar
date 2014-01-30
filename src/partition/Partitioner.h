@@ -38,7 +38,7 @@ class Partitioner{
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
-    std::unique_ptr<Refiner<Hypergraph> > refiner(nullptr);
+    std::unique_ptr<IRefiner<Hypergraph> > refiner(nullptr);
     if (_config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
       ASSERT(_config.two_way_fm.alpha > 0.0, "alpha not set for adaptive stopping rule");
       ASSERT(_config.two_way_fm.beta > 0.0, "beta not set for adaptive stopping rule");

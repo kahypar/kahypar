@@ -14,6 +14,7 @@
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
@@ -22,19 +23,8 @@ using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
 using defs::PartitionID;
 
-template <class Hypergraph>
-class Refiner {
- private:
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
- public:
-  virtual void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-                         double max_imbalance, double& best_imbalance) = 0;
-  virtual ~Refiner() {}
-};
-
 template <class Hypergraph, class _StoppingPolicy>
-class TwoWayFMRefiner : public Refiner<Hypergraph> {
+class TwoWayFMRefiner : public IRefiner<Hypergraph> {
  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
