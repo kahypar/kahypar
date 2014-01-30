@@ -10,14 +10,14 @@
 #include "partition/Partitioner.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 
 namespace io {
 using ::testing::Test;
 
 using partition::Rater;
 using partition::ICoarsener;
-using partition::Coarsener;
+using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::FirstRatingWins;
 using partition::Configuration;
@@ -178,7 +178,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 };
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
+typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
 

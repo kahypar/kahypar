@@ -5,7 +5,7 @@
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 
 namespace metrics {
@@ -22,12 +22,12 @@ using datastructure::HyperedgeWeight;
 using partition::Rater;
 using partition::FirstRatingWins;
 using partition::ICoarsener;
-using partition::Coarsener;
+using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Configuration;
 using partition::Partitioner;
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
+typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
 

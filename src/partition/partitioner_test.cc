@@ -5,7 +5,7 @@
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 
 namespace partition {
 using ::testing::Test;
@@ -16,7 +16,7 @@ using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Coarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
+typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
 

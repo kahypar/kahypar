@@ -14,7 +14,7 @@
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/Partitioner.h"
 #include "partition/Metrics.h"
@@ -24,8 +24,8 @@ namespace po = boost::program_options;
 
 using datastructure::Hypergraph;
 using partition::Rater;
-using partition::Coarsener;
 using partition::ICoarsener;
+using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -97,7 +97,7 @@ void setDefaults(Config& config) {
 
 int main (int argc, char *argv[]) {
   typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
-  typedef Coarsener<HypergraphType, RandomWinsRater> RandomWinsCoarsener;
+  typedef HeuristicHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsCoarsener;
   typedef Configuration<HypergraphType> PartitionConfig;
   typedef Partitioner<HypergraphType> HypergraphPartitioner;
 

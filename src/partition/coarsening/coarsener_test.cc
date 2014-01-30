@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph.h"
-#include "partition/coarsening/Coarsener.h"
+#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
@@ -21,7 +21,7 @@ using datastructure::HypernodeWeight;
 using datastructure::HyperedgeWeight;
 
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Coarsener<HypergraphType, FirstWinsRater> CoarsenerType;
+typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 
 template<typename Hypergraph>
 class DummyRefiner : public IRefiner<Hypergraph> {
