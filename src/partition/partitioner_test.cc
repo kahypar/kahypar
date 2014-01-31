@@ -21,10 +21,10 @@ typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
 class APartitioner : public Test {
- public:
+  public:
   APartitioner() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(config),
     coarsener(new FirstWinsCoarsener(hypergraph, config)) {
@@ -71,5 +71,4 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 1), Eq(3));
 }
-
 } // namespace partition

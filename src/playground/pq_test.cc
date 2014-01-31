@@ -9,38 +9,34 @@
 #include <iostream>
 
 class A {
- public:
+  public:
   virtual void print() = 0;
 };
 
 class BBase : public A {
- protected:
+  protected:
   int x = 5;
 
- public:
+  public:
   void doStuff() {
     std::cout << "doStuff" << x << std::endl;
   }
-
 };
 
 class C : public BBase {
- public:
+  public:
   void print() {
     std::cout << "C->print" << std::endl;
     BBase::doStuff();
   }
-
 };
 
 class D : public BBase {
-
   void print() {
     std::cout << "D->print" << std::endl;
     BBase::x = 7;
     BBase::doStuff();
   }
-
 };
 
 int main(int, char**) {
@@ -69,7 +65,4 @@ int main(int, char**) {
   typedef partition::Rater<datastructure::HypergraphType, defs::RatingType,
                            partition::RandomRatingWins> RandomWinsRater;
   partition::HeuristicHeavyEdgeCoarsener<datastructure::HypergraphType, RandomWinsRater> hec(hgr, conf);
-
-
 }
-

@@ -32,24 +32,24 @@ typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
 class AnUnPartitionedHypergraph : public Test {
- public:
+  public:
   AnUnPartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}) {}
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
   HypergraphType hypergraph;
 };
 
 class TheDemoHypergraph : public AnUnPartitionedHypergraph {
- public:
-  TheDemoHypergraph() : AnUnPartitionedHypergraph() {}
+  public:
+  TheDemoHypergraph() : AnUnPartitionedHypergraph() { }
 };
 
 class APartitionedHypergraph : public Test {
- public:
+  public:
   APartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(config),
     coarsener(new FirstWinsCoarsener(hypergraph, config)) {
@@ -70,7 +70,7 @@ class APartitionedHypergraph : public Test {
 };
 
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
- public:
+  public:
   TheHyperedgeCutCalculationForInitialPartitioning() :
     AnUnPartitionedHypergraph(),
     config(),
@@ -120,5 +120,4 @@ TEST_F(TheDemoHypergraph, HasAvgHyperedgeDegree3) {
 TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
   ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
-
 } // namespace metrics

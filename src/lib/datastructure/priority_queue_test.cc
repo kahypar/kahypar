@@ -9,9 +9,9 @@ using::testing::DoubleEq;
 using::testing::Test;
 
 class APriorityQueue : public Test {
- public:
+  public:
   APriorityQueue() :
-    prio_queue(3, 3) {}
+    prio_queue(3, 3) { }
 
   PriorityQueue<defs::HyperNodeID, defs::RatingType, MetaKeyDouble> prio_queue;
 };
@@ -69,5 +69,4 @@ TEST_F(APriorityQueue, BehavesAsExpectedOnDeletionOfCurrentMaximum) {
   ASSERT_THAT(prio_queue.max(), Eq(1));
   ASSERT_THAT(prio_queue.maxKey(), DoubleEq(0.833333));
 }
-
 } // namespace datastructure

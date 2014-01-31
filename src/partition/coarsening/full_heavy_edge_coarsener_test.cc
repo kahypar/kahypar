@@ -24,16 +24,16 @@ typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef FullHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 
 template <typename Hypergraph>
-class DummyRefiner : public IRefiner<Hypergraph> {
+class DummyRefiner : public IRefiner<Hypergraph>{
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
-              double, double&) {}
+              double, double&) { }
 };
 
 class ACoarsener : public Test {
- public:
+  public:
   ACoarsener() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     coarsener(hypergraph, config),
     refiner(new DummyRefiner<HypergraphType>()) {
@@ -48,10 +48,10 @@ class ACoarsener : public Test {
 };
 
 class ACoarsenerWithThresholdWeight3 : public Test {
- public:
+  public:
   ACoarsenerWithThresholdWeight3() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     coarsener(hypergraph, config),
     refiner(new DummyRefiner<HypergraphType>()) {
@@ -128,10 +128,10 @@ TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
 TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   // Artificially constructed hypergraph that enforces the successive removal of
   // two successive parallel hyperedges.
-  HyperedgeWeightVector edge_weights {1, 1, 1, 1};
-  HypernodeWeightVector node_weights {50, 1, 1};
-  HypergraphType hypergraph(3, 4, HyperedgeIndexVector {0, 2, 4, 6, /*sentinel*/ 8},
-                            HyperedgeVector {0, 1, 0, 1, 0, 2, 1, 2}, &edge_weights,
+  HyperedgeWeightVector edge_weights { 1, 1, 1, 1 };
+  HypernodeWeightVector node_weights { 50, 1, 1 };
+  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+                            HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
                             &node_weights);
 
   Configuration<HypergraphType> config;
@@ -150,10 +150,10 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   // Artificially constructed hypergraph that enforces the successive removal of
   // three single-node hyperedges.
-  HyperedgeWeightVector edge_weights {1, 1, 1};
-  HypernodeWeightVector node_weights {1, 1};
-  HypergraphType hypergraph(2, 3, HyperedgeIndexVector {0, 2, 4, /*sentinel*/ 6},
-                            HyperedgeVector {0, 1, 0, 1, 0, 1}, &edge_weights,
+  HyperedgeWeightVector edge_weights { 1, 1, 1 };
+  HypernodeWeightVector node_weights { 1, 1 };
+  HypergraphType hypergraph(2, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                            HyperedgeVector { 0, 1, 0, 1, 0, 1 }, &edge_weights,
                             &node_weights);
 
   Configuration<HypergraphType> config;
@@ -174,7 +174,6 @@ TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
   forall_hypernodes(hn, hypergraph) {
     ASSERT_THAT(hypergraph.nodeWeight(*hn), Le(3));
   } endfor
-  ASSERT_THAT(hypergraph.numNodes(), Eq(3));
+    ASSERT_THAT(hypergraph.numNodes(), Eq(3));
 }
-
 } // namespace partition

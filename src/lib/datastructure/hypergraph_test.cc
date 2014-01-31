@@ -239,7 +239,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
     ASSERT_THAT(*hn_iter, Eq(hypernode_count));
     ++hypernode_count;
   } endfor
-  ASSERT_THAT(hypernode_count, Eq(7));
+    ASSERT_THAT(hypernode_count, Eq(7));
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
@@ -250,7 +250,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
     ASSERT_THAT(*he_iter, Eq(hyperedge_count));
     ++hyperedge_count;
   } endfor
-  ASSERT_THAT(hyperedge_count, Eq(4));
+    ASSERT_THAT(hyperedge_count, Eq(4));
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
@@ -426,8 +426,8 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
 }
 
 TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {
-  HypergraphType hypergraph(1, 1, HyperedgeIndexVector {0, /*sentinel*/ 1},
-                            HyperedgeVector {0});
+  HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+                            HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
@@ -510,5 +510,4 @@ TEST_F(AnUnPartitionedHypergraph, HasAllNodesInPartitionZero) {
     ASSERT_THAT(hypergraph.partitionIndex(*hn), Eq(0));
   } endfor
 }
-
 } // namespace datastructure

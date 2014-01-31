@@ -20,10 +20,10 @@ typedef Rater<HypergraphType, defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
 
 class AFirstWinsRater : public Test {
- public:
+  public:
   AFirstWinsRater() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
@@ -34,10 +34,10 @@ class AFirstWinsRater : public Test {
 };
 
 class ALastWinsRater : public Test {
- public:
+  public:
   ALastWinsRater() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
@@ -48,10 +48,10 @@ class ALastWinsRater : public Test {
 };
 
 class ARandomWinsRater : public Test {
- public:
+  public:
   ARandomWinsRater() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
@@ -64,7 +64,7 @@ class ARandomWinsRater : public Test {
 TEST_F(AFirstWinsRater, UsesHeavyEdgeRatingToRateHypernodes) {
   ASSERT_THAT(rater.rate(0).value, Eq(1));
   ASSERT_THAT(rater.rate(0).target, Eq(2));
-  ASSERT_THAT(rater.rate(3).value, DoubleEq(5.0/6));
+  ASSERT_THAT(rater.rate(3).value, DoubleEq(5.0 / 6));
   ASSERT_THAT(rater.rate(3).target, Eq(4));
 }
 
@@ -101,5 +101,4 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
-
 } // namespace partition

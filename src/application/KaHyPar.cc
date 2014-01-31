@@ -50,7 +50,7 @@ void configurePartitionerFromCommandLineInput(Config& config, po::variables_map&
     config.partitioning.graph_filename = vm["hgr"].as<std::string>();
     config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
     config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of(
-                                                       "/")+1, "coarse_");
+                                                       "/") + 1, "coarse_");
     config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part.2.KaHyPar";
     config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename + ".part.2";
     config.partitioning.epsilon = vm["e"].as<double>();
@@ -115,19 +115,19 @@ int main(int argc, char* argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
-    ("verbose", po::value<bool>(),       "Verbose partitioner output")
-    ("hgr", po::value<std::string>(),    "Filename of the hypergraph to be partitioned")
-    ("e",  po::value<double>(),          "Imbalance parameter epsilon")
-    ("seed", po::value<int>(),           "Seed for random number generator")
+    ("verbose", po::value<bool>(), "Verbose partitioner output")
+    ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
+    ("e", po::value<double>(), "Imbalance parameter epsilon")
+    ("seed", po::value<int>(), "Seed for random number generator")
     ("nruns", po::value<int>(),
     "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
-    ("ctype", po::value<std::string>(),  "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
+    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
-    ("t", po::value<HypernodeID>(),      "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
+    ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
-    ("i", po::value<int>(),              "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
-    ("alpha", po::value<double>(),       "2-Way-FM: Random Walk stop alpha (adaptive)");
+    ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
+    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -158,13 +158,13 @@ int main(int argc, char* argv[]) {
   } endfor
 
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
-    * ceil(hypergraph_weight/static_cast<double>(config.partitioning.k));
+                                                   * ceil(hypergraph_weight / static_cast<double>(config.partitioning.k));
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph.numNodes();
   config.two_way_fm.beta = log(num_hypernodes);
 
   io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
-                            config.partitioning.graph_filename.find_last_of("/")+1));
+                            config.partitioning.graph_filename.find_last_of("/") + 1));
 
   HypergraphPartitioner partitioner(config);
   std::unique_ptr<ICoarsener<HypergraphType> > coarsener(nullptr);
@@ -182,4 +182,3 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
-

@@ -19,10 +19,10 @@ typedef TwoWayFMRefiner<HypergraphType,
                         NumberOfFruitlessMovesStopsSearch> TwoWayFMRefinerSimpleStopping;
 
 class ATwoWayFMRefiner : public Test {
- public:
+  public:
   ATwoWayFMRefiner() :
-    hypergraph(7, 4, HyperedgeIndexVector {0, 2, 6, 9, /*sentinel*/ 12},
-               HyperedgeVector {0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6}),
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     refiner(nullptr) {
     hypergraph.changeNodePartition(1, 0, 1);
@@ -41,7 +41,7 @@ class ATwoWayFMRefiner : public Test {
 };
 
 class AGainUpdateMethod : public Test {
- public:
+  public:
   AGainUpdateMethod() :
     config() {
     config.two_way_fm.max_number_of_fruitless_moves = 50;
@@ -135,7 +135,7 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
 
 // Ugly: We could seriously need Mocks here!
 TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2) {
-  HypergraphType hypergraph(2, 1, HyperedgeIndexVector {0, 2}, HyperedgeVector {0, 1});
+  HypergraphType hypergraph(2, 1, HyperedgeIndexVector { 0, 2 }, HyperedgeVector { 0, 1 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   ASSERT_THAT(hypergraph.partitionIndex(0), Eq(0));
@@ -158,7 +158,7 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
 }
 
 TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2) {
-  HypergraphType hypergraph(3, 2, HyperedgeIndexVector {0, 2, 4}, HyperedgeVector {0, 1, 0, 2});
+  HypergraphType hypergraph(3, 2, HyperedgeIndexVector { 0, 2, 4 }, HyperedgeVector { 0, 1, 0, 2 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(1, 0, 1);
@@ -179,7 +179,7 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
 }
 
 TEST_F(AGainUpdateMethod, HandlesCase0To1) {
-  HypergraphType hypergraph(4, 1, HyperedgeIndexVector {0, 4}, HyperedgeVector {0, 1, 2, 3});
+  HypergraphType hypergraph(4, 1, HyperedgeIndexVector { 0, 4 }, HyperedgeVector { 0, 1, 2, 3 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   // bypassing activate since neither 0 nor 1 is actually a border node
@@ -202,7 +202,7 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
 }
 
 TEST_F(AGainUpdateMethod, HandlesCase1To0) {
-  HypergraphType hypergraph(5, 2, HyperedgeIndexVector {0, 4, 8}, HyperedgeVector {0, 1, 2, 3, 0, 1, 2, 4});
+  HypergraphType hypergraph(5, 2, HyperedgeIndexVector { 0, 4, 8 }, HyperedgeVector { 0, 1, 2, 3, 0, 1, 2, 4 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(3, 0, 1);
@@ -228,7 +228,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
 }
 
 TEST_F(AGainUpdateMethod, HandlesCase2To1) {
-  HypergraphType hypergraph(4, 1, HyperedgeIndexVector {0, 4}, HyperedgeVector {0, 1, 2, 3});
+  HypergraphType hypergraph(4, 1, HyperedgeIndexVector { 0, 4 }, HyperedgeVector { 0, 1, 2, 3 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(2, 0, 1);
@@ -252,7 +252,7 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
 }
 
 TEST_F(AGainUpdateMethod, HandlesCase1To2) {
-  HypergraphType hypergraph(4, 1, HyperedgeIndexVector {0, 4}, HyperedgeVector {0, 1, 2, 3});
+  HypergraphType hypergraph(4, 1, HyperedgeIndexVector { 0, 4 }, HyperedgeVector { 0, 1, 2, 3 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(3, 0, 1);
@@ -275,7 +275,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
 }
 
 TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
-  HypergraphType hypergraph(3, 1, HyperedgeIndexVector {0, 3}, HyperedgeVector {0, 1, 2});
+  HypergraphType hypergraph(3, 1, HyperedgeIndexVector { 0, 3 }, HyperedgeVector { 0, 1, 2 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(2, 0, 1);
@@ -295,7 +295,7 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
 }
 
 TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
-  HypergraphType hypergraph(3, 1, HyperedgeIndexVector {0, 3}, HyperedgeVector {0, 1, 2});
+  HypergraphType hypergraph(3, 1, HyperedgeIndexVector { 0, 3 }, HyperedgeVector { 0, 1, 2 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   hypergraph.changeNodePartition(1, 0, 1);
@@ -313,11 +313,10 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   ASSERT_THAT(refiner._pq[1]->key(1), Eq(1));
   ASSERT_THAT(refiner._pq[0]->contains(0), Eq(false));
   ASSERT_THAT(refiner._pq[0]->contains(2), Eq(false));
-
 }
 
 TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
-  HypergraphType hypergraph(3, 1, HyperedgeIndexVector {0, 3}, HyperedgeVector {0, 1, 2});
+  HypergraphType hypergraph(3, 1, HyperedgeIndexVector { 0, 3 }, HyperedgeVector { 0, 1, 2 });
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
 
   // bypassing activate since neither 0 nor 1 is actually a border node
@@ -336,5 +335,4 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   ASSERT_THAT(refiner._pq[0]->contains(2), Eq(true));
   ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
 }
-
 } // namespace partition
