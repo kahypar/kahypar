@@ -15,8 +15,7 @@
 namespace datastructure {
 using defs::PartitionID;
 
-// external macros:
-// Causion when modifying hypergraph during iteration!
+// external macros: Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                                    \
   {                                                                     \
   datastructure::HypernodeIterator __begin, __end;                      \
