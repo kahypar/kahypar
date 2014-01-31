@@ -1,36 +1,35 @@
 #ifndef PARTITION_COARSENING_HEAVYEDGECOARSENER_H_
 #define PARTITION_COARSENING_HEAVYEDGECOARSENER_H_
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
-
 template <class Hypergraph, class Rater>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
-                                    public HeavyEdgeCoarsenerBase<Hypergraph, Rater> {
- private:
-  typedef HeavyEdgeCoarsenerBase<Hypergraph,Rater> Base;
+                                    public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
+  private:
+  typedef HeavyEdgeCoarsenerBase<Hypergraph, Rater> Base;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
-  
- public:
-  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-      HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) {}
 
-  ~HeuristicHeavyEdgeCoarsener() {}
-  
+  public:
+  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+    HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) { }
+
+  ~HeuristicHeavyEdgeCoarsener() { }
+
   void coarsen(int limit) {
     ASSERT(Base::_pq.empty(), "coarsen() can only be called once");
 
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
     TargetToSourcesMap sources;
-    
+
     rateAllHypernodes(target, sources);
 
     HypernodeID rep_node;
@@ -62,12 +61,12 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
       reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
   }
-  
-  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
+
+  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) {
     Base::uncoarsen(refiner);
   }
 
- private:
+  private:
   void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target,
                                 TargetToSourcesMap& sources) {
     auto range = sources.equal_range(hn_target);
@@ -87,21 +86,21 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
       if (rating.valid) {
         Base::_pq.insert(*hn, rating.value);
         target[*hn] = rating.target;
-        sources.insert({rating.target, *hn});
+        sources.insert({ rating.target, *hn });
       }
-    } endfor 
+    } endfor
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
                                                           TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
     for (int i = Base::_history.top().parallel_hes_begin; i != Base::_history.top().parallel_hes_begin +
-                 Base::_history.top().parallel_hes_size; ++i) {
+         Base::_history.top().parallel_hes_size; ++i) {
       forall_pins(pin, Base::_removed_parallel_hyperedges[i].representative_id, Base::_hg) {
         rating = Base::_rater.rate(*pin);
         updatePQandMappings(*pin, rating, target, sources);
       } endfor
-            }
+    }
   }
 
   void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
@@ -134,16 +133,15 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     } else if (Base::_pq.contains(hn)) {
       Base::_pq.remove(hn);
       removeMappingEntryOfNode(hn, target[hn], sources);
-    }    
+    }
   }
 
   void updateMappings(HypernodeID hn, const HeavyEdgeRating& rating,
                       std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     removeMappingEntryOfNode(hn, target[hn], sources);
     target[hn] = rating.target;
-    sources.insert({rating.target, hn});
+    sources.insert({ rating.target, hn });
   }
-
 };
 } // namespace partition
 

@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-#include "lib/definitions.h"
 #include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 
 namespace metrics {
 using datastructure::HyperedgeWeight;
@@ -31,13 +31,13 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
         cut += hg.edgeWeight(*he);
         break;
       }
-    }    
+    }
   } endfor
   return cut;
 }
 
 template <class Hypergraph, typename CoarsendToHmetisMapping, typename Partition>
-HyperedgeWeight hyperedgeCut(const Hypergraph& hg,  CoarsendToHmetisMapping&
+HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                              hg_to_hmetis, Partition& partitioning) {
   HyperedgeWeight cut = 0;
   forall_hyperedges(he, hg) {
@@ -86,7 +86,6 @@ template <class Hypergraph>
 double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
-
 } // namespace metrics
 
 #endif  // PARTITION_METRICS_H_

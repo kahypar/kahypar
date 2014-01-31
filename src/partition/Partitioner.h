@@ -8,9 +8,9 @@
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
+#include "partition/Configuration.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/Configuration.h"
 #include "tools/RandomFunctions.h"
 
 #ifndef NDEBUG
@@ -21,16 +21,16 @@ namespace partition {
 using defs::PartitionID;
 
 template <class Hypergraph>
-class Partitioner{
+class Partitioner {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
-  
- public:
+
+  public:
   Partitioner(Configuration<Hypergraph>& config) :
-      _config(config) {}
+    _config(config) { }
 
   void partition(Hypergraph& hypergraph, std::unique_ptr<ICoarsener<Hypergraph> >& coarsener) {
     coarsener->coarsen(_config.coarsening.minimal_node_count);
@@ -48,12 +48,12 @@ class Partitioner{
              "no upper bound on fruitless moves defined for simple stopping rule");
       refiner.reset(new TwoWayFMRefiner<Hypergraph, NumberOfFruitlessMovesStopsSearch>(hypergraph, _config));
     }
-    
+
     coarsener->uncoarsen(refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
   }
-  
- private:
+
+  private:
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg) {
@@ -67,9 +67,9 @@ class Partitioner{
 
   void performInitialPartitioning(Hypergraph& hg) {
     io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename.substr(
-        _config.partitioning.coarse_graph_filename.find_last_of("/")+1));
-    
-    HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(),0);
+                              _config.partitioning.coarse_graph_filename.find_last_of("/") + 1));
+
+    HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(), 0);
     CoarsenedToHmetisMapping hg_to_hmetis;
     createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
@@ -97,7 +97,7 @@ class Partitioner{
 
       if (current_cut < best_cut) {
         LOG("initialPartition", "attempt " << attempt << " improved initial cut from "
-            << best_cut << " to " << current_cut);
+                                           << best_cut << " to " << current_cut);
         best_partitioning.swap(partitioning);
         best_cut = current_cut;
       }
@@ -112,10 +112,9 @@ class Partitioner{
     ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
            << "best initial cut");
   }
-  
+
   const Configuration<Hypergraph>& _config;
 };
-
 } // namespace partition
 
 #endif  // PARTITION_PARTITIONER_H_

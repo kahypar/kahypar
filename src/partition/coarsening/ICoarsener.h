@@ -6,16 +6,13 @@
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
-
 template <class Hypergraph>
 class ICoarsener {
- public:
-  virtual void coarsen(int limit) = 0; 
-  virtual void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) = 0;
-  virtual ~ICoarsener() {}
-
+  public:
+  virtual void coarsen(int limit) = 0;
+  virtual void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) = 0;
+  virtual ~ICoarsener() { }
 };
-
 }
 
 #endif  // PARTITION_COARSENING_ICOARSENER_H_

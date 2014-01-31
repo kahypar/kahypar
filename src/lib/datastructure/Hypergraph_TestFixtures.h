@@ -5,7 +5,7 @@
 #include "lib/datastructure/Hypergraph.h"
 
 namespace datastructure {
-using ::testing::Test;
+using::testing::Test;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -13,76 +13,75 @@ using datastructure::HyperedgeVector;
 using datastructure::HypernodeIterator;
 
 class AHypergraph : public Test {
- public:
+  public:
   AHypergraph() :
-      hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                 HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
   HypergraphType hypergraph;
 };
 
 class AHypernodeIterator : public AHypergraph {
- public:
+  public:
   AHypernodeIterator() :
-      AHypergraph(),
-      begin(),
-      end() {}
+    AHypergraph(),
+    begin(),
+    end() { }
 
   HypernodeIterator begin;
   HypernodeIterator end;
 };
 
 class AHyperedgeIterator : public AHypergraph {
- public:
+  public:
   AHyperedgeIterator() :
-      AHypergraph(),
-      begin(),
-      end() {}
+    AHypergraph(),
+    begin(),
+    end() { }
 
   HyperedgeIterator begin;
   HyperedgeIterator end;
 };
 
 class AHypergraphMacro : public AHypergraph {
- public:
-  AHypergraphMacro() : AHypergraph() {}
+  public:
+  AHypergraphMacro() : AHypergraph() { }
 };
 
 class AContractionMemento : public AHypergraph {
- public:
-  AContractionMemento() : AHypergraph() {}
+  public:
+  AContractionMemento() : AHypergraph() { }
 };
 
 class AnUncontractionOperation : public AHypergraph {
- public:
-  AnUncontractionOperation() : AHypergraph() {}
+  public:
+  AnUncontractionOperation() : AHypergraph() { }
 };
 
 class AnUncontractedHypergraph : public AHypergraph {
- public:
+  public:
   AnUncontractedHypergraph() :
-      AHypergraph(),
-      modified_hypergraph(7,4, HyperedgeIndexVector {0,2,6,9,/*sentinel*/12},
-                          HyperedgeVector {0,2,0,1,3,4,3,4,6,2,5,6}) {}
+    AHypergraph(),
+    modified_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                        HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
   HypergraphType modified_hypergraph;
 };
 
 class APartitionedHypergraph : public AHypergraph {
- public:
+  public:
   APartitionedHypergraph() :
-      AHypergraph() {
-    hypergraph.changeNodePartition(2,0,1);
-    hypergraph.changeNodePartition(5,0,1);
-    hypergraph.changeNodePartition(6,0,1);
+    AHypergraph() {
+    hypergraph.changeNodePartition(2, 0, 1);
+    hypergraph.changeNodePartition(5, 0, 1);
+    hypergraph.changeNodePartition(6, 0, 1);
   }
 };
 
 class AnUnPartitionedHypergraph : public AHypergraph {
- public:
+  public:
   AnUnPartitionedHypergraph() :
-      AHypergraph() {}
+    AHypergraph() { }
 };
-
 } // namespace datastructure
 
 

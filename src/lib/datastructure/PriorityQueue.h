@@ -18,12 +18,12 @@ struct MetaKeyDouble {
 };
 
 template <typename IDType, typename KeyType, typename MetaKey>
-class PriorityQueue{
+class PriorityQueue {
   typedef BinaryHeap<IDType, KeyType, MetaKey> Heap;
-  
- public:
+
+  public:
   PriorityQueue(IDType size, size_t reserve_size = 0) :
-      _heap(size, reserve_size) { }
+    _heap(size, reserve_size) { }
 
   size_t size() const {
     return _heap.size();
@@ -84,12 +84,11 @@ class PriorityQueue{
   void clear() {
     _heap.clear();
   }
-  
- private:
+
+  private:
   Heap _heap;
   DISALLOW_COPY_AND_ASSIGN(PriorityQueue);
 };
-
 } // namespace datastructure
 
 #endif  // LIB_DATASTRUCTURE_PRIORITYQUEUE_H_

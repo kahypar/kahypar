@@ -11,8 +11,8 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 
 #ifndef NSELF_VERIFICATION
-#include "partition/Metrics.h"
 #include "external/Utils.h"
+#include "partition/Metrics.h"
 #endif
 
 namespace partition {
@@ -21,7 +21,7 @@ using datastructure::MetaKeyDouble;
 
 template <class Hypergraph, class Rater>
 class HeavyEdgeCoarsenerBase {
- protected:
+  protected:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
@@ -32,19 +32,19 @@ class HeavyEdgeCoarsenerBase {
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef typename Rater::RatingType RatingType;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
-  
+
   struct CoarseningMemento {
-    int one_pin_hes_begin;   // start of removed single pin hyperedges
-    int one_pin_hes_size;    // # removed single pin hyperedges
-    int parallel_hes_begin;  // start of removed parallel hyperedges
-    int parallel_hes_size;   // # removed parallel hyperedges
+    int one_pin_hes_begin;      // start of removed single pin hyperedges
+    int one_pin_hes_size;       // # removed single pin hyperedges
+    int parallel_hes_begin;     // start of removed parallel hyperedges
+    int parallel_hes_size;      // # removed parallel hyperedges
     Memento contraction_memento;
     CoarseningMemento(Memento contraction_memento_) :
-        one_pin_hes_begin(0),
-        one_pin_hes_size(0),
-        parallel_hes_begin(0),
-        parallel_hes_size(0),
-        contraction_memento(contraction_memento_) {}
+      one_pin_hes_begin(0),
+      one_pin_hes_size(0),
+      parallel_hes_begin(0),
+      parallel_hes_size(0),
+      contraction_memento(contraction_memento_) { }
   };
 
   struct Fingerprint {
@@ -52,42 +52,42 @@ class HeavyEdgeCoarsenerBase {
     HyperedgeID hash;
     HypernodeID size;
     Fingerprint(HyperedgeID id_, HyperedgeID hash_, HypernodeID size_) :
-        id(id_),
-        hash(hash_),
-        size(size_) {}
+      id(id_),
+      hash(hash_),
+      size(size_) { }
   };
 
   struct ParallelHE {
     HyperedgeID representative_id;
     HyperedgeID removed_id;
     ParallelHE(HyperedgeID representative_id_, HyperedgeID removed_id_) :
-        representative_id(representative_id_),
-        removed_id(removed_id_) {}
+      representative_id(representative_id_),
+      removed_id(removed_id_) { }
   };
-  
- public:  
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-      _hg(hypergraph),
-      _config(config),
-      _rater(_hg, _config),
-      _history(),
-      _removed_single_node_hyperedges(),
-      _removed_parallel_hyperedges(),
-      _fingerprints(),
-      _contained_hypernodes(_hg.initialNumNodes()),
-      _pq(_hg.initialNumNodes(), _hg.initialNumNodes()) {}
 
-  virtual ~HeavyEdgeCoarsenerBase() {}
-  
-  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
+  public:
+  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+    _hg(hypergraph),
+    _config(config),
+    _rater(_hg, _config),
+    _history(),
+    _removed_single_node_hyperedges(),
+    _removed_parallel_hyperedges(),
+    _fingerprints(),
+    _contained_hypernodes(_hg.initialNumNodes()),
+    _pq(_hg.initialNumNodes(), _hg.initialNumNodes()) { }
+
+  virtual ~HeavyEdgeCoarsenerBase() { }
+
+  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
-    while(!_history.empty()) {  
+    while (!_history.empty()) {
 #ifndef NDEBUG
       HyperedgeWeight old_cut = current_cut;
 #endif
-      
+
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
 
@@ -96,19 +96,19 @@ class HeavyEdgeCoarsenerBase {
 
       _hg.uncontract(_history.top().contraction_memento);
       refiner->refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                     current_cut, _config.partitioning.epsilon, current_imbalance);
+                      current_cut, _config.partitioning.epsilon, current_imbalance);
       _history.pop();
-      
+
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
     }
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
-           << " > " << _config.partitioning.epsilon);
+                                                                 << " > " << _config.partitioning.epsilon);
   }
 
- protected:
+  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
-  
+
   void performContraction(HypernodeID rep_node, HypernodeID contracted_node) {
     _history.emplace(_hg.contract(rep_node, contracted_node));
   }
@@ -161,16 +161,16 @@ class HeavyEdgeCoarsenerBase {
 
     createFingerprints(u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [](const Fingerprint& a, const Fingerprint& b) {return a.hash < b.hash;});
+              [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
     for (size_t i = 0; i < _fingerprints.size(); ++i) {
       size_t j = i + 1;
       if (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
         fillProbeBitset(_fingerprints[i].id);
-        for (; j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash; ++j) {
-          if (_fingerprints[i].size == _fingerprints[j].size
-              && isParallelHyperedge(_fingerprints[j].id)) {
-              removeParallelHyperedge(_fingerprints[i].id, _fingerprints[j].id);
+        for ( ; j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash; ++j) {
+          if (_fingerprints[i].size == _fingerprints[j].size &&
+              isParallelHyperedge(_fingerprints[j].id)) {
+            removeParallelHyperedge(_fingerprints[i].id, _fingerprints[j].id);
           }
         }
         i = j;
@@ -198,8 +198,8 @@ class HeavyEdgeCoarsenerBase {
 
   void removeParallelHyperedge(HyperedgeID representative, HyperedgeID to_remove) {
     _hg.setEdgeWeight(representative,
-                              _hg.edgeWeight(representative)
-                              + _hg.edgeWeight(to_remove));
+                      _hg.edgeWeight(representative)
+                      + _hg.edgeWeight(to_remove));
     _hg.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
     // PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
@@ -227,7 +227,6 @@ class HeavyEdgeCoarsenerBase {
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   PriorityQueue<HypernodeID, RatingType, MetaKeyDouble> _pq;
 };
-
 } // namespace partition
 
 #endif  // PARTITION_COARSENER_H_

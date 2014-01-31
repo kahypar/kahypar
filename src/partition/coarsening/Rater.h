@@ -6,21 +6,21 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "lib/macros.h"
 #include "lib/datastructure/Hypergraph.h"
+#include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
 namespace partition {
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-// See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor 
+// See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
 template <class Hypergraph, typename RatingType_, class _TieBreakingPolicy>
 class Rater {
- public:
+  public:
   typedef RatingType_ RatingType;
- private:
+
+  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
@@ -34,47 +34,47 @@ class Rater {
     RatingType value;
     bool valid;
     HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) :
-        target(trgt),
-        value(val),
-        valid(is_valid) {}
+      target(trgt),
+      value(val),
+      valid(is_valid) { }
     HeavyEdgeRating() :
-        target(std::numeric_limits<HypernodeID>::max()),
-        value(std::numeric_limits<RatingType>::min()),
-        valid(false) {}
+      target(std::numeric_limits<HypernodeID>::max()),
+      value(std::numeric_limits<RatingType>::min()),
+      valid(false) { }
   };
-  
- public:
+
+  public:
   typedef HeavyEdgeRating Rating;
   Rater(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-      _hg(hypergraph),
-      _config(config),
-      _tmp_ratings(_hg.initialNumNodes()),
-      _used_entries(),
-      _visited_hypernodes(_hg.initialNumNodes()) {}
+    _hg(hypergraph),
+    _config(config),
+    _tmp_ratings(_hg.initialNumNodes()),
+    _used_entries(),
+    _visited_hypernodes(_hg.initialNumNodes()) { }
 
   HeavyEdgeRating rate(HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
-    forall_incident_hyperedges(he,  u, _hg) {
+    forall_incident_hyperedges(he, u, _hg) {
       forall_pins(v, *he, _hg) {
-        if (*v != u && belowThresholdNodeWeight(*v, u) ) {
+        if (*v != u && belowThresholdNodeWeight(*v, u)) {
           _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
                               / (_hg.edgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
             _visited_hypernodes[*v] = 1;
             _used_entries.push(*v);
-          } 
+          }
         }
       } endfor
     } endfor
-          
+
     RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
-      // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp); 
+      // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp);
       if (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) {
         max_rating = tmp;
         target = _used_entries.top();
@@ -91,18 +91,17 @@ class Rater {
       ret.valid = true;
     }
     return ret;
-  };
+  }
 
   HypernodeWeight thresholdNodeWeight() const {
     return _config.coarsening.threshold_node_weight;
   }
 
- private:
-
+  private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
   }
-  
+
   Hypergraph& _hg;
   const Configuration<Hypergraph>& _config;
   std::vector<RatingType> _tmp_ratings;
@@ -110,7 +109,6 @@ class Rater {
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
 };
 #pragma GCC diagnostic pop
-
 } // namespace partition
 
 #endif  // PARTITION_RATER_H_

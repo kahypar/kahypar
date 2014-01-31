@@ -12,6 +12,5 @@ typedef int HyperEdgeWeight;
 typedef int PartitionID;
 
 typedef double RatingType;
-
 } // namespace defs
 #endif  // LIB_DEFINITIONS_H_

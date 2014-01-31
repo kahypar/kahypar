@@ -4,32 +4,33 @@
 #include "tools/RandomFunctions.h"
 
 namespace partition {
-
 struct LastRatingWins {
   static bool acceptEqual() {
     return true;
   }
- protected:
-  ~LastRatingWins() {}
+
+  protected:
+  ~LastRatingWins() { }
 };
 
 struct FirstRatingWins {
   static bool acceptEqual() {
     return false;
   }
- protected:
-  ~FirstRatingWins() {}
+
+  protected:
+  ~FirstRatingWins() { }
 };
 
 struct RandomRatingWins {
- public:
+  public:
   static bool acceptEqual() {
     return Randomize::flipCoin();
   }
- protected:
-  ~RandomRatingWins() {}
-};
 
+  protected:
+  ~RandomRatingWins() { }
+};
 } // namespace partition
 
 #endif  // PARTITION_RATINGTIEBREAKINGPOLICIES_H_

@@ -58,7 +58,7 @@
 // arises.
 template <size_t size>
 class TypeWithSize {
- public:
+  public:
   // This prevents the user from using TypeWithSize<N> with incorrect
   // values of N.
   typedef void UInt;
@@ -66,8 +66,8 @@ class TypeWithSize {
 
 // The specialization for size 4.
 template <>
-class TypeWithSize<4> {
- public:
+class TypeWithSize<4>{
+  public:
   // unsigned int has size 4 in both gcc and MSVC.
   //
   // As base/basictypes.h doesn't compile on Windows, we cannot use
@@ -78,14 +78,14 @@ class TypeWithSize<4> {
 
 // The specialization for size 8.
 template <>
-class TypeWithSize<8> {
- public:
+class TypeWithSize<8>{
+  public:
 #if GTEST_OS_WINDOWS
   typedef __int64 Int;
   typedef unsigned __int64 UInt;
 #else
-  typedef long long Int;  // NOLINT
-  typedef unsigned long long UInt;  // NOLINT
+  typedef long long Int;             // NOLINT
+  typedef unsigned long long UInt;   // NOLINT
 #endif  // GTEST_OS_WINDOWS
 };
 
@@ -121,7 +121,7 @@ class TypeWithSize<8> {
 //   RawType: the raw floating-point type (either float or double)
 template <typename RawType>
 class FloatingPoint {
- public:
+  public:
   // Defines the unsigned integer type that has the same size as the
   // floating point number.
   typedef typename TypeWithSize<sizeof(RawType)>::UInt Bits;
@@ -129,7 +129,7 @@ class FloatingPoint {
   // Constants.
 
   // # of bits in a number.
-  static const size_t kBitCount = 8*sizeof(RawType);
+  static const size_t kBitCount = 8 * sizeof(RawType);
 
   // # of fraction bits in a number.
   static const size_t kFractionBitCount =
@@ -189,7 +189,7 @@ class FloatingPoint {
   // Non-static methods
 
   // Returns the bits that represents this number.
-  const Bits &bits() const { return u_.bits_; }
+  const Bits & bits() const { return u_.bits_; }
 
   // Returns the exponent bits of this number.
   Bits exponent_bits() const { return kExponentBitMask & u_.bits_; }
@@ -219,14 +219,14 @@ class FloatingPoint {
     if (is_nan() || rhs.is_nan()) return false;
 
     return DistanceBetweenSignAndMagnitudeNumbers(u_.bits_, rhs.u_.bits_)
-        <= kMaxUlps;
+           <= kMaxUlps;
   }
 
- private:
+  private:
   // The data type used to store the actual floating-point number.
   union FloatingPointUnion {
-    RawType value_;  // The raw floating-point number.
-    Bits bits_;      // The bits that represent the number.
+    RawType value_;     // The raw floating-point number.
+    Bits bits_;         // The bits that represent the number.
   };
 
   // Converts an integer from the sign-and-magnitude representation to
@@ -244,7 +244,7 @@ class FloatingPoint {
   //
   // Read http://en.wikipedia.org/wiki/Signed_number_representations
   // for more details on signed number representations.
-  static Bits SignAndMagnitudeToBiased(const Bits &sam) {
+  static Bits SignAndMagnitudeToBiased(const Bits& sam) {
     if (kSignBitMask & sam) {
       // sam represents a negative number.
       return ~sam + 1;
@@ -256,8 +256,8 @@ class FloatingPoint {
 
   // Given two numbers in the sign-and-magnitude representation,
   // returns the distance between them as an unsigned number.
-  static Bits DistanceBetweenSignAndMagnitudeNumbers(const Bits &sam1,
-                                                     const Bits &sam2) {
+  static Bits DistanceBetweenSignAndMagnitudeNumbers(const Bits& sam1,
+                                                     const Bits& sam2) {
     const Bits biased1 = SignAndMagnitudeToBiased(sam1);
     const Bits biased2 = SignAndMagnitudeToBiased(sam2);
     return (biased1 >= biased2) ? (biased1 - biased2) : (biased2 - biased1);

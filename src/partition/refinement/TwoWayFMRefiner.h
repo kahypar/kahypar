@@ -9,9 +9,9 @@
 #include "gtest/gtest_prod.h"
 
 #include "external/Utils.h"
-#include "lib/definitions.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
@@ -24,8 +24,8 @@ using datastructure::PriorityQueue;
 using defs::PartitionID;
 
 template <class Hypergraph, class _StoppingPolicy>
-class TwoWayFMRefiner : public IRefiner<Hypergraph> {
- private:
+class TwoWayFMRefiner : public IRefiner<Hypergraph>{
+  private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
@@ -37,22 +37,22 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
   typedef _StoppingPolicy StoppingPolicy;
 
   static const int K = 2;
-  
- public:
+
+  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-      _hg(hypergraph),
-      _config(config),
-      // ToDo: We could also use different storage to avoid initialization like this
-      _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
-      _partition_size{0,0},
-      _marked(_hg.initialNumNodes()),
-      _just_activated(_hg.initialNumNodes()),
-      _performed_moves() {
-        _performed_moves.reserve(_hg.initialNumNodes());
-        forall_hypernodes(hn, _hg) {
-          _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
-        } endfor
-    }
+    _hg(hypergraph),
+    _config(config),
+    // ToDo: We could also use different storage to avoid initialization like this
+    _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
+    _partition_size{0, 0},
+    _marked(_hg.initialNumNodes()),
+    _just_activated(_hg.initialNumNodes()),
+    _performed_moves() {
+    _performed_moves.reserve(_hg.initialNumNodes());
+    forall_hypernodes(hn, _hg) {
+      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
+    } endfor
+  }
 
   ~TwoWayFMRefiner() {
     delete _pq[0];
@@ -71,19 +71,19 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
   }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-                         double max_imbalance, double& best_imbalance) {
+              double max_imbalance, double& best_imbalance) {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
-           << metrics::hyperedgeCut(_hg));
+                               << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-        FloatingPoint<double>(calculateImbalance())),
+             FloatingPoint<double>(calculateImbalance())),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << calculateImbalance());
-    
+                                     << " by hypergraph " << calculateImbalance());
+
     _pq[0]->clear();
     _pq[1]->clear();
     _marked.reset();
-    
+
     activate(u);
     activate(v);
 
@@ -91,10 +91,10 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     double imbalance = best_imbalance;
-    
+
     int iteration = 0;
     StoppingPolicy::resetStatistics();
-    
+
     // forward
     // best_cut == cut accounts for the case in which we improve the imbalance
     while (!queuesAreEmpty() && (best_cut == cut ||
@@ -103,7 +103,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
       PartitionID from_partition = std::numeric_limits<PartitionID>::min();
       PartitionID to_partition = std::numeric_limits<PartitionID>::min();
-      
+
       // ToDo:
       // [ ] make this a selection strategy!
       // [ ] look at which strategy is proposed by others
@@ -124,7 +124,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
         from_partition = 1;
         to_partition = 0;
       }
-      
+
       ASSERT(max_gain != std::numeric_limits<Gain>::min() &&
              max_gain_node != std::numeric_limits<HypernodeID>::max() &&
              from_partition != std::numeric_limits<PartitionID>::min() &&
@@ -138,15 +138,15 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       // ToDo:
       // [ ] also consider corking effect
       moveHypernode(max_gain_node, from_partition, to_partition);
-      
+
       cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
       imbalance = calculateImbalance();
-      
+
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
-             << metrics::hyperedgeCut(_hg) << ") do not match");
-      
+                                << metrics::hyperedgeCut(_hg) << ") do not match");
+
       // ToDos for update:
       // [ ] lock HEs for gain update! (improve running time without quality decrease)
       // [ ] what about zero-gain updates?
@@ -156,7 +156,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       bool improved_cut_within_balance = (cut < best_cut) && (imbalance < max_imbalance);
       bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut == best_cut);
-      
+
       if (improved_balance_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
         if (cut < best_cut) {
@@ -171,11 +171,11 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       _performed_moves[iteration] = max_gain_node;
       ++iteration;
     }
-    
+
     LOG("TwoWayFM", "performed " << iteration << " local search steps: stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true
-            ? "policy" : "empty queue"));    
-    rollback(_performed_moves, iteration-1, min_cut_index, _hg);
+                                 << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true ?
+            "policy" : "empty queue"));
+    rollback(_performed_moves, iteration - 1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
@@ -203,15 +203,15 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       } else if (pinCountInOnePartitionDecreasedFrom2To1(old_size0, new_size0,
                                                          old_size1, new_size1)) {
         // special case if HE consists of only 3 pins
-        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from); 
+        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from);
       } else if (pinCountInOnePartitionIncreasedFrom1To2(old_size0, new_size0,
                                                          old_size1, new_size1)) {
         updatePinsOfHyperedge(*he, -1, 0, to);
-     }      
+      }
     } endfor
   }
-  
- private:
+
+  private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
   FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
@@ -239,20 +239,20 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
     double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
                        (_partition_size[0] + _partition_size[1]) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
-        FloatingPoint<double>(metrics::imbalance(_hg))),
+             FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
     return imbalance;
   }
 
   void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn
-           << " is already in partition " << _hg.partitionIndex(hn));
+                                                 << " is already in partition " << _hg.partitionIndex(hn));
     _hg.changeNodePartition(hn, from, to);
     _marked[hn] = 1;
-     _partition_size[from] -= _hg.nodeWeight(hn);
-     _partition_size[to] += _hg.nodeWeight(hn);
+    _partition_size[from] -= _hg.nodeWeight(hn);
+    _partition_size[to] += _hg.nodeWeight(hn);
   }
-  
+
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
       if (!_marked[*pin]) {
@@ -294,20 +294,20 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
       if (isBorderNode(pin) && !_just_activated[pin]) {
         Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
         Gain gain_delta = sign * _hg.edgeWeight(he);
-         // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
-         //       << " to " << old_gain + gain_delta << " in PQ " << _hg.partitionIndex(pin));
+        // PRINT("*** updating gain of HN " << pin << " from gain " << old_gain
+        //       << " to " << old_gain + gain_delta << " in PQ " << _hg.partitionIndex(pin));
         _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
       } else {
-         // PRINT("*** deleting pin " << pin << " from PQ " << _hg.partitionIndex(pin));
+        // PRINT("*** deleting pin " << pin << " from PQ " << _hg.partitionIndex(pin));
         _pq[_hg.partitionIndex(pin)]->remove(pin);
       }
     } else {
-        activate(pin);
-        _just_activated[pin] = true;
+      activate(pin);
+      _just_activated[pin] = true;
     }
   }
 
-  void rollback(std::vector<HypernodeID> &performed_moves, int last_index, int min_cut_index,
+  void rollback(std::vector<HypernodeID>& performed_moves, int last_index, int min_cut_index,
                 Hypergraph& hg) {
     // PRINT("min_cut_index=" << min_cut_index);
     // PRINT("last_index=" << last_index);
@@ -324,7 +324,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
     Gain gain = 0;
     ASSERT(_hg.partitionIndex(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partitionIndex(hn) ^ 1;
-    
+
     forall_incident_hyperedges(he, hn, _hg) {
       ASSERT(_hg.pinCountInPartition(*he, 0) + _hg.pinCountInPartition(*he, 1) > 1,
              "Trying to compute gain for single-node HE " << *he);
@@ -336,7 +336,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
     } endfor
     return gain;
   }
-    
+
   bool isBorderNode(HypernodeID hn) const {
     bool is_border_node = false;
     forall_incident_hyperedges(he, hn, _hg) {
@@ -347,16 +347,15 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph> {
     } endfor
     return is_border_node;
   }
-  
+
   Hypergraph& _hg;
   const Configuration<Hypergraph>& _config;
-  std::array<RefinementPQ*,K> _pq;
-  std::array<HypernodeWeight,K> _partition_size;
+  std::array<RefinementPQ*, K> _pq;
+  std::array<HypernodeWeight, K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;
 };
-
 } // namespace partition
 
 #endif  // PARTITION_TWOWAYFMREFINER_H_

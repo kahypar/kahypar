@@ -1,28 +1,27 @@
 #ifndef PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 #define PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
-#include <vector>
 #include <boost/dynamic_bitset.hpp>
+#include <vector>
 
-#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
-
 template <class Hypergraph, class Rater>
 class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
-                               public HeavyEdgeCoarsenerBase<Hypergraph, Rater> { 
- private:
+                               public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
+  private:
   typedef HeavyEdgeCoarsenerBase<Hypergraph, Rater> Base;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Rater::Rating HeavyEdgeRating;
-  
- public:
+
+  public:
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-      HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) {}
-  
-  ~FullHeavyEdgeCoarsener() {}
+    HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) { }
+
+  ~FullHeavyEdgeCoarsener() { }
 
   void coarsen(int limit) {
     ASSERT(Base::_pq.empty(), "coarsen() can only be called once");
@@ -35,7 +34,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     HeavyEdgeRating rating;
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(Base::_hg.initialNumNodes());
     boost::dynamic_bitset<uint64_t> invalid_hypernodes(Base::_hg.initialNumNodes());
-    
+
     while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
       rep_node = Base::_pq.max();
       contracted_node = target[rep_node];
@@ -59,12 +58,12 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
       reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
     }
   }
-  
-  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph>>& refiner) {
+
+  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) {
     Base::uncoarsen(refiner);
   }
 
- private:
+  private:
   void rateAllHypernodes(std::vector<HypernodeID>& target) {
     HeavyEdgeRating rating;
     forall_hypernodes(hn, Base::_hg) {
@@ -73,7 +72,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
         Base::_pq.insert(*hn, rating.value);
         target[*hn] = rating.target;
       }
-    } endfor 
+    } endfor
   }
 
   void reRateAffectedHypernodes(HypernodeID rep_node,
@@ -105,9 +104,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
       invalid_hypernodes[hn] = 1;
     }
   }
-  
 };
-
 } // namespace partition
 #endif  // PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
-
