@@ -2561,21 +2561,21 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension, include_state,
   # paren (for fn-prototype start), typename, &, varname.  For the const
   # version, we're willing for const to be before typename or after
   # Don't check the implementation on same line.
-  fnline = line.split('{', 1)[0]
-  if (len(re.findall(r'\([^()]*\b(?:[\w:]|<[^()]*>)+(\s?&|&\s?)\w+', fnline)) >
-      len(re.findall(r'\([^()]*\bconst\s+(?:typename\s+)?(?:struct\s+)?'
-                     r'(?:[\w:]|<[^()]*>)+(\s?&|&\s?)\w+', fnline)) +
-      len(re.findall(r'\([^()]*\b(?:[\w:]|<[^()]*>)+\s+const(\s?&|&\s?)[\w]+',
-                     fnline))):
+  # fnline = line.split('{', 1)[0]
+  # if (len(re.findall(r'\([^()]*\b(?:[\w:]|<[^()]*>)+(\s?&|&\s?)\w+', fnline)) >
+  #     len(re.findall(r'\([^()]*\bconst\s+(?:typename\s+)?(?:struct\s+)?'
+  #                    r'(?:[\w:]|<[^()]*>)+(\s?&|&\s?)\w+', fnline)) +
+  #     len(re.findall(r'\([^()]*\b(?:[\w:]|<[^()]*>)+\s+const(\s?&|&\s?)[\w]+',
+  #                    fnline))):
 
-    # We allow non-const references in a few standard places, like functions
-    # called "swap()" or iostream operators like "<<" or ">>".
-    if not Search(
-        r'(swap|Swap|operator[<>][<>])\s*\(\s*(?:[\w:]|<.*>)+\s*&',
-        fnline):
-      error(filename, linenum, 'runtime/references', 2,
-            'Is this a non-const reference? '
-            'If so, make const or use a pointer.')
+  #   # We allow non-const references in a few standard places, like functions
+  #   # called "swap()" or iostream operators like "<<" or ">>".
+  #   if not Search(
+  #       r'(swap|Swap|operator[<>][<>])\s*\(\s*(?:[\w:]|<.*>)+\s*&',
+  #       fnline):
+  #     error(filename, linenum, 'runtime/references', 2,
+  #           'Is this a non-const reference? '
+  #           'If so, make const or use a pointer.')
 
   # Check to see if they're using an conversion function cast.
   # I just try to capture the most common basic types, though there are more.
