@@ -11,7 +11,7 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 
 #ifndef NSELF_VERIFICATION
-#include "external/Utils.h"
+#include "external/fp_compare/Utils.h"
 #include "partition/Metrics.h"
 #endif
 

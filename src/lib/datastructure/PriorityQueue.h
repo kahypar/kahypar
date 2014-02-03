@@ -1,7 +1,7 @@
 #ifndef LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 #define LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 
-#include "external/BinaryHeap.hpp"
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/macros.h"
 
 namespace datastructure {

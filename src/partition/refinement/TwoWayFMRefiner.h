@@ -8,7 +8,7 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "external/Utils.h"
+#include "external/fp_compare/Utils.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
