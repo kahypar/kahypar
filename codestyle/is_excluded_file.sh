@@ -5,6 +5,7 @@
 scriptdir="$(readlink -f "$0" | xargs dirname)"
 
 # Config
+find "$scriptdir/../src/external/" -type f > "$scriptdir/exclude.lst"
 exclude_list_file="$scriptdir/exclude.lst"
 root_dir="$scriptdir/.."
 
