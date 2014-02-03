@@ -14,6 +14,15 @@ if(Boost_FOUND)
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
 endif()
 
+find_package(SQLite REQUIRED)
+if(SQLITE3_FOUND)
+    include_directories(${SQLITE3_INCLUDE_DIR})
+    message(STATUS "Sqlite3 Include: "${SQLITE3_INCLUDE_DIR})
+    message(STATUS "Sqlite3 Libraries: ${SQLITE3_LIBRARIES}")
+    message(STATUS "Sqlite3 Library release: ${SQLITE3_LIBRARY_RELEASE}")
+    message(STATUS "Sqlite3 Library debug: ${SQLITE3_LIBRARY_DEBUG}")
+endif(SQLITE3_FOUND)
+
 if(NOT CMAKE_BUILD_TYPE)
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
        "Choose the type of build, options are: Debug Release"
