@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef PARTITION_REFINEMENT_IREFINER_H_
 #define PARTITION_REFINEMENT_IREFINER_H_
 

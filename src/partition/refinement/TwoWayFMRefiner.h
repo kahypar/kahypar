@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef PARTITION_TWOWAYFMREFINER_H_
 #define PARTITION_TWOWAYFMREFINER_H_
 #include <array>

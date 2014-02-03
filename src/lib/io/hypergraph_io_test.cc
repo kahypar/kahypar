@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/HypergraphIO_TestFixtures.h"
 
