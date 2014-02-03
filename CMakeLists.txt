@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(hypergraphpartitioning CXX)
-include_directories(${hypergraphpartitioning_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+
+include(${CMAKE_SOURCE_DIR}/cmake/GitRevision.cmake)
 
 find_package(Boost 1.55 COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS}) 
-  message(status "** Boost Include: ${Boost_INCLUDE_DIR}")
-  message(status "** Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
-  message(status "** Boost Libraries: ${Boost_LIBRARIES}")
+  message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
+  message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
+  message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)

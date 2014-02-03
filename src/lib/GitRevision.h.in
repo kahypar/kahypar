@@ -1,0 +1,6 @@
+#ifndef GITREVISION_H_
+#define GITREVISION_H_
+
+#define KaHyPar_BUILD_VERSION @KaHyPar_BUILD_VERSION@
+
+#endif  // GITREVISION_H_
