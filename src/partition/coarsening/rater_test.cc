@@ -3,7 +3,6 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/Rater.h"
 
-namespace partition {
 using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
@@ -15,6 +14,7 @@ using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 
+namespace partition {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;

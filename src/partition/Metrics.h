@@ -6,11 +6,11 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 
-namespace metrics {
 using datastructure::HyperedgeWeight;
 using datastructure::IncidenceIterator;
 using defs::PartitionID;
 
+namespace metrics {
 template <class Hypergraph>
 HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;

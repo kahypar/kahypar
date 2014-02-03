@@ -12,7 +12,6 @@
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 
-namespace io {
 using::testing::Test;
 
 using partition::Rater;
@@ -22,6 +21,7 @@ using partition::Partitioner;
 using partition::FirstRatingWins;
 using partition::Configuration;
 
+namespace io {
 class AnUnweightedHypergraphFile : public Test {
   public:
   AnUnweightedHypergraphFile() :

@@ -12,9 +12,9 @@
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
-namespace datastructure {
 using defs::PartitionID;
 
+namespace datastructure {
 // external macros: Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                 \
   {                                                  \

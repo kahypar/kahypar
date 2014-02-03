@@ -18,12 +18,11 @@
 #endif
 
 namespace partition {
-using defs::PartitionID;
-
 template <class Hypergraph>
 class Partitioner {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
+  typedef typename Hypergraph::PartitionID PartitionID;
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;

@@ -9,7 +9,6 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 
-namespace io {
 using defs::PartitionID;
 
 using datastructure::HypergraphType;
@@ -23,6 +22,7 @@ using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeightVector;
 using datastructure::HypernodeWeightVector;
 
+namespace io {
 typedef std::unordered_map<HypernodeID, HypernodeID> Mapping;
 
 inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,

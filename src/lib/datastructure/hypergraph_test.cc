@@ -6,10 +6,10 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/Hypergraph_TestFixtures.h"
 
-namespace datastructure {
 using::testing::Eq;
 using::testing::Test;
 
+namespace datastructure {
 typedef HypergraphType::ContractionMemento Memento;
 
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {

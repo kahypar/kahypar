@@ -4,14 +4,9 @@
 
 #include "lib/datastructure/Hypergraph.h"
 
-namespace datastructure {
 using::testing::Test;
 
-using datastructure::HypergraphType;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
-using datastructure::HypernodeIterator;
-
+namespace datastructure {
 class AHypergraph : public Test {
   public:
   AHypergraph() :

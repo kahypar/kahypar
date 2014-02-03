@@ -4,9 +4,9 @@
 #include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/macros.h"
 
-namespace datastructure {
 using external::BinaryHeap;
 
+namespace datastructure {
 // ToDo: We need a more robust solution for min and max values!
 struct MetaKeyDouble {
   static double max() {

@@ -3,10 +3,10 @@
 
 #include "gmock/gmock.h"
 
-namespace io {
 using::testing::Eq;
 using::testing::ContainerEq;
 
+namespace io {
 TEST(AFunction, ParsesFirstLineOfaHGRFile) {
   std::string filename("test_instances/unweighted_hypergraph.hgr");
   std::ifstream file(filename);

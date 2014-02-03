@@ -4,7 +4,6 @@
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
-namespace partition {
 using::testing::AnyOf;
 using::testing::DoubleEq;
 using::testing::Eq;
@@ -20,6 +19,7 @@ using datastructure::HypernodeID;
 using datastructure::HypernodeWeight;
 using datastructure::HyperedgeWeight;
 
+namespace partition {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef FullHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 

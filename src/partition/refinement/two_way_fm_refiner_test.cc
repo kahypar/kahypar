@@ -5,7 +5,6 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMStopPolicies.h"
 
-namespace partition {
 using::testing::Test;
 using::testing::Eq;
 
@@ -14,7 +13,7 @@ using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
 
-
+namespace partition {
 typedef TwoWayFMRefiner<HypergraphType,
                         NumberOfFruitlessMovesStopsSearch> TwoWayFMRefinerSimpleStopping;
 

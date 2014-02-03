@@ -15,10 +15,10 @@
 #include "partition/Metrics.h"
 #endif
 
-namespace partition {
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 
+namespace partition {
 template <class Hypergraph, class Rater>
 class HeavyEdgeCoarsenerBase {
   protected:

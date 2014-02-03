@@ -18,16 +18,16 @@
 #include "partition/refinement/TwoWayFMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
-namespace partition {
 using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
-using defs::PartitionID;
 
+namespace partition {
 template <class Hypergraph, class _StoppingPolicy>
 class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
+  typedef typename Hypergraph::PartitionID PartitionID;
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;

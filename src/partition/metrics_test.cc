@@ -8,7 +8,6 @@
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 
-namespace metrics {
 using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
@@ -26,6 +25,7 @@ using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Configuration;
 using partition::Partitioner;
 
+namespace metrics {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
