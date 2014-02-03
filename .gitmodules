@@ -1,0 +1,3 @@
+[submodule "src/external/sqlite3pp"]
+	path = src/external/sqlite3pp
+	url = https://code.google.com/p/sqlite3pp/
