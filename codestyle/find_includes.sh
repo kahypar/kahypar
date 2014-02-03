@@ -19,7 +19,7 @@ includes=$cppfile   # current includes
 nincludes=0         # number of includes before the current step
 while [[ $nincludes -ne "$(echo "$includes" | wc -l)" ]] ; do
     nincludes="$(echo "$includes" | wc -l)"
-    new_includes="$(grep -ohE '^#include  *".*"' $includes | sort | uniq | sed 's/.*"\(.*\)"/\1/')"
+    new_includes="$(grep -ohE '^#include  *".*"' $includes | sort | uniq | sed 's/.*"\(.*\)"/\1/' | sed 's,^[^ ]*/,,')"
     includes="$(for file in $new_includes; do
         find $include_dirs -name "$file"
     done; echo "$includes")"

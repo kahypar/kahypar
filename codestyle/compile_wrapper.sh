@@ -40,7 +40,7 @@ if [[ -f "$cppfile" ]] ; then
     scriptdir="$(readlink -f "$0" | xargs dirname)"
     "$scriptdir/cppcheck.sh"   "$cppfile" -- "$includes"
     "$scriptdir/cpplint.sh"    "$cppfile" --recursive
-    "$scriptdir/uncrustify.sh" "$cppfile" --recursive
+    "$scriptdir/uncrustify.sh" "$cppfile" --recursive --replace
 fi
 
 # Run compiler

@@ -76,9 +76,10 @@ fi
 xx="uncrustify -c $configfile -l CPP"
 
 # Run uncrustify
+replace=true
 if [[ $replace ]] ; then
     echo "$cpp_file: replacing wiht uncrustified output."
-    $($xx --replace "$cpp_file")
+    $($xx --no-backup --replace "$cpp_file")
 else
     uncrustified_code="$($xx -f "$cpp_file" 2> /dev/null)"
 
