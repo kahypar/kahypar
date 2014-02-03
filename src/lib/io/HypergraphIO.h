@@ -2,13 +2,15 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_IO_HYPERGRAPHIO_H_
-#define LIB_IO_HYPERGRAPHIO_H_
+#ifndef SRC_LIB_IO_HYPERGRAPHIO_H_
+#define SRC_LIB_IO_HYPERGRAPHIO_H_
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
@@ -199,4 +201,4 @@ inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& 
 }
 } // namespace io
 
-#endif  // LIB_IO_HYPERGRAPHIO_H_
+#endif  // SRC_LIB_IO_HYPERGRAPHIO_H_

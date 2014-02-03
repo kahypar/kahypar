@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_COARSENING_ICOARSENER_H_
-#define PARTITION_COARSENING_ICOARSENER_H_
+#ifndef SRC_PARTITION_COARSENING_ICOARSENER_H_
+#define SRC_PARTITION_COARSENING_ICOARSENER_H_
 
 #include <memory>
 
@@ -19,4 +19,4 @@ class ICoarsener {
 };
 }
 
-#endif  // PARTITION_COARSENING_ICOARSENER_H_
+#endif  // SRC_PARTITION_COARSENING_ICOARSENER_H_

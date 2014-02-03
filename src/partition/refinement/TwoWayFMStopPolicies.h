@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_TWOWAYFMSTOPPOLICIES_H_
-#define PARTITION_TWOWAYFMSTOPPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
 
 namespace partition {
 struct NumberOfFruitlessMovesStopsSearch {
@@ -71,4 +71,4 @@ double RandomWalkModelStopsSearch::_expected_gain = 0.0;
 double RandomWalkModelStopsSearch::_expected_variance = 0.0;
 } // namespace partition
 
-#endif  // PARTITION_TWOWAYFMSTOPPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_

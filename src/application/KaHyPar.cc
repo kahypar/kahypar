@@ -2,14 +2,14 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include <memory>
-#include <string>
-
 // If not defined, extensive self-verification is performed, which has high impact on
 // total running time.
 #define NSELF_VERIFICATION
 
 #include <boost/program_options.hpp>
+
+#include <memory>
+#include <string>
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
@@ -49,7 +49,7 @@ typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
 typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 
 template <typename Config>
-void configurePartitionerFromCommandLineInput(Config& config, po::variables_map& vm) {
+void configurePartitionerFromCommandLineInput(Config& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e")) {
     config.partitioning.graph_filename = vm["hgr"].as<std::string>();
     config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;

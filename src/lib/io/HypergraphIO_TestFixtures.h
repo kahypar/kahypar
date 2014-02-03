@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef _LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
-#define _LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
+#ifndef SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
+#define SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
 
 #include <cstdio>
 #include <string>
@@ -213,4 +213,4 @@ class APartitionOfAHypergraph : public Test {
 };
 } // namespace io
 
-#endif  // _LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
+#endif  // SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_

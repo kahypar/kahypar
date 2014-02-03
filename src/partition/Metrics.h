@@ -2,10 +2,12 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_METRICS_H_
-#define PARTITION_METRICS_H_
+#ifndef SRC_PARTITION_METRICS_H_
+#define SRC_PARTITION_METRICS_H_
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
@@ -92,4 +94,4 @@ double avgHypernodeDegree(const Hypergraph& hypergraph) {
 }
 } // namespace metrics
 
-#endif  // PARTITION_METRICS_H_
+#endif  // SRC_PARTITION_METRICS_H_

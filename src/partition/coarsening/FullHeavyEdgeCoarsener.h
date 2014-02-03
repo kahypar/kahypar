@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
-#define PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
+#ifndef SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
+#define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
 #include <vector>
@@ -110,4 +110,4 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   }
 };
 } // namespace partition
-#endif  // PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
+#endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

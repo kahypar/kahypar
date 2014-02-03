@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_REFINEMENT_IREFINER_H_
-#define PARTITION_REFINEMENT_IREFINER_H_
+#ifndef SRC_PARTITION_REFINEMENT_IREFINER_H_
+#define SRC_PARTITION_REFINEMENT_IREFINER_H_
 
 namespace partition {
 template <class Hypergraph>
@@ -19,4 +19,4 @@ class IRefiner {
 };
 } //namespace partition
 
-#endif  // PARTITION_REFINEMENT_IREFINER_H_
+#endif  // SRC_PARTITION_REFINEMENT_IREFINER_H_

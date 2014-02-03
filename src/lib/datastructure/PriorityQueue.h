@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
-#define LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
+#ifndef SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
+#define SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 
 #include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/macros.h"
@@ -95,4 +95,4 @@ class PriorityQueue {
 };
 } // namespace datastructure
 
-#endif  // LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
+#endif  // SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_

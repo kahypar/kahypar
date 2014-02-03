@@ -2,11 +2,13 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_COARSENER_H_
-#define PARTITION_COARSENER_H_
+#ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
+#define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
 
+#include <algorithm>
 #include <stack>
 #include <unordered_map>
+#include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -43,7 +45,7 @@ class HeavyEdgeCoarsenerBase {
     int parallel_hes_begin;     // start of removed parallel hyperedges
     int parallel_hes_size;      // # removed parallel hyperedges
     Memento contraction_memento;
-    CoarseningMemento(Memento contraction_memento_) :
+    explicit CoarseningMemento(Memento contraction_memento_) :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
@@ -233,4 +235,4 @@ class HeavyEdgeCoarsenerBase {
 };
 } // namespace partition
 
-#endif  // PARTITION_COARSENER_H_
+#endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_

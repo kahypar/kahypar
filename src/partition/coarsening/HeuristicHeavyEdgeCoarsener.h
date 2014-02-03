@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_COARSENING_HEAVYEDGECOARSENER_H_
-#define PARTITION_COARSENING_HEAVYEDGECOARSENER_H_
+#ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
+#define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 
 #include <unordered_map>
 #include <vector>
@@ -149,4 +149,4 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
 };
 } // namespace partition
 
-#endif  // PARTITION_COARSENING_HEAVYEDGECOARSENER_H_
+#endif  // SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_

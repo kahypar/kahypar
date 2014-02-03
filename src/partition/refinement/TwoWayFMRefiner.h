@@ -2,13 +2,15 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_TWOWAYFMREFINER_H_
-#define PARTITION_TWOWAYFMREFINER_H_
+#ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
+#define SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
+
+#include <boost/dynamic_bitset.hpp>
+
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <vector>
-
-#include <boost/dynamic_bitset.hpp>
 
 #include "gtest/gtest_prod.h"
 
@@ -362,4 +364,4 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 };
 } // namespace partition
 
-#endif  // PARTITION_TWOWAYFMREFINER_H_
+#endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_

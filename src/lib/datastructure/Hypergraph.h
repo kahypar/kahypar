@@ -2,14 +2,16 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_DATASTRUCTURE_HYPERGRAPH_H_
-#define LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#ifndef SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#define SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_
+
+#include <boost/dynamic_bitset.hpp>
 
 #include <algorithm>
 #include <bitset>
-#include <boost/dynamic_bitset.hpp>
 #include <iostream>
 #include <limits>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest_prod.h"
@@ -912,11 +914,12 @@ class Hypergraph {
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
   boost::dynamic_bitset<uint64_t> _active_hyperedges_u;
   boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
-  DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 
   template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
   friend bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
                                 const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
+
+  DISALLOW_COPY_AND_ASSIGN(Hypergraph);
 };
 
 template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
@@ -965,4 +968,4 @@ typedef HypergraphType::HyperedgeVector HyperedgeVector;
 typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
 typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 } // namespace datastructure
-#endif  // LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#endif  // SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_

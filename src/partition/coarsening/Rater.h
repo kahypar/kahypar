@@ -2,13 +2,14 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_RATER_H_
-#define PARTITION_RATER_H_
-
-#include <stack>
-#include <vector>
+#ifndef SRC_PARTITION_COARSENING_RATER_H_
+#define SRC_PARTITION_COARSENING_RATER_H_
 
 #include <boost/dynamic_bitset.hpp>
+
+#include <limits>
+#include <stack>
+#include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/macros.h"
@@ -115,4 +116,4 @@ class Rater {
 #pragma GCC diagnostic pop
 } // namespace partition
 
-#endif  // PARTITION_RATER_H_
+#endif  // SRC_PARTITION_COARSENING_RATER_H_

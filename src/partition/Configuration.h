@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_CONFIGURATION_H_
-#define PARTITION_CONFIGURATION_H_
+#ifndef SRC_PARTITION_CONFIGURATION_H_
+#define SRC_PARTITION_CONFIGURATION_H_
 
 #include <iomanip>
 #include <limits>
@@ -125,4 +125,4 @@ std::string toString(const Configuration& config) {
 }
 } // namespace partition
 
-#endif  // PARTITION_CONFIGURATION_H_
+#endif  // SRC_PARTITION_CONFIGURATION_H_

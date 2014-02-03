@@ -2,12 +2,15 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef PARTITION_PARTITIONER_H_
-#define PARTITION_PARTITIONER_H_
+#ifndef SRC_PARTITION_PARTITIONER_H_
+#define SRC_PARTITION_PARTITIONER_H_
 
 #include <cstdlib>
+#include <limits>
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
@@ -32,7 +35,7 @@ class Partitioner {
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
 
   public:
-  Partitioner(Configuration<Hypergraph>& config) :
+  explicit Partitioner(Configuration<Hypergraph>& config) :
     _config(config) { }
 
   void partition(Hypergraph& hypergraph, std::unique_ptr<ICoarsener<Hypergraph> >& coarsener) {
@@ -120,4 +123,4 @@ class Partitioner {
 };
 } // namespace partition
 
-#endif  // PARTITION_PARTITIONER_H_
+#endif  // SRC_PARTITION_PARTITIONER_H_
