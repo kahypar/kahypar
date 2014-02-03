@@ -1,4 +1,4 @@
-external/sqlite3pp/src/sqlite3pp.h
-external/sqlite3pp/src/sqlite3pp.cpp
-external/sqlite3pp/src/sqlite3ppext.h
-external/sqlite3pp/src/sqlite3ppext.cpp
+src/external/sqlite3pp/src/sqlite3pp.h
+src/external/sqlite3pp/src/sqlite3pp.cpp
+src/external/sqlite3pp/src/sqlite3ppext.h
+src/external/sqlite3pp/src/sqlite3ppext.cpp
