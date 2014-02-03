@@ -12,6 +12,10 @@
 #include <iostream>
 #endif
 
+// http://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value#196093
+#define QUOTE(name) #name
+#define STR(macro) QUOTE(macro)
+
 // http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
