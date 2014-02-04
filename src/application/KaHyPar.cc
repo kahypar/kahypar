@@ -5,7 +5,6 @@
 // If not defined, extensive self-verification is performed, which has high impact on
 // total running time.
 #define NSELF_VERIFICATION
-
 #include <boost/program_options.hpp>
 
 #include <memory>

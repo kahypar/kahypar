@@ -24,6 +24,6 @@ int main(int, char**) {
   //    q1->insert(4900,2);
   //q2->insert(4900,5000);
 
-  delete q1;
-  delete q2;
+// delete q1;
+// delete q2;
 }
