@@ -16,11 +16,6 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
-#ifndef NSELF_VERIFICATION
-#include "external/fp_compare/Utils.h"
-#include "partition/Metrics.h"
-#endif
-
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 
