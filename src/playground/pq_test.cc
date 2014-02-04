@@ -1,3 +1,10 @@
+/***************************************************************************
+ *  $(filename)
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+#include <array>
+#include <iostream>
+
 #include "lib/GitRevision.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -8,9 +15,6 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
-#include <array>
-#include <iostream>
-
 class A {
   public:
   virtual void print() = 0;
@@ -63,9 +67,5 @@ int main(int, char**) {
   delete q1;
   delete q2;
   std::cout << "::::test" << std::endl;
-
-  A* ac = new C();
-  A* ad = new D();
-
   std::cout << "..........................>" << STR(KaHyPar_BUILD_VERSION) << std::endl;
 }
