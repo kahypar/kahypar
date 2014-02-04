@@ -23,8 +23,7 @@ coarsening_node_weight_threshold, coarsening_min_node_count, coarsening_rating, 
 twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypernodes, :hyperedges, :k, \
 :epsilon, :L_max, :seed, :initial_partitionings, :coarsening_scheme, :coarsening_node_weight_fraction, \
  :coarsening_node_weight_threshold, :coarsening_min_node_count, :coarsening_rating, :twowayfm_stopping_rule, \
-:twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta);")
-  { }
+:twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -33,7 +32,6 @@ twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypern
   char setupDB(sqlite3pp::database& db) {
     // Tweak configuration for more performance
     // See: http://blog.quibb.org/2010/08/fast-bulk-inserts-into-sqlite/
-
     sqlite3pp::command(db, "PRAGMA synchronous=OFF;").execute();
     sqlite3pp::command(db, "PRAGMA count_changes=OFF;").execute();
     sqlite3pp::command(db, "PRAGMA journal_mode=MEMORY;").execute();

@@ -137,4 +137,4 @@ TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
     ASSERT_THAT(read_partition[*hn], Eq(_hypergraph.partitionIndex(*hn)));
   } endfor
 }
-}
+} // namespace io

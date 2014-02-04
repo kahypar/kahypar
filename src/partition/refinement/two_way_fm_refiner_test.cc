@@ -40,6 +40,7 @@ class ATwoWayFMRefiner : public Test {
   HypergraphType hypergraph;
   Configuration<HypergraphType> config;
   TwoWayFMRefinerSimpleStopping* refiner;
+  private:
   DISALLOW_COPY_AND_ASSIGN(ATwoWayFMRefiner);
 };
 
