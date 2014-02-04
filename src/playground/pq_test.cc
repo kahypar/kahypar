@@ -16,37 +16,6 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
-class A {
-  public:
-  virtual void print() = 0;
-};
-
-class BBase : public A {
-  protected:
-  int x = 5;
-
-  public:
-  void doStuff() {
-    std::cout << "doStuff" << x << std::endl;
-  }
-};
-
-class C : public BBase {
-  public:
-  void print() {
-    std::cout << "C->print" << std::endl;
-    BBase::doStuff();
-  }
-};
-
-class D : public BBase {
-  void print() {
-    std::cout << "D->print" << std::endl;
-    BBase::x = 7;
-    BBase::doStuff();
-  }
-};
-
 int main(int, char**) {
   typedef datastructure::PriorityQueue<int, int, std::numeric_limits<int> > RefinementPQ;
   std::cout << "test:::" << std::endl;
