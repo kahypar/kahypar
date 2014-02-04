@@ -31,15 +31,13 @@ include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
 if(KAHYPAR_VERSION_GIT_REFSPEC)
   message(STATUS "Detected git refspec ${KAHYPAR_VERSION_GIT_REFSPEC} sha ${KAHYPAR_VERSION_GIT_SHA1}")
-endif()
-
-configure_file(${PROJECT_SOURCE_DIR}/src/lib/GitRevision.h.in
-               ${PROJECT_BINARY_DIR}/src/lib/GitRevision.h)
-
-# add the binary tree to the search path for include files so that we will find GitRevision.h
-include_directories(${PROJECT_BINARY_DIR}/src)
-
-
+  configure_file(${PROJECT_SOURCE_DIR}/src/lib/GitRevision.h.in ${PROJECT_BINARY_DIR}/src/lib/GitRevision.h)
+  # add the binary tree to the search path for include files so that we will find GitRevision.h
+  include_directories(${PROJECT_BINARY_DIR}/src)
+else(KAHYPAR_VERSION_GIT_REFSPEC)
+  # we do need the sha hash to log with build version was used during experiments
+  message(FATAL_ERROR "No git refspec detected")
+endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 # Enable codestyle checks at compile time
