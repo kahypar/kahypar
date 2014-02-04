@@ -4,8 +4,6 @@ project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
-include(${CMAKE_SOURCE_DIR}/cmake/GitRevision.cmake)
-
 find_package(Boost 1.55 COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS}) 
@@ -28,6 +26,20 @@ if(NOT CMAKE_BUILD_TYPE)
        "Choose the type of build, options are: Debug Release"
        FORCE )
 endif()
+
+include(GetGitRevisionDescription)
+get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
+if(KAHYPAR_VERSION_GIT_REFSPEC)
+  message(STATUS "Detected git refspec ${KAHYPAR_VERSION_GIT_REFSPEC} sha ${KAHYPAR_VERSION_GIT_SHA1}")
+endif()
+
+configure_file(${PROJECT_SOURCE_DIR}/src/lib/GitRevision.h.in
+               ${PROJECT_BINARY_DIR}/src/lib/GitRevision.h)
+
+# add the binary tree to the search path for include files so that we will find GitRevision.h
+include_directories(${PROJECT_BINARY_DIR}/src)
+
+
 
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 # Enable codestyle checks at compile time
