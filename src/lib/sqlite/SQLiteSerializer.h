@@ -122,6 +122,7 @@ class SQLiteBenchmarkSerializer {
     } endfor
     _insert_result_cmd.bind(":part0", partition_size[0]);
     _insert_result_cmd.bind(":part1", partition_size[1]);
+
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
     _insert_result_cmd.bind(":gitrevision", STR(KaHyPar_BUILD_VERSION));
     _insert_result_cmd.execute();
