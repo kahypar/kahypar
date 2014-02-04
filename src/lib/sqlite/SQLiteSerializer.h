@@ -48,7 +48,7 @@ imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed
                        "CREATE TABLE IF NOT EXISTS experiments ( "
                        "id INTEGER NOT NULL PRIMARY KEY ASC AUTOINCREMENT,"
                        "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,"
-                       "graph VARCHAR NOT NULL,"
+                       "graph TEXT NOT NULL,"
                        "hypernodes INTEGER NOT NULL,"
                        "hyperedges INTEGER NOT NULL,"
                        "k INTEGER NOT NULL,"
@@ -76,9 +76,9 @@ imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed
   template <typename Config, typename Hypergraph>
   void dumpPartitioningResult(const Config& config, const Hypergraph& hypergraph) {
     _insert_result_cmd.reset();
-    _insert_result_cmd.bind(":graph",
-                            config.partitioning.graph_filename.substr(
-                                config.partitioning.graph_filename.find_last_of("/") + 1).c_str());
+    std::string graph_name = config.partitioning.graph_filename.substr(
+        config.partitioning.graph_filename.find_last_of("/") + 1);
+    _insert_result_cmd.bind(":graph", graph_name.c_str());
     _insert_result_cmd.bind(":hypernodes", static_cast<int>(hypergraph.initialNumNodes()));
     _insert_result_cmd.bind(":hyperedges", static_cast<int>(hypergraph.initialNumEdges()));
     _insert_result_cmd.bind(":k", config.partitioning.k);
