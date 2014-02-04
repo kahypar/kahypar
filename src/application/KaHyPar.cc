@@ -16,6 +16,7 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"
+#include "lib/sqlite/SQLiteSerializer.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
@@ -91,6 +92,7 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
       config.partitioning.verbose_output = vm["verbose"].as<bool>();
     }
   } else {
+    std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
   }
 }
@@ -131,7 +133,8 @@ int main(int argc, char* argv[]) {
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
-    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)");
+    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)")
+    ("db", po::value<std::string>(), "experiment db filename");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -139,6 +142,11 @@ int main(int argc, char* argv[]) {
   if (vm.count("help")) {
     std::cout << desc << std::endl;
     return 0;
+  }
+
+  std::string db_name("temp.db");
+  if (vm.count("db")) {
+    db_name = vm["db"].as<std::string>();
   }
 
   PartitionConfig config;
@@ -181,8 +189,9 @@ int main(int argc, char* argv[]) {
   partitioner.partition(hypergraph, coarsener);
 
   io::printPartitioningResults(hypergraph);
-
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
 
+  serializer::SQLiteBenchmarkSerializer sqlite_serializer(db_name);
+  sqlite_serializer.dumpPartitioningResult(config, hypergraph);
   return 0;
 }

@@ -4,6 +4,8 @@
 #include "external/sqlite3pp/src/sqlite3pp.h"
 
 #include "partition/Configuration.h"
+#include "partition/Metrics.h"
+#include "lib/datastructure/Hypergraph.h"
 
 #include <string>
 
@@ -19,11 +21,13 @@ class SQLiteBenchmarkSerializer {
     _setup_dummy(setupDB(_db)),
     _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k, \
 epsilon, L_max, seed, initial_partitionings, coarsening_scheme, coarsening_node_weight_fraction, \
-coarsening_node_weight_threshold, coarsening_min_node_count, coarsening_rating, twowayfm_stopping_rule, \
-twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypernodes, :hyperedges, :k, \
-:epsilon, :L_max, :seed, :initial_partitionings, :coarsening_scheme, :coarsening_node_weight_fraction, \
- :coarsening_node_weight_threshold, :coarsening_min_node_count, :coarsening_rating, :twowayfm_stopping_rule, \
-:twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta);") { }
+coarsening_node_weight_threshold, coarsening_min_node_count, coarsening_rating,\
+twowayfm_stopping_rule, twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0, part1,\
+imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed,\
+:initial_partitionings, :coarsening_scheme, :coarsening_node_weight_fraction, \
+:coarsening_node_weight_threshold, :coarsening_min_node_count, :coarsening_rating,\
+:twowayfm_stopping_rule, :twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta, \
+:cut, :part0, :part1, :imbalance);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -60,7 +64,11 @@ twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypern
                        "twowayfm_stopping_rule VARCHAR NOT NULL,"
                        "twowayfm_fruitless_moves INTEGER NOT NULL,"
                        "twowayfm_alpha REAL NOT NULL,"
-                       "twowayfm_beta REAL NOT NULL"
+                       "twowayfm_beta REAL NOT NULL,"
+                       "cut INTEGER NOT NULL,"
+                       "part0 INTEGER NOT NULL,"
+                       "part1 INTEGER NOT NULL,"
+                       "imbalance REAL NOT NULL"
                        ");").execute();
     return 0;
   }
@@ -70,7 +78,7 @@ twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypern
     _insert_result_cmd.reset();
     _insert_result_cmd.bind(":graph",
                             config.partitioning.graph_filename.substr(
-                              config.partitioning.graph_filename.find_last_of("/") + 1).c_str());
+                                config.partitioning.graph_filename.find_last_of("/") + 1).c_str());
     _insert_result_cmd.bind(":hypernodes", static_cast<int>(hypergraph.initialNumNodes()));
     _insert_result_cmd.bind(":hyperedges", static_cast<int>(hypergraph.initialNumEdges()));
     _insert_result_cmd.bind(":k", config.partitioning.k);
@@ -97,6 +105,15 @@ twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta) VALUES (:graph, :hypern
                             config.two_way_fm.max_number_of_fruitless_moves);
     _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
     _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
+    _insert_result_cmd.bind(":cut", static_cast<int>(metrics::hyperedgeCut(hypergraph)));
+
+    int partition_size[2] = { 0, 0 };
+    forall_hypernodes(hn, hypergraph) {
+      ++partition_size[hypergraph.partitionIndex(*hn)];
+    } endfor
+    _insert_result_cmd.bind(":part0", partition_size[0]);
+    _insert_result_cmd.bind(":part1", partition_size[1]);
+    _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
     _insert_result_cmd.execute();
   }
 
