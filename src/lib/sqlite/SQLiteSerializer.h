@@ -2,8 +2,10 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_SQLITE_SQLITE_SERIALIZER_H_
-#define LIB_SQLITE_SQLITE_SERIALIZER_H_
+#ifndef SRC_LIB_SQLITE_SQLITESERIALIZER_H_
+#define SRC_LIB_SQLITE_SQLITESERIALIZER_H_
+
+#include <string>
 
 #include "external/sqlite3pp/src/sqlite3pp.h"
 
@@ -12,27 +14,28 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 
-#include <string>
-
 using partition::CoarseningScheme;
 using partition::StoppingRule;
 
 namespace serializer {
 class SQLiteBenchmarkSerializer {
   public:
-  SQLiteBenchmarkSerializer(const std::string& db_name) :
+  explicit SQLiteBenchmarkSerializer(const std::string& db_name) :
     _db_name(db_name),
     _db(_db_name.c_str()),
     _setup_dummy(setupDB(_db)),
-    _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k, \
-epsilon, L_max, seed, initial_partitionings, coarsening_scheme, coarsening_node_weight_fraction, \
-coarsening_node_weight_threshold, coarsening_min_node_count, coarsening_rating,\
-twowayfm_stopping_rule, twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0, part1,\
-imbalance, gitrevision) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed,\
-:initial_partitionings, :coarsening_scheme, :coarsening_node_weight_fraction, \
-:coarsening_node_weight_threshold, :coarsening_min_node_count, :coarsening_rating,\
-:twowayfm_stopping_rule, :twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta, \
-:cut, :part0, :part1, :imbalance, :gitrevision);") { }
+    _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k,"
+                            "epsilon, L_max, seed, initial_partitionings, coarsening_scheme,"
+                            "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
+                            "coarsening_min_node_count, coarsening_rating, twowayfm_stopping_rule,"
+                            "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
+                            "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
+                            ":hyperedges, :k, :epsilon, :L_max, :seed, :initial_partitionings,"
+                            ":coarsening_scheme, :coarsening_node_weight_fraction, "
+                            ":coarsening_node_weight_threshold, :coarsening_min_node_count,"
+                            ":coarsening_rating, :twowayfm_stopping_rule, :twowayfm_fruitless_moves,"
+                            ":twowayfm_alpha, :twowayfm_beta,:cut, :part0, :part1, :imbalance,"
+                            ":gitrevision);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -132,4 +135,4 @@ imbalance, gitrevision) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, 
 };
 } // namespace serializer
 
-#endif  // LIB_SQLITE_SQLITE_SERIALIZER_H_
+#endif  // SRC_LIB_SQLITE_SQLITESERIALIZER_H_
