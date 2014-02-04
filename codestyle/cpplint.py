@@ -4080,56 +4080,56 @@ def CheckForNonConstReference(filename, clean_lines, linenum,
           for i in xrange(startline, linenum + 1):
             line += clean_lines.elided[i].strip()
 
-  # Check for non-const references in function parameters.  A single '&' may
-  # found in the following places:
-  #   inside expression: binary & for bitwise AND
-  #   inside expression: unary & for taking the address of something
-  #   inside declarators: reference parameter
-  # We will exclude the first two cases by checking that we are not inside a
-  # function body, including one that was just introduced by a trailing '{'.
-  # TODO(unknwon): Doesn't account for preprocessor directives.
-  # TODO(unknown): Doesn't account for 'catch(Exception& e)' [rare].
-  check_params = False
-  if not nesting_state.stack:
-    check_params = True  # top level
-  elif (isinstance(nesting_state.stack[-1], _ClassInfo) or
-        isinstance(nesting_state.stack[-1], _NamespaceInfo)):
-    check_params = True  # within class or namespace
-  elif Match(r'.*{\s*$', line):
-    if (len(nesting_state.stack) == 1 or
-        isinstance(nesting_state.stack[-2], _ClassInfo) or
-        isinstance(nesting_state.stack[-2], _NamespaceInfo)):
-      check_params = True  # just opened global/class/namespace block
-  # We allow non-const references in a few standard places, like functions
-  # called "swap()" or iostream operators like "<<" or ">>".  Do not check
-  # those function parameters.
-  #
-  # We also accept & in static_assert, which looks like a function but
-  # it's actually a declaration expression.
-  whitelisted_functions = (r'(?:[sS]wap(?:<\w:+>)?|'
-                           r'operator\s*[<>][<>]|'
-                           r'static_assert|COMPILE_ASSERT'
-                           r')\s*\(')
-  if Search(whitelisted_functions, line):
-    check_params = False
-  elif not Search(r'\S+\([^)]*$', line):
-    # Don't see a whitelisted function on this line.  Actually we
-    # didn't see any function name on this line, so this is likely a
-    # multi-line parameter list.  Try a bit harder to catch this case.
-    for i in xrange(2):
-      if (linenum > i and
-          Search(whitelisted_functions, clean_lines.elided[linenum - i - 1])):
-        check_params = False
-        break
+  # # Check for non-const references in function parameters.  A single '&' may
+  # # found in the following places:
+  # #   inside expression: binary & for bitwise AND
+  # #   inside expression: unary & for taking the address of something
+  # #   inside declarators: reference parameter
+  # # We will exclude the first two cases by checking that we are not inside a
+  # # function body, including one that was just introduced by a trailing '{'.
+  # # TODO(unknwon): Doesn't account for preprocessor directives.
+  # # TODO(unknown): Doesn't account for 'catch(Exception& e)' [rare].
+  # check_params = False
+  # if not nesting_state.stack:
+  #   check_params = True  # top level
+  # elif (isinstance(nesting_state.stack[-1], _ClassInfo) or
+  #       isinstance(nesting_state.stack[-1], _NamespaceInfo)):
+  #   check_params = True  # within class or namespace
+  # elif Match(r'.*{\s*$', line):
+  #   if (len(nesting_state.stack) == 1 or
+  #       isinstance(nesting_state.stack[-2], _ClassInfo) or
+  #       isinstance(nesting_state.stack[-2], _NamespaceInfo)):
+  #     check_params = True  # just opened global/class/namespace block
+  # # We allow non-const references in a few standard places, like functions
+  # # called "swap()" or iostream operators like "<<" or ">>".  Do not check
+  # # those function parameters.
+  # #
+  # # We also accept & in static_assert, which looks like a function but
+  # # it's actually a declaration expression.
+  # whitelisted_functions = (r'(?:[sS]wap(?:<\w:+>)?|'
+  #                          r'operator\s*[<>][<>]|'
+  #                          r'static_assert|COMPILE_ASSERT'
+  #                          r')\s*\(')
+  # if Search(whitelisted_functions, line):
+  #   check_params = False
+  # elif not Search(r'\S+\([^)]*$', line):
+  #   # Don't see a whitelisted function on this line.  Actually we
+  #   # didn't see any function name on this line, so this is likely a
+  #   # multi-line parameter list.  Try a bit harder to catch this case.
+  #   for i in xrange(2):
+  #     if (linenum > i and
+  #         Search(whitelisted_functions, clean_lines.elided[linenum - i - 1])):
+  #       check_params = False
+  #       break
 
-  if check_params:
-    decls = ReplaceAll(r'{[^}]*}', ' ', line)  # exclude function body
-    for parameter in re.findall(_RE_PATTERN_REF_PARAM, decls):
-      if not Match(_RE_PATTERN_CONST_REF_PARAM, parameter):
-        error(filename, linenum, 'runtime/references', 2,
-              'Is this a non-const reference? '
-              'If so, make const or use a pointer: ' +
-              ReplaceAll(' *<', '<', parameter))
+  # if check_params:
+  #   decls = ReplaceAll(r'{[^}]*}', ' ', line)  # exclude function body
+  #   for parameter in re.findall(_RE_PATTERN_REF_PARAM, decls):
+  #     if not Match(_RE_PATTERN_CONST_REF_PARAM, parameter):
+  #       error(filename, linenum, 'runtime/references', 2,
+  #             'Is this a non-const reference? '
+  #             'If so, make const or use a pointer: ' +
+  #             ReplaceAll(' *<', '<', parameter))
 
 
 def CheckCStyleCast(filename, linenum, line, raw_line, cast_type, pattern,
