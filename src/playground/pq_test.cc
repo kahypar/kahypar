@@ -15,6 +15,7 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
+
 class A {
   public:
   virtual void print() = 0;
