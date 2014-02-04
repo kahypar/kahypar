@@ -1,11 +1,16 @@
+/***************************************************************************
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef LIB_SQLITE_SQLITE_SERIALIZER_H_
 #define LIB_SQLITE_SQLITE_SERIALIZER_H_
 
 #include "external/sqlite3pp/src/sqlite3pp.h"
 
+#include "lib/GitRevision.h"
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "lib/datastructure/Hypergraph.h"
 
 #include <string>
 
@@ -23,11 +28,11 @@ class SQLiteBenchmarkSerializer {
 epsilon, L_max, seed, initial_partitionings, coarsening_scheme, coarsening_node_weight_fraction, \
 coarsening_node_weight_threshold, coarsening_min_node_count, coarsening_rating,\
 twowayfm_stopping_rule, twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0, part1,\
-imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed,\
+imbalance, gitrevision) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed,\
 :initial_partitionings, :coarsening_scheme, :coarsening_node_weight_fraction, \
 :coarsening_node_weight_threshold, :coarsening_min_node_count, :coarsening_rating,\
 :twowayfm_stopping_rule, :twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta, \
-:cut, :part0, :part1, :imbalance);") { }
+:cut, :part0, :part1, :imbalance, :gitrevision);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -68,7 +73,8 @@ imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed
                        "cut INTEGER NOT NULL,"
                        "part0 INTEGER NOT NULL,"
                        "part1 INTEGER NOT NULL,"
-                       "imbalance REAL NOT NULL"
+                       "imbalance REAL NOT NULL,"
+                       "gitrevision TEXT NOT NULL"
                        ");").execute();
     return 0;
   }
@@ -77,7 +83,7 @@ imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed
   void dumpPartitioningResult(const Config& config, const Hypergraph& hypergraph) {
     _insert_result_cmd.reset();
     std::string graph_name = config.partitioning.graph_filename.substr(
-        config.partitioning.graph_filename.find_last_of("/") + 1);
+      config.partitioning.graph_filename.find_last_of("/") + 1);
     _insert_result_cmd.bind(":graph", graph_name.c_str());
     _insert_result_cmd.bind(":hypernodes", static_cast<int>(hypergraph.initialNumNodes()));
     _insert_result_cmd.bind(":hyperedges", static_cast<int>(hypergraph.initialNumEdges()));
@@ -114,6 +120,7 @@ imbalance) VALUES (:graph, :hypernodes, :hyperedges, :k, :epsilon, :L_max, :seed
     _insert_result_cmd.bind(":part0", partition_size[0]);
     _insert_result_cmd.bind(":part1", partition_size[1]);
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
+    _insert_result_cmd.bind(":gitrevision", STR(KaHyPar_BUILD_VERSION));
     _insert_result_cmd.execute();
   }
 
