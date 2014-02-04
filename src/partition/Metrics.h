@@ -4,9 +4,9 @@
 
 #ifndef SRC_PARTITION_METRICS_H_
 #define SRC_PARTITION_METRICS_H_
+#include <cmath>
 
 #include <algorithm>
-#include <cmath>
 #include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
