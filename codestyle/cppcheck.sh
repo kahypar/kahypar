@@ -5,7 +5,7 @@ scriptdir="$(readlink -f "$0" | xargs dirname)"
 # Configuration of this script
 includes_file="$scriptdir/cppcheck_includes.lst"
 suppressions_file="$scriptdir/cppcheck_suppressions.lst"
-fixed_options="--enable=warning,style --template gcc"
+fixed_options="--enable=warning,style --template gcc --std=c++11"
 quiet=true
 
 is_cpp_file="$scriptdir/is_cpp_file.sh"
