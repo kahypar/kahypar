@@ -48,7 +48,8 @@ class ACoarsener : public Test {
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
   std::unique_ptr<IRefiner<HypergraphType> > refiner;
- private:
+
+  private:
   DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
@@ -67,7 +68,8 @@ class ACoarsenerWithThresholdWeight3 : public Test {
   Configuration<HypergraphType> config;
   CoarsenerType coarsener;
   std::unique_ptr<IRefiner<HypergraphType> > refiner;
- private:
+
+  private:
   DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 

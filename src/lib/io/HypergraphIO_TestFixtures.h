@@ -123,6 +123,7 @@ class AnUnweightedHypergraph : public Test {
   HyperedgeVector _written_edge_vector;
   std::ifstream _written_file;
   HypergraphType* _hypergraph;
+
   private:
   DISALLOW_COPY_AND_ASSIGN(AnUnweightedHypergraph);
 };
