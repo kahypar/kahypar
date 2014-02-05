@@ -27,15 +27,18 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k,"
                             "epsilon, L_max, seed, initial_partitionings, coarsening_scheme,"
                             "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
-                            "coarsening_min_node_count, coarsening_rating, twowayfm_stopping_rule,"
-                            "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
+                            "coarsening_min_node_count, coarsening_rating,"
+                            "rating_hyperedge_size_threshold, twowayfm_stopping_rule, "
+                            "twowayfm_hyperedge_size_threshold, twowayfm_fruitless_moves,"
+                            "twowayfm_alpha, twowayfm_beta, cut, part0,"
                             "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
                             ":hyperedges, :k, :epsilon, :L_max, :seed, :initial_partitionings,"
                             ":coarsening_scheme, :coarsening_node_weight_fraction, "
                             ":coarsening_node_weight_threshold, :coarsening_min_node_count,"
-                            ":coarsening_rating, :twowayfm_stopping_rule, :twowayfm_fruitless_moves,"
-                            ":twowayfm_alpha, :twowayfm_beta,:cut, :part0, :part1, :imbalance,"
-                            ":gitrevision);") { }
+                            ":coarsening_rating, :rating_hyperedge_size_threshold,"
+                            ":twowayfm_stopping_rule, :twowayfm_hyperedge_size_threshold,"
+                            ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
+                            ":part0, :part1, :imbalance, :gitrevision);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -69,7 +72,9 @@ class SQLiteBenchmarkSerializer {
                        "coarsening_node_weight_threshold INTEGER NOT NULL,"
                        "coarsening_min_node_count INTEGER NOT NULL,"
                        "coarsening_rating VARCHAR NOT NULL,"
+                       "rating_hyperedge_size_threshold INTEGER NOT NULL,"
                        "twowayfm_stopping_rule VARCHAR NOT NULL,"
+                       "twowayfm_hyperedge_size_threshold INTEGER NOT NULL,"
                        "twowayfm_fruitless_moves INTEGER NOT NULL,"
                        "twowayfm_alpha REAL NOT NULL,"
                        "twowayfm_beta REAL NOT NULL,"
@@ -107,9 +112,13 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":coarsening_min_node_count",
                             static_cast<int>(config.coarsening.minimal_node_count));
     _insert_result_cmd.bind(":coarsening_rating", "heavy_edge");
+    _insert_result_cmd.bind(":rating_hyperedge_size_threshold",
+                            static_cast<int>(config.rating.hyperedge_size_threshold));
     _insert_result_cmd.bind(":twowayfm_stopping_rule",
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
                              "simple" : "adaptive"));
+    _insert_result_cmd.bind(":twowayfm_hyperedge_size_threshold",
+                            static_cast<int>(config.coarsening.hyperedge_size_threshold));
     _insert_result_cmd.bind(":twowayfm_fruitless_moves",
                             config.two_way_fm.max_number_of_fruitless_moves);
     _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);

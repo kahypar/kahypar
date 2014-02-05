@@ -18,6 +18,7 @@ template <class Hypergraph>
 struct Configuration {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef typename Hypergraph::HyperedgeID HyperedgeID;
   typedef typename Hypergraph::PartitionID PartitionID;
 
   struct CoarseningParameters {
@@ -61,24 +62,35 @@ struct Configuration {
   struct TwoWayFMParameters {
     TwoWayFMParameters() :
       max_number_of_fruitless_moves(50),
+      hyperedge_size_threshold(50),
       alpha(4),
       beta(0.0),
       stopping_rule(StoppingRule::SIMPLE) { }
 
     int max_number_of_fruitless_moves;
+    HyperedgeID hyperedge_size_threshold;
     double alpha;
     double beta;
     StoppingRule stopping_rule;
   };
 
+  struct RatingParameters {
+    RatingParameters() :
+      hyperedge_size_threshold(50) { }
+
+    HyperedgeID hyperedge_size_threshold;
+  };
+
   PartitioningParameters partitioning;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
+  RatingParameters rating;
 
   Configuration() :
     partitioning(),
     coarsening(),
-    two_way_fm() { }
+    two_way_fm(),
+    rating() { }
 };
 
 template <class Configuration>
@@ -111,9 +123,14 @@ std::string toString(const Configuration& config) {
       << std::endl;
   oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
       << std::endl;
+  oss << "Rating Parameters:" << std::endl;
+  oss << std::setw(28) << "  hyperedge size threshold: " << config.rating.hyperedge_size_threshold
+      << std::endl;
   oss << "2-Way-FM Refinement Parameters:" << std::endl;
   oss << std::setw(28) << "  stopping rule: "
       << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
+      << std::endl;
+  oss << std::setw(28) << "  hyperedge size threshold: " << config.coarsening.hyperedge_size_threshold
       << std::endl;
   oss << std::setw(28) << "  max. # fruitless moves: "
       << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
