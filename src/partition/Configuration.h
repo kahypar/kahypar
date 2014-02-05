@@ -130,7 +130,7 @@ std::string toString(const Configuration& config) {
   oss << std::setw(28) << "  stopping rule: "
       << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
       << std::endl;
-  oss << std::setw(28) << "  hyperedge size threshold: " << config.coarsening.hyperedge_size_threshold
+  oss << std::setw(28) << "  hyperedge size threshold: " << config.two_way_fm.hyperedge_size_threshold
       << std::endl;
   oss << std::setw(28) << "  max. # fruitless moves: "
       << config.two_way_fm.max_number_of_fruitless_moves << std::endl;

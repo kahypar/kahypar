@@ -80,7 +80,7 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
       config.rating.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
     }
     if (vm.count("rmaxnet")) {
-      config.coarsening.hyperedge_size_threshold = vm["rmaxnet"].as<HyperedgeID>();
+      config.two_way_fm.hyperedge_size_threshold = vm["rmaxnet"].as<HyperedgeID>();
     }
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {

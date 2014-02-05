@@ -118,7 +118,7 @@ class SQLiteBenchmarkSerializer {
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
                              "simple" : "adaptive"));
     _insert_result_cmd.bind(":twowayfm_hyperedge_size_threshold",
-                            static_cast<int>(config.coarsening.hyperedge_size_threshold));
+                            static_cast<int>(config.two_way_fm.hyperedge_size_threshold));
     _insert_result_cmd.bind(":twowayfm_fruitless_moves",
                             config.two_way_fm.max_number_of_fruitless_moves);
     _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
