@@ -162,7 +162,7 @@ class HeavyEdgeCoarsenerBase {
 
     createFingerprints(u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [] (const Fingerprint &a, const Fingerprint &b) { return a.hash < b.hash; });
+              [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
     for (size_t i = 0; i < _fingerprints.size(); ++i) {
       size_t j = i + 1;
@@ -203,7 +203,7 @@ class HeavyEdgeCoarsenerBase {
                       + _hg.edgeWeight(to_remove));
     _hg.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
-    // PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
+    //PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
     ++_history.top().parallel_hes_size;
   }
 

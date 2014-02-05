@@ -18,6 +18,7 @@ OPTIONS:
    -i      2-Way-FM: max. # fruitless moves before stopping local search (simple)
    -a      2-Way-FM: Random Walk stop alpha (adaptive)
    -b      Name of the sqlite3 database to store the partitioning results
+   -r      Number of benchmark runs per hypergraph
 
 sample usage:  ./run_benchmarks.sh -d test -e 0.02 -n 10 -c heavy_heuristic -s 0.0375 -t 100 -f adaptive -i 0 -a 4 -b test.db -r 1
 EOF
@@ -59,7 +60,7 @@ then
 fi
 
 GRAPH_DIR=/home/schlag/repo/schlag_git/benchmark_instances/
-RESULT_DIR=/home/schlag/repo/schlag_git/benchmark/results/$subdir
+RESULT_DIR=/home/schlag/repo/schlag_git/benchmark/results/$(date +%F)"_"$subdir
 PARTITIONER=/home/schlag/repo/schlag_git/release/src/application/KaHyPar
 
 if [ ! -d $RESULT_DIR ]
@@ -73,7 +74,7 @@ cd $GRAPH_DIR
 
 for file in *.hgr;
 do
-  for run in {1..$reps}
+  for run in $(seq 1 $reps)
   do
     seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
     $PARTITIONER --hgr=$file --e=$epsilon --seed=$seed --nruns=$nruns --ctype=$ctype --s=$s --t=$t --stopFM=$stopFM --i=$i --alpha=$alpha --db=$dbname

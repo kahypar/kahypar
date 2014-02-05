@@ -1,8 +1,7 @@
 #!/bin/bash
 
 scriptdir="$(readlink -f "$0" | xargs dirname)"
-scriptdir=$scriptdir"/../../codestyle/"
-echo $scriptdir
+scriptdir=$scriptdir"/../../codestyle"
 cd "$(git rev-parse --show-cdup)"
 
 # Check staged files
@@ -12,7 +11,7 @@ for file in $(git diff --cached --name-only --diff-filter=ACMRTUXB) ; do
     err=0
     "$scriptdir/cppcheck.sh"   "$file"; err=$(($err+$?))
     "$scriptdir/cpplint.sh"    "$file"; err=$(($err+$?))
-    "$scriptdir/uncrustify.sh" "$file"; 
+    "$scriptdir/uncrustify.sh" "$file"; err=$(($err+$?))
     
     if [[ 0 -ne $err ]] ; then
 	return_code=1
