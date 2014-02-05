@@ -182,6 +182,6 @@ TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
   forall_hypernodes(hn, hypergraph) {
     ASSERT_THAT(hypergraph.nodeWeight(*hn), Le(3));
   } endfor
-    ASSERT_THAT(hypergraph.numNodes(), Eq(3));
+  ASSERT_THAT(hypergraph.numNodes(), Eq(3));
 }
 } // namespace partition

@@ -162,7 +162,7 @@ class HeavyEdgeCoarsenerBase {
 
     createFingerprints(u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
+              [] (const Fingerprint &a, const Fingerprint &b) { return a.hash < b.hash; });
 
     for (size_t i = 0; i < _fingerprints.size(); ++i) {
       size_t j = i + 1;
