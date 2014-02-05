@@ -23,45 +23,47 @@ typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
 
-class AFirstWinsRater : public Test {
+class ARater : public Test {
   public:
-  AFirstWinsRater() :
+  ARater() :
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
+    config() { }
+
+  HypergraphType hypergraph;
+  Configuration<HypergraphType> config;
+};
+
+class AFirstWinsRater : public ARater {
+  public:
+  AFirstWinsRater() :
+    ARater(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
   }
-  HypergraphType hypergraph;
-  Configuration<HypergraphType> config;
+
   FirstWinsRater rater;
 };
 
-class ALastWinsRater : public Test {
+class ALastWinsRater : public ARater {
   public:
   ALastWinsRater() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
+    ARater(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
   }
-  HypergraphType hypergraph;
-  Configuration<HypergraphType> config;
+
   LastWinsRater rater;
 };
 
-class ARandomWinsRater : public Test {
+class ARandomWinsRater : public ARater {
   public:
   ARandomWinsRater() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
+    ARater(),
     rater(hypergraph, config) {
     config.coarsening.threshold_node_weight = 2;
   }
-  HypergraphType hypergraph;
-  Configuration<HypergraphType> config;
+
   RandomWinsRater rater;
 };
 
