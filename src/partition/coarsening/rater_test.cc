@@ -122,9 +122,16 @@ TEST_F(ARater, DoesNotEvaluateHyperedgesLargerThanPredefinedThreshold) {
 }
 
 TEST_F(ARater, EvaluatesHyperedgesSmallerOrEqualThanPredefinedThreshold) {
-  config.rating.hyperedge_size_threshold = 5;
-  hypergraph.reset(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                      HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }));
-  ASSERT_THAT(true, Eq(false));
+  config.rating.hyperedge_size_threshold = 4;
+  hypergraph.reset(new HypergraphType(6, 2, HyperedgeIndexVector { 0, 2, 7 },
+                                      HyperedgeVector { 0, 1, 1, 2, 3, 4, 5 }));
+  FirstWinsRater rater(*hypergraph, config);
+
+  ASSERT_THAT(rater.rate(0).valid, Eq(true));
+  ASSERT_THAT(rater.rate(0).target, Eq(1));
+  ASSERT_THAT(rater.rate(0).value, Eq(1));
+  ASSERT_THAT(rater.rate(1).valid, Eq(true));
+  ASSERT_THAT(rater.rate(1).target, Eq(0));
+  ASSERT_THAT(rater.rate(1).value, Eq(1));
 }
 } // namespace partition
