@@ -25,22 +25,25 @@ typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRate
 
 class ARater : public Test {
   public:
-  ARater() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() { }
+  explicit ARater(HypergraphType* graph = nullptr) :
+    hypergraph(graph),
+    config() {
+    config.coarsening.threshold_node_weight = 2;
+  }
 
-  HypergraphType hypergraph;
+  std::unique_ptr<HypergraphType> hypergraph;
   Configuration<HypergraphType> config;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(ARater);
 };
 
 class AFirstWinsRater : public ARater {
   public:
   AFirstWinsRater() :
-    ARater(),
-    rater(hypergraph, config) {
-    config.coarsening.threshold_node_weight = 2;
-  }
+    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    rater(*hypergraph, config) { }
 
   FirstWinsRater rater;
 };
@@ -48,10 +51,9 @@ class AFirstWinsRater : public ARater {
 class ALastWinsRater : public ARater {
   public:
   ALastWinsRater() :
-    ARater(),
-    rater(hypergraph, config) {
-    config.coarsening.threshold_node_weight = 2;
-  }
+    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    rater(*hypergraph, config) { }
 
   LastWinsRater rater;
 };
@@ -59,10 +61,9 @@ class ALastWinsRater : public ARater {
 class ARandomWinsRater : public ARater {
   public:
   ARandomWinsRater() :
-    ARater(),
-    rater(hypergraph, config) {
-    config.coarsening.threshold_node_weight = 2;
-  }
+    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    rater(*hypergraph, config) { }
 
   RandomWinsRater rater;
 };
@@ -101,10 +102,29 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).value, Eq(1));
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
-  hypergraph.contract(0, 2);
+  hypergraph->contract(0, 2);
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
+}
+
+TEST_F(ARater, DoesNotEvaluateHyperedgesLargerThanPredefinedThreshold) {
+  config.rating.hyperedge_size_threshold = 4;
+  hypergraph.reset(new HypergraphType(6, 2, HyperedgeIndexVector { 0, 2, 7 },
+                                      HyperedgeVector { 0, 1, 1, 2, 3, 4, 5 }));
+  FirstWinsRater rater(*hypergraph, config);
+
+  ASSERT_THAT(rater.rate(2).valid, Eq(false));
+  ASSERT_THAT(rater.rate(3).valid, Eq(false));
+  ASSERT_THAT(rater.rate(4).valid, Eq(false));
+  ASSERT_THAT(rater.rate(5).valid, Eq(false));
+}
+
+TEST_F(ARater, EvaluatesHyperedgesSmallerOrEqualThanPredefinedThreshold) {
+  config.rating.hyperedge_size_threshold = 5;
+  hypergraph.reset(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                      HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }));
+  ASSERT_THAT(true, Eq(false));
 }
 } // namespace partition
