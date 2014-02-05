@@ -12,7 +12,7 @@ for file in $(git diff --cached --name-only --diff-filter=ACMRTUXB) ; do
     "$scriptdir/cppcheck.sh"   "$file"; err=$(($err+$?))
     "$scriptdir/cpplint.sh"    "$file"; err=$(($err+$?))
     "$scriptdir/uncrustify.sh" "$file"; err=$(($err+$?))
-    
+     $(git add $file)
     if [[ 0 -ne $err ]] ; then
 	return_code=1
 	problem_files+=$file
