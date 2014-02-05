@@ -90,7 +90,7 @@ TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
-  coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(true));
   ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
@@ -126,7 +126,7 @@ TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   coarsener.coarsen(2);
-  coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
@@ -152,7 +152,7 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the parallel hyperedges in reverse order!
-  coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(*refiner);
 }
 
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
@@ -174,7 +174,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
   // coarsening, we have to restore the single-node hyperedges in reverse order!
-  coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(*refiner);
 }
 
 TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {

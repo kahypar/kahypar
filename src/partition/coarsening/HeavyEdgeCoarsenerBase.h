@@ -80,7 +80,7 @@ class HeavyEdgeCoarsenerBase {
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
-  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) {
+  void uncoarsen(IRefiner<Hypergraph>& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
@@ -96,8 +96,8 @@ class HeavyEdgeCoarsenerBase {
       //       << _history.top().contraction_memento.v << ")");
 
       _hg.uncontract(_history.top().contraction_memento);
-      refiner->refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                      current_cut, _config.partitioning.epsilon, current_imbalance);
+      refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
+                     current_cut, _config.partitioning.epsilon, current_imbalance);
       _history.pop();
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");

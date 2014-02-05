@@ -63,7 +63,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     }
   }
 
-  void uncoarsen(std::unique_ptr<IRefiner<Hypergraph> >& refiner) {
+  void uncoarsen(IRefiner<Hypergraph>& refiner) {
     Base::uncoarsen(refiner);
   }
 

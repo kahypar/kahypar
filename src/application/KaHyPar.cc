@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
   }
 
-  partitioner.partition(hypergraph, coarsener);
+  partitioner.partition(hypergraph, *coarsener);
 
   io::printPartitioningResults(hypergraph);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);

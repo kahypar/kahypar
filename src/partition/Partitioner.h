@@ -38,8 +38,8 @@ class Partitioner {
   explicit Partitioner(Configuration<Hypergraph>& config) :
     _config(config) { }
 
-  void partition(Hypergraph& hypergraph, std::unique_ptr<ICoarsener<Hypergraph> >& coarsener) {
-    coarsener->coarsen(_config.coarsening.minimal_node_count);
+  void partition(Hypergraph& hypergraph, ICoarsener<Hypergraph>& coarsener) {
+    coarsener.coarsen(_config.coarsening.minimal_node_count);
     performInitialPartitioning(hypergraph);
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
@@ -55,7 +55,7 @@ class Partitioner {
       refiner.reset(new TwoWayFMRefiner<Hypergraph, NumberOfFruitlessMovesStopsSearch>(hypergraph, _config));
     }
 
-    coarsener->uncoarsen(refiner);
+    coarsener.uncoarsen(*refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
   }
 

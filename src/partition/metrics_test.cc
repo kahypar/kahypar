@@ -64,7 +64,7 @@ class APartitionedHypergraph : public Test {
     config.partitioning.coarse_graph_filename = "test_coarse.hgr";
     config.partitioning.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
     config.partitioning.epsilon = 0.15;
-    partitioner.partition(hypergraph, coarsener);
+    partitioner.partition(hypergraph, *coarsener);
   }
 
   HypergraphType hypergraph;
