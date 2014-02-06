@@ -61,18 +61,16 @@ class Rater {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
     forall_incident_hyperedges(he, u, _hg) {
-      if (_hg.edgeSize(*he) <= _config.rating.hyperedge_size_threshold) {
-        forall_pins(v, *he, _hg) {
-          if (*v != u && belowThresholdNodeWeight(*v, u)) {
-            _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
-                                / (_hg.edgeSize(*he) - 1);
-            if (!_visited_hypernodes[*v]) {
-              _visited_hypernodes[*v] = 1;
-              _used_entries.push(*v);
-            }
+      forall_pins(v, *he, _hg) {
+        if (*v != u && belowThresholdNodeWeight(*v, u)) {
+          _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
+                              / (_hg.edgeSize(*he) - 1);
+          if (!_visited_hypernodes[*v]) {
+            _visited_hypernodes[*v] = 1;
+            _used_entries.push(*v);
           }
-        } endfor
-      }
+        }
+      } endfor
     } endfor
 
     RatingType tmp = 0.0;
@@ -81,7 +79,7 @@ class Rater {
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
-      // PRINT("r(" << u << "," << _used_entries.top() << ")=" << tmp);
+      // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp);
       if (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) {
         max_rating = tmp;
         target = _used_entries.top();
