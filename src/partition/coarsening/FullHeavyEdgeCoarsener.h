@@ -42,8 +42,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
       rep_node = Base::_pq.max();
       contracted_node = target[rep_node];
-      LOG("coarsening", "Contracting: (" << rep_node << ","
-                                         << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+      // LOG("coarsening", "Contracting: (" << rep_node << ","
+      //                                    << target[rep_node] << ") prio: " << Base::_pq.maxKey());
 
       ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
              <= Base::_rater.thresholdNodeWeight(),
@@ -85,15 +85,13 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     HeavyEdgeRating rating;
     forall_incident_hyperedges(he, rep_node, Base::_hg) {
-      if (Base::_hg.edgeSize(*he) <= Base::_config.rating.hyperedge_size_threshold) {
-        forall_pins(pin, *he, Base::_hg) {
-          if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
-            rating = Base::_rater.rate(*pin);
-            rerated_hypernodes[*pin] = 1;
-            updatePQandContractionTargets(*pin, rating, target, invalid_hypernodes);
-          }
-        } endfor
-      }
+      forall_pins(pin, *he, Base::_hg) {
+        if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
+          rating = Base::_rater.rate(*pin);
+          rerated_hypernodes[*pin] = 1;
+          updatePQandContractionTargets(*pin, rating, target, invalid_hypernodes);
+        }
+      } endfor
     } endfor
     rerated_hypernodes.reset();
   }
@@ -105,11 +103,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     if (rating.valid) {
       ASSERT(Base::_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
-      LOG("updatePQandCT", "start PQ update for HN" << hn);
-      if (!Base::_pq.contains(hn)) {
-        LOG("arrrgh", "hn" << hn << " not contained and invalid?" << invalid_hypernodes[hn]);
-        exit(0);
-      }
       Base::_pq.updateKey(hn, rating.value);
       target[hn] = rating.target;
     } else if (Base::_pq.contains(hn)) {
