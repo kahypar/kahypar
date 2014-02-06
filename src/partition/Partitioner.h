@@ -62,6 +62,28 @@ class Partitioner {
   }
 
   private:
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresLargeHyperedgesThatExceededThreshold);
+
+  void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+    forall_hyperedges(he, hg) {
+      if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
+        LOG("partitioner", "Hyperedge " << *he << ": size ("
+                                        << hg.edgeSize(*he) << ")   exceeds threshold: "
+                                        << _config.partitioning.hyperedge_size_threshold);
+        removed_hyperedges.push_back(*he);
+        hg.removeEdge(*he);
+      }
+    } endfor
+  }
+
+  void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+    for (auto removed_edge : removed_hyperedges) {
+      LOG("partitioner", "restoring Hyperedge " << removed_edge);
+      hg.restoreEdge(removed_edge);
+    }
+  }
+
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg) {
