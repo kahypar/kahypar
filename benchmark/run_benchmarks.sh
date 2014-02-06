@@ -12,8 +12,9 @@ OPTIONS:
    -e      Imbalance parameter epsilon 
    -n      # initial partitioning trials, the final bisection corresponds to the one with the smallest cut
    -c      Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic
+   -h      Coarsening: Any hyperedges larger than that are ignored during rating
    -s      Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|
-   -t      Coarsening: Coarsening stopps when there are no more than t hypernodes left
+   -t      Coarsening: Coarsening stops when there are no more than t hypernodes left
    -f      2-Way-FM: Stopping rule (adaptive (default) | simple)
    -i      2-Way-FM: max. # fruitless moves before stopping local search (simple)
    -a      2-Way-FM: Random Walk stop alpha (adaptive)
@@ -28,6 +29,7 @@ subdir=
 epsilon=
 nruns=
 ctype=
+cmaxnet=
 s=
 t=
 stopFM=
@@ -36,13 +38,14 @@ alpha=
 dbname=
 reps=
 
-while getopts "d:e:n:c:s:t:f:i:a:b:r:" opt
+while getopts "d:e:n:c:h:s:t:f:i:a:b:r:" opt
  do
     case $opt in
     d) subdir=$OPTARG;;
     e) epsilon=$OPTARG;;
     n) nruns=$OPTARG;;
     c) ctype=$OPTARG;;
+    h) cmaxnet=$OPTARG;;
     s) s=$OPTARG;;
     t) t=$OPTARG;;
     f) stopFM=$OPTARG;;
@@ -53,7 +56,7 @@ while getopts "d:e:n:c:s:t:f:i:a:b:r:" opt
     esac
 done
 
-if [[ -z $subdir ]] || [[ -z $epsilon ]] || [[ -z $nruns ]] || [[ -z $ctype ]] || [[ -z $s ]] || [[ -z $t ]] || [[ -z $stopFM ]] || [[ -z $i ]] || [[ -z $alpha ]] || [[ -z $dbname ]] || [[ -z $reps ]]
+if [[ -z $subdir ]] || [[ -z $epsilon ]] || [[ -z $nruns ]] || [[ -z $ctype ]] || [[ -z $s ]] || [[ -z $t ]] || [[ -z $stopFM ]] || [[ -z $i ]] || [[ -z $alpha ]] || [[ -z $dbname ]] || [[ -z $reps ]] || [[ -z $cmaxnet ]]
 then
     usage
     exit 1
@@ -77,7 +80,7 @@ do
   for run in $(seq 1 $reps)
   do
     seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-    $PARTITIONER --hgr=$file --e=$epsilon --seed=$seed --nruns=$nruns --ctype=$ctype --s=$s --t=$t --stopFM=$stopFM --i=$i --alpha=$alpha --db=$dbname
+    $PARTITIONER --hgr=$file --e=$epsilon --seed=$seed --nruns=$nruns --ctype=$ctype --cmaxnet=$cmaxnet --s=$s --t=$t --stopFM=$stopFM --i=$i --alpha=$alpha --db=$dbname
     rm "coarse_"$file 
     rm "coarse_"$file".part.2"
     rm $file".part.2.KaHyPar"  
