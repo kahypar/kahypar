@@ -130,6 +130,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
                            std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     if (rating.valid) {
+      ASSERT(Base::_pq.contains(hn),
+             "Trying to update rating of HN " << hn << " which is not in PQ");
       Base::_pq.updateKey(hn, rating.value);
       if (rating.target != target[hn]) {
         updateMappings(hn, rating, target, sources);
