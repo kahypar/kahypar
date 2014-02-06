@@ -47,6 +47,14 @@ class APartitioner : public Test {
   std::unique_ptr<ICoarsener<HypergraphType> > coarsener;
 };
 
+class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
+  public:
+  APartitionerWithHyperedgeSizeThreshold() :
+    APartitioner() {
+    config.partitioning.hyperedge_size_threshold = 3;
+  }
+};
+
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
   partitioner.partition(hypergraph, *coarsener);
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(1));
@@ -74,5 +82,23 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 1), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 1), Eq(3));
+}
+
+TEST_F(APartitionerWithHyperedgeSizeThreshold,
+       RemovesHyperedgesExceedingThreshold) {
+  std::vector<HyperedgeID> removed_hyperedges;
+  partitioner.removeLargeHyperedges(hypergraph, removed_hyperedges);
+
+  ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(false));
+}
+
+TEST_F(APartitionerWithHyperedgeSizeThreshold,
+       RestoresLargeHyperedgesThatExceededThreshold) {
+  std::vector<HyperedgeID> removed_hyperedges;
+  partitioner.removeLargeHyperedges(hypergraph, removed_hyperedges);
+
+  partitioner.restoreLargeHyperedges(hypergraph, removed_hyperedges);
+
+  ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
 }
 } // namespace partition
