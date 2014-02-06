@@ -53,24 +53,12 @@ class ACoarsener : public Test {
   DISALLOW_COPY_AND_ASSIGN(ACoarsener);
 };
 
-class ACoarsenerWithThresholdWeight3 : public Test {
+class ACoarsenerWithThresholdWeight3 : public ACoarsener {
   public:
   ACoarsenerWithThresholdWeight3() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
-    coarsener(hypergraph, config),
-    refiner(new DummyRefiner<HypergraphType>()) {
+    ACoarsener() {
     config.coarsening.threshold_node_weight = 3;
   }
-
-  HypergraphType hypergraph;
-  Configuration<HypergraphType> config;
-  CoarsenerType coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > refiner;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(ACoarsenerWithThresholdWeight3);
 };
 
 TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
