@@ -109,7 +109,7 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
 
-TEST_F(ARater, DoesNotEvaluateHyperedgesLargerThanPredefinedThreshold) {
+TEST_F(ARater, DISABLED_DoesNotEvaluateHyperedgesLargerThanPredefinedThreshold) {
   config.rating.hyperedge_size_threshold = 4;
   hypergraph.reset(new HypergraphType(6, 2, HyperedgeIndexVector { 0, 2, 7 },
                                       HyperedgeVector { 0, 1, 1, 2, 3, 4, 5 }));
@@ -121,7 +121,7 @@ TEST_F(ARater, DoesNotEvaluateHyperedgesLargerThanPredefinedThreshold) {
   ASSERT_THAT(rater.rate(5).valid, Eq(false));
 }
 
-TEST_F(ARater, EvaluatesHyperedgesSmallerOrEqualThanPredefinedThreshold) {
+TEST_F(ARater, DISABLED_EvaluatesHyperedgesSmallerOrEqualThanPredefinedThreshold) {
   config.rating.hyperedge_size_threshold = 5;
   hypergraph.reset(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                                       HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }));
