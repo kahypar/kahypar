@@ -424,7 +424,7 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
 }
 
 TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
-  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(INVALID_PARTITION));
   Memento memento = hypergraph.contract(0, 2);
 
   hypergraph.changeNodePartition(0, 0, 1);
@@ -483,6 +483,7 @@ TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
 
 TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+
   hypergraph.removeEdge(1, false);
 
   // We do not use accessor pinCountInPartition here since this asserts HE validity
