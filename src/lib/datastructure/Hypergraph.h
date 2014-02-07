@@ -596,9 +596,8 @@ class Hypergraph {
         increasePinCountInPartition(he, to);
         ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
                + pinCountInPartition(he, 1) == edgeSize(he),
-               pinCountInPartition(he, kInvalidPartition) << "+"
-               << pinCountInPartition(he, 0) << "+" << pinCountInPartition(he, 1)
-               << "!=" << edgeSize(he));
+               pinCountInPartition(he, kInvalidPartition) << "+" << pinCountInPartition(he, 0)
+               << "+" << pinCountInPartition(he, 1) << "!=" << edgeSize(he));
       } endfor
     }
   }
@@ -888,7 +887,7 @@ class Hypergraph {
   template <typename Handle1, typename Handle2, typename Container>
   void removeInternalEdge(Handle1 u, Handle2 v, Container& container) {
     using std::swap;
-    typename Container::reference& vertex = container[u];
+    typename Container::reference vertex = container[u];
     typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isDisabled(), "InternalVertex " << u << " is disabled");
 
