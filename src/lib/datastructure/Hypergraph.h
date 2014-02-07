@@ -369,14 +369,14 @@ class Hypergraph {
   void printHyperedgeInfo() const {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
-                << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
+      << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
     }
   }
 
   void printHypernodeInfo() const {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
-                << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
+      << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
     }
   }
 
@@ -415,7 +415,7 @@ class Hypergraph {
         std::cout << pin << " ";
       } endfor
       std::cout << " (Part[0] =" << pinCountInPartition(e, 0)
-                << ", Part[1]=" << pinCountInPartition(e, 1) << ")";
+      << ", Part[1]=" << pinCountInPartition(e, 1) << ")";
     } else {
       std::cout << e << " -- invalid --";
     }
@@ -574,8 +574,8 @@ class Hypergraph {
         increasePinCountInPartition(he, partitionIndex(memento.v));
         ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
                "Incorrect case 1 restore of HE " << he << ": "
-                                                 << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
-                                                 << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
+               << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
+               << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
         ++_current_num_pins;
       }
       _processed_hyperedges.reset(he);
@@ -592,9 +592,8 @@ class Hypergraph {
         increasePinCountInPartition(he, to);
         ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
                + pinCountInPartition(he, 1) == edgeSize(he),
-               pinCountInPartition(he, kInvalidPartition) << "+"
-                                                          << pinCountInPartition(he, 0) << "+" << pinCountInPartition(he, 1)
-                                                          << "!=" << edgeSize(he));
+               pinCountInPartition(he, kInvalidPartition) << "+" << pinCountInPartition(he, 0)
+               << "+" << pinCountInPartition(he, 1) << "!=" << edgeSize(he));
       } endfor
     }
   }
@@ -777,7 +776,7 @@ class Hypergraph {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(pinCountInPartition(he, id) <= edgeSize(he),
            "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_counts[3 * he + (id + 1)]
-                 << "edgesize=" << edgeSize(he));
+           << "edgesize=" << edgeSize(he));
     ++_partition_pin_counts[3 * he + (id + 1)];
   }
 
@@ -848,7 +847,7 @@ class Hypergraph {
       first_call = false;
     }
     ASSERT(nodeU.firstInvalidEntry() == _incidence_array.size(), "Incidence Info of HN " << u
-                                                                                         << " is not at the end of the incidence array");
+           << " is not at the end of the incidence array");
     _incidence_array.push_back(e);
     nodeU.increaseSize();
   }
@@ -856,7 +855,7 @@ class Hypergraph {
   template <typename Handle1, typename Handle2, typename Container>
   void removeEdge(Handle1 u, Handle2 v, Container& container) {
     using std::swap;
-    typename Container::reference& vertex = container[u];
+    typename Container::reference vertex = container[u];
     typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isDisabled(), "InternalVertex " << u << " is disabled");
 
@@ -934,13 +933,13 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartTy
                        const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual) {
   ASSERT(expected._current_num_hypernodes == actual._current_num_hypernodes,
          "Expected: _current_num_hypernodes= " << expected._current_num_hypernodes << "\n"
-                                               << "  Actual: _current_num_hypernodes= " << actual._current_num_hypernodes);
+         << "  Actual: _current_num_hypernodes= " << actual._current_num_hypernodes);
   ASSERT(expected._current_num_hyperedges == actual._current_num_hyperedges,
          "Expected: _current_num_hyperedges= " << expected._current_num_hyperedges << "\n"
-                                               << "  Actual: _current_num_hyperedges= " << actual._current_num_hyperedges);
+         << "  Actual: _current_num_hyperedges= " << actual._current_num_hyperedges);
   ASSERT(expected._current_num_pins == actual._current_num_pins,
          "Expected: _current_num_pins= " << expected._current_num_pins << "\n"
-                                         << "  Actual: _current_num_pins= " << actual._current_num_pins);
+         << "  Actual: _current_num_pins= " << actual._current_num_pins);
   ASSERT(expected._hypernodes == actual._hypernodes, "expected._hypernodes != actual._hypernodes");
   ASSERT(expected._hyperedges == actual._hyperedges, "expected._hyperedges != actual._hyperedges");
 

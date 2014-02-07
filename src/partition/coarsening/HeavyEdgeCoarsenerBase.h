@@ -103,7 +103,7 @@ class HeavyEdgeCoarsenerBase {
     }
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
-                                                                 << " > " << _config.partitioning.epsilon);
+           << " > " << _config.partitioning.epsilon);
   }
 
   protected:

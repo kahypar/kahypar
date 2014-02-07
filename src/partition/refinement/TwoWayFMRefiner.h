@@ -84,11 +84,11 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
               double max_imbalance, double& best_imbalance) {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
-                               << metrics::hyperedgeCut(_hg));
+           << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
              FloatingPoint<double>(calculateImbalance())),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-                                     << " by hypergraph " << calculateImbalance());
+           << " by hypergraph " << calculateImbalance());
 
     _pq[0]->clear();
     _pq[1]->clear();
@@ -155,7 +155,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
-                                << metrics::hyperedgeCut(_hg) << ") do not match");
+             << metrics::hyperedgeCut(_hg) << ") do not match");
 
       // ToDos for update:
       // [ ] lock HEs for gain update! (improve running time without quality decrease)
@@ -183,7 +183,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     }
 
     LOG("TwoWayFM", "performed " << iteration << " local search steps: stopped because of "
-                                 << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true ?
+        << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true ?
             "policy" : "empty queue"));
     rollback(_performed_moves, iteration - 1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
@@ -256,7 +256,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn
-                                                 << " is already in partition " << _hg.partitionIndex(hn));
+           << " is already in partition " << _hg.partitionIndex(hn));
     _hg.changeNodePartition(hn, from, to);
     _marked[hn] = 1;
     _partition_size[from] -= _hg.nodeWeight(hn);
