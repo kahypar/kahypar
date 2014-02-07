@@ -24,6 +24,8 @@
 #include "partition/refinement/TwoWayFMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
+using defs::INVALID_PARTITION;
+
 using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
 
@@ -56,6 +58,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     _performed_moves() {
     _performed_moves.reserve(_hg.initialNumNodes());
     forall_hypernodes(hn, _hg) {
+      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
+             "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
     } endfor
   }

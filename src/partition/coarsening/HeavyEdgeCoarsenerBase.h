@@ -88,12 +88,11 @@ class HeavyEdgeCoarsenerBase {
 #ifndef NDEBUG
       HyperedgeWeight old_cut = current_cut;
 #endif
-
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
 
       // PRINT("Uncontracting: (" << _history.top().contraction_memento.u << ","
-      //       << _history.top().contraction_memento.v << ")");
+      //                          << _history.top().contraction_memento.v << ")");
 
       _hg.uncontract(_history.top().contraction_memento);
       refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,

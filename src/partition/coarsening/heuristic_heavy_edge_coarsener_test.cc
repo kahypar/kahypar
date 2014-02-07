@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -13,6 +14,8 @@ using::testing::DoubleEq;
 using::testing::Eq;
 using::testing::Le;
 using::testing::Test;
+
+using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -79,7 +82,11 @@ TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+
   coarsener.uncoarsen(*refiner);
+
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
@@ -115,7 +122,11 @@ TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
   coarsener.coarsen(2);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+
   coarsener.uncoarsen(*refiner);
+
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph->edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph->edgeWeight(1), Eq(1));
@@ -137,6 +148,9 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
   std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
 
   coarsener.coarsen(2);
+  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
+
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
@@ -159,6 +173,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
 
   coarsener.coarsen(1);
+  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
