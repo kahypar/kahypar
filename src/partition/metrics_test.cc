@@ -22,6 +22,8 @@ using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
 
+using defs::INVALID_PARTITION;
+
 using partition::Rater;
 using partition::FirstRatingWins;
 using partition::ICoarsener;
@@ -104,7 +106,8 @@ TEST_F(TheHyperedgeCutCalculationForInitialPartitioning, ReturnsCorrectResult) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
   ASSERT_THAT(hypergraph.nodeDegree(3), Eq(1));
-  hypergraph.changeNodePartition(3, 0, 1);
+  hypergraph.changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
 
   ASSERT_THAT(hyperedgeCut(hypergraph, hg_to_hmetis, partition), Eq(hyperedgeCut(hypergraph)));
 }

@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
@@ -13,6 +14,8 @@
 
 using::testing::Test;
 using::testing::Eq;
+
+using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
@@ -65,13 +68,17 @@ TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
 }
 
 TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(0, 0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(0, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(0, 0), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 1), Eq(0));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 1), Eq(0));
   partitioner.partition(hypergraph, *coarsener);
+  ASSERT_THAT(hypergraph.pinCountInPartition(0, INVALID_PARTITION), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 0), Eq(2));
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 1), Eq(0));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 1), Eq(3));
 }

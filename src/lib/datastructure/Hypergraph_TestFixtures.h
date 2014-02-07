@@ -9,6 +9,7 @@
 #include "lib/datastructure/Hypergraph.h"
 
 using::testing::Test;
+using defs::INVALID_PARTITION;
 
 namespace datastructure {
 class AHypergraph : public Test {
@@ -70,9 +71,13 @@ class APartitionedHypergraph : public AHypergraph {
   public:
   APartitionedHypergraph() :
     AHypergraph() {
-    hypergraph.changeNodePartition(2, 0, 1);
-    hypergraph.changeNodePartition(5, 0, 1);
-    hypergraph.changeNodePartition(6, 0, 1);
+    hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(1, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(2, INVALID_PARTITION, 1);
+    hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(5, INVALID_PARTITION, 1);
+    hypergraph.changeNodePartition(6, INVALID_PARTITION, 1);
   }
 };
 

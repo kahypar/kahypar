@@ -96,6 +96,7 @@ class Hypergraph {
   typedef typename std::vector<VertexID>::iterator HeHandleIterator;
 
   const int INVALID_COUNT = std::numeric_limits<int>::min();
+  const PartitionID kInvalidPartition = defs::INVALID_PARTITION;
 
   template <typename VertexTypeTraits>
   class InternalVertex {
@@ -307,8 +308,8 @@ class Hypergraph {
     _hypernodes(_num_hypernodes, HyperNode(0, 0, 1)),
     _hyperedges(_num_hyperedges, HyperEdge(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
-    _partition_indices(_num_hypernodes, 0),
-    _partition_pin_counts(2 * _num_hyperedges, 0),
+    _partition_indices(_num_hypernodes, kInvalidPartition),
+    _partition_pin_counts(3 * _num_hyperedges, 0),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
     _active_hyperedges_v(_num_hyperedges) {
@@ -589,10 +590,11 @@ class Hypergraph {
       __forall_incident_hyperedges(he, hn) {
         decreasePinCountInPartition(he, from);
         increasePinCountInPartition(he, to);
-        ASSERT(pinCountInPartition(he, from) + pinCountInPartition(he, to)
-               == edgeSize(he),
-               pinCountInPartition(he, from) << "+" << pinCountInPartition(he, to)
-                                             << "!=" << edgeSize(he));
+        ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
+               + pinCountInPartition(he, 1) == edgeSize(he),
+               pinCountInPartition(he, kInvalidPartition) << "+"
+                                                          << pinCountInPartition(he, 0) << "+" << pinCountInPartition(he, 1)
+                                                          << "!=" << edgeSize(he));
       } endfor
     }
   }
@@ -604,12 +606,14 @@ class Hypergraph {
   }
 
   void calculatePartitionPinCount(HyperedgeID he) {
-    _partition_pin_counts[2 * he] = 0;
-    _partition_pin_counts[2 * he + 1] = 0;
+    _partition_pin_counts[3 * he] = 0;  // pins not yet assigned to a partition
+    _partition_pin_counts[3 * he + 1] = 0;
+    _partition_pin_counts[3 * he + 2] = 0;
     __forall_pins(pin, he) {
-      ++_partition_pin_counts[2 * he + partitionIndex(pin)];
+      ++_partition_pin_counts[3 * he + (partitionIndex(pin) + 1)];
     } endfor
-      ASSERT(pinCountInPartition(he, 0) + pinCountInPartition(he, 1) == edgeSize(he),
+      ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
+             + pinCountInPartition(he, 1) == edgeSize(he),
              "Incorrect calculation of pin counts");
   }
 
@@ -656,7 +660,8 @@ class Hypergraph {
              "Incorrect restore of HE " << e);
       ++_current_num_pins;
     } endfor
-      ASSERT(pinCountInPartition(e, 0) + pinCountInPartition(e, 1) == edgeSize(e),
+      ASSERT(pinCountInPartition(e, kInvalidPartition) + pinCountInPartition(e, 0)
+             + pinCountInPartition(e, 1) == edgeSize(e),
              "Pincounts of HE " << e << " do not match the size of the HE");
   }
 
@@ -738,7 +743,8 @@ class Hypergraph {
 
   HypernodeID pinCountInPartition(HyperedgeID he, PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return _partition_pin_counts[2 * he + id];
+    ASSERT(id < 2, "Partition ID " << id << " is out of bounds");
+    return _partition_pin_counts[3 * he + (id + 1)];
   }
 
   private:
@@ -762,31 +768,33 @@ class Hypergraph {
 
   void decreasePinCountInPartition(HyperedgeID he, PartitionID id) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(_partition_pin_counts[2 * he + id] > 0,
+    ASSERT(pinCountInPartition(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
-    --_partition_pin_counts[2 * he + id];
+    --_partition_pin_counts[3 * he + (id + 1)];
   }
 
   void increasePinCountInPartition(HyperedgeID he, PartitionID id) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(_partition_pin_counts[2 * he + id] <= edgeSize(he),
-           "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_counts[2 * he + id]
+    ASSERT(pinCountInPartition(he, id) <= edgeSize(he),
+           "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_counts[3 * he + (id + 1)]
                  << "edgesize=" << edgeSize(he));
-    ++_partition_pin_counts[2 * he + id];
+    ++_partition_pin_counts[3 * he + (id + 1)];
   }
 
 
   void invalidatePartitionPinCounts(HyperedgeID he) {
     ASSERT(hyperedge(he).isDisabled(),
            "Invalidation of pin counts only allowed for disabled hyperedges");
-    _partition_pin_counts[2 * he] = INVALID_COUNT;
-    _partition_pin_counts[2 * he + 1] = INVALID_COUNT;
+    _partition_pin_counts[3 * he] = INVALID_COUNT;
+    _partition_pin_counts[3 * he + 1] = INVALID_COUNT;
+    _partition_pin_counts[3 * he + 2] = INVALID_COUNT;
   }
 
   void resetPartitionPinCounts(HyperedgeID he) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    _partition_pin_counts[2 * he] = 0;
-    _partition_pin_counts[2 * he + 1] = 0;
+    _partition_pin_counts[3 * he] = 0;
+    _partition_pin_counts[3 * he + 1] = 0;
+    _partition_pin_counts[3 * he + 2] = 0;
   }
 
   bool isModified() const {
