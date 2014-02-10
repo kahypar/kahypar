@@ -31,8 +31,8 @@ void printPartitioningResults(const Hypergraph& hypergraph) {
   std::cout << "***********************2-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
-  std::cout << "| partition 0 | =" << partition_weights[0] << std::endl;
-  std::cout << "| partition 1 | =" << partition_weights[1] << std::endl;
+  std::cout << "| partition 0 | = " << partition_weights[0] << std::endl;
+  std::cout << "| partition 1 | = " << partition_weights[1] << std::endl;
 }
 }
 #endif  // LIB_IO_PARTITIONINGOUTPUT_H_
