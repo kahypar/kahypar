@@ -101,6 +101,10 @@ class Partitioner {
       }
     } endfor
 
+    std::sort(removed_hyperedges.begin(), removed_hyperedges.end(),
+              [&](const HyperedgeID lhs, const HyperedgeID rhs) {
+                return hg.edgeSize(lhs) < hg.edgeSize(rhs);});
+   
     for (auto removed_edge : removed_hyperedges) {
       LOG("partitioner", "restoring Hyperedge " << removed_edge);
       hg.restoreEdge(removed_edge);
@@ -110,7 +114,8 @@ class Partitioner {
            "Final assignment of unpartitioned pins violated balance constraint");
   }
 
-  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg, PartitionWeights& partition_weights) {
+  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
+                                  PartitionWeights& partition_weights) {
     HypernodeID num_pins = hg.edgeSize(he);
     HypernodeID num_unpartitioned_hns = hg.pinCountInPartition(he, INVALID_PARTITION);
     HypernodeWeight unpartitioned_weight = 0;
