@@ -93,6 +93,14 @@ template <class Hypergraph>
 double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
+
+template <class Hypergraph, class Weights>
+void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
+  forall_hypernodes(hn, hypergraph) {
+    weights[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
+  } endfor
+}
+
 } // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_
