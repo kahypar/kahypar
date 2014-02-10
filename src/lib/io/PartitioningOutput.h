@@ -26,15 +26,13 @@ void printPartitionerConfiguration(const Configuration& config) {
 
 template <class Hypergraph>
 void printPartitioningResults(const Hypergraph& hypergraph) {
-  int partition_size[2] = { 0, 0 };
-  forall_hypernodes(hn, hypergraph) {
-    ++partition_size[hypergraph.partitionIndex(*hn)];
-  } endfor
+  HypernodeWeight partition_weights[2] = { 0, 0 };
+  metrics::partitionWeights(hypergraph, partition_weights);
   std::cout << "***********************2-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
-  std::cout << "| partition 0 | =" << partition_size[0] << std::endl;
-  std::cout << "| partition 1 | =" << partition_size[1] << std::endl;
+  std::cout << "| partition 0 | =" << partition_weights[0] << std::endl;
+  std::cout << "| partition 1 | =" << partition_weights[1] << std::endl;
 }
 }
 #endif  // LIB_IO_PARTITIONINGOUTPUT_H_

@@ -124,12 +124,10 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
     _insert_result_cmd.bind(":cut", static_cast<int>(metrics::hyperedgeCut(hypergraph)));
 
-    int partition_size[2] = { 0, 0 };
-    forall_hypernodes(hn, hypergraph) {
-      ++partition_size[hypergraph.partitionIndex(*hn)];
-    } endfor
-    _insert_result_cmd.bind(":part0", partition_size[0]);
-    _insert_result_cmd.bind(":part1", partition_size[1]);
+    HypernodeWeight partition_weights[2] = { 0, 0 };
+    metrics::partitionWeights(hypergraph, partition_weights);
+    _insert_result_cmd.bind(":part0", static_cast<int>(partition_weights[0]));
+    _insert_result_cmd.bind(":part1", static_cast<int>(partition_weights[1]));
 
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
     _insert_result_cmd.bind(":gitrevision", STR(KaHyPar_BUILD_VERSION));
