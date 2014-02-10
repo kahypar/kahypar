@@ -147,6 +147,7 @@ class Partitioner {
 
   void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
                                           PartitionWeights& partition_weights) {
+    LOG("partitioner", " Assigning unpartitioned pins of HE " << he << " to partition " << id);
     forall_pins(pin, he, hg) {
       ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION || hg.partitionIndex(*pin) == id,
              "HN " << *pin << " is not in partition " << id << " but in "
@@ -160,6 +161,7 @@ class Partitioner {
 
   void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg, PartitionWeights&
                                 partition_weights) {
+    LOG("partitioner", " Assigning all pins of HE " << he << " to partition " << id);
     forall_pins(pin, he, hg) {
       ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION,
              "HN " << *pin << " is not in partition " << id << " but in "
@@ -171,6 +173,7 @@ class Partitioner {
 
   void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
                                       PartitionWeights& partition_weights) {
+    LOG("partitioner", " Distributing pins of HE " << he << " to both partitions");
     size_t min_partition = 0;
     forall_pins(pin, he, hg) {
       if (hg.partitionIndex(*pin) == INVALID_PARTITION) {
