@@ -622,7 +622,7 @@ class Hypergraph {
   void removeNode(HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
     __forall_incident_hyperedges(e, u) {
-      removeEdge(e, u, _hyperedges);
+      removeInternalEdge(e, u, _hyperedges);
       decreasePinCountInPartition(e, partitionIndex(u));
       --_current_num_pins;
     } endfor
@@ -637,7 +637,7 @@ class Hypergraph {
   void removeEdge(HyperedgeID e) {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge is disabled!");
     __forall_pins(u, e) {
-      removeEdge(u, e, _hypernodes);
+      removeInternalEdge(pin, he, _hypernodes);
       --_current_num_pins;
     } endfor
       hyperedge(e).disable();
@@ -854,7 +854,7 @@ class Hypergraph {
   }
 
   template <typename Handle1, typename Handle2, typename Container>
-  void removeEdge(Handle1 u, Handle2 v, Container& container) {
+  void removeInternalEdge(Handle1 u, Handle2 v, Container& container) {
     using std::swap;
     typename Container::reference& vertex = container[u];
     typedef typename std::vector<VertexID>::iterator EdgeIterator;
