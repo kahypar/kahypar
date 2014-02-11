@@ -5,7 +5,6 @@
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph.h"
-#include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
@@ -14,8 +13,6 @@
 
 using::testing::Test;
 using::testing::Eq;
-
-using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
