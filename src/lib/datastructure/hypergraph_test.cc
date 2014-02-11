@@ -94,19 +94,19 @@ TEST_F(AHypergraph, InvalidatesRemovedHypernode) {
 
 TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(2, false);
   ASSERT_THAT(hypergraph.numEdges(), Eq(3));
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(true));
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(2, false);
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.numPins(), Eq(12));
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(2, false);
   ASSERT_THAT(hypergraph.numPins(), Eq(9));
 }
 
@@ -114,7 +114,7 @@ TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemo
   ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(2));
   ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(2));
   ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(2));
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(2, false);
   ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(1));
   ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(1));
   ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(1));
@@ -212,14 +212,14 @@ TEST_F(AHyperedgeIterator, StartsWithFirstHyperedge) {
 }
 
 TEST_F(AHyperedgeIterator, StartsWithTheFirstValidHyperedge) {
-  hypergraph.removeEdge(0);
+  hypergraph.removeEdge(0, false);
   std::tie(begin, end) = hypergraph.edges();
   ASSERT_THAT(*begin, Eq(1));
 }
 
 TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenForwardIterating) {
-  hypergraph.removeEdge(1);
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(2, false);
   std::tie(begin, end) = hypergraph.edges();
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
@@ -231,8 +231,8 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
   ++begin;
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
-  hypergraph.removeEdge(1);
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(2, false);
   --begin;
   ASSERT_THAT(*begin, Eq(0));
 }
@@ -417,7 +417,7 @@ TEST_F(AHypergraph, ReturnsInitialNumberOfPinsAfterHypergraphModification) {
 
 TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
-  hypergraph.removeEdge(2);
+  hypergraph.removeEdge(2, false);
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
 }
 
@@ -431,11 +431,19 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
 }
 
-TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {
+TEST(AnUnconnectedHypernode, IsRemovedTogetherWithLastEdgeIfFlagIsTrue) {
   HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
                             HyperedgeVector { 0 });
 
-  hypergraph.removeEdge(0);
+  hypergraph.removeEdge(0, true);
+  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(false));
+}
+
+TEST(AnUnconnectedHypernode, IsNotRemovedTogetherWithLastEdgeIfFlagIsFalse) {
+  HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+                            HyperedgeVector { 0 });
+
+  hypergraph.removeEdge(0, false);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
 }
 
@@ -469,7 +477,7 @@ TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
 
 TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  hypergraph.removeEdge(1);
+  hypergraph.removeEdge(1, false);
 
   // We do not use accessor pinCountInPartition here since this asserts HE validity
   ASSERT_THAT(hypergraph._partition_pin_counts[3], Eq(hypergraph.INVALID_COUNT));
@@ -479,7 +487,7 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
 
 TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  hypergraph.removeEdge(1);
+  hypergraph.removeEdge(1, false);
   hypergraph.restoreEdge(1);
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
 }

@@ -103,7 +103,7 @@ class HeavyEdgeCoarsenerBase {
     }
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
-                                                                 << " > " << _config.partitioning.epsilon);
+           << " > " << _config.partitioning.epsilon);
   }
 
   protected:
@@ -147,7 +147,7 @@ class HeavyEdgeCoarsenerBase {
         ++_history.top().one_pin_hes_size;
         // PRINT("*** removing single-node HE " << *he_it);
         // _hg.printEdgeState(*he_it);
-        _hg.removeEdge(*he_it);
+        _hg.removeEdge(*he_it, false);
         --he_it;
         --end;
       }
@@ -200,7 +200,7 @@ class HeavyEdgeCoarsenerBase {
     _hg.setEdgeWeight(representative,
                       _hg.edgeWeight(representative)
                       + _hg.edgeWeight(to_remove));
-    _hg.removeEdge(to_remove);
+    _hg.removeEdge(to_remove, false);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
     //PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
     ++_history.top().parallel_hes_size;
