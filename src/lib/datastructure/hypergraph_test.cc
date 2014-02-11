@@ -431,12 +431,12 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
 }
 
-TEST(AnUnconnectedHypernode, DoesNotGetDisabledAutomatically) {
+TEST(AnUnconnectedHypernode, IsDisabledAutomaticallyWhenEdgeIsRemoved) {
   HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
                             HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0);
-  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
+  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(false));
 }
 
 TEST_F(AHypergraph, ReducesPinCountOfAffectedHEsOnContraction) {

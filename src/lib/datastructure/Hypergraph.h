@@ -634,14 +634,15 @@ class Hypergraph {
   // the hyperedge vertex, because it is just disabled! This information is used to
   // restore removed edges e.g. in the case of a single-node hyperedge or a parallel
   // hyperedge.
-  void removeEdge(HyperedgeID e) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge is disabled!");
-    __forall_pins(u, e) {
+  void removeEdge(HyperedgeID he) {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
+    __forall_pins(pin, he) {
       removeInternalEdge(pin, he, _hypernodes);
+      disableHypernodeIfUnconnected(pin);
       --_current_num_pins;
     } endfor
-      hyperedge(e).disable();
-    invalidatePartitionPinCounts(e);
+      hyperedge(he).disable();
+    invalidatePartitionPinCounts(he);
     --_current_num_hyperedges;
   }
 
@@ -654,6 +655,7 @@ class Hypergraph {
              == 0,
              "HN " << pin << " is already connected to HE " << e);
       //PRINT("*** re-adding pin  " << pin << " to HE " << e);
+      enableHypernodeIfPreviouslyUnconnected(pin);
       hypernode(pin).increaseSize();
       increasePinCountInPartition(e, partitionIndex(pin));
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
@@ -851,6 +853,20 @@ class Hypergraph {
                                                                                          << " is not at the end of the incidence array");
     _incidence_array.push_back(e);
     nodeU.increaseSize();
+  }
+
+  void disableHypernodeIfUnconnected(HypernodeID hn) {
+    if (hypernode(hn).size() == 0) {
+      hypernode(hn).disable();
+      --_current_num_hypernodes;
+    }
+  }
+
+  void enableHypernodeIfPreviouslyUnconnected(HypernodeID hn) {
+    if (hypernode(hn).isDisabled()) {
+      hypernode(hn).enable();
+      ++_current_num_hypernodes;
+    }
   }
 
   template <typename Handle1, typename Handle2, typename Container>
