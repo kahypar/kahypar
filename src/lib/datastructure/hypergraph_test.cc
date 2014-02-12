@@ -321,6 +321,7 @@ TEST_F(AnUncontractionOperation, DisconnectsHyperedgesAddedToRepresenativeDuring
   ASSERT_THAT(hypergraph.nodeDegree(4), Eq(3));
 
   hypergraph.uncontract(memento);
+
   ASSERT_THAT(hypergraph.nodeDegree(4), Eq(2));
 }
 
@@ -394,6 +395,7 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   contraction_history.emplace(modified_hypergraph.contract(0, 5));
   contraction_history.emplace(modified_hypergraph.contract(0, 3));
   ASSERT_THAT(modified_hypergraph.nodeWeight(0), Eq(7));
+  modified_hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
 
   while (!contraction_history.empty()) {
     modified_hypergraph.uncontract(contraction_history.top());
@@ -422,10 +424,10 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
 }
 
 TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
-  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(INVALID_PARTITION));
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
   Memento memento = hypergraph.contract(0, 2);
-  hypergraph.changeNodePartition(0, INVALID_PARTITION, 1);
 
+  hypergraph.changeNodePartition(0, 0, 1);
   hypergraph.uncontract(memento);
 
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
@@ -458,9 +460,13 @@ TEST_F(AHypergraph, ReducesPinCountOfAffectedHEsOnContraction) {
 TEST_F(AHypergraph, IncreasesPinCountOfAffectedHEsOnUnContraction) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
-  hypergraph.uncontract(hypergraph.contract(3, 4));
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  Memento memento = hypergraph.contract(3, 4);
+  hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
+  hypergraph.uncontract(memento);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(1));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(2));
 }
 
 TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {

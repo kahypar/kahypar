@@ -524,6 +524,10 @@ class Hypergraph {
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
     setPartitionIndex(memento.v, partitionIndex(memento.u));
+    ASSERT(partitionIndex(memento.v) != defs::INVALID_PARTITION,
+           "PartitionID " << partitionIndex(memento.u) << " of representative HN " << memento.u <<
+           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
+           << memento.v);
 
     _active_hyperedges_v.reset();
     __forall_incident_hyperedges(he, memento.v) {

@@ -54,7 +54,12 @@ class AContractionMemento : public AHypergraph {
 
 class AnUncontractionOperation : public AHypergraph {
   public:
-  AnUncontractionOperation() : AHypergraph() { }
+  AnUncontractionOperation() : AHypergraph() {
+    hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
+  }
 };
 
 class AnUncontractedHypergraph : public AHypergraph {
