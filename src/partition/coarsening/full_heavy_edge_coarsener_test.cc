@@ -161,10 +161,10 @@ TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
 TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   // Artificially constructed hypergraph that enforces the successive removal of
   // three single-node hyperedges.
-  HyperedgeWeightVector edge_weights { 1, 1, 1 };
-  HypernodeWeightVector node_weights { 1, 1 };
-  HypergraphType hypergraph(2, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
-                            HyperedgeVector { 0, 1, 0, 1, 0, 1 }, &edge_weights,
+  HyperedgeWeightVector edge_weights { 5, 5, 5, 1 };
+  HypernodeWeightVector node_weights { 1, 1, 5 };
+  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+                            HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
                             &node_weights);
 
   Configuration<HypergraphType> config;
@@ -172,8 +172,9 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
   CoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
 
-  coarsener.coarsen(1);
+  coarsener.coarsen(2);
   hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
