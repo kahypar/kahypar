@@ -88,7 +88,7 @@ class Partitioner {
             << hg.edgeSize(*he) << ")   exceeds threshold: "
             << _config.partitioning.hyperedge_size_threshold);
         removed_hyperedges.push_back(*he);
-        hg.removeEdge(*he);
+        hg.removeEdge(*he, true);
       }
     } endfor
   }
