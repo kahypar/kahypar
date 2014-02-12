@@ -424,7 +424,7 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
 }
 
 TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
-  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(INVALID_PARTITION));
+  ASSERT_THAT(hypergraph.partitionIndex(2), Eq(0));
   Memento memento = hypergraph.contract(0, 2);
 
   hypergraph.changeNodePartition(0, 0, 1);
