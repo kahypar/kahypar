@@ -617,6 +617,7 @@ class Hypergraph {
   }
 
   void calculatePartitionPinCount(HyperedgeID he) {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
     _partition_pin_counts[3 * he] = 0;  // pins not yet assigned to a partition
     _partition_pin_counts[3 * he + 1] = 0;
     _partition_pin_counts[3 * he + 2] = 0;
@@ -701,25 +702,26 @@ class Hypergraph {
   // was done by swapping the HyperedgeID to the end of the edgelist of the hypernode and
   // decrementing the size, it is necessary to perform the restore operations __in reverse__
   // order as the removal operations occured!
-  void restoreEdge(HyperedgeID e) {
-    enableEdge(e);
-    resetPartitionPinCounts(e);
-    __forall_pins(pin, e) {
+  void restoreEdge(HyperedgeID he) {
+    ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
+    enableEdge(he);
+    resetPartitionPinCounts(he);
+    __forall_pins(pin, he) {
       ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
-                        _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), e)
+                        _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), he)
              == 0,
-             "HN " << pin << " is already connected to HE " << e);
-      DBG(dbg_hypergraph_restore_edge, "re-adding pin  " << pin << " to HE " << e);
+             "HN " << pin << " is already connected to HE " << he);
+      DBG(dbg_hypergraph_restore_edge, "re-adding pin  " << pin << " to HE " << he);
       enableHypernodeIfPreviouslyUnconnected(pin);
       hypernode(pin).increaseSize();
-      increasePinCountInPartition(e, partitionIndex(pin));
-      ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e,
-             "Incorrect restore of HE " << e);
+      increasePinCountInPartition(he, partitionIndex(pin));
+      ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == he,
+             "Incorrect restore of HE " << he);
       ++_current_num_pins;
     } endfor
-      ASSERT(pinCountInPartition(e, kInvalidPartition) + pinCountInPartition(e, 0)
-             + pinCountInPartition(e, 1) == edgeSize(e),
-             "Pincounts of HE " << e << " do not match the size of the HE");
+      ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
+             + pinCountInPartition(he, 1) == edgeSize(he),
+             "Pincounts of HE " << he << " do not match the size of the HE");
   }
 
   HypergraphWeightType type() const {
