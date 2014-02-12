@@ -22,50 +22,50 @@ using defs::PartitionID;
 
 namespace datastructure {
 // external macros: Causion when modifying hypergraph during iteration!
-#define forall_hypernodes(hn, graph)                 \
-  {                                                  \
-    datastructure::HypernodeIterator __begin, __end; \
-    std::tie(__begin, __end) = graph.nodes();        \
-    for (datastructure::HypernodeIterator hn = __begin; hn != __end; ++hn) {
-#define forall_hyperedges(he, graph)                 \
-  {                                                  \
-    datastructure::HyperedgeIterator __begin, __end; \
-    std::tie(__begin, __end) = graph.edges();        \
-    for (datastructure::HyperedgeIterator he = __begin; he != __end; ++he) {
-#define forall_incident_hyperedges(he, hn, graph)       \
-  {                                                     \
-    datastructure::IncidenceIterator __begin, __end;    \
-    std::tie(__begin, __end) = graph.incidentEdges(hn); \
-    for (datastructure::IncidenceIterator he = __begin; he != __end; ++he) {
-#define forall_pins(pin, he, graph)                  \
-  {                                                  \
-    datastructure::IncidenceIterator __begin, __end; \
-    std::tie(__begin, __end) = graph.pins(he);       \
-    for (datastructure::IncidenceIterator pin = __begin; pin != __end; ++pin) {
+#define forall_hypernodes(hn, graph)                       \
+  {                                                        \
+    datastructure::HypernodeIterator __hn_begin, __hn_end; \
+    std::tie(__hn_begin, __hn_end) = graph.nodes();        \
+    for (datastructure::HypernodeIterator hn = __hn_begin; hn != __hn_end; ++hn) {
+#define forall_hyperedges(he, graph)                       \
+  {                                                        \
+    datastructure::HyperedgeIterator __he_begin, __he_end; \
+    std::tie(__he_begin, __he_end) = graph.edges();        \
+    for (datastructure::HyperedgeIterator he = __he_begin; he != __he_end; ++he) {
+#define forall_incident_hyperedges(he, hn, graph)                     \
+  {                                                                   \
+    datastructure::IncidenceIterator __inc_he_begin, __inc_he_end;    \
+    std::tie(__inc_he_begin, __inc_he_end) = graph.incidentEdges(hn); \
+    for (datastructure::IncidenceIterator he = __inc_he_begin; he != __inc_he_end; ++he) {
+#define forall_pins(pin, he, graph)                          \
+  {                                                          \
+    datastructure::IncidenceIterator __pin_begin, __pin_end; \
+    std::tie(__pin_begin, __pin_end) = graph.pins(he);       \
+    for (datastructure::IncidenceIterator pin = __pin_begin; pin != __pin_end; ++pin) {
 #define endfor \
   }            \
   }
 
 // internal macros:
-#define __forall_active_hyperedges(he)  \
-  {                                     \
-    HyperedgeIterator __begin, __end;   \
-    std::tie(__begin, __end) = edges(); \
-    for (HyperedgeIterator he = __begin; he != __end; ++he) {
-#define __forall_incident_hyperedges(he, hn)                              \
-  {                                                                       \
-    ASSERT(!hypernode(hn).isDisabled(),                                   \
-           "Trying to iterate over incident HEs of disabled HN" << hn);   \
-    for (HyperedgeID __i = hypernode(hn).firstEntry(),                    \
-         __end = hypernode(hn).firstInvalidEntry(); __i < __end; ++__i) { \
+#define __forall_active_hyperedges(he)                \
+  {                                                   \
+    HyperedgeIterator __act_he_begin, __act_he_end;   \
+    std::tie(__act_he_begin, __act_he_end) = edges(); \
+    for (HyperedgeIterator he = __act_he_begin; he != __act_he_end; ++he) {
+#define __forall_incident_hyperedges(he, hn)                                            \
+  {                                                                                     \
+    ASSERT(!hypernode(hn).isDisabled(),                                                 \
+           "Trying to iterate over incident HEs of disabled HN" << hn);                 \
+    for (HyperedgeID __i = hypernode(hn).firstEntry(),                                  \
+         __inc_he_end = hypernode(hn).firstInvalidEntry(); __i < __inc_he_end; ++__i) { \
       HyperedgeID he = _incidence_array[__i];
 
-#define __forall_pins(hn, he)                                             \
-  {                                                                       \
-    ASSERT(!hyperedge(he).isDisabled(),                                   \
-           "Trying to iterate over pins of disabled HE" << he);           \
-    for (HyperedgeID __j = hyperedge(he).firstEntry(),                    \
-         __end = hyperedge(he).firstInvalidEntry(); __j < __end; ++__j) { \
+#define __forall_pins(hn, he)                                                     \
+  {                                                                               \
+    ASSERT(!hyperedge(he).isDisabled(),                                           \
+           "Trying to iterate over pins of disabled HE" << he);                   \
+    for (HyperedgeID __j = hyperedge(he).firstEntry(),                            \
+         __pin_end = hyperedge(he).firstInvalidEntry(); __j < __pin_end; ++__j) { \
       HypernodeID hn = _incidence_array[__j];
 
 enum class HypergraphWeightType : int8_t {
