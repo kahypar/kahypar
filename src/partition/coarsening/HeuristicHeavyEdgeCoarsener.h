@@ -42,8 +42,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
       rep_node = Base::_pq.max();
       contracted_node = target[rep_node];
-      // PRINT("Contracting: (" << rep_node << ","
-      //       << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+      DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
+          << target[rep_node] << ") prio: " << Base::_pq.maxKey());
 
       ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
              <= Base::_rater.thresholdNodeWeight(),
@@ -76,7 +76,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     auto range = sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
       if (iter->second == hn) {
-        //PRINT("********** removing node " << hn << " from entries with key " << target[hn]);
+        DBG(false, "removing node " << hn << " from entries with key " << hn_target);
         sources.erase(iter);
         break;
       }
@@ -117,7 +117,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
       if (source_it->second == contraction_node) {
         sources.erase(source_it++);
       } else {
-        //PRINT("rerating HN " << source_it->second << " which had " << hn << " as target");
+        DBG(false, "rerating HN " << source_it->second << " which had " << hn << " as target");
         rating = Base::_rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
         HypernodeID source_hn = source_it->second;

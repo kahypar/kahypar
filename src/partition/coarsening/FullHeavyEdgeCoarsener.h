@@ -42,8 +42,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
       rep_node = Base::_pq.max();
       contracted_node = target[rep_node];
-      // LOG("coarsening", "Contracting: (" << rep_node << ","
-      //                                    << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+      DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
+          << target[rep_node] << ") prio: " << Base::_pq.maxKey());
 
       ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
              <= Base::_rater.thresholdNodeWeight(),

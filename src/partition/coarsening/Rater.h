@@ -79,7 +79,7 @@ class Rater {
     while (!_used_entries.empty()) {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
-      // PRINT("r(" << u << "," << used_entries.top() << ")=" << tmp);
+      DBG(false, "r(" << u << "," << _used_entries.top() << ")=" << tmp);
       if (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) {
         max_rating = tmp;
         target = _used_entries.top();

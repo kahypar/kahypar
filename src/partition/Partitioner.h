@@ -27,6 +27,9 @@
 #endif
 
 namespace partition {
+static const bool dbg_partition_large_he_removal = false;
+static const bool dbg_partition_initial_partitioning = false;
+
 template <class Hypergraph>
 class Partitioner {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
@@ -84,7 +87,7 @@ class Partitioner {
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
     forall_hyperedges(he, hg) {
       if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
-        LOG("partitioner", "Hyperedge " << *he << ": size ("
+        DBG(dbg_partition_large_he_removal, "Hyperedge " << *he << ": size ("
             << hg.edgeSize(*he) << ")   exceeds threshold: "
             << _config.partitioning.hyperedge_size_threshold);
         removed_hyperedges.push_back(*he);
@@ -102,7 +105,7 @@ class Partitioner {
     } endfor
 
     for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-      LOG("partitioner", " restore Hyperedge " << *edge);
+      DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
       hg.restoreEdge(*edge);
       partitionUnpartitionedPins(*edge, hg, partition_weights);
     }
@@ -148,7 +151,8 @@ class Partitioner {
 
   void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
                                           PartitionWeights& partition_weights) {
-    LOG("partitioner", " Assigning unpartitioned pins of HE " << he << " to partition " << id);
+    DBG(dbg_partition_large_he_removal,
+        "Assigning unpartitioned pins of HE " << he << " to partition " << id);
     forall_pins(pin, he, hg) {
       ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION || hg.partitionIndex(*pin) == id,
              "HN " << *pin << " is not in partition " << id << " but in "
@@ -162,7 +166,7 @@ class Partitioner {
 
   void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg, PartitionWeights&
                                 partition_weights) {
-    LOG("partitioner", " Assigning all pins of HE " << he << " to partition " << id);
+    DBG(dbg_partition_large_he_removal, "Assigning all pins of HE " << he << " to partition " << id);
     forall_pins(pin, he, hg) {
       ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION,
              "HN " << *pin << " is not in partition " << id << " but in "
@@ -174,7 +178,7 @@ class Partitioner {
 
   void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
                                       PartitionWeights& partition_weights) {
-    LOG("partitioner", " Distributing pins of HE " << he << " to both partitions");
+    DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
     size_t min_partition = 0;
     forall_pins(pin, he, hg) {
       if (hg.partitionIndex(*pin) == INVALID_PARTITION) {
@@ -228,8 +232,8 @@ class Partitioner {
       current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
 
       if (current_cut < best_cut) {
-        LOG("initialPartition", "attempt " << attempt << " improved initial cut from "
-            << best_cut << " to " << current_cut);
+        DBG(dbg_partition_initial_partitioning, "Attempt " << attempt
+            << " improved initial cut from " << best_cut << " to " << current_cut);
         best_partitioning.swap(partitioning);
         best_cut = current_cut;
       }
