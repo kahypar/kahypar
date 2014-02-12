@@ -16,7 +16,10 @@ using datastructure::HyperedgeWeight;
 using datastructure::IncidenceIterator;
 using defs::PartitionID;
 
+
 namespace metrics {
+static const bool dbg_metrics_hyperedge_cut = false;
+
 template <class Hypergraph>
 HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
@@ -33,7 +36,7 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
 
     for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
       if (partition != hg.partitionIndex(*pin_it)) {
-        //PRINT("** Hyperedge " << *he << " is cut-edge");
+        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << *he << " is cut-edge");
         cut += hg.edgeWeight(*he);
         break;
       }
@@ -59,7 +62,7 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
 
     for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
       if (partition != partitioning[hg_to_hmetis[*pin_it]]) {
-        //PRINT("** Hyperedge " << *he << " is cut-edge");
+        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << *he << " is cut-edge");
         cut += hg.edgeWeight(*he);
         break;
       }

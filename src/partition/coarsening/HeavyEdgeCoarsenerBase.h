@@ -20,6 +20,11 @@ using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 
 namespace partition {
+static const bool dbg_coarsening_coarsen = false;
+static const bool dbg_coarsening_uncoarsen = false;
+static const bool dbg_coarsening_single_node_he_removal = false;
+static const bool dbg_coarsening_parallel_he_removal = false;
+
 template <class Hypergraph, class Rater>
 class HeavyEdgeCoarsenerBase {
   protected:
@@ -91,8 +96,8 @@ class HeavyEdgeCoarsenerBase {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
 
-      // PRINT("Uncontracting: (" << _history.top().contraction_memento.u << ","
-      //                          << _history.top().contraction_memento.v << ")");
+      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
+          << _history.top().contraction_memento.v << ")");
 
       _hg.uncontract(_history.top().contraction_memento);
       refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
@@ -117,7 +122,8 @@ class HeavyEdgeCoarsenerBase {
     for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
          i >= memento.one_pin_hes_begin; --i) {
       ASSERT(i < _removed_single_node_hyperedges.size(), "Index out of bounds");
-      // PRINT("*** restore single-node HE " << _removed_single_node_hyperedges[i]);
+      DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
+          << _removed_single_node_hyperedges[i]);
       _hg.restoreEdge(_removed_single_node_hyperedges[i]);
     }
   }
@@ -126,8 +132,9 @@ class HeavyEdgeCoarsenerBase {
     for (int i = memento.parallel_hes_begin + memento.parallel_hes_size - 1;
          i >= memento.parallel_hes_begin; --i) {
       ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
-      // PRINT("*** restore HE " << _removed_parallel_hyperedges[i].removed_id
-      //       << " which is parallel to " << _removed_parallel_hyperedges[i].representative_id);
+      DBG(dbg_coarsening_parallel_he_removal, "restore HE "
+          << _removed_parallel_hyperedges[i].removed_id << " which is parallel to "
+          << _removed_parallel_hyperedges[i].representative_id);
       _hg.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
       _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
                         _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
@@ -145,8 +152,7 @@ class HeavyEdgeCoarsenerBase {
       if (_hg.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
-        // PRINT("*** removing single-node HE " << *he_it);
-        // _hg.printEdgeState(*he_it);
+        DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
         _hg.removeEdge(*he_it, false);
         --he_it;
         --end;
@@ -202,7 +208,8 @@ class HeavyEdgeCoarsenerBase {
                       + _hg.edgeWeight(to_remove));
     _hg.removeEdge(to_remove, false);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
-    //PRINT("*** removed HE " << to_remove << " which was parallel to " << representative);
+    DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
+        << representative);
     ++_history.top().parallel_hes_size;
   }
 
