@@ -101,14 +101,10 @@ class Partitioner {
       }
     } endfor
 
-    std::sort(removed_hyperedges.begin(), removed_hyperedges.end(),
-              [&](const HyperedgeID lhs, const HyperedgeID rhs) {
-                return hg.edgeSize(lhs) < hg.edgeSize(rhs);});
-   
-    for (auto removed_edge : removed_hyperedges) {
-      LOG("partitioner", "restoring Hyperedge " << removed_edge);
-      hg.restoreEdge(removed_edge);
-      partitionUnpartitionedPins(removed_edge, hg, partition_weights);
+    for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
+      LOG("partitioner", " restore Hyperedge " << *edge);
+      hg.restoreEdge(*edge);
+      partitionUnpartitionedPins(*edge, hg, partition_weights);
     }
     ASSERT(metrics::imbalance(hg) <= _config.partitioning.epsilon,
            "Final assignment of unpartitioned pins violated balance constraint");
