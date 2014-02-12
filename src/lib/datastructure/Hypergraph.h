@@ -54,12 +54,16 @@ namespace datastructure {
     for (HyperedgeIterator he = __begin; he != __end; ++he) {
 #define __forall_incident_hyperedges(he, hn)                              \
   {                                                                       \
+    ASSERT(!hypernode(hn).isDisabled(),                                   \
+           "Trying to iterate over incident HEs of disabled HN" << hn);   \
     for (HyperedgeID __i = hypernode(hn).firstEntry(),                    \
          __end = hypernode(hn).firstInvalidEntry(); __i < __end; ++__i) { \
       HyperedgeID he = _incidence_array[__i];
 
 #define __forall_pins(hn, he)                                             \
   {                                                                       \
+    ASSERT(!hyperedge(he).isDisabled(),                                   \
+           "Trying to iterate over pins of disabled HE" << he);           \
     for (HyperedgeID __j = hyperedge(he).firstEntry(),                    \
          __end = hyperedge(he).firstInvalidEntry(); __j < __end; ++__j) { \
       HypernodeID hn = _incidence_array[__j];
@@ -979,7 +983,7 @@ class Hypergraph {
   std::vector<HyperNode> _hypernodes;
   std::vector<HyperEdge> _hyperedges;
   std::vector<VertexID> _incidence_array;
-  
+
   std::vector<PartitionID> _partition_indices;
   std::vector<int> _partition_pin_counts;
 
