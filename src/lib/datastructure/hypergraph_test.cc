@@ -483,6 +483,7 @@ TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
 
 TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+
   hypergraph.removeEdge(1, false);
 
   // We do not use accessor pinCountInPartition here since this asserts HE validity

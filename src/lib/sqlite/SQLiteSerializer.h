@@ -25,18 +25,17 @@ class SQLiteBenchmarkSerializer {
     _db(_db_name.c_str()),
     _setup_dummy(setupDB(_db)),
     _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k,"
-                            "epsilon, L_max, seed, initial_partitionings, coarsening_scheme,"
+                            "epsilon, L_max, seed, initial_partitionings,"
+                            "hyperedge_size_threshold, coarsening_scheme,"
                             "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
                             "coarsening_min_node_count, coarsening_rating,"
-                            "rating_hyperedge_size_threshold, twowayfm_stopping_rule, "
-                            "twowayfm_hyperedge_size_threshold, twowayfm_fruitless_moves,"
-                            "twowayfm_alpha, twowayfm_beta, cut, part0,"
+                            "twowayfm_stopping_rule, twowayfm_hyperedge_size_threshold, "
+                            "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
                             "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
                             ":hyperedges, :k, :epsilon, :L_max, :seed, :initial_partitionings,"
-                            ":coarsening_scheme, :coarsening_node_weight_fraction, "
+                            ":hyperedge_size_threshold, :coarsening_scheme, :coarsening_node_weight_fraction, "
                             ":coarsening_node_weight_threshold, :coarsening_min_node_count,"
-                            ":coarsening_rating, :rating_hyperedge_size_threshold,"
-                            ":twowayfm_stopping_rule, :twowayfm_hyperedge_size_threshold,"
+                            ":coarsening_rating, :twowayfm_stopping_rule, :twowayfm_hyperedge_size_threshold,"
                             ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
                             ":part0, :part1, :imbalance, :gitrevision);") { }
 
@@ -67,12 +66,12 @@ class SQLiteBenchmarkSerializer {
                        "L_max INTEGER NOT NULL,"
                        "seed INTEGER NOT NULL,"
                        "initial_partitionings INTEGER NOT NULL,"
+                       "hyperedge_size_threshold INTEGER NOT NULL,"    
                        "coarsening_scheme VARCHAR NOT NULL,"
                        "coarsening_node_weight_fraction REAL NOT NULL,"
                        "coarsening_node_weight_threshold INTEGER NOT NULL,"
                        "coarsening_min_node_count INTEGER NOT NULL,"
                        "coarsening_rating VARCHAR NOT NULL,"
-                       "rating_hyperedge_size_threshold INTEGER NOT NULL,"
                        "twowayfm_stopping_rule VARCHAR NOT NULL,"
                        "twowayfm_hyperedge_size_threshold INTEGER NOT NULL,"
                        "twowayfm_fruitless_moves INTEGER NOT NULL,"
@@ -102,6 +101,8 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":seed", config.partitioning.seed);
     _insert_result_cmd.bind(":initial_partitionings",
                             config.partitioning.initial_partitioning_attempts);
+    _insert_result_cmd.bind(":hyperedge_size_threshold",
+                            static_cast<int>(config.partitioning.hyperedge_size_threshold));
     _insert_result_cmd.bind(":coarsening_scheme",
                             (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ?
                              "heavy_full" : "heavy_heuristic"));
@@ -112,8 +113,6 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":coarsening_min_node_count",
                             static_cast<int>(config.coarsening.minimal_node_count));
     _insert_result_cmd.bind(":coarsening_rating", "heavy_edge");
-    _insert_result_cmd.bind(":rating_hyperedge_size_threshold",
-                            static_cast<int>(config.rating.hyperedge_size_threshold));
     _insert_result_cmd.bind(":twowayfm_stopping_rule",
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
                              "simple" : "adaptive"));
@@ -125,12 +124,10 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
     _insert_result_cmd.bind(":cut", static_cast<int>(metrics::hyperedgeCut(hypergraph)));
 
-    int partition_size[2] = { 0, 0 };
-    forall_hypernodes(hn, hypergraph) {
-      ++partition_size[hypergraph.partitionIndex(*hn)];
-    } endfor
-    _insert_result_cmd.bind(":part0", partition_size[0]);
-    _insert_result_cmd.bind(":part1", partition_size[1]);
+    HypernodeWeight partition_weights[2] = { 0, 0 };
+    metrics::partitionWeights(hypergraph, partition_weights);
+    _insert_result_cmd.bind(":part0", static_cast<int>(partition_weights[0]));
+    _insert_result_cmd.bind(":part1", static_cast<int>(partition_weights[1]));
 
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
     _insert_result_cmd.bind(":gitrevision", STR(KaHyPar_BUILD_VERSION));

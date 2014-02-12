@@ -41,6 +41,7 @@ struct Configuration {
       initial_partitioning_attempts(1),
       epsilon(1.0),
       partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
+      hyperedge_size_threshold(50),
       verbose_output(false),
       graph_filename(),
       graph_partition_filename(),
@@ -52,6 +53,7 @@ struct Configuration {
     int initial_partitioning_attempts;
     double epsilon;
     HypernodeWeight partition_size_upper_bound;
+    HyperedgeID hyperedge_size_threshold;
     bool verbose_output;
     std::string graph_filename;
     std::string graph_partition_filename;
@@ -74,23 +76,14 @@ struct Configuration {
     StoppingRule stopping_rule;
   };
 
-  struct RatingParameters {
-    RatingParameters() :
-      hyperedge_size_threshold(50) { }
-
-    HyperedgeID hyperedge_size_threshold;
-  };
-
   PartitioningParameters partitioning;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
-  RatingParameters rating;
 
   Configuration() :
     partitioning(),
     coarsening(),
-    two_way_fm(),
-    rating() { }
+    two_way_fm() { }
 };
 
 template <class Configuration>
@@ -100,44 +93,43 @@ std::string toString(const Configuration& config) {
   oss << "Partitioning Parameters:" << std::endl;
   oss << std::setw(28) << "  Hypergraph: " << config.partitioning.graph_filename << std::endl;
   oss << std::setw(28) << "  Partition File: " << config.partitioning.graph_partition_filename
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  Coarsened Partition File: "
-      << config.partitioning.coarse_graph_partition_filename << std::endl;
+  << config.partitioning.coarse_graph_partition_filename << std::endl;
   oss << std::setw(28) << "  k: " << config.partitioning.k << std::endl;
   oss << std::setw(28) << "  epsilon: " << config.partitioning.epsilon
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  L_max: " << config.partitioning.partition_size_upper_bound
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  seed: " << config.partitioning.seed << std::endl;
   oss << std::setw(28) << "  # initial partitionings: "
-      << config.partitioning.initial_partitioning_attempts << std::endl;
+  << config.partitioning.initial_partitioning_attempts << std::endl;
+  oss << std::setw(28) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
+  << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
   oss << std::setw(28) << "  scheme: " <<
-    (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ? "heavy_full" : "heavy_heuristic")
-      << std::endl;
+  (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ? "heavy_full" : "heavy_heuristic")
+  << std::endl;
   oss << std::setw(28) << "  hypernode weight fraction: "
-      << config.coarsening.hypernode_weight_fraction << std::endl;
+  << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
-      << std::endl;
-  oss << "Rating Parameters:" << std::endl;
-  oss << std::setw(28) << "  hyperedge size threshold: " << config.rating.hyperedge_size_threshold
-      << std::endl;
+  << std::endl;
   oss << "2-Way-FM Refinement Parameters:" << std::endl;
   oss << std::setw(28) << "  stopping rule: "
-      << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
-      << std::endl;
+  << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
+  << std::endl;
   oss << std::setw(28) << "  hyperedge size threshold: " << config.two_way_fm.hyperedge_size_threshold
-      << std::endl;
+  << std::endl;
   oss << std::setw(28) << "  max. # fruitless moves: "
-      << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
+  << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
   oss << std::setw(28) << "  random walk stop alpha: "
-      << config.two_way_fm.alpha << std::endl;
+  << config.two_way_fm.alpha << std::endl;
   oss << std::setw(28) << "  random walk stop beta : "
-      << config.two_way_fm.beta;
+  << config.two_way_fm.beta;
   return oss.str();
 }
 } // namespace partition

@@ -71,7 +71,7 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
 template <class Hypergraph>
 double imbalance(const Hypergraph& hypergraph) {
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
-  std::vector<HypernodeWeight> partition_sizes(2, 0);
+  std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
   forall_hypernodes(hn, hypergraph) {
     ASSERT(hypergraph.partitionIndex(*hn) < 2 && hypergraph.partitionIndex(*hn) != defs::INVALID_PARTITION
@@ -92,6 +92,13 @@ double avgHyperedgeDegree(const Hypergraph& hypergraph) {
 template <class Hypergraph>
 double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
+}
+
+template <class Hypergraph, class Weights>
+void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
+  forall_hypernodes(hn, hypergraph) {
+    weights[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
+  } endfor
 }
 } // namespace metrics
 

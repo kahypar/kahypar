@@ -65,6 +65,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     if (vm.count("nruns")) {
       config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
     }
+    if (vm.count("cmaxnet")) {
+      config.partitioning.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
+    }
     if (vm.count("ctype")) {
       if (vm["ctype"].as<std::string>() == "heavy_heuristic") {
         config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_HEURISTIC;
@@ -75,9 +78,6 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("t")) {
       config.coarsening.minimal_node_count = vm["t"].as<HypernodeID>();
-    }
-    if (vm.count("cmaxnet")) {
-      config.rating.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
     }
     if (vm.count("rmaxnet")) {
       config.two_way_fm.hyperedge_size_threshold = vm["rmaxnet"].as<HyperedgeID>();
@@ -108,10 +108,10 @@ void setDefaults(Config& config) {
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
   config.partitioning.initial_partitioning_attempts = 50;
+  config.partitioning.hyperedge_size_threshold = 50;
   config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
-  config.rating.hyperedge_size_threshold = 50;
   config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
   config.two_way_fm.hyperedge_size_threshold = 50;
   config.two_way_fm.max_number_of_fruitless_moves = 100;

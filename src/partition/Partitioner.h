@@ -6,6 +6,8 @@
 #define SRC_PARTITION_PARTITIONER_H_
 
 #include <cstdlib>
+
+#include <algorithm>
 #include <limits>
 #include <memory>
 #include <string>
@@ -33,12 +35,15 @@ class Partitioner {
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
+  typedef std::vector<HypernodeWeight> PartitionWeights;
 
   public:
   explicit Partitioner(Configuration<Hypergraph>& config) :
     _config(config) { }
 
   void partition(Hypergraph& hypergraph, ICoarsener<Hypergraph>& coarsener) {
+    std::vector<HyperedgeID> removed_hyperedges;
+    removeLargeHyperedges(hypergraph, removed_hyperedges);
     coarsener.coarsen(_config.coarsening.minimal_node_count);
     performInitialPartitioning(hypergraph);
 #ifndef NDEBUG
@@ -48,18 +53,139 @@ class Partitioner {
     if (_config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
       ASSERT(_config.two_way_fm.alpha > 0.0, "alpha not set for adaptive stopping rule");
       ASSERT(_config.two_way_fm.beta > 0.0, "beta not set for adaptive stopping rule");
-      refiner.reset(new TwoWayFMRefiner<Hypergraph, RandomWalkModelStopsSearch>(hypergraph, _config));
+      refiner.reset(new TwoWayFMRefiner<Hypergraph,
+                                        RandomWalkModelStopsSearch>(hypergraph, _config));
     } else {
       ASSERT(_config.two_way_fm.max_number_of_fruitless_moves > 0,
              "no upper bound on fruitless moves defined for simple stopping rule");
-      refiner.reset(new TwoWayFMRefiner<Hypergraph, NumberOfFruitlessMovesStopsSearch>(hypergraph, _config));
+      refiner.reset(new TwoWayFMRefiner<Hypergraph,
+                                        NumberOfFruitlessMovesStopsSearch>(hypergraph, _config));
     }
 
     coarsener.uncoarsen(*refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
+    restoreLargeHyperedges(hypergraph, removed_hyperedges);
   }
 
   private:
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresLargeHyperedgesThatExceededThreshold);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
+              PartitionsUnpartitionedHypernodesAfterRestore);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
+              AssignsAllRemainingHypernodesToDefinedPartition);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
+              TriesToMinimizesCutIfNoPinOfRemainingHyperedgeIsPartitioned);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
+              TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
+              DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
+
+  void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+    forall_hyperedges(he, hg) {
+      if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
+        LOG("partitioner", "Hyperedge " << *he << ": size ("
+            << hg.edgeSize(*he) << ")   exceeds threshold: "
+            << _config.partitioning.hyperedge_size_threshold);
+        removed_hyperedges.push_back(*he);
+        hg.removeEdge(*he, true);
+      }
+    } endfor
+  }
+
+  void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+    PartitionWeights partition_weights { 0, 0 };
+    forall_hypernodes(hn, hg) {
+      if (hg.partitionIndex(*hn) != INVALID_PARTITION) {
+        partition_weights[hg.partitionIndex(*hn)] += hg.nodeWeight(*hn);
+      }
+    } endfor
+
+    for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
+      LOG("partitioner", " restore Hyperedge " << *edge);
+      hg.restoreEdge(*edge);
+      partitionUnpartitionedPins(*edge, hg, partition_weights);
+    }
+    ASSERT(metrics::imbalance(hg) <= _config.partitioning.epsilon,
+           "Final assignment of unpartitioned pins violated balance constraint");
+  }
+
+  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
+                                  PartitionWeights& partition_weights) {
+    HypernodeID num_pins = hg.edgeSize(he);
+    HypernodeID num_unpartitioned_hns = hg.pinCountInPartition(he, INVALID_PARTITION);
+    HypernodeWeight unpartitioned_weight = 0;
+    forall_pins(pin, he, hg) {
+      if (hg.partitionIndex(*pin) == INVALID_PARTITION) {
+        unpartitioned_weight += hg.nodeWeight(*pin);
+      }
+    } endfor
+
+    if (num_unpartitioned_hns == num_pins) {
+      if (partition_weights[0] + unpartitioned_weight
+          <= _config.partitioning.partition_size_upper_bound) {
+        assignAllPinsToPartition(he, 0, hg, partition_weights);
+      } else if (partition_weights[1] + unpartitioned_weight
+                 <= _config.partitioning.partition_size_upper_bound) {
+        assignAllPinsToPartition(he, 1, hg, partition_weights);
+      }
+      return;
+    }
+    if ((hg.pinCountInPartition(he, 0) > 0 && hg.pinCountInPartition(he, 1) == 0) &&
+        (partition_weights[0] + unpartitioned_weight
+         <= _config.partitioning.partition_size_upper_bound)) {
+      assignUnpartitionedPinsToPartition(he, 0, hg, partition_weights);
+      return;
+    }
+    if ((hg.pinCountInPartition(he, 1) > 0 && hg.pinCountInPartition(he, 0) == 0) &&
+        (partition_weights[1] + unpartitioned_weight
+         <= _config.partitioning.partition_size_upper_bound)) {
+      assignUnpartitionedPinsToPartition(he, 1, hg, partition_weights);
+      return;
+    }
+    distributePinsAcrossPartitions(he, hg, partition_weights);
+  }
+
+  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
+                                          PartitionWeights& partition_weights) {
+    LOG("partitioner", " Assigning unpartitioned pins of HE " << he << " to partition " << id);
+    forall_pins(pin, he, hg) {
+      ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION || hg.partitionIndex(*pin) == id,
+             "HN " << *pin << " is not in partition " << id << " but in "
+             << hg.partitionIndex(*pin));
+      if (hg.partitionIndex(*pin) == INVALID_PARTITION) {
+        hg.changeNodePartition(*pin, INVALID_PARTITION, id);
+        partition_weights[id] += hg.nodeWeight(*pin);
+      }
+    } endfor
+  }
+
+  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg, PartitionWeights&
+                                partition_weights) {
+    LOG("partitioner", " Assigning all pins of HE " << he << " to partition " << id);
+    forall_pins(pin, he, hg) {
+      ASSERT(hg.partitionIndex(*pin) == INVALID_PARTITION,
+             "HN " << *pin << " is not in partition " << id << " but in "
+             << hg.partitionIndex(*pin));
+      hg.changeNodePartition(*pin, INVALID_PARTITION, id);
+      partition_weights[id] += hg.nodeWeight(*pin);
+    } endfor
+  }
+
+  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
+                                      PartitionWeights& partition_weights) {
+    LOG("partitioner", " Distributing pins of HE " << he << " to both partitions");
+    size_t min_partition = 0;
+    forall_pins(pin, he, hg) {
+      if (hg.partitionIndex(*pin) == INVALID_PARTITION) {
+        min_partition = std::min_element(partition_weights.begin(), partition_weights.end())
+                        - partition_weights.begin();
+        hg.changeNodePartition(*pin, INVALID_PARTITION, min_partition);
+        partition_weights[min_partition] += hg.nodeWeight(*pin);
+      }
+    } endfor
+  }
+
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg) {
@@ -103,7 +229,7 @@ class Partitioner {
 
       if (current_cut < best_cut) {
         LOG("initialPartition", "attempt " << attempt << " improved initial cut from "
-                                           << best_cut << " to " << current_cut);
+            << best_cut << " to " << current_cut);
         best_partitioning.swap(partitioning);
         best_cut = current_cut;
       }
