@@ -661,6 +661,12 @@ class Hypergraph {
     --_current_num_hyperedges;
   }
 
+  // Restores the deleted Hyperedge. Since the hyperedge information is left intact on the
+  // hyperedge vertex, we reuse this information to restore the information on the incident
+  // hypernodes (i.e. pins). Since the removal of the internal edge (HN_Vertex,HE_Vertex)
+  // was done by swapping the HyperedgeID to the end of the edgelist of the hypernode and
+  // decrementing the size, it is necessary to perform the restore operations __in reverse__
+  // order as the removal operations occured!
   void restoreEdge(HyperedgeID e) {
     enableEdge(e);
     resetPartitionPinCounts(e);
