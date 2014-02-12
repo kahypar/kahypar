@@ -100,6 +100,22 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
+       RestoresHyperedgesExceedingThreshold) {
+  std::vector<HyperedgeID> removed_hyperedges;
+  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges);
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+
+  partitioner.restoreLargeHyperedges(*hypergraph, removed_hyperedges);
+
+  ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
+}
+
+TEST_F(APartitionerWithHyperedgeSizeThreshold,
        TriesToMinimizesCutIfNoPinOfRemainingHyperedgeIsPartitioned) {
   hypergraph.reset(new HypergraphType(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
                                       HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));

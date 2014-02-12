@@ -72,7 +72,7 @@ class Partitioner {
 
   private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
-  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresLargeHyperedgesThatExceededThreshold);
+  FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresHyperedgesExceedingThreshold);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               PartitionsUnpartitionedHypernodesAfterRestore);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
@@ -83,6 +83,7 @@ class Partitioner {
               TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
+
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
     forall_hyperedges(he, hg) {
