@@ -620,8 +620,24 @@ class Hypergraph {
              "Incorrect calculation of pin counts");
   }
 
-  // Deletes incidence information on incident hyperedges, but leaves
-  // this information intact on the hypernode vertex, because it is just disabled!
+  // Deleting a hypernode amounts to removing the undirected internal edge between
+  // the hypernode vertex and each of its incident hyperedge vertices as well as
+  // disabling the hypernode vertex.
+  // Since disabling the vertex ensures that it won't be visible/accessible from
+  // the outside, we do NOT explicitely remove the directed internal edges
+  // (HypernodeVertex,HyperedgeVertex). Instead we only remove the directed
+  // internal edges (HyperedgeVertex,HypernodeVertex) to indicate that the hypernode
+  // is no longer associated with the corresponding Hyperedge.
+  // This _partial_ deletion of the internal incidence information allows us to
+  // efficiently restore a removed Hypernode (currently not implemented):
+  // After re-enabling the hypernode, we can directly access the information about the
+  // hyperedges it was incident to (since we did not delete this information in the first
+  // place): Thus it is possible to iterate over the incident hyperedges and just restore
+  // the corresponding internal edge (HyperedgeVertex, HypernodeVertex) which was cut off
+  // the hyperedge-vertex.
+  // ATTENTION: In order for this implementation produce correct restore results, it is
+  //            necessary that the restoreNode calls have to replay the removeNode calls
+  //            in __reversed__ order.
   void removeNode(HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
     __forall_incident_hyperedges(e, u) {
@@ -633,22 +649,32 @@ class Hypergraph {
     --_current_num_hypernodes;
   }
 
-  // Deletes incidence information on pins, but leaves this information intact on
-  // the hyperedge vertex, because it is just disabled! This information is used to
-  // restore removed edges e.g. in the case of a single-node hyperedge or a parallel
-  // hyperedge. The flag can be used to differentiate between two intentions / use-
-  // cases of removeEdge:
-  // 1.) During coarsening, we want do just disable the edge, but leave hypernodes
+  // Deleting a hyperedge amounts to removing the undirected internal edge between
+  // the hypernode vertex and each of its incident hyperedge vertices as well as
+  // disabling the hypernode vertex itself.
+  // Since disabling the vertex ensures that it won't be visible/accessible from
+  // the outside, we do NOT explicitely remove the directed internal edges
+  // (HyperedgeVertex,HypernodeVertex). Instead we only remove the directed
+  // internal edges (HypernodeVertex,HyperedgeVertex) to indicate that the hyperedge
+  // is no longer associated with the corresponding hypernode.
+  // This _partial_ deletion of the internal incidence information allows us to
+  // efficiently restore a removed hyperedge (see restoreEdge(HyperedgeID he)).
+  // The flag "disable_unconnected_hypernodes" can be used to differentiate between two
+  // following two intentions / use-cases of removeEdge:
+  // 1.) During coarsening, we want do remove the hyperedge, but leave hypernodes
   //     intact. This is used to remove any single-node hyperedges. The hypernode
-  //     which was the only pin of the hyperedge has to stay in the graph, because
+  //     which was the only pin of this hyperedge has to stay in the graph, because
   //     it contains information about the graph structure (i.e. its weight represents)
-  //     the number of hypernodes that have been contracted with it.
+  //     the number of hypernodes that have been contracted with it. Thus is achieved
+  //     by setting the flag to _false_.
   // 2.) In order to avoid tedious reevaluation of ratings for really large hyperedges
   //     we want to provide an option do _really_ delte these edges from the graph before
-  //    starting the actual n-level partitioning. In this case, we _do_ want unconnected
-  //    hypernodes to disappear from the graph. After the partitioning is finished, we then
-  //    reintegrate these edges into the graph. As we sacrificed theses edges in the beginning
-  //    we are willing to pay the price that these edges now inevitably will become cut-edges.
+  //     starting the actual n-level partitioning. In this case, we _do_ want unconnected
+  //     hypernodes to disappear from the graph. After the partitioning is finished, we then
+  //     reintegrate these edges into the graph. As we sacrificed theses edges in the beginning
+  //     we are willing to pay the price that these edges now inevitably will become cut-edges.
+  //     Setting the flag to _true_ removes any hypernode that is unconntected after the removal
+  //     of the hyperedge.
   void removeEdge(HyperedgeID he, bool disable_unconnected_hypernodes) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
     __forall_pins(pin, he) {
@@ -953,9 +979,14 @@ class Hypergraph {
   std::vector<HyperNode> _hypernodes;
   std::vector<HyperEdge> _hyperedges;
   std::vector<VertexID> _incidence_array;
+  
   std::vector<PartitionID> _partition_indices;
   std::vector<int> _partition_pin_counts;
+
+  // Used during uncontraction to remember which hyperedges have already been processed
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
+
+  // Used during uncontraction to decide how to perform the uncontraction operation
   boost::dynamic_bitset<uint64_t> _active_hyperedges_u;
   boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
 
