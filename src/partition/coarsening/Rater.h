@@ -17,6 +17,8 @@
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
 namespace partition {
+static const bool dbg_partition_rating = false;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
@@ -60,6 +62,7 @@ class Rater {
   HeavyEdgeRating rate(HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
+    DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     forall_incident_hyperedges(he, u, _hg) {
       forall_pins(v, *he, _hg) {
         if (*v != u && belowThresholdNodeWeight(*v, u)) {
@@ -95,6 +98,7 @@ class Rater {
       ret.target = target;
       ret.valid = true;
     }
+    DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")");
     return ret;
   }
 
