@@ -28,7 +28,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   ~FullHeavyEdgeCoarsener() { }
 
   void coarsen(int limit) {
-    ASSERT(Base::_pq.empty(), "coarsen() can only be called once");
+    Base::_pq.clear();
 
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
     rateAllHypernodes(target);
