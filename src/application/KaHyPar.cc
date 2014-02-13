@@ -116,7 +116,7 @@ void setDefaults(Config& config) {
   config.partitioning.k = 2;
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
-  config.partitioning.initial_partitioning_attempts = 50;
+  config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.global_search_iterations = 10;
   config.partitioning.hyperedge_size_threshold = 50;
   config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
