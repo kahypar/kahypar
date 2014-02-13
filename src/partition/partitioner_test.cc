@@ -181,4 +181,21 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   ASSERT_THAT(hypergraph->partitionIndex(5), Eq(1));
   ASSERT_THAT(hypergraph->partitionIndex(6), Eq(0));
 }
+
+TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
+  //simulate the first vcycle by explicitly setting a partitioning
+  config.partitioning.global_search_iterations = 2;
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(5, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  DBG(true, metrics::hyperedgeCut(*hypergraph));
+  partitioner.partition(*hypergraph, *coarsener, *refiner);
+  hypergraph->printGraphState();
+  DBG(true, metrics::hyperedgeCut(*hypergraph));
+  metrics::hyperedgeCut(*hypergraph);
+}
 } // namespace partition
