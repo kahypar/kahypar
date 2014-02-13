@@ -25,16 +25,17 @@ class SQLiteBenchmarkSerializer {
     _db(_db_name.c_str()),
     _setup_dummy(setupDB(_db)),
     _insert_result_cmd(_db, "INSERT INTO experiments (graph, hypernodes, hyperedges, k,"
-                            "epsilon, L_max, seed, initial_partitionings,"
+                            "epsilon, L_max, seed, initial_partitionings, global_search_iterations,"
                             "hyperedge_size_threshold, coarsening_scheme,"
                             "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
                             "coarsening_min_node_count, coarsening_rating,"
                             "twowayfm_stopping_rule, twowayfm_hyperedge_size_threshold, "
                             "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
                             "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
-                            ":hyperedges, :k, :epsilon, :L_max, :seed, :initial_partitionings,"
-                            ":hyperedge_size_threshold, :coarsening_scheme, :coarsening_node_weight_fraction, "
-                            ":coarsening_node_weight_threshold, :coarsening_min_node_count,"
+                            ":hyperedges, :k, :epsilon, :L_max, :seed, :global_search_iterations,"
+                            ":initial_partitionings, :hyperedge_size_threshold, :coarsening_scheme,"
+                            ":coarsening_node_weight_fraction, :coarsening_node_weight_threshold,"
+                            ":coarsening_min_node_count,"
                             ":coarsening_rating, :twowayfm_stopping_rule, :twowayfm_hyperedge_size_threshold,"
                             ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
                             ":part0, :part1, :imbalance, :gitrevision);") { }
@@ -66,6 +67,7 @@ class SQLiteBenchmarkSerializer {
                        "L_max INTEGER NOT NULL,"
                        "seed INTEGER NOT NULL,"
                        "initial_partitionings INTEGER NOT NULL,"
+                       "global_search_iterations INTEGER NOT NULL,"
                        "hyperedge_size_threshold INTEGER NOT NULL,"    
                        "coarsening_scheme VARCHAR NOT NULL,"
                        "coarsening_node_weight_fraction REAL NOT NULL,"
@@ -101,6 +103,8 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":seed", config.partitioning.seed);
     _insert_result_cmd.bind(":initial_partitionings",
                             config.partitioning.initial_partitioning_attempts);
+    _insert_result_cmd.bind(":global_search_iterations",
+                            config.partitioning.global_search_iterations);
     _insert_result_cmd.bind(":hyperedge_size_threshold",
                             static_cast<int>(config.partitioning.hyperedge_size_threshold));
     _insert_result_cmd.bind(":coarsening_scheme",

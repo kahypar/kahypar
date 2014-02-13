@@ -28,7 +28,8 @@
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
-static const bool dbg_partition_initial_partitioning = false;
+static const bool dbg_partition_initial_partitioning = true;
+static const bool dbg_partition_vcycles = true;
 
 template <class Hypergraph>
 class Partitioner {
@@ -48,16 +49,22 @@ class Partitioner {
                  IRefiner<Hypergraph>& refiner) {
     std::vector<HyperedgeID> removed_hyperedges;
     removeLargeHyperedges(hypergraph, removed_hyperedges);
-    coarsener.coarsen(_config.coarsening.minimal_node_count);
 
-    performInitialPartitioning(hypergraph);
+    for (int vcycle = 0; vcycle < _config.partitioning.global_search_iterations; ++vcycle) {
+      coarsener.coarsen(_config.coarsening.minimal_node_count);
+
+      if (vcycle == 0) {
+        performInitialPartitioning(hypergraph);
+      }
 
 #ifndef NDEBUG
-    typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
+      typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
+      coarsener.uncoarsen(refiner);
+      ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
+      DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    }
 
-    coarsener.uncoarsen(refiner);
-    ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
     restoreLargeHyperedges(hypergraph, removed_hyperedges);
   }
 
@@ -217,6 +224,9 @@ class Partitioner {
 
     std::vector<PartitionID> partitioning;
     std::vector<PartitionID> best_partitioning;
+    partitioning.reserve(hg.numNodes());
+    best_partitioning.reserve(hg.numNodes());
+
     HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
     HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
 
@@ -233,7 +243,8 @@ class Partitioner {
       ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
 
       current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
-
+      DBG(dbg_partition_initial_partitioning, "attempt " << attempt << " seed("
+          << seed << "):" << current_cut);
       if (current_cut < best_cut) {
         DBG(dbg_partition_initial_partitioning, "Attempt " << attempt
             << " improved initial cut from " << best_cut << " to " << current_cut);
