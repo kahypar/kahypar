@@ -48,7 +48,9 @@ class Partitioner {
     std::vector<HyperedgeID> removed_hyperedges;
     removeLargeHyperedges(hypergraph, removed_hyperedges);
     coarsener.coarsen(_config.coarsening.minimal_node_count);
+
     performInitialPartitioning(hypergraph);
+
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
@@ -205,6 +207,17 @@ class Partitioner {
   void performInitialPartitioning(Hypergraph& hg) {
     io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename.substr(
                               _config.partitioning.coarse_graph_filename.find_last_of("/") + 1));
+
+    DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = "
+        << std::to_string([&]() {
+                            HypernodeID count = 0;
+                            forall_hypernodes(hn, hg) {
+                              if (hg.nodeDegree(*hn) == 0) {
+                                ++count;
+                              }
+                            } endfor
+                            return count;
+                          } ()));
 
     HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(), 0);
     CoarsenedToHmetisMapping hg_to_hmetis;
