@@ -39,6 +39,7 @@ struct Configuration {
       k(2),
       seed(0),
       initial_partitioning_attempts(1),
+      global_search_iterations(1),
       epsilon(1.0),
       partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
       hyperedge_size_threshold(50),
@@ -51,6 +52,7 @@ struct Configuration {
     PartitionID k;
     int seed;
     int initial_partitioning_attempts;
+    int global_search_iterations;
     double epsilon;
     HypernodeWeight partition_size_upper_bound;
     HyperedgeID hyperedge_size_threshold;
@@ -91,44 +93,46 @@ std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
   oss << "Partitioning Parameters:" << std::endl;
-  oss << std::setw(28) << "  Hypergraph: " << config.partitioning.graph_filename << std::endl;
-  oss << std::setw(28) << "  Partition File: " << config.partitioning.graph_partition_filename
+  oss << std::setw(30) << "  Hypergraph: " << config.partitioning.graph_filename << std::endl;
+  oss << std::setw(30) << "  Partition File: " << config.partitioning.graph_partition_filename
   << std::endl;
-  oss << std::setw(28) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
+  oss << std::setw(30) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
   << std::endl;
-  oss << std::setw(28) << "  Coarsened Partition File: "
+  oss << std::setw(30) << "  Coarsened Partition File: "
   << config.partitioning.coarse_graph_partition_filename << std::endl;
-  oss << std::setw(28) << "  k: " << config.partitioning.k << std::endl;
-  oss << std::setw(28) << "  epsilon: " << config.partitioning.epsilon
+  oss << std::setw(30) << "  k: " << config.partitioning.k << std::endl;
+  oss << std::setw(30) << "  epsilon: " << config.partitioning.epsilon
   << std::endl;
-  oss << std::setw(28) << "  L_max: " << config.partitioning.partition_size_upper_bound
+  oss << std::setw(30) << "  L_max: " << config.partitioning.partition_size_upper_bound
   << std::endl;
-  oss << std::setw(28) << "  seed: " << config.partitioning.seed << std::endl;
-  oss << std::setw(28) << "  # initial partitionings: "
+  oss << std::setw(30) << "  seed: " << config.partitioning.seed << std::endl;
+  oss << std::setw(30) << "  # initial partitionings: "
   << config.partitioning.initial_partitioning_attempts << std::endl;
-  oss << std::setw(28) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
+  oss << std::setw(30) << "  # global search iterations: "
+  << config.partitioning.global_search_iterations << std::endl;
+  oss << std::setw(30) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
   << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(28) << "  scheme: " <<
+  oss << std::setw(30) << "  scheme: " <<
   (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ? "heavy_full" : "heavy_heuristic")
   << std::endl;
-  oss << std::setw(28) << "  hypernode weight fraction: "
+  oss << std::setw(30) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
-  oss << std::setw(28) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
+  oss << std::setw(30) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
   << std::endl;
-  oss << std::setw(28) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
+  oss << std::setw(30) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
   << std::endl;
   oss << "2-Way-FM Refinement Parameters:" << std::endl;
-  oss << std::setw(28) << "  stopping rule: "
+  oss << std::setw(30) << "  stopping rule: "
   << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
   << std::endl;
-  oss << std::setw(28) << "  hyperedge size threshold: " << config.two_way_fm.hyperedge_size_threshold
+  oss << std::setw(30) << "  hyperedge size threshold: " << config.two_way_fm.hyperedge_size_threshold
   << std::endl;
-  oss << std::setw(28) << "  max. # fruitless moves: "
+  oss << std::setw(30) << "  max. # fruitless moves: "
   << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
-  oss << std::setw(28) << "  random walk stop alpha: "
+  oss << std::setw(30) << "  random walk stop alpha: "
   << config.two_way_fm.alpha << std::endl;
-  oss << std::setw(28) << "  random walk stop beta : "
+  oss << std::setw(30) << "  random walk stop beta : "
   << config.two_way_fm.beta;
   return oss.str();
 }

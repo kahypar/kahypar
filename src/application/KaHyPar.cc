@@ -71,6 +71,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     if (vm.count("nruns")) {
       config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
     }
+    if (vm.count("vcycles")) {
+      config.partitioning.global_search_iterations = vm["vcycles"].as<int>();
+    }
     if (vm.count("cmaxnet")) {
       config.partitioning.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
     }
@@ -114,6 +117,7 @@ void setDefaults(Config& config) {
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
   config.partitioning.initial_partitioning_attempts = 50;
+  config.partitioning.global_search_iterations = 10;
   config.partitioning.hyperedge_size_threshold = 50;
   config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
   config.coarsening.minimal_node_count = 100;
@@ -140,6 +144,7 @@ int main(int argc, char* argv[]) {
     ("seed", po::value<int>(), "Seed for random number generator")
     ("nruns", po::value<int>(),
     "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
+    ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
