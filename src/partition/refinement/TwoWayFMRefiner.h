@@ -81,6 +81,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void initialize() {
+    _partition_size[0] = 0;
+    _partition_size[1] = 0;
     forall_hypernodes(hn, _hg) {
       ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
