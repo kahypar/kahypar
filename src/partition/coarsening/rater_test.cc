@@ -12,6 +12,8 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::AnyOf;
 
+using defs::INVALID_PARTITION;
+
 using datastructure::HypergraphType;
 using datastructure::HypernodeWeight;
 using datastructure::HyperedgeIndexVector;
@@ -103,6 +105,24 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
   hypergraph->contract(0, 2);
+
+  ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
+  ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
+  ASSERT_THAT(rater.rate(0).valid, Eq(false));
+}
+
+TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
+  hypergraph.reset(new HypergraphType(2, 1, HyperedgeIndexVector { 0, 2 },
+                                      HyperedgeVector { 0, 1 }));
+
+  FirstWinsRater rater(*hypergraph, config);
+
+  ASSERT_THAT(rater.rate(0).target, Eq(1));
+  ASSERT_THAT(rater.rate(0).value, Eq(1));
+  ASSERT_THAT(rater.rate(0).valid, Eq(true));
+
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));

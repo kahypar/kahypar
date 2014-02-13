@@ -80,7 +80,7 @@ class Rater {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
       DBG(false, "r(" << u << "," << _used_entries.top() << ")=" << tmp);
-      if (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) {
+      if (acceptRating(tmp, max_rating, u, _used_entries.top())) {
         max_rating = tmp;
         target = _used_entries.top();
       }
@@ -105,6 +105,11 @@ class Rater {
   private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
+  }
+
+  bool acceptRating(RatingType tmp, RatingType max_rating, HypernodeID source, HypernodeID target) {
+    return (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) &&
+           (_hg.partitionIndex(source) == _hg.partitionIndex(target));
   }
 
   Hypergraph& _hg;
