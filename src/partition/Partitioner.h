@@ -44,7 +44,8 @@ class Partitioner {
   explicit Partitioner(Configuration<Hypergraph>& config) :
     _config(config) { }
 
-  void partition(Hypergraph& hypergraph, ICoarsener<Hypergraph>& coarsener) {
+  void partition(Hypergraph& hypergraph, ICoarsener<Hypergraph>& coarsener,
+                 IRefiner<Hypergraph>& refiner) {
     std::vector<HyperedgeID> removed_hyperedges;
     removeLargeHyperedges(hypergraph, removed_hyperedges);
     coarsener.coarsen(_config.coarsening.minimal_node_count);
@@ -54,20 +55,8 @@ class Partitioner {
 #ifndef NDEBUG
     typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
-    std::unique_ptr<IRefiner<Hypergraph> > refiner(nullptr);
-    if (_config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
-      ASSERT(_config.two_way_fm.alpha > 0.0, "alpha not set for adaptive stopping rule");
-      ASSERT(_config.two_way_fm.beta > 0.0, "beta not set for adaptive stopping rule");
-      refiner.reset(new TwoWayFMRefiner<Hypergraph,
-                                        RandomWalkModelStopsSearch>(hypergraph, _config));
-    } else {
-      ASSERT(_config.two_way_fm.max_number_of_fruitless_moves > 0,
-             "no upper bound on fruitless moves defined for simple stopping rule");
-      refiner.reset(new TwoWayFMRefiner<Hypergraph,
-                                        NumberOfFruitlessMovesStopsSearch>(hypergraph, _config));
-    }
 
-    coarsener.uncoarsen(*refiner);
+    coarsener.uncoarsen(refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
     restoreLargeHyperedges(hypergraph, removed_hyperedges);
   }

@@ -89,6 +89,8 @@ class HeavyEdgeCoarsenerBase {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
+    refiner.initialize();
+
     while (!_history.empty()) {
 #ifndef NDEBUG
       HyperedgeWeight old_cut = current_cut;

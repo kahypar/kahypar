@@ -59,13 +59,9 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     _partition_size{0, 0},
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
-    _performed_moves() {
+    _performed_moves(),
+    _is_initialized(false) {
     _performed_moves.reserve(_hg.initialNumNodes());
-    forall_hypernodes(hn, _hg) {
-      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
-    } endfor
   }
 
   ~TwoWayFMRefiner() {
@@ -84,8 +80,18 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     }
   }
 
+  void initialize() {
+    forall_hypernodes(hn, _hg) {
+      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
+             "TwoWayFmRefiner cannot work with HNs in invalid partition");
+      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
+    } endfor
+      _is_initialized = true;
+  }
+
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
               double max_imbalance, double& best_imbalance) {
+    ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -374,6 +380,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;
+  bool _is_initialized;
 };
 } // namespace partition
 

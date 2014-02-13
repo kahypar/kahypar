@@ -15,15 +15,20 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 
 using::testing::Test;
 
 using partition::Rater;
 using partition::ICoarsener;
+using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::FirstRatingWins;
 using partition::Configuration;
+using partition::TwoWayFMRefiner;
+using partition::NumberOfFruitlessMovesStopsSearch;
 
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
@@ -187,6 +192,7 @@ typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
+typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch> Refiner;
 
 class APartitionOfAHypergraph : public Test {
   public:
@@ -195,7 +201,8 @@ class APartitionOfAHypergraph : public Test {
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _config(),
     _partitioner(_config),
-    _coarsener(new FirstWinsCoarsener(_hypergraph, _config)) {
+    _coarsener(new FirstWinsCoarsener(_hypergraph, _config)),
+    _refiner(new Refiner(_hypergraph, _config)) {
     _config.coarsening.minimal_node_count = 2;
     _config.coarsening.threshold_node_weight = 5;
     _config.partitioning.graph_filename = "APartitionOfAHypergrpahTest";
@@ -212,6 +219,7 @@ class APartitionOfAHypergraph : public Test {
   PartitionConfig _config;
   HypergraphPartitioner _partitioner;
   std::unique_ptr<ICoarsener<HypergraphType> > _coarsener;
+  std::unique_ptr<IRefiner<HypergraphType> > _refiner;
 };
 } // namespace io
 

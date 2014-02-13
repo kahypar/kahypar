@@ -10,6 +10,8 @@
 #include "partition/Partitioner.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -23,6 +25,7 @@ typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
+typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch> Refiner;
 
 class APartitioner : public Test {
   public:
@@ -32,7 +35,8 @@ class APartitioner : public Test {
     hypergraph(graph),
     config(),
     partitioner(config),
-    coarsener(new FirstWinsCoarsener(*hypergraph, config)) {
+    coarsener(new FirstWinsCoarsener(*hypergraph, config)),
+    refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
     config.partitioning.graph_filename = "PartitionerTest.hgr";
@@ -48,6 +52,7 @@ class APartitioner : public Test {
   PartitionConfig config;
   HypergraphPartitioner partitioner;
   std::unique_ptr<ICoarsener<HypergraphType> > coarsener;
+  std::unique_ptr<IRefiner<HypergraphType> > refiner;
 };
 
 class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
@@ -59,13 +64,13 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 };
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener);
+  partitioner.partition(*hypergraph, *coarsener, *refiner);
   ASSERT_THAT(hypergraph->partitionIndex(1), Eq(1));
   ASSERT_THAT(hypergraph->partitionIndex(3), Eq(0));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener);
+  partitioner.partition(*hypergraph, *coarsener, *refiner);
   ASSERT_THAT(hypergraph->partitionIndex(0), Eq(0));
   ASSERT_THAT(hypergraph->partitionIndex(1), Eq(0));
   ASSERT_THAT(hypergraph->partitionIndex(2), Eq(0));
@@ -82,7 +87,7 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPartition(2, INVALID_PARTITION), Eq(3));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
-  partitioner.partition(*hypergraph, *coarsener);
+  partitioner.partition(*hypergraph, *coarsener, *refiner);
   ASSERT_THAT(hypergraph->pinCountInPartition(0, INVALID_PARTITION), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(0));

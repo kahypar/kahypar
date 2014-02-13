@@ -23,6 +23,8 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 #include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;
@@ -30,13 +32,17 @@ namespace po = boost::program_options;
 using datastructure::Hypergraph;
 using partition::Rater;
 using partition::ICoarsener;
+using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::StoppingRule;
+using partition::TwoWayFMRefiner;
 using partition::CoarseningScheme;
+using partition::RandomWalkModelStopsSearch;
+using partition::NumberOfFruitlessMovesStopsSearch;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
@@ -195,7 +201,16 @@ int main(int argc, char* argv[]) {
     coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
   }
 
-  partitioner.partition(hypergraph, *coarsener);
+  std::unique_ptr<IRefiner<HypergraphType> > refiner(nullptr);
+  if (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
+    refiner.reset(new TwoWayFMRefiner<HypergraphType,
+                                      RandomWalkModelStopsSearch>(hypergraph, config));
+  } else {
+    refiner.reset(new TwoWayFMRefiner<HypergraphType,
+                                      NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
+  }
+
+  partitioner.partition(hypergraph, *coarsener, *refiner);
 
   io::printPartitioningResults(hypergraph);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);

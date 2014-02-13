@@ -11,6 +11,8 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -27,15 +29,19 @@ using defs::INVALID_PARTITION;
 using partition::Rater;
 using partition::FirstRatingWins;
 using partition::ICoarsener;
+using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::Configuration;
 using partition::Partitioner;
+using partition::TwoWayFMRefiner;
+using partition::NumberOfFruitlessMovesStopsSearch;
 
 namespace metrics {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
+typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch> Refiner;
 
 class AnUnPartitionedHypergraph : public Test {
   public:
@@ -58,7 +64,8 @@ class APartitionedHypergraph : public Test {
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(config),
-    coarsener(new FirstWinsCoarsener(hypergraph, config)) {
+    coarsener(new FirstWinsCoarsener(hypergraph, config)),
+    refiner(new Refiner(hypergraph, config)) {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
     config.partitioning.graph_filename = "Test";
@@ -66,13 +73,14 @@ class APartitionedHypergraph : public Test {
     config.partitioning.coarse_graph_filename = "test_coarse.hgr";
     config.partitioning.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
     config.partitioning.epsilon = 0.15;
-    partitioner.partition(hypergraph, *coarsener);
+    partitioner.partition(hypergraph, *coarsener, *refiner);
   }
 
   HypergraphType hypergraph;
   PartitionConfig config;
   HypergraphPartitioner partitioner;
   std::unique_ptr<ICoarsener<HypergraphType> > coarsener;
+  std::unique_ptr<IRefiner<HypergraphType> > refiner;
 };
 
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
