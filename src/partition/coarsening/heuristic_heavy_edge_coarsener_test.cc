@@ -6,188 +6,69 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
+#include "partition/coarsening/HeavyEdgeCoarsener_TestFunctions.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
-#include "partition/refinement/IRefiner.h"
-
-using::testing::AnyOf;
-using::testing::DoubleEq;
-using::testing::Eq;
-using::testing::Le;
-using::testing::Test;
-
-using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeWeightVector;
-using datastructure::HypernodeWeightVector;
-using datastructure::HyperedgeVector;
-using datastructure::HypernodeID;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeWeight;
 
 namespace partition {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
 
-template <typename Hypergraph>
-class DummyRefiner : public IRefiner<Hypergraph>{
-  void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
-              double, double&) { }
-};
-
-class ACoarsener : public Test {
+class ACoarsener : public ACoarsenerBase<CoarsenerType>{
   public:
-  explicit ACoarsener(HypergraphType* graph =
-                        new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
-    hypergraph(graph),
-    config(),
-    coarsener(*hypergraph, config),
-    refiner(new DummyRefiner<HypergraphType>()) {
-    config.coarsening.threshold_node_weight = 5;
-  }
-
-  std::unique_ptr<HypergraphType> hypergraph;
-  Configuration<HypergraphType> config;
-  CoarsenerType coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > refiner;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(ACoarsener);
-};
-
-class ACoarsenerWithThresholdWeight3 : public ACoarsener {
-  public:
-  ACoarsenerWithThresholdWeight3() :
-    ACoarsener() {
-    config.coarsening.threshold_node_weight = 3;
-  }
+  explicit ACoarsener() :
+    ACoarsenerBase() { }
 };
 
 TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
+  removesHyperedgesOfSizeOneDuringCoarsening(coarsener, hypergraph);
 }
 
 TEST_F(ACoarsener, DecreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne) {
-  coarsener.coarsen(6);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
-
-  ASSERT_THAT(hypergraph->numPins(), Eq(10));
+  decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(coarsener, hypergraph);
 }
 
 TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-
-  coarsener.uncoarsen(*refiner);
-
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
-  ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
-  ASSERT_THAT(hypergraph->edgeSize(3), Eq(3));
+  reAddsHyperedgesOfSizeOneDuringUncoarsening(coarsener, hypergraph, refiner);
 }
 
+TEST_F(ACoarsener, RemovesParallelHyperedgesDuringCoarsening) {
+  removesParallelHyperedgesDuringCoarsening(coarsener, hypergraph);
+}
+
+TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval) {
+  updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(coarsener, hypergraph);
+}
+TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
+  decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(coarsener, hypergraph);
+}
+
+TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
+  decreasesNumberOfPinsOnParallelHyperedgeRemoval(coarsener, hypergraph);
+}
+
+TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
+  restoresParallelHyperedgesDuringUncoarsening(coarsener, hypergraph, refiner);
+}
+
+TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
+  restoresParallelHyperedgesInReverseOrder<CoarsenerType>();
+}
+
+TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
+  restoresSingleNodeHyperedgesInReverseOrder<CoarsenerType>();
+}
+
+TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
+  doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, config);
+}
+
+// accesses private coarsener internals and therefore cannot be extracted easily
 TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   coarsener.coarsen(6);
   ASSERT_THAT(hypergraph->nodeIsEnabled(2), Eq(false));
   ASSERT_THAT(coarsener._history.top().contraction_memento.u, Eq(0));
   ASSERT_THAT(coarsener._history.top().contraction_memento.v, Eq(2));
-}
-
-TEST_F(ACoarsener, RemovesParallelHyperedgesDuringCoarsening) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(3), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
-}
-
-TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeWeight(1), Eq(2));
-}
-TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->numEdges(), Eq(1));
-}
-
-TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->numPins(), Eq(2));
-}
-
-TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
-  coarsener.coarsen(2);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-
-  coarsener.uncoarsen(*refiner);
-
-  ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
-  ASSERT_THAT(hypergraph->edgeSize(3), Eq(3));
-  ASSERT_THAT(hypergraph->edgeWeight(1), Eq(1));
-  ASSERT_THAT(hypergraph->edgeWeight(3), Eq(1));
-}
-
-TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
-  // Artificially constructed hypergraph that enforces the successive removal of
-  // two successive parallel hyperedges.
-  HyperedgeWeightVector edge_weights { 1, 1, 1, 1 };
-  HypernodeWeightVector node_weights { 50, 1, 1 };
-  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                            HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
-                            &node_weights);
-
-  Configuration<HypergraphType> config;
-  config.coarsening.threshold_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
-
-  coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
-
-  // The following assertion is thrown if parallel hyperedges are restored in the order in which
-  // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
-  // failed: Incorrect restore of HE 1. In order to correctly restore the hypergraph during un-
-  // coarsening, we have to restore the parallel hyperedges in reverse order!
-  coarsener.uncoarsen(*refiner);
-}
-
-TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
-  // Artificially constructed hypergraph that enforces the successive removal of
-  // three single-node hyperedges.
-  HyperedgeWeightVector edge_weights { 5, 5, 5, 1 };
-  HypernodeWeightVector node_weights { 1, 1, 5 };
-  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                            HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
-                            &node_weights);
-
-  Configuration<HypergraphType> config;
-  config.coarsening.threshold_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
-
-  coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
-  // The following assertion is thrown if parallel hyperedges are restored in the order in which
-  // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
-  // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
-  // coarsening, we have to restore the single-node hyperedges in reverse order!
-  coarsener.uncoarsen(*refiner);
-}
-
-TEST_F(ACoarsenerWithThresholdWeight3, DoesNotCoarsenUntilCoarseningLimit) {
-  coarsener.coarsen(2);
-  HypergraphType& hgr = *hypergraph;
-  forall_hypernodes(hn, hgr) {
-    ASSERT_THAT(hgr.nodeWeight(*hn), Le(3));
-  } endfor
-    ASSERT_THAT(hgr.numNodes(), Eq(3));
 }
 } // namespace partition
