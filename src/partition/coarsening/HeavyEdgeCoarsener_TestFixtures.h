@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFUNCTIONS_H_
-#define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFUNCTIONS_H_
+#ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
+#define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
 #include "gmock/gmock.h"
 
 #include "partition/Configuration.h"
@@ -186,4 +186,4 @@ void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, Hypergraph& hyperg
 }
 } // namespace partition
 
-#endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFUNCTIONS_H_
+#endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_

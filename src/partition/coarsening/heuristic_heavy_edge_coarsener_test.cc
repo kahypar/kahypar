@@ -6,7 +6,7 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
-#include "partition/coarsening/HeavyEdgeCoarsener_TestFunctions.h"
+#include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 
 using datastructure::HypergraphType;
