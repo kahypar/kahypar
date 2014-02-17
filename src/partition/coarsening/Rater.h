@@ -65,7 +65,8 @@ class Rater {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     forall_incident_hyperedges(he, u, _hg) {
       forall_pins(v, *he, _hg) {
-        if (*v != u && belowThresholdNodeWeight(*v, u)) {
+        if (*v != u && (_hg.partitionIndex(u) == _hg.partitionIndex(*v)) &&
+            belowThresholdNodeWeight(*v, u)) {
           _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
                               / (_hg.edgeSize(*he) - 1);
           if (!_visited_hypernodes[*v]) {
@@ -83,7 +84,7 @@ class Rater {
       tmp = _tmp_ratings[_used_entries.top()] /
             (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
       DBG(false, "r(" << u << "," << _used_entries.top() << ")=" << tmp);
-      if (acceptRating(tmp, max_rating, u, _used_entries.top())) {
+      if (acceptRating(tmp, max_rating)) {
         max_rating = tmp;
         target = _used_entries.top();
       }
@@ -111,9 +112,8 @@ class Rater {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
   }
 
-  bool acceptRating(RatingType tmp, RatingType max_rating, HypernodeID source, HypernodeID target) {
-    return (max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual())) &&
-           (_hg.partitionIndex(source) == _hg.partitionIndex(target));
+  bool acceptRating(RatingType tmp, RatingType max_rating) {
+    return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 
   Hypergraph& _hg;
