@@ -96,6 +96,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
         config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
       }
     }
+    if (vm.count("FMreps")) {
+      config.two_way_fm.num_repetitions = vm["FMreps"].as<int>();
+    }
     if (vm.count("i")) {
       config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
     }
@@ -123,6 +126,7 @@ void setDefaults(Config& config) {
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
   config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
+  config.two_way_fm.num_repetitions = 1;
   config.two_way_fm.hyperedge_size_threshold = 50;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
@@ -152,6 +156,7 @@ int main(int argc, char* argv[]) {
     ("cmaxnet", po::value<HyperedgeID>(), "Rating: Any hyperedges larger than cmaxnet are ignored when rating a hypernode")
     ("rmaxnet", po::value<HyperedgeID>(), "2-Way-FM: Any hyperedges larger than rmaxnet are ignored during gain calculation")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
+    ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)")
     ("db", po::value<std::string>(), "experiment db filename");
