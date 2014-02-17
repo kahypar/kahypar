@@ -22,6 +22,7 @@ using datastructure::MetaKeyDouble;
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_uncoarsen = false;
+static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 
@@ -91,10 +92,9 @@ class HeavyEdgeCoarsenerBase {
 
     refiner.initialize();
 
+    double old_imbalance = current_imbalance;
+    HyperedgeWeight old_cut = current_cut;
     while (!_history.empty()) {
-#ifndef NDEBUG
-      HyperedgeWeight old_cut = current_cut;
-#endif
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
 
@@ -102,11 +102,21 @@ class HeavyEdgeCoarsenerBase {
           << _history.top().contraction_memento.v << ")");
 
       _hg.uncontract(_history.top().contraction_memento);
-      refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                     current_cut, _config.partitioning.epsilon, current_imbalance);
-      _history.pop();
 
-      ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
+      int iteration = 0;
+      do {
+        old_imbalance = current_imbalance;
+        old_cut = current_cut;
+        refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
+                       current_cut, _config.partitioning.epsilon, current_imbalance);
+        ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
+        DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
+            << current_cut);
+        ++iteration;
+      } while ((iteration < _config.two_way_fm.num_repetitions) &&
+               (improvedCutWithinBalance(old_cut, current_cut, current_imbalance) ||
+                improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
+      _history.pop();
     }
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
@@ -118,6 +128,18 @@ class HeavyEdgeCoarsenerBase {
 
   void performContraction(HypernodeID rep_node, HypernodeID contracted_node) {
     _history.emplace(_hg.contract(rep_node, contracted_node));
+  }
+
+  bool improvedCutWithinBalance(HyperedgeWeight old_cut, HyperedgeWeight current_cut,
+                                double current_imbalance) {
+    DBG(dbg_coarsening_uncoarsen_improvement && (current_cut < old_cut) &&
+        (current_imbalance < _config.partitioning.epsilon),
+        "improved cut: " << old_cut << "-->" << current_cut);
+    return (current_cut < old_cut) && (current_imbalance < _config.partitioning.epsilon);
+  }
+
+  bool improvedOldImbalanceTowardsValidSolution(double old_imbalance, double current_imbalance) {
+    return (old_imbalance > _config.partitioning.epsilon) && (current_imbalance < old_imbalance);
   }
 
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
