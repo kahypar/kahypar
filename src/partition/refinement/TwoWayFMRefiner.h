@@ -114,13 +114,13 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     int min_cut_index = -1;
     double imbalance = best_imbalance;
 
-    int iteration = 0;
+    int step = 0;
     StoppingPolicy::resetStatistics();
 
     // forward
     // best_cut == cut accounts for the case in which we improve the imbalance
     while (!queuesAreEmpty() && (best_cut == cut ||
-                                 !StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config))) {
+                                 !StoppingPolicy::searchShouldStop(min_cut_index, step, _config))) {
       Gain max_gain = std::numeric_limits<Gain>::min();
       HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
       PartitionID from_partition = std::numeric_limits<PartitionID>::min();
@@ -190,17 +190,17 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         best_cut = cut;
-        min_cut_index = iteration;
+        min_cut_index = step;
       }
-      _performed_moves[iteration] = max_gain_node;
-      ++iteration;
+      _performed_moves[step] = max_gain_node;
+      ++step;
     }
 
-    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << iteration
+    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << step
         << " local search steps: stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, iteration, _config) == true ?
+        << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config) == true ?
             "policy" : "empty queue"));
-    rollback(_performed_moves, iteration - 1, min_cut_index, _hg);
+    rollback(_performed_moves, step - 1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
