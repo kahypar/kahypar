@@ -60,7 +60,7 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     config.partitioning.graph_filename = vm["hgr"].as<std::string>();
     config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
     config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of(
-                                                       "/") + 1, "coarse_");
+                                                       "/") + 1, std::string("PID_") + std::to_string(getpid()) + "_coarse_");
     config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part.2.KaHyPar";
     config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename + ".part.2";
     config.partitioning.epsilon = vm["e"].as<double>();
