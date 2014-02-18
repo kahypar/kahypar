@@ -226,6 +226,9 @@ int main(int argc, char* argv[]) {
   io::printPartitioningResults(hypergraph);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
 
+  std::remove(config.partitioning.coarse_graph_filename.c_str());
+  std::remove(config.partitioning.coarse_graph_partition_filename.c_str());
+
   serializer::SQLiteBenchmarkSerializer sqlite_serializer(db_name);
   sqlite_serializer.dumpPartitioningResult(config, hypergraph);
   return 0;
