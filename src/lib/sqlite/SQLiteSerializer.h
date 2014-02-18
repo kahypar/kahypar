@@ -31,14 +31,14 @@ class SQLiteBenchmarkSerializer {
                             "coarsening_min_node_count, coarsening_rating,"
                             "twowayfm_stopping_rule, twowayfm_num_repetitions,"
                             "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
-                            "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
+                            "part1, imbalance, time, gitrevision) VALUES (:graph, :hypernodes,"
                             ":hyperedges, :k, :epsilon, :L_max, :seed, :global_search_iterations,"
                             ":initial_partitionings, :hyperedge_size_threshold, :coarsening_scheme,"
                             ":coarsening_node_weight_fraction, :coarsening_node_weight_threshold,"
                             ":coarsening_min_node_count, :coarsening_rating, :twowayfm_stopping_rule,"
                             ":twowayfm_num_repetitions,"
                             ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
-                            ":part0, :part1, :imbalance, :gitrevision);") { }
+                            ":part0, :part1, :imbalance, :time, :gitrevision);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -83,13 +83,15 @@ class SQLiteBenchmarkSerializer {
                        "part0 INTEGER NOT NULL,"
                        "part1 INTEGER NOT NULL,"
                        "imbalance REAL NOT NULL,"
+                       "time REAL NOT NULL,"
                        "gitrevision TEXT NOT NULL"
                        ");").execute();
     return 0;
   }
 
   template <typename Config, typename Hypergraph>
-  void dumpPartitioningResult(const Config& config, const Hypergraph& hypergraph) {
+  void dumpPartitioningResult(const Config& config, const Hypergraph& hypergraph,
+                              const std::chrono::duration<double>& elapsed_seconds) {
     _insert_result_cmd.reset();
     std::string graph_name = config.partitioning.graph_filename.substr(
       config.partitioning.graph_filename.find_last_of("/") + 1);
@@ -133,6 +135,7 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":part1", static_cast<int>(partition_weights[1]));
 
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
+    _insert_result_cmd.bind(":time", elapsed_seconds.count());
     _insert_result_cmd.bind(":gitrevision", STR(KaHyPar_BUILD_VERSION));
     _insert_result_cmd.execute();
   }

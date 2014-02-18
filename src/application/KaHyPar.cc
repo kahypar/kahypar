@@ -7,6 +7,7 @@
 #define NSELF_VERIFICATION
 #include <boost/program_options.hpp>
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -141,6 +142,8 @@ int main(int argc, char* argv[]) {
   typedef Configuration<HypergraphType> PartitionConfig;
   typedef Partitioner<HypergraphType> HypergraphPartitioner;
 
+  typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
+
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
@@ -221,15 +224,22 @@ int main(int argc, char* argv[]) {
                                       NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
   }
 
-  partitioner.partition(hypergraph, *coarsener, *refiner);
+  HighResClockTimepoint start;
+  HighResClockTimepoint end;
 
-  io::printPartitioningResults(hypergraph);
+  start = std::chrono::high_resolution_clock::now();
+  partitioner.partition(hypergraph, *coarsener, *refiner);
+  end = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> elapsed_seconds = end - start;
+
+  io::printPartitioningResults(hypergraph, elapsed_seconds);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
 
   std::remove(config.partitioning.coarse_graph_filename.c_str());
   std::remove(config.partitioning.coarse_graph_partition_filename.c_str());
 
   serializer::SQLiteBenchmarkSerializer sqlite_serializer(db_name);
-  sqlite_serializer.dumpPartitioningResult(config, hypergraph);
+  sqlite_serializer.dumpPartitioningResult(config, hypergraph, elapsed_seconds);
   return 0;
 }
