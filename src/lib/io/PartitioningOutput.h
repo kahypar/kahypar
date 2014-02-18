@@ -1,6 +1,7 @@
 #ifndef LIB_IO_PARTITIONINGOUTPUT_H_
 #define LIB_IO_PARTITIONINGOUTPUT_H_
 
+#include <chrono>
 #include <iostream>
 #include <string>
 
