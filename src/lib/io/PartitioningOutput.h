@@ -26,7 +26,7 @@ void printPartitionerConfiguration(const Configuration& config) {
 
 template <class Hypergraph>
 void printPartitioningResults(const Hypergraph& hypergraph,
-                              const std::chrono::duration<double> elapsed_seconds) {
+                              const std::chrono::duration<double>& elapsed_seconds) {
   HypernodeWeight partition_weights[2] = { 0, 0 };
   metrics::partitionWeights(hypergraph, partition_weights);
   std::cout << "***********************2-way Partition Result************************" << std::endl;
