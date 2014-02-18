@@ -28,7 +28,7 @@
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
-static const bool dbg_partition_initial_partitioning = true;
+static const bool dbg_partition_initial_partitioning = false;
 static const bool dbg_partition_vcycles = true;
 
 template <class Hypergraph>
