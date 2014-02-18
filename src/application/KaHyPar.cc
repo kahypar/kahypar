@@ -76,6 +76,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("cmaxnet")) {
       config.partitioning.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
+      if (config.partitioning.hyperedge_size_threshold == -1) {
+        config.partitioning.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+      }
     }
     if (vm.count("ctype")) {
       if (vm["ctype"].as<std::string>() == "heavy_heuristic") {
@@ -95,6 +98,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("FMreps")) {
       config.two_way_fm.num_repetitions = vm["FMreps"].as<int>();
+      if (config.two_way_fm.num_repetitions == -1) {
+        config.two_way_fm.num_repetitions = std::numeric_limits<int>::max();
+      }
     }
     if (vm.count("i")) {
       config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
@@ -149,9 +155,9 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("cmaxnet", po::value<HyperedgeID>(), "Rating: Any hyperedges larger than cmaxnet are ignored when rating a hypernode")
+    ("cmaxnet", po::value<HyperedgeID>(), "Rating: Any hyperedges larger than cmaxnet are ignored when rating a hypernode (disable:-1)")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
-    ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1)")
+    ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)")
     ("db", po::value<std::string>(), "experiment db filename");
