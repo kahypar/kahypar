@@ -139,6 +139,9 @@ class HeavyEdgeCoarsenerBase {
   }
 
   bool improvedOldImbalanceTowardsValidSolution(double old_imbalance, double current_imbalance) {
+    DBG(dbg_coarsening_uncoarsen_improvement && (old_imbalance > _config.partitioning.epsilon) &&
+        (current_imbalance < old_imbalance), "improved imbalance: " << old_imbalance << "-->"
+        << current_imbalance);
     return (old_imbalance > _config.partitioning.epsilon) && (current_imbalance < old_imbalance);
   }
 
