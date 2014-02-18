@@ -154,11 +154,11 @@ int main(int argc, char* argv[]) {
     ("nruns", po::value<int>(),
     "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
+    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partitioning (disable:-1)")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("cmaxnet", po::value<HyperedgeID>(), "Rating: Any hyperedges larger than cmaxnet are ignored when rating a hypernode (disable:-1)")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
     ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
