@@ -67,14 +67,12 @@ struct Configuration {
     TwoWayFMParameters() :
       max_number_of_fruitless_moves(50),
       num_repetitions(1),
-      hyperedge_size_threshold(50),
       alpha(4),
       beta(0.0),
       stopping_rule(StoppingRule::SIMPLE) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
-    HyperedgeID hyperedge_size_threshold;
     double alpha;
     double beta;
     StoppingRule stopping_rule;
@@ -129,8 +127,6 @@ std::string toString(const Configuration& config) {
   << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
   << std::endl;
   oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
-  oss << std::setw(30) << "  hyperedge size threshold: " << config.two_way_fm.hyperedge_size_threshold
-  << std::endl;
   oss << std::setw(30) << "  max. # fruitless moves: "
   << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
   oss << std::setw(30) << "  random walk stop alpha: "

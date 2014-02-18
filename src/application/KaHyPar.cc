@@ -88,9 +88,6 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     if (vm.count("t")) {
       config.coarsening.minimal_node_count = vm["t"].as<HypernodeID>();
     }
-    if (vm.count("rmaxnet")) {
-      config.two_way_fm.hyperedge_size_threshold = vm["rmaxnet"].as<HyperedgeID>();
-    }
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {
         config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
@@ -127,7 +124,6 @@ void setDefaults(Config& config) {
   config.coarsening.hypernode_weight_fraction = 0.0375;
   config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
   config.two_way_fm.num_repetitions = 1;
-  config.two_way_fm.hyperedge_size_threshold = 50;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
 }
@@ -154,7 +150,6 @@ int main(int argc, char* argv[]) {
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
     ("cmaxnet", po::value<HyperedgeID>(), "Rating: Any hyperedges larger than cmaxnet are ignored when rating a hypernode")
-    ("rmaxnet", po::value<HyperedgeID>(), "2-Way-FM: Any hyperedges larger than rmaxnet are ignored during gain calculation")
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
     ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")

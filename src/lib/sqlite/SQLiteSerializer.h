@@ -29,14 +29,14 @@ class SQLiteBenchmarkSerializer {
                             "hyperedge_size_threshold, coarsening_scheme,"
                             "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
                             "coarsening_min_node_count, coarsening_rating,"
-                            "twowayfm_stopping_rule, twowayfm_num_repetitions, twowayfm_hyperedge_size_threshold, "
+                            "twowayfm_stopping_rule, twowayfm_num_repetitions,"
                             "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
                             "part1, imbalance, gitrevision) VALUES (:graph, :hypernodes,"
                             ":hyperedges, :k, :epsilon, :L_max, :seed, :global_search_iterations,"
                             ":initial_partitionings, :hyperedge_size_threshold, :coarsening_scheme,"
                             ":coarsening_node_weight_fraction, :coarsening_node_weight_threshold,"
                             ":coarsening_min_node_count, :coarsening_rating, :twowayfm_stopping_rule,"
-                            ":twowayfm_num_repetitions, :twowayfm_hyperedge_size_threshold,"
+                            ":twowayfm_num_repetitions,"
                             ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
                             ":part0, :part1, :imbalance, :gitrevision);") { }
 
@@ -76,7 +76,6 @@ class SQLiteBenchmarkSerializer {
                        "coarsening_rating VARCHAR NOT NULL,"
                        "twowayfm_stopping_rule VARCHAR NOT NULL,"
                        "twowayfm_num_repetitions INTEGER NOT NULL,"
-                       "twowayfm_hyperedge_size_threshold INTEGER NOT NULL,"
                        "twowayfm_fruitless_moves INTEGER NOT NULL,"
                        "twowayfm_alpha REAL NOT NULL,"
                        "twowayfm_beta REAL NOT NULL,"
@@ -122,8 +121,6 @@ class SQLiteBenchmarkSerializer {
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
                              "simple" : "adaptive"));
     _insert_result_cmd.bind(":twowayfm_num_repetitions", config.two_way_fm.num_repetitions);
-    _insert_result_cmd.bind(":twowayfm_hyperedge_size_threshold",
-                            static_cast<int>(config.two_way_fm.hyperedge_size_threshold));
     _insert_result_cmd.bind(":twowayfm_fruitless_moves",
                             config.two_way_fm.max_number_of_fruitless_moves);
     _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
