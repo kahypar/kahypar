@@ -4,7 +4,6 @@
 
 #ifndef SRC_LIB_SQLITE_SQLITESERIALIZER_H_
 #define SRC_LIB_SQLITE_SQLITESERIALIZER_H_
-
 #include <string>
 
 #include "external/sqlite3pp/src/sqlite3pp.h"
@@ -96,28 +95,28 @@ class SQLiteBenchmarkSerializer {
     std::string graph_name = config.partitioning.graph_filename.substr(
       config.partitioning.graph_filename.find_last_of("/") + 1);
     _insert_result_cmd.bind(":graph", graph_name.c_str());
-    _insert_result_cmd.bind(":hypernodes", static_cast<int>(hypergraph.initialNumNodes()));
-    _insert_result_cmd.bind(":hyperedges", static_cast<int>(hypergraph.initialNumEdges()));
+    _insert_result_cmd.bind(":hypernodes", static_cast<sqlite_int64>(hypergraph.initialNumNodes()));
+    _insert_result_cmd.bind(":hyperedges", static_cast<sqlite_int64>(hypergraph.initialNumEdges()));
     _insert_result_cmd.bind(":k", config.partitioning.k);
     _insert_result_cmd.bind(":epsilon", config.partitioning.epsilon);
     _insert_result_cmd.bind(":L_max",
-                            static_cast<int>(config.partitioning.partition_size_upper_bound));
+                            static_cast<sqlite3_int64>(config.partitioning.partition_size_upper_bound));
     _insert_result_cmd.bind(":seed", config.partitioning.seed);
     _insert_result_cmd.bind(":initial_partitionings",
                             config.partitioning.initial_partitioning_attempts);
     _insert_result_cmd.bind(":global_search_iterations",
                             config.partitioning.global_search_iterations);
     _insert_result_cmd.bind(":hyperedge_size_threshold",
-                            static_cast<int>(config.partitioning.hyperedge_size_threshold));
+                            static_cast<sqlite3_int64>(config.partitioning.hyperedge_size_threshold));
     _insert_result_cmd.bind(":coarsening_scheme",
                             (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ?
                              "heavy_full" : "heavy_heuristic"));
     _insert_result_cmd.bind(":coarsening_node_weight_fraction",
                             config.coarsening.hypernode_weight_fraction);
     _insert_result_cmd.bind(":coarsening_node_weight_threshold",
-                            static_cast<int>(config.coarsening.threshold_node_weight));
+                            static_cast<sqlite_int64>(config.coarsening.threshold_node_weight));
     _insert_result_cmd.bind(":coarsening_min_node_count",
-                            static_cast<int>(config.coarsening.minimal_node_count));
+                            static_cast<sqlite_int64>(config.coarsening.minimal_node_count));
     _insert_result_cmd.bind(":coarsening_rating", "heavy_edge");
     _insert_result_cmd.bind(":twowayfm_stopping_rule",
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
@@ -127,12 +126,12 @@ class SQLiteBenchmarkSerializer {
                             config.two_way_fm.max_number_of_fruitless_moves);
     _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
     _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
-    _insert_result_cmd.bind(":cut", static_cast<int>(metrics::hyperedgeCut(hypergraph)));
+    _insert_result_cmd.bind(":cut", static_cast<sqlite_int64>(metrics::hyperedgeCut(hypergraph)));
 
     HypernodeWeight partition_weights[2] = { 0, 0 };
     metrics::partitionWeights(hypergraph, partition_weights);
-    _insert_result_cmd.bind(":part0", static_cast<int>(partition_weights[0]));
-    _insert_result_cmd.bind(":part1", static_cast<int>(partition_weights[1]));
+    _insert_result_cmd.bind(":part0", static_cast<sqlite_int64>(partition_weights[0]));
+    _insert_result_cmd.bind(":part1", static_cast<sqlite_int64>(partition_weights[1]));
 
     _insert_result_cmd.bind(":imbalance", metrics::imbalance(hypergraph));
     _insert_result_cmd.bind(":time", elapsed_seconds.count());
