@@ -1,0 +1,51 @@
+*********************Partitioning Configuration**********************
+Partitioning Parameters:
+  Hypergraph:                 /home/schlag/repo/schlag_git/benchmark_instances/ibm04.hgr
+  Partition File:             /home/schlag/repo/schlag_git/benchmark_instances/ibm04.hgr.part.2.KaHyPar
+  Coarsened Hypergraph:       /home/schlag/repo/schlag_git/benchmark_instances/PID_22565_coarse_ibm04.hgr
+  Coarsened Partition File:   /home/schlag/repo/schlag_git/benchmark_instances/PID_22565_coarse_ibm04.hgr.part.2
+  k:                          2
+  epsilon:                    0.02
+  L_max:                      14029
+  seed:                       12314
+  # initial partitionings:    10
+  # global search iterations: 1
+  hyperedge size threshold:   4294967295
+Coarsening Parameters:
+  scheme:                     heavy_heuristic
+  hypernode weight fraction:  0.0375
+  max. hypernode weight:      1031
+  min. # hypernodes:          290
+2-Way-FM Refinement Parameters:
+  stopping rule:              simple
+  max. # repetitions:         2147483647
+  max. # fruitless moves:     100
+  random walk stop alpha:     -1
+  random walk stop beta :     10.2222
+***********************Hypergraph Information************************
+Name : ibm04.hgr
+# HEs: 31970	 [avg HE size  : 3.3112]
+# HNs: 27507	 [avg HN degree: 3.84844]
+***********************Hypergraph Information************************
+Name : PID_22565_coarse_ibm04.hgr
+# HEs: 4849	 [avg HE size  : 3.46711]
+# HNs: 290	 [avg HN degree: 57.9724]
+performInitialPartitioning(): # unconnected hypernodes = 0
+performInitialPartitioning(): attempt 0 seed(1613398439):894
+performInitialPartitioning(): Attempt 0 improved initial cut from 2147483647 to 894
+performInitialPartitioning(): attempt 1 seed(1990464056):894
+performInitialPartitioning(): attempt 2 seed(514270254):894
+performInitialPartitioning(): attempt 3 seed(1689432391):894
+performInitialPartitioning(): attempt 4 seed(1954790872):894
+performInitialPartitioning(): attempt 5 seed(1900972082):894
+performInitialPartitioning(): attempt 6 seed(734306561):894
+performInitialPartitioning(): attempt 7 seed(9669929):894
+performInitialPartitioning(): attempt 8 seed(1270369003):894
+performInitialPartitioning(): attempt 9 seed(1660042233):894
+partition(): vcycle # 0: cut=625
+***********************2-way Partition Result************************
+Hyperedge Cut   = 625
+Imbalance       = 0.0197404
+| partition 0 | = 13482
+| partition 1 | = 14025
+partition time  = 5.14546 s
