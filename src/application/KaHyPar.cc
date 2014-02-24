@@ -108,6 +108,9 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("alpha")) {
       config.two_way_fm.alpha = vm["alpha"].as<double>();
+      if (config.two_way_fm.alpha == -1) {
+        config.two_way_fm.alpha = std::numeric_limits<double>::max();
+      }
     }
     if (vm.count("verbose")) {
       config.partitioning.verbose_output = vm["verbose"].as<bool>();
@@ -162,7 +165,7 @@ int main(int argc, char* argv[]) {
     ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
     ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
-    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive)")
+    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
     ("db", po::value<std::string>(), "experiment db filename");
 
   po::variables_map vm;
