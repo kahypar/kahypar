@@ -41,8 +41,8 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
 
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
 
-  ASSERT_THAT(hyperedge_fm_refiner.isPartiallyNestedIntoHyperedge(0, 1, 0), Eq(false));
-  ASSERT_THAT(hyperedge_fm_refiner.isPartiallyNestedIntoHyperedge(1, 0, 0), Eq(true));
+  ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
+  ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 0), Eq(true));
 }
 
 TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNestedHyperedges) {
@@ -54,8 +54,8 @@ TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNes
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
 
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
-  ASSERT_THAT(hyperedge_fm_refiner.isPartiallyNestedIntoHyperedge(1, 0, 1), Eq(true));
-  ASSERT_THAT(hyperedge_fm_refiner.isPartiallyNestedIntoHyperedge(1, 0, 0), Eq(false));
+  ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 1), Eq(true));
+  ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 0), Eq(false));
 }
 
 TEST_F(AHyperedgeFMRefiner, ComputesGainOfMovingAllPinsFromOneToAnotherPartition) {

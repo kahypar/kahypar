@@ -52,9 +52,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != INVALID_PARTITION) && (to != INVALID_PARTITION),
            "Trying to compute gain for invalid partition");
-    // ToDo: [ ] reuse bitset across queries
-    boost::dynamic_bitset<uint64_t> evaluated_hyperedges(_hg.initialNumEdges());
     if (isCutHyperedge(he)) {
+      // ToDo: [ ] reuse bitset across queries
+      boost::dynamic_bitset<uint64_t> evaluated_hyperedges(_hg.initialNumEdges());
       Gain gain = 1;
       forall_pins(pin, he, _hg) {
         if (_hg.partitionIndex(*pin) != from) { continue; }
@@ -62,15 +62,13 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         forall_incident_hyperedges(incident_he, *pin, _hg) {
           if (*incident_he == he || evaluated_hyperedges[*incident_he]) { continue; }
           if (!isCutHyperedge(*incident_he) &&
-              !isPartiallyNestedIntoHyperedge(*incident_he, he, from)) {
+              !isNestedIntoInPartition(*incident_he, he, from)) {
             gain -= 1;
             DBG(true, "pin " << *pin << " HE: " << *incident_he << " gain-=1: " << gain);
-          } else {
-            if (isCutHyperedge(*incident_he) &&
-                isPartiallyNestedIntoHyperedge(*incident_he, he, from)) {
-              gain += 1;
-              DBG(true, "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
-            }
+          } else if (isCutHyperedge(*incident_he) &&
+                     isNestedIntoInPartition(*incident_he, he, from)) {
+            gain += 1;
+            DBG(true, "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
           }
           evaluated_hyperedges[*incident_he] = 1;
         } endfor
@@ -81,8 +79,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     }
   }
 
-  bool isPartiallyNestedIntoHyperedge(HyperedgeID inner_he, HyperedgeID outer_he,
-                                      PartitionID relevant_partition) const {
+  bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
+                               PartitionID relevant_partition) const {
     // ToDo: [ ] reuse bitset across queries
     boost::dynamic_bitset<uint64_t> outer_nodes(_hg.initialNumNodes());
     forall_pins(pin, outer_he, _hg) {
