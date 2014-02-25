@@ -373,4 +373,24 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   ASSERT_THAT(refiner._pq[0]->contains(2), Eq(true));
   ASSERT_THAT(refiner._pq[0]->key(2), Eq(0));
 }
+
+TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
+  HypergraphType hypergraph(5, 3, HyperedgeIndexVector { 0, 2, 5, 8 },
+                            HyperedgeVector { 0, 1, 2, 3, 4, 2, 3, 4 });
+  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
+  TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  refiner.initialize();
+
+  // bypassing activate
+  refiner._pq[0]->insert(2, refiner.computeGain(2));
+  refiner.moveHypernode(2, 0, 1);
+  refiner.updateNeighbours(2, 0, 1);
+
+  ASSERT_THAT(refiner._pq[0]->contains(4), Eq(true));
+  ASSERT_THAT(refiner._pq[1]->contains(3), Eq(true));
+}
 } // namespace partition
