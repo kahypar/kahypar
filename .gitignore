@@ -9,4 +9,5 @@
 *.cfg~
 build/*
 release/*
+release152/*
 debug/*
