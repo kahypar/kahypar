@@ -25,11 +25,25 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;
+  static const int K = 2;
 
   public:
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
     _hg(hypergraph),
-    _config(config) { }
+    _config(config),
+    _partition_size{0, 0},
+    _is_initialized(false) { }
+
+  void initialize() {
+    _partition_size[0] = 0;
+    _partition_size[1] = 0;
+    forall_hypernodes(hn, _hg) {
+      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
+             "TwoWayFmRefiner cannot work with HNs in invalid partition");
+      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
+    } endfor
+      _is_initialized = true;
+  }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
               double max_imbalance, double& best_imbalance) { }
@@ -85,12 +99,16 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   private:
+  FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
+
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
   }
 
   Hypergraph& _hg;
-  Configuration<Hypergraph> _config;
+  const Configuration<Hypergraph> _config;
+  std::array<HypernodeWeight, K> _partition_size;
+  bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
 }   // namespace partition

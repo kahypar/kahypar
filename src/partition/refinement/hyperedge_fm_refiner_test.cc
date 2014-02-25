@@ -12,6 +12,8 @@
 using::testing::Test;
 using::testing::Eq;
 
+using datastructure::HypernodeWeightVector;
+
 using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
@@ -161,5 +163,18 @@ TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNo
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(-1));
+}
+
+TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize) {
+  HypernodeWeightVector hypernode_weights { 4, 5 };
+  hypergraph.reset(new HypergraphType(2, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
+                                      HyperedgeVector { 0, 1 }, nullptr, &hypernode_weights));
+  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
+
+  hyperedge_fm_refiner.initialize();
+  ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
+  ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(5));
 }
 } // namespace partition
