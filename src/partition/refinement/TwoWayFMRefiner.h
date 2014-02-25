@@ -383,6 +383,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
+  DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
 } // namespace partition
 
