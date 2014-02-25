@@ -152,14 +152,14 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNestedNonCutH
 }
 
 TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNonCutHyperedgesExist) {
-  hypergraph.reset(new HypergraphType(4, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
-                                      HyperedgeVector { 0, 1, 1, 2, 3 }));
+  hypergraph.reset(new HypergraphType(4, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                                      HyperedgeVector { 0, 1, 1, 2, 1, 3 }));
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
 
-  ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(0));
+  ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(-1));
 }
 } // namespace partition
