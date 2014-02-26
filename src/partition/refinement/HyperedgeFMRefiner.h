@@ -55,7 +55,16 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
     } endfor
-      _is_initialized = true;
+
+      ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
+               HypernodeWeight total_weight = 0;
+               forall_hypernodes(hn, _hg) {
+                 total_weight += _hg.nodeWeight(*hn);
+               } endfor
+               return total_weight;
+             } ()
+             , "Calculated partition sizes do not match those induced by hypergraph");
+    _is_initialized = true;
   }
 
   void activateIncidentCutHyperedges(HypernodeID hn) {
