@@ -40,6 +40,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _config(config),
     _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumNodes()), new HyperedgeFMPQ(_hg.initialNumNodes())},
+    _locked_hyperedges(_hg.initialNumEdges()),
     _is_initialized(false) { }
 
   ~HyperedgeFMRefiner() {
@@ -71,21 +72,28 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     DBG(true, "activating cut hyperedges of hypernode " << hn);
     forall_incident_hyperedges(he, hn, _hg) {
       if (isCutHyperedge(*he)) {
-        // ToDo:
-        // [ ] check if hyperedge is locked
-        // [ ] check if pin is locked?
-        DBG(true, "inserting HE " << *he << " with gain " << computeGain(*he, 0, 1)
-            << " in PQ " << 0);
-        DBG(true, "inserting HE " << *he << " with gain " << computeGain(*he, 1, 0)
-            << " in PQ " << 1);
+        ASSERT(!isLocked(*he), "HE " << *he << " is already locked");
+        ASSERT(!_pq[0]->contains(*he), "HE " << *he << " is already contained in PQ 0");
+        ASSERT(!_pq[1]->contains(*he), "HE " << *he << " is already contained in PQ 0");
         _pq[0]->reInsert(*he, computeGain(*he, 0, 1));
         _pq[1]->reInsert(*he, computeGain(*he, 1, 0));
+        DBG(true, "inserting HE " << *he << " with gain " << _pq[0]->key(*he)
+            << " in PQ " << 0);
+        DBG(true, "inserting HE " << *he << " with gain " << _pq[1]->key(*he)
+            << " in PQ " << 1);
       }
     } endfor
   }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-              double max_imbalance, double& best_imbalance) { }
+              double max_imbalance, double& best_imbalance) {
+    _pq[0]->clear();
+    _pq[1]->clear();
+    _locked_hyperedges.reset();
+
+    activateIncidentCutHyperedges(u);
+    activateIncidentCutHyperedges(v);
+  }
 
   Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) const {
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
@@ -138,15 +146,42 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
+  FRIEND_TEST(AHyperedgeFMRefiner, UpdatesPartitionSizesOnHyperedgeMovement);
+  FRIEND_TEST(AHyperedgeFMRefiner, DeletesTheRemaningPQEntryAfterPinsOfHyperedgeAreMoved);
+  FRIEND_TEST(AHyperedgeFMRefiner, LocksHyperedgeAfterItsPinsAreMoved);
 
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
+  }
+
+  void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to) {
+    forall_pins(pin, he, _hg) {
+      if (_hg.partitionIndex(*pin) == from) {
+        _hg.changeNodePartition(*pin, from, to);
+        _partition_size[from] -= _hg.nodeWeight(*pin);
+        _partition_size[to] += _hg.nodeWeight(*pin);
+      }
+    } endfor
+      ASSERT(_pq[to]->contains(he) == true,
+             "HE " << he << " does not exist in PQ " << to);
+    _pq[to]->remove(he);
+    lock(he);
+  }
+
+  void lock(HyperedgeID he) {
+    ASSERT(!_locked_hyperedges[he], "HE " << he << " is already locked");
+    _locked_hyperedges[he] = 1;
+  }
+
+  bool isLocked(HyperedgeID he) {
+    return _locked_hyperedges[he];
   }
 
   Hypergraph& _hg;
   const Configuration<Hypergraph> _config;
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
+  boost::dynamic_bitset<uint64_t> _locked_hyperedges;
   bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
