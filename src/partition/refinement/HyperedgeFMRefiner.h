@@ -41,6 +41,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumNodes()), new HyperedgeFMPQ(_hg.initialNumNodes())},
     _locked_hyperedges(_hg.initialNumEdges()),
+    _evaluated_hyperedges(_hg.initialNumEdges()),
+    _contained_hypernodes(_hg.initialNumNodes()),
     _is_initialized(false) { }
 
   ~HyperedgeFMRefiner() {
@@ -89,25 +91,24 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
               double max_imbalance, double& best_imbalance) {
     _pq[0]->clear();
     _pq[1]->clear();
-    _locked_hyperedges.reset();
+    resetLockedHyperedges();
 
     activateIncidentCutHyperedges(u);
     activateIncidentCutHyperedges(v);
   }
 
-  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) const {
+  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) {
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != INVALID_PARTITION) && (to != INVALID_PARTITION),
            "Trying to compute gain for invalid partition");
     if (isCutHyperedge(he)) {
-      // ToDo: [ ] reuse bitset across queries
-      boost::dynamic_bitset<uint64_t> evaluated_hyperedges(_hg.initialNumEdges());
+      resetEvaluatedHyperedges();
       Gain gain = 1;
       forall_pins(pin, he, _hg) {
         if (_hg.partitionIndex(*pin) != from) { continue; }
         DBG(true, "evaluating pin " << *pin);
         forall_incident_hyperedges(incident_he, *pin, _hg) {
-          if (*incident_he == he || evaluated_hyperedges[*incident_he]) { continue; }
+          if (*incident_he == he || isAlreadyEvaluated(*incident_he)) { continue; }
           if (!isCutHyperedge(*incident_he) &&
               !isNestedIntoInPartition(*incident_he, he, from)) {
             gain -= 1;
@@ -117,7 +118,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
             gain += 1;
             DBG(true, "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
           }
-          evaluated_hyperedges[*incident_he] = 1;
+          markAsEvaluated(*incident_he);
         } endfor
       } endfor
       return gain;
@@ -127,15 +128,15 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
-                               PartitionID relevant_partition) const {
+                               PartitionID relevant_partition) {
     // ToDo: [ ] reuse bitset across queries
-    boost::dynamic_bitset<uint64_t> outer_nodes(_hg.initialNumNodes());
+    resetContainedHypernodes();
     forall_pins(pin, outer_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition) {
-        outer_nodes[*pin] = 1;
+        markAsContained(*pin);
       }
     } endfor forall_pins(pin, inner_he, _hg) {
-      if (_hg.partitionIndex(*pin) == relevant_partition && !outer_nodes[*pin]) {
+      if (_hg.partitionIndex(*pin) == relevant_partition && !isContained(*pin)) {
         return false;
       }
     }
@@ -146,9 +147,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
-  FRIEND_TEST(AHyperedgeFMRefiner, UpdatesPartitionSizesOnHyperedgeMovement);
-  FRIEND_TEST(AHyperedgeFMRefiner, DeletesTheRemaningPQEntryAfterPinsOfHyperedgeAreMoved);
-  FRIEND_TEST(AHyperedgeFMRefiner, LocksHyperedgeAfterItsPinsAreMoved);
+  FRIEND_TEST(AHyperedgeMovementOperation, UpdatesPartitionSizes);
+  FRIEND_TEST(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry);
+  FRIEND_TEST(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved);
 
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
@@ -173,8 +174,37 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _locked_hyperedges[he] = 1;
   }
 
-  bool isLocked(HyperedgeID he) {
+  bool isLocked(HyperedgeID he) const {
     return _locked_hyperedges[he];
+  }
+
+  void resetLockedHyperedges() {
+    _locked_hyperedges.reset();
+  }
+
+  void markAsEvaluated(HyperedgeID he) {
+    ASSERT(!_evaluated_hyperedges[he], "HE " << he << " is already marked as evaluated");
+    _evaluated_hyperedges[he] = 1;
+  }
+
+  bool isAlreadyEvaluated(HyperedgeID he) const {
+    return _evaluated_hyperedges[he];
+  }
+
+  void resetEvaluatedHyperedges() {
+    _evaluated_hyperedges.reset();
+  }
+
+  void markAsContained(HypernodeID hn) {
+    _contained_hypernodes[hn] = 1;
+  }
+
+  bool isContained(HypernodeID hn) {
+    return _contained_hypernodes[hn];
+  }
+
+  void resetContainedHypernodes() {
+    _contained_hypernodes.reset();
   }
 
   Hypergraph& _hg;
@@ -182,6 +212,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _locked_hyperedges;
+  boost::dynamic_bitset<uint64_t> _evaluated_hyperedges;
+  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
