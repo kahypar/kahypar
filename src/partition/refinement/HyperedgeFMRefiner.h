@@ -129,7 +129,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
                                PartitionID relevant_partition) {
-    // ToDo: [ ] reuse bitset across queries
     resetContainedHypernodes();
     forall_pins(pin, outer_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition) {
@@ -196,6 +195,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void markAsContained(HypernodeID hn) {
+    ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
     _contained_hypernodes[hn] = 1;
   }
 
