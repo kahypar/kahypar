@@ -208,6 +208,18 @@ TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
   ASSERT_THAT(hyperedge_fm_refiner._pq[1]->contains(0), Eq(false));
 }
 
+TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
+  hypergraph.reset(new HypergraphType(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
+                                      HyperedgeVector { 0, 1, 2 }));
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
+}
+
 TEST_F(AHyperedgeMovementOperation, UpdatesPartitionSizes) {
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();

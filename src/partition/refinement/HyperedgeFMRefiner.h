@@ -73,10 +73,11 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   void activateIncidentCutHyperedges(HypernodeID hn) {
     DBG(true, "activating cut hyperedges of hypernode " << hn);
     forall_incident_hyperedges(he, hn, _hg) {
-      if (isCutHyperedge(*he)) {
+      // pq invariant: either a hyperedge is in both PQs or in none of them
+      if (isCutHyperedge(*he) && !_pq[0]->contains(*he)) {
         ASSERT(!isLocked(*he), "HE " << *he << " is already locked");
-        ASSERT(!_pq[0]->contains(*he), "HE " << *he << " is already contained in PQ 0");
         ASSERT(!_pq[1]->contains(*he), "HE " << *he << " is already contained in PQ 0");
+        // we have to use reInsert because PQs will be reused during each uncontraction
         _pq[0]->reInsert(*he, computeGain(*he, 0, 1));
         _pq[1]->reInsert(*he, computeGain(*he, 1, 0));
         DBG(true, "inserting HE " << *he << " with gain " << _pq[0]->key(*he)
