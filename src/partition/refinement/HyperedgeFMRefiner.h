@@ -7,11 +7,15 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <limits>
+
+#include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 
 using defs::INVALID_PARTITION;
+using datastructure::PriorityQueue;
 
 namespace partition {
 static const bool dbg_refinement_he_fm_gain_computation = false;
@@ -25,6 +29,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
   typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;
+  typedef PriorityQueue<HyperedgeID, HyperedgeWeight,
+                        std::numeric_limits<HyperedgeWeight> > HyperedgeFMPQ;
+
   static const int K = 2;
 
   public:
@@ -32,7 +39,13 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _hg(hypergraph),
     _config(config),
     _partition_size{0, 0},
+    _pq{new HyperedgeFMPQ(_hg.initialNumNodes()), new HyperedgeFMPQ(_hg.initialNumNodes())},
     _is_initialized(false) { }
+
+  ~HyperedgeFMRefiner() {
+    delete _pq[0];
+    delete _pq[1];
+  }
 
   void initialize() {
     _partition_size[0] = 0;
@@ -43,6 +56,23 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
     } endfor
       _is_initialized = true;
+  }
+
+  void activateIncidentCutHyperedges(HypernodeID hn) {
+    DBG(true, "activating cut hyperedges of hypernode " << hn);
+    forall_incident_hyperedges(he, hn, _hg) {
+      if (isCutHyperedge(*he)) {
+        // ToDo:
+        // [ ] check if hyperedge is locked
+        // [ ] check if pin is locked?
+        DBG(true, "inserting HE " << *he << " with gain " << computeGain(*he, 0, 1)
+            << " in PQ " << 0);
+        DBG(true, "inserting HE " << *he << " with gain " << computeGain(*he, 1, 0)
+            << " in PQ " << 1);
+        _pq[0]->reInsert(*he, computeGain(*he, 0, 1));
+        _pq[1]->reInsert(*he, computeGain(*he, 1, 0));
+      }
+    } endfor
   }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
@@ -98,6 +128,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
+  FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
 
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
@@ -106,6 +137,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   Hypergraph& _hg;
   const Configuration<Hypergraph> _config;
   std::array<HypernodeWeight, K> _partition_size;
+  std::array<HyperedgeFMPQ*, K> _pq;
   bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };

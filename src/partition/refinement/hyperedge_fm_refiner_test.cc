@@ -38,7 +38,6 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-
   HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
@@ -176,5 +175,20 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
   hyperedge_fm_refiner.initialize();
   ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
   ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(5));
+}
+
+TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
+  hypergraph.reset(new HypergraphType(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
+                                      HyperedgeVector { 0, 1, 1, 2 }));
+  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
+  ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(1), Eq(true));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[1]->contains(1), Eq(true));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(0), Eq(false));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[1]->contains(0), Eq(false));
 }
 } // namespace partition
