@@ -1,0 +1,31 @@
+*******************************************************************************
+ HMETIS 2.0pre1  Copyright 1998-2007, Regents of the University of Minnesota
+
+HyperGraph Information -----------------------------------------------------
+ Name: /home/schlag/repo/schlag_git/benchmark_instances/ibm03.hgr, #Vtxs: 23136, #Hedges: 27401, #Cons: 1
+
+Options --------------------------------------------------------------------
+ ptype=rb, ctype=H1, rtype=FAST, otype=cut, dbglvl=8
+ kwayrefine: No, reconstruct: No, fixed: No
+ Nruns: 10, NV-cycles: 1, CMaxNet: 50, RMaxNet: 50, Seed: 39732
+ #Parts: 2, UBfactor:   1.00
+
+Partitioning... ------------------------------------------------------------
+
+  Bisecting a hgraph of size [vertices=23136, hedges=27401, balance=0.50]
+
+    The mincut for this bisection =     961.00 (average = 988.4) (balance = [0.49]
+ --------------------------------------------------------------------------
+  Summary for the 2-way partition:
+                Hyperedge Cut:        961.00		(minimize)
+      Sum of External Degrees:       1922.00		(minimize)
+                  Scaled Cost:      7.18e-06		(minimize)
+                   Absorption:      27039.72		(maximize)
+
+      Partition Sizes & External Degrees:
+	( 11384.000)[ 961.000] ( 11752.000)[ 961.000] 
+
+Timing Information ---------------------------------------------------------
+  Partitioning Time:		   4.076sec
+           I/O Time:		   0.060sec
+*******************************************************************************

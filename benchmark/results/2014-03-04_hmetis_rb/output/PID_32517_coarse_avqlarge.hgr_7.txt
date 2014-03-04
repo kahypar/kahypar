@@ -1,0 +1,31 @@
+*******************************************************************************
+ HMETIS 2.0pre1  Copyright 1998-2007, Regents of the University of Minnesota
+
+HyperGraph Information -----------------------------------------------------
+ Name: /home/schlag/repo/schlag_git/benchmark_instances/PID_32517_coarse_avqlarge.hgr, #Vtxs:   100, #Hedges:   765, #Cons: 1
+
+Options --------------------------------------------------------------------
+ ptype=rb, ctype=H1, rtype=FAST, otype=cut, dbglvl=8
+ kwayrefine: No, reconstruct: No, fixed: No
+ Nruns: 10, NV-cycles: 1, CMaxNet: 50, RMaxNet: 50, Seed: 11181
+ #Parts: 2, UBfactor:   1.00
+
+Partitioning... ------------------------------------------------------------
+
+  Bisecting a hgraph of size [vertices=100, hedges=765, balance=0.50]
+
+    The mincut for this bisection =     293.00 (average = 293.7) (balance = [0.49]
+ --------------------------------------------------------------------------
+  Summary for the 2-way partition:
+                Hyperedge Cut:        293.00		(minimize)
+      Sum of External Degrees:        586.00		(minimize)
+                  Scaled Cost:      4.66e-04		(minimize)
+                   Absorption:        569.20		(maximize)
+
+      Partition Sizes & External Degrees:
+	( 12357.000)[ 293.000] ( 12821.000)[ 293.000] 
+
+Timing Information ---------------------------------------------------------
+  Partitioning Time:		   0.036sec
+           I/O Time:		   0.000sec
+*******************************************************************************

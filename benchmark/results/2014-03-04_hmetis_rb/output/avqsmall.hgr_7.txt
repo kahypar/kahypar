@@ -1,0 +1,62 @@
+*******************************************************************************
+ HMETIS 2.0pre1  Copyright 1998-2007, Regents of the University of Minnesota
+
+HyperGraph Information -----------------------------------------------------
+ Name: /home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr, #Vtxs: 21918, #Hedges: 22124, #Cons: 1
+
+Options --------------------------------------------------------------------
+ ptype=rb, ctype=H1, rtype=FAST, otype=cut, dbglvl=8
+ kwayrefine: No, reconstruct: No, fixed: No
+ Nruns: 10, NV-cycles: 1, CMaxNet: 50, RMaxNet: 50, Seed: -1
+ #Parts: 2, UBfactor:   1.00
+
+Partitioning... ------------------------------------------------------------
+
+  Bisecting a hgraph of size [vertices=21918, hedges=22124, balance=0.50]
+
+    The mincut for this bisection =     148.00 (average = 166.8) (balance = [0.49]
+ --------------------------------------------------------------------------
+  Summary for the 2-way partition:
+                Hyperedge Cut:        148.00		(minimize)
+      Sum of External Degrees:        296.00		(minimize)
+                  Scaled Cost:      1.23e-06		(minimize)
+                   Absorption:      22070.70		(maximize)
+
+      Partition Sizes & External Degrees:
+	( 10777.000)[ 148.000] ( 11141.000)[ 148.000] 
+
+Timing Information ---------------------------------------------------------
+  Partitioning Time:		   1.168sec
+           I/O Time:		   0.072sec
+*******************************************************************************
+*******************************************************************************
+ HMETIS 2.0pre1  Copyright 1998-2007, Regents of the University of Minnesota
+
+HyperGraph Information -----------------------------------------------------
+ Name: /home/schlag/repo/schlag_git/benchmark_instances/avqsmall.hgr, #Vtxs: 21918, #Hedges: 22124, #Cons: 1
+
+Options --------------------------------------------------------------------
+ ptype=rb, ctype=H1, rtype=FAST, otype=cut, dbglvl=8
+ kwayrefine: No, reconstruct: No, fixed: No
+ Nruns: 10, NV-cycles: 1, CMaxNet: 50, RMaxNet: 50, Seed: 23102
+ #Parts: 2, UBfactor:   1.00
+
+Partitioning... ------------------------------------------------------------
+
+  Bisecting a hgraph of size [vertices=21918, hedges=22124, balance=0.50]
+
+    The mincut for this bisection =     142.00 (average = 161.2) (balance = [0.50]
+ --------------------------------------------------------------------------
+  Summary for the 2-way partition:
+                Hyperedge Cut:        142.00		(minimize)
+      Sum of External Degrees:        284.00		(minimize)
+                  Scaled Cost:      1.18e-06		(minimize)
+                   Absorption:      22066.35		(maximize)
+
+      Partition Sizes & External Degrees:
+	( 10856.000)[ 142.000] ( 11062.000)[ 142.000] 
+
+Timing Information ---------------------------------------------------------
+  Partitioning Time:		   1.136sec
+           I/O Time:		   0.072sec
+*******************************************************************************
