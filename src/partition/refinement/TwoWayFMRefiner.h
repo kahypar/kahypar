@@ -184,13 +184,13 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
         if (cut < best_cut) {
           DBG(dbg_refinement_2way_fm_improvements,
               "TwoWayFM improved cut from " << best_cut << " to " << cut);
-          StoppingPolicy::resetStatistics();
         }
         DBG(dbg_refinement_2way_fm_improvements,
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
-        best_imbalance = imbalance;
+        best_imbalance = imbalance;        
         best_cut = cut;
         min_cut_index = step;
+        StoppingPolicy::resetStatistics();
       }
       _performed_moves[step] = max_gain_node;
       ++step;
