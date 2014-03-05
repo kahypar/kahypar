@@ -47,7 +47,6 @@ class SQLiteBenchmarkSerializer {
     // Tweak configuration for more performance
     // See: http://blog.quibb.org/2010/08/fast-bulk-inserts-into-sqlite/
     sqlite3pp::command(db, "PRAGMA synchronous=OFF;").execute();
-    sqlite3pp::command(db, "PRAGMA count_changes=OFF;").execute();
     sqlite3pp::command(db, "PRAGMA journal_mode=MEMORY;").execute();
     sqlite3pp::command(db, "PRAGMA temp_store=MEMORY;").execute();
 
