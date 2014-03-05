@@ -4,6 +4,7 @@
 
 #ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
 #define SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
+#include "lib/macros.h"
 
 namespace partition {
 struct NumberOfFruitlessMovesStopsSearch {
@@ -24,13 +25,16 @@ struct NumberOfFruitlessMovesStopsSearch {
 
 struct RandomWalkModelStopsSearch {
   template <typename Configuration>
-  static bool searchShouldStop(int, int, const Configuration& config,
+  static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
-    //PRINT(_num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
-    //PRINT(config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
-    //      << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
-    return _num_steps * _expected_gain * _expected_gain >
-           config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta;
+    DBG(false, "step=" << step);
+    DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
+    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
+        << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
+    DBG(false, "return=" << ((_num_steps * _expected_gain * _expected_gain >
+                              config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1)));
+    return (_num_steps * _expected_gain * _expected_gain >
+            config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1);
   }
 
   static void resetStatistics() {
