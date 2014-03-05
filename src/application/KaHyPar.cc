@@ -44,6 +44,7 @@ using partition::TwoWayFMRefiner;
 using partition::CoarseningScheme;
 using partition::RandomWalkModelStopsSearch;
 using partition::NumberOfFruitlessMovesStopsSearch;
+using partition::nGPRandomWalkStopsSearch;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
@@ -221,7 +222,7 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<IRefiner<HypergraphType> > refiner(nullptr);
   if (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
     refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                      RandomWalkModelStopsSearch>(hypergraph, config));
+                                      nGPRandomWalkStopsSearch>(hypergraph, config));
   } else {
     refiner.reset(new TwoWayFMRefiner<HypergraphType,
                                       NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
