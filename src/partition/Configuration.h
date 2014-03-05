@@ -11,7 +11,7 @@
 #include <string>
 
 namespace partition {
-enum class StoppingRule { SIMPLE, ADAPTIVE };
+enum class StoppingRule { SIMPLE, ADAPTIVE1, ADAPTIVE2 };
 enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC };
 
 template <class Hypergraph>
@@ -123,9 +123,19 @@ std::string toString(const Configuration& config) {
   oss << std::setw(30) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
   << std::endl;
   oss << "2-Way-FM Refinement Parameters:" << std::endl;
-  oss << std::setw(30) << "  stopping rule: "
-  << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ? "simple" : "adaptive")
-  << std::endl;
+  oss << std::setw(30) << "  stopping rule: ";
+  switch (config.two_way_fm.stopping_rule) {
+    case StoppingRule::SIMPLE:
+      oss << "simple";
+      break;
+    case StoppingRule::ADAPTIVE1:
+      oss << "adaptive1 (new implementation)";
+      break;
+    case StoppingRule::ADAPTIVE2:
+      oss << "adaptive2 (n-GP implementation)";
+      break;
+  }
+  oss << std::endl;
   oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
   oss << std::setw(30) << "  max. # fruitless moves: "
   << config.two_way_fm.max_number_of_fruitless_moves << std::endl;

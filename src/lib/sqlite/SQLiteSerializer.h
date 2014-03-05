@@ -120,7 +120,8 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":coarsening_rating", "heavy_edge");
     _insert_result_cmd.bind(":twowayfm_stopping_rule",
                             (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
-                             "simple" : "adaptive"));
+                             "simple" : (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE1
+                                         ? "adaptive1" : "adaptive2")));
     _insert_result_cmd.bind(":twowayfm_num_repetitions", config.two_way_fm.num_repetitions);
     _insert_result_cmd.bind(":twowayfm_fruitless_moves",
                             config.two_way_fm.max_number_of_fruitless_moves);

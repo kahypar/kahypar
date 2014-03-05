@@ -96,6 +96,13 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {
         config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
+      } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
+        config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE1;
+      } else if (vm["stopFM"].as<std::string>() == "adaptive2") {
+        config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE2;
+      } else {
+        std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+        exit(0);
       }
     }
     if (vm.count("FMreps")) {
@@ -133,7 +140,7 @@ void setDefaults(Config& config) {
   config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
-  config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE;
+  config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE1;
   config.two_way_fm.num_repetitions = 1;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
@@ -163,7 +170,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule (adaptive (default) | simple)")
+    ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
@@ -220,12 +227,19 @@ int main(int argc, char* argv[]) {
   }
 
   std::unique_ptr<IRefiner<HypergraphType> > refiner(nullptr);
-  if (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE) {
-    refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                      nGPRandomWalkStopsSearch>(hypergraph, config));
-  } else {
-    refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                      NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
+  switch (config.two_way_fm.stopping_rule) {
+    case StoppingRule::SIMPLE:
+      refiner.reset(new TwoWayFMRefiner<HypergraphType,
+                                        NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
+      break;
+    case StoppingRule::ADAPTIVE1:
+      refiner.reset(new TwoWayFMRefiner<HypergraphType,
+                                        RandomWalkModelStopsSearch>(hypergraph, config));
+      break;
+    case StoppingRule::ADAPTIVE2:
+      refiner.reset(new TwoWayFMRefiner<HypergraphType,
+                                        nGPRandomWalkStopsSearch>(hypergraph, config));
+      break;
   }
 
   HighResClockTimepoint start;
