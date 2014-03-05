@@ -76,9 +76,9 @@ struct nGPRandomWalkStopsSearch {
   template <typename Configuration>
   static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight best_cut, HyperedgeWeight cut) {
-    return step >= config.two_way_fm.alpha*(((_sum_gains_squared/(2.0*static_cast<double>(best_cut)-cut))
-                                              *(1.0*step/(static_cast<double>(best_cut)-cut) - 0.5)
-                                              + config.two_way_fm.beta) );
+    return step >= config.two_way_fm.alpha * (((_sum_gains_squared / (2.0 * static_cast<double>(best_cut) - cut))
+                                               * (1.0 * step / (static_cast<double>(best_cut) - cut) - 0.5)
+                                               + config.two_way_fm.beta));
   }
 
   static void resetStatistics() {
@@ -90,7 +90,7 @@ struct nGPRandomWalkStopsSearch {
     _sum_gains_squared += gain * gain;
   }
 
- private:
+  private:
   static double _sum_gains_squared;
 
   protected:
@@ -98,7 +98,6 @@ struct nGPRandomWalkStopsSearch {
 };
 
 double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
-
 } // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
