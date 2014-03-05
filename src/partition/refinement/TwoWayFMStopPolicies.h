@@ -8,7 +8,8 @@
 namespace partition {
 struct NumberOfFruitlessMovesStopsSearch {
   template <typename Configuration>
-  static bool searchShouldStop(int min_cut_index, int current_index, const Configuration& config) {
+  static bool searchShouldStop(int min_cut_index, int current_index, const Configuration& config,
+                               HyperedgeWeight, HyperedgeWeight) {
     return current_index - min_cut_index > config.two_way_fm.max_number_of_fruitless_moves;
   }
 
@@ -23,7 +24,8 @@ struct NumberOfFruitlessMovesStopsSearch {
 
 struct RandomWalkModelStopsSearch {
   template <typename Configuration>
-  static bool searchShouldStop(int, int, const Configuration& config) {
+  static bool searchShouldStop(int, int, const Configuration& config,
+                               HyperedgeWeight, HyperedgeWeight) {
     //PRINT(_num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
     //PRINT(config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
     //      << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
@@ -69,6 +71,34 @@ double RandomWalkModelStopsSearch::_sum_gains = 0.0;
 double RandomWalkModelStopsSearch::_sum_gains_squared = 0.0;
 double RandomWalkModelStopsSearch::_expected_gain = 0.0;
 double RandomWalkModelStopsSearch::_expected_variance = 0.0;
+
+struct nGPRandomWalkStopsSearch {
+  template <typename Configuration>
+  static bool searchShouldStop(int min_cut_index, int step, const Configuration& config,
+                               HyperedgeWeight best_cut, HyperedgeWeight cut) {
+    return step >= config.two_way_fm.alpha*(((_sum_gains_squared/(2.0*static_cast<double>(best_cut)-cut))
+                                              *(1.0*step/(static_cast<double>(best_cut)-cut) - 0.5)
+                                              + config.two_way_fm.beta) );
+  }
+
+  static void resetStatistics() {
+    _sum_gains_squared = 0.0;
+  }
+
+  template <typename Gain>
+  static void updateStatistics(Gain gain) {
+    _sum_gains_squared += gain * gain;
+  }
+
+ private:
+  static double _sum_gains_squared;
+
+  protected:
+  ~nGPRandomWalkStopsSearch() { }
+};
+
+double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
+
 } // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
