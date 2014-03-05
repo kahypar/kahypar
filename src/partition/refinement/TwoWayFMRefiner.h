@@ -188,7 +188,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
         }
         DBG(dbg_refinement_2way_fm_improvements,
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
-        best_imbalance = imbalance;        
+        best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = step;
         StoppingPolicy::resetStatistics();
