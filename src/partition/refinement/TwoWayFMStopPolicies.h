@@ -74,7 +74,7 @@ double RandomWalkModelStopsSearch::_expected_variance = 0.0;
 
 struct nGPRandomWalkStopsSearch {
   template <typename Configuration>
-  static bool searchShouldStop(int min_cut_index, int step, const Configuration& config,
+  static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight best_cut, HyperedgeWeight cut) {
     return step >= config.two_way_fm.alpha*(((_sum_gains_squared/(2.0*static_cast<double>(best_cut)-cut))
                                               *(1.0*step/(static_cast<double>(best_cut)-cut) - 0.5)
