@@ -42,7 +42,7 @@ struct Configuration {
       global_search_iterations(1),
       epsilon(1.0),
       partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
-      hyperedge_size_threshold(50),
+      hyperedge_size_threshold(-1),
       verbose_output(false),
       graph_filename(),
       graph_partition_filename(),

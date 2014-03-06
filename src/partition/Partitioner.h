@@ -28,7 +28,7 @@
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
-static const bool dbg_partition_initial_partitioning = false;
+static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
 template <class Hypergraph>
@@ -84,32 +84,36 @@ class Partitioner {
 
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
-    forall_hyperedges(he, hg) {
-      if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
-        DBG(dbg_partition_large_he_removal, "Hyperedge " << *he << ": size ("
-            << hg.edgeSize(*he) << ")   exceeds threshold: "
-            << _config.partitioning.hyperedge_size_threshold);
-        removed_hyperedges.push_back(*he);
-        hg.removeEdge(*he, true);
-      }
-    } endfor
+    if (_config.partitioning.hyperedge_size_threshold != -1) {
+      forall_hyperedges(he, hg) {
+        if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
+          DBG(dbg_partition_large_he_removal, "Hyperedge " << *he << ": size ("
+              << hg.edgeSize(*he) << ")   exceeds threshold: "
+              << _config.partitioning.hyperedge_size_threshold);
+          removed_hyperedges.push_back(*he);
+          hg.removeEdge(*he, true);
+        }
+      } endfor
+    }
   }
 
   void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
-    PartitionWeights partition_weights { 0, 0 };
-    forall_hypernodes(hn, hg) {
-      if (hg.partitionIndex(*hn) != INVALID_PARTITION) {
-        partition_weights[hg.partitionIndex(*hn)] += hg.nodeWeight(*hn);
-      }
-    } endfor
+    if (_config.partitioning.hyperedge_size_threshold != -1) {
+      PartitionWeights partition_weights { 0, 0 };
+      forall_hypernodes(hn, hg) {
+        if (hg.partitionIndex(*hn) != INVALID_PARTITION) {
+          partition_weights[hg.partitionIndex(*hn)] += hg.nodeWeight(*hn);
+        }
+      } endfor
 
-    for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-      DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
-      hg.restoreEdge(*edge);
-      partitionUnpartitionedPins(*edge, hg, partition_weights);
+      for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
+        DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
+        hg.restoreEdge(*edge);
+        partitionUnpartitionedPins(*edge, hg, partition_weights);
+      }
+      ASSERT(metrics::imbalance(hg) <= _config.partitioning.epsilon,
+             "Final assignment of unpartitioned pins violated balance constraint");
     }
-    ASSERT(metrics::imbalance(hg) <= _config.partitioning.epsilon,
-           "Final assignment of unpartitioned pins violated balance constraint");
   }
 
   void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,

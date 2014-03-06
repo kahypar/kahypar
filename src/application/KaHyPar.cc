@@ -136,7 +136,7 @@ void setDefaults(Config& config) {
   config.partitioning.seed = -1;
   config.partitioning.initial_partitioning_attempts = 10;
   config.partitioning.global_search_iterations = 10;
-  config.partitioning.hyperedge_size_threshold = 50;
+  config.partitioning.hyperedge_size_threshold = -1;
   config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_FULL;
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     ("nruns", po::value<int>(),
     "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
-    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partitioning (disable:-1)")
+    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partitioning (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
