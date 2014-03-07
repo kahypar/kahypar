@@ -22,6 +22,7 @@ static const bool dbg_refinement_he_fm_gain_computation = false;
 static const bool dbg_refinement_he_fm_update_level = false;
 static const bool dbg_refinement_he_fm_update_evaluated = true;
 static const bool dbg_refinement_he_fm_update_locked = true;
+static const bool dbg_refinement_he_fm_update_cases = true;
 
 template <class Hypergraph>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
@@ -261,7 +262,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void removeNonCutHyperedgeFromQueues(HyperedgeID he) {
-    DBG(true, " Removing HE " << he << " because it is no longer a cut hyperedge");
+    DBG(dbg_refinement_he_fm_update_cases,
+        " Removing HE " << he << " because it is no longer a cut hyperedge");
     _pq[0]->remove(he);
     _pq[1]->remove(he);
   }
@@ -271,13 +273,15 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void recomputeGainsForCutHyperedge(HyperedgeID he) {
-    DBG(true, " Recomputing Gain for HE " << he << " which still is a cut hyperedge");
+    DBG(dbg_refinement_he_fm_update_cases,
+        " Recomputing Gain for HE " << he << " which still is a cut hyperedge");
     _pq[0]->updateKey(he, computeGain(he, 0, 1));
     _pq[1]->updateKey(he, computeGain(he, 1, 0));
   }
 
   void activateNewCutHyperedge(HyperedgeID he) {
-    DBG(true, " Activating HE " << he << " because it has become a cut hyperedge");
+    DBG(dbg_refinement_he_fm_update_cases
+        , " Activating HE " << he << " because it has become a cut hyperedge");
     activateHyperedge(he);
   }
 
