@@ -18,6 +18,7 @@ using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
 
 namespace partition {
+static const bool dbg_refinement_he_fm_he_activation = true;
 static const bool dbg_refinement_he_fm_gain_computation = false;
 static const bool dbg_refinement_he_fm_update_level = false;
 static const bool dbg_refinement_he_fm_update_evaluated = true;
@@ -157,12 +158,13 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       if (_hg.partitionIndex(*pin) == relevant_partition) {
         markAsContained(*pin);
       }
-    } endfor forall_pins(pin, inner_he, _hg) {
+    } endfor
+
+    forall_pins(pin, inner_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition && !isContained(*pin)) {
         return false;
       }
-    }
-    endfor
+    } endfor
     return true;
   }
 
@@ -189,8 +191,10 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     // we have to use reInsert because PQs will be reused during each uncontraction
     _pq[0]->reInsert(he, computeGain(he, 0, 1));
     _pq[1]->reInsert(he, computeGain(he, 1, 0));
-    DBG(true, "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
-    DBG(true, "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
+    DBG(dbg_refinement_he_fm_he_activation,
+        "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
+    DBG(dbg_refinement_he_fm_he_activation,
+        "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
   }
 
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to) {
