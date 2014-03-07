@@ -19,6 +19,9 @@ using datastructure::PriorityQueue;
 
 namespace partition {
 static const bool dbg_refinement_he_fm_gain_computation = false;
+static const bool dbg_refinement_he_fm_update_level = false;
+static const bool dbg_refinement_he_fm_update_evaluated = true;
+static const bool dbg_refinement_he_fm_update_locked = true;
 
 template <class Hypergraph>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
@@ -168,6 +171,11 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(AHyperedgeMovementOperation, UpdatesPartitionSizes);
   FRIEND_TEST(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry);
   FRIEND_TEST(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved);
+  FRIEND_TEST(TheUpdateGainsMethod, IgnoresLockedHyperedges);
+  FRIEND_TEST(TheUpdateGainsMethod, EvaluatedEachHyperedgeOnlyOnce);
+  FRIEND_TEST(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQs);
+  FRIEND_TEST(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges);
+  FRIEND_TEST(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges);
 
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
@@ -196,6 +204,81 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
              "HE " << he << " does not exist in PQ " << to);
     _pq[to]->remove(he);
     lock(he);
+  }
+
+  void updateNeighbours(HyperedgeID moved_he) {
+    _update_indicator.reset();
+    forall_pins(pin, moved_he, _hg) {
+      DBG(dbg_refinement_he_fm_update_level, "--->Considering PIN " << *pin);
+      forall_incident_hyperedges(incident_he, *pin, _hg) {
+        if (*incident_he == moved_he) { continue; }
+        DBG(dbg_refinement_he_fm_update_level, "-->Considering incident HE "
+            << *incident_he << "of PIN " << *pin);
+        if (_update_indicator.isAlreadyEvaluated(*incident_he)) {
+          DBG(dbg_refinement_he_fm_update_evaluated,
+              "*** Skipping HE " << *incident_he << " because it is already evaluated!");
+          continue;
+        }
+        forall_pins(incident_he_pin, *incident_he, _hg) {
+          if (*incident_he_pin == *pin) { continue; }
+          DBG(dbg_refinement_he_fm_update_level, "->Considering incident_he_pin "
+              << *incident_he_pin << " of HE " << *incident_he);
+          recomputeGainsForIncidentCutHyperedges(*incident_he_pin);
+        } endfor
+      } endfor
+    } endfor
+  }
+
+  void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) {
+    forall_incident_hyperedges(he, hn, _hg) {
+      DBG(dbg_refinement_he_fm_update_level,
+          " Recomputing Gains for HE " << *he << "  incident to HN " << hn);
+      if (_update_indicator.isAlreadyEvaluated(*he)) {
+        DBG(dbg_refinement_he_fm_update_evaluated,
+            "*** Skipping HE " << *he << " because it is already evaluated!");
+        continue;
+      }
+      if (isLocked(*he)) {
+        ASSERT(!_pq[0]->contains(*he), "HE " << *he << "should not be present in PQ 0");
+        ASSERT(!_pq[1]->contains(*he), "HE " << *he << "should not be present in PQ 1");
+        DBG(dbg_refinement_he_fm_update_locked, "HE " << *he << " is locked");
+        _update_indicator.markAsEvaluated(*he);
+        continue;
+      }
+      if (wasCutHyperedgeBeforeMove(*he)) {
+        ASSERT(_pq[0]->contains(*he) && _pq[1]->contains(*he),
+               "HE " << *he << "should be present in both PQs");
+        if (isCutHyperedge(*he)) {
+          recomputeGainsForCutHyperedge(*he);
+        } else {
+          removeNonCutHyperedgeFromQueues(*he);
+        }
+      } else if (isCutHyperedge(*he)) {
+        activateNewCutHyperedge(*he);
+      }
+      _update_indicator.markAsEvaluated(*he);
+    } endfor
+  }
+
+  void removeNonCutHyperedgeFromQueues(HyperedgeID he) {
+    DBG(true, " Removing HE " << he << " because it is no longer a cut hyperedge");
+    _pq[0]->remove(he);
+    _pq[1]->remove(he);
+  }
+
+  bool wasCutHyperedgeBeforeMove(HyperedgeID he) const {
+    return _pq[0]->contains(he);
+  }
+
+  void recomputeGainsForCutHyperedge(HyperedgeID he) {
+    DBG(true, " Recomputing Gain for HE " << he << " which still is a cut hyperedge");
+    _pq[0]->updateKey(he, computeGain(he, 0, 1));
+    _pq[1]->updateKey(he, computeGain(he, 1, 0));
+  }
+
+  void activateNewCutHyperedge(HyperedgeID he) {
+    DBG(true, " Activating HE " << he << " because it has become a cut hyperedge");
+    activateHyperedge(he);
   }
 
   void lock(HyperedgeID he) {
