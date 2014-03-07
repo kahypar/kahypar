@@ -123,17 +123,19 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       Gain gain = 1;
       forall_pins(pin, he, _hg) {
         if (_hg.partitionIndex(*pin) != from) { continue; }
-        DBG(true, "evaluating pin " << *pin);
+        DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << *pin);
         forall_incident_hyperedges(incident_he, *pin, _hg) {
           if (*incident_he == he || _gain_indicator.isAlreadyEvaluated(*incident_he)) { continue; }
           if (!isCutHyperedge(*incident_he) &&
               !isNestedIntoInPartition(*incident_he, he, from)) {
             gain -= 1;
-            DBG(true, "pin " << *pin << " HE: " << *incident_he << " gain-=1: " << gain);
+            DBG(dbg_refinement_he_fm_gain_computation,
+                "pin " << *pin << " HE: " << *incident_he << " gain-=1: " << gain);
           } else if (isCutHyperedge(*incident_he) &&
                      isNestedIntoInPartition(*incident_he, he, from)) {
             gain += 1;
-            DBG(true, "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
+            DBG(dbg_refinement_he_fm_gain_computation,
+                "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
           }
           _gain_indicator.markAsEvaluated(*incident_he);
         } endfor
