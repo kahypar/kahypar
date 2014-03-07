@@ -34,6 +34,29 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   static const int K = 2;
 
+  class HyperedgeEvalIndicator {
+    public:
+    HyperedgeEvalIndicator(HyperedgeID size) :
+      _bitvector(size) { }
+
+    void markAsEvaluated(HyperedgeID id) {
+      ASSERT(!_bitvector[id], "HE " << id << " is already marked as evaluated");
+      DBG(false, "Marking HE " << id << " as evaluated");
+      _bitvector[id] = 1;
+    }
+
+    bool isAlreadyEvaluated(HyperedgeID id) const {
+      return _bitvector[id];
+    }
+
+    void reset() {
+      _bitvector.reset();
+    }
+
+    private:
+    boost::dynamic_bitset<uint64_t> _bitvector;
+  };
+
   public:
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
     _hg(hypergraph),
@@ -41,7 +64,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumNodes()), new HyperedgeFMPQ(_hg.initialNumNodes())},
     _locked_hyperedges(_hg.initialNumEdges()),
-    _evaluated_hyperedges(_hg.initialNumEdges()),
+    _gain_indicator(_hg.initialNumEdges()),
+    _update_indicator(_hg.initialNumEdges()),
     _contained_hypernodes(_hg.initialNumNodes()),
     _is_initialized(false) { }
 
@@ -103,13 +127,13 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     ASSERT((from != INVALID_PARTITION) && (to != INVALID_PARTITION),
            "Trying to compute gain for invalid partition");
     if (isCutHyperedge(he)) {
-      resetEvaluatedHyperedges();
+      _gain_indicator.reset();
       Gain gain = 1;
       forall_pins(pin, he, _hg) {
         if (_hg.partitionIndex(*pin) != from) { continue; }
         DBG(true, "evaluating pin " << *pin);
         forall_incident_hyperedges(incident_he, *pin, _hg) {
-          if (*incident_he == he || isAlreadyEvaluated(*incident_he)) { continue; }
+          if (*incident_he == he || _gain_indicator.isAlreadyEvaluated(*incident_he)) { continue; }
           if (!isCutHyperedge(*incident_he) &&
               !isNestedIntoInPartition(*incident_he, he, from)) {
             gain -= 1;
@@ -119,7 +143,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
             gain += 1;
             DBG(true, "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
           }
-          markAsEvaluated(*incident_he);
+          _gain_indicator.markAsEvaluated(*incident_he);
         } endfor
       } endfor
       return gain;
@@ -182,19 +206,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _locked_hyperedges.reset();
   }
 
-  void markAsEvaluated(HyperedgeID he) {
-    ASSERT(!_evaluated_hyperedges[he], "HE " << he << " is already marked as evaluated");
-    _evaluated_hyperedges[he] = 1;
-  }
-
-  bool isAlreadyEvaluated(HyperedgeID he) const {
-    return _evaluated_hyperedges[he];
-  }
-
-  void resetEvaluatedHyperedges() {
-    _evaluated_hyperedges.reset();
-  }
-
   void markAsContained(HypernodeID hn) {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
     _contained_hypernodes[hn] = 1;
@@ -213,7 +224,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _locked_hyperedges;
-  boost::dynamic_bitset<uint64_t> _evaluated_hyperedges;
+  HyperedgeEvalIndicator _gain_indicator;
+  HyperedgeEvalIndicator _update_indicator;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
