@@ -19,6 +19,7 @@ using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
+using datastructure::HypernodeID;
 
 namespace partition {
 typedef TwoWayFMRefiner<HypergraphType,
@@ -392,5 +393,35 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
 
   ASSERT_THAT(refiner._pq[0]->contains(4), Eq(true));
   ASSERT_THAT(refiner._pq[1]->contains(3), Eq(true));
+}
+
+TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1) {
+  HypergraphType hypergraph(4, 3, HyperedgeIndexVector { 0, 2, 4, 6 },
+                            HyperedgeVector { 0, 1, 2, 3, 2, 3 });
+  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
+  Configuration<HypergraphType> config;
+  config.partitioning.epsilon = 1;
+  TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  refiner.initialize();
+
+  refiner.activate(0);
+  refiner.activate(3);
+
+  HyperedgeWeight max_gain = std::numeric_limits<HyperedgeWeight>::min();
+  HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
+  PartitionID from_partition = std::numeric_limits<PartitionID>::min();
+  PartitionID to_partition = std::numeric_limits<PartitionID>::min();
+
+  refiner.chooseNextMove(max_gain, max_gain_node, from_partition, to_partition);
+  ASSERT_THAT(max_gain, Eq(2));
+  ASSERT_THAT(max_gain_node, Eq(3));
+  ASSERT_THAT(from_partition, Eq(1));
+  ASSERT_THAT(to_partition, Eq(0));
+
+  // prior to bugfix we accidentally deleted this HN from the queue!
+  ASSERT_THAT(refiner._pq[0]->contains(0), Eq(true));
 }
 } // namespace partition

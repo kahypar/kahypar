@@ -127,26 +127,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       PartitionID from_partition = std::numeric_limits<PartitionID>::min();
       PartitionID to_partition = std::numeric_limits<PartitionID>::min();
 
-      // ToDo:
-      // [ ] make this a selection strategy!
-      // [ ] look at which strategy is proposed by others
-      // [ ] toward-tiebreaking (siehe tomboy)
-      if (!_pq[0]->empty()) {
-        max_gain = _pq[0]->maxKey();
-        max_gain_node = _pq[0]->max();
-        _pq[0]->deleteMax();
-        from_partition = 0;
-        to_partition = 1;
-      }
-
-      if (!_pq[1]->empty() && ((_pq[1]->maxKey() > max_gain) ||
-                               (_pq[1]->maxKey() == max_gain && Randomize::flipCoin()))) {
-        max_gain = _pq[1]->maxKey();
-        max_gain_node = _pq[1]->max();
-        _pq[1]->deleteMax();
-        from_partition = 1;
-        to_partition = 0;
-      }
+      chooseNextMove(max_gain, max_gain_node, from_partition, to_partition);
 
       ASSERT(max_gain != std::numeric_limits<Gain>::min() &&
              max_gain_node != std::numeric_limits<HypernodeID>::max() &&
@@ -257,6 +238,31 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
   FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
+  FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
+
+  // ToDo:
+  // [ ] make this a selection strategy!
+  // [ ] look at which strategy is proposed by others
+  // [ ] toward-tiebreaking (siehe tomboy)
+  void chooseNextMove(Gain& max_gain, HypernodeID& max_gain_node, PartitionID& from_partition, PartitionID& to_partition) {
+    Gain gain_pq0 = std::numeric_limits<Gain>::min();
+
+    if (!_pq[0]->empty()) {
+      gain_pq0 = _pq[0]->maxKey();
+    }
+
+    bool chosen_pq_index = 0;
+    if (!_pq[1]->empty() && ((_pq[1]->maxKey() > gain_pq0) ||
+                             (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
+      chosen_pq_index = 1;
+    }
+
+    max_gain = _pq[chosen_pq_index]->maxKey();
+    max_gain_node = _pq[chosen_pq_index]->max();
+    _pq[chosen_pq_index]->deleteMax();
+    from_partition = chosen_pq_index;
+    to_partition = chosen_pq_index ^ 1;
+  }
 
   bool queuesAreEmpty() const {
     return _pq[0]->empty() && _pq[1]->empty();
