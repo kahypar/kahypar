@@ -41,7 +41,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   class HyperedgeEvalIndicator {
     public:
-    HyperedgeEvalIndicator(HyperedgeID size) :
+    explicit HyperedgeEvalIndicator(HyperedgeID size) :
       _bitvector(size) { }
 
     void markAsEvaluated(HyperedgeID id) {
