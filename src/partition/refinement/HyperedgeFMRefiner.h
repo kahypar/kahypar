@@ -7,8 +7,11 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <algorithm>
 #include <limits>
+#include <vector>
 
+#include "external/fp_compare/Utils.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -25,6 +28,7 @@ static const bool dbg_refinement_he_fm_update_level = false;
 static const bool dbg_refinement_he_fm_update_evaluated = true;
 static const bool dbg_refinement_he_fm_update_locked = true;
 static const bool dbg_refinement_he_fm_update_cases = true;
+static const bool dbg_refinement_he_fm_improvements = true;
 
 template <class Hypergraph>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
@@ -73,7 +77,11 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
     _contained_hypernodes(_hg.initialNumNodes()),
-    _is_initialized(false) { }
+    _is_initialized(false) {
+    _movement_indices.reserve(_hg.initialNumEdges() + 1);
+    _movement_indices[0] = 0;
+    _performed_moves.reserve(_hg.initialNumPins());
+  }
 
   ~HyperedgeFMRefiner() {
     delete _pq[0];
@@ -181,6 +189,28 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges);
   FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
+  FRIEND_TEST(AHyperedgeFMRefiner, StoresIDsOfMovedPinsForRollback);
+
+  void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
+    DBG(false, "min_cut_index = " << min_cut_index);
+    DBG(false, "last_index = " << last_index);
+    while (last_index != min_cut_index) {
+      // HyperedgeID he = performed_moves[last_index];
+      // _partition_size[hg.partitionIndex(hn)] -= _hg.nodeWeight(hn);
+      // _partition_size[(hg.partitionIndex(hn) ^ 1)] += _hg.nodeWeight(hn);
+      // _hg.changeNodePartition(hn, hg.partitionIndex(hn), (hg.partitionIndex(hn) ^ 1));
+      // --last_index;
+    }
+  }
+
+  double calculateImbalance() const {
+    double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
+                       (_partition_size[0] + _partition_size[1]) - 1.0;
+    ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
+             FloatingPoint<double>(metrics::imbalance(_hg))),
+           "imbalance calculation inconsistent beween fm-refiner and hypergraph");
+    return imbalance;
+  }
 
   void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
                       PartitionID& to_partition) {
@@ -224,18 +254,22 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
   }
 
-  void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to) {
+  void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
+    int curr_index = _movement_indices[step];
     forall_pins(pin, he, _hg) {
       if (_hg.partitionIndex(*pin) == from) {
         _hg.changeNodePartition(*pin, from, to);
         _partition_size[from] -= _hg.nodeWeight(*pin);
         _partition_size[to] += _hg.nodeWeight(*pin);
+        _performed_moves[curr_index++] = *pin;
       }
     } endfor
       ASSERT(_pq[to]->contains(he) == true,
              "HE " << he << " does not exist in PQ " << to);
     _pq[to]->remove(he);
     lock(he);
+    //set sentinel
+    _movement_indices[step + 1] = curr_index;
   }
 
   void updateNeighbours(HyperedgeID moved_he) {
@@ -350,6 +384,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
+  std::vector<size_t> _movement_indices;
+  std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
