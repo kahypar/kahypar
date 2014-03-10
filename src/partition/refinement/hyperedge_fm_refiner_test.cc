@@ -20,6 +20,7 @@ using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 using datastructure::HyperedgeWeight;
+using datastructure::HyperedgeID;
 
 namespace partition {
 class AHyperedgeFMRefiner : public Test {
@@ -350,5 +351,36 @@ TEST_F(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges)
   hyperedge_fm_refiner.updateNeighbours(0);
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->key(1), Eq(-1));
   ASSERT_THAT(hyperedge_fm_refiner._pq[1]->key(1), Eq(2));
+}
+
+TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
+  hypergraph.reset(new HypergraphType(4, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
+                                      HyperedgeVector { 2, 3, 0, 1 }));
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->setEdgeWeight(0, 1);
+  hypergraph->setEdgeWeight(1, 5);
+  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  hyperedge_fm_refiner.initialize();
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(3);
+  ASSERT_THAT(hyperedge_fm_refiner._pq[0]->key(0), Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[1]->key(0), Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[0]->key(1), Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[1]->key(1), Eq(5));
+
+  HyperedgeWeight max_gain = -1;
+  HyperedgeID max_gain_he = -1;
+  PartitionID from = -1;
+  PartitionID to = -1;
+
+  hyperedge_fm_refiner.chooseNextMove(max_gain, max_gain_he, from, to);
+
+  ASSERT_THAT(max_gain, Eq(5));
+  ASSERT_THAT(max_gain_he, Eq(1));
+  ASSERT_THAT(from, Eq(1));
+  ASSERT_THAT(to, Eq(0));
 }
 } // namespace partition

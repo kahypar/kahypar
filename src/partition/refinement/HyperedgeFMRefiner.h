@@ -13,6 +13,7 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
+#include "tools/RandomFunctions.h"
 
 using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
@@ -179,6 +180,32 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQs);
   FRIEND_TEST(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges);
+  FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
+
+  void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
+                      PartitionID& to_partition) {
+    ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
+    Gain gain_pq0 = std::numeric_limits<Gain>::min();
+    if (!_pq[0]->empty()) {
+      gain_pq0 = _pq[0]->maxKey();
+    }
+
+    bool chosen_pq_index = 0;
+    if (!_pq[1]->empty() && ((_pq[1]->maxKey() > gain_pq0) ||
+                             (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
+      chosen_pq_index = 1;
+    }
+
+    max_gain = _pq[chosen_pq_index]->maxKey();
+    max_gain_he = _pq[chosen_pq_index]->max();
+    _pq[chosen_pq_index]->deleteMax();
+    from_partition = chosen_pq_index;
+    to_partition = chosen_pq_index ^ 1;
+  }
+
+  bool queuesAreEmpty() const {
+    return _pq[0]->empty() && _pq[1]->empty();
+  }
 
   bool isCutHyperedge(HyperedgeID he) const {
     return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
