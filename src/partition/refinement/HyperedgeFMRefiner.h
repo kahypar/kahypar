@@ -125,7 +125,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
            "Trying to compute gain for invalid partition");
     if (isCutHyperedge(he)) {
       _gain_indicator.reset();
-      Gain gain = 1;
+      Gain gain = _hg.edgeWeight(he);
       forall_pins(pin, he, _hg) {
         if (_hg.partitionIndex(*pin) != from) { continue; }
         DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << *pin);
@@ -133,12 +133,12 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
           if (*incident_he == he || _gain_indicator.isAlreadyEvaluated(*incident_he)) { continue; }
           if (!isCutHyperedge(*incident_he) &&
               !isNestedIntoInPartition(*incident_he, he, from)) {
-            gain -= 1;
+            gain -= _hg.edgeWeight(*incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
                 "pin " << *pin << " HE: " << *incident_he << " gain-=1: " << gain);
           } else if (isCutHyperedge(*incident_he) &&
                      isNestedIntoInPartition(*incident_he, he, from)) {
-            gain += 1;
+            gain += _hg.edgeWeight(*incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
                 "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
           }
