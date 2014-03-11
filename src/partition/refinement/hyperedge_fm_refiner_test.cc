@@ -481,7 +481,7 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImproveme
   ASSERT_THAT(hypergraph->partitionIndex(8), Eq(1));
 }
 
-TEST_F(AHyperedgeMovementOperation, ChosesTheMaxGainMoveFromEligiblePQ) {
+TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   hypergraph.reset(new HypergraphType(12, 5, HyperedgeIndexVector { 0, 3, 6, 8, 11, /*sentinel*/ 20 },
                                       HyperedgeVector { 0, 7, 8, 2, 3, 4, 5, 6, 9, 10, 11, 0, 1, 2, 4, 7, 8, 5, 6, 9 }));
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);

@@ -197,7 +197,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
   FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
-  FRIEND_TEST(AHyperedgeMovementOperation, ChosesTheMaxGainMoveFromEligiblePQ);
+  FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
