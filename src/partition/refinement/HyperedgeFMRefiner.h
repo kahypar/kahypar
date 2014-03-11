@@ -197,6 +197,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
   FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
+  FRIEND_TEST(AHyperedgeMovementOperation, ChosesTheMaxGainMoveFromEligiblePQ);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
@@ -228,14 +229,18 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
                       PartitionID& to_partition) {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
+
+    bool pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
+    bool pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+
     Gain gain_pq0 = std::numeric_limits<Gain>::min();
-    if (!_pq[0]->empty()) {
+    if (pq0_eligible) {
       gain_pq0 = _pq[0]->maxKey();
     }
 
     bool chosen_pq_index = 0;
-    if (!_pq[1]->empty() && ((_pq[1]->maxKey() > gain_pq0) ||
-                             (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
+    if (pq1_eligible && ((_pq[1]->maxKey() > gain_pq0) ||
+                         (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
       chosen_pq_index = 1;
     }
 

@@ -107,8 +107,8 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  
 
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 0), Eq(true));
 }
@@ -479,6 +479,44 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImproveme
   ASSERT_THAT(hypergraph->partitionIndex(6), Eq(1));
   ASSERT_THAT(hypergraph->partitionIndex(7), Eq(0));
   ASSERT_THAT(hypergraph->partitionIndex(8), Eq(1));
+}
+
+TEST_F(AHyperedgeMovementOperation, ChosesTheMaxGainMoveFromEligiblePQ) {
+  hypergraph.reset(new HypergraphType(12, 5, HyperedgeIndexVector { 0, 3, 6, 8, 11, /*sentinel*/ 20 },
+                                      HyperedgeVector { 0, 7, 8, 2, 3, 4, 5, 6, 9, 10, 11, 0, 1, 2, 4, 7, 8, 5, 6, 9 }));
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(7, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(9, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(10, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(11, INVALID_PARTITION, 1);
+  config.partitioning.epsilon = 0.02;
+  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
+                                                   * ceil(12 / static_cast<double>(config.partitioning.k));
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
+  hyperedge_fm_refiner.initialize();
+
+  HyperedgeWeight best_cut = 3;
+  double best_imbalance = 0.5;
+  HyperedgeWeight max_gain = std::numeric_limits<HyperedgeWeight>::min();
+  HyperedgeID max_gain_hyperedge = std::numeric_limits<HyperedgeID>::max();
+  PartitionID from_partition = std::numeric_limits<PartitionID>::min();
+  PartitionID to_partition = std::numeric_limits<PartitionID>::min();
+
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
+  hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
+
+  hyperedge_fm_refiner.chooseNextMove(max_gain, max_gain_hyperedge, from_partition, to_partition);
+  ASSERT_THAT(max_gain, Eq(1));
+  ASSERT_THAT(max_gain_hyperedge, Eq(0));
+  ASSERT_THAT(from_partition, Eq(1));
+  ASSERT_THAT(to_partition, Eq(0));
 }
 TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
   hypergraph.reset(new HypergraphType(6, 2, HyperedgeIndexVector { 0, 4, /*sentinel*/ 6 },
