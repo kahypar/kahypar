@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
 #include "lib/macros.h"
 
 namespace partition {
@@ -104,4 +104,4 @@ struct nGPRandomWalkStopsSearch {
 double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
 } // namespace partition
 
-#endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMSTOPPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_

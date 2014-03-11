@@ -23,6 +23,9 @@ using datastructure::HyperedgeWeight;
 using datastructure::HyperedgeID;
 
 namespace partition {
+typedef HyperedgeFMRefiner<HypergraphType,
+                           NumberOfFruitlessMovesStopsSearch> HyperedgeFMRefinerSimpleStopping;
+
 class AHyperedgeFMRefiner : public Test {
   public:
   AHyperedgeFMRefiner() :
@@ -88,14 +91,14 @@ class RollBackInformation : public AHyperedgeFMRefiner {
     hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
     hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
     config.partitioning.epsilon = 1;
-    hyperedge_fm_refiner.reset(new HyperedgeFMRefiner<HypergraphType>(*hypergraph, config));
+    hyperedge_fm_refiner.reset(new HyperedgeFMRefinerSimpleStopping(*hypergraph, config));
     hyperedge_fm_refiner->initialize();
     hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
   }
 
-  std::unique_ptr<HyperedgeFMRefiner<HypergraphType> > hyperedge_fm_refiner;
+  std::unique_ptr<HyperedgeFMRefinerSimpleStopping> hyperedge_fm_refiner;
 };
 
 TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
@@ -104,7 +107,7 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  
 
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 0), Eq(true));
@@ -118,7 +121,7 @@ TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNes
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
 
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 1), Eq(true));
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 0), Eq(false));
 }
@@ -134,7 +137,7 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainOfMovingAllPinsFromOneToAnotherPartition
   hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
 
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(1));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(0));
@@ -154,7 +157,7 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainValuesOnModifiedHypergraph) {
   hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(1));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(0));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(2, 0, 1), Eq(0));
@@ -174,7 +177,7 @@ TEST_F(AHyperedgeFMRefiner, ConsidersEachHyperedgeOnlyOnceDuringGainComputation)
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(2));
 }
@@ -188,7 +191,7 @@ TEST_F(AHyperedgeFMRefiner, IncreasesGainOfHyperedgeMovementByOneWhenNestedCutHy
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(3));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(3));
@@ -202,7 +205,7 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNonNestedCutH
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
 }
@@ -213,7 +216,7 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNestedNonCutH
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
 }
@@ -225,7 +228,7 @@ TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNo
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(-1));
 }
@@ -234,7 +237,7 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
   HypernodeWeightVector hypernode_weights { 4, 5 };
   hypergraph.reset(new HypergraphType(2, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
                                       HyperedgeVector { 0, 1 }, nullptr, &hypernode_weights));
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
 
@@ -246,7 +249,7 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
 TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
   hypergraph.reset(new HypergraphType(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
                                       HyperedgeVector { 0, 1, 1, 2 }));
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
@@ -264,14 +267,14 @@ TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
 }
 
 TEST_F(AHyperedgeMovementOperation, UpdatesPartitionSizes) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
   ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(1));
@@ -284,7 +287,7 @@ TEST_F(AHyperedgeMovementOperation, UpdatesPartitionSizes) {
 }
 
 TEST_F(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.activateIncidentCutHyperedges(2);
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(1), Eq(true));
@@ -295,7 +298,7 @@ TEST_F(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry) {
 }
 
 TEST_F(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.activateIncidentCutHyperedges(2);
 
@@ -305,7 +308,7 @@ TEST_F(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved) {
 }
 
 TEST_F(TheUpdateGainsMethod, IgnoresLockedHyperedges) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.lock(0);
 
@@ -318,7 +321,7 @@ TEST_F(TheUpdateGainsMethod, IgnoresLockedHyperedges) {
 }
 
 TEST_F(TheUpdateGainsMethod, EvaluatedEachHyperedgeOnlyOnce) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
   hyperedge_fm_refiner._update_indicator.markAsEvaluated(1);
@@ -337,7 +340,7 @@ TEST_F(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQ
   hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
 
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
@@ -354,7 +357,7 @@ TEST_F(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQ
 }
 
 TEST_F(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.activateIncidentCutHyperedges(3);
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(5), Eq(false));
@@ -368,7 +371,7 @@ TEST_F(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges) {
 }
 
 TEST_F(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges) {
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.activateIncidentCutHyperedges(2);
   hyperedge_fm_refiner.activateIncidentCutHyperedges(3);
@@ -391,7 +394,7 @@ TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
   hypergraph->setEdgeWeight(0, 1);
   hypergraph->setEdgeWeight(1, 5);
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
   hyperedge_fm_refiner.activateIncidentCutHyperedges(3);

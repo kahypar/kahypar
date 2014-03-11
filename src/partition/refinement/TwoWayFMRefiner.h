@@ -20,8 +20,8 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
-#include "partition/refinement/TwoWayFMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
 using defs::INVALID_PARTITION;

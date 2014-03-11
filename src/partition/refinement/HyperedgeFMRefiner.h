@@ -15,6 +15,7 @@
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -31,7 +32,7 @@ static const bool dbg_refinement_he_fm_update_cases = true;
 static const bool dbg_refinement_he_fm_improvements = true;
 static const bool dbg_refinement_he_fm_rollback = true;
 
-template <class Hypergraph>
+template <class Hypergraph, class StoppingPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
