@@ -196,6 +196,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(RollBackInformation, StoresIDsOfMovedPins);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
+  FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
@@ -243,6 +244,16 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _pq[chosen_pq_index]->deleteMax();
     from_partition = chosen_pq_index;
     to_partition = chosen_pq_index ^ 1;
+  }
+
+  bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) {
+    HypernodeWeight pins_to_move_weight = 0;
+    forall_pins(pin, he, _hg) {
+      if (_hg.partitionIndex(*pin) == from) {
+        pins_to_move_weight += _hg.nodeWeight(*pin);
+      }
+    } endfor
+    return _partition_size[to] + pins_to_move_weight <= _config.partitioning.partition_size_upper_bound;
   }
 
   bool queuesAreEmpty() const {

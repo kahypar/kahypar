@@ -480,4 +480,23 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImproveme
   ASSERT_THAT(hypergraph->partitionIndex(7), Eq(0));
   ASSERT_THAT(hypergraph->partitionIndex(8), Eq(1));
 }
+TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
+  hypergraph.reset(new HypergraphType(6, 2, HyperedgeIndexVector { 0, 4, /*sentinel*/ 6 },
+                                      HyperedgeVector { 0, 1, 2, 3, 4, 5 }));
+  config.partitioning.epsilon = 0.02;
+  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
+                                                   * ceil(6 / static_cast<double>(config.partitioning.k));
+  DBG(true, "config.partitioning.partition_size_upper_bound=" << config.partitioning.partition_size_upper_bound);
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+  HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
+  hyperedge_fm_refiner.initialize();
+
+  ASSERT_THAT(hyperedge_fm_refiner.movePreservesBalanceConstraint(0, 0, 1), Eq(false));
+  ASSERT_THAT(hyperedge_fm_refiner.movePreservesBalanceConstraint(1, 0, 1), Eq(true));
+}
 } // namespace partition
