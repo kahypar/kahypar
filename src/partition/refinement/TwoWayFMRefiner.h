@@ -159,9 +159,9 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       bool improved_cut_within_balance = (cut < best_cut) && (imbalance < max_imbalance);
-      bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut == best_cut);
+      bool improved_balance_less_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
-      if (improved_balance_equal_cut || improved_cut_within_balance) {
+      if (improved_balance_less_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
         if (cut < best_cut) {
           DBG(dbg_refinement_2way_fm_improvements,
