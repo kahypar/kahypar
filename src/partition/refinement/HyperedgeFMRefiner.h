@@ -78,6 +78,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
     _contained_hypernodes(_hg.initialNumNodes()),
+    _movement_indices(),
+    _performed_moves(),
     _is_initialized(false) {
     _movement_indices.reserve(_hg.initialNumEdges() + 1);
     _movement_indices[0] = 0;
