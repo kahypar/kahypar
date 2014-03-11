@@ -29,6 +29,7 @@ static const bool dbg_refinement_he_fm_update_evaluated = true;
 static const bool dbg_refinement_he_fm_update_locked = true;
 static const bool dbg_refinement_he_fm_update_cases = true;
 static const bool dbg_refinement_he_fm_improvements = true;
+static const bool dbg_refinement_he_fm_rollback = true;
 
 template <class Hypergraph>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
@@ -194,14 +195,14 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
-    DBG(true, "min_cut_index = " << min_cut_index);
+    DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
     HypernodeID hn_to_move;
     while (last_index != min_cut_index) {
-      DBG(true, "last_index = " << last_index);
+      DBG(dbg_refinement_he_fm_rollback, "last_index = " << last_index);
       for (int i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
         hn_to_move = _performed_moves[i];
-        DBG(true, "Moving HN " << hn_to_move << " from " << hg.partitionIndex(hn_to_move)
-            << " to " << (hg.partitionIndex(hn_to_move) ^ 1));
+        DBG(dbg_refinement_he_fm_rollback, "Moving HN " << hn_to_move << " from "
+            << hg.partitionIndex(hn_to_move) << " to " << (hg.partitionIndex(hn_to_move) ^ 1));
         _partition_size[hg.partitionIndex(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
         _partition_size[(hg.partitionIndex(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
         _hg.changeNodePartition(hn_to_move, hg.partitionIndex(hn_to_move),
