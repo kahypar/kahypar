@@ -189,17 +189,25 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges);
   FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
-  FRIEND_TEST(AHyperedgeFMRefiner, StoresIDsOfMovedPinsForRollback);
+  FRIEND_TEST(RollBackInformation, StoresIDsOfMovedPins);
+  FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
+  FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
-    DBG(false, "min_cut_index = " << min_cut_index);
-    DBG(false, "last_index = " << last_index);
+    DBG(true, "min_cut_index = " << min_cut_index);
+    HypernodeID hn_to_move;
     while (last_index != min_cut_index) {
-      // HyperedgeID he = performed_moves[last_index];
-      // _partition_size[hg.partitionIndex(hn)] -= _hg.nodeWeight(hn);
-      // _partition_size[(hg.partitionIndex(hn) ^ 1)] += _hg.nodeWeight(hn);
-      // _hg.changeNodePartition(hn, hg.partitionIndex(hn), (hg.partitionIndex(hn) ^ 1));
-      // --last_index;
+      DBG(true, "last_index = " << last_index);
+      for (int i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
+        hn_to_move = _performed_moves[i];
+        DBG(true, "Moving HN " << hn_to_move << " from " << hg.partitionIndex(hn_to_move)
+            << " to " << (hg.partitionIndex(hn_to_move) ^ 1));
+        _partition_size[hg.partitionIndex(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
+        _partition_size[(hg.partitionIndex(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
+        _hg.changeNodePartition(hn_to_move, hg.partitionIndex(hn_to_move),
+                                (hg.partitionIndex(hn_to_move) ^ 1));
+      }
+      --last_index;
     }
   }
 

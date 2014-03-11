@@ -69,6 +69,35 @@ class TheUpdateGainsMethod : public AHyperedgeFMRefiner {
   }
 };
 
+class RollBackInformation : public AHyperedgeFMRefiner {
+  public:
+  RollBackInformation() :
+    AHyperedgeFMRefiner(),
+    hyperedge_fm_refiner(nullptr) { }
+
+  void SetUp() {
+    hypergraph.reset(new HypergraphType(9, 3, HyperedgeIndexVector { 0, 4, 7, /*sentinel*/ 9 },
+                                        HyperedgeVector { 0, 1, 2, 3, 4, 5, 6, 7, 8 }));
+    hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+    hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
+    hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
+    hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
+    hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
+    hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
+    config.partitioning.epsilon = 1;
+    hyperedge_fm_refiner.reset(new HyperedgeFMRefiner<HypergraphType>(*hypergraph, config));
+    hyperedge_fm_refiner->initialize();
+    hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
+    hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
+    hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
+  }
+
+  std::unique_ptr<HyperedgeFMRefiner<HypergraphType> > hyperedge_fm_refiner;
+};
+
 TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph.reset(new HypergraphType(3, 2, HyperedgeIndexVector { 0, 3, /*sentinel*/ 5 },
                                       HyperedgeVector { 0, 1, 2, 0, 1 }));
@@ -384,38 +413,68 @@ TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   ASSERT_THAT(to, Eq(0));
 }
 
-TEST_F(AHyperedgeFMRefiner, StoresIDsOfMovedPinsForRollback) {
-  hypergraph.reset(new HypergraphType(9, 3, HyperedgeIndexVector { 0, 4, 7, /*sentinel*/ 9 },
-                                      HyperedgeVector { 0, 1, 2, 3, 4, 5, 6, 7, 8 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
-  config.partitioning.epsilon = 1;
-  HyperedgeFMRefiner<HypergraphType> hyperedge_fm_refiner(*hypergraph, config);
-  hyperedge_fm_refiner.initialize();
-  hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
-  hyperedge_fm_refiner.activateIncidentCutHyperedges(5);
-  hyperedge_fm_refiner.activateIncidentCutHyperedges(8);
+TEST_F(RollBackInformation, StoresIDsOfMovedPins) {
+  hyperedge_fm_refiner->moveHyperedge(0, 0, 1, 0);
+  hyperedge_fm_refiner->moveHyperedge(1, 1, 0, 1);
+  hyperedge_fm_refiner->moveHyperedge(2, 1, 0, 2);
 
-  hyperedge_fm_refiner.moveHyperedge(0, 0, 1, 0);
-  hyperedge_fm_refiner.moveHyperedge(1, 1, 0, 1);
-  hyperedge_fm_refiner.moveHyperedge(2, 1, 0, 2);
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[0], Eq(0));
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[1], Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[2], Eq(2));
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[3], Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[4], Eq(6));
+  ASSERT_THAT(hyperedge_fm_refiner->_performed_moves[5], Eq(8));
+  ASSERT_THAT(hyperedge_fm_refiner->_movement_indices[0], Eq(0));
+  ASSERT_THAT(hyperedge_fm_refiner->_movement_indices[1], Eq(3));
+  ASSERT_THAT(hyperedge_fm_refiner->_movement_indices[2], Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner->_movement_indices[3], Eq(6));
+}
 
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[0], Eq(0));
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[1], Eq(1));
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[2], Eq(2));
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[3], Eq(5));
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[4], Eq(6));
-  ASSERT_THAT(hyperedge_fm_refiner._performed_moves[5], Eq(8));
-  ASSERT_THAT(hyperedge_fm_refiner._movement_indices[0], Eq(0));
-  ASSERT_THAT(hyperedge_fm_refiner._movement_indices[1], Eq(3));
-  ASSERT_THAT(hyperedge_fm_refiner._movement_indices[2], Eq(5));
-  ASSERT_THAT(hyperedge_fm_refiner._movement_indices[3], Eq(6));
+TEST_F(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex) {
+  hyperedge_fm_refiner->initialize();
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
+  hyperedge_fm_refiner->moveHyperedge(0, 0, 1, 0);
+  hyperedge_fm_refiner->moveHyperedge(1, 1, 0, 1);
+  hyperedge_fm_refiner->moveHyperedge(2, 1, 0, 2);
+
+  hyperedge_fm_refiner->rollback(2, 0, *hypergraph);
+
+  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[0], Eq(2));
+  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[1], Eq(7));
+  ASSERT_THAT(hypergraph->partitionIndex(0), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(2), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(4), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(5), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(6), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(7), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(8), Eq(1));
+}
+
+TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound) {
+  hyperedge_fm_refiner->initialize();
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
+  hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
+  hyperedge_fm_refiner->moveHyperedge(0, 0, 1, 0);
+  hyperedge_fm_refiner->moveHyperedge(1, 1, 0, 1);
+  hyperedge_fm_refiner->moveHyperedge(2, 1, 0, 2);
+
+  hyperedge_fm_refiner->rollback(2, -1, *hypergraph);
+
+  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[0], Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[1], Eq(4));
+  ASSERT_THAT(hypergraph->partitionIndex(0), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(2), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(4), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(5), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(6), Eq(1));
+  ASSERT_THAT(hypergraph->partitionIndex(7), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(8), Eq(1));
 }
 } // namespace partition
