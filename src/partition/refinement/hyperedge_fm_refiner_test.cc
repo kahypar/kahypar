@@ -7,6 +7,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/HyperedgeFMMoveSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 
 using::testing::Test;
@@ -24,7 +25,7 @@ using datastructure::HyperedgeID;
 
 namespace partition {
 typedef HyperedgeFMRefiner<HypergraphType,
-                           NumberOfFruitlessMovesStopsSearch> HyperedgeFMRefinerSimpleStopping;
+                           NumberOfFruitlessMovesStopsSearch, EligibleTopGain> HyperedgeFMRefinerSimpleStopping;
 
 class AHyperedgeFMRefiner : public Test {
   public:

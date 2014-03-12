@@ -17,7 +17,6 @@
 #include "partition/Configuration.h"
 #include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
-#include "tools/RandomFunctions.h"
 
 using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
@@ -32,7 +31,7 @@ static const bool dbg_refinement_he_fm_update_cases = true;
 static const bool dbg_refinement_he_fm_improvements = true;
 static const bool dbg_refinement_he_fm_rollback = true;
 
-template <class Hypergraph, class StoppingPolicy>
+template <class Hypergraph, class StoppingPolicy, class MoveSelectionPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -254,22 +253,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
 
-    Gain gain_pq0 = std::numeric_limits<Gain>::min();
-    if (pq0_eligible) {
-      gain_pq0 = _pq[0]->maxKey();
-    }
-
-    bool chosen_pq_index = 0;
-    if (pq1_eligible && ((_pq[1]->maxKey() > gain_pq0) ||
-                         (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
-      chosen_pq_index = 1;
-    }
-
-    max_gain = _pq[chosen_pq_index]->maxKey();
-    max_gain_he = _pq[chosen_pq_index]->max();
-    _pq[chosen_pq_index]->deleteMax();
-    from_partition = chosen_pq_index;
-    to_partition = chosen_pq_index ^ 1;
+    MoveSelectionPolicy::chooseNextMove(max_gain, max_gain_he, from_partition, to_partition, pq0_eligible,
+                                        pq1_eligible, _pq);
   }
 
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
