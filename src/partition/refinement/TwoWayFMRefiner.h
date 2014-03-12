@@ -139,7 +139,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ")");
 
-      // ToDo:
+      // TODO(schlag):
       // [ ] also consider corking effect
       moveHypernode(max_gain_node, from_partition, to_partition);
 
@@ -151,7 +151,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
 
-      // ToDos for update:
+      // TODO(schlag):
       // [ ] lock HEs for gain update! (improve running time without quality decrease)
       // [ ] what about zero-gain updates?
       updateNeighbours(max_gain_node, from_partition, to_partition);
@@ -228,7 +228,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements);
   FRIEND_TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2);
   FRIEND_TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2);
-  // ToDo: find better names for testcases
+  // TODO(schlag): find better names for testcases
   FRIEND_TEST(AGainUpdateMethod, HandlesCase0To1);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase1To0);
   FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
@@ -240,7 +240,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
 
-  // ToDo:
+  // TODO(schlag) :
   // [ ] make this a selection strategy!
   // [ ] look at which strategy is proposed by others
   // [ ] toward-tiebreaking (siehe tomboy)
