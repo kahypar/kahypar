@@ -31,7 +31,7 @@ static const bool dbg_refinement_he_fm_update_cases = true;
 static const bool dbg_refinement_he_fm_improvements = true;
 static const bool dbg_refinement_he_fm_rollback = true;
 
-template <class Hypergraph, class StoppingPolicy, class MoveSelectionPolicy>
+template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -248,13 +248,10 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
   }
 
-  void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
-                      PartitionID& to_partition, bool pq0_eligible, bool pq1_eligible) {
+  bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
-
-    MoveSelectionPolicy::chooseNextMove(max_gain, max_gain_he, from_partition, to_partition, pq0_eligible,
-                                        pq1_eligible, _pq);
+    return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {

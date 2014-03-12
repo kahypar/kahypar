@@ -7,7 +7,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
-#include "partition/refinement/HyperedgeFMMoveSelectionPolicies.h"
+#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 
 using::testing::Test;
@@ -296,19 +296,14 @@ TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->key(1), Eq(5));
   ASSERT_THAT(hyperedge_fm_refiner._pq[1]->key(1), Eq(5));
 
-  HyperedgeWeight max_gain = -1;
-  HyperedgeID max_gain_he = -1;
-  PartitionID from = -1;
-  PartitionID to = -1;
   bool pq0_eligible = false;
   bool pq1_eligible = false;
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
-  hyperedge_fm_refiner.chooseNextMove(max_gain, max_gain_he, from, to, pq0_eligible, pq1_eligible);
+  bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
 
-  ASSERT_THAT(max_gain, Eq(5));
-  ASSERT_THAT(max_gain_he, Eq(1));
-  ASSERT_THAT(from, Eq(1));
-  ASSERT_THAT(to, Eq(0));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->maxKey(), Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->max(), Eq(1));
+  ASSERT_THAT(chosen_pq_index, Eq(1));
 }
 
 TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
@@ -495,19 +490,11 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
   ASSERT_THAT(pq0_eligible, Eq(true));
   ASSERT_THAT(pq1_eligible, Eq(true));
 
-  HyperedgeWeight best_cut = 2;
-  double best_imbalance = 0.0;
-  HyperedgeWeight max_gain = std::numeric_limits<HyperedgeWeight>::min();
-  HyperedgeID max_gain_hyperedge = std::numeric_limits<HyperedgeID>::max();
-  PartitionID from_partition = std::numeric_limits<PartitionID>::min();
-  PartitionID to_partition = std::numeric_limits<PartitionID>::min();
-  hyperedge_fm_refiner.chooseNextMove(max_gain, max_gain_hyperedge, from_partition, to_partition,
-                                      pq0_eligible, pq1_eligible);
+  bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
 
-  ASSERT_THAT(max_gain, Eq(5));
-  ASSERT_THAT(max_gain_hyperedge, Eq(1));
-  ASSERT_THAT(from_partition, Eq(0));
-  ASSERT_THAT(to_partition, Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->maxKey(), Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->max(), Eq(1));
+  ASSERT_THAT(chosen_pq_index, Eq(0));
 }
 
 TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
@@ -531,13 +518,6 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
-  HyperedgeWeight best_cut = 3;
-  double best_imbalance = 0.5;
-  HyperedgeWeight max_gain = std::numeric_limits<HyperedgeWeight>::min();
-  HyperedgeID max_gain_hyperedge = std::numeric_limits<HyperedgeID>::max();
-  PartitionID from_partition = std::numeric_limits<PartitionID>::min();
-  PartitionID to_partition = std::numeric_limits<PartitionID>::min();
-
   hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
 
@@ -548,13 +528,12 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
     hyperedge_fm_refiner.removeHyperedgesCloggingPQs();
   }
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
-  hyperedge_fm_refiner.chooseNextMove(max_gain, max_gain_hyperedge, from_partition, to_partition,
-                                      pq0_eligible, pq1_eligible);
-  ASSERT_THAT(max_gain, Eq(1));
-  ASSERT_THAT(max_gain_hyperedge, Eq(0));
-  ASSERT_THAT(from_partition, Eq(1));
-  ASSERT_THAT(to_partition, Eq(0));
+  bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->maxKey(), Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->max(), Eq(0));
+  ASSERT_THAT(chosen_pq_index, Eq(1));
 }
+
 TEST_F(RollBackInformation, StoresIDsOfMovedPins) {
   hyperedge_fm_refiner->moveHyperedge(0, 0, 1, 0);
   hyperedge_fm_refiner->moveHyperedge(1, 1, 0, 1);
