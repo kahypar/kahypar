@@ -184,22 +184,25 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
+  FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
+  FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
+  FRIEND_TEST(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible);
   FRIEND_TEST(AHyperedgeMovementOperation, UpdatesPartitionSizes);
   FRIEND_TEST(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry);
   FRIEND_TEST(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved);
+  FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ);
+  FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible);
   FRIEND_TEST(TheUpdateGainsMethod, IgnoresLockedHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, EvaluatedEachHyperedgeOnlyOnce);
   FRIEND_TEST(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQs);
   FRIEND_TEST(TheUpdateGainsMethod, ActivatesHyperedgesThatBecameCutHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges);
-  FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
   FRIEND_TEST(RollBackInformation, StoresIDsOfMovedPins);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
-  FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
-  FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ);
 
   void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
+    ASSERT(min_cut_index <= last_index, "Min-Cut index " << min_cut_index << " out of bounds");
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
     HypernodeID hn_to_move;
     while (last_index != min_cut_index) {
@@ -207,7 +210,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       for (int i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
         hn_to_move = _performed_moves[i];
         DBG(dbg_refinement_he_fm_rollback, "Moving HN " << hn_to_move << " from "
-            << hg.partitionIndex(hn_to_move) << " to " << (hg.partitionIndex(hn_to_move) ^ 1));
+            << hg.partitionIndex(hn_to_move) << " back to " << (hg.partitionIndex(hn_to_move) ^ 1));
         _partition_size[hg.partitionIndex(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
         _partition_size[(hg.partitionIndex(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
         _hg.changeNodePartition(hn_to_move, hg.partitionIndex(hn_to_move),
@@ -226,12 +229,30 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     return imbalance;
   }
 
-  void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
-                      PartitionID& to_partition) {
-    ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
+  void removeHyperedgesCloggingPQs() {
+    ASSERT((_pq[0]->empty() || !movePreservesBalanceConstraint(_pq[0]->max(), 0, 1)) &&
+           (_pq[1]->empty() || !movePreservesBalanceConstraint(_pq[1]->max(), 1, 0)),
+           "Trying to remove HEs that clogg PQs altough there is a valid move");
+    if (!_pq[0]->empty()) {
+      lock(_pq[0]->max());
+      _pq[0]->deleteMax();
+    }
 
-    bool pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
-    bool pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+    if (!_pq[1]->empty()) {
+      lock(_pq[1]->max());
+      _pq[1]->deleteMax();
+    }
+  }
+
+  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
+    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
+    pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+  }
+
+  void chooseNextMove(Gain& max_gain, HyperedgeID& max_gain_he, PartitionID& from_partition,
+                      PartitionID& to_partition, bool pq0_eligible, bool pq1_eligible) {
+    ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
+    ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
 
     Gain gain_pq0 = std::numeric_limits<Gain>::min();
     if (pq0_eligible) {
@@ -251,7 +272,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     to_partition = chosen_pq_index ^ 1;
   }
 
-  bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) {
+  bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
     HypernodeWeight pins_to_move_weight = 0;
     forall_pins(pin, he, _hg) {
       if (_hg.partitionIndex(*pin) == from) {
@@ -379,7 +400,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void lock(HyperedgeID he) {
-    ASSERT(!_locked_hyperedges[he], "HE " << he << " is already locked");
+    //ASSERT(!_locked_hyperedges[he], "HE " << he << " is already locked");
     _locked_hyperedges[he] = 1;
   }
 
@@ -396,7 +417,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _contained_hypernodes[hn] = 1;
   }
 
-  bool isContained(HypernodeID hn) {
+  bool isContained(HypernodeID hn) const {
     return _contained_hypernodes[hn];
   }
 
