@@ -52,6 +52,14 @@ endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -pedantic -DPARANOID -Weffc++ -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wextra -std=c++11 -Weffc++ -DNDEBUG")
 
+if(ENABLE_PROFILE MATCHES ON)
+  message(STATUS "Profiling acticated")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DENABLE_PROFILE")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DENABLE_PROFILE")
+  set(PROFILE_FLAGS "-lprofiler")
+endif()
+
+
 enable_testing()
 add_subdirectory(src/application)
 add_subdirectory(src/lib/datastructure)

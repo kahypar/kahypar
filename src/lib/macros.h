@@ -6,6 +6,15 @@
 #include <cstdlib>
 #endif
 
+#ifdef ENABLE_PROFILE
+#include <gperftools/profiler.h>
+#define GPERF_START_PROFILER(FILE) ProfilerStart(FILE)
+#define GPERF_STOP_PROFILER() ProfilerStop()
+#else
+#define GPERF_START_PROFILER(FILE)
+#define GPERF_STOP_PROFILER()
+#endif
+
 #include <iostream>
 
 // http://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value#196093
