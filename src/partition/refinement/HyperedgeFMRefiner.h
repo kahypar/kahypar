@@ -322,11 +322,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         if (*incident_he == moved_he) { continue; }
         DBG(dbg_refinement_he_fm_update_level, "-->Considering incident HE "
             << *incident_he << "of PIN " << *pin);
-        if (_update_indicator.isAlreadyEvaluated(*incident_he)) {
-          DBG(dbg_refinement_he_fm_update_evaluated,
-              "*** Skipping HE " << *incident_he << " because it is already evaluated!");
-          continue;
-        }
         forall_pins(incident_he_pin, *incident_he, _hg) {
           if (*incident_he_pin == *pin) { continue; }
           DBG(dbg_refinement_he_fm_update_level, "->Considering incident_he_pin "
@@ -339,8 +334,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) {
     forall_incident_hyperedges(he, hn, _hg) {
-      DBG(dbg_refinement_he_fm_update_level,
-          " Recomputing Gains for HE " << *he << "  incident to HN " << hn);
       if (_update_indicator.isAlreadyEvaluated(*he)) {
         DBG(dbg_refinement_he_fm_update_evaluated,
             "*** Skipping HE " << *he << " because it is already evaluated!");
@@ -353,6 +346,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         _update_indicator.markAsEvaluated(*he);
         continue;
       }
+      DBG(dbg_refinement_he_fm_update_level,
+          " Recomputing Gains for HE " << *he << "  incident to HN " << hn);
       if (wasCutHyperedgeBeforeMove(*he)) {
         ASSERT(_pq[0]->contains(*he) && _pq[1]->contains(*he),
                "HE " << *he << "should be present in both PQs");
