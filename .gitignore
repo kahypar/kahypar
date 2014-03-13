@@ -11,3 +11,4 @@ build/*
 release/*
 release152/*
 debug/*
+profile/*
