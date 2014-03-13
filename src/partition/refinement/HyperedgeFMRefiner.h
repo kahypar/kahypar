@@ -237,12 +237,14 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
            (_pq[1]->empty() || !movePreservesBalanceConstraint(_pq[1]->max(), 1, 0)),
            "Trying to remove HEs that clogg PQs altough there is a valid move");
     if (!_pq[0]->empty()) {
-      lock(_pq[0]->max());
+      //lock(_pq[0]->max());
+      DBG(dbg_refinement_he_fm_remove_clogging, " Removing HE " << _pq[0]->max() << " from PQ 0");
       _pq[0]->deleteMax();
     }
 
     if (!_pq[1]->empty()) {
-      lock(_pq[1]->max());
+      //lock(_pq[1]->max());
+      DBG(dbg_refinement_he_fm_remove_clogging, " Removing HE " << _pq[1]->max() << " from PQ 1");
       _pq[1]->deleteMax();
     }
   }
