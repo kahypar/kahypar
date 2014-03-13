@@ -73,7 +73,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _hg(hypergraph),
     _config(config),
     _partition_size{0, 0},
-    _pq{new HyperedgeFMPQ(_hg.initialNumNodes()), new HyperedgeFMPQ(_hg.initialNumNodes())},
+    _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
     _locked_hyperedges(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
