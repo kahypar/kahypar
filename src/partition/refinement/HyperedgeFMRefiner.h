@@ -375,7 +375,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   bool wasCutHyperedgeBeforeMove(HyperedgeID he) const {
-    return _pq[0]->contains(he);
+    return _pq[0]->contains(he) || _pq[1]->contains(he);
   }
 
   void recomputeGainsForCutHyperedge(HyperedgeID he) {
