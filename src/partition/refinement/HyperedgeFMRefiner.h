@@ -349,8 +349,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       DBG(dbg_refinement_he_fm_update_level,
           " Recomputing Gains for HE " << *he << "  incident to HN " << hn);
       if (wasCutHyperedgeBeforeMove(*he)) {
-        ASSERT(_pq[0]->contains(*he) && _pq[1]->contains(*he),
-               "HE " << *he << "should be present in both PQs");
         if (isCutHyperedge(*he)) {
           recomputeGainsForCutHyperedge(*he);
         } else {
