@@ -77,7 +77,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _locked_hyperedges(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
-    _contained_hypernodes(_hg.initialNumNodes()),
     _movement_indices(),
     _performed_moves(),
     _is_initialized(false) {
@@ -394,19 +393,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _locked_hyperedges.reset();
   }
 
-  void markAsContained(HypernodeID hn) {
-    ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
-    _contained_hypernodes[hn] = 1;
-  }
-
-  bool isContained(HypernodeID hn) const {
-    return _contained_hypernodes[hn];
-  }
-
-  void resetContainedHypernodes() {
-    _contained_hypernodes.reset();
-  }
-
   Hypergraph& _hg;
   const Configuration<Hypergraph> _config;
   std::array<HypernodeWeight, K> _partition_size;
@@ -414,7 +400,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   boost::dynamic_bitset<uint64_t> _locked_hyperedges;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
-  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
