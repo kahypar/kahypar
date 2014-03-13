@@ -76,6 +76,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
     _locked_hyperedges(_hg.initialNumEdges()),
+    _active_hyperedges(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
     _contained_hypernodes(_hg.initialNumNodes()),
@@ -113,10 +114,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void activateIncidentCutHyperedges(HypernodeID hn) {
-    DBG(true, "activating cut hyperedges of hypernode " << hn);
+    DBG(false, "activating cut hyperedges of hypernode " << hn);
     forall_incident_hyperedges(he, hn, _hg) {
-      // pq invariant: either a hyperedge is in both PQs or in none of them
-      if (isCutHyperedge(*he) && !_pq[0]->contains(*he)) {
+      if (isCutHyperedge(*he) && !isActive(*he)) {
         activateHyperedge(*he);
       }
     } endfor
@@ -127,6 +127,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _pq[0]->clear();
     _pq[1]->clear();
     resetLockedHyperedges();
+    resetActiveHyperedges();
 
     activateIncidentCutHyperedges(u);
     activateIncidentCutHyperedges(v);
@@ -275,8 +276,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   void activateHyperedge(HyperedgeID he) {
     ASSERT(!isLocked(he), "HE " << he << " is already locked");
-    ASSERT(!_pq[0]->contains(he), "HE " << he << " is already contained in PQ 0");
-    ASSERT(!_pq[1]->contains(he), "HE " << he << " is already contained in PQ 1");
+    ASSERT(!isActive(he), "HE " << he << " is already active");
     // we have to use reInsert because PQs will be reused during each uncontraction
     _pq[0]->reInsert(he, computeGain(he, 0, 1));
     _pq[1]->reInsert(he, computeGain(he, 1, 0));
@@ -284,6 +284,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
     DBG(dbg_refinement_he_fm_he_activation,
         "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
+    setActive(he);
   }
 
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
@@ -351,8 +352,10 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         } else {
           removeNonCutHyperedgeFromQueues(*he);
         }
-      } else if (isCutHyperedge(*he)) {
-        activateNewCutHyperedge(*he);
+      } else if (isCutHyperedge(*he) && !isActive(*he)) {
+        DBG(dbg_refinement_he_fm_update_cases,
+            " Activating HE " << *he << " because it has become a cut hyperedge");
+        activateHyperedge(*he);
       }
       _update_indicator.markAsEvaluated(*he);
     } endfor
@@ -408,11 +411,24 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _contained_hypernodes.reset();
   }
 
+  bool isActive(HyperedgeID he) const {
+    return _active_hyperedges[he];
+  }
+
+  void setActive(HyperedgeID he) {
+    _active_hyperedges[he] = 1;
+  }
+
+  void resetActiveHyperedges() {
+    _active_hyperedges.reset();
+  }
+
   Hypergraph& _hg;
   const Configuration<Hypergraph> _config;
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _locked_hyperedges;
+  boost::dynamic_bitset<uint64_t> _active_hyperedges;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
