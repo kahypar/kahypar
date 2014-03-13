@@ -141,6 +141,86 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
     activateIncidentCutHyperedges(u);
     activateIncidentCutHyperedges(v);
+
+    HyperedgeWeight initial_cut = best_cut;
+    HyperedgeWeight cut = best_cut;
+    int min_cut_index = -1;
+    double imbalance = best_imbalance;
+
+    int step = 0;
+    StoppingPolicy::resetStatistics();
+    while (!queuesAreEmpty() && (best_cut == cut ||
+                                 !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
+                                                                   best_cut, cut))) {
+      ASSERT(cut == metrics::hyperedgeCut(_hg),
+             "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
+             << metrics::hyperedgeCut(_hg) << ") do not match");
+
+      bool pq0_eligible = false;
+      bool pq1_eligible = false;
+      checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
+
+      //TODO(schlag):
+      // [ ] We might consider the removal of HEs from PQs as one step that lead to no
+      //     improvement. Thus we might need to "increment step by 1". However we'd need
+      //     another counting variable that only counts the loop iterations to do that, since
+      //     step currently refers to the number of actual moves that are performed.
+      if (!pq0_eligible && !pq1_eligible) {
+        removeHyperedgesCloggingPQs();
+        continue;
+      }
+
+      //TODO(schlag):
+      // [ ] think about selection strategies and tiebreaking
+      bool chosen_pq_index = selectQueue(pq0_eligible, pq1_eligible);
+      Gain max_gain = _pq[chosen_pq_index]->maxKey();
+      HyperedgeID max_gain_hyperedge = _pq[chosen_pq_index]->max();
+      _pq[chosen_pq_index]->deleteMax();
+      PartitionID from_partition = chosen_pq_index;
+      PartitionID to_partition = chosen_pq_index ^ 1;
+
+      ASSERT(!isLocked(max_gain_hyperedge), "Selection strategy failed");
+
+      DBG(false, "HER-FM moving HE" << max_gain_hyperedge << " from " << from_partition
+          << " to " << to_partition << " (gain: " << max_gain << ")");
+
+      moveHyperedge(max_gain_hyperedge, from_partition, to_partition, step);
+
+      cut -= max_gain;
+      imbalance = calculateImbalance();
+      StoppingPolicy::updateStatistics(max_gain);
+
+      ASSERT(cut == metrics::hyperedgeCut(_hg),
+             "Calculated cut (" << cut << ") and cut induced by hypergraph ("
+             << metrics::hyperedgeCut(_hg) << ") do not match");
+
+      updateNeighbours(max_gain_hyperedge);
+
+      // right now, we do not allow a decrease in cut in favor of an increase in balance
+      bool improved_cut_within_balance = (cut < best_cut) && (imbalance < max_imbalance);
+      bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
+
+      if (improved_balance_equal_cut || improved_cut_within_balance) {
+        ASSERT(cut <= best_cut, "Accepted a HE move which decreased cut");
+        if (cut < best_cut) {
+          DBG(dbg_refinement_he_fm_improvements,
+              "HER-FM improved cut from " << best_cut << " to " << cut);
+        }
+        DBG(dbg_refinement_he_fm_improvements,
+            "HER-FM improved imbalance from " << best_imbalance << " to " << imbalance);
+        best_imbalance = imbalance;
+        best_cut = cut;
+        min_cut_index = step;
+        StoppingPolicy::resetStatistics();
+      }
+      ++step;
+    }
+
+    rollback(step - 1, min_cut_index, _hg);
+
+    ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
+    ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
+           << initial_cut << " to" << best_cut);
   }
 
   Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) {
