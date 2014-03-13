@@ -366,8 +366,12 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   void removeNonCutHyperedgeFromQueues(HyperedgeID he) {
     DBG(dbg_refinement_he_fm_update_cases,
         " Removing HE " << he << " because it is no longer a cut hyperedge");
-    _pq[0]->remove(he);
-    _pq[1]->remove(he);
+    if (_pq[0]->contains(he)) {
+      _pq[0]->remove(he);
+    }
+    if (_pq[1]->contains(he)) {
+      _pq[1]->remove(he);
+    }
   }
 
   bool wasCutHyperedgeBeforeMove(HyperedgeID he) const {
