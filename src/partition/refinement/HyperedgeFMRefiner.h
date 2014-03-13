@@ -125,6 +125,15 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
               double max_imbalance, double& best_imbalance) {
+    ASSERT(_is_initialized, "initialize() has to be called before refine");
+    ASSERT(best_cut == metrics::hyperedgeCut(_hg),
+           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
+           << metrics::hyperedgeCut(_hg));
+    ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
+             FloatingPoint<double>(calculateImbalance())),
+           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
+           << " by hypergraph " << calculateImbalance());
+
     _pq[0]->clear();
     _pq[1]->clear();
     resetLockedHyperedges();
