@@ -379,16 +379,22 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void recomputeGainsForCutHyperedge(HyperedgeID he) {
-    DBG(dbg_refinement_he_fm_update_cases,
-        " Recomputing Gain for HE " << he << " which still is a cut hyperedge");
-    _pq[0]->updateKey(he, computeGain(he, 0, 1));
-    _pq[1]->updateKey(he, computeGain(he, 1, 0));
-  }
-
-  void activateNewCutHyperedge(HyperedgeID he) {
-    DBG(dbg_refinement_he_fm_update_cases
-        , " Activating HE " << he << " because it has become a cut hyperedge");
-    activateHyperedge(he);
+    ASSERT(!isLocked(he), "Trying to recompute gains for locked HE " << he);
+    // We remove a HE from a PQ if it's move is the max-gain move but cloggs the PQ.
+    // Since this might only be the case for one of the PQs, we do not lock the HE (
+    // as the other move might be eligible). Thus we have to expicitly check for containment.
+    if (_pq[0]->contains(he)) {
+      DBG(dbg_refinement_he_fm_update_cases,
+          " Recomputing Gain for HE PQ0 " << he << " which still is a cut hyperedge: "
+          << _pq[0]->key(he) << " --> " << computeGain(he, 0, 1));
+      _pq[0]->updateKey(he, computeGain(he, 0, 1));
+    }
+    if (_pq[1]->contains(he)) {
+      DBG(dbg_refinement_he_fm_update_cases,
+          " Recomputing Gain for HE PQ1 " << he << " which still is a cut hyperedge: "
+          << _pq[1]->key(he) << " --> " << computeGain(he, 1, 0));
+      _pq[1]->updateKey(he, computeGain(he, 1, 0));
+    }
   }
 
   void lock(HyperedgeID he) {
