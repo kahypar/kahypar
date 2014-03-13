@@ -149,12 +149,14 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
               !isNestedIntoInPartition(*incident_he, he, from)) {
             gain -= _hg.edgeWeight(*incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
-                "pin " << *pin << " HE: " << *incident_he << " gain-=1: " << gain);
+                "pin " << *pin << " HE: " << *incident_he << " gain-="
+                << _hg.edgeWeight(*incident_he) << ": " << gain);
           } else if (isCutHyperedge(*incident_he) &&
                      isNestedIntoInPartition(*incident_he, he, from)) {
             gain += _hg.edgeWeight(*incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
-                "pin " << *pin << " HE: " << *incident_he << " g+=1: " << gain);
+                "pin " << *pin << " HE: " << *incident_he << " g+="
+                << _hg.edgeWeight(*incident_he) << ": " << gain);
           }
           _gain_indicator.markAsEvaluated(*incident_he);
         } endfor
