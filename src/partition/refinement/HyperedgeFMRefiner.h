@@ -22,14 +22,15 @@ using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
 
 namespace partition {
-static const bool dbg_refinement_he_fm_he_activation = true;
+static const bool dbg_refinement_he_fm_he_activation = false;
 static const bool dbg_refinement_he_fm_gain_computation = false;
 static const bool dbg_refinement_he_fm_update_level = false;
-static const bool dbg_refinement_he_fm_update_evaluated = true;
-static const bool dbg_refinement_he_fm_update_locked = true;
-static const bool dbg_refinement_he_fm_update_cases = true;
+static const bool dbg_refinement_he_fm_update_evaluated = false;
+static const bool dbg_refinement_he_fm_update_locked = false;
+static const bool dbg_refinement_he_fm_update_cases = false;
 static const bool dbg_refinement_he_fm_improvements = true;
-static const bool dbg_refinement_he_fm_rollback = true;
+static const bool dbg_refinement_he_fm_rollback = false;
+static const bool dbg_refinement_he_fm_remove_clogging = false;
 
 template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
