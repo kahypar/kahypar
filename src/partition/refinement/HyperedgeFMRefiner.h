@@ -306,9 +306,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         _performed_moves[curr_index++] = *pin;
       }
     } endfor
-      ASSERT(_pq[to]->contains(he) == true,
-             "HE " << he << " does not exist in PQ " << to);
-    _pq[to]->remove(he);
+    if (_pq[to]->contains(he)) {
+      _pq[to]->remove(he);
+    }
     lock(he);
     //set sentinel
     _movement_indices[step + 1] = curr_index;
