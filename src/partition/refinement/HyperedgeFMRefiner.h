@@ -31,6 +31,7 @@ static const bool dbg_refinement_he_fm_update_cases = false;
 static const bool dbg_refinement_he_fm_improvements = true;
 static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
+static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
 template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
@@ -257,6 +258,10 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
+    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[0]->max() << " is "
+        << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->maxKey());
+    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[1]->max() << " is "
+        << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->maxKey());
     return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
