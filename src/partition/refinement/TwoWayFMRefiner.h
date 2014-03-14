@@ -218,6 +218,10 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     } endfor
   }
 
+  int numRepetitions() {
+    return _config.two_way_fm.num_repetitions;
+  }
+
   private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);

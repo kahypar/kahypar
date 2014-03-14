@@ -31,6 +31,7 @@ template <typename Hypergraph>
 class DummyRefiner : public IRefiner<Hypergraph>{
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
               double, double&) { }
+  int numRepetitions() { return 1; }
 };
 
 template <class CoarsenerType>

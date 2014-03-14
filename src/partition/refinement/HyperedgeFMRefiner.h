@@ -276,6 +276,10 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     return true;
   }
 
+  int numRepetitions() {
+    return _config.her_fm.num_repetitions;
+  }
+
   private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);

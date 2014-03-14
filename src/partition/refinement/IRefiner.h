@@ -16,6 +16,7 @@ class IRefiner {
   virtual void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
                       double max_imbalance, double& best_imbalance) = 0;
   virtual void initialize() { }
+  virtual int numRepetitions() = 0;
   virtual ~IRefiner() { }
 };
 } //namespace partition

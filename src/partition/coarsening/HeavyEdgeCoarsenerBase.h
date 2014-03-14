@@ -113,7 +113,7 @@ class HeavyEdgeCoarsenerBase {
         DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
             << current_cut);
         ++iteration;
-      } while ((iteration < _config.two_way_fm.num_repetitions) &&
+      } while ((iteration < refiner.numRepetitions()) &&
                (improvedCutWithinBalance(old_cut, current_cut, current_imbalance) ||
                 improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
       _history.pop();
