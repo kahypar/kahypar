@@ -29,15 +29,18 @@ class SQLiteBenchmarkSerializer {
                             "coarsening_node_weight_fraction, coarsening_node_weight_threshold,"
                             "coarsening_min_node_count, coarsening_rating,"
                             "twowayfm_stopping_rule, twowayfm_num_repetitions,"
-                            "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta, cut, part0,"
-                            "part1, imbalance, time, gitrevision) VALUES (:graph, :hypernodes,"
+                            "twowayfm_fruitless_moves, twowayfm_alpha, twowayfm_beta,"
+                            "herfm_stopping_rule, herfm_fruitless_moves, herfm_num_repetitions,"
+                            "cut, part0, part1, imbalance, time, gitrevision)"
+                            "VALUES (:graph, :hypernodes,"
                             ":hyperedges, :k, :epsilon, :L_max, :seed, :initial_partitionings,"
                             ":global_search_iterations, :hyperedge_size_threshold, :coarsening_scheme,"
                             ":coarsening_node_weight_fraction, :coarsening_node_weight_threshold,"
                             ":coarsening_min_node_count, :coarsening_rating, :twowayfm_stopping_rule,"
                             ":twowayfm_num_repetitions,"
-                            ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta,:cut,"
-                            ":part0, :part1, :imbalance, :time, :gitrevision);") { }
+                            ":twowayfm_fruitless_moves, :twowayfm_alpha, :twowayfm_beta, "
+                            ":herfm_stopping_rule, :herfm_fruitless_moves, :herfm_num_repetitions,"
+                            ":cut, :part0, :part1, :imbalance, :time, :gitrevision);") { }
 
   ~SQLiteBenchmarkSerializer() {
     sqlite3pp::command(_db, "COMMIT TRANSACTION;").execute();
@@ -72,11 +75,14 @@ class SQLiteBenchmarkSerializer {
                        "coarsening_node_weight_threshold INTEGER NOT NULL,"
                        "coarsening_min_node_count INTEGER NOT NULL,"
                        "coarsening_rating VARCHAR NOT NULL,"
-                       "twowayfm_stopping_rule VARCHAR NOT NULL,"
-                       "twowayfm_num_repetitions INTEGER NOT NULL,"
-                       "twowayfm_fruitless_moves INTEGER NOT NULL,"
-                       "twowayfm_alpha REAL NOT NULL,"
-                       "twowayfm_beta REAL NOT NULL,"
+                       "twowayfm_stopping_rule VARCHAR,"
+                       "twowayfm_num_repetitions INTEGER,"
+                       "twowayfm_fruitless_moves INTEGER,"
+                       "twowayfm_alpha REAL,"
+                       "twowayfm_beta REAL,"
+                       "herfm_stopping_rule VARCHAR,"
+                       "herfm_num_repetitions INTEGER,"
+                       "herfm_fruitless_moves INTEGER,"
                        "cut INTEGER NOT NULL,"
                        "part0 INTEGER NOT NULL,"
                        "part1 INTEGER NOT NULL,"
@@ -117,15 +123,26 @@ class SQLiteBenchmarkSerializer {
     _insert_result_cmd.bind(":coarsening_min_node_count",
                             static_cast<sqlite_int64>(config.coarsening.minimal_node_count));
     _insert_result_cmd.bind(":coarsening_rating", "heavy_edge");
-    _insert_result_cmd.bind(":twowayfm_stopping_rule",
-                            (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
-                             "simple" : (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE1
-                                         ? "adaptive1" : "adaptive2")));
-    _insert_result_cmd.bind(":twowayfm_num_repetitions", config.two_way_fm.num_repetitions);
-    _insert_result_cmd.bind(":twowayfm_fruitless_moves",
-                            config.two_way_fm.max_number_of_fruitless_moves);
-    _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
-    _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
+    if(config.two_way_fm.active) {
+      _insert_result_cmd.bind(":twowayfm_stopping_rule",
+                              (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
+                               "simple" : (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE1
+                                           ? "adaptive1" : "adaptive2")));
+      _insert_result_cmd.bind(":twowayfm_num_repetitions", config.two_way_fm.num_repetitions);
+      _insert_result_cmd.bind(":twowayfm_fruitless_moves",
+                              config.two_way_fm.max_number_of_fruitless_moves);
+      _insert_result_cmd.bind(":twowayfm_alpha", config.two_way_fm.alpha);
+      _insert_result_cmd.bind(":twowayfm_beta", config.two_way_fm.beta);
+    }
+    if (config.her_fm.active) {
+      _insert_result_cmd.bind(":herfm_stopping_rule",
+                              (config.her_fm.stopping_rule == StoppingRule::SIMPLE ?
+                               "simple" : (config.her_fm.stopping_rule == StoppingRule::ADAPTIVE1
+                                           ? "adaptive1" : "adaptive2")));
+      _insert_result_cmd.bind(":herfm_num_repetitions", config.her_fm.num_repetitions);
+      _insert_result_cmd.bind(":herfm_fruitless_moves",
+                              config.her_fm.max_number_of_fruitless_moves);
+    }
     _insert_result_cmd.bind(":cut", static_cast<sqlite_int64>(metrics::hyperedgeCut(hypergraph)));
 
     HypernodeWeight partition_weights[2] = { 0, 0 };

@@ -69,23 +69,40 @@ struct Configuration {
       num_repetitions(1),
       alpha(4),
       beta(0.0),
-      stopping_rule(StoppingRule::SIMPLE) { }
+      stopping_rule(StoppingRule::SIMPLE),
+      active(true) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
     double alpha;
     double beta;
     StoppingRule stopping_rule;
+    bool active;
+  };
+
+  struct HERFMParameters {
+    HERFMParameters() :
+      max_number_of_fruitless_moves(10),
+      num_repetitions(1),
+      stopping_rule(StoppingRule::SIMPLE),
+      active(false) { }
+
+    int max_number_of_fruitless_moves;
+    int num_repetitions;
+    StoppingRule stopping_rule;
+    bool active;
   };
 
   PartitioningParameters partitioning;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
+  HERFMParameters her_fm;
 
   Configuration() :
     partitioning(),
     coarsening(),
-    two_way_fm() { }
+    two_way_fm(),
+    her_fm() { }
 };
 
 template <class Configuration>
@@ -122,27 +139,48 @@ std::string toString(const Configuration& config) {
   << std::endl;
   oss << std::setw(30) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
   << std::endl;
-  oss << "2-Way-FM Refinement Parameters:" << std::endl;
-  oss << std::setw(30) << "  stopping rule: ";
-  switch (config.two_way_fm.stopping_rule) {
-    case StoppingRule::SIMPLE:
-      oss << "simple";
-      break;
-    case StoppingRule::ADAPTIVE1:
-      oss << "adaptive1 (new implementation)";
-      break;
-    case StoppingRule::ADAPTIVE2:
-      oss << "adaptive2 (n-GP implementation)";
-      break;
+  if (config.two_way_fm.active) {
+    oss << "2-Way-FM Refinement Parameters:" << std::endl;
+    oss << std::setw(30) << "  stopping rule: ";
+    switch (config.two_way_fm.stopping_rule) {
+      case StoppingRule::SIMPLE:
+        oss << "simple";
+        break;
+      case StoppingRule::ADAPTIVE1:
+        oss << "adaptive1 (new implementation)";
+        break;
+      case StoppingRule::ADAPTIVE2:
+        oss << "adaptive2 (n-GP implementation)";
+        break;
+    }
+    oss << std::endl;
+    oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
+    oss << std::setw(30) << "  max. # fruitless moves: "
+    << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
+    oss << std::setw(30) << "  random walk stop alpha: "
+    << config.two_way_fm.alpha << std::endl;
+    oss << std::setw(30) << "  random walk stop beta : "
+    << config.two_way_fm.beta << std::endl;
   }
-  oss << std::endl;
-  oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
-  oss << std::setw(30) << "  max. # fruitless moves: "
-  << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
-  oss << std::setw(30) << "  random walk stop alpha: "
-  << config.two_way_fm.alpha << std::endl;
-  oss << std::setw(30) << "  random walk stop beta : "
-  << config.two_way_fm.beta;
+  if (config.her_fm.active) {
+    oss << "HER-FM Refinement Parameters:" << std::endl;
+    oss << std::setw(30) << "  stopping rule: ";
+    switch (config.her_fm.stopping_rule) {
+      case StoppingRule::SIMPLE:
+        oss << "simple";
+        break;
+      case StoppingRule::ADAPTIVE1:
+        oss << "adaptive1 (new implementation)";
+        break;
+      case StoppingRule::ADAPTIVE2:
+        oss << "adaptive2 (n-GP implementation)";
+        break;
+    }
+    oss << std::endl;
+    oss << std::setw(30) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
+    oss << std::setw(30) << "  max. # fruitless moves: "
+    << config.her_fm.max_number_of_fruitless_moves << std::endl;
+  }
   return oss.str();
 }
 } // namespace partition
