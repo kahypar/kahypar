@@ -33,7 +33,7 @@ static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
 static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
-template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy>
+template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy, class QueueCloggingPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -165,8 +165,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       //     improvement. Thus we might need to "increment step by 1". However we'd need
       //     another counting variable that only counts the loop iterations to do that, since
       //     step currently refers to the number of actual moves that are performed.
-      if (!pq0_eligible && !pq1_eligible) {
-        removeHyperedgesCloggingPQs();
+      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible, _pq[0], _pq[1])) {
         continue;
       }
 
@@ -320,23 +319,6 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
              FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
     return imbalance;
-  }
-
-  void removeHyperedgesCloggingPQs() {
-    ASSERT((_pq[0]->empty() || !movePreservesBalanceConstraint(_pq[0]->max(), 0, 1)) &&
-           (_pq[1]->empty() || !movePreservesBalanceConstraint(_pq[1]->max(), 1, 0)),
-           "Trying to remove HEs that clogg PQs altough there is a valid move");
-    if (!_pq[0]->empty()) {
-      //lock(_pq[0]->max());
-      DBG(dbg_refinement_he_fm_remove_clogging, " Removing HE " << _pq[0]->max() << " from PQ 0");
-      _pq[0]->deleteMax();
-    }
-
-    if (!_pq[1]->empty()) {
-      //lock(_pq[1]->max());
-      DBG(dbg_refinement_he_fm_remove_clogging, " Removing HE " << _pq[1]->max() << " from PQ 1");
-      _pq[1]->deleteMax();
-    }
   }
 
   void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {

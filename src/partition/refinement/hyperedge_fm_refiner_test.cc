@@ -7,6 +7,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
 #include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 
@@ -25,7 +26,9 @@ using datastructure::HyperedgeID;
 
 namespace partition {
 typedef HyperedgeFMRefiner<HypergraphType,
-                           NumberOfFruitlessMovesStopsSearch, EligibleTopGain> HyperedgeFMRefinerSimpleStopping;
+                           NumberOfFruitlessMovesStopsSearch,
+                           EligibleTopGain,
+                           OnlyRemoveIfBothQueuesClogged> HyperedgeFMRefinerSimpleStopping;
 
 class AHyperedgeFMRefiner : public Test {
   public:
@@ -353,7 +356,9 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   bool pq0_eligible = false;
   bool pq1_eligible = false;
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
-  hyperedge_fm_refiner.removeHyperedgesCloggingPQs();
+  OnlyRemoveIfBothQueuesClogged::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
+                                                            hyperedge_fm_refiner._pq[0],
+                                                            hyperedge_fm_refiner._pq[1]);
 
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(0), Eq(false));
   ASSERT_THAT(hyperedge_fm_refiner._pq[1]->contains(0), Eq(false));
@@ -525,7 +530,9 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   bool pq1_eligible = false;
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
   if (!pq0_eligible && !pq1_eligible) {
-    hyperedge_fm_refiner.removeHyperedgesCloggingPQs();
+    OnlyRemoveIfBothQueuesClogged::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
+                                                              hyperedge_fm_refiner._pq[0],
+                                                              hyperedge_fm_refiner._pq[1]);
   }
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
   bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
