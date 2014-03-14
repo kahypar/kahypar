@@ -10,3 +10,6 @@
 
 ## Test:
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
+
+## Profiling:
+Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only support gperftools.
