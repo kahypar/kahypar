@@ -26,7 +26,8 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 
-template <class Hypergraph, class Rater>
+template <class Hypergraph,
+          class Rater>
 class HeavyEdgeCoarsenerBase {
   protected:
   typedef typename Hypergraph::HypernodeID HypernodeID;

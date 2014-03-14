@@ -15,7 +15,6 @@
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
-#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
 
 using defs::INVALID_PARTITION;
@@ -33,7 +32,10 @@ static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
 static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
-template <class Hypergraph, class StoppingPolicy, template <class> class QueueSelectionPolicy, class QueueCloggingPolicy>
+template <class Hypergraph,
+          class StoppingPolicy,
+          template <class> class QueueSelectionPolicy,
+          class QueueCloggingPolicy>
 class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;

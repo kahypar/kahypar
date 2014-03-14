@@ -13,7 +13,8 @@
 #include "partition/refinement/IRefiner.h"
 
 namespace partition {
-template <class Hypergraph, class Rater>
+template <class Hypergraph,
+          class Rater>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
                                     public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
   private:

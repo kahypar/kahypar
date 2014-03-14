@@ -7,6 +7,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
 #include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"

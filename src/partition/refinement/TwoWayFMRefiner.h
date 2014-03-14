@@ -20,7 +20,6 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -34,7 +33,8 @@ static const bool dbg_refinement_2way_fm_improvements = false;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
 
-template <class Hypergraph, class _StoppingPolicy>
+template <class Hypergraph,
+          class StoppingPolicy>
 class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -46,7 +46,6 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
-  typedef _StoppingPolicy StoppingPolicy;
 
   static const int K = 2;
 

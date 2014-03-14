@@ -12,6 +12,7 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/FMStopPolicies.h"
 
 namespace partition {
 class FMRefinerFactory {
