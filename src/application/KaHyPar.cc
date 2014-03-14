@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
   }
 
-  std::unique_ptr<IRefiner<HypergraphType> > refiner = FMRefinerFactory::create(config, hypergraph);
+  std::unique_ptr<IRefiner<HypergraphType> > refiner(FMRefinerFactory::create(config, hypergraph));
 
   HighResClockTimepoint start;
   HighResClockTimepoint end;

@@ -6,7 +6,6 @@
 #define SRC_PARTITION_REFINEMENT_FMREFINERFACTORY_H_
 
 #include <iostream>
-#include <memory>
 
 #include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
 #include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
@@ -18,31 +17,27 @@ namespace partition {
 class FMRefinerFactory {
   public:
   template <class Config, class Hypergraph>
-  static std::unique_ptr<IRefiner<HypergraphType> > create(const Config& config, Hypergraph& hypergraph) {
-    typedef IRefiner<HypergraphType> IHypergraphRefiner;
+  static IRefiner<Hypergraph>* create(const Config& config,
+                                      Hypergraph& hypergraph) {
     if (config.two_way_fm.active) {
       switch (config.two_way_fm.stopping_rule) {
         case StoppingRule::SIMPLE:
-          return std::unique_ptr<IHypergraphRefiner>(
-            new TwoWayFMRefiner<HypergraphType,
-                                NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
+          return new TwoWayFMRefiner<Hypergraph,
+                                     NumberOfFruitlessMovesStopsSearch>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
-          return std::unique_ptr<IHypergraphRefiner>(
-            new TwoWayFMRefiner<HypergraphType,
-                                RandomWalkModelStopsSearch>(hypergraph, config));
+          return new TwoWayFMRefiner<Hypergraph,
+                                     RandomWalkModelStopsSearch>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:
-          return std::unique_ptr<IHypergraphRefiner>(
-            new TwoWayFMRefiner<HypergraphType,
-                                nGPRandomWalkStopsSearch>(hypergraph, config));
+          return new TwoWayFMRefiner<HypergraphType,
+                                     nGPRandomWalkStopsSearch>(hypergraph, config);
       }
     } else {
       switch (config.her_fm.stopping_rule) {
         case StoppingRule::SIMPLE:
-          return std::unique_ptr<IHypergraphRefiner>(
-            new HyperedgeFMRefiner<HypergraphType,
-                                   NumberOfFruitlessMovesStopsSearch,
-                                   EligibleTopGain,
-                                   RemoveOnlyTheCloggingEntry>(hypergraph, config));
+          return new HyperedgeFMRefiner<Hypergraph,
+                                        NumberOfFruitlessMovesStopsSearch,
+                                        EligibleTopGain,
+                                        RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
           std::cout << " ADAPTIVE1 currently not supported for HER-FM" << std::endl;
           exit(0);
@@ -51,7 +46,7 @@ class FMRefinerFactory {
           exit(0);
       }
     }
-    return std::unique_ptr<IHypergraphRefiner>(nullptr);
+    return nullptr;
   }
 };
 } // namespace partition
