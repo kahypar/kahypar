@@ -24,8 +24,8 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/refinement/FMRefinerFactory.h"
 #include "partition/refinement/IRefiner.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
 #include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;
@@ -39,15 +39,12 @@ using partition::FullHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
-using partition::StoppingRule;
-using partition::TwoWayFMRefiner;
 using partition::CoarseningScheme;
-using partition::RandomWalkModelStopsSearch;
-using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::nGPRandomWalkStopsSearch;
+using partition::FMRefinerFactory;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
+
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HypernodeWeight HypernodeWeight;
 typedef HypergraphType::HyperedgeID HyperedgeID;
@@ -96,10 +93,13 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {
         config.two_way_fm.stopping_rule = StoppingRule::SIMPLE;
+        config.her_fm.stopping_rule = StoppingRule::SIMPLE;
       } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
         config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE1;
+        config.her_fm.stopping_rule = StoppingRule::ADAPTIVE1;
       } else if (vm["stopFM"].as<std::string>() == "adaptive2") {
         config.two_way_fm.stopping_rule = StoppingRule::ADAPTIVE2;
+        config.her_fm.stopping_rule = StoppingRule::ADAPTIVE2;
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
         exit(0);
@@ -107,12 +107,15 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("FMreps")) {
       config.two_way_fm.num_repetitions = vm["FMreps"].as<int>();
+      config.her_fm.num_repetitions = vm["FMreps"].as<int>();
       if (config.two_way_fm.num_repetitions == -1) {
         config.two_way_fm.num_repetitions = std::numeric_limits<int>::max();
+        config.her_fm.num_repetitions = std::numeric_limits<int>::max();
       }
     }
     if (vm.count("i")) {
       config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
+      config.her_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
     }
     if (vm.count("alpha")) {
       config.two_way_fm.alpha = vm["alpha"].as<double>();
@@ -122,6 +125,18 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
     }
     if (vm.count("verbose")) {
       config.partitioning.verbose_output = vm["verbose"].as<bool>();
+    }
+    if (vm.count("rtype")) {
+      if (vm["rtype"].as<std::string>() == "twoway_fm") {
+        config.two_way_fm.active = true;
+        config.her_fm.active = false;
+      } else if (vm["rtype"].as<std::string>() == "her_fm") {
+        config.two_way_fm.active = false;
+        config.her_fm.active = true;
+      } else {
+        std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+        exit(0);
+      }
     }
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
@@ -144,6 +159,9 @@ void setDefaults(Config& config) {
   config.two_way_fm.num_repetitions = 1;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
+  config.her_fm.stopping_rule = StoppingRule::SIMPLE;
+  config.her_fm.num_repetitions = 1;
+  config.her_fm.max_number_of_fruitless_moves = 10;
 }
 
 int main(int argc, char* argv[]) {
@@ -170,9 +188,10 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("stopFM", po::value<std::string>(), "2-Way-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
-    ("FMreps", po::value<int>(), "2-Way-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
-    ("i", po::value<int>(), "2-Way-FM: max. # fruitless moves before stopping local search (simple)")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm")
+    ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
+    ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
+    ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
     ("db", po::value<std::string>(), "experiment db filename");
 
@@ -226,21 +245,7 @@ int main(int argc, char* argv[]) {
     coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
   }
 
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(nullptr);
-  switch (config.two_way_fm.stopping_rule) {
-    case StoppingRule::SIMPLE:
-      refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                        NumberOfFruitlessMovesStopsSearch>(hypergraph, config));
-      break;
-    case StoppingRule::ADAPTIVE1:
-      refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                        RandomWalkModelStopsSearch>(hypergraph, config));
-      break;
-    case StoppingRule::ADAPTIVE2:
-      refiner.reset(new TwoWayFMRefiner<HypergraphType,
-                                        nGPRandomWalkStopsSearch>(hypergraph, config));
-      break;
-  }
+  std::unique_ptr<IRefiner<HypergraphType> > refiner = FMRefinerFactory::create(config, hypergraph);
 
   HighResClockTimepoint start;
   HighResClockTimepoint end;
