@@ -258,13 +258,16 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
                                PartitionID relevant_partition) {
+    if (_hg.pinCountInPartition(inner_he, relevant_partition) >
+        _hg.pinCountInPartition(outer_he, relevant_partition)) {
+      return false;
+    }
     resetContainedHypernodes();
     forall_pins(pin, outer_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition) {
         markAsContained(*pin);
       }
     } endfor
-
     forall_pins(pin, inner_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition && !isContained(*pin)) {
         return false;
