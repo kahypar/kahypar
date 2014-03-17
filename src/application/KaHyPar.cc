@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
 
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(hypergraph_weight / static_cast<double>(config.partitioning.k));
-  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph.numNodes();
+  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
   io::printPartitionerConfiguration(config);
