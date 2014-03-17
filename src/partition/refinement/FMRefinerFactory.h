@@ -46,8 +46,10 @@ class FMRefinerFactory {
                                         EligibleTopGain,
                                         RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
-          std::cout << " ADAPTIVE1 currently not supported for HER-FM" << std::endl;
-          exit(0);
+          return new HyperedgeFMRefiner<Hypergraph,
+                                        RandomWalkModelStopsSearch,
+                                        EligibleTopGain,
+                                        RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:
           std::cout << " ADAPTIVE2 currently not supported for HER-FM" << std::endl;
           exit(0);
