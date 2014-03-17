@@ -12,6 +12,8 @@
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/FMStopPolicies.h"
+#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
+#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
@@ -36,13 +38,16 @@ using partition::Configuration;
 using partition::Partitioner;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
+using partition::EligibleTopGain;
+using partition::RemoveOnlyTheCloggingEntry;
 
 namespace metrics {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
-typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch> Refiner;
+typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch,
+                        EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
 
 class AnUnPartitionedHypergraph : public Test {
   public:

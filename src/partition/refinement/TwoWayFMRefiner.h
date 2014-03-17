@@ -32,9 +32,12 @@ namespace partition {
 static const bool dbg_refinement_2way_fm_improvements = false;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
+static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 
 template <class Hypergraph,
-          class StoppingPolicy>
+          class StoppingPolicy,
+          template <class> class QueueSelectionPolicy,
+          class QueueCloggingPolicy>
 class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   private:
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -121,17 +124,25 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     while (!queuesAreEmpty() && (best_cut == cut ||
                                  !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
                                                                    best_cut, cut))) {
-      Gain max_gain = std::numeric_limits<Gain>::min();
-      HypernodeID max_gain_node = std::numeric_limits<HypernodeID>::max();
-      PartitionID from_partition = std::numeric_limits<PartitionID>::min();
-      PartitionID to_partition = std::numeric_limits<PartitionID>::min();
+      bool pq0_eligible = false;
+      bool pq1_eligible = false;
+      checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
 
-      chooseNextMove(max_gain, max_gain_node, from_partition, to_partition);
+      //TODO(schlag): Add additional counter to count the number of removed HNs for fruitless iterations!
+      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible, _pq[0], _pq[1])) {
+        continue;
+      }
 
-      ASSERT(max_gain != std::numeric_limits<Gain>::min() &&
-             max_gain_node != std::numeric_limits<HypernodeID>::max() &&
-             from_partition != std::numeric_limits<PartitionID>::min() &&
-             to_partition != std::numeric_limits<PartitionID>::min(), "Selection strategy failed");
+      // TODO(schlag) :
+      // [ ] look at which strategy is proposed by others
+      // [ ] toward-tiebreaking (siehe tomboy)
+      bool chosen_pq_index = selectQueue(pq0_eligible, pq1_eligible);
+      Gain max_gain = _pq[chosen_pq_index]->maxKey();
+      HypernodeID max_gain_node = _pq[chosen_pq_index]->max();
+      _pq[chosen_pq_index]->deleteMax();
+      PartitionID from_partition = chosen_pq_index;
+      PartitionID to_partition = chosen_pq_index ^ 1;
+
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
 
@@ -242,29 +253,26 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
+  FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
 
-  // TODO(schlag) :
-  // [ ] make this a selection strategy!
-  // [ ] look at which strategy is proposed by others
-  // [ ] toward-tiebreaking (siehe tomboy)
-  void chooseNextMove(Gain& max_gain, HypernodeID& max_gain_node, PartitionID& from_partition, PartitionID& to_partition) {
-    Gain gain_pq0 = std::numeric_limits<Gain>::min();
+  bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
+    ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
+    ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
+    DBG(dbg_refinement_2way_fm_eligible_pqs, "HN " << _pq[0]->max() << " is "
+        << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->maxKey());
+    DBG(dbg_refinement_2way_fm_eligible_pqs, "HN " << _pq[1]->max() << " is "
+        << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->maxKey());
+    return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
+  }
 
-    if (!_pq[0]->empty()) {
-      gain_pq0 = _pq[0]->maxKey();
-    }
+  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
+    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
+    pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+  }
 
-    bool chosen_pq_index = 0;
-    if (!_pq[1]->empty() && ((_pq[1]->maxKey() > gain_pq0) ||
-                             (_pq[1]->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
-      chosen_pq_index = 1;
-    }
-
-    max_gain = _pq[chosen_pq_index]->maxKey();
-    max_gain_node = _pq[chosen_pq_index]->max();
-    _pq[chosen_pq_index]->deleteMax();
-    from_partition = chosen_pq_index;
-    to_partition = chosen_pq_index ^ 1;
+  bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID from, PartitionID to) const {
+    ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn << " is not in partition " << from);
+    return _partition_size[to] + _hg.nodeWeight(hn) <= _config.partitioning.partition_size_upper_bound;
   }
 
   bool queuesAreEmpty() const {

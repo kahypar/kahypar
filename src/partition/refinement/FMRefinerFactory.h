@@ -24,13 +24,19 @@ class FMRefinerFactory {
       switch (config.two_way_fm.stopping_rule) {
         case StoppingRule::SIMPLE:
           return new TwoWayFMRefiner<Hypergraph,
-                                     NumberOfFruitlessMovesStopsSearch>(hypergraph, config);
+                                     NumberOfFruitlessMovesStopsSearch,
+                                     EligibleTopGain,
+                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
           return new TwoWayFMRefiner<Hypergraph,
-                                     RandomWalkModelStopsSearch>(hypergraph, config);
+                                     RandomWalkModelStopsSearch,
+                                     EligibleTopGain,
+                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:
           return new TwoWayFMRefiner<HypergraphType,
-                                     nGPRandomWalkStopsSearch>(hypergraph, config);
+                                     nGPRandomWalkStopsSearch,
+                                     EligibleTopGain,
+                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
       }
     } else {
       switch (config.her_fm.stopping_rule) {

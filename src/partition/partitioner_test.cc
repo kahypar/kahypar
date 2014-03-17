@@ -11,6 +11,8 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/FMStopPolicies.h"
+#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
+#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
@@ -21,12 +23,16 @@ using datastructure::HypergraphType;
 using datastructure::HyperedgeIndexVector;
 using datastructure::HyperedgeVector;
 
+using partition::EligibleTopGain;
+using partition::RemoveOnlyTheCloggingEntry;
+
 namespace partition {
 typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
 typedef Configuration<HypergraphType> PartitionConfig;
 typedef Partitioner<HypergraphType> HypergraphPartitioner;
-typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch> Refiner;
+typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch,
+                        EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
 
 class APartitioner : public Test {
   public:
