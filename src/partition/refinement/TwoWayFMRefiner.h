@@ -73,7 +73,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   void activate(HypernodeID hn) {
     if (isBorderNode(hn) && movePreservesBalanceConstraint(hn, _hg.partitionIndex(hn),
-                                                           _hg.partitionIndex(hn)^1)) {
+                                                           _hg.partitionIndex(hn) ^ 1)) {
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
@@ -151,6 +151,10 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ")");
+
+
+      DBG(false, "Move preserves balance="
+          << movePreservesBalanceConstraint(max_gain_node, from_partition, to_partition));
 
       // TODO(schlag):
       // [ ] also consider corking effect
@@ -276,7 +280,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID from, PartitionID to) const {
     ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn << " is not in partition " << from);
     return _partition_size[to] + _hg.nodeWeight(hn)
-        <= _config.partitioning.partition_size_upper_bound;
+           <= _config.partitioning.partition_size_upper_bound;
   }
 
   bool queuesAreEmpty() const {
