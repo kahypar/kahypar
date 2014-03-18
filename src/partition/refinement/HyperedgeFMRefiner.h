@@ -78,8 +78,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _config(config),
     _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
-    _locked_hyperedges(_hg.initialNumEdges()),
-    _active_hyperedges(_hg.initialNumEdges()),
+    _marked_HEs(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
     _contained_hypernodes(_hg.initialNumNodes()),
@@ -119,7 +118,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   void activateIncidentCutHyperedges(HypernodeID hn) {
     DBG(false, "activating cut hyperedges of hypernode " << hn);
     forall_incident_hyperedges(he, hn, _hg) {
-      if (isCutHyperedge(*he) && !isActive(*he)) {
+      if (isCutHyperedge(*he) && !isMarkedAsMoved(*he)) {
         activateHyperedge(*he);
       }
     } endfor
@@ -135,11 +134,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
              FloatingPoint<double>(calculateImbalance())),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << calculateImbalance());
-
     _pq[0]->clear();
     _pq[1]->clear();
-    resetLockedHyperedges();
-    resetActiveHyperedges();
+    resetMarkedHyperedges();
 
     activateIncidentCutHyperedges(u);
     activateIncidentCutHyperedges(v);
@@ -181,10 +178,11 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       PartitionID from_partition = chosen_pq_index;
       PartitionID to_partition = chosen_pq_index ^ 1;
 
-      ASSERT(!isLocked(max_gain_hyperedge), "Selection strategy failed");
+      ASSERT(!isMarkedAsMoved(max_gain_hyperedge), "Selection strategy failed");
 
       DBG(false, "HER-FM moving HE" << max_gain_hyperedge << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ")");
+
 
       moveHyperedge(max_gain_hyperedge, from_partition, to_partition, step);
 
@@ -365,16 +363,19 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void activateHyperedge(HyperedgeID he) {
-    ASSERT(!isLocked(he), "HE " << he << " is already locked");
-    ASSERT(!isActive(he), "HE " << he << " is already active");
+    ASSERT(!isMarkedAsMoved(he),
+           "HE " << he << " has already been moved and cannot be activated again");
     // we have to use reInsert because PQs will be reused during each uncontraction
-    _pq[0]->reInsert(he, computeGain(he, 0, 1));
-    _pq[1]->reInsert(he, computeGain(he, 1, 0));
-    DBG(dbg_refinement_he_fm_he_activation,
-        "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
-    DBG(dbg_refinement_he_fm_he_activation,
-        "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
-    setActive(he);
+    if (!_pq[0]->contains(he) && movePreservesBalanceConstraint(he, 0, 1)) {
+      _pq[0]->reInsert(he, computeGain(he, 0, 1));
+      DBG(dbg_refinement_he_fm_he_activation,
+          "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
+    }
+    if (!_pq[1]->contains(he) && movePreservesBalanceConstraint(he, 1, 0)) {
+      _pq[1]->reInsert(he, computeGain(he, 1, 0));
+      DBG(dbg_refinement_he_fm_he_activation,
+          "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
+    }
   }
 
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
@@ -390,7 +391,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     if (_pq[to]->contains(he)) {
       _pq[to]->remove(he);
     }
-    lock(he);
+    markAsMoved(he);
     //set sentinel
     _movement_indices[step + 1] = curr_index;
   }
@@ -420,7 +421,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
             "*** Skipping HE " << *he << " because it is already evaluated!");
         continue;
       }
-      if (isLocked(*he)) {
+      if (isMarkedAsMoved(*he)) {
         ASSERT(!_pq[0]->contains(*he), "HE " << *he << "should not be present in PQ 0");
         ASSERT(!_pq[1]->contains(*he), "HE " << *he << "should not be present in PQ 1");
         DBG(dbg_refinement_he_fm_update_locked, "HE " << *he << " is locked");
@@ -435,7 +436,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
         } else {
           removeNonCutHyperedgeFromQueues(*he);
         }
-      } else if (isCutHyperedge(*he) && !isActive(*he)) {
+      } else if (isCutHyperedge(*he) && !isMarkedAsMoved(*he)) {
         DBG(dbg_refinement_he_fm_update_cases,
             " Activating HE " << *he << " because it has become a cut hyperedge");
         activateHyperedge(*he);
@@ -445,12 +446,17 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void removeNonCutHyperedgeFromQueues(HyperedgeID he) {
-    DBG(dbg_refinement_he_fm_update_cases,
-        " Removing HE " << he << " because it is no longer a cut hyperedge");
+    ASSERT(!isMarkedAsMoved(he), "Trying to recompute gains for already moved HE " << he);
+    ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
+           "Trying to remove a HE (" << he << ") which is not active");
     if (_pq[0]->contains(he)) {
+      DBG(dbg_refinement_he_fm_update_cases,
+        " Removing HE " << he << " from PQ 0 because it is no longer a cut hyperedge");
       _pq[0]->remove(he);
     }
     if (_pq[1]->contains(he)) {
+      DBG(dbg_refinement_he_fm_update_cases,
+          " Removing HE " << he << " from PQ 1 because it is no longer a cut hyperedge");
       _pq[1]->remove(he);
     }
   }
@@ -460,10 +466,9 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void recomputeGainsForCutHyperedge(HyperedgeID he) {
-    ASSERT(!isLocked(he), "Trying to recompute gains for locked HE " << he);
-    // We remove a HE from a PQ if it's move is the max-gain move but cloggs the PQ.
-    // Since this might only be the case for one of the PQs, we do not lock the HE (
-    // as the other move might be eligible). Thus we have to expicitly check for containment.
+    ASSERT(!isMarkedAsMoved(he), "Trying to recompute gains for already moved HE " << he);
+      ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
+           "Trying to remove a HE (" << he << ") which is not active");
     if (_pq[0]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
           " Recomputing Gain for HE PQ0 " << he << " which still is a cut hyperedge: "
@@ -477,20 +482,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       _pq[1]->updateKey(he, computeGain(he, 1, 0));
     }
   }
-
-  void lock(HyperedgeID he) {
-    //ASSERT(!_locked_hyperedges[he], "HE " << he << " is already locked");
-    _locked_hyperedges[he] = 1;
-  }
-
-  bool isLocked(HyperedgeID he) const {
-    return _locked_hyperedges[he];
-  }
-
-  void resetLockedHyperedges() {
-    _locked_hyperedges.reset();
-  }
-
+  
   void markAsContained(HypernodeID hn) {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
     _contained_hypernodes[hn] = 1;
@@ -504,24 +496,23 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _contained_hypernodes.reset();
   }
 
-  bool isActive(HyperedgeID he) const {
-    return _active_hyperedges[he];
+  bool isMarkedAsMoved(HyperedgeID he) const {
+    return _marked_HEs[he];
+  }
+  
+  void markAsMoved(HyperedgeID he) {
+    _marked_HEs[he] = 1;
   }
 
-  void setActive(HyperedgeID he) {
-    _active_hyperedges[he] = 1;
-  }
-
-  void resetActiveHyperedges() {
-    _active_hyperedges.reset();
+  void resetMarkedHyperedges() {
+    _marked_HEs.reset();
   }
 
   Hypergraph& _hg;
   const Configuration<Hypergraph> _config;
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
-  boost::dynamic_bitset<uint64_t> _locked_hyperedges;
-  boost::dynamic_bitset<uint64_t> _active_hyperedges;
+  boost::dynamic_bitset<uint64_t> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;

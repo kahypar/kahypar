@@ -341,7 +341,6 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
   hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
-  hypergraph->setEdgeWeight(0, 10);
   config.partitioning.epsilon = 0.02;
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(hypergraph->initialNumNodes() /
@@ -349,8 +348,13 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
-  hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
-  hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
+  // bypass activation because current version would not insert HEs in the first place
+  hyperedge_fm_refiner._pq[0]->reInsert(0, hyperedge_fm_refiner.computeGain(0, 0, 1));
+  hyperedge_fm_refiner._pq[1]->reInsert(0, hyperedge_fm_refiner.computeGain(0, 1, 0));
+  hyperedge_fm_refiner._pq[0]->reInsert(1, hyperedge_fm_refiner.computeGain(1, 0, 1));
+  hyperedge_fm_refiner._pq[1]->reInsert(1, hyperedge_fm_refiner.computeGain(1, 1, 0));
+  hypergraph->setEdgeWeight(0, 10);
+
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(0), Eq(true));
   ASSERT_THAT(hyperedge_fm_refiner._pq[1]->contains(0), Eq(true));
 
@@ -368,10 +372,10 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
 TEST_F(TheUpdateGainsMethod, IgnoresLockedHyperedges) {
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
-  hyperedge_fm_refiner.lock(0);
+  hyperedge_fm_refiner.markAsMoved(0);
 
   // assuming HE 2 has just been moved
-  hyperedge_fm_refiner.lock(2);
+  hyperedge_fm_refiner.markAsMoved(2);
   hyperedge_fm_refiner.updateNeighbours(2);
 
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(0), Eq(false));
@@ -474,7 +478,7 @@ TEST_F(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved) {
 
   hyperedge_fm_refiner.moveHyperedge(1, 0, 1, 0);
 
-  ASSERT_THAT(hyperedge_fm_refiner.isLocked(1), Eq(true));
+  ASSERT_THAT(hyperedge_fm_refiner.isMarkedAsMoved(1), Eq(true));
 }
 
 
@@ -535,6 +539,7 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
                                                               hyperedge_fm_refiner._pq[0],
                                                               hyperedge_fm_refiner._pq[1]);
   }
+  
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
   bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
   ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->maxKey(), Eq(1));
