@@ -118,19 +118,20 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     double imbalance = best_imbalance;
 
     int step = 0;
+    int num_moves = 0;
+    int max_number_of_moves = _hg.numNodes();
     StoppingPolicy::resetStatistics();
 
     // forward
-    // best_cut == cut accounts for the case in which we improve the imbalance
-    while (!queuesAreEmpty() && (best_cut == cut ||
-                                 !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                                   best_cut, cut))) {
+    for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
+      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
+                                                               best_cut, cut)) {
+        break;
+      }
       bool pq0_eligible = false;
       bool pq1_eligible = false;
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
 
-      //TODO(schlag): Add additional counter to count the number of removed HNs for fruitless
-      // iterations!
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
                                                           _pq[0], _pq[1])) {
         continue;
@@ -188,18 +189,18 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         best_cut = cut;
-        min_cut_index = step;
+        min_cut_index = num_moves;
         StoppingPolicy::resetStatistics();
       }
-      _performed_moves[step] = max_gain_node;
-      ++step;
+      _performed_moves[num_moves] = max_gain_node;
+      ++num_moves;
     }
 
-    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << step
-        << " local search steps: stopped because of "
+    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves
+        << " local search movements (" << step << " steps): stopped because of "
         << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, best_cut, cut) == true ?
             "policy" : "empty queue"));
-    rollback(_performed_moves, step - 1, min_cut_index, _hg);
+    rollback(_performed_moves, num_moves - 1, min_cut_index, _hg);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
