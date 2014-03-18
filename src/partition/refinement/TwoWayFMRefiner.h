@@ -29,7 +29,7 @@ using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
 
 namespace partition {
-static const bool dbg_refinement_2way_fm_improvements = false;
+static const bool dbg_refinement_2way_fm_improvements = true;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
 static const bool dbg_refinement_2way_fm_eligible_pqs = false;
@@ -132,7 +132,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       //TODO(schlag): Add additional counter to count the number of removed HNs for fruitless
       // iterations!
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
-                                                          _pq[0], _pq[1], _marked)) {
+                                                          _pq[0], _pq[1])) {
         continue;
       }
 
