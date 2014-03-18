@@ -27,7 +27,7 @@ struct RandomWalkModelStopsSearch {
   template <typename Configuration>
   static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
-    DBG(false, "step=" << step);
+    DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
     DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
         << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
