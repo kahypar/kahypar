@@ -167,7 +167,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       //     improvement. Thus we might need to "increment step by 1". However we'd need
       //     another counting variable that only counts the loop iterations to do that, since
       //     step currently refers to the number of actual moves that are performed.
-      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible, _pq[0], _pq[1])) {
+      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
+                                                          _pq[0], _pq[1])) {
         continue;
       }
 
