@@ -90,6 +90,19 @@ struct RemoveOnlyTheCloggingEntry {
   protected:
   ~RemoveOnlyTheCloggingEntry() { }
 };
+
+struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity {
+  template <typename Queue>
+  static bool removeCloggingQueueEntries(bool& pq0_eligible, bool& pq1_eligible,
+                                         Queue& pq0, Queue& pq1) {
+    pq0_eligible = (!pq0->empty() ? true : false);
+    pq1_eligible = (!pq1->empty() ? true : false);
+    return false;
+  }
+   protected:
+  ~DoNotRemoveAnyCloggingEntriesAndResetEligiblity() {}
+};
+
 } // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_HYPEREDGEFMQUEUECLOGGINGPOLICIES_H_
