@@ -47,4 +47,7 @@
   #define ASSERT(cond, msg)
 #endif
 
+// *** an always-on ASSERT
+#define ALWAYS_ASSERT(expr)  do { if (!(expr)) { fprintf(stderr, "%s:%u %s: Assertion '%s' failed!\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr); abort(); } } while(0)
+    
 #endif  // LIB_MACROS_H_
