@@ -55,34 +55,36 @@ struct RemoveOnlyTheCloggingEntry {
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
                                          boost::dynamic_bitset<uint64_t>& indicator) {
+    bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
       indicator[pq0->max()] = 1;
       pq0->deleteMax();
-      return true;
+      removed_a_node =  true;
     }
     if (!pq1_eligible && !pq1->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
       indicator[pq1->max()] = 1;
       pq1->deleteMax();
-      return true;
+      removed_a_node =  true;
     }
-    return false;
+    return removed_a_node;
   }
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1) {
+    bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
       pq0->deleteMax();
-      return true;
+      removed_a_node =  true;
     }
     if (!pq1_eligible && !pq1->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
       pq1->deleteMax();
-      return true;
+      removed_a_node =  true;
     }
-    return false;
+    return removed_a_node;
   }
 
   protected:
