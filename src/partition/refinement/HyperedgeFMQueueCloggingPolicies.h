@@ -73,12 +73,12 @@ struct RemoveOnlyTheCloggingEntry {
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1) {
     if (!pq0_eligible && !pq0->empty()) {
-      DBG(false, " Removing HE/HN " << pq0->max() << " from PQ 0");
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
       pq0->deleteMax();
       return true;
     }
     if (!pq1_eligible && !pq1->empty()) {
-      DBG(false, " Removing HE/HN " << pq1->max() << " from PQ 1");
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
       pq1->deleteMax();
       return true;
     }
