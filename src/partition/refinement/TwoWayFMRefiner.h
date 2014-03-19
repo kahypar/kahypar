@@ -124,14 +124,15 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     int max_number_of_moves = _hg.numNodes();
     StoppingPolicy::resetStatistics();
 
+    bool pq0_eligible = false;
+    bool pq1_eligible = false;
+
     // forward
     for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
       if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
                                                                best_cut, cut)) {
         break;
       }
-      bool pq0_eligible = false;
-      bool pq1_eligible = false;
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
 
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
@@ -316,17 +317,13 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
-      if (!_marked[*pin]) {
         updatePin(he, *pin, sign);
-      }
     } endfor
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
     forall_pins(pin, he, _hg) {
-      if (!_marked[*pin]) {
-        updatePin(he, *pin, (compare == _hg.partitionIndex(*pin) ? sign1 : sign2));
-      }
+      updatePin(he, *pin, (compare == _hg.partitionIndex(*pin) ? sign1 : sign2));
     } endfor
   }
 
@@ -352,6 +349,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
     if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
+      ASSERT(!_marked[pin],
+             " Trying to update marked HN " << pin << " in PQ " << _hg.partitionIndex(pin) );
       if (isBorderNode(pin)) {
         if (!_just_activated[pin]) {
           Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
@@ -367,8 +366,11 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
         _pq[_hg.partitionIndex(pin)]->remove(pin);
       }
     } else {
-      activate(pin);
-      _just_activated[pin] = true;
+      if (!_marked[pin]) {
+        // border node check is performed in activate
+        activate(pin);
+        _just_activated[pin] = true;
+      }
     }
   }
 
