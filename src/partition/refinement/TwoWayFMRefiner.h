@@ -33,6 +33,8 @@ static const bool dbg_refinement_2way_fm_improvements = true;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
 static const bool dbg_refinement_2way_fm_eligible_pqs = false;
+static const bool dbg_refinement_2way_fm__activation = false;
+static const bool dbg_refinement_2way_fm_eligible = false;
 
 template <class Hypergraph,
           class StoppingPolicy,
@@ -77,7 +79,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
-      DBG(false, "inserting HN " << hn << " with gain " << computeGain(hn)
+      DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain " << computeGain(hn)
           << " in PQ " << _hg.partitionIndex(hn));
       _pq[_hg.partitionIndex(hn)]->reInsert(hn, computeGain(hn));
     }
@@ -274,8 +276,14 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
-    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
+    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1); 
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+    DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
+        "HN " << _pq[0]->max() << " clogs PQ 0");
+    DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && _pq[0]->empty(), "PQ 0 is empty");
+    DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && !_pq[1]->empty(),
+        "HN " << _pq[1]->max() << " clogs PQ 1");
+    DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
   }
 
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID from, PartitionID to) const {
