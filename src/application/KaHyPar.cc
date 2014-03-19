@@ -16,7 +16,7 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"
-#include "lib/sqlite/SQLiteSerializer.h"
+#include "lib/serializer/SQLPlotToolsSerializer.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
@@ -41,6 +41,7 @@ using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::CoarseningScheme;
 using partition::FMRefinerFactory;
+using serializer::SQLPlotToolsSerializer;
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
                    defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) {
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
-    ("db", po::value<std::string>(), "experiment db filename");
+    ("file", po::value<std::string>(), "filename of result file");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -203,9 +204,9 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::string db_name("temp.db");
-  if (vm.count("db")) {
-    db_name = vm["db"].as<std::string>();
+  std::string result_file("temp.txt");
+  if (vm.count("file")) {
+    result_file = vm["file"].as<std::string>();
   }
 
   PartitionConfig config;
@@ -258,12 +259,12 @@ int main(int argc, char* argv[]) {
 
   io::printPartitioningResults(hypergraph, elapsed_seconds);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
-  io::printResultString(config, hypergraph, *coarsener, *refiner, elapsed_seconds);
 
   std::remove(config.partitioning.coarse_graph_filename.c_str());
   std::remove(config.partitioning.coarse_graph_partition_filename.c_str());
 
-  serializer::SQLiteBenchmarkSerializer sqlite_serializer(db_name);
-  sqlite_serializer.dumpPartitioningResult(config, hypergraph, elapsed_seconds);
+  SQLPlotToolsSerializer serializer(std::string(result_file + ".lock"));
+  serializer.serialize(config, hypergraph, *coarsener, *refiner, elapsed_seconds,
+                       result_file);
   return 0;
 }
