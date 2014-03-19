@@ -12,3 +12,6 @@ release/*
 release152/*
 debug/*
 profile/*
+benchmark/build/*
+benchmark/results/notebooks/.ipynb_checkpoints/*
+benchmark/results/notebooks/*/
