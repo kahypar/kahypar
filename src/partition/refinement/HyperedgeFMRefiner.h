@@ -140,6 +140,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
     activateIncidentCutHyperedges(u);
     activateIncidentCutHyperedges(v);
+    //DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
+    //    << _pq[1]->size() << "----------------------");
 
     HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
@@ -268,12 +270,12 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       if (_hg.partitionIndex(*pin) == relevant_partition) {
         markAsContained(*pin);
       }
-    } endfor
-    forall_pins(pin, inner_he, _hg) {
+    } endfor forall_pins(pin, inner_he, _hg) {
       if (_hg.partitionIndex(*pin) == relevant_partition && !isContained(*pin)) {
         return false;
       }
-    } endfor
+    }
+    endfor
     return true;
   }
 
@@ -451,7 +453,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
            "Trying to remove a HE (" << he << ") which is not active");
     if (_pq[0]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
-        " Removing HE " << he << " from PQ 0 because it is no longer a cut hyperedge");
+          " Removing HE " << he << " from PQ 0 because it is no longer a cut hyperedge");
       _pq[0]->remove(he);
     }
     if (_pq[1]->contains(he)) {
@@ -467,7 +469,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   void recomputeGainsForCutHyperedge(HyperedgeID he) {
     ASSERT(!isMarkedAsMoved(he), "Trying to recompute gains for already moved HE " << he);
-      ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
+    ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
            "Trying to remove a HE (" << he << ") which is not active");
     if (_pq[0]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
@@ -482,7 +484,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
       _pq[1]->updateKey(he, computeGain(he, 1, 0));
     }
   }
-  
+
   void markAsContained(HypernodeID hn) {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
     _contained_hypernodes[hn] = 1;
@@ -499,7 +501,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   bool isMarkedAsMoved(HyperedgeID he) const {
     return _marked_HEs[he];
   }
-  
+
   void markAsMoved(HyperedgeID he) {
     _marked_HEs[he] = 1;
   }

@@ -95,6 +95,7 @@ class HeavyEdgeCoarsenerBase {
 
     double old_imbalance = current_imbalance;
     HyperedgeWeight old_cut = current_cut;
+    GPERF_START_PROFILER("/home/schlag/repo/schlag_git/profile/src/application/test.prof");
     while (!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
@@ -110,6 +111,7 @@ class HeavyEdgeCoarsenerBase {
         old_cut = current_cut;
         refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
                        current_cut, _config.partitioning.epsilon, current_imbalance);
+
         ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
         DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
             << current_cut);
@@ -122,6 +124,7 @@ class HeavyEdgeCoarsenerBase {
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << current_imbalance
            << " > " << _config.partitioning.epsilon);
+    GPERF_STOP_PROFILER();
   }
 
   protected:

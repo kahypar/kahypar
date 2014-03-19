@@ -26,17 +26,17 @@ class FMRefinerFactory {
           return new TwoWayFMRefiner<Hypergraph,
                                      NumberOfFruitlessMovesStopsSearch,
                                      EligibleTopGain,
-                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
+                                     DoNotRemoveAnyCloggingEntriesAndResetEligiblity>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
           return new TwoWayFMRefiner<Hypergraph,
                                      RandomWalkModelStopsSearch,
                                      EligibleTopGain,
-                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
+                                     DoNotRemoveAnyCloggingEntriesAndResetEligiblity>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:
           return new TwoWayFMRefiner<HypergraphType,
                                      nGPRandomWalkStopsSearch,
                                      EligibleTopGain,
-                                     RemoveOnlyTheCloggingEntry>(hypergraph, config);
+                                     DoNotRemoveAnyCloggingEntriesAndResetEligiblity>(hypergraph, config);
       }
     } else {
       switch (config.her_fm.stopping_rule) {

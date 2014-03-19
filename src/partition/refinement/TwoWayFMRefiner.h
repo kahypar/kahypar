@@ -138,6 +138,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
                                                           _pq[0], _pq[1])) {
+        DBG(true, "Removed clogging entry");
+        getchar();
         continue;
       }
 
