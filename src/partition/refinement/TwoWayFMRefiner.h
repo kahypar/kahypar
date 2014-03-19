@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <string>
 #include <vector>
 
 #include "gtest/gtest_prod.h"
@@ -248,7 +249,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   std::string policyString() const {
-    return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain>>()
+    return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>());
   }

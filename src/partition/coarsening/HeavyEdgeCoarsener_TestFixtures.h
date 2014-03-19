@@ -6,6 +6,8 @@
 #define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
 #include "gmock/gmock.h"
 
+#include <string>
+
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -32,6 +34,7 @@ class DummyRefiner : public IRefiner<Hypergraph>{
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
               double, double&) { }
   int numRepetitions() { return 1; }
+  std::string policyString() const { return std::string(""); }
 };
 
 template <class CoarsenerType>

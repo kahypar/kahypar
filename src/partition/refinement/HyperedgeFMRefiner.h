@@ -9,12 +9,13 @@
 
 #include <algorithm>
 #include <limits>
+#include <string>
 #include <vector>
 
 #include "external/fp_compare/Utils.h"
+#include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
-#include "lib/TemplateParameterToString.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -285,7 +286,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   }
 
   std::string policyString() const {
-    return std::string(templateToString<QueueSelectionPolicy<Gain>>()
+    return std::string(templateToString<QueueSelectionPolicy<Gain> >()
                        + templateToString<QueueCloggingPolicy>()
                        + templateToString<StoppingPolicy>());
   }
