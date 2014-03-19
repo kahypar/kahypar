@@ -133,8 +133,9 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
                                                                best_cut, cut)) {
         break;
       }
-      checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
+      DBG(false, "-------------------------------");
 
+      checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
                                                           _pq[0], _pq[1])) {
         continue;
@@ -317,7 +318,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
     forall_pins(pin, he, _hg) {
-        updatePin(he, *pin, sign);
+      updatePin(he, *pin, sign);
     } endfor
   }
 
