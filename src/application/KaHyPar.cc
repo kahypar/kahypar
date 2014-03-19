@@ -258,6 +258,7 @@ int main(int argc, char* argv[]) {
 
   io::printPartitioningResults(hypergraph, elapsed_seconds);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
+  io::printResultString(config, hypergraph, *coarsener, *refiner, elapsed_seconds);
 
   std::remove(config.partitioning.coarse_graph_filename.c_str());
   std::remove(config.partitioning.coarse_graph_partition_filename.c_str());

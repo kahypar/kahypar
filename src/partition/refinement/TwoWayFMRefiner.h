@@ -15,6 +15,7 @@
 #include "gtest/gtest_prod.h"
 
 #include "external/fp_compare/Utils.h"
+#include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
@@ -244,6 +245,12 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   int numRepetitions() {
     return _config.two_way_fm.num_repetitions;
+  }
+
+  std::string policyString() const {
+    return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain>>()
+                       + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
+                       + " StoppingPolicy=" + templateToString<StoppingPolicy>());
   }
 
   private:

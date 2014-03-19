@@ -4,6 +4,8 @@
 
 #ifndef SRC_PARTITION_REFINEMENT_IREFINER_H_
 #define SRC_PARTITION_REFINEMENT_IREFINER_H_
+#include <string>
+
 
 namespace partition {
 template <class Hypergraph>
@@ -17,6 +19,7 @@ class IRefiner {
                       double max_imbalance, double& best_imbalance) = 0;
   virtual void initialize() { }
   virtual int numRepetitions() = 0;
+  virtual std::string policyString() const = 0;
   virtual ~IRefiner() { }
 };
 } //namespace partition

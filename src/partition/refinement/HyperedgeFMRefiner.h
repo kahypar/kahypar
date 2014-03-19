@@ -14,6 +14,7 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/TemplateParameterToString.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -281,6 +282,12 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
 
   int numRepetitions() {
     return _config.her_fm.num_repetitions;
+  }
+
+  std::string policyString() const {
+    return std::string(templateToString<QueueSelectionPolicy<Gain>>()
+                       + templateToString<QueueCloggingPolicy>()
+                       + templateToString<StoppingPolicy>());
   }
 
   private:
