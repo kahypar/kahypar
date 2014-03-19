@@ -7,9 +7,9 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/FMQueueCloggingPolicies.h"
+#include "partition/refinement/FMQueueSelectionPolicies.h"
 #include "partition/refinement/FMStopPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 
 using::testing::Test;
@@ -539,7 +539,7 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
                                                               hyperedge_fm_refiner._pq[0],
                                                               hyperedge_fm_refiner._pq[1]);
   }
-  
+
   hyperedge_fm_refiner.checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
   bool chosen_pq_index = hyperedge_fm_refiner.selectQueue(pq0_eligible, pq1_eligible);
   ASSERT_THAT(hyperedge_fm_refiner._pq[chosen_pq_index]->maxKey(), Eq(1));

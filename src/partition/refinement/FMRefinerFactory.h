@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
+#include "partition/refinement/FMQueueCloggingPolicies.h"
+#include "partition/refinement/FMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"

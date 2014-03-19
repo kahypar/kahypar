@@ -7,9 +7,9 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/FMQueueCloggingPolicies.h"
+#include "partition/refinement/FMQueueSelectionPolicies.h"
 #include "partition/refinement/FMStopPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
 using::testing::Test;

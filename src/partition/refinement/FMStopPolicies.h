@@ -25,7 +25,7 @@ struct NumberOfFruitlessMovesStopsSearch {
 
 struct RandomWalkModelStopsSearch {
   template <typename Configuration>
-  static bool searchShouldStop(int, int step, const Configuration& config,
+  static bool searchShouldStop(int, int, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);

@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_HYPEREDGEFMQUEUESELECTIONPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_HYPEREDGEFMQUEUESELECTIONPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_
 
 #include <limits>
 
@@ -31,4 +31,4 @@ struct EligibleTopGain {
   ~EligibleTopGain() { }
 };
 } // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_HYPEREDGEFMQUEUESELECTIONPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_

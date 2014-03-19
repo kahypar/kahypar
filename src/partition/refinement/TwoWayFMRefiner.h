@@ -277,7 +277,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
-    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1); 
+    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
         "HN " << _pq[0]->max() << " clogs PQ 0");
@@ -350,7 +350,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
     if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
       ASSERT(!_marked[pin],
-             " Trying to update marked HN " << pin << " in PQ " << _hg.partitionIndex(pin) );
+             " Trying to update marked HN " << pin << " in PQ " << _hg.partitionIndex(pin));
       if (isBorderNode(pin)) {
         if (!_just_activated[pin]) {
           Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);

@@ -15,9 +15,9 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/refinement/FMQueueCloggingPolicies.h"
+#include "partition/refinement/FMQueueSelectionPolicies.h"
 #include "partition/refinement/FMStopPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueCloggingPolicies.h"
-#include "partition/refinement/HyperedgeFMQueueSelectionPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
