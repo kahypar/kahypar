@@ -34,10 +34,11 @@ class SQLPlotToolsSerializer {
     HypernodeWeight partition_weights[2] = { 0, 0 };
     metrics::partitionWeights(hypergraph, partition_weights);
     
-    std::ofstream out_stream(filename.c_str(), std::ofstream::app);
+    std::ofstream out_stream;
     ip::file_lock f_lock(std::string(filename + ".lock").c_str());
     {
       ip::scoped_lock<ip::file_lock> s_lock(f_lock);
+      out_stream.open(filename.c_str(), std::ofstream::app);
       out_stream << "RESULT"
                  << " graph=" << config.partitioning.graph_filename.substr(
                      config.partitioning.graph_filename.find_last_of("/") + 1)
