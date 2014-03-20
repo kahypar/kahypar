@@ -263,8 +263,7 @@ int main(int argc, char* argv[]) {
   std::remove(config.partitioning.coarse_graph_filename.c_str());
   std::remove(config.partitioning.coarse_graph_partition_filename.c_str());
 
-  SQLPlotToolsSerializer serializer(std::string(result_file + ".lock"));
-  serializer.serialize(config, hypergraph, *coarsener, *refiner, elapsed_seconds,
-                       result_file);
+  SQLPlotToolsSerializer::serialize(config, hypergraph, *coarsener, *refiner, elapsed_seconds,
+                                    result_file);
   return 0;
 }

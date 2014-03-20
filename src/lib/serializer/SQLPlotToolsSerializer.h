@@ -19,14 +19,8 @@ namespace ip = boost::interprocess;
 namespace serializer {
 class SQLPlotToolsSerializer {
  public:
-  explicit SQLPlotToolsSerializer(const std::string& lockfile) :
-      _lockfile(lockfile) {
-    std::ofstream lock_file(_lockfile);
-    lock_file.close();
-  }
-  
   template <class Configuration, class Hypergraph, class Refiner, class Coarsener>
-  void serialize(const Configuration& config, const Hypergraph& hypergraph,
+  static void serialize(const Configuration& config, const Hypergraph& hypergraph,
                         const Coarsener& coarsener, const Refiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::string& filename) {
@@ -34,11 +28,10 @@ class SQLPlotToolsSerializer {
     HypernodeWeight partition_weights[2] = { 0, 0 };
     metrics::partitionWeights(hypergraph, partition_weights);
     
-    std::ofstream out_stream;
-    ip::file_lock f_lock(std::string(filename + ".lock").c_str());
+    std::ofstream out_stream(filename.c_str(), std::ofstream::app);
+    ip::file_lock f_lock(filename.c_str());
     {
       ip::scoped_lock<ip::file_lock> s_lock(f_lock);
-      out_stream.open(filename.c_str(), std::ofstream::app);
       out_stream << "RESULT"
                  << " graph=" << config.partitioning.graph_filename.substr(
                      config.partitioning.graph_filename.find_last_of("/") + 1)
@@ -80,11 +73,7 @@ class SQLPlotToolsSerializer {
                  << std::endl;
       out_stream.flush();
     }
-    out_stream.close();
   }
- private:
-  const std::string& _lockfile;
-  
 };
 
 } // namespace serializer
