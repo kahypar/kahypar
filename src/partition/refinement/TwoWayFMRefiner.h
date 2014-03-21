@@ -76,8 +76,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void activate(HypernodeID hn) {
-    if (isBorderNode(hn) && movePreservesBalanceConstraint(hn, _hg.partitionIndex(hn),
-                                                           _hg.partitionIndex(hn) ^ 1)) {
+    if (isBorderNode(hn)) {
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
              "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
