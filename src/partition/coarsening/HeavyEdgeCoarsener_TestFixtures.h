@@ -4,9 +4,9 @@
 
 #ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
 #define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
-#include "gmock/gmock.h"
-
 #include <string>
+
+#include "gmock/gmock.h"
 
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
