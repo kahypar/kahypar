@@ -68,6 +68,7 @@ add_subdirectory(src/partition)
 add_subdirectory(src/partition/coarsening)
 add_subdirectory(src/partition/refinement)
 add_subdirectory(src/playground)
+add_subdirectory(src/tools)
 
 
 
