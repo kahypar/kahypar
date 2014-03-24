@@ -63,7 +63,8 @@ void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData&
   }
 }
 
-void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data) {
+void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info,
+                                  MatrixData& matrix_data) {
   std::string line;
   int row = -1;
   int column = -1;
@@ -86,15 +87,24 @@ void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info, M
   }
 }
 
-void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data, const std::string& filename) {
+void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
+                            const std::string& filename) {
   std::ofstream out_stream(filename.c_str());
   out_stream << info.num_rows << " " << info.num_columns << std::endl;
   for (auto hyperedge : matrix_data) {
-    for (auto pin_iter = hyperedge.begin(); pin_iter < hyperedge.end() - 1; ++pin_iter) {
-      // ids start at 1
-      out_stream << *pin_iter + 1 << " ";
+    if (hyperedge.size() == 0) {
+      std::cout << "Warning: Matrix contains an empty row" << std::endl;
+      out_stream << std::endl;
+    } else {
+      for (auto pin_iter = hyperedge.begin(); pin_iter != hyperedge.end(); ++pin_iter) {
+        // ids start at 1
+        out_stream << *pin_iter + 1;
+        if (pin_iter + 1 != hyperedge.end()) {
+          out_stream << " ";
+        }
+      }
+      out_stream << std::endl;
     }
-    out_stream << *(hyperedge.end() - 1) + 1 << std::endl;
   }
   out_stream.close();
 }
