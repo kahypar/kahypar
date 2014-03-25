@@ -227,7 +227,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
            << initial_cut << " to" << best_cut);
   }
 
-  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) {
+  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) {
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != INVALID_PARTITION) && (to != INVALID_PARTITION),
            "Trying to compute gain for invalid partition");

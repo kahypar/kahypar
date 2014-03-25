@@ -297,7 +297,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
   }
 
-  bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID from, PartitionID to) const {
+  bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
     ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn << " is not in partition " << from);
     return _partition_size[to] + _hg.nodeWeight(hn)
            <= _config.partitioning.partition_size_upper_bound;

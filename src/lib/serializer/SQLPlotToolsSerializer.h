@@ -21,7 +21,7 @@ class SQLPlotToolsSerializer {
  public:
   template <class Configuration, class Hypergraph, class Refiner, class Coarsener>
   static void serialize(const Configuration& config, const Hypergraph& hypergraph,
-                        const Coarsener& coarsener, const Refiner& refiner,
+                        const Coarsener& UNUSED(coarsener), const Refiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::string& filename) {
 
