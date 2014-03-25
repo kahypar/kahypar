@@ -52,12 +52,17 @@
 
 
 // http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
+#ifdef NDEBUG
 #ifdef __GNUC__
 #define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
 #else
 #define UNUSED(x) UNUSED_ ## x
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+#else
+#define UNUSED(x) x
+#define UNUSED_FUNCTION(x) x
 #endif
 
 #endif  // LIB_MACROS_H_
