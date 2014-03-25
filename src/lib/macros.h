@@ -49,5 +49,15 @@
 
 // *** an always-on ASSERT
 #define ALWAYS_ASSERT(expr)  do { if (!(expr)) { fprintf(stderr, "%s:%u %s: Assertion '%s' failed!\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr); abort(); } } while(0)
-    
+
+
+// http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
+#ifdef __GNUC__
+#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#define UNUSED(x) UNUSED_ ## x
+#define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+
 #endif  // LIB_MACROS_H_
