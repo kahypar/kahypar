@@ -296,10 +296,12 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
-        "HN " << _pq[0]->max() << " clogs PQ 0");
+        "HN " << _pq[0]->max() << "w(hn)=" << _hg.nodeWeight(_pq[0]->max())
+        << " clogs PQ 0: w(p1)=" << _partition_size[1]);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && _pq[0]->empty(), "PQ 0 is empty");
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && !_pq[1]->empty(),
-        "HN " << _pq[1]->max() << " clogs PQ 1");
+        "HN " << _pq[1]->max() << "w(hn)=" << _hg.nodeWeight(_pq[1]->max())
+        << " clogs PQ 1: w(p0)=" << _partition_size[0]);
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
   }
 
