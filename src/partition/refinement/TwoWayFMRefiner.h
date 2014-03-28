@@ -158,7 +158,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
              "HN " << max_gain_node << "is marked and not eligable to be moved");
 
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
-          << " to " << to_partition << " (gain: " << max_gain << ")");
+          << " to " << to_partition << " (gain: " << max_gain << ", weight="
+          << _hg.nodeWeight(max_gain_node) << ")");
 
 
       DBG(false, "Move preserves balance="
