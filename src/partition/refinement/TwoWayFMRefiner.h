@@ -278,11 +278,16 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
 
   bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
-    ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
-    DBG(dbg_refinement_2way_fm_eligible_pqs, "HN " << _pq[0]->max() << " is "
-        << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->maxKey());
-    DBG(dbg_refinement_2way_fm_eligible_pqs, "HN " << _pq[1]->max() << " is "
-        << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->maxKey());
+    DBG(dbg_refinement_2way_fm_eligible, "PQ 0 is empty: " << _pq[0]->empty() << " ---> "
+        << (!_pq[0]->empty() ? "HN " + std::to_string(_pq[0]->max()) + " is "
+            + (pq0_eligible ? "" : " NOT ") + " eligible, gain="
+            + std::to_string(_pq[0]->maxKey()) :
+            ""));
+    DBG(dbg_refinement_2way_fm_eligible, "PQ 1 is empty: " << _pq[1]->empty() << " ---> "
+        << (!_pq[1]->empty() ? "HN " + std::to_string(_pq[1]->max()) + " is "
+            + (pq1_eligible ? "" : " NOT ") + " eligible, gain="
+            + std::to_string(_pq[1]->maxKey()) :
+            ""));
     return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
