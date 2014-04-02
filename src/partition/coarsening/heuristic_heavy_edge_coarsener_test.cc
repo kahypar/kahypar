@@ -6,6 +6,7 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
+#include "lib/io/HypergraphIO.h"
 #include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 
@@ -71,4 +72,30 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   ASSERT_THAT(coarsener._history.top().contraction_memento.u, Eq(0));
   ASSERT_THAT(coarsener._history.top().contraction_memento.v, Eq(2));
 }
+
+TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  Configuration<HypergraphType> config;
+  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.threshold_node_weight = 3;
+  std::string graph_file("../../../../benchmark_instances/special_instances/bad_for_ec.hgr");
+  HypernodeID num_hypernodes;
+  HyperedgeID num_hyperedges;  
+  io::readHypergraphFile(graph_file,num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);  
+  CoarsenerType coarsener(hypergraph, config);
+  coarsener.coarsen(5);
+  hypergraph.printGraphState();
+  ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(6), Eq(3));
+  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(0), Eq(1));
+  ASSERT_THAT(hypergraph.edgeWeight(3), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(4), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
+  ASSERT_THAT(hypergraph.edgeWeight(8), Eq(3));
+}
+
 } // namespace partition
