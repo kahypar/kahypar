@@ -255,6 +255,29 @@ class HeavyEdgeCoarsenerBase {
     } endfor
   }
 
+  void rateAllHypernodes(std::vector<HypernodeID>& target) {
+    HeavyEdgeRating rating;
+    forall_hypernodes(hn, _hg) {
+      rating = _rater.rate(*hn);
+      if (rating.valid) {
+        _pq.insert(*hn, rating.value);
+        target[*hn] = rating.target;
+      }
+    } endfor
+  }
+
+  void rateAllHypernodes(std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
+    HeavyEdgeRating rating;
+    forall_hypernodes(hn, _hg) {
+      rating = _rater.rate(*hn);
+      if (rating.valid) {
+        _pq.insert(*hn, rating.value);
+        target[*hn] = rating.target;
+        sources.insert({ rating.target, *hn });
+      }
+    } endfor
+  }
+
   Hypergraph& _hg;
   const Configuration<Hypergraph>& _config;
   Rater _rater;

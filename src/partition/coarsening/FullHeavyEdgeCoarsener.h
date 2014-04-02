@@ -31,7 +31,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     Base::_pq.clear();
 
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
-    rateAllHypernodes(target);
+    Base::rateAllHypernodes(target);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
@@ -68,17 +68,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   }
 
   private:
-  void rateAllHypernodes(std::vector<HypernodeID>& target) {
-    HeavyEdgeRating rating;
-    forall_hypernodes(hn, Base::_hg) {
-      rating = Base::_rater.rate(*hn);
-      if (rating.valid) {
-        Base::_pq.insert(*hn, rating.value);
-        target[*hn] = rating.target;
-      }
-    } endfor
-  }
-
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 std::vector<HypernodeID>& target,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
