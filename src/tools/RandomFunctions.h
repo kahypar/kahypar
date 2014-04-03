@@ -3,12 +3,10 @@
 
 #include <ctime>
 #include <limits>
-
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
+#include <random>
 
 class Randomize {
-  public:
+   public:
   static bool flipCoin() {
     return static_cast<bool>(_bool_dist(_gen));
   }
@@ -22,16 +20,21 @@ class Randomize {
     _gen.seed(_seed);
   }
 
+  template <typename T>
+  static void shuffleVector(std::vector<T>& vector) {
+    std::shuffle(vector.begin(), vector.end(), _gen);
+  }
+
   private:
   static int _seed;
-  static boost::random::mt19937 _gen;
-  static boost::random::uniform_int_distribution<int> _bool_dist;
-  static boost::random::uniform_int_distribution<int> _int_dist;
+  static std::mt19937 _gen;
+  static std::uniform_int_distribution<int> _bool_dist;
+  static std::uniform_int_distribution<int> _int_dist;
 };
 
 int Randomize::_seed = -1;
-boost::random::mt19937 Randomize::_gen;
-boost::random::uniform_int_distribution<int> Randomize::_bool_dist(0, 1);
-boost::random::uniform_int_distribution<int> Randomize::_int_dist(0, std::numeric_limits<int>::max());
+std::mt19937 Randomize::_gen;
+std::uniform_int_distribution<int> Randomize::_bool_dist(0, 1);
+std::uniform_int_distribution<int> Randomize::_int_dist(0, std::numeric_limits<int>::max());
 
 #endif  // TOOLS_RANDOMFUNCTIONS_H_

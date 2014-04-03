@@ -1,7 +1,7 @@
 #!/bin/bash
 
-taskfilename=current_opt.tasks
-subdir=current_opt_simple_stop
+task_filename=current_opt.tasks
+subdir=current_opt_randomize_initial_rating
 reps=10
 
 epsilon=0.02
@@ -10,12 +10,12 @@ vcycles=10
 ctype=heavy_heuristic
 cmaxnet=-1
 s=0.0375
-t=170
-stopFM=simple
+t=150
+stopFM=adaptive1
 FMreps=-1
-i=190
-alpha=14
-dbname=current_opt_simple.db
+i=130
+alpha=10
+result_filename=current_opt_randomize_initial_rating.results
 rtype=twoway_fm
 
 GRAPH_DIR=/home/schlag/repo/schlag_git/benchmark_instances/
@@ -27,8 +27,8 @@ then
     mkdir $RESULT_DIR
 fi
 
-dbname=$RESULT_DIR"/"$dbname
-taskfilename=$RESULT_DIR"/"$taskfilename
+result_file=$RESULT_DIR"/"$result_filename
+task_file=$RESULT_DIR"/"$task_filename
 
 cd $GRAPH_DIR
 for file in *.hgr;
@@ -36,6 +36,6 @@ do
   for run in $(seq 1 $reps)
   do
     seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-    echo "$PARTITIONER --hgr=$GRAPH_DIR$file --e=$epsilon --seed=$seed --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=$ctype --s=$s --t=$t --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --rtype=$rtype --db=$dbname" >> $taskfilename
+  echo "$PARTITIONER --hgr=$GRAPH_DIR$file --e=$epsilon --seed=$seed --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=$ctype --s=$s --t=$t --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --rtype=$rtype --file=$result_file" >> $task_file
   done  
 done

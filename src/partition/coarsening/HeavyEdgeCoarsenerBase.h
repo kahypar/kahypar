@@ -39,7 +39,6 @@ class HeavyEdgeCoarsenerBase {
   typedef typename Hypergraph::HypernodeIterator HypernodeIterator;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef typename Rater::RatingType RatingType;
-  typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
   struct CoarseningMemento {
     int one_pin_hes_begin;      // start of removed single pin hyperedges
@@ -253,6 +252,29 @@ class HeavyEdgeCoarsenerBase {
       } endfor
       _fingerprints.emplace_back(*he, hash, _hg.edgeSize(*he));
     } endfor
+  }
+
+  template <typename Map>
+  void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) {
+    std::vector<HypernodeID> permutation;
+    createHypernodePermutation(permutation);
+    HeavyEdgeRating rating;
+    for (int i = 0; i < permutation.size(); ++i) {
+      rating = _rater.rate(permutation[i]);
+      if (rating.valid) {
+        _pq.insert(permutation[i], rating.value);
+        target[permutation[i]] = rating.target;
+        sources.insert({ rating.target, permutation[i] });
+      }
+    }
+  }
+
+  void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
+    permutation.reserve(_hg.initialNumNodes());
+    for (int i = 0; i < _hg.initialNumNodes(); ++i) {
+      permutation.push_back(i);
+    }
+    Randomize::shuffleVector(permutation);
   }
 
   Hypergraph& _hg;

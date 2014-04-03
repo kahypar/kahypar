@@ -35,7 +35,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
     TargetToSourcesMap sources;
 
-    rateAllHypernodes(target, sources);
+    Base::rateAllHypernodes(target, sources);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
@@ -82,18 +82,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
         break;
       }
     }
-  }
-
-  void rateAllHypernodes(std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
-    HeavyEdgeRating rating;
-    forall_hypernodes(hn, Base::_hg) {
-      rating = Base::_rater.rate(*hn);
-      if (rating.valid) {
-        Base::_pq.insert(*hn, rating.value);
-        target[*hn] = rating.target;
-        sources.insert({ rating.target, *hn });
-      }
-    } endfor
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,

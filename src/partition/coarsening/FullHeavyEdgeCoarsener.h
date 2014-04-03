@@ -6,6 +6,7 @@
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <utility>
 #include <vector>
 
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
@@ -21,6 +22,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Rater::Rating HeavyEdgeRating;
 
+  class NullMap {
+    public:
+    void insert(std::pair<HypernodeID, HypernodeID>) { }
+  };
+
   public:
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
     HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) { }
@@ -31,7 +37,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
     Base::_pq.clear();
 
     std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
-    rateAllHypernodes(target);
+    NullMap null_map;
+    Base::rateAllHypernodes(target, null_map);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
@@ -68,17 +75,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
   }
 
   private:
-  void rateAllHypernodes(std::vector<HypernodeID>& target) {
-    HeavyEdgeRating rating;
-    forall_hypernodes(hn, Base::_hg) {
-      rating = Base::_rater.rate(*hn);
-      if (rating.valid) {
-        Base::_pq.insert(*hn, rating.value);
-        target[*hn] = rating.target;
-      }
-    } endfor
-  }
-
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 std::vector<HypernodeID>& target,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,

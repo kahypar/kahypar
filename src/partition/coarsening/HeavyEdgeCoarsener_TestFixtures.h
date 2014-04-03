@@ -118,7 +118,7 @@ template <class Coarsener, class Hypergraph, class Refiner>
 void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergraph& hypergraph, Refiner& refiner) {
   coarsener.coarsen(2);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
 
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
