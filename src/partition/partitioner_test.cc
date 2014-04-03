@@ -72,8 +72,8 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(0));
+  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {

@@ -81,21 +81,22 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   config.coarsening.threshold_node_weight = 3;
   std::string graph_file("../../../../benchmark_instances/special_instances/bad_for_ec.hgr");
   HypernodeID num_hypernodes;
-  HyperedgeID num_hyperedges;  
-  io::readHypergraphFile(graph_file,num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);  
+  HyperedgeID num_hyperedges;
+  io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
   CoarsenerType coarsener(hypergraph, config);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
   ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(6), Eq(3));
-  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(2), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(1));
+  ASSERT_THAT(hypergraph.nodeWeight(5), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(3), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
+  ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(4), Eq(2));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(8), Eq(3));
+  ASSERT_THAT(hypergraph.edgeWeight(8), Eq(4));
 }
-
 } // namespace partition
