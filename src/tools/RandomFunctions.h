@@ -20,6 +20,11 @@ class Randomize {
     _gen.seed(_seed);
   }
 
+  template <typename T>
+  static void shuffleVector(std::vector<T>& vector) {
+    std::shuffle(vector.begin(), vector.end(), _gen);
+  }
+
   private:
   static int _seed;
   static std::mt19937 _gen;
