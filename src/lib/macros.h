@@ -32,6 +32,8 @@
 #define DBGX(dbg,X)   do { if (dbg) { std::cout << X; } } while(0)
 #define DBG(dbg,X)    DBGX(dbg, __FUNCTION__ << "(): " << X << std::endl)
 
+#define LOG(X) DBG(true,X)
+
 #ifdef USE_ASSERTIONS
   #define ASSERT(cond, msg)                            \
   do {                                                 \
