@@ -139,8 +139,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
                                                           _pq[0], _pq[1])) {
-        DBG(true, "Removed clogging entry");
-        getchar();
+        //DBG(true, "Removed clogging entry");
+        //getchar();
         continue;
       }
 
@@ -165,8 +165,6 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
       DBG(false, "Move preserves balance="
           << movePreservesBalanceConstraint(max_gain_node, from_partition, to_partition));
 
-      // TODO(schlag):
-      // [ ] also consider corking effect
       moveHypernode(max_gain_node, from_partition, to_partition);
 
       cut -= max_gain;
