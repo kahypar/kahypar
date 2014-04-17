@@ -1040,6 +1040,7 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartTy
 
 typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID, defs::HyperNodeWeight,
                    defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
+
 typedef HypergraphType::HypernodeID HypernodeID;
 typedef HypergraphType::HyperedgeID HyperedgeID;
 typedef HypergraphType::PartitionID PartitionID;

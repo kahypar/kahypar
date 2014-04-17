@@ -42,11 +42,9 @@ using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
 
 namespace metrics {
-typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
-typedef Configuration<HypergraphType> PartitionConfig;
-typedef Partitioner<HypergraphType> HypergraphPartitioner;
-typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch,
+typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
+typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
+typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                         EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
 
 class AnUnPartitionedHypergraph : public Test {
@@ -83,10 +81,10 @@ class APartitionedHypergraph : public Test {
   }
 
   HypergraphType hypergraph;
-  PartitionConfig config;
-  HypergraphPartitioner partitioner;
-  std::unique_ptr<ICoarsener<HypergraphType> > coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > refiner;
+  Configuration config;
+  Partitioner partitioner;
+  std::unique_ptr<ICoarsener> coarsener;
+  std::unique_ptr<IRefiner> refiner;
 };
 
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
@@ -110,7 +108,7 @@ class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedH
     partition.push_back(0);
   }
 
-  PartitionConfig config;
+  Configuration config;
   FirstWinsCoarsener coarsener;
   std::unordered_map<HypernodeID, HypernodeID> hg_to_hmetis;
   std::vector<PartitionID> partition;

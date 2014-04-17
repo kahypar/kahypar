@@ -14,14 +14,14 @@
 
 using datastructure::HyperedgeWeight;
 using datastructure::IncidenceIterator;
+using datastructure::HypergraphType;
+using datastructure::HypernodeWeight;
 using defs::PartitionID;
-
 
 namespace metrics {
 static const bool dbg_metrics_hyperedge_cut = false;
 
-template <class Hypergraph>
-HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
+HyperedgeWeight hyperedgeCut(const HypergraphType& hg) {
   HyperedgeWeight cut = 0;
   forall_hyperedges(he, hg) {
     IncidenceIterator begin, end;
@@ -45,8 +45,8 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   return cut;
 }
 
-template <class Hypergraph, typename CoarsendToHmetisMapping, typename Partition>
-HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
+template <typename CoarsendToHmetisMapping, typename Partition>
+HyperedgeWeight hyperedgeCut(const HypergraphType& hg, CoarsendToHmetisMapping&
                              hg_to_hmetis, Partition& partitioning) {
   HyperedgeWeight cut = 0;
   forall_hyperedges(he, hg) {
@@ -71,9 +71,8 @@ HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
   return cut;
 }
 
-template <class Hypergraph>
-double imbalance(const Hypergraph& hypergraph) {
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
+double imbalance(const HypergraphType& hypergraph) {
+  typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
   std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
   forall_hypernodes(hn, hypergraph) {
@@ -87,18 +86,16 @@ double imbalance(const Hypergraph& hypergraph) {
   return 2.0 * max_weight / total_weight - 1.0;
 }
 
-template <class Hypergraph>
-double avgHyperedgeDegree(const Hypergraph& hypergraph) {
+double avgHyperedgeDegree(const HypergraphType& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numEdges();
 }
 
-template <class Hypergraph>
-double avgHypernodeDegree(const Hypergraph& hypergraph) {
+double avgHypernodeDegree(const HypergraphType& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
 
-template <class Hypergraph, class Weights>
-void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
+template <class Weights>
+void partitionWeights(const HypergraphType& hypergraph, Weights& weights) {
   forall_hypernodes(hn, hypergraph) {
     weights[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
   } endfor

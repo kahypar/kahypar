@@ -9,14 +9,17 @@
 #include <utility>
 #include <vector>
 
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+
 namespace partition {
-template <class Hypergraph, class Rater>
-class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
+template <class Rater>
+class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Hypergraph, Rater> Base;
-  typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef HeavyEdgeCoarsenerBase<Rater> Base;
   typedef typename Rater::Rating HeavyEdgeRating;
 
   class NullMap {
@@ -25,8 +28,8 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
   };
 
   public:
-  FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-    HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) { }
+  FullHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
+    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
   ~FullHeavyEdgeCoarsener() { }
 

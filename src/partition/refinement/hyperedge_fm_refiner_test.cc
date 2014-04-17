@@ -26,8 +26,7 @@ using datastructure::HyperedgeWeight;
 using datastructure::HyperedgeID;
 
 namespace partition {
-typedef HyperedgeFMRefiner<HypergraphType,
-                           NumberOfFruitlessMovesStopsSearch,
+typedef HyperedgeFMRefiner<NumberOfFruitlessMovesStopsSearch,
                            EligibleTopGain,
                            OnlyRemoveIfBothQueuesClogged> HyperedgeFMRefinerSimpleStopping;
 
@@ -38,7 +37,7 @@ class AHyperedgeFMRefiner : public Test {
     config() { }
 
   std::unique_ptr<HypergraphType> hypergraph;
-  Configuration<HypergraphType> config;
+  Configuration config;
 };
 
 class AHyperedgeMovementOperation : public AHyperedgeFMRefiner {

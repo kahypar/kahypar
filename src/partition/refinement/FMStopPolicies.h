@@ -5,10 +5,10 @@
 #ifndef SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
 #define SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
 #include "lib/macros.h"
+#include "partition/Configuration.h"
 
 namespace partition {
 struct NumberOfFruitlessMovesStopsSearch {
-  template <typename Configuration>
   static bool searchShouldStop(int min_cut_index, int current_index, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
     return current_index - min_cut_index > config.two_way_fm.max_number_of_fruitless_moves;
@@ -24,7 +24,6 @@ struct NumberOfFruitlessMovesStopsSearch {
 };
 
 struct RandomWalkModelStopsSearch {
-  template <typename Configuration>
   static bool searchShouldStop(int, int, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
@@ -77,7 +76,6 @@ double RandomWalkModelStopsSearch::_expected_gain = 0.0;
 double RandomWalkModelStopsSearch::_expected_variance = 0.0;
 
 struct nGPRandomWalkStopsSearch {
-  template <typename Configuration>
   static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight best_cut, HyperedgeWeight cut) {
     return step >= config.two_way_fm.alpha * (((_sum_gains_squared / (2.0 * static_cast<double>(best_cut) - cut))

@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
@@ -26,27 +27,28 @@
 #include "partition/Metrics.h"
 #endif
 
+using datastructure::HypergraphType;
+using datastructure::HypernodeWeight;
+using datastructure::HyperedgeWeight;
+using datastructure::PartitionID;
+using datastructure::HypernodeID;
+
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
 static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
-template <class Hypergraph>
 class Partitioner {
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
-  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
-  typedef typename Hypergraph::PartitionID PartitionID;
-  typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
   typedef std::vector<HypernodeWeight> PartitionWeights;
 
   public:
-  explicit Partitioner(Configuration<Hypergraph>& config) :
+  explicit Partitioner(Configuration& config) :
     _config(config) { }
 
-  void partition(Hypergraph& hypergraph, ICoarsener<Hypergraph>& coarsener,
-                 IRefiner<Hypergraph>& refiner) {
+  void partition(HypergraphType& hypergraph, ICoarsener& coarsener,
+                 IRefiner& refiner) {
     std::vector<HyperedgeID> removed_hyperedges;
     removeLargeHyperedges(hypergraph, removed_hyperedges);
 
@@ -58,7 +60,7 @@ class Partitioner {
       }
 
 #ifndef NDEBUG
-      typename Hypergraph::HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
+      HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
       coarsener.uncoarsen(refiner);
       ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
@@ -83,7 +85,7 @@ class Partitioner {
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
 
 
-  void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+  void removeLargeHyperedges(HypergraphType& hg, std::vector<HyperedgeID>& removed_hyperedges) {
     if (_config.partitioning.hyperedge_size_threshold != -1) {
       forall_hyperedges(he, hg) {
         if (hg.edgeSize(*he) > _config.partitioning.hyperedge_size_threshold) {
@@ -97,7 +99,7 @@ class Partitioner {
     }
   }
 
-  void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+  void restoreLargeHyperedges(HypergraphType& hg, std::vector<HyperedgeID>& removed_hyperedges) {
     if (_config.partitioning.hyperedge_size_threshold != -1) {
       PartitionWeights partition_weights { 0, 0 };
       forall_hypernodes(hn, hg) {
@@ -116,7 +118,7 @@ class Partitioner {
     }
   }
 
-  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
+  void partitionUnpartitionedPins(HyperedgeID he, HypergraphType& hg,
                                   PartitionWeights& partition_weights) {
     HypernodeID num_pins = hg.edgeSize(he);
     HypernodeID num_unpartitioned_hns = hg.pinCountInPartition(he, INVALID_PARTITION);
@@ -152,7 +154,7 @@ class Partitioner {
     distributePinsAcrossPartitions(he, hg, partition_weights);
   }
 
-  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
+  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, HypergraphType& hg,
                                           PartitionWeights& partition_weights) {
     DBG(dbg_partition_large_he_removal,
         "Assigning unpartitioned pins of HE " << he << " to partition " << id);
@@ -167,7 +169,7 @@ class Partitioner {
     } endfor
   }
 
-  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg, PartitionWeights&
+  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, HypergraphType& hg, PartitionWeights&
                                 partition_weights) {
     DBG(dbg_partition_large_he_removal, "Assigning all pins of HE " << he << " to partition " << id);
     forall_pins(pin, he, hg) {
@@ -179,7 +181,7 @@ class Partitioner {
     } endfor
   }
 
-  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
+  void distributePinsAcrossPartitions(HyperedgeID he, HypergraphType& hg,
                                       PartitionWeights& partition_weights) {
     DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
     size_t min_partition = 0;
@@ -195,7 +197,7 @@ class Partitioner {
 
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
-                                            const Hypergraph& hg) {
+                                            const HypergraphType& hg) {
     int i = 0;
     forall_hypernodes(hn, hg) {
       hg_to_hmetis[*hn] = i;
@@ -204,7 +206,7 @@ class Partitioner {
     } endfor
   }
 
-  void performInitialPartitioning(Hypergraph& hg) {
+  void performInitialPartitioning(HypergraphType& hg) {
     io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename.substr(
                               _config.partitioning.coarse_graph_filename.find_last_of("/") + 1));
 
@@ -267,7 +269,7 @@ class Partitioner {
            << "best initial cut");
   }
 
-  const Configuration<Hypergraph>& _config;
+  const Configuration& _config;
 };
 } // namespace partition
 

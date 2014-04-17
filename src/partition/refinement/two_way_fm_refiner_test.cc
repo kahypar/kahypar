@@ -27,8 +27,7 @@ using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
 
 namespace partition {
-typedef TwoWayFMRefiner<HypergraphType,
-                        NumberOfFruitlessMovesStopsSearch,
+typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                         EligibleTopGain,
                         RemoveOnlyTheCloggingEntry> TwoWayFMRefinerSimpleStopping;
 
@@ -52,7 +51,7 @@ class ATwoWayFMRefiner : public Test {
   }
 
   HypergraphType hypergraph;
-  Configuration<HypergraphType> config;
+  Configuration config;
   TwoWayFMRefinerSimpleStopping* refiner;
 
   private:
@@ -66,7 +65,7 @@ class AGainUpdateMethod : public Test {
     config.two_way_fm.max_number_of_fruitless_moves = 50;
   }
 
-  Configuration<HypergraphType> config;
+  Configuration config;
 };
 
 TEST_F(ATwoWayFMRefiner, IdentifiesBorderHypernodes) {
@@ -408,7 +407,7 @@ TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1) {
   hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
-  Configuration<HypergraphType> config;
+  Configuration config;
   config.partitioning.epsilon = 1;
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -433,7 +432,7 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
 
-  Configuration<HypergraphType> config;
+  Configuration config;
   config.partitioning.epsilon = 0.02;
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(hypergraph.initialNumNodes()

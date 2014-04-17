@@ -29,8 +29,7 @@ using datastructure::HypernodeWeight;
 using datastructure::HyperedgeWeight;
 
 namespace partition {
-template <typename Hypergraph>
-class DummyRefiner : public IRefiner<Hypergraph>{
+class DummyRefiner : public IRefiner {
   void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
               double, double&) { }
   int numRepetitions() { return 1; }
@@ -46,14 +45,14 @@ class ACoarsenerBase : public Test {
     hypergraph(graph),
     config(),
     coarsener(*hypergraph, config),
-    refiner(new DummyRefiner<HypergraphType>()) {
+    refiner(new DummyRefiner()) {
     config.coarsening.threshold_node_weight = 5;
   }
 
   std::unique_ptr<HypergraphType> hypergraph;
-  Configuration<HypergraphType> config;
+  Configuration config;
   CoarsenerType coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > refiner;
+  std::unique_ptr<IRefiner> refiner;
 
   private:
   DISALLOW_COPY_AND_ASSIGN(ACoarsenerBase);
@@ -137,10 +136,10 @@ void restoresParallelHyperedgesInReverseOrder() {
                             HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
                             &node_weights);
 
-  Configuration<HypergraphType> config;
+  Configuration config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
+  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
   hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
@@ -163,10 +162,10 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
                             HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
                             &node_weights);
 
-  Configuration<HypergraphType> config;
+  Configuration config;
   config.coarsening.threshold_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(new DummyRefiner<HypergraphType>());
+  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
   hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);

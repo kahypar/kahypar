@@ -21,9 +21,9 @@ using datastructure::HyperedgeVector;
 using datastructure::HypernodeID;
 
 namespace partition {
-typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Rater<HypergraphType, defs::RatingType, LastRatingWins> LastWinsRater;
-typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
+typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
+typedef Rater<defs::RatingType, LastRatingWins> LastWinsRater;
+typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
 
 class ARater : public Test {
   public:
@@ -34,7 +34,7 @@ class ARater : public Test {
   }
 
   std::unique_ptr<HypergraphType> hypergraph;
-  Configuration<HypergraphType> config;
+  Configuration config;
 
   private:
   DISALLOW_COPY_AND_ASSIGN(ARater);

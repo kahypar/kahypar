@@ -16,24 +16,26 @@
 #include "partition/Configuration.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+using datastructure::HyperedgeID;
+using datastructure::HypernodeWeight;
+using datastructure::HypernodeIterator;
+using datastructure::IncidenceIterator;
+
 namespace partition {
 static const bool dbg_partition_rating = false;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
-template <class Hypergraph, typename RatingType_, class _TieBreakingPolicy>
+template <typename RatingType_, class _TieBreakingPolicy>
 class Rater {
   public:
   typedef RatingType_ RatingType;
 
   private:
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
-  typedef typename Hypergraph::ContractionMemento Memento;
-  typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
-  typedef typename Hypergraph::HypernodeIterator HypernodeIterator;
+  typedef typename HypergraphType::ContractionMemento Memento;
   typedef _TieBreakingPolicy TieBreakingPolicy;
 
   struct HeavyEdgeRating {
@@ -52,7 +54,7 @@ class Rater {
 
   public:
   typedef HeavyEdgeRating Rating;
-  Rater(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+  Rater(HypergraphType& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()),
@@ -116,8 +118,8 @@ class Rater {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 
-  Hypergraph& _hg;
-  const Configuration<Hypergraph>& _config;
+  HypergraphType& _hg;
+  const Configuration& _config;
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;

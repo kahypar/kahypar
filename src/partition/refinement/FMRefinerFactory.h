@@ -7,47 +7,45 @@
 
 #include <iostream>
 
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/refinement/FMQueueCloggingPolicies.h"
 #include "partition/refinement/FMQueueSelectionPolicies.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/FMStopPolicies.h"
+#include "partition/Configuration.h"
+
+using datastructure::HypergraphType;
 
 namespace partition {
 class FMRefinerFactory {
   public:
-  template <class Config, class Hypergraph>
-  static IRefiner<Hypergraph>* create(const Config& config,
-                                      Hypergraph& hypergraph) {
+  static IRefiner* create(const Configuration& config,
+                          HypergraphType& hypergraph) {
     if (config.two_way_fm.active) {
       switch (config.two_way_fm.stopping_rule) {
         case StoppingRule::SIMPLE:
-          return new TwoWayFMRefiner<Hypergraph,
-                                     NumberOfFruitlessMovesStopsSearch,
+          return new TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                                      EligibleTopGain,
                                      OnlyRemoveIfBothQueuesClogged>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
-          return new TwoWayFMRefiner<Hypergraph,
-                                     RandomWalkModelStopsSearch,
+          return new TwoWayFMRefiner<RandomWalkModelStopsSearch,
                                      EligibleTopGain,
                                      OnlyRemoveIfBothQueuesClogged>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:
-          return new TwoWayFMRefiner<HypergraphType,
-                                     nGPRandomWalkStopsSearch,
+          return new TwoWayFMRefiner<nGPRandomWalkStopsSearch,
                                      EligibleTopGain,
                                      OnlyRemoveIfBothQueuesClogged>(hypergraph, config);
       }
     } else {
       switch (config.her_fm.stopping_rule) {
         case StoppingRule::SIMPLE:
-          return new HyperedgeFMRefiner<Hypergraph,
-                                        NumberOfFruitlessMovesStopsSearch,
+          return new HyperedgeFMRefiner<NumberOfFruitlessMovesStopsSearch,
                                         EligibleTopGain,
                                         RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE1:
-          return new HyperedgeFMRefiner<Hypergraph,
-                                        RandomWalkModelStopsSearch,
+          return new HyperedgeFMRefiner<RandomWalkModelStopsSearch,
                                         EligibleTopGain,
                                         RemoveOnlyTheCloggingEntry>(hypergraph, config);
         case StoppingRule::ADAPTIVE2:

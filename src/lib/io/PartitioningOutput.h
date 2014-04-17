@@ -9,13 +9,13 @@
 #include "partition/Metrics.h"
 #include "lib/GitRevision.h"
 #include "partition/Metrics.h"
+#include "lib/datastructure/Hypergraph.h"
 
 using partition::CoarseningScheme;
 using partition::StoppingRule;
 
 namespace io {
-template <class Hypergraph>
-void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
+void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size  : "
@@ -30,8 +30,7 @@ void printPartitionerConfiguration(const Configuration& config) {
   std::cout << toString(config) << std::endl;
 }
 
-template <class Hypergraph>
-void printPartitioningResults(const Hypergraph& hypergraph,
+void printPartitioningResults(const HypergraphType& hypergraph,
                               const std::chrono::duration<double>& elapsed_seconds) {
   HypernodeWeight partition_weights[2] = { 0, 0 };
   metrics::partitionWeights(hypergraph, partition_weights);

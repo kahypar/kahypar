@@ -13,8 +13,8 @@
 using datastructure::HypergraphType;
 
 namespace partition {
-typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> CoarsenerType;
+typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
+typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> CoarsenerType;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
   public:
@@ -76,7 +76,7 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
 TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
-  Configuration<HypergraphType> config;
+  Configuration config;
   config.coarsening.threshold_node_weight = 5;
   config.coarsening.threshold_node_weight = 3;
   std::string graph_file("../../../../benchmark_instances/special_instances/bad_for_ec.hgr");

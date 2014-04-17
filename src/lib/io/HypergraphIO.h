@@ -112,15 +112,13 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
   }
 }
 
-template <class Hypergraph>
-inline void writeHypernodeWeights(std::ofstream& out_stream, const Hypergraph& hypergraph) {
+inline void writeHypernodeWeights(std::ofstream& out_stream, const HypergraphType& hypergraph) {
   forall_hypernodes(hn, hypergraph) {
     out_stream << hypergraph.nodeWeight(*hn) << std::endl;
   } endfor
 }
 
-template <class Hypergraph>
-inline void writeHGRHeader(std::ofstream& out_stream, const Hypergraph& hypergraph) {
+inline void writeHGRHeader(std::ofstream& out_stream, const HypergraphType& hypergraph) {
   out_stream << hypergraph.numEdges() << " " << hypergraph.numNodes() << " ";
   if (hypergraph.type() != HypergraphWeightType::Unweighted) {
     out_stream << static_cast<int>(hypergraph.type());
@@ -128,8 +126,7 @@ inline void writeHGRHeader(std::ofstream& out_stream, const Hypergraph& hypergra
   out_stream << std::endl;
 }
 
-template <class Hypergraph>
-inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filename) {
+inline void writeHypergraphFile(const HypergraphType& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for hypergraph file specified");
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
@@ -152,8 +149,7 @@ inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string&
   out_stream.close();
 }
 
-template <typename Hypergraph>
-inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
+inline void writeHypergraphForhMetisPartitioning(const HypergraphType& hypergraph,
                                                  const std::string& filename,
                                                  const Mapping& mapping) {
   ASSERT(!filename.empty(), "No filename for hMetis initial partitioning file specified");
@@ -190,8 +186,7 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
   }
 }
 
-template <class Hypergraph>
-inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
+inline void writePartitionFile(const HypergraphType& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
   forall_hypernodes(hn, hypergraph) {

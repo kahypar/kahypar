@@ -21,6 +21,12 @@
 
 using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+using datastructure::HyperedgeID;
+using datastructure::PartitionID;
+using datastructure::HyperedgeWeight;
+using datastructure::HypernodeWeight;
 
 namespace partition {
 static const bool dbg_refinement_he_fm_he_activation = false;
@@ -34,17 +40,11 @@ static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
 static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
-template <class Hypergraph,
-          class StoppingPolicy,
+template <class StoppingPolicy,
           template <class> class QueueSelectionPolicy,
           class QueueCloggingPolicy>
-class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
+class HyperedgeFMRefiner : public IRefiner {
   private:
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
-  typedef typename Hypergraph::PartitionID PartitionID;
-  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;
   typedef PriorityQueue<HyperedgeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > HyperedgeFMPQ;
@@ -75,7 +75,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   };
 
   public:
-  HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+  HyperedgeFMRefiner(HypergraphType& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _partition_size{0, 0},
@@ -311,7 +311,7 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
 
-  void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
+  void rollback(int last_index, int min_cut_index, HypergraphType& hg) {
     ASSERT(min_cut_index <= last_index, "Min-Cut index " << min_cut_index << " out of bounds");
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
     HypernodeID hn_to_move;
@@ -518,8 +518,8 @@ class HyperedgeFMRefiner : public IRefiner<Hypergraph>{
     _marked_HEs.reset();
   }
 
-  Hypergraph& _hg;
-  const Configuration<Hypergraph> _config;
+  HypergraphType& _hg;
+  const Configuration _config;
   std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _marked_HEs;

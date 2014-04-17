@@ -193,11 +193,9 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   HypernodeWeightVector _written_hypernode_weights;
 };
 
-typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
-typedef Configuration<HypergraphType> PartitionConfig;
-typedef Partitioner<HypergraphType> HypergraphPartitioner;
-typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch,
+typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
+typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
+typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                         EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
 
 class APartitionOfAHypergraph : public Test {
@@ -222,10 +220,10 @@ class APartitionOfAHypergraph : public Test {
   }
 
   HypergraphType _hypergraph;
-  PartitionConfig _config;
-  HypergraphPartitioner _partitioner;
-  std::unique_ptr<ICoarsener<HypergraphType> > _coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > _refiner;
+  Configuration _config;
+  Partitioner _partitioner;
+  std::unique_ptr<ICoarsener> _coarsener;
+  std::unique_ptr<IRefiner> _refiner;
 };
 } // namespace io
 

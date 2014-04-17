@@ -9,19 +9,25 @@
 
 #include "lib/GitRevision.h"
 #include "partition/Configuration.h"
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/coarsening/ICoarsener.h"
 
+using partition::IRefiner;
+using partition::ICoarsener;
 using partition::CoarseningScheme;
 using partition::StoppingRule;
+using datastructure::HypergraphType;
+using partition::Configuration;
 
 namespace ip = boost::interprocess;
 
 namespace serializer {
 class SQLPlotToolsSerializer {
  public:
-  template <class Configuration, class Hypergraph, class Refiner, class Coarsener>
-  static void serialize(const Configuration& config, const Hypergraph& hypergraph,
-                        const Coarsener& UNUSED(coarsener), const Refiner& refiner,
+  static void serialize(const Configuration& config, const HypergraphType& hypergraph,
+                        const ICoarsener& UNUSED(coarsener), const IRefiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::string& filename) {
 

@@ -19,6 +19,13 @@
 
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+using datastructure::HyperedgeID;
+using datastructure::HypernodeWeight;
+using datastructure::HyperedgeWeight;
+using datastructure::IncidenceIterator;
+using datastructure::HypernodeIterator;
 
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
@@ -27,17 +34,10 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 
-template <class Hypergraph,
-          class Rater>
-class HeavyEdgeCoarsenerBase : public ICoarsener<Hypergraph>{
+template <class Rater>
+class HeavyEdgeCoarsenerBase : public ICoarsener {
   protected:
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
-  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
-  typedef typename Hypergraph::ContractionMemento Memento;
-  typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
-  typedef typename Hypergraph::HypernodeIterator HypernodeIterator;
+  typedef typename HypergraphType::ContractionMemento Memento;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef typename Rater::RatingType RatingType;
 
@@ -74,7 +74,7 @@ class HeavyEdgeCoarsenerBase : public ICoarsener<Hypergraph>{
   };
 
   public:
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+  HeavyEdgeCoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _rater(_hg, _config),
@@ -87,7 +87,7 @@ class HeavyEdgeCoarsenerBase : public ICoarsener<Hypergraph>{
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
-  void uncoarsen(IRefiner<Hypergraph>& refiner) {
+  void uncoarsen(IRefiner& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
@@ -278,8 +278,8 @@ class HeavyEdgeCoarsenerBase : public ICoarsener<Hypergraph>{
     Randomize::shuffleVector(permutation);
   }
 
-  Hypergraph& _hg;
-  const Configuration<Hypergraph>& _config;
+  HypergraphType& _hg;
+  const Configuration& _config;
   Rater _rater;
   std::stack<CoarseningMemento> _history;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;

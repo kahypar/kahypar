@@ -27,11 +27,9 @@ using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
 
 namespace partition {
-typedef Rater<HypergraphType, defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<HypergraphType, FirstWinsRater> FirstWinsCoarsener;
-typedef Configuration<HypergraphType> PartitionConfig;
-typedef Partitioner<HypergraphType> HypergraphPartitioner;
-typedef TwoWayFMRefiner<HypergraphType, NumberOfFruitlessMovesStopsSearch,
+typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
+typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
+typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                         EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
 
 class APartitioner : public Test {
@@ -56,10 +54,10 @@ class APartitioner : public Test {
   }
 
   std::unique_ptr<HypergraphType> hypergraph;
-  PartitionConfig config;
-  HypergraphPartitioner partitioner;
-  std::unique_ptr<ICoarsener<HypergraphType> > coarsener;
-  std::unique_ptr<IRefiner<HypergraphType> > refiner;
+  Configuration config;
+  Partitioner partitioner;
+  std::unique_ptr<ICoarsener> coarsener;
+  std::unique_ptr<IRefiner> refiner;
 };
 
 class APartitionerWithHyperedgeSizeThreshold : public APartitioner {

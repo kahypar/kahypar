@@ -30,7 +30,6 @@
 
 namespace po = boost::program_options;
 
-using datastructure::Hypergraph;
 using partition::Rater;
 using partition::ICoarsener;
 using partition::IRefiner;
@@ -43,19 +42,16 @@ using partition::CoarseningScheme;
 using partition::FMRefinerFactory;
 using serializer::SQLPlotToolsSerializer;
 
-typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID,
-                   defs::HyperNodeWeight, defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+using datastructure::HypernodeWeight;
+using datastructure::HyperedgeID;
+using datastructure::HyperedgeIndexVector;
+using datastructure::HyperedgeVector;
+using datastructure::HyperedgeWeightVector;
+using datastructure::HypernodeWeightVector;
 
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HypernodeWeight HypernodeWeight;
-typedef HypergraphType::HyperedgeID HyperedgeID;
-typedef HypergraphType::HyperedgeIndexVector HyperedgeIndexVector;
-typedef HypergraphType::HyperedgeVector HyperedgeVector;
-typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
-typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
-
-template <typename Config>
-void configurePartitionerFromCommandLineInput(Config& config, const po::variables_map& vm) {
+void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e")) {
     config.partitioning.graph_filename = vm["hgr"].as<std::string>();
     config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
@@ -145,8 +141,7 @@ void configurePartitionerFromCommandLineInput(Config& config, const po::variable
   }
 }
 
-template <typename Config>
-void setDefaults(Config& config) {
+void setDefaults(Configuration& config) {
   config.partitioning.k = 2;
   config.partitioning.epsilon = 0.05;
   config.partitioning.seed = -1;
@@ -166,11 +161,9 @@ void setDefaults(Config& config) {
 }
 
 int main(int argc, char* argv[]) {
-  typedef Rater<HypergraphType, defs::RatingType, RandomRatingWins> RandomWinsRater;
-  typedef HeuristicHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsHeuristicCoarsener;
-  typedef FullHeavyEdgeCoarsener<HypergraphType, RandomWinsRater> RandomWinsFullCoarsener;
-  typedef Configuration<HypergraphType> PartitionConfig;
-  typedef Partitioner<HypergraphType> HypergraphPartitioner;
+  typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
+  typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
+  typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
 
   typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
@@ -209,7 +202,7 @@ int main(int argc, char* argv[]) {
     result_file = vm["file"].as<std::string>();
   }
 
-  PartitionConfig config;
+  Configuration config;
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
 
@@ -238,15 +231,15 @@ int main(int argc, char* argv[]) {
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
                             config.partitioning.graph_filename.find_last_of("/") + 1));
 
-  HypergraphPartitioner partitioner(config);
-  std::unique_ptr<ICoarsener<HypergraphType> > coarsener(nullptr);
+  Partitioner partitioner(config);
+  std::unique_ptr<ICoarsener> coarsener(nullptr);
   if (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL) {
     coarsener.reset(new RandomWinsFullCoarsener(hypergraph, config));
   } else {
     coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
   }
 
-  std::unique_ptr<IRefiner<HypergraphType> > refiner(FMRefinerFactory::create(config, hypergraph));
+  std::unique_ptr<IRefiner> refiner(FMRefinerFactory::create(config, hypergraph));
 
   HighResClockTimepoint start;
   HighResClockTimepoint end;

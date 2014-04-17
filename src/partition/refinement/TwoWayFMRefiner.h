@@ -29,6 +29,12 @@ using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
+using datastructure::HypernodeID;
+using datastructure::HyperedgeID;
+using datastructure::PartitionID;
+using datastructure::HyperedgeWeight;
+using datastructure::HypernodeWeight;
+using datastructure::IncidenceIterator;
 
 namespace partition {
 static const bool dbg_refinement_2way_fm_improvements = true;
@@ -38,26 +44,19 @@ static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 static const bool dbg_refinement_2way_fm__activation = false;
 static const bool dbg_refinement_2way_fm_eligible = false;
 
-template <class Hypergraph,
-          class StoppingPolicy,
+template <class StoppingPolicy,
           template <class> class QueueSelectionPolicy,
           class QueueCloggingPolicy>
-class TwoWayFMRefiner : public IRefiner<Hypergraph>{
+class TwoWayFMRefiner : public IRefiner {
   private:
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
-  typedef typename Hypergraph::PartitionID PartitionID;
-  typedef typename Hypergraph::HyperedgeWeight HyperedgeWeight;
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
   typedef HyperedgeWeight Gain;
-  typedef typename Hypergraph::IncidenceIterator IncidenceIterator;
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
 
   static const int K = 2;
 
   public:
-  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
+  TwoWayFMRefiner(HypergraphType& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     // ToDo: We could also use different storage to avoid initialization like this
@@ -391,7 +390,7 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
   }
 
   void rollback(std::vector<HypernodeID>& performed_moves, int last_index, int min_cut_index,
-                Hypergraph& hg) {
+                HypergraphType& hg) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -431,8 +430,8 @@ class TwoWayFMRefiner : public IRefiner<Hypergraph>{
     return is_border_node;
   }
 
-  Hypergraph& _hg;
-  const Configuration<Hypergraph>& _config;
+  HypergraphType& _hg;
+  const Configuration& _config;
   std::array<RefinementPQ*, K> _pq;
   std::array<HypernodeWeight, K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;

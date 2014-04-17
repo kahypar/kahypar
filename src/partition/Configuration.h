@@ -10,16 +10,19 @@
 #include <sstream>
 #include <string>
 
+#include "lib/datastructure/Hypergraph.h"
+
+using datastructure::HypergraphType;
+
 namespace partition {
 enum class StoppingRule { SIMPLE, ADAPTIVE1, ADAPTIVE2 };
 enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC };
 
-template <class Hypergraph>
 struct Configuration {
-  typedef typename Hypergraph::HypernodeWeight HypernodeWeight;
-  typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
-  typedef typename Hypergraph::PartitionID PartitionID;
+  typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
+  typedef typename HypergraphType::HypernodeID HypernodeID;
+  typedef typename HypergraphType::HyperedgeID HyperedgeID;
+  typedef typename HypergraphType::PartitionID PartitionID;
 
   struct CoarseningParameters {
     CoarseningParameters() :
@@ -105,7 +108,6 @@ struct Configuration {
     her_fm() { }
 };
 
-template <class Configuration>
 std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;

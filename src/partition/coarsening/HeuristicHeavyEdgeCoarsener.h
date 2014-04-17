@@ -8,21 +8,23 @@
 #include <unordered_map>
 #include <vector>
 
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 
+using datastructure::HypergraphType;
+using datastructure::HypernodeID;
+
 namespace partition {
-template <class Hypergraph,
-          class Rater>
-class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
+template <class Rater>
+class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Hypergraph, Rater> Base;
-  typedef typename Hypergraph::HypernodeID HypernodeID;
+  typedef HeavyEdgeCoarsenerBase<Rater> Base;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
   public:
-  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration<Hypergraph>& config) :
-    HeavyEdgeCoarsenerBase<Hypergraph, Rater>(hypergraph, config) { }
+  HeuristicHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
+    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
