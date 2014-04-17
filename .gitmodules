@@ -1,6 +1,3 @@
-[submodule "src/external/sqlite3pp"]
-	path = src/external/sqlite3pp
-	url = https://code.google.com/p/sqlite3pp/
 [submodule "src/external/sqlplot-tools"]
 	path = src/external/sqlplot-tools
 	url = https://github.com/bingmann/sqlplot-tools.git
