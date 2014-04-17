@@ -21,7 +21,7 @@ using defs::PartitionID;
 namespace metrics {
 static const bool dbg_metrics_hyperedge_cut = false;
 
-HyperedgeWeight hyperedgeCut(const HypergraphType& hg) {
+inline HyperedgeWeight hyperedgeCut(const HypergraphType& hg) {
   HyperedgeWeight cut = 0;
   forall_hyperedges(he, hg) {
     IncidenceIterator begin, end;
@@ -46,8 +46,8 @@ HyperedgeWeight hyperedgeCut(const HypergraphType& hg) {
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
-HyperedgeWeight hyperedgeCut(const HypergraphType& hg, CoarsendToHmetisMapping&
-                             hg_to_hmetis, Partition& partitioning) {
+inline HyperedgeWeight hyperedgeCut(const HypergraphType& hg, CoarsendToHmetisMapping&
+                                    hg_to_hmetis, Partition& partitioning) {
   HyperedgeWeight cut = 0;
   forall_hyperedges(he, hg) {
     IncidenceIterator begin, end;
@@ -71,7 +71,7 @@ HyperedgeWeight hyperedgeCut(const HypergraphType& hg, CoarsendToHmetisMapping&
   return cut;
 }
 
-double imbalance(const HypergraphType& hypergraph) {
+inline double imbalance(const HypergraphType& hypergraph) {
   typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
   std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
@@ -86,16 +86,16 @@ double imbalance(const HypergraphType& hypergraph) {
   return 2.0 * max_weight / total_weight - 1.0;
 }
 
-double avgHyperedgeDegree(const HypergraphType& hypergraph) {
+inline double avgHyperedgeDegree(const HypergraphType& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numEdges();
 }
 
-double avgHypernodeDegree(const HypergraphType& hypergraph) {
+inline double avgHypernodeDegree(const HypergraphType& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
 
 template <class Weights>
-void partitionWeights(const HypergraphType& hypergraph, Weights& weights) {
+inline void partitionWeights(const HypergraphType& hypergraph, Weights& weights) {
   forall_hypernodes(hn, hypergraph) {
     weights[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
   } endfor

@@ -29,10 +29,10 @@ static const bool dbg_partition_rating = false;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
-template <typename RatingType_, class _TieBreakingPolicy>
+template <typename _RatingType, class _TieBreakingPolicy>
 class Rater {
   public:
-  typedef RatingType_ RatingType;
+  typedef _RatingType RatingType;
 
   private:
   typedef typename HypergraphType::ContractionMemento Memento;

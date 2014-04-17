@@ -15,7 +15,7 @@ using partition::CoarseningScheme;
 using partition::StoppingRule;
 
 namespace io {
-void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {
+inline void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size  : "
@@ -25,12 +25,12 @@ void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& na
 }
 
 template <class Configuration>
-void printPartitionerConfiguration(const Configuration& config) {
+inline void printPartitionerConfiguration(const Configuration& config) {
   std::cout << "*********************Partitioning Configuration**********************" << std::endl;
   std::cout << toString(config) << std::endl;
 }
 
-void printPartitioningResults(const HypergraphType& hypergraph,
+inline void printPartitioningResults(const HypergraphType& hypergraph,
                               const std::chrono::duration<double>& elapsed_seconds) {
   HypernodeWeight partition_weights[2] = { 0, 0 };
   metrics::partitionWeights(hypergraph, partition_weights);

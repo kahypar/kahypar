@@ -108,7 +108,7 @@ struct Configuration {
     her_fm() { }
 };
 
-std::string toString(const Configuration& config) {
+inline std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
   oss << "Partitioning Parameters:" << std::endl;
