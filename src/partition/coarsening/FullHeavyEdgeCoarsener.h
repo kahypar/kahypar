@@ -10,13 +10,10 @@
 #include <vector>
 
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/refinement/IRefiner.h"
 
 namespace partition {
 template <class Hypergraph, class Rater>
-class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
-                               public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
+class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Hypergraph, Rater>{
   private:
   typedef HeavyEdgeCoarsenerBase<Hypergraph, Rater> Base;
   typedef typename Hypergraph::HypernodeID HypernodeID;
@@ -68,10 +65,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener<Hypergraph>,
 
       reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
     }
-  }
-
-  void uncoarsen(IRefiner<Hypergraph>& refiner) {
-    Base::uncoarsen(refiner);
   }
 
   private:

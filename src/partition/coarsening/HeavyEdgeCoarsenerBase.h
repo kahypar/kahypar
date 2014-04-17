@@ -13,6 +13,7 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
@@ -28,7 +29,7 @@ static const bool dbg_coarsening_parallel_he_removal = false;
 
 template <class Hypergraph,
           class Rater>
-class HeavyEdgeCoarsenerBase {
+class HeavyEdgeCoarsenerBase : public ICoarsener<Hypergraph>{
   protected:
   typedef typename Hypergraph::HypernodeID HypernodeID;
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
