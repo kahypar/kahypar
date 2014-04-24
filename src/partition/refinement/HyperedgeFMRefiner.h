@@ -145,7 +145,10 @@ class HyperedgeFMRefiner : public IRefiner {
     //DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
     //    << _pq[1]->size() << "----------------------");
 
+#ifndef NDEBUG
     HyperedgeWeight initial_cut = best_cut;
+#endif
+
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     double imbalance = best_imbalance;

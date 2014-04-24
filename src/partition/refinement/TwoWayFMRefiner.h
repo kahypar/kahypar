@@ -114,7 +114,10 @@ class TwoWayFMRefiner : public IRefiner {
     activate(u);
     activate(v);
 
+#ifndef NDEBUG
     HyperedgeWeight initial_cut = best_cut;
+#endif
+
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     double imbalance = best_imbalance;
@@ -138,8 +141,8 @@ class TwoWayFMRefiner : public IRefiner {
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
       if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
                                                           _pq[0], _pq[1])) {
-        //DBG(true, "Removed clogging entry");
-        //getchar();
+        // DBG(true, "Removed clogging entry");
+        // getchar();
         continue;
       }
 
