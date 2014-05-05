@@ -156,6 +156,7 @@ class HeavyEdgeCoarsenerBase : public ICoarsener {
       DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
           << _removed_single_node_hyperedges[i]);
       _hg.restoreEdge(_removed_single_node_hyperedges[i]);
+      _removed_single_node_hyperedges.pop_back();
     }
   }
 
@@ -170,6 +171,7 @@ class HeavyEdgeCoarsenerBase : public ICoarsener {
       _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
                         _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
                         _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
+      _removed_parallel_hyperedges.pop_back();
     }
   }
 
