@@ -1,0 +1,351 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass{article}
+
+    
+    
+    \usepackage{graphicx} % Used to insert images
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{color} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    
+
+    
+    
+    \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+    \definecolor{darkorange}{rgb}{.71,0.21,0.01}
+    \definecolor{darkgreen}{rgb}{.12,.54,.11}
+    \definecolor{myteal}{rgb}{.26, .44, .56}
+    \definecolor{gray}{gray}{0.45}
+    \definecolor{lightgray}{gray}{.95}
+    \definecolor{mediumgray}{gray}{.8}
+    \definecolor{inputbackground}{rgb}{.95, .95, .85}
+    \definecolor{outputbackground}{rgb}{.95, .95, .95}
+    \definecolor{traceback}{rgb}{1, .95, .95}
+    % ansi colors
+    \definecolor{red}{rgb}{.6,0,0}
+    \definecolor{green}{rgb}{0,.65,0}
+    \definecolor{brown}{rgb}{0.6,0.6,0}
+    \definecolor{blue}{rgb}{0,.145,.698}
+    \definecolor{purple}{rgb}{.698,.145,.698}
+    \definecolor{cyan}{rgb}{0,.698,.698}
+    \definecolor{lightgray}{gray}{0.5}
+    
+    % bright ansi colors
+    \definecolor{darkgray}{gray}{0.25}
+    \definecolor{lightred}{rgb}{1.0,0.39,0.28}
+    \definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+    \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+    \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+    \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
+    
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{current\_optimum\_bucket\_pq\_100\_vs\_hmetis}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\def\PY@tok@gd{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\def\PY@tok@gu{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\def\PY@tok@gt{\def\PY@tc##1{\textcolor[rgb]{0.00,0.25,0.82}{##1}}}
+\def\PY@tok@gs{\let\PY@bf=\textbf}
+\def\PY@tok@gr{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\def\PY@tok@cm{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PY@tok@vg{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PY@tok@m{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@mh{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@go{\def\PY@tc##1{\textcolor[rgb]{0.50,0.50,0.50}{##1}}}
+\def\PY@tok@ge{\let\PY@it=\textit}
+\def\PY@tok@vc{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PY@tok@il{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@cs{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PY@tok@cp{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\def\PY@tok@gi{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\def\PY@tok@gh{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\def\PY@tok@ni{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\def\PY@tok@nl{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\def\PY@tok@nn{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PY@tok@no{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\def\PY@tok@na{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\def\PY@tok@nb{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@nc{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PY@tok@nd{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\def\PY@tok@ne{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\def\PY@tok@nf{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\def\PY@tok@si{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\def\PY@tok@s2{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@vi{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PY@tok@nt{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@nv{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PY@tok@s1{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@sh{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@sc{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@sx{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@bp{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@c1{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PY@tok@kc{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@c{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\def\PY@tok@mf{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@err{\def\PY@bc##1{\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{##1}}}
+\def\PY@tok@kd{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@ss{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\def\PY@tok@sr{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\def\PY@tok@mo{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@kn{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@mi{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@gp{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\def\PY@tok@o{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\def\PY@tok@kr{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@s{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@kp{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@w{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\def\PY@tok@kt{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\def\PY@tok@ow{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\def\PY@tok@sb{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\def\PY@tok@k{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\def\PY@tok@se{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\def\PY@tok@sd{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=blue,
+      linkcolor=darkorange,
+      citecolor=darkgreen,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k+kn}{as} \PY{n+nn}{pd}
+        \PY{k+kn}{import} \PY{n+nn}{pandas.io.sql} \PY{k+kn}{as} \PY{n+nn}{pd\PYZus{}sql}
+        \PY{k+kn}{import} \PY{n+nn}{sqlite3} \PY{k+kn}{as} \PY{n+nn}{sql}
+        \PY{k+kn}{import} \PY{n+nn}{matplotlib.pyplot} \PY{k+kn}{as} \PY{n+nn}{plt}
+        
+        \PY{c}{\PYZsh{}get data for kahypar}
+        \PY{n}{kahypar\PYZus{}connection} \PY{o}{=} \PY{n}{sql}\PY{o}{.}\PY{n}{connect}\PY{p}{(}\PY{l+s}{"}\PY{l+s}{/home/schlag/repo/schlag\PYZus{}git/benchmark/results/2014-05-05\PYZus{}current\PYZus{}optimum\PYZus{}100\PYZus{}iterations\PYZus{}bucket\PYZus{}pq/current\PYZus{}optimum\PYZus{}bucket\PYZus{}pq.db}\PY{l+s}{"}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}data} \PY{o}{=} \PY{n}{pd\PYZus{}sql}\PY{o}{.}\PY{n}{read\PYZus{}frame}\PY{p}{(}\PY{l+s}{"}\PY{l+s}{select * from experiments}\PY{l+s}{"}\PY{p}{,}\PY{n}{kahypar\PYZus{}connection}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{kahypar\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{min}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{}get data for hmetis}
+        \PY{n}{hmetis\PYZus{}data} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{/home/schlag/repo/schlag\PYZus{}git/benchmark/results/2014-03-04\PYZus{}hmetis\PYZus{}rb/results2.csv}\PY{l+s}{'}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{hmetis\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{min}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{} create dataframe with both min cuts and select the best}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{kahypar\PYZus{}min\PYZus{}cuts}\PY{p}{)}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}kahypar}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{merge}\PY{p}{(}\PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{p}{,} \PY{n}{hmetis\PYZus{}min\PYZus{}cuts}\PY{p}{,} \PY{n}{on}\PY{o}{=}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts} \PY{o}{=} \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}hmetis}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row}\PY{p}{:} \PY{p}{(}\PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}kahypar}\PY{l+s}{'}\PY{p}{]} 
+                                                                       \PY{k}{if} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}kahypar}\PY{l+s}{'}\PY{p}{]} \PY{o}{<} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}hmetis}\PY{l+s}{'}\PY{p}{]}
+                                                                       \PY{k}{else} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut\PYZus{}hmetis}\PY{l+s}{'}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{}calculate precentage of derivation of mean cuts from min cut for kahyper}
+        \PY{n}{kahypar\PYZus{}percentages} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{kahypar\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}percentages} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{merge}\PY{p}{(}\PY{n}{kahypar\PYZus{}percentages}\PY{p}{,} \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{p}{[}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{,}\PY{l+s}{'}\PY{l+s}{min}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{p}{,} \PY{n}{on}\PY{o}{=}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}percentages} \PY{o}{=} \PY{n}{kahypar\PYZus{}percentages}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{mean\PYZus{}cut}\PY{l+s}{'}\PY{p}{,} \PY{l+s}{'}\PY{l+s}{min}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{min\PYZus{}cut}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{kahypar\PYZus{}percentages}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{p}{(}\PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{mean\PYZus{}cut}\PY{l+s}{'}\PY{p}{]} \PY{o}{*} \PY{l+m+mf}{100.0} \PY{o}{/} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut}\PY{l+s}{'}\PY{p}{]} \PY{o}{-}\PY{l+m+mi}{100}\PY{p}{)}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{}calculate plot data for adaptive stopping rule}
+        \PY{n}{kahypar\PYZus{}plot} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'} \PY{p}{:} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{l+m+mi}{23}\PY{p}{)}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}plot}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{num\PYZus{}graphs}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{kahypar\PYZus{}plot}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{kahypar\PYZus{}percentages}\PY{p}{[}\PY{n}{kahypar\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]}\PY{o}{<}\PY{o}{=} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{index}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        \PY{n}{kahypar\PYZus{}plot}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percentage\PYZus{}of\PYZus{}graphs}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{kahypar\PYZus{}plot}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{kahypar\PYZus{}percentages}\PY{p}{[}\PY{n}{kahypar\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]}\PY{o}{<}\PY{o}{=} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{index}\PY{p}{)} \PY{o}{*} \PY{l+m+mi}{100} \PY{o}{/} \PY{n+nb}{len}\PY{p}{(}\PY{n}{kahypar\PYZus{}percentages}\PY{o}{.}\PY{n}{index}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{}calculate precentage of derivation of mean cuts from min cut for hmetis}
+        \PY{n}{hmetis\PYZus{}percentages} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{hmetis\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}percentages} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{merge}\PY{p}{(}\PY{n}{hmetis\PYZus{}percentages}\PY{p}{,} \PY{n}{both\PYZus{}min\PYZus{}cuts}\PY{p}{[}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{,}\PY{l+s}{'}\PY{l+s}{min}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{p}{,} \PY{n}{on}\PY{o}{=}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}percentages} \PY{o}{=} \PY{n}{hmetis\PYZus{}percentages}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{mean\PYZus{}cut}\PY{l+s}{'}\PY{p}{,} \PY{l+s}{'}\PY{l+s}{min}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{min\PYZus{}cut}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{hmetis\PYZus{}percentages}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{p}{(}\PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{mean\PYZus{}cut}\PY{l+s}{'}\PY{p}{]} \PY{o}{*} \PY{l+m+mf}{100.0} \PY{o}{/} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{min\PYZus{}cut}\PY{l+s}{'}\PY{p}{]} \PY{o}{-}\PY{l+m+mi}{100}\PY{p}{)}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{}calculate plot data for simple stopping rule}
+        \PY{n}{hmetis\PYZus{}plot} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'} \PY{p}{:} \PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{l+m+mi}{23}\PY{p}{)}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}plot}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{num\PYZus{}graphs}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{hmetis\PYZus{}plot}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{hmetis\PYZus{}percentages}\PY{p}{[}\PY{n}{hmetis\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]}\PY{o}{<}\PY{o}{=} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{index}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}plot}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percentage\PYZus{}of\PYZus{}graphs}\PY{l+s}{'}\PY{p}{]} \PY{o}{=} \PY{n}{hmetis\PYZus{}plot}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{row} \PY{p}{:} \PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{hmetis\PYZus{}percentages}\PY{p}{[}\PY{n}{hmetis\PYZus{}percentages}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{percent\PYZus{}deviation}\PY{l+s}{'}\PY{p}{]}\PY{o}{<}\PY{o}{=} \PY{n}{row}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{deviation\PYZus{}leq}\PY{l+s}{'}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{index}\PY{p}{)} \PY{o}{*} \PY{l+m+mi}{100} \PY{o}{/} \PY{n+nb}{len}\PY{p}{(}\PY{n}{hmetis\PYZus{}percentages}\PY{o}{.}\PY{n}{index}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        
+        \PY{c}{\PYZsh{} the plot}
+        \PY{c}{\PYZsh{}axis = kahypar\PYZus{}plot.plot(x='deviation\PYZus{}leq', y='percentage\PYZus{}of\PYZus{}graphs', label='KaHyPar', title='Deviations of average cuts from best min cut (of both)', style='bx')}
+        \PY{c}{\PYZsh{}axis.set\PYZus{}ylabel('Percentage of Graphs')}
+        \PY{c}{\PYZsh{}hmetis\PYZus{}plot.plot(ax=axis, x='deviation\PYZus{}leq', y='percentage\PYZus{}of\PYZus{}graphs', label='hmetis', style='r+')}
+        \PY{c}{\PYZsh{}axis.set\PYZus{}xlabel('Deviation from min-cut \PYZdl{}[\PYZbs{}leq \PYZbs{}\PYZpc{}]\PYZdl{}')}
+        \PY{c}{\PYZsh{}axis.get\PYZus{}xaxis().set\PYZus{}ticks(np.arange(25))}
+        \PY{c}{\PYZsh{}axis.get\PYZus{}yaxis().set\PYZus{}ticks(np.arange(0,105,5))}
+        \PY{c}{\PYZsh{}plt.gcf().set\PYZus{}size\PYZus{}inches(14.5,6.5)}
+        \PY{c}{\PYZsh{}plt.legend(bbox\PYZus{}to\PYZus{}anchor=(1.05, 1), loc=2, borderaxespad=0.)}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}2}]:} \PY{k+kn}{from} \PY{n+nn}{scipy} \PY{k+kn}{import} \PY{n}{stats}
+        \PY{k}{print} \PY{l+s}{'}\PY{l+s}{hMetis: geometric mean (min\PYZus{}cuts)=}\PY{l+s}{'}\PY{p}{,} \PY{n}{stats}\PY{o}{.}\PY{n}{gmean}\PY{p}{(}\PY{n}{hmetis\PYZus{}min\PYZus{}cuts}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{p}{)}
+        \PY{k}{print} \PY{l+s}{'}\PY{l+s}{KaHyPar: geometric mean (min\PYZus{}cuts)=}\PY{l+s}{'}\PY{p}{,} \PY{n}{stats}\PY{o}{.}\PY{n}{gmean}\PY{p}{(}\PY{n}{kahypar\PYZus{}min\PYZus{}cuts}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{p}{)}
+        \PY{n}{both\PYZus{}min\PYZus{}cuts}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+hMetis: geometric mean (min\_cuts)= 404.070526294
+KaHyPar: geometric mean (min\_cuts)= 401.811406887
+    \end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}2}]:}             graph  min\_cut\_kahypar  min\_cut\_hmetis   min
+        0    avqlarge.hgr              143             142   142
+        1    avqsmall.hgr              143             142   142
+        2    bcsstk32.hgr             4667            4667  4667
+        3    crystk01.hgr              420             420   420
+        4         cs4.hgr              363             373   363
+        5       ibm03.hgr              958             958   958
+        6       ibm04.hgr              586             586   586
+        7       ibm05.hgr             1724            1723  1723
+        8   industry2.hgr              178             179   178
+        9     memplus.hgr             5423            5691  5423
+        10     s15850.hgr               56              57    56
+        11     s35932.hgr               43              43    43
+        12     s38584.hgr               49              49    49
+        13   s3rmq4m1.hgr              360             360   360
+        14   vibrobox.hgr             1990            1990  1990
+        
+        [15 rows x 4 columns]
+\end{Verbatim}
+        
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}3}]:} \PY{n}{kahypar\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{kahypar\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        \PY{n}{hmetis\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{hmetis\PYZus{}data}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{)}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{p}{)}
+        \PY{n}{both\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{kahypar\PYZus{}avg\PYZus{}cuts}\PY{p}{)}
+        \PY{n}{both\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{both\PYZus{}avg\PYZus{}cuts}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{avg\PYZus{}cut\PYZus{}kahypar}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{n}{both\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{merge}\PY{p}{(}\PY{n}{both\PYZus{}avg\PYZus{}cuts}\PY{p}{,} \PY{n}{hmetis\PYZus{}avg\PYZus{}cuts}\PY{p}{,} \PY{n}{on}\PY{o}{=}\PY{l+s}{'}\PY{l+s}{graph}\PY{l+s}{'}\PY{p}{)}
+        \PY{n}{both\PYZus{}avg\PYZus{}cuts} \PY{o}{=} \PY{n}{both\PYZus{}avg\PYZus{}cuts}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s}{'}\PY{l+s}{cut}\PY{l+s}{'} \PY{p}{:} \PY{l+s}{'}\PY{l+s}{avg\PYZus{}cut\PYZus{}hmetis}\PY{l+s}{'}\PY{p}{\PYZcb{}}\PY{p}{)}
+        \PY{k}{print} \PY{l+s}{'}\PY{l+s}{hMetis: geometric mean (avg\PYZus{}cuts)=}\PY{l+s}{'}\PY{p}{,} \PY{n}{stats}\PY{o}{.}\PY{n}{gmean}\PY{p}{(}\PY{n}{both\PYZus{}avg\PYZus{}cuts}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{avg\PYZus{}cut\PYZus{}hmetis}\PY{l+s}{'}\PY{p}{]}\PY{p}{)}
+        \PY{k}{print} \PY{l+s}{'}\PY{l+s}{KaHyPar: geometric mean (avg\PYZus{}cuts)=}\PY{l+s}{'}\PY{p}{,} \PY{n}{stats}\PY{o}{.}\PY{n}{gmean}\PY{p}{(}\PY{n}{both\PYZus{}avg\PYZus{}cuts}\PY{p}{[}\PY{l+s}{'}\PY{l+s}{avg\PYZus{}cut\PYZus{}kahypar}\PY{l+s}{'}\PY{p}{]}\PY{p}{)}
+        \PY{n}{both\PYZus{}avg\PYZus{}cuts}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+hMetis: geometric mean (avg\_cuts)= 408.408886302
+KaHyPar: geometric mean (avg\_cuts)= 424.488351247
+    \end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}3}]:}             graph  avg\_cut\_kahypar  avg\_cut\_hmetis
+        0    avqlarge.hgr           158.96           142.8
+        1    avqsmall.hgr           156.92           143.1
+        2    bcsstk32.hgr          4767.87          4756.7
+        3    crystk01.hgr           420.00           420.0
+        4         cs4.hgr           370.81           380.4
+        5       ibm03.hgr           971.04           961.6
+        6       ibm04.hgr           619.74           591.2
+        7       ibm05.hgr          1735.19          1727.5
+        8   industry2.hgr           202.06           185.1
+        9     memplus.hgr          5514.20          5754.7
+        10     s15850.hgr            60.69            57.8
+        11     s35932.hgr            43.00            43.0
+        12     s38584.hgr            52.14            49.0
+        13   s3rmq4m1.hgr           360.00           372.6
+        14   vibrobox.hgr          2480.16          1990.0
+        
+        [15 rows x 3 columns]
+\end{Verbatim}
+        
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}
