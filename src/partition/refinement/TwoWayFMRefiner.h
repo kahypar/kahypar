@@ -396,7 +396,9 @@ class TwoWayFMRefiner : public IRefiner {
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
               << _hg.partitionIndex(pin));
-          _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+          if (gain_delta != 0) {
+            _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+          }
         }
       } else {
         DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
