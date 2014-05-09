@@ -22,6 +22,17 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::_history;
+  using Base::_removed_parallel_hyperedges;
+  using Base::_removed_single_node_hyperedges;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+
   public:
   HeuristicHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
@@ -29,34 +40,34 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   ~HeuristicHeavyEdgeCoarsener() { }
 
   void coarsen(int limit) {
-    Base::_pq.clear();
+    _pq.clear();
 
-    std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
+    std::vector<HypernodeID> target(_hg.initialNumNodes());
     TargetToSourcesMap sources;
 
-    Base::rateAllHypernodes(target, sources);
+    rateAllHypernodes(target, sources);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
     HeavyEdgeRating rating;
-    while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
-      rep_node = Base::_pq.max();
+    while (!_pq.empty() && _hg.numNodes() > limit) {
+      rep_node = _pq.max();
       contracted_node = target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+          << target[rep_node] << ") prio: " << _pq.maxKey());
 
-      ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
-             <= Base::_rater.thresholdNodeWeight(),
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
+             <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
 
-      Base::performContraction(rep_node, contracted_node);
-      Base::_pq.remove(contracted_node);
+      performContraction(rep_node, contracted_node);
+      _pq.remove(contracted_node);
       removeMappingEntryOfNode(contracted_node, target[contracted_node], sources);
 
-      Base::removeSingleNodeHyperedges(rep_node);
-      Base::removeParallelHyperedges(rep_node);
+      removeSingleNodeHyperedges(rep_node);
+      removeParallelHyperedges(rep_node);
 
-      rating = Base::_rater.rate(rep_node);
+      rating = _rater.rate(rep_node);
       updatePQandMappings(rep_node, rating, target, sources);
 
       reRateHypernodesAffectedByContraction(rep_node, contracted_node, target, sources);
@@ -82,10 +93,10 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
                                                           TargetToSourcesMap& sources) {
     HeavyEdgeRating rating;
-    for (int i = Base::_history.top().parallel_hes_begin; i != Base::_history.top().parallel_hes_begin +
-         Base::_history.top().parallel_hes_size; ++i) {
-      forall_pins(pin, Base::_removed_parallel_hyperedges[i].representative_id, Base::_hg) {
-        rating = Base::_rater.rate(*pin);
+    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
+         _history.top().parallel_hes_size; ++i) {
+      forall_pins(pin, _removed_parallel_hyperedges[i].representative_id, _hg) {
+        rating = _rater.rate(*pin);
         updatePQandMappings(*pin, rating, target, sources);
       } endfor
     }
@@ -102,7 +113,7 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
         sources.erase(source_it++);
       } else {
         DBG(false, "rerating HN " << source_it->second << " which had " << hn << " as target");
-        rating = Base::_rater.rate(source_it->second);
+        rating = _rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
         HypernodeID source_hn = source_it->second;
         ++source_it;
@@ -114,14 +125,14 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
                            std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     if (rating.valid) {
-      ASSERT(Base::_pq.contains(hn),
+      ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
-      Base::_pq.updateKey(hn, rating.value);
+      _pq.updateKey(hn, rating.value);
       if (rating.target != target[hn]) {
         updateMappings(hn, rating, target, sources);
       }
-    } else if (Base::_pq.contains(hn)) {
-      Base::_pq.remove(hn);
+    } else if (_pq.contains(hn)) {
+      _pq.remove(hn);
       removeMappingEntryOfNode(hn, target[hn], sources);
     }
   }

@@ -22,6 +22,14 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   typedef HeavyEdgeCoarsenerBase<Rater> Base;
   typedef typename Rater::Rating HeavyEdgeRating;
 
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+
   class NullMap {
     public:
     void insert(std::pair<HypernodeID, HypernodeID>) { }
@@ -34,35 +42,35 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   ~FullHeavyEdgeCoarsener() { }
 
   void coarsen(int limit) {
-    Base::_pq.clear();
+    _pq.clear();
 
-    std::vector<HypernodeID> target(Base::_hg.initialNumNodes());
+    std::vector<HypernodeID> target(_hg.initialNumNodes());
     NullMap null_map;
-    Base::rateAllHypernodes(target, null_map);
+    rateAllHypernodes(target, null_map);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
     HeavyEdgeRating rating;
-    boost::dynamic_bitset<uint64_t> rerated_hypernodes(Base::_hg.initialNumNodes());
-    boost::dynamic_bitset<uint64_t> invalid_hypernodes(Base::_hg.initialNumNodes());
+    boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
+    boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
 
-    while (!Base::_pq.empty() && Base::_hg.numNodes() > limit) {
-      rep_node = Base::_pq.max();
+    while (!_pq.empty() && _hg.numNodes() > limit) {
+      rep_node = _pq.max();
       contracted_node = target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << target[rep_node] << ") prio: " << Base::_pq.maxKey());
+          << target[rep_node] << ") prio: " << _pq.maxKey());
 
-      ASSERT(Base::_hg.nodeWeight(rep_node) + Base::_hg.nodeWeight(target[rep_node])
-             <= Base::_rater.thresholdNodeWeight(),
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
+             <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
 
-      Base::performContraction(rep_node, contracted_node);
-      Base::_pq.remove(contracted_node);
+      performContraction(rep_node, contracted_node);
+      _pq.remove(contracted_node);
 
-      Base::removeSingleNodeHyperedges(rep_node);
-      Base::removeParallelHyperedges(rep_node);
+      removeSingleNodeHyperedges(rep_node);
+      removeParallelHyperedges(rep_node);
 
-      rating = Base::_rater.rate(rep_node);
+      rating = _rater.rate(rep_node);
       rerated_hypernodes[rep_node] = 1;
       updatePQandContractionTargets(rep_node, rating, target, invalid_hypernodes);
 
@@ -76,10 +84,10 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     HeavyEdgeRating rating;
-    forall_incident_hyperedges(he, rep_node, Base::_hg) {
-      forall_pins(pin, *he, Base::_hg) {
+    forall_incident_hyperedges(he, rep_node, _hg) {
+      forall_pins(pin, *he, _hg) {
         if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
-          rating = Base::_rater.rate(*pin);
+          rating = _rater.rate(*pin);
           rerated_hypernodes[*pin] = 1;
           updatePQandContractionTargets(*pin, rating, target, invalid_hypernodes);
         }
@@ -93,12 +101,12 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
                                      std::vector<HypernodeID>& target,
                                      boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {
-      ASSERT(Base::_pq.contains(hn),
+      ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
-      Base::_pq.updateKey(hn, rating.value);
+      _pq.updateKey(hn, rating.value);
       target[hn] = rating.target;
-    } else if (Base::_pq.contains(hn)) {
-      Base::_pq.remove(hn);
+    } else if (_pq.contains(hn)) {
+      _pq.remove(hn);
       invalid_hypernodes[hn] = 1;
     }
   }
