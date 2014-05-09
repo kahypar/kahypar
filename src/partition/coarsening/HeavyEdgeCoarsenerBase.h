@@ -13,7 +13,6 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
-#include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 
@@ -35,7 +34,7 @@ static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 
 template <class Rater>
-class HeavyEdgeCoarsenerBase : public ICoarsener {
+class HeavyEdgeCoarsenerBase {
   protected:
   typedef typename HypergraphType::ContractionMemento Memento;
   typedef typename Rater::Rating HeavyEdgeRating;
@@ -87,6 +86,9 @@ class HeavyEdgeCoarsenerBase : public ICoarsener {
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
+  protected:
+  FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
+
   void uncoarsen(IRefiner& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
@@ -126,9 +128,6 @@ class HeavyEdgeCoarsenerBase : public ICoarsener {
            << " > " << _config.partitioning.epsilon);
     GPERF_STOP_PROFILER();
   }
-
-  protected:
-  FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void performContraction(HypernodeID rep_node, HypernodeID contracted_node) {
     _history.emplace(_hg.contract(rep_node, contracted_node));

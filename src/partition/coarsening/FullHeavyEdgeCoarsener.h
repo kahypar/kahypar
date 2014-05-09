@@ -11,24 +11,18 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
+#include "partition/coarsening/ICoarsener.h"
 
 using datastructure::HypergraphType;
 using datastructure::HypernodeID;
 
 namespace partition {
 template <class Rater>
-class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
+class FullHeavyEdgeCoarsener : public ICoarsener,
+                               private HeavyEdgeCoarsenerBase<Rater>{
   private:
   typedef HeavyEdgeCoarsenerBase<Rater> Base;
   typedef typename Rater::Rating HeavyEdgeRating;
-
-  using Base::_pq;
-  using Base::_hg;
-  using Base::_rater;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
 
   class NullMap {
     public:
@@ -36,6 +30,15 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   };
 
   public:
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::_history;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+
   FullHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
@@ -76,6 +79,10 @@ class FullHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
 
       reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
     }
+  }
+
+  void uncoarsen(IRefiner& refiner) {
+    Base::uncoarsen(refiner);
   }
 
   private:

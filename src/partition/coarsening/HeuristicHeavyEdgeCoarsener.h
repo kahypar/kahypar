@@ -10,18 +10,21 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
+#include "partition/coarsening/ICoarsener.h"
 
 using datastructure::HypergraphType;
 using datastructure::HypernodeID;
 
 namespace partition {
 template <class Rater>
-class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
+class HeuristicHeavyEdgeCoarsener : public ICoarsener,
+                                    private HeavyEdgeCoarsenerBase<Rater>{
   private:
   typedef HeavyEdgeCoarsenerBase<Rater> Base;
   typedef typename Rater::Rating HeavyEdgeRating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
+  public:
   using Base::_pq;
   using Base::_hg;
   using Base::_rater;
@@ -33,7 +36,6 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
 
-  public:
   HeuristicHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
@@ -75,6 +77,10 @@ class HeuristicHeavyEdgeCoarsener : public HeavyEdgeCoarsenerBase<Rater>{
 
       reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
+  }
+
+  void uncoarsen(IRefiner& refiner) {
+    Base::uncoarsen(refiner);
   }
 
   private:
