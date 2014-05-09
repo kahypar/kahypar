@@ -18,6 +18,7 @@ class IRefiner {
   virtual void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
                       double max_imbalance, double& best_imbalance) = 0;
   virtual void initialize() { }
+  virtual void initialize(HyperedgeWeight max_gain) { }
   virtual int numRepetitions() = 0;
   virtual std::string policyString() const = 0;
   virtual ~IRefiner() { }

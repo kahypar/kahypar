@@ -47,7 +47,7 @@ class ATwoWayFMRefiner : public Test {
     hypergraph.changeNodePartition(6, INVALID_PARTITION, 1);
     config.two_way_fm.max_number_of_fruitless_moves = 50;
     refiner = new TwoWayFMRefinerSimpleStopping(hypergraph, config);
-    refiner->initialize();
+    refiner->initialize(0);
   }
 
   HypergraphType hypergraph;
@@ -129,7 +129,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   hypergraph.changeNodePartition(1, 1, 0);
   delete refiner;
   refiner = new TwoWayFMRefinerSimpleStopping(hypergraph, config);
-  refiner->initialize();
+  refiner->initialize(0);
   ASSERT_THAT(hypergraph.partitionIndex(6), Eq(1));
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
   double old_imbalance = metrics::imbalance(hypergraph);
@@ -159,7 +159,7 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.changeNodePartition(1, INVALID_PARTITION, 0);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._pq[0]->insert(0, refiner.computeGain(0));
   refiner._pq[0]->insert(1, refiner.computeGain(1));
@@ -183,7 +183,7 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 1);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   refiner.activate(0);
   refiner.activate(1);
   ASSERT_THAT(refiner._pq[0]->key(0), Eq(2));
@@ -204,7 +204,7 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._pq[0]->insert(0, refiner.computeGain(0));
   refiner._pq[0]->insert(1, refiner.computeGain(1));
@@ -233,7 +233,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   hypergraph.changeNodePartition(4, INVALID_PARTITION, 1);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner.activate(0);
   refiner.activate(1);
@@ -262,7 +262,7 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   refiner.activate(0);
   refiner.activate(1);
   refiner.activate(2);
@@ -289,7 +289,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   refiner.activate(0);
   refiner.activate(1);
   refiner.activate(2);
@@ -315,7 +315,7 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 1);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   refiner.activate(0);
   refiner.activate(1);
   refiner.activate(2);
@@ -338,7 +338,7 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   refiner.activate(0);
   refiner.activate(1);
   ASSERT_THAT(refiner._pq[0]->key(0), Eq(0));
@@ -362,7 +362,7 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._pq[0]->insert(0, refiner.computeGain(0));
   refiner._pq[0]->insert(1, refiner.computeGain(1));
@@ -389,7 +389,7 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   hypergraph.changeNodePartition(3, INVALID_PARTITION, 1);
   hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
 
   // bypassing activate
   refiner._pq[0]->insert(2, refiner.computeGain(2));
@@ -410,7 +410,7 @@ TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1) {
   Configuration config;
   config.partitioning.epsilon = 1;
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
 
   refiner.activate(0);
   refiner.activate(3);
@@ -439,7 +439,7 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
                                                           / static_cast<double>(config.partitioning.k));
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
-  refiner.initialize();
+  refiner.initialize(0);
   ASSERT_THAT(refiner.movePreservesBalanceConstraint(1, 0, 1), Eq(true));
   ASSERT_THAT(refiner.movePreservesBalanceConstraint(3, 1, 0), Eq(false));
 }
