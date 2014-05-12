@@ -90,8 +90,12 @@ class HeavyEdgeCoarsenerBase {
     _removed_parallel_hyperedges(),
     _fingerprints(),
     _contained_hypernodes(_hg.initialNumNodes()),
-    _pq(_hg.initialNumNodes(), _hg.initialNumNodes()),
-    _weights_table() { }
+    _pq(_hg.initialNumNodes(), _hg.initialNumNodes())
+#ifdef USE_BUCKET_PQ
+    ,
+    _weights_table()
+#endif
+  { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
@@ -218,7 +222,9 @@ class HeavyEdgeCoarsenerBase {
     std::tie(begin, end) = _hg.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
       if (_hg.edgeSize(*he_it) == 1) {
+#ifdef USE_BUCKET_PQ
         _weights_table[u] += _hg.edgeWeight(*he_it);
+#endif
         _removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
@@ -325,7 +331,9 @@ class HeavyEdgeCoarsenerBase {
   std::vector<Fingerprint> _fingerprints;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   PriorityQueue<HypernodeID, RatingType, MetaKeyDouble> _pq;
+#ifdef USE_BUCKET_PQ
   SingleHEWeightsHashtable _weights_table;
+#endif
 };
 } // namespace partition
 

@@ -6,7 +6,9 @@
 // total running time.
 #define NSELF_VERIFICATION
 
+// Use bucket PQ for FM refinement.
 #define USE_BUCKET_PQ
+
 #include <boost/program_options.hpp>
 
 #include <chrono>
