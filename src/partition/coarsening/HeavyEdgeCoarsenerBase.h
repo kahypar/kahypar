@@ -13,8 +13,9 @@
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
+#include "partition/Metrics.h"
 #include "partition/coarsening/Rater.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/IRefiner.h"
 
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
