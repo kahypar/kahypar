@@ -141,12 +141,29 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 }
 
 TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(rater.rate(0, *hypergraph), DoubleEq(1.0));
+  ASSERT_THAT(rater.rate(0, *hypergraph, config.coarsening.threshold_node_weight),
+              DoubleEq(1.0));
 
+  config.coarsening.threshold_node_weight = 10;
   hypergraph->setNodeWeight(1, 2);
   hypergraph->setNodeWeight(3, 3);
   hypergraph->setNodeWeight(4, 4);
 
-  ASSERT_THAT(rater.rate(1, *hypergraph), DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
+  ASSERT_THAT(rater.rate(1, *hypergraph, config.coarsening.threshold_node_weight),
+              DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
+}
+
+TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
+  config.coarsening.threshold_node_weight = 3;
+
+  ASSERT_THAT(rater.rate(1, *hypergraph, config.coarsening.threshold_node_weight),
+              Eq(SimpleHyperedgeRater::INVALID_RATING));
+}
+
+TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  ASSERT_THAT(rater.rate(0, *hypergraph, config.coarsening.threshold_node_weight),
+              Eq(SimpleHyperedgeRater::INVALID_RATING));
 }
 } // namespace partition

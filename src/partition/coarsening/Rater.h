@@ -125,16 +125,37 @@ class Rater {
 };
 #pragma GCC diagnostic pop
 
-template <typename RatingType>
+template <typename _RatingType>
 class HyperedgeRater {
   public:
-  RatingType rate(HyperedgeID he, const HypergraphType& hypergraph) {
-    double geo_mean_node_weight = 1.0;
-    forall_pins(pin, he, hypergraph) {
-      geo_mean_node_weight *= static_cast<double>(hypergraph.nodeWeight(*pin));
-    } endfor
+  typedef _RatingType RatingType;
+  static constexpr RatingType INVALID_RATING = std::numeric_limits<RatingType>::min();
 
-      geo_mean_node_weight = std::pow(geo_mean_node_weight, 1.0 / hypergraph.edgeSize(he));
+  RatingType rate(HyperedgeID he, const HypergraphType& hypergraph,
+                  HypernodeWeight threshold_node_weight) {
+    IncidenceIterator pins_begin, pins_end;
+    std::tie(pins_begin, pins_end) = hypergraph.pins(he);
+
+    PartitionID partition = hypergraph.partitionIndex(*pins_begin);
+    double geo_mean_node_weight = static_cast<double>(hypergraph.nodeWeight(*pins_begin));
+    HypernodeWeight sum_node_weights = hypergraph.nodeWeight(*pins_begin);
+    bool is_cut_hyperedge = false;
+    ++pins_begin;
+
+    for (IncidenceIterator pin = pins_begin; pin != pins_end; ++pin) {
+      if (partition != hypergraph.partitionIndex(*pin)) {
+        is_cut_hyperedge = true;
+        break;
+      }
+      geo_mean_node_weight *= static_cast<double>(hypergraph.nodeWeight(*pin));
+      sum_node_weights += hypergraph.nodeWeight(*pin);
+    }
+
+    if (sum_node_weights > threshold_node_weight || is_cut_hyperedge) {
+      return INVALID_RATING;
+    }
+
+    geo_mean_node_weight = std::pow(geo_mean_node_weight, 1.0 / hypergraph.edgeSize(he));
     return hypergraph.edgeWeight(he) / geo_mean_node_weight;
   }
 };
