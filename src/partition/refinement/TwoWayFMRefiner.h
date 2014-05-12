@@ -271,7 +271,14 @@ class TwoWayFMRefiner : public IRefiner {
   std::string policyString() const {
     return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
-                       + " StoppingPolicy=" + templateToString<StoppingPolicy>());
+                       + " StoppingPolicy=" + templateToString<StoppingPolicy>()
+                       + " UsesBucketPQ="
+#ifdef USE_BUCKET_PQ
+                       + "true"
+#else
+                       + "false"
+#endif
+                       );
   }
 
   private:
