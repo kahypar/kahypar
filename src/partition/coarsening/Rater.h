@@ -35,7 +35,6 @@ class Rater {
   typedef _RatingType RatingType;
 
   private:
-  typedef typename HypergraphType::ContractionMemento Memento;
   typedef _TieBreakingPolicy TieBreakingPolicy;
 
   struct HeavyEdgeRating {
