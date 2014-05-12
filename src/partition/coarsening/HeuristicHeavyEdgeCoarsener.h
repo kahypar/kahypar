@@ -16,6 +16,8 @@ using datastructure::HypergraphType;
 using datastructure::HypernodeID;
 
 namespace partition {
+static const bool dbg_coarsening_removed_hes = false;
+
 template <class Rater>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
@@ -77,6 +79,10 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
       reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
+    DBG(dbg_coarsening_removed_hes, "# removed single-node HEs = "
+        << _removed_single_node_hyperedges.size());
+    DBG(dbg_coarsening_removed_hes, "# removed parallel HEs = "
+        << _removed_parallel_hyperedges.size());
   }
 
   void uncoarsen(IRefiner& refiner) {

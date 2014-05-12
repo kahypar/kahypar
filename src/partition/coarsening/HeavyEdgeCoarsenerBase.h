@@ -72,6 +72,14 @@ class HeavyEdgeCoarsenerBase {
       removed_id(removed_id_) { }
   };
 
+  struct hash_nodes {
+    size_t operator () (HypernodeID index) const {
+      return index;
+    }
+  };
+
+  typedef std::unordered_map<HypernodeID, HyperedgeWeight, hash_nodes> SingleHEWeightsHashtable;
+
   public:
   HeavyEdgeCoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
     _hg(hypergraph),
@@ -82,7 +90,12 @@ class HeavyEdgeCoarsenerBase {
     _removed_parallel_hyperedges(),
     _fingerprints(),
     _contained_hypernodes(_hg.initialNumNodes()),
-    _pq(_hg.initialNumNodes(), _hg.initialNumNodes()) { }
+    _pq(_hg.initialNumNodes(), _hg.initialNumNodes())
+#ifdef USE_BUCKET_PQ
+    ,
+    _weights_table()
+#endif
+  { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
@@ -93,7 +106,34 @@ class HeavyEdgeCoarsenerBase {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
-    refiner.initialize();
+#ifdef USE_BUCKET_PQ
+    HyperedgeWeight max_single_he_induced_weight = 0;
+    for (auto iter = _weights_table.begin(); iter != _weights_table.end(); ++iter) {
+      if (iter->second > max_single_he_induced_weight) {
+        max_single_he_induced_weight = iter->second;
+      }
+    }
+    HyperedgeWeight max_degree = 0;
+    HypernodeID max_node = 0;
+    forall_hypernodes(hn, _hg) {
+      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
+             "TwoWayFmRefiner cannot work with HNs in invalid partition");
+      HyperedgeWeight curr_degree = 0;
+      forall_incident_hyperedges(he, *hn, _hg) {
+        curr_degree += _hg.edgeWeight(*he);
+      } endfor
+      if (curr_degree > max_degree) {
+        max_degree = curr_degree;
+        max_node = *hn;
+      }
+    } endfor
+
+    DBG(true, "max_single_he_induced_weight=" << max_single_he_induced_weight);
+    DBG(true, "max_degree=" << max_degree << ", HN=" << max_node);
+    refiner.initialize(max_degree + max_single_he_induced_weight);
+#else
+    refiner.initialize(0);
+#endif
 
     double old_imbalance = current_imbalance;
     HyperedgeWeight old_cut = current_cut;
@@ -182,6 +222,9 @@ class HeavyEdgeCoarsenerBase {
     std::tie(begin, end) = _hg.incidentEdges(u);
     for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
       if (_hg.edgeSize(*he_it) == 1) {
+#ifdef USE_BUCKET_PQ
+        _weights_table[u] += _hg.edgeWeight(*he_it);
+#endif
         _removed_single_node_hyperedges.push_back(*he_it);
         ++_history.top().one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
@@ -288,6 +331,9 @@ class HeavyEdgeCoarsenerBase {
   std::vector<Fingerprint> _fingerprints;
   boost::dynamic_bitset<uint64_t> _contained_hypernodes;
   PriorityQueue<HypernodeID, RatingType, MetaKeyDouble> _pq;
+#ifdef USE_BUCKET_PQ
+  SingleHEWeightsHashtable _weights_table;
+#endif
 };
 } // namespace partition
 

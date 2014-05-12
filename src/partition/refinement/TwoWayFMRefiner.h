@@ -17,11 +17,13 @@
 
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
+#include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/Partitioner.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -29,6 +31,7 @@ using defs::INVALID_PARTITION;
 
 using datastructure::HypergraphType;
 using datastructure::PriorityQueue;
+using datastructure::BucketPQ;
 using datastructure::HypernodeID;
 using datastructure::HyperedgeID;
 using datastructure::PartitionID;
@@ -50,8 +53,12 @@ template <class StoppingPolicy,
 class TwoWayFMRefiner : public IRefiner {
   private:
   typedef HyperedgeWeight Gain;
+#ifdef USE_BUCKET_PQ
+  typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
+#else
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight> > RefinementPQ;
+#endif
 
   static const int K = 2;
 
@@ -60,7 +67,7 @@ class TwoWayFMRefiner : public IRefiner {
     _hg(hypergraph),
     _config(config),
     // ToDo: We could also use different storage to avoid initialization like this
-    _pq{new RefinementPQ(_hg.initialNumNodes()), new RefinementPQ(_hg.initialNumNodes())},
+    _pq{nullptr, nullptr},
     _partition_size{0, 0},
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
@@ -85,7 +92,7 @@ class TwoWayFMRefiner : public IRefiner {
     }
   }
 
-  void initialize() {
+  void initialize(HyperedgeWeight max_gain) {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     forall_hypernodes(hn, _hg) {
@@ -93,7 +100,20 @@ class TwoWayFMRefiner : public IRefiner {
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
     } endfor
-      _is_initialized = true;
+
+
+#ifdef USE_BUCKET_PQ
+    delete _pq[0];
+    delete _pq[1];
+    _pq[0] = new RefinementPQ(max_gain);
+    _pq[1] = new RefinementPQ(max_gain);
+#else
+    if (!_is_initialized) {
+      _pq[0] = new RefinementPQ(_hg.initialNumNodes());
+      _pq[1] = new RefinementPQ(_hg.initialNumNodes());
+    }
+#endif
+    _is_initialized = true;
   }
 
   void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
@@ -251,7 +271,14 @@ class TwoWayFMRefiner : public IRefiner {
   std::string policyString() const {
     return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
-                       + " StoppingPolicy=" + templateToString<StoppingPolicy>());
+                       + " StoppingPolicy=" + templateToString<StoppingPolicy>()
+                       + " UsesBucketPQ="
+#ifdef USE_BUCKET_PQ
+                       + "true"
+#else
+                       + "false"
+#endif
+                       );
   }
 
   private:
@@ -376,7 +403,9 @@ class TwoWayFMRefiner : public IRefiner {
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
               << _hg.partitionIndex(pin));
-          _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+          if (gain_delta != 0) {
+            _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+          }
         }
       } else {
         DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
