@@ -125,6 +125,20 @@ class Rater {
   boost::dynamic_bitset<uint64_t> _visited_hypernodes;
 };
 #pragma GCC diagnostic pop
+
+template <typename RatingType>
+class HyperedgeRater {
+  public:
+  RatingType rate(HyperedgeID he, const HypergraphType& hypergraph) {
+    double geo_mean_node_weight = 1.0;
+    forall_pins(pin, he, hypergraph) {
+      geo_mean_node_weight *= static_cast<double>(hypergraph.nodeWeight(*pin));
+    } endfor
+
+      geo_mean_node_weight = std::pow(geo_mean_node_weight, 1.0 / hypergraph.edgeSize(he));
+    return hypergraph.edgeWeight(he) / geo_mean_node_weight;
+  }
+};
 } // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_RATER_H_

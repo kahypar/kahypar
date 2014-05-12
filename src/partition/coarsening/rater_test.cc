@@ -24,6 +24,7 @@ namespace partition {
 typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Rater<defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
+typedef HyperedgeRater<defs::RatingType> SimpleHyperedgeRater;
 
 class ARater : public Test {
   public:
@@ -68,6 +69,16 @@ class ARandomWinsRater : public ARater {
     rater(*hypergraph, config) { }
 
   RandomWinsRater rater;
+};
+
+class AHyperedgeRater : public ARater {
+  public:
+  AHyperedgeRater() :
+    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    rater() { }
+
+  SimpleHyperedgeRater rater;
 };
 
 TEST_F(AFirstWinsRater, UsesHeavyEdgeRatingToRateHypernodes) {
@@ -127,5 +138,15 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
+}
+
+TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
+  ASSERT_THAT(rater.rate(0, *hypergraph), DoubleEq(1.0));
+
+  hypergraph->setNodeWeight(1, 2);
+  hypergraph->setNodeWeight(3, 3);
+  hypergraph->setNodeWeight(4, 4);
+
+  ASSERT_THAT(rater.rate(1, *hypergraph), DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
 }
 } // namespace partition
