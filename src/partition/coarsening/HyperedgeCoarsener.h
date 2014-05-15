@@ -67,13 +67,13 @@ class HyperedgeCoarsener : public ICoarsener,
       DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.maxKey());
 
       ASSERT([&]() {
-          HypernodeWeight total_weight = 0;
-          forall_pins(pin, he_to_contract, _hg) {
-            total_weight += _hg.nodeWeight(*pin);
-          } endfor
-          return total_weight;
-        } ()<= _config.coarsening.threshold_node_weight,
-        "Contracting HE " << he_to_contract << "leads to violation of node weight treshold");
+               HypernodeWeight total_weight = 0;
+               forall_pins(pin, he_to_contract, _hg) {
+                 total_weight += _hg.nodeWeight(*pin);
+               } endfor
+               return total_weight;
+             } () <= _config.coarsening.threshold_node_weight,
+             "Contracting HE " << he_to_contract << "leads to violation of node weight treshold");
       ASSERT(_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1 >= limit,
              " Contraction of HE " << he_to_contract << " violates contraction limit: "
              << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
@@ -97,6 +97,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
+  FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
@@ -110,6 +111,8 @@ class HyperedgeCoarsener : public ICoarsener,
     for (auto he : permutation) {
       rating = _rater.rate(he, _hg, _config.coarsening.threshold_node_weight);
       if (rating.valid) {
+        // HEs that would violate node_weight_treshold are not inserted
+        // since their rating is set to invalid!
         DBG(true, "Inserting HE " << he << " rating=" << rating.value);
         _pq.insert(he, rating.value);
       }

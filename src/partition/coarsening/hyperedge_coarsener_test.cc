@@ -40,6 +40,11 @@ TEST_F(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseni
   ASSERT_THAT(coarsener._history.top().mementos_size, Eq(2));
 }
 
+TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight) {
+  config.coarsening.threshold_node_weight = 3;
+  coarsener.rateAllHyperedges();
+  ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
+}
 TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
   HypergraphType hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
                             HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
