@@ -66,6 +66,9 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
+      ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
+             "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+             << _rater.rate(rep_node).value);
 
       performContraction(rep_node, contracted_node);
       _pq.remove(contracted_node);

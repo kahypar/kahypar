@@ -78,6 +78,11 @@ class HyperedgeCoarsener : public ICoarsener,
              " Contraction of HE " << he_to_contract << " violates contraction limit: "
              << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
 
+      ASSERT(_pq.maxKey() == _rater.rate(he_to_contract, _hg,
+                                         _config.coarsening.threshold_node_weight).value,
+             "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+             << _rater.rate(he_to_contract, _hg, _config.coarsening.threshold_node_weight).value);
+
       //ToDo(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
       //              Or do we just say we coarsen until there are no more than 150 nodes left?
