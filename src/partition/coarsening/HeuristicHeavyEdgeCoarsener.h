@@ -23,7 +23,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
   private:
   typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating HeavyEdgeRating;
+  typedef typename Rater::Rating Rating;
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
   public:
@@ -53,7 +53,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
-    HeavyEdgeRating rating;
+    Rating rating;
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
       contracted_node = target[rep_node];
@@ -104,7 +104,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
                                                           TargetToSourcesMap& sources) {
-    HeavyEdgeRating rating;
+    Rating rating;
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
       forall_pins(pin, _removed_parallel_hyperedges[i].representative_id, _hg) {
@@ -117,7 +117,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
                                              std::vector<HypernodeID>& target,
                                              TargetToSourcesMap& sources) {
-    HeavyEdgeRating rating;
+    Rating rating;
     auto source_range = sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
@@ -134,7 +134,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updatePQandMappings(HypernodeID hn, const HeavyEdgeRating& rating,
+  void updatePQandMappings(HypernodeID hn, const Rating& rating,
                            std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
@@ -149,7 +149,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updateMappings(HypernodeID hn, const HeavyEdgeRating& rating,
+  void updateMappings(HypernodeID hn, const Rating& rating,
                       std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
     removeMappingEntryOfNode(hn, target[hn], sources);
     target[hn] = rating.target;

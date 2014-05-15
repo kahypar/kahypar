@@ -42,6 +42,7 @@ template <class Rater>
 class HyperedgeCoarsener : public ICoarsener,
                            private CoarsenerBase<HyperedgeCoarseningMemento>{
   private:
+  typedef typename Rater::Rating Rating;
   typedef typename Rater::RatingType RatingType;
   typedef typename HypergraphType::ContractionMemento ContractionMemento;
   bool dbg_coarsening_coarsen = true;
@@ -102,12 +103,12 @@ class HyperedgeCoarsener : public ICoarsener,
     } endfor
     Randomize::shuffleVector(permutation);
 
-    RatingType rating = 0.0;
+    Rating rating;
     for (auto he : permutation) {
       rating = _rater.rate(he, _hg, _config.coarsening.threshold_node_weight);
-      if (rating != Rater::INVALID_RATING) {
-        DBG(true, "Inserting HE " << he << " rating=" << rating);
-        _pq.insert(he, rating);
+      if (rating.valid) {
+        DBG(true, "Inserting HE " << he << " rating=" << rating.value);
+        _pq.insert(he, rating.value);
       }
     }
   }

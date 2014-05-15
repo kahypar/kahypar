@@ -48,7 +48,7 @@ struct CoarseningMemento {
 template <class Rater>
 class HeavyEdgeCoarsenerBase : private CoarsenerBase<CoarseningMemento>{
   protected:
-  typedef typename Rater::Rating HeavyEdgeRating;
+  typedef typename Rater::Rating Rating;
   typedef typename Rater::RatingType RatingType;
 
   using CoarsenerBase::_hg;
@@ -145,7 +145,7 @@ class HeavyEdgeCoarsenerBase : private CoarsenerBase<CoarseningMemento>{
   void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
-    HeavyEdgeRating rating;
+    Rating rating;
     for (int i = 0; i < permutation.size(); ++i) {
       rating = _rater.rate(permutation[i]);
       if (rating.valid) {

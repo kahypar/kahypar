@@ -127,12 +127,27 @@ class Rater {
 
 template <typename _RatingType>
 class HyperedgeRater {
-  public:
-  typedef _RatingType RatingType;
-  static constexpr RatingType INVALID_RATING = std::numeric_limits<RatingType>::min();
+  private:
+  struct HyperedgeRating {
+    HypernodeWeight total_node_weight;
+    _RatingType value;
+    bool valid;
+    HyperedgeRating(_RatingType val, bool is_valid) :
+      total_node_weight(std::numeric_limits<HypernodeWeight>::max()),
+      value(val),
+      valid(is_valid) { }
+    HyperedgeRating() :
+      total_node_weight(std::numeric_limits<HypernodeWeight>::max()),
+      value(std::numeric_limits<RatingType>::min()),
+      valid(false) { }
+  };
 
-  RatingType rate(HyperedgeID he, const HypergraphType& hypergraph,
-                  HypernodeWeight threshold_node_weight) {
+  public:
+  typedef HyperedgeRating Rating;
+  typedef _RatingType RatingType;
+
+  HyperedgeRating rate(HyperedgeID he, const HypergraphType& hypergraph,
+                       HypernodeWeight threshold_node_weight) {
     IncidenceIterator pins_begin, pins_end;
     std::tie(pins_begin, pins_end) = hypergraph.pins(he);
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
@@ -152,12 +167,17 @@ class HyperedgeRater {
       sum_node_weights += hypergraph.nodeWeight(*pin);
     }
 
+    HyperedgeRating rating;
+    rating.total_node_weight = sum_node_weights;
     if (sum_node_weights > threshold_node_weight || is_cut_hyperedge) {
-      return INVALID_RATING;
+      return rating;
     }
 
     geo_mean_node_weight = std::pow(geo_mean_node_weight, 1.0 / hypergraph.edgeSize(he));
-    return hypergraph.edgeWeight(he) / geo_mean_node_weight;
+
+    rating.valid = true;
+    rating.value = hypergraph.edgeWeight(he) / geo_mean_node_weight;
+    return rating;
   }
 };
 } // namespace partition
