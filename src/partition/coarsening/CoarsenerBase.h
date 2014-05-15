@@ -138,8 +138,8 @@ class CoarsenerBase {
   }
 
   void removeParallelHyperedges(HypernodeID u) {
-    ASSERT(_history.top().contraction_memento.u == u,
-           "Current coarsening memento does not belong to hypernode" << u);
+    // ASSERT(_history.top().contraction_memento.u == u,
+    //        "Current coarsening memento does not belong to hypernode" << u);
     _history.top().parallel_hes_begin = _removed_parallel_hyperedges.size();
 
     createFingerprints(u);

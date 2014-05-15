@@ -33,7 +33,14 @@ class AHyperedgeCoarsener : public Test {
   DISALLOW_COPY_AND_ASSIGN(AHyperedgeCoarsener);
 };
 
-TEST(AHyperedgeCoarsener, RemovesNestedHyperedgesAsPartOfTheContractionRoutine) {
+TEST_F(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep) {
+  coarsener.coarsen(5);
+  ASSERT_THAT(coarsener._contraction_mementos.size(), Eq(2));
+  ASSERT_THAT(coarsener._history.top().mementos_begin, Eq(0));
+  ASSERT_THAT(coarsener._history.top().mementos_size, Eq(2));
+}
+
+TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
   HypergraphType hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
                             HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
   hypergraph.setEdgeWeight(1, 5);

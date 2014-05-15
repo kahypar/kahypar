@@ -48,6 +48,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   public:
   using CoarsenerBase::removeSingleNodeHyperedges;
+  using CoarsenerBase::removeParallelHyperedges;
 
   HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     CoarsenerBase(hypergraph, config),
@@ -71,6 +72,7 @@ class HyperedgeCoarsener : public ICoarsener,
       _pq.remove(he_to_contract);
 
       removeSingleNodeHyperedges(rep_node);
+      removeParallelHyperedges(rep_node);
 
       // remove parallel HEs
       // remove nested HEs
@@ -90,6 +92,8 @@ class HyperedgeCoarsener : public ICoarsener,
   void uncoarsen(IRefiner& refiner) { }
 
   private:
+  FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
+
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
     permutation.reserve(_hg.initialNumNodes());
@@ -109,6 +113,8 @@ class HyperedgeCoarsener : public ICoarsener,
   }
 
   HypernodeID performContraction(HyperedgeID he) {
+    _history.emplace(HyperedgeCoarseningMemento());
+    _history.top().mementos_begin = _contraction_mementos.size();
     IncidenceIterator pins_begin, pins_end;
     std::tie(pins_begin, pins_end) = _hg.pins(he);
     HypernodeID representative = *pins_begin;
@@ -123,6 +129,7 @@ class HyperedgeCoarsener : public ICoarsener,
     for (auto hn_to_contract : hns_to_contract) {
       DBG(true, "Contracting (" << representative << "," << hn_to_contract << ") from HE " << he);
       _contraction_mementos.push_back(_hg.contract(representative, hn_to_contract));
+      ++_history.top().mementos_size;
     }
     return representative;
   }
