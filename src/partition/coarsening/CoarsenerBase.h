@@ -117,8 +117,8 @@ class CoarsenerBase {
   }
 
   void removeSingleNodeHyperedges(HypernodeID u) {
-    ASSERT(_history.top().contraction_memento.u == u,
-           "Current coarsening memento does not belong to hypernode" << u);
+    // ASSERT(_history.top().contraction_memento.u == u,
+    //        "Current coarsening memento does not belong to hypernode" << u);
     _history.top().one_pin_hes_begin = _removed_single_node_hyperedges.size();
     IncidenceIterator begin, end;
     std::tie(begin, end) = _hg.incidentEdges(u);
