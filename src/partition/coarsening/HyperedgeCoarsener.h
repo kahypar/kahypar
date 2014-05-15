@@ -65,6 +65,15 @@ class HyperedgeCoarsener : public ICoarsener,
     while (!_pq.empty() && _hg.numNodes() > limit) {
       he_to_contract = _pq.max();
       DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.maxKey());
+
+      ASSERT([&]() {
+          HypernodeWeight total_weight = 0;
+          forall_pins(pin, he_to_contract, _hg) {
+            total_weight += _hg.nodeWeight(*pin);
+          } endfor
+          return total_weight;
+        } ()<= _config.coarsening.threshold_node_weight,
+        "Contracting HE " << he_to_contract << "leads to violation of node weight treshold");
       ASSERT(_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1 >= limit,
              " Contraction of HE " << he_to_contract << " violates contraction limit: "
              << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
