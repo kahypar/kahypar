@@ -135,6 +135,7 @@ class HyperedgeRater {
                   HypernodeWeight threshold_node_weight) {
     IncidenceIterator pins_begin, pins_end;
     std::tie(pins_begin, pins_end) = hypergraph.pins(he);
+    ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
 
     PartitionID partition = hypergraph.partitionIndex(*pins_begin);
     double geo_mean_node_weight = static_cast<double>(hypergraph.nodeWeight(*pins_begin));
