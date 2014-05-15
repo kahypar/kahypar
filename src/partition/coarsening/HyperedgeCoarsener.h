@@ -78,24 +78,18 @@ class HyperedgeCoarsener : public ICoarsener,
              " Contraction of HE " << he_to_contract << " violates contraction limit: "
              << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
 
+      //ToDo(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
+      //              this HE. Instead we just remove it from the PQ? -> make a testcase!
+      //              Or do we just say we coarsen until there are no more than 150 nodes left?
+
       HypernodeID rep_node = performContraction(he_to_contract);
       _pq.remove(he_to_contract);
 
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      // remove parallel HEs
-      // remove nested HEs
       // rerate incident hyperedges
       // do we need to rerate hyperedges affected by parallel HE removal?
-
-      // we need a new kind of Coarsening-Memento that keeps track of:
-      // _removed_single_node_hyperedges
-      // _remvoed_parallel_hyperedges
-      // _contraction_mementos (If it turns our that hyperedge coarsening is a valid approach, then we might add special HE-contraction
-      // functionality to the hypergraph-DS)
-
-      // think about moving base functionality currently in HeavyEdgeCoarsenerBase up one level to CoarsenerBase for better reuse
     }
   }
 
