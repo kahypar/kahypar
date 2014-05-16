@@ -105,7 +105,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void uncoarsen(IRefiner& refiner) { }
 
-  void removeSingleNodeHyperedgeFromPQ(HyperedgeID he) {
+  void removeHyperedgeFromPQ(HyperedgeID he) {
     if (_pq.contains(he)) {
       _pq.remove(he);
     }
@@ -115,6 +115,7 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
+  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;

@@ -78,8 +78,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   virtual ~HeavyEdgeCoarsenerBase() { }
 
   // Nothing to do in case of a hypernode-based coarsener
-  // CRTP for hyperedge-based coarseners that need to delete single-node HEs from PQ
-  void removeSingleNodeHyperedgeFromPQ(HyperedgeID) { }
+  // CRTP for hyperedge-based coarseners that need to delete single-node HEs and
+  // parallel HEs from their PQ
+  void removeHyperedgeFromPQ(HyperedgeID) { }
 
   protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

@@ -78,4 +78,17 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
 
   ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
 }
+
+TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
+  HypergraphType hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                            HyperedgeVector { 0, 1, 0, 2, 1, 2 });
+  hypergraph.setEdgeWeight(2, 5);
+  Configuration config;
+  config.coarsening.threshold_node_weight = 5;
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
+
+  coarsener.coarsen(2);
+  ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(false));
+  ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
+}
 } // namespace partition
