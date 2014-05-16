@@ -28,7 +28,7 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 
-template <class CoarseningMemento>
+template <class Derived, class CoarseningMemento>
 class CoarsenerBase {
   protected:
   struct Fingerprint {
@@ -128,6 +128,7 @@ class CoarsenerBase {
         _weights_table[u] += _hg.edgeWeight(*he_it);
 #endif
         _removed_single_node_hyperedges.push_back(*he_it);
+        static_cast<Derived*>(this)->removeSingleNodeHyperedgeFromPQ(*he_it);
         ++_history.top().one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
         _hg.removeEdge(*he_it, false);

@@ -40,19 +40,24 @@ struct HyperedgeCoarseningMemento {
 
 template <class Rater>
 class HyperedgeCoarsener : public ICoarsener,
-                           private CoarsenerBase<HyperedgeCoarseningMemento>{
+                           public CoarsenerBase<HyperedgeCoarsener<Rater>,
+                                                HyperedgeCoarseningMemento>{
   private:
   typedef typename Rater::Rating Rating;
   typedef typename Rater::RatingType RatingType;
   typedef typename HypergraphType::ContractionMemento ContractionMemento;
+  typedef CoarsenerBase<HyperedgeCoarsener<Rater>, HyperedgeCoarseningMemento> Base;
   bool dbg_coarsening_coarsen = true;
 
   public:
-  using CoarsenerBase::removeSingleNodeHyperedges;
-  using CoarsenerBase::removeParallelHyperedges;
+  using Base::_hg;
+  using Base::_config;
+  using Base::_history;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
 
   HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
-    CoarsenerBase(hypergraph, config),
+    Base(hypergraph, config),
     _rater(),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
@@ -83,7 +88,7 @@ class HyperedgeCoarsener : public ICoarsener,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
              << _rater.rate(he_to_contract, _hg, _config.coarsening.threshold_node_weight).value);
 
-      //ToDo(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
+      //TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
       //              Or do we just say we coarsen until there are no more than 150 nodes left?
 
@@ -100,9 +105,16 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void uncoarsen(IRefiner& refiner) { }
 
+  void removeSingleNodeHyperedgeFromPQ(HyperedgeID he) {
+    if (_pq.contains(he)) {
+      _pq.remove(he);
+    }
+  }
+
   private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
+  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;

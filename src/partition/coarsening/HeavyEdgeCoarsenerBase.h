@@ -46,26 +46,40 @@ struct CoarseningMemento {
 };
 
 template <class Rater>
-class HeavyEdgeCoarsenerBase : private CoarsenerBase<CoarseningMemento>{
+class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
+                                                    CoarseningMemento>{
   protected:
   typedef typename Rater::Rating Rating;
   typedef typename Rater::RatingType RatingType;
+  typedef CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>, CoarseningMemento> Base;
 
-  using CoarsenerBase::_hg;
-  using CoarsenerBase::_history;
-  using CoarsenerBase::removeSingleNodeHyperedges;
-  using CoarsenerBase::removeParallelHyperedges;
-  using CoarsenerBase::_removed_parallel_hyperedges;
-  using CoarsenerBase::_removed_single_node_hyperedges;
+  using Base::_hg;
+  using Base::_config;
+  using Base::_history;
+#ifdef USE_BUCKET_PQ
+  using Base::_weights_table;
+#endif
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::restoreParallelHyperedges;
+  using Base::restoreSingleNodeHyperedges;
+  using Base::improvedOldImbalanceTowardsValidSolution;
+  using Base::improvedCutWithinBalance;
+  using Base::_removed_parallel_hyperedges;
+  using Base::_removed_single_node_hyperedges;
 
   public:
   HeavyEdgeCoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
-    CoarsenerBase<CoarseningMemento>(hypergraph, config),
+    Base(hypergraph, config),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes(), _hg.initialNumNodes())
   { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
+
+  // Nothing to do in case of a hypernode-based coarsener
+  // CRTP for hyperedge-based coarseners that need to delete single-node HEs from PQ
+  void removeSingleNodeHyperedgeFromPQ(HyperedgeID) { }
 
   protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

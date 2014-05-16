@@ -12,6 +12,8 @@
 #include "partition/coarsening/Rater.h"
 
 namespace partition {
+typedef HyperedgeCoarsener<HyperedgeRater<defs::RatingType> > HyperedgeCoarsenerType;
+
 class AHyperedgeCoarsener : public Test {
   public:
   explicit AHyperedgeCoarsener(HypergraphType* graph =
@@ -26,7 +28,7 @@ class AHyperedgeCoarsener : public Test {
 
   std::unique_ptr<HypergraphType> hypergraph;
   Configuration config;
-  HyperedgeCoarsener<HyperedgeRater<defs::RatingType> > coarsener;
+  HyperedgeCoarsenerType coarsener;
   std::unique_ptr<IRefiner> refiner;
 
   private:
@@ -45,17 +47,35 @@ TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNod
   coarsener.rateAllHyperedges();
   ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
 }
+
+TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate) {
+  ASSERT_THAT(true, Eq(false));
+}
+
 TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
   HypergraphType hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
                             HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
-  HyperedgeCoarsener<HyperedgeRater<defs::RatingType> > coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(false));
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
+}
+
+TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
+  HypergraphType hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+                            HyperedgeVector { 0, 1, 0, 1, 2 });
+  hypergraph.setEdgeWeight(1, 5);
+  Configuration config;
+  config.coarsening.threshold_node_weight = 5;
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
+
+  coarsener.coarsen(1);
+
+  ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
 }
 } // namespace partition
