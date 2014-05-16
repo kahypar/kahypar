@@ -49,6 +49,9 @@ TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNod
 }
 
 TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate) {
+  // This currently crashes on purpose in assert!
+  // config.coarsening.threshold_node_weight = 4;
+  // coarsener.coarsen(6);
   ASSERT_THAT(true, Eq(false));
 }
 
@@ -90,5 +93,20 @@ TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(false));
   ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
+}
+
+// This test is currently specific to the rating function that is used and therefore needs
+// refactoring if we add/test other rating functions!
+TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction) {
+  config.coarsening.threshold_node_weight = 25;
+  coarsener.coarsen(5);
+  ASSERT_THAT(coarsener._pq.contains(2), Eq(false));
+  ASSERT_THAT(coarsener._pq.key(0), DoubleEq(1.0));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(1.0 / std::pow(3, 1.0 / 3)));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(1.0 / std::pow(3, 1.0 / 3)));
+  coarsener.coarsen(4);
+  ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(1.0 / std::pow(6, 1.0 / 3)));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(1.0 / std::pow(6, 1.0 / 3)));
 }
 } // namespace partition

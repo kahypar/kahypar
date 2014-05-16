@@ -78,7 +78,7 @@ class HyperedgeCoarsener : public ICoarsener,
                } endfor
                return total_weight;
              } () <= _config.coarsening.threshold_node_weight,
-             "Contracting HE " << he_to_contract << "leads to violation of node weight treshold");
+             "Contracting HE " << he_to_contract << "leads to violation of node weight thsreshold");
       ASSERT(_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1 >= limit,
              " Contraction of HE " << he_to_contract << " violates contraction limit: "
              << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
@@ -98,8 +98,7 @@ class HyperedgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      // rerate incident hyperedges
-      // do we need to rerate hyperedges affected by parallel HE removal?
+      reRateHyperedgesAffectedByContraction(rep_node);
     }
   }
 
@@ -116,6 +115,7 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
+  FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
@@ -135,6 +135,22 @@ class HyperedgeCoarsener : public ICoarsener,
         _pq.insert(he, rating.value);
       }
     }
+  }
+
+  void reRateHyperedgesAffectedByContraction(HypernodeID representative) {
+    Rating rating;
+    forall_incident_hyperedges(he, representative, _hg) {
+      DBG(true, "Looking at HE " << *he);
+      if (_pq.contains(*he)) {
+        rating = _rater.rate(*he, _hg, _config.coarsening.threshold_node_weight);
+        if (rating.valid) {
+          DBG(true, "Updating HE " << *he << " rating=" << rating.value);
+          _pq.updateKey(*he, rating.value);
+        } else {
+          _pq.remove(*he);
+        }
+      }
+    } endfor
   }
 
   HypernodeID performContraction(HyperedgeID he) {
