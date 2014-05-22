@@ -11,6 +11,7 @@
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/CoarsenerBase.h"
+#include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
@@ -38,15 +39,14 @@ struct HyperedgeCoarseningMemento {
     mementos_size(0) { }
 };
 
-template <class Rater>
+template <class RatingPolicy>
 class HyperedgeCoarsener : public ICoarsener,
-                           public CoarsenerBase<HyperedgeCoarsener<Rater>,
+                           public CoarsenerBase<HyperedgeCoarsener<RatingPolicy>,
                                                 HyperedgeCoarseningMemento>{
   private:
-  typedef typename Rater::Rating Rating;
-  typedef typename Rater::RatingType RatingType;
+  typedef HyperedgeRating Rating;
   typedef typename HypergraphType::ContractionMemento ContractionMemento;
-  typedef CoarsenerBase<HyperedgeCoarsener<Rater>, HyperedgeCoarseningMemento> Base;
+  typedef CoarsenerBase<HyperedgeCoarsener<RatingPolicy>, HyperedgeCoarseningMemento> Base;
 
   public:
   using Base::_hg;
@@ -61,7 +61,6 @@ class HyperedgeCoarsener : public ICoarsener,
 
   HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
-    _rater(),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
@@ -82,10 +81,10 @@ class HyperedgeCoarsener : public ICoarsener,
                return total_weight;
              } () <= _config.coarsening.threshold_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight thsreshold");
-      ASSERT(_pq.maxKey() == _rater.rate(he_to_contract, _hg,
-                                         _config.coarsening.threshold_node_weight).value,
+      ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
+                                                _config.coarsening.threshold_node_weight).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
-             << _rater.rate(he_to_contract, _hg, _config.coarsening.threshold_node_weight).value);
+             << RatingPolicy::rate(he_to_contract, _hg, _config.coarsening.threshold_node_weight).value);
 
       //TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
@@ -146,7 +145,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
     Rating rating;
     for (auto he : permutation) {
-      rating = _rater.rate(he, _hg, _config.coarsening.threshold_node_weight);
+      rating = RatingPolicy::rate(he, _hg, _config.coarsening.threshold_node_weight);
       if (rating.valid) {
         // HEs that would violate node_weight_treshold are not inserted
         // since their rating is set to invalid!
@@ -161,7 +160,7 @@ class HyperedgeCoarsener : public ICoarsener,
     forall_incident_hyperedges(he, representative, _hg) {
       DBG(false, "Looking at HE " << *he);
       if (_pq.contains(*he)) {
-        rating = _rater.rate(*he, _hg, _config.coarsening.threshold_node_weight);
+        rating = RatingPolicy::rate(*he, _hg, _config.coarsening.threshold_node_weight);
         if (rating.valid) {
           DBG(false, "Updating HE " << *he << " rating=" << rating.value);
           _pq.updateKey(*he, rating.value);
@@ -214,7 +213,6 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  Rater _rater;
   PriorityQueue<HyperedgeID, RatingType, MetaKeyDouble> _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };

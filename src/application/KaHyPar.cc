@@ -27,6 +27,7 @@
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HyperedgeCoarsener.h"
+#include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/FMRefinerFactory.h"
@@ -36,7 +37,6 @@
 namespace po = boost::program_options;
 
 using partition::Rater;
-using partition::HyperedgeRater;
 using partition::ICoarsener;
 using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
@@ -47,7 +47,9 @@ using partition::Configuration;
 using partition::CoarseningScheme;
 using partition::FMRefinerFactory;
 using partition::HyperedgeCoarsener;
+using partition::EdgeWeightDivGeoMeanPinWeight;
 using serializer::SQLPlotToolsSerializer;
+
 
 using datastructure::HypergraphType;
 using datastructure::HypernodeID;
@@ -173,8 +175,7 @@ int main(int argc, char* argv[]) {
   typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
   typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
   typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
-  typedef HyperedgeRater<defs::RatingType> HyperedgeRater;
-  typedef HyperedgeCoarsener<HyperedgeRater> HyperedgeCoarsener;
+  typedef HyperedgeCoarsener<EdgeWeightDivGeoMeanPinWeight> HyperedgeCoarsener;
 
   typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 

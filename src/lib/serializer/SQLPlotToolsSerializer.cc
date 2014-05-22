@@ -39,18 +39,17 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " coarseningScheme=";
     switch (config.coarsening.scheme) {
       case CoarseningScheme::HEAVY_EDGE_FULL:
-      out_stream << "heavy_full";
-      out_stream << " coarseningRating=heavy_edge";
-      break;
-    case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
-      out_stream << "heavy_heuristic";
-      out_stream << " coarseningRating=heavy_edge";
-      break;
-    case CoarseningScheme::HYPEREDGE:
-      out_stream << "hyperedge";
-      out_stream << " coarseningRating=rater1";
-      break;
-
+        out_stream << "heavy_full";
+        out_stream << " coarseningRating=heavy_edge";
+        break;
+      case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
+        out_stream << "heavy_heuristic";
+        out_stream << " coarseningRating=heavy_edge";
+        break;
+      case CoarseningScheme::HYPEREDGE:
+        out_stream << "hyperedge";
+        out_stream << " coarseningRating=rater1";
+        break;
     }
     out_stream << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
