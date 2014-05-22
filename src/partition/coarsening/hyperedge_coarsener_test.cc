@@ -81,6 +81,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
   coarsener.coarsen(1);
 
   ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
+  ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
 }
 
 TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
@@ -107,5 +108,34 @@ TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAf
   ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
   ASSERT_THAT(coarsener._pq.key(1), DoubleEq(coarsener._rater.rate(1, *hypergraph, 25).value));
   ASSERT_THAT(coarsener._pq.key(3), DoubleEq(coarsener._rater.rate(3, *hypergraph, 25).value));
+}
+
+TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
+  HypergraphType hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                            HyperedgeVector { 0, 1, 0, 2, 1, 2 });
+  hypergraph.setEdgeWeight(2, 5);
+  Configuration config;
+  config.coarsening.threshold_node_weight = 5;
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+
+  coarsener.coarsen(2);
+  coarsener.uncoarsen(*refiner);
+  ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
+}
+
+TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
+  HypergraphType hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+                            HyperedgeVector { 0, 1, 0, 1, 2 });
+  hypergraph.setEdgeWeight(1, 5);
+  Configuration config;
+  config.coarsening.threshold_node_weight = 5;
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+
+  coarsener.coarsen(1);
+  coarsener.uncoarsen(*refiner);
+  ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
+  ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
 }
 } // namespace partition

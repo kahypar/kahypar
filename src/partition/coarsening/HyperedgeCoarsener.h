@@ -55,6 +55,8 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_history;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
+  using Base::restoreParallelHyperedges;
+  using Base::restoreSingleNodeHyperedges;
 
   HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
@@ -98,7 +100,13 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  void uncoarsen(IRefiner& refiner) { }
+  void uncoarsen(IRefiner& refiner) {
+    while (!_history.empty()) {
+      restoreParallelHyperedges(_history.top());
+      restoreSingleNodeHyperedges(_history.top());
+      _history.pop();
+    }
+  }
 
   void removeHyperedgeFromPQ(HyperedgeID he) {
     if (_pq.contains(he)) {
