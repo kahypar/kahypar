@@ -36,12 +36,25 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " numInitialPartitionings=" << config.partitioning.initial_partitioning_attempts
     << " numVCycles=" << config.partitioning.global_search_iterations
     << " HESizeThreshold=" << config.partitioning.hyperedge_size_threshold
-    << " coarseningScheme=" << (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ?
-                                "heavy_full" : "heavy_heuristic")
-    << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
+    << " coarseningScheme=";
+    switch (config.coarsening.scheme) {
+      case CoarseningScheme::HEAVY_EDGE_FULL:
+      out_stream << "heavy_full";
+      out_stream << " coarseningRating=heavy_edge";
+      break;
+    case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
+      out_stream << "heavy_heuristic";
+      out_stream << " coarseningRating=heavy_edge";
+      break;
+    case CoarseningScheme::HYPEREDGE:
+      out_stream << "hyperedge";
+      out_stream << " coarseningRating=rater1";
+      break;
+
+    }
+    out_stream << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
     << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
-    << " coarseningRating=" << "heavy_edge"
     << " twowayFMactive=" << config.two_way_fm.active
     << " twowayFMStoppingRule=" << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
                                     "simple" : (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE1 ?

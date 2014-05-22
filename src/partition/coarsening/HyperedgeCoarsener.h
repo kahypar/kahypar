@@ -47,7 +47,6 @@ class HyperedgeCoarsener : public ICoarsener,
   typedef typename Rater::RatingType RatingType;
   typedef typename HypergraphType::ContractionMemento ContractionMemento;
   typedef CoarsenerBase<HyperedgeCoarsener<Rater>, HyperedgeCoarseningMemento> Base;
-  bool dbg_coarsening_coarsen = true;
 
   public:
   using Base::_hg;
@@ -151,7 +150,7 @@ class HyperedgeCoarsener : public ICoarsener,
       if (rating.valid) {
         // HEs that would violate node_weight_treshold are not inserted
         // since their rating is set to invalid!
-        DBG(true, "Inserting HE " << he << " rating=" << rating.value);
+        DBG(dbg_coarsening_rating, "Inserting HE " << he << " rating=" << rating.value);
         _pq.insert(he, rating.value);
       }
     }
@@ -160,11 +159,11 @@ class HyperedgeCoarsener : public ICoarsener,
   void reRateHyperedgesAffectedByContraction(HypernodeID representative) {
     Rating rating;
     forall_incident_hyperedges(he, representative, _hg) {
-      DBG(true, "Looking at HE " << *he);
+      DBG(false, "Looking at HE " << *he);
       if (_pq.contains(*he)) {
         rating = _rater.rate(*he, _hg, _config.coarsening.threshold_node_weight);
         if (rating.valid) {
-          DBG(true, "Updating HE " << *he << " rating=" << rating.value);
+          DBG(false, "Updating HE " << *he << " rating=" << rating.value);
           _pq.updateKey(*he, rating.value);
         } else {
           _pq.remove(*he);
@@ -188,7 +187,8 @@ class HyperedgeCoarsener : public ICoarsener,
       ++pins_begin;
     }
     for (auto hn_to_contract : hns_to_contract) {
-      DBG(true, "Contracting (" << representative << "," << hn_to_contract << ") from HE " << he);
+      DBG(dbg_coarsening_coarsen, "Contracting (" << representative << "," << hn_to_contract
+          << ") from HE " << he);
       _contraction_mementos.push_back(_hg.contract(representative, hn_to_contract));
       ++_history.top().mementos_size;
     }

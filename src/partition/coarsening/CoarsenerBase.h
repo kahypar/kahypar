@@ -29,6 +29,7 @@ static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
+static const bool dbg_coarsening_rating = false;
 
 template <class Derived, class CoarseningMemento>
 class CoarsenerBase {

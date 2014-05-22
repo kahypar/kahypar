@@ -26,6 +26,7 @@
 #include "partition/Partitioner.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/HyperedgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/FMRefinerFactory.h"
@@ -35,6 +36,7 @@
 namespace po = boost::program_options;
 
 using partition::Rater;
+using partition::HyperedgeRater;
 using partition::ICoarsener;
 using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
@@ -44,6 +46,7 @@ using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::CoarseningScheme;
 using partition::FMRefinerFactory;
+using partition::HyperedgeCoarsener;
 using serializer::SQLPlotToolsSerializer;
 
 using datastructure::HypergraphType;
@@ -83,6 +86,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("ctype")) {
       if (vm["ctype"].as<std::string>() == "heavy_heuristic") {
         config.coarsening.scheme = CoarseningScheme::HEAVY_EDGE_HEURISTIC;
+      } else if (vm["ctype"].as<std::string>() == "hyperedge") {
+        config.coarsening.scheme = CoarseningScheme::HYPEREDGE;
       }
     }
     if (vm.count("s")) {
@@ -168,6 +173,8 @@ int main(int argc, char* argv[]) {
   typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
   typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
   typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
+  typedef HyperedgeRater<defs::RatingType> HyperedgeRater;
+  typedef HyperedgeCoarsener<HyperedgeRater> HyperedgeCoarsener;
 
   typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
@@ -237,10 +244,16 @@ int main(int argc, char* argv[]) {
 
   Partitioner partitioner(config);
   std::unique_ptr<ICoarsener> coarsener(nullptr);
-  if (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL) {
-    coarsener.reset(new RandomWinsFullCoarsener(hypergraph, config));
-  } else {
-    coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
+  switch (config.coarsening.scheme) {
+    case CoarseningScheme::HEAVY_EDGE_FULL:
+      coarsener.reset(new RandomWinsFullCoarsener(hypergraph, config));
+      break;
+    case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
+      coarsener.reset(new RandomWinsHeuristicCoarsener(hypergraph, config));
+      break;
+    case CoarseningScheme::HYPEREDGE:
+      coarsener.reset(new HyperedgeCoarsener(hypergraph, config));
+      break;
   }
 
   std::unique_ptr<IRefiner> refiner(FMRefinerFactory::create(config, hypergraph));
