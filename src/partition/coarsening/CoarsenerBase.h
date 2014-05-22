@@ -236,7 +236,8 @@ class CoarsenerBase {
 #endif
   }
 
-  void performLocalSearch(IRefiner& refiner) {
+  void performLocalSearch(IRefiner& refiner, const std::vector<HypernodeID>& refinement_nodes,
+                          size_t num_refinement_nodes) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     double old_imbalance = current_imbalance;
@@ -245,8 +246,8 @@ class CoarsenerBase {
     do {
       old_imbalance = current_imbalance;
       old_cut = current_cut;
-      refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                     current_cut, _config.partitioning.epsilon, current_imbalance);
+      refiner.refine(refinement_nodes, num_refinement_nodes, current_cut,
+                     _config.partitioning.epsilon, current_imbalance);
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
       DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"

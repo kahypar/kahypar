@@ -57,6 +57,8 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::removeParallelHyperedges;
   using Base::restoreParallelHyperedges;
   using Base::restoreSingleNodeHyperedges;
+  using Base::performLocalSearch;
+  using Base::initializeRefiner;
 
   HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
@@ -101,10 +103,15 @@ class HyperedgeCoarsener : public ICoarsener,
   }
 
   void uncoarsen(IRefiner& refiner) {
+    initializeRefiner(refiner);
+    std::vector<HypernodeID> refinement_nodes;
+    refinement_nodes.reserve(_hg.initialNumNodes());
+    size_t num_refinement_nodes = 0;
     while (!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
-      performUncontraction(_history.top());
+      performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
+      performLocalSearch(refiner, refinement_nodes, num_refinement_nodes);
       _history.pop();
     }
   }
@@ -122,6 +129,7 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
   FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
   FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
+  FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
@@ -181,7 +189,12 @@ class HyperedgeCoarsener : public ICoarsener,
     return representative;
   }
 
-  void performUncontraction(HyperedgeCoarseningMemento& memento) {
+  void performUncontraction(const HyperedgeCoarseningMemento& memento,
+                            std::vector<HypernodeID>& refinement_nodes,
+                            size_t& num_refinement_nodes) {
+    num_refinement_nodes = 0;
+    refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
+                                                                     + memento.mementos_size - 1].u;
     for (int i = memento.mementos_begin + memento.mementos_size - 1;
          i >= memento.mementos_begin; --i) {
       ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
@@ -191,6 +204,7 @@ class HyperedgeCoarsener : public ICoarsener,
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
           << _contraction_mementos[i].v << ")");
       _hg.uncontract(_contraction_mementos[i]);
+      refinement_nodes[num_refinement_nodes++] = _contraction_mementos[i].v;
     }
   }
 

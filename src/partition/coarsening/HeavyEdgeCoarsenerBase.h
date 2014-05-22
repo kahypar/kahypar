@@ -89,6 +89,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
 
   void uncoarsen(IRefiner& refiner) {
     initializeRefiner(refiner);
+    std::vector<HypernodeID> refinement_nodes(2, 0);
 
     GPERF_START_PROFILER("/home/schlag/repo/schlag_git/profile/src/application/test.prof");
     while (!_history.empty()) {
@@ -98,8 +99,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
           << _history.top().contraction_memento.v << ")");
       _hg.uncontract(_history.top().contraction_memento);
-
-      performLocalSearch(refiner);
+      refinement_nodes[0] = _history.top().contraction_memento.u;
+      refinement_nodes[1] = _history.top().contraction_memento.v;
+      performLocalSearch(refiner, refinement_nodes, 2);
       _history.pop();
     }
     ASSERT(metrics::imbalance(_hg) <= _config.partitioning.epsilon,

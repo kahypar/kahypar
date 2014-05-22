@@ -11,6 +11,8 @@
 #include "partition/coarsening/HyperedgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 
+using::testing::UnorderedElementsAre;
+
 using datastructure::verifyEquivalence;
 
 namespace partition {
@@ -155,5 +157,26 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   coarsener.uncoarsen(*refiner);
 
   ASSERT_THAT(verifyEquivalence(*hypergraph, input_hypergraph), Eq(true));
+}
+
+TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
+  HypergraphType hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
+                            HyperedgeVector { 0, 1, 2 });
+  Configuration config;
+  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  std::vector<HypernodeID> refinement_nodes = { 42, 42, 42 };
+  size_t num_refinement_nodes = 0;
+  refinement_nodes.reserve(hypergraph.initialNumNodes());
+  config.coarsening.threshold_node_weight = 5;
+
+  coarsener.coarsen(1);
+  hypergraph.changeNodePartition(0, -1, 0);
+  coarsener.restoreSingleNodeHyperedges(coarsener._history.top());
+
+  coarsener.performUncontraction(coarsener._history.top(), refinement_nodes,
+                                 num_refinement_nodes);
+
+  ASSERT_THAT(num_refinement_nodes, Eq(3));
+  ASSERT_THAT(refinement_nodes, UnorderedElementsAre(0, 1, 2));
 }
 } // namespace partition
