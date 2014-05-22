@@ -49,10 +49,11 @@ TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNod
 }
 
 TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate) {
-  // This currently crashes on purpose in assert!
-  // config.coarsening.threshold_node_weight = 4;
-  // coarsener.coarsen(6);
-  ASSERT_THAT(true, Eq(false));
+  config.coarsening.threshold_node_weight = 4;
+  coarsener.coarsen(6);
+  ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
+  ASSERT_THAT(coarsener._pq.contains(3), Eq(false));
+  ASSERT_THAT(coarsener._pq.contains(0), Eq(true));
 }
 
 TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {

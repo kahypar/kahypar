@@ -79,10 +79,6 @@ class HyperedgeCoarsener : public ICoarsener,
                return total_weight;
              } () <= _config.coarsening.threshold_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight thsreshold");
-      ASSERT(_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1 >= limit,
-             " Contraction of HE " << he_to_contract << " violates contraction limit: "
-             << (_hg.numNodes() - _hg.edgeSize(he_to_contract) + 1) << " < " << limit);
-
       ASSERT(_pq.maxKey() == _rater.rate(he_to_contract, _hg,
                                          _config.coarsening.threshold_node_weight).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
@@ -116,6 +112,7 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
   FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
+  FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
