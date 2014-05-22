@@ -95,18 +95,16 @@ TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
   ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
 }
 
-// This test is currently specific to the rating function that is used and therefore needs
-// refactoring if we add/test other rating functions!
 TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction) {
   config.coarsening.threshold_node_weight = 25;
   coarsener.coarsen(5);
   ASSERT_THAT(coarsener._pq.contains(2), Eq(false));
   ASSERT_THAT(coarsener._pq.key(0), DoubleEq(1.0));
-  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(1.0 / std::pow(3, 1.0 / 3)));
-  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(1.0 / std::pow(3, 1.0 / 3)));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(coarsener._rater.rate(1, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(coarsener._rater.rate(3, *hypergraph, 25).value));
   coarsener.coarsen(4);
   ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
-  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(1.0 / std::pow(6, 1.0 / 3)));
-  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(1.0 / std::pow(6, 1.0 / 3)));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(coarsener._rater.rate(1, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(coarsener._rater.rate(3, *hypergraph, 25).value));
 }
 } // namespace partition
