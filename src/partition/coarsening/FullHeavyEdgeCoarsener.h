@@ -88,6 +88,10 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     Base::uncoarsen(refiner);
   }
 
+  std::string policyString() const {
+    return std::string(" ratingFunction="+ templateToString<Rater>());
+  }
+
   private:
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 std::vector<HypernodeID>& target,

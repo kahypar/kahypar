@@ -126,6 +126,10 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
+  std::string policyString() const {
+    return std::string(" ratingFunction="+ templateToString<RatingPolicy>());
+  }
+
   private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);

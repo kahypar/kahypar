@@ -92,6 +92,10 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     Base::uncoarsen(refiner);
   }
 
+  std::string policyString() const {
+    return std::string(" ratingFunction="+ templateToString<Rater>());
+  }
+
   private:
   void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target,
                                 TargetToSourcesMap& sources) {
