@@ -11,6 +11,8 @@
 #include "partition/coarsening/HyperedgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 
+using datastructure::verifyEquivalence;
+
 namespace partition {
 typedef HyperedgeCoarsener<HyperedgeRater<defs::RatingType> > HyperedgeCoarsenerType;
 
@@ -120,6 +122,8 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
+  hypergraph.changeNodePartition(0, -1, 0);
+  hypergraph.changeNodePartition(1, -1, 1);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
 }
@@ -134,8 +138,22 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(1);
+  hypergraph.changeNodePartition(0, -1, 0);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
+}
+
+TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
+  HypergraphType input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                  HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
+  config.coarsening.threshold_node_weight = 10;
+  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+
+  coarsener.coarsen(1);
+  hypergraph->changeNodePartition(0, -1, 0);
+  coarsener.uncoarsen(*refiner);
+
+  ASSERT_THAT(verifyEquivalence(*hypergraph, input_hypergraph), Eq(true));
 }
 } // namespace partition

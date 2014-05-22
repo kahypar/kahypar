@@ -104,6 +104,7 @@ class HyperedgeCoarsener : public ICoarsener,
     while (!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
+      performUncontraction(_history.top());
       _history.pop();
     }
   }
@@ -178,6 +179,19 @@ class HyperedgeCoarsener : public ICoarsener,
       ++_history.top().mementos_size;
     }
     return representative;
+  }
+
+  void performUncontraction(HyperedgeCoarseningMemento& memento) {
+    for (int i = memento.mementos_begin + memento.mementos_size - 1;
+         i >= memento.mementos_begin; --i) {
+      ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
+             "Representative HN " << _contraction_mementos[i].u << " is disabled ");
+      ASSERT(!_hg.nodeIsEnabled(_contraction_mementos[i].v),
+             "Representative HN " << _contraction_mementos[i].v << " is enabled");
+      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
+          << _contraction_mementos[i].v << ")");
+      _hg.uncontract(_contraction_mementos[i]);
+    }
   }
 
   Rater _rater;
