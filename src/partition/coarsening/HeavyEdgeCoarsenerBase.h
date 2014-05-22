@@ -88,6 +88,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   }
 
   void uncoarsen(IRefiner& refiner) {
+    double current_imbalance = metrics::imbalance(_hg);
+    HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
 
@@ -101,10 +103,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
       _hg.uncontract(_history.top().contraction_memento);
       refinement_nodes[0] = _history.top().contraction_memento.u;
       refinement_nodes[1] = _history.top().contraction_memento.v;
-      performLocalSearch(refiner, refinement_nodes, 2);
+      performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop();
     }
-    ASSERT(metrics::imbalance(_hg) <= _config.partitioning.epsilon,
+    ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
            << " > " << _config.partitioning.epsilon);
     GPERF_STOP_PROFILER();
