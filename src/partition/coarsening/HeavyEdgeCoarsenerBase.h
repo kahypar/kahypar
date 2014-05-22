@@ -63,10 +63,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   using Base::removeParallelHyperedges;
   using Base::restoreParallelHyperedges;
   using Base::restoreSingleNodeHyperedges;
-  using Base::improvedOldImbalanceTowardsValidSolution;
-  using Base::improvedCutWithinBalance;
-  using Base::_removed_parallel_hyperedges;
-  using Base::_removed_single_node_hyperedges;
+  using Base::performLocalSearch;
+  using Base::initializeRefiner;
 
   public:
   HeavyEdgeCoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
@@ -90,40 +88,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   }
 
   void uncoarsen(IRefiner& refiner) {
-    double current_imbalance = metrics::imbalance(_hg);
-    HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+    initializeRefiner(refiner);
 
-#ifdef USE_BUCKET_PQ
-    HyperedgeWeight max_single_he_induced_weight = 0;
-    for (auto iter = _weights_table.begin(); iter != _weights_table.end(); ++iter) {
-      if (iter->second > max_single_he_induced_weight) {
-        max_single_he_induced_weight = iter->second;
-      }
-    }
-    HyperedgeWeight max_degree = 0;
-    HypernodeID max_node = 0;
-    forall_hypernodes(hn, _hg) {
-      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      HyperedgeWeight curr_degree = 0;
-      forall_incident_hyperedges(he, *hn, _hg) {
-        curr_degree += _hg.edgeWeight(*he);
-      } endfor
-      if (curr_degree > max_degree) {
-        max_degree = curr_degree;
-        max_node = *hn;
-      }
-    } endfor
-
-      DBG(true, "max_single_he_induced_weight=" << max_single_he_induced_weight);
-    DBG(true, "max_degree=" << max_degree << ", HN=" << max_node);
-    refiner.initialize(max_degree + max_single_he_induced_weight);
-#else
-    refiner.initialize(0);
-#endif
-
-    double old_imbalance = current_imbalance;
-    HyperedgeWeight old_cut = current_cut;
     GPERF_START_PROFILER("/home/schlag/repo/schlag_git/profile/src/application/test.prof");
     while (!_history.empty()) {
       restoreParallelHyperedges(_history.top());
@@ -131,27 +97,13 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
 
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
           << _history.top().contraction_memento.v << ")");
-
       _hg.uncontract(_history.top().contraction_memento);
 
-      int iteration = 0;
-      do {
-        old_imbalance = current_imbalance;
-        old_cut = current_cut;
-        refiner.refine(_history.top().contraction_memento.u, _history.top().contraction_memento.v,
-                       current_cut, _config.partitioning.epsilon, current_imbalance);
-
-        ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
-        DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
-            << current_cut);
-        ++iteration;
-      } while ((iteration < refiner.numRepetitions()) &&
-               (improvedCutWithinBalance(old_cut, current_cut, current_imbalance) ||
-                improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
+      performLocalSearch(refiner);
       _history.pop();
     }
-    ASSERT(current_imbalance <= _config.partitioning.epsilon,
-           "balance_constraint is violated after uncontraction:" << current_imbalance
+    ASSERT(metrics::imbalance(_hg) <= _config.partitioning.epsilon,
+           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
            << " > " << _config.partitioning.epsilon);
     GPERF_STOP_PROFILER();
   }

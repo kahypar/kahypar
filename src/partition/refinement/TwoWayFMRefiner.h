@@ -92,6 +92,10 @@ class TwoWayFMRefiner : public IRefiner {
     }
   }
 
+  bool isInitialized() {
+    return _is_initialized;
+  }
+
   void initialize(HyperedgeWeight max_gain) {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
