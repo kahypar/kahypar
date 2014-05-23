@@ -16,7 +16,7 @@ using datastructure::HyperedgeWeight;
 namespace partition {
 class IRefiner {
   public:
-  virtual void refine(const std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+  virtual void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
                       HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) = 0;
   virtual void initialize() { }
   virtual void initialize(HyperedgeWeight max_gain) { }

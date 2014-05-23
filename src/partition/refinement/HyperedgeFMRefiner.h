@@ -126,7 +126,7 @@ class HyperedgeFMRefiner : public IRefiner {
     } endfor
   }
 
-  void refine(const std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
               HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
@@ -140,6 +140,7 @@ class HyperedgeFMRefiner : public IRefiner {
     _pq[1]->clear();
     resetMarkedHyperedges();
 
+    Randomize::shuffleVector(refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       activateIncidentCutHyperedges(refinement_nodes[i]);
     }

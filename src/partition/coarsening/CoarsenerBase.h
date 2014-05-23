@@ -237,7 +237,7 @@ class CoarsenerBase {
 #endif
   }
 
-  void performLocalSearch(IRefiner& refiner, const std::vector<HypernodeID>& refinement_nodes,
+  void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           size_t num_refinement_nodes, double& current_imbalance,
                           HyperedgeWeight& current_cut) {
     double old_imbalance = current_imbalance;
