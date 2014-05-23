@@ -126,8 +126,8 @@ class HyperedgeFMRefiner : public IRefiner {
     } endfor
   }
 
-  void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-              double max_imbalance, double& best_imbalance) {
+  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+              HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -140,8 +140,10 @@ class HyperedgeFMRefiner : public IRefiner {
     _pq[1]->clear();
     resetMarkedHyperedges();
 
-    activateIncidentCutHyperedges(u);
-    activateIncidentCutHyperedges(v);
+    Randomize::shuffleVector(refinement_nodes);
+    for (size_t i = 0; i < num_refinement_nodes; ++i) {
+      activateIncidentCutHyperedges(refinement_nodes[i]);
+    }
     //DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
     //    << _pq[1]->size() << "----------------------");
 

@@ -5,6 +5,7 @@
 #ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
 #define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 
@@ -30,8 +31,8 @@ using datastructure::HyperedgeWeight;
 
 namespace partition {
 class DummyRefiner : public IRefiner {
-  void refine(HypernodeID, HypernodeID, HyperedgeWeight&,
-              double, double&) { }
+  void refine(const std::vector<HypernodeID>&, size_t,
+              HyperedgeWeight&, double, double&) { }
   int numRepetitions() { return 1; }
   std::string policyString() const { return std::string(""); }
 };

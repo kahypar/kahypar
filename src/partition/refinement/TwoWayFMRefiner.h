@@ -92,6 +92,10 @@ class TwoWayFMRefiner : public IRefiner {
     }
   }
 
+  bool isInitialized() {
+    return _is_initialized;
+  }
+
   void initialize(HyperedgeWeight max_gain) {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
@@ -116,8 +120,8 @@ class TwoWayFMRefiner : public IRefiner {
     _is_initialized = true;
   }
 
-  void refine(HypernodeID u, HypernodeID v, HyperedgeWeight& best_cut,
-              double max_imbalance, double& best_imbalance) {
+  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+              HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -131,8 +135,10 @@ class TwoWayFMRefiner : public IRefiner {
     _pq[1]->clear();
     _marked.reset();
 
-    activate(u);
-    activate(v);
+    Randomize::shuffleVector(refinement_nodes);
+    for (size_t i = 0; i < num_refinement_nodes; ++i) {
+      activate(refinement_nodes[i]);
+    }
 
 #ifndef NDEBUG
     HyperedgeWeight initial_cut = best_cut;

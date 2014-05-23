@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph.h"
+#include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/Rater.h"
 
 using::testing::Test;
@@ -24,7 +25,6 @@ namespace partition {
 typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
 typedef Rater<defs::RatingType, LastRatingWins> LastWinsRater;
 typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
-typedef HyperedgeRater<defs::RatingType> SimpleHyperedgeRater;
 
 class ARater : public Test {
   public:
@@ -75,10 +75,7 @@ class AHyperedgeRater : public ARater {
   public:
   AHyperedgeRater() :
     ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
-    rater() { }
-
-  SimpleHyperedgeRater rater;
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) { }
 };
 
 TEST_F(AFirstWinsRater, UsesHeavyEdgeRatingToRateHypernodes) {
@@ -141,12 +138,29 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 }
 
 TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(rater.rate(0, *hypergraph), DoubleEq(1.0));
+  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).value,
+              DoubleEq(1.0));
 
+  config.coarsening.threshold_node_weight = 10;
   hypergraph->setNodeWeight(1, 2);
   hypergraph->setNodeWeight(3, 3);
   hypergraph->setNodeWeight(4, 4);
 
-  ASSERT_THAT(rater.rate(1, *hypergraph), DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
+  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).value,
+              DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
+}
+
+TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
+  config.coarsening.threshold_node_weight = 3;
+
+  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).valid,
+              Eq(false));
+}
+
+TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
+  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
+              Eq(false));
 }
 } // namespace partition

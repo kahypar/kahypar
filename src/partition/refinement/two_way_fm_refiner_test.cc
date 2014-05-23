@@ -95,8 +95,9 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   double old_imbalance = metrics::imbalance(hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+  std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
+  refiner->refine(refinement_nodes, 2, old_cut, 0.15, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(hypergraph),
                       old_imbalance);
@@ -118,8 +119,9 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   ASSERT_THAT(refiner->_partition_size[1], Eq(4));
   double old_imbalance = metrics::imbalance(hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+  std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
+  refiner->refine(refinement_nodes, 2, old_cut, 0.15, old_imbalance);
 
   ASSERT_THAT(refiner->_partition_size[0], Eq(4));
   ASSERT_THAT(refiner->_partition_size[1], Eq(3));
@@ -134,8 +136,9 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
   double old_imbalance = metrics::imbalance(hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
+  std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(1, 6, old_cut, 0.15, old_imbalance);
+  refiner->refine(refinement_nodes, 2, old_cut, 0.15, old_imbalance);
 
   ASSERT_THAT(hypergraph.partitionIndex(6), Eq(1));
   ASSERT_THAT(hypergraph.partitionIndex(2), Eq(1));
@@ -144,8 +147,9 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   double old_imbalance = metrics::imbalance(hypergraph);
   HyperedgeWeight cut = metrics::hyperedgeCut(hypergraph);
+  std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(1, 6, cut, 0.15, old_imbalance);
+  refiner->refine(refinement_nodes, 2, cut, 0.15, old_imbalance);
 
   ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(hypergraph)));
   ASSERT_THAT(hypergraph.partitionIndex(1), Eq(0));

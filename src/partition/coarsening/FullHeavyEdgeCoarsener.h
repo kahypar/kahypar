@@ -22,7 +22,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
                                private HeavyEdgeCoarsenerBase<Rater>{
   private:
   typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating HeavyEdgeRating;
+  typedef typename Rater::Rating Rating;
 
   class NullMap {
     public:
@@ -53,7 +53,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
-    HeavyEdgeRating rating;
+    Rating rating;
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
     boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
 
@@ -66,6 +66,9 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
+      ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
+             "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+             << _rater.rate(rep_node).value);
 
       performContraction(rep_node, contracted_node);
       _pq.remove(contracted_node);
@@ -85,12 +88,16 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     Base::uncoarsen(refiner);
   }
 
+  std::string policyString() const {
+    return std::string(" ratingFunction="+ templateToString<Rater>());
+  }
+
   private:
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 std::vector<HypernodeID>& target,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
-    HeavyEdgeRating rating;
+    Rating rating;
     forall_incident_hyperedges(he, rep_node, _hg) {
       forall_pins(pin, *he, _hg) {
         if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
@@ -104,7 +111,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
 
-  void updatePQandContractionTargets(HypernodeID hn, const HeavyEdgeRating& rating,
+  void updatePQandContractionTargets(HypernodeID hn, const Rating& rating,
                                      std::vector<HypernodeID>& target,
                                      boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {

@@ -16,7 +16,7 @@ using datastructure::HypergraphType;
 
 namespace partition {
 enum class StoppingRule { SIMPLE, ADAPTIVE1, ADAPTIVE2 };
-enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC };
+enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC, HYPEREDGE };
 
 struct Configuration {
   typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
@@ -132,9 +132,19 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(30) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
   << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(30) << "  scheme: " <<
-  (config.coarsening.scheme == CoarseningScheme::HEAVY_EDGE_FULL ? "heavy_full" : "heavy_heuristic")
-  << std::endl;
+  oss << std::setw(30) << "  scheme: ";
+  switch (config.coarsening.scheme) {
+    case CoarseningScheme::HEAVY_EDGE_FULL:
+      oss << "heavy_full";
+      break;
+    case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
+      oss << "heavy_heuristic";
+      break;
+    case CoarseningScheme::HYPEREDGE:
+      oss << "hyperedge";
+      break;
+  }
+  oss << std::endl;
   oss << std::setw(30) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(30) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
