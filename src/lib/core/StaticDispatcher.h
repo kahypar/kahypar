@@ -3,19 +3,13 @@
 
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/core/Typelist.h"
+#include "lib/core/Parameters.h"
 #include "partition/Configuration.h"
 
 using datastructure::HypergraphType;
 using partition::Configuration;
 
 namespace core {
-
-struct Parameters {
-  virtual ~Parameters() { }
-};
-
-struct NullParameters : public Parameters { };
-
 template<
   class Executor,
   class BaseLhs,

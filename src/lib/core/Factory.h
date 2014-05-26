@@ -3,9 +3,14 @@
 #include <unordered_map>
 #include <memory>
 
+#include "lib/core/Parameters.h"
+
+namespace core {
+
 template < class AbstractProduct,
            typename IdentifierType,
-           typename ProductCreator = AbstractProduct* (*)() >
+           typename ProductCreator = AbstractProduct* (*)(NullParameters&),
+           class Parameters = NullParameters>
 class Factory {
  private:
   typedef std::unordered_map<IdentifierType, ProductCreator> CallbackMap;
@@ -13,7 +18,6 @@ class Factory {
   
  public:
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
-    LOG("Registering ID" << id);
     return _callbacks.insert({id,creator}).second;
   }
 
@@ -21,19 +25,19 @@ class Factory {
     return _callbacks.erase(id) == 1;
   }
 
-  AbstractProduct* createObject(const IdentifierType& id) {
+  AbstractProduct* createObject(const IdentifierType& id,  Parameters& parameters) {
     auto creator = _callbacks.find(id);
     if (creator != _callbacks.end()) {
-      return (creator->second)();
+      return (creator->second)(parameters);
     }
-    return nullptr;
+    throw std::invalid_argument( "Identifier '" + id + "' not found." );
   }
 
-  static Factory* getInstance() {
+  static Factory& getInstance() {
     if (_factory_instance.get() == nullptr) {
       _factory_instance.reset(new Factory());
     }
-    return _factory_instance.get();
+    return *(_factory_instance.get());
   }
   
 private:
@@ -45,7 +49,7 @@ private:
 };
 
 
-template < class A, typename I, typename P>
-std::unique_ptr<Factory<A, I, P> > Factory<A, I, P>::_factory_instance = nullptr;
-
+template < class A, typename I, typename P, class Pms>
+std::unique_ptr<Factory<A, I, P,Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
+} // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_
