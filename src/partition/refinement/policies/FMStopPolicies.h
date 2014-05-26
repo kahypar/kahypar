@@ -6,9 +6,12 @@
 #define SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_
 #include "lib/macros.h"
 #include "partition/Configuration.h"
+#include "lib/core/PolicyRegistry.h"
+
+using core::PolicyBase;
 
 namespace partition {
-struct StoppingPolicy {
+struct StoppingPolicy : PolicyBase {
   virtual ~StoppingPolicy() { }
 };
 

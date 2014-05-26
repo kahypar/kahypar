@@ -12,7 +12,6 @@
 #include "lib/datastructure/Hypergraph.h"
 
 using partition::CoarseningScheme;
-using partition::StoppingRule;
 
 namespace io {
 inline void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {

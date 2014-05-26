@@ -53,17 +53,11 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
     << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
     << " twowayFMactive=" << config.two_way_fm.active
-    << " twowayFMStoppingRule=" << (config.two_way_fm.stopping_rule == StoppingRule::SIMPLE ?
-                                    "simple" : (config.two_way_fm.stopping_rule == StoppingRule::ADAPTIVE1 ?
-                                                "adaptive1" : "adaptive2"))
     << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
     << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
     << " twowayFMalpha=" << config.two_way_fm.alpha
     << " twowayFMbeta=" << config.two_way_fm.beta
     << " herFMactive=" << config.her_fm.active
-    << " herFMStoppingRule=" << (config.her_fm.stopping_rule == StoppingRule::SIMPLE ?
-                                 "simple" : (config.her_fm.stopping_rule == StoppingRule::ADAPTIVE1 ?
-                                             "adaptive1" : "adaptive2"))
     << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves
     << refiner.policyString()
     << " cut=" << metrics::hyperedgeCut(hypergraph)

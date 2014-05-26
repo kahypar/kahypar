@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMFACTORYEXECUTOR_H_
-#define SRC_PARTITION_REFINEMENT_TWOWAYFMFACTORYEXECUTOR_H_
+#ifndef SRC_PARTITION_REFINEMENT_FMFACTORYEXECUTOR_H_
+#define SRC_PARTITION_REFINEMENT_FMFACTORYEXECUTOR_H_
 
 #include <iostream>
 
@@ -27,12 +27,15 @@ struct RefinerParameters : public Parameters {
   Configuration config;
 };
 
-class TwoWayFMFactoryExecutor {
+template <template <class,
+                    template< class> class,
+                    class> class  Refiner>
+class FMFactoryExecutor {
  public:
   template <typename sP, typename cP>
   IRefiner* fire(sP&, cP&, const Parameters& parameters) {
     const RefinerParameters& p = static_cast<const RefinerParameters&>(parameters);
-    return new TwoWayFMRefiner<sP,EligibleTopGain,cP>(p.hypergraph, p.config);
+    return new Refiner<sP,EligibleTopGain,cP>(p.hypergraph, p.config);
   }
 
 template < class sP, class cP>
@@ -44,4 +47,4 @@ template < class sP, class cP>
 };
 
 } // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMFACTORYEXECUTOR_H_
+#endif  // SRC_PARTITION_REFINEMENT_FMFACTORYEXECUTOR_H_

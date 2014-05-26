@@ -5,10 +5,14 @@
 #ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
 #define SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
 
+#include "lib/core/PolicyRegistry.h"
+
+using core::PolicyBase;
+
 namespace partition {
 static const bool dbg_refinement_queue_clogging = false;
 
-struct CloggingPolicy {
+struct CloggingPolicy : PolicyBase {
   virtual ~CloggingPolicy() { }
 };
 

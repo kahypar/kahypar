@@ -15,7 +15,6 @@
 using datastructure::HypergraphType;
 
 namespace partition {
-enum class StoppingRule { SIMPLE, ADAPTIVE1, ADAPTIVE2 };
 enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC, HYPEREDGE };
 
 struct Configuration {
@@ -72,14 +71,14 @@ struct Configuration {
       num_repetitions(1),
       alpha(4),
       beta(0.0),
-      stopping_rule(StoppingRule::SIMPLE),
+      stopping_rule(),
       active(true) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
     double alpha;
     double beta;
-    StoppingRule stopping_rule;
+    std::string stopping_rule;
     bool active;
   };
 
@@ -87,12 +86,12 @@ struct Configuration {
     HERFMParameters() :
       max_number_of_fruitless_moves(10),
       num_repetitions(1),
-      stopping_rule(StoppingRule::SIMPLE),
+      stopping_rule(),
       active(false) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
-    StoppingRule stopping_rule;
+    std::string stopping_rule;
     bool active;
   };
 
@@ -153,19 +152,7 @@ inline std::string toString(const Configuration& config) {
   << std::endl;
   if (config.two_way_fm.active) {
     oss << "2-Way-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: ";
-    switch (config.two_way_fm.stopping_rule) {
-      case StoppingRule::SIMPLE:
-        oss << "simple";
-        break;
-      case StoppingRule::ADAPTIVE1:
-        oss << "adaptive1 (new implementation)";
-        break;
-      case StoppingRule::ADAPTIVE2:
-        oss << "adaptive2 (n-GP implementation)";
-        break;
-    }
-    oss << std::endl;
+    oss << std::setw(30) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;
     oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
     oss << std::setw(30) << "  max. # fruitless moves: "
     << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
@@ -176,19 +163,7 @@ inline std::string toString(const Configuration& config) {
   }
   if (config.her_fm.active) {
     oss << "HER-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: ";
-    switch (config.her_fm.stopping_rule) {
-      case StoppingRule::SIMPLE:
-        oss << "simple";
-        break;
-      case StoppingRule::ADAPTIVE1:
-        oss << "adaptive1 (new implementation)";
-        break;
-      case StoppingRule::ADAPTIVE2:
-        oss << "adaptive2 (n-GP implementation)";
-        break;
-    }
-    oss << std::endl;
+    oss << std::setw(30) << "  stopping rule: " << config.her_fm.stopping_rule << std::endl;
     oss << std::setw(30) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
     oss << std::setw(30) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;

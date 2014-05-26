@@ -8,6 +8,7 @@
 #include <limits>
 
 #include "tools/RandomFunctions.h"
+#include "lib/core/PolicyRegistry.h"
 
 namespace partition {
 template <typename Gain>
