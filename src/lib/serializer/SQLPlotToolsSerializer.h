@@ -16,7 +16,6 @@
 
 using partition::IRefiner;
 using partition::ICoarsener;
-using partition::CoarseningScheme;
 using datastructure::HypergraphType;
 using partition::Configuration;
 

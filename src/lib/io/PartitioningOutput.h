@@ -11,8 +11,6 @@
 #include "partition/Metrics.h"
 #include "lib/datastructure/Hypergraph.h"
 
-using partition::CoarseningScheme;
-
 namespace io {
 inline void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {
   std::cout << "***********************Hypergraph Information************************" << std::endl;

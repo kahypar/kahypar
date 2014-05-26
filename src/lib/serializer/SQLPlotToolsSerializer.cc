@@ -36,20 +36,9 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " numInitialPartitionings=" << config.partitioning.initial_partitioning_attempts
     << " numVCycles=" << config.partitioning.global_search_iterations
     << " HESizeThreshold=" << config.partitioning.hyperedge_size_threshold
-    << " coarseningScheme=";
-    switch (config.coarsening.scheme) {
-      case CoarseningScheme::HEAVY_EDGE_FULL:
-        out_stream << "heavy_full";
-        break;
-      case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
-        out_stream << "heavy_heuristic";
-        break;
-      case CoarseningScheme::HYPEREDGE:
-        out_stream << "hyperedge";
-        break;
-    }
-    out_stream << coarsener.policyString();
-    out_stream << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
+    << " coarseningScheme=" << config.coarsening.scheme
+    << coarsener.policyString()
+    << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
     << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
     << " twowayFMactive=" << config.two_way_fm.active
