@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "lib/core/StaticDispatcher.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
@@ -14,18 +15,28 @@
 #include "partition/Configuration.h"
 
 using datastructure::HypergraphType;
+using core::Parameters;
 
 namespace partition {
+
+struct RefinerParameters : public Parameters {
+  RefinerParameters(HypergraphType& hgr, Configuration& conf) :
+      hypergraph(hgr),
+      config(conf) {}
+  HypergraphType& hypergraph;
+  Configuration config;
+};
 
 class TwoWayFMFactoryExecutor {
  public:
   template <typename sP, typename cP>
-  IRefiner* Fire(sP&, cP&, HypergraphType& hypergraph, Configuration& config) {
-    return new TwoWayFMRefiner<sP,EligibleTopGain,cP>(hypergraph, config);
+  IRefiner* fire(sP&, cP&, const Parameters& parameters) {
+    const RefinerParameters& p = static_cast<const RefinerParameters&>(parameters);
+    return new TwoWayFMRefiner<sP,EligibleTopGain,cP>(p.hypergraph, p.config);
   }
 
 template < class sP, class cP>
-  IRefiner* OnError(sP&, cP&, HypergraphType&, Configuration&) {
+  IRefiner* onError(sP&, cP&, const Parameters&) {
     std::cout << "error" << std::endl;
     return nullptr;
   }

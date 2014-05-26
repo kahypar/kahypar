@@ -10,6 +10,12 @@ using partition::Configuration;
 
 namespace core {
 
+struct Parameters {
+  virtual ~Parameters() { }
+};
+
+struct NullParameters : public Parameters { };
+
 template<
   class Executor,
   class BaseLhs,
@@ -23,27 +29,27 @@ class StaticDispatcher {
   typedef typename TypesLhs::Tail Tail;
 
  public:
-  static ResultType Go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
-                       HypergraphType& hypergraph, Configuration& config) {
+  static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+                       const Parameters& parameters) {
     if (Head* p1 = dynamic_cast<Head*>(&lhs)) {
       return StaticDispatcher<Executor, BaseLhs, TypesLhs,BaseRhs, TypesRhs,
-                              ResultType>::DispatchRhs(*p1, rhs, exec, hypergraph, config);
+                              ResultType>::dispatchRhs(*p1, rhs, exec, parameters);
     } else {
       return StaticDispatcher<Executor, BaseLhs, Tail, BaseRhs, TypesRhs,
-                              ResultType>::Go(lhs,rhs,exec, hypergraph, config);
+                              ResultType>::go(lhs,rhs,exec, parameters);
     }
   }
 
   template<class SomeLhs>
-  static ResultType DispatchRhs(SomeLhs& lhs, BaseRhs& rhs, Executor exec,
-                                HypergraphType& hypergraph, Configuration& config) {
+  static ResultType dispatchRhs(SomeLhs& lhs, BaseRhs& rhs, Executor exec,
+                                const Parameters& parameters) {
     typedef typename TypesRhs::Head Head;
     typedef typename TypesRhs::Tail Tail;
     if (Head* p2 = dynamic_cast<Head*>(&rhs)) {
-      return exec.Fire(lhs, *p2, hypergraph, config);
+      return exec.fire(lhs, *p2, parameters);
     } else {
       return StaticDispatcher<Executor, SomeLhs, TypesLhs, BaseRhs, Tail,
-                              ResultType>::DispatchRhs(lhs, rhs, exec, hypergraph, config); 
+                              ResultType>::dispatchRhs(lhs, rhs, exec, parameters); 
     }
     
   }
@@ -57,9 +63,9 @@ template
   typename ResultType >
 class StaticDispatcher<Executor, BaseLhs, NullType, BaseRhs, TypesRhs, ResultType> {
  public:
-  static ResultType Go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
-                       HypergraphType& hypergraph, Configuration& config) {
-    return exec.OnError(lhs,rhs, hypergraph, config);
+  static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+                       const Parameters& parameters) {
+    return exec.onError(lhs,rhs, parameters);
   }
 };
 
@@ -71,9 +77,9 @@ template
   typename ResultType >
 class StaticDispatcher<Executor, BaseLhs, TypesLhs, BaseRhs, NullType, ResultType> {
  public:
-  static ResultType DispatchRhs(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
-                                HypergraphType& hypergraph, Configuration& config) {
-    return exec.OnError(lhs,rhs, hypergraph, config);
+  static ResultType dispatchRhs(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+                                const Parameters& parameters) {
+    return exec.onError(lhs,rhs, parameters);
   }
 };
 
