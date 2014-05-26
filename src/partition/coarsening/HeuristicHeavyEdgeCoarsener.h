@@ -5,9 +5,11 @@
 #ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -93,7 +95,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   std::string policyString() const {
-    return std::string(" ratingFunction="+ templateToString<Rater>());
+    return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
   private:

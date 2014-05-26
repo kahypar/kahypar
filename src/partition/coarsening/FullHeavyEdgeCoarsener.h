@@ -6,9 +6,11 @@
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -89,7 +91,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
   std::string policyString() const {
-    return std::string(" ratingFunction="+ templateToString<Rater>());
+    return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
   private:

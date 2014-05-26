@@ -5,8 +5,10 @@
 #ifndef SRC_PARTITION_COARSENING_HYPEREDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_HYPEREDGECOARSENER_H_
 
+#include <string>
 #include <vector>
 
+#include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
@@ -127,7 +129,7 @@ class HyperedgeCoarsener : public ICoarsener,
   }
 
   std::string policyString() const {
-    return std::string(" ratingFunction="+ templateToString<RatingPolicy>());
+    return std::string(" ratingFunction=" + templateToString<RatingPolicy>());
   }
 
   private:
