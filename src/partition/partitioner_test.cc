@@ -10,11 +10,11 @@
 #include "partition/Partitioner.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/refinement/FMQueueCloggingPolicies.h"
-#include "partition/refinement/FMQueueSelectionPolicies.h"
-#include "partition/refinement/FMStopPolicies.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
+#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
+#include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -94,11 +94,11 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
   ASSERT_THAT(hypergraph->pinCountInPartition(0, INVALID_PARTITION), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(2));
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, INVALID_PARTITION), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,

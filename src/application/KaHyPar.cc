@@ -32,6 +32,8 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/FMRefinerFactory.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
+#include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;

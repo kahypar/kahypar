@@ -18,6 +18,7 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
+#include "tools/RandomFunctions.h"
 
 using defs::INVALID_PARTITION;
 using datastructure::PriorityQueue;
