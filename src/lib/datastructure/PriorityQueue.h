@@ -7,6 +7,7 @@
 
 #include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/macros.h"
+#include "lib/core/Mandatory.h"
 
 using external::BinaryHeap;
 
@@ -21,7 +22,10 @@ struct MetaKeyDouble {
   }
 };
 
-template <typename IDType, typename KeyType, typename MetaKey>
+template <typename IDType = Mandatory,
+          typename KeyType = Mandatory,
+          typename MetaKey = Mandatory
+          >
 class PriorityQueue {
   typedef BinaryHeap<IDType, KeyType, MetaKey> Heap;
 

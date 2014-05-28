@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
@@ -41,7 +42,7 @@ struct HyperedgeCoarseningMemento {
     mementos_size(0) { }
 };
 
-template <class RatingPolicy>
+template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
                            public CoarsenerBase<HyperedgeCoarsener<RatingPolicy>,
                                                 HyperedgeCoarseningMemento>{

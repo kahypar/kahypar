@@ -15,7 +15,6 @@
 using datastructure::HypergraphType;
 
 namespace partition {
-
 struct Configuration {
   typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
   typedef typename HypergraphType::HypernodeID HypernodeID;

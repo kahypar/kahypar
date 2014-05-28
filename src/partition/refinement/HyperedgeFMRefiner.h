@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "external/fp_compare/Utils.h"
+#include "lib/core/Mandatory.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
@@ -41,9 +42,10 @@ static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
 static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
-template <class StoppingPolicy,
-          template <class> class QueueSelectionPolicy,
-          class QueueCloggingPolicy>
+template <class StoppingPolicy = Mandatory,
+          template <class> class QueueSelectionPolicy = MandatoryTemplate,
+          class QueueCloggingPolicy = Mandatory
+          >
 class HyperedgeFMRefiner : public IRefiner {
   private:
   typedef HyperedgeWeight Gain;

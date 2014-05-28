@@ -9,9 +9,10 @@
 
 #include "tools/RandomFunctions.h"
 #include "lib/core/PolicyRegistry.h"
+#include "lib/core/Mandatory.h"
 
 namespace partition {
-template <typename Gain>
+template <typename Gain = Mandatory>
 struct EligibleTopGain {
   template <typename PrioQueue>
   static bool selectQueue(bool pq0_eligible, bool pq1_eligible,

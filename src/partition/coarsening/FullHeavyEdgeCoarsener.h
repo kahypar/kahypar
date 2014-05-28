@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -19,7 +20,7 @@ using datastructure::HypergraphType;
 using datastructure::HypernodeID;
 
 namespace partition {
-template <class Rater>
+template <class Rater = Mandatory>
 class FullHeavyEdgeCoarsener : public ICoarsener,
                                private HeavyEdgeCoarsenerBase<Rater>{
   private:

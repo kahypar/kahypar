@@ -16,6 +16,7 @@
 #include "gtest/gtest_prod.h"
 
 #include "external/fp_compare/Utils.h"
+#include "lib/core/Mandatory.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/Hypergraph.h"
@@ -47,9 +48,10 @@ static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 static const bool dbg_refinement_2way_fm__activation = false;
 static const bool dbg_refinement_2way_fm_eligible = false;
 
-template <class StoppingPolicy,
-          template <class> class QueueSelectionPolicy,
-          class QueueCloggingPolicy>
+template <class StoppingPolicy = Mandatory,
+          template <class> class QueueSelectionPolicy = MandatoryTemplate,
+          class QueueCloggingPolicy = Mandatory
+          >
 class TwoWayFMRefiner : public IRefiner {
   private:
   typedef HyperedgeWeight Gain;

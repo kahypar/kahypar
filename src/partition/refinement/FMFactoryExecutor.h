@@ -29,7 +29,8 @@ struct RefinerParameters : public Parameters {
 
 template <template <class,
                     template< class> class,
-                    class> class  Refiner>
+                    class
+                    > class  Refiner>
 class FMFactoryExecutor {
  public:
   template <typename sP, typename cP>

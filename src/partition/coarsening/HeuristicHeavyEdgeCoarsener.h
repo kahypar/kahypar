@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -20,7 +21,7 @@ using datastructure::HypernodeID;
 namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
 
-template <class Rater>
+template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
   private:

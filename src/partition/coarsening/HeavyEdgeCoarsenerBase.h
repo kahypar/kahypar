@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "lib/datastructure/Hypergraph.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -45,7 +46,7 @@ struct CoarseningMemento {
     contraction_memento(contraction_memento_) { }
 };
 
-template <class Rater>
+template <class Rater = Mandatory>
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
                                                     CoarseningMemento>{
   protected:

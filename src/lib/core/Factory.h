@@ -4,11 +4,13 @@
 #include <memory>
 
 #include "lib/core/Parameters.h"
+#include "lib/macros.h"
+#include "lib/core/Mandatory.h"
 
 namespace core {
 
-template < class AbstractProduct,
-           typename IdentifierType,
+template < class AbstractProduct = Mandatory,
+           typename IdentifierType = Mandatory,
            typename ProductCreator = AbstractProduct* (*)(NullParameters&),
            class Parameters = NullParameters>
 class Factory {
