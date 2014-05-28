@@ -6,8 +6,8 @@
 #define SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 
 #include "external/binary_heap/BinaryHeap.hpp"
-#include "lib/macros.h"
 #include "lib/core/Mandatory.h"
+#include "lib/macros.h"
 
 using external::BinaryHeap;
 

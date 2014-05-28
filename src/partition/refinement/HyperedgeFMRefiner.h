@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "external/fp_compare/Utils.h"
-#include "lib/core/Mandatory.h"
 #include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -100,7 +100,7 @@ class HyperedgeFMRefiner : public IRefiner {
     delete _pq[1];
   }
 
-  void initialize() {
+  void initializeImpl() final {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     forall_hypernodes(hn, _hg) {
@@ -129,8 +129,8 @@ class HyperedgeFMRefiner : public IRefiner {
     } endfor
   }
 
-  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-              HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
+  void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -289,11 +289,11 @@ class HyperedgeFMRefiner : public IRefiner {
     return true;
   }
 
-  int numRepetitions() {
+  int numRepetitionsImpl() const final {
     return _config.her_fm.num_repetitions;
   }
 
-  std::string policyString() const {
+  std::string policyStringImpl() const final {
     return std::string(templateToString<QueueSelectionPolicy<Gain> >()
                        + templateToString<QueueCloggingPolicy>()
                        + templateToString<StoppingPolicy>());

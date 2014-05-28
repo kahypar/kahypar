@@ -7,9 +7,9 @@
 
 #include <limits>
 
-#include "tools/RandomFunctions.h"
-#include "lib/core/PolicyRegistry.h"
 #include "lib/core/Mandatory.h"
+#include "lib/core/PolicyRegistry.h"
+#include "tools/RandomFunctions.h"
 
 namespace partition {
 template <typename Gain = Mandatory>

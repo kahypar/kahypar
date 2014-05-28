@@ -10,8 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/Hypergraph.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"

@@ -46,7 +46,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
-  void coarsen(int limit) {
+  void coarsenImpl(int limit) final {
     _pq.clear();
 
     std::vector<HypernodeID> target(_hg.initialNumNodes());
@@ -91,11 +91,11 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         << _removed_parallel_hyperedges.size());
   }
 
-  void uncoarsen(IRefiner& refiner) {
-    Base::uncoarsen(refiner);
+  void uncoarsenImpl(IRefiner& refiner) final {
+    Base::doUncoarsen(refiner);
   }
 
-  std::string policyString() const {
+  std::string policyStringImpl() const final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 

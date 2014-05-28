@@ -15,9 +15,9 @@
 #include <vector>
 
 #include "gtest/gtest_prod.h"
+#include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
-#include "lib/core/Mandatory.h"
 
 using defs::PartitionID;
 

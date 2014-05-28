@@ -67,7 +67,7 @@ class HyperedgeCoarsener : public ICoarsener,
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
-  void coarsen(int limit) {
+  void coarsenImpl(int limit) final {
     _pq.clear();
     rateAllHyperedges();
 
@@ -103,7 +103,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  void uncoarsen(IRefiner& refiner) {
+  void uncoarsenImpl(IRefiner& refiner) final {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     initializeRefiner(refiner);
@@ -129,7 +129,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  std::string policyString() const {
+  std::string policyStringImpl() const final {
     return std::string(" ratingFunction=" + templateToString<RatingPolicy>());
   }
 
