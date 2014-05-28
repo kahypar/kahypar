@@ -15,10 +15,10 @@
 #include <memory>
 #include <string>
 
+#include "lib/core/Factory.h"
 #include "lib/core/PolicyRegistry.h"
 #include "lib/core/StaticDispatcher.h"
 #include "lib/core/Typelist.h"
-#include "lib/core/Factory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
@@ -34,10 +34,10 @@
 #include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
-#include "partition/refinement/IRefiner.h"
 #include "partition/refinement/FMFactoryExecutor.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -110,7 +110,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       }
     }
     if (vm.count("ctype")) {
-        config.coarsening.scheme = vm["ctype"].as<std::string>();
+      config.coarsening.scheme = vm["ctype"].as<std::string>();
     }
     if (vm.count("s")) {
       config.coarsening.hypernode_weight_fraction = vm["s"].as<double>();
@@ -180,13 +180,13 @@ void setDefaults(Configuration& config) {
   config.her_fm.max_number_of_fruitless_moves = 10;
 }
 
-  struct CoarsenerFactoryParameters {
-    CoarsenerFactoryParameters(HypergraphType& hgr, Configuration& conf) :
-        hypergraph(hgr),
-        config(conf) { }
-    HypergraphType& hypergraph;
-    Configuration& config;
-  };
+struct CoarsenerFactoryParameters {
+  CoarsenerFactoryParameters(HypergraphType& hgr, Configuration& conf) :
+    hypergraph(hgr),
+    config(conf) { }
+  HypergraphType& hypergraph;
+  Configuration& config;
+};
 
 int main(int argc, char* argv[]) {
   typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
                            PolicyBase,
                            TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
                            IRefiner*> HyperedgeFMFactoryDispatcher;
-  typedef Factory<ICoarsener,std::string,
+  typedef Factory<ICoarsener, std::string,
                   ICoarsener* (*)(CoarsenerFactoryParameters&),
                   CoarsenerFactoryParameters> CoarsenerFactory;
   typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
@@ -219,23 +219,23 @@ int main(int argc, char* argv[]) {
   PolicyRegistry::getInstance().registerPolicy("adaptive2", new nGPRandomWalkStopsSearch());
 
   CoarsenerFactory::getInstance().registerObject(
-      "hyperedge",
-      [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-        return new HyperedgeCoarsener(p.hypergraph, p.config);
-      }
-                                                 );
+    "hyperedge",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new HyperedgeCoarsener(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
-      "heavy_heuristic",
-      [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-        return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-      }
-                                                 );
+    "heavy_heuristic",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
-      "heavy_full",
-      [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-        return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-      }
-                                                 );
+    "heavy_full",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new RandomWinsFullCoarsener(p.hypergraph, p.config);
+    }
+    );
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
@@ -300,31 +300,31 @@ int main(int argc, char* argv[]) {
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
                             config.partitioning.graph_filename.find_last_of("/") + 1));
 
-  Partitioner partitioner(config);  
+  Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
-  
+
   std::unique_ptr<ICoarsener> coarsener(
-      CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters)
-                                        );
-  
+    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters)
+    );
+
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
   RefinerParameters refiner_parameters(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(nullptr);
-  
+
   if (config.two_way_fm.active) {
     TwoWayFMFactoryExecutor exec;
     refiner.reset(TwoWayFMFactoryDispatcher::go(
-        PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-        *(clogging_policy.get()),
-        exec, refiner_parameters));
+                    PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                    *(clogging_policy.get()),
+                    exec, refiner_parameters));
   } else {
     HyperedgeFMFactoryExecutor exec;
     refiner.reset(HyperedgeFMFactoryDispatcher::go(
-        PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
-        *(clogging_policy.get()),
-        exec, refiner_parameters));
+                    PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
+                    *(clogging_policy.get()),
+                    exec, refiner_parameters));
   }
-  
+
   HighResClockTimepoint start;
   HighResClockTimepoint end;
 
