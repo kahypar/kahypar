@@ -49,11 +49,11 @@ include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc*")
+if(${HOSTNAME} MATCHES "i10pc1.*")
 message(STATUS "hostname: ${HOSTNAME}")
 set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
 message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
-endif(${HOSTNAME} MATCHES "i10pc*")
+endif(${HOSTNAME} MATCHES "i10pc1.*")
 
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -pedantic -DPARANOID -Weffc++ -std=c++11")
