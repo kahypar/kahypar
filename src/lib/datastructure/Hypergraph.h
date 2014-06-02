@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "gtest/gtest_prod.h"
+#include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
@@ -79,9 +80,12 @@ enum class HypergraphWeightType : int8_t {
   EdgeAndNodeWeights = 11,
 };
 
-template <typename HypernodeType_, typename HyperedgeType_,
-          typename HypernodeWeightType_, typename HyperedgeWeightType_,
-          typename PartitionIDType_>
+template <typename HypernodeType_ = Mandatory,
+          typename HyperedgeType_ = Mandatory,
+          typename HypernodeWeightType_ = Mandatory,
+          typename HyperedgeWeightType_ = Mandatory,
+          typename PartitionIDType_ = Mandatory
+          >
 class Hypergraph {
   public:
   typedef HypernodeType_ HypernodeID;

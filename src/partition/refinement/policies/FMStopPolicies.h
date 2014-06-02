@@ -2,13 +2,20 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_
+#include "lib/core/PolicyRegistry.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 
+using core::PolicyBase;
+
 namespace partition {
-struct NumberOfFruitlessMovesStopsSearch {
+struct StoppingPolicy : PolicyBase {
+  virtual ~StoppingPolicy() { }
+};
+
+struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int min_cut_index, int current_index, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
     return current_index - min_cut_index > config.two_way_fm.max_number_of_fruitless_moves;
@@ -23,7 +30,7 @@ struct NumberOfFruitlessMovesStopsSearch {
   ~NumberOfFruitlessMovesStopsSearch() { }
 };
 
-struct RandomWalkModelStopsSearch {
+struct RandomWalkModelStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int, int, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
@@ -75,7 +82,7 @@ double RandomWalkModelStopsSearch::_sum_gains_squared = 0.0;
 double RandomWalkModelStopsSearch::_expected_gain = 0.0;
 double RandomWalkModelStopsSearch::_expected_variance = 0.0;
 
-struct nGPRandomWalkStopsSearch {
+struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight best_cut, HyperedgeWeight cut) {
     return step >= config.two_way_fm.alpha * (((_sum_gains_squared / (2.0 * static_cast<double>(best_cut) - cut))
@@ -102,4 +109,4 @@ struct nGPRandomWalkStopsSearch {
 double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
 } // namespace partition
 
-#endif  // SRC_PARTITION_REFINEMENT_FMSTOPPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_

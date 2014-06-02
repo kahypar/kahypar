@@ -2,13 +2,21 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_FMQUEUECLOGGINGPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_FMQUEUECLOGGINGPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
+
+#include "lib/core/PolicyRegistry.h"
+
+using core::PolicyBase;
 
 namespace partition {
 static const bool dbg_refinement_queue_clogging = false;
 
-struct OnlyRemoveIfBothQueuesClogged {
+struct CloggingPolicy : PolicyBase {
+  virtual ~CloggingPolicy() { }
+};
+
+struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
@@ -50,7 +58,7 @@ struct OnlyRemoveIfBothQueuesClogged {
   ~OnlyRemoveIfBothQueuesClogged() { }
 };
 
-struct RemoveOnlyTheCloggingEntry {
+struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
@@ -91,7 +99,7 @@ struct RemoveOnlyTheCloggingEntry {
   ~RemoveOnlyTheCloggingEntry() { }
 };
 
-struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity {
+struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool& pq0_eligible, bool& pq1_eligible,
                                          Queue& pq0, Queue& pq1) {
@@ -105,4 +113,4 @@ struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity {
 };
 } // namespace partition
 
-#endif  // SRC_PARTITION_REFINEMENT_FMQUEUECLOGGINGPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_

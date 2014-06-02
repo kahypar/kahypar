@@ -29,10 +29,14 @@
 #include <unordered_map>
 
 #include "lib/macros.h"
+#include "lib/core/Mandatory.h"
 
 namespace datastructure {
 
-template <typename NodeID, typename Gain, typename EdgeWeight>
+template <typename NodeID = Mandatory,
+          typename Gain = Mandatory,
+          typename EdgeWeight = Mandatory
+          >
 class BucketPQ {
  public:
   BucketPQ( const EdgeWeight & gain_span ) :

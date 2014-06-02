@@ -31,10 +31,10 @@ using datastructure::HyperedgeWeight;
 
 namespace partition {
 class DummyRefiner : public IRefiner {
-  void refine(const std::vector<HypernodeID>&, size_t,
-              HyperedgeWeight&, double, double&) { }
-  int numRepetitions() { return 1; }
-  std::string policyString() const { return std::string(""); }
+  void refineImpl(std::vector<HypernodeID>&, size_t,
+                  HyperedgeWeight&, double, double&) final { }
+  int numRepetitionsImpl() const final { return 1; }
+  std::string policyStringImpl() const final { return std::string(""); }
 };
 
 template <class CoarsenerType>

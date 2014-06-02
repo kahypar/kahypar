@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/Configuration.h"
@@ -45,7 +46,7 @@ struct CoarseningMemento {
     contraction_memento(contraction_memento_) { }
 };
 
-template <class Rater>
+template <class Rater = Mandatory>
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
                                                     CoarseningMemento>{
   protected:
@@ -87,7 +88,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     _history.emplace(_hg.contract(rep_node, contracted_node));
   }
 
-  void uncoarsen(IRefiner& refiner) {
+  void doUncoarsen(IRefiner& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     initializeRefiner(refiner);

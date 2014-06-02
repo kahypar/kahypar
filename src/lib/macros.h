@@ -24,9 +24,9 @@
 // http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName &);              \
-  void operator = (const TypeName&)
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)        \
+  TypeName(const TypeName &) = delete;            \
+  void operator= (const TypeName&) = delete
 
 // Idea taken from https://github.com/bingmann/parallel-string-sorting/blob/master/src/tools/debug.h
 #define DBGX(dbg,X)   do { if (dbg) { std::cout << X; } } while(0)

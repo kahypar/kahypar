@@ -5,9 +5,12 @@
 #ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -18,7 +21,7 @@ using datastructure::HypernodeID;
 namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
 
-template <class Rater>
+template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
   private:
@@ -43,7 +46,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
-  void coarsen(int limit) {
+  void coarsenImpl(int limit) final {
     _pq.clear();
 
     std::vector<HypernodeID> target(_hg.initialNumNodes());
@@ -88,12 +91,12 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         << _removed_parallel_hyperedges.size());
   }
 
-  void uncoarsen(IRefiner& refiner) {
-    Base::uncoarsen(refiner);
+  void uncoarsenImpl(IRefiner& refiner) final {
+    Base::doUncoarsen(refiner);
   }
 
-  std::string policyString() const {
-    return std::string(" ratingFunction="+ templateToString<Rater>());
+  std::string policyStringImpl() const final {
+    return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
   private:

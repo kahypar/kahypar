@@ -6,9 +6,12 @@
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -17,7 +20,7 @@ using datastructure::HypergraphType;
 using datastructure::HypernodeID;
 
 namespace partition {
-template <class Rater>
+template <class Rater = Mandatory>
 class FullHeavyEdgeCoarsener : public ICoarsener,
                                private HeavyEdgeCoarsenerBase<Rater>{
   private:
@@ -44,7 +47,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
   ~FullHeavyEdgeCoarsener() { }
 
-  void coarsen(int limit) {
+  void coarsenImpl(int limit) final {
     _pq.clear();
 
     std::vector<HypernodeID> target(_hg.initialNumNodes());
@@ -84,12 +87,12 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void uncoarsen(IRefiner& refiner) {
-    Base::uncoarsen(refiner);
+  void uncoarsenImpl(IRefiner& refiner) final {
+    Base::doUncoarsen(refiner);
   }
 
-  std::string policyString() const {
-    return std::string(" ratingFunction="+ templateToString<Rater>());
+  std::string policyStringImpl() const final {
+    return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
   private:

@@ -17,6 +17,7 @@
 
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -47,9 +48,10 @@ static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 static const bool dbg_refinement_2way_fm__activation = false;
 static const bool dbg_refinement_2way_fm_eligible = false;
 
-template <class StoppingPolicy,
-          template <class> class QueueSelectionPolicy,
-          class QueueCloggingPolicy>
+template <class StoppingPolicy = Mandatory,
+          template <class> class QueueSelectionPolicy = MandatoryTemplate,
+          class QueueCloggingPolicy = Mandatory
+          >
 class TwoWayFMRefiner : public IRefiner {
   private:
   typedef HyperedgeWeight Gain;
@@ -96,7 +98,7 @@ class TwoWayFMRefiner : public IRefiner {
     return _is_initialized;
   }
 
-  void initialize(HyperedgeWeight max_gain) {
+  void initializeImpl(HyperedgeWeight max_gain) final {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     forall_hypernodes(hn, _hg) {
@@ -120,8 +122,8 @@ class TwoWayFMRefiner : public IRefiner {
     _is_initialized = true;
   }
 
-  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-              HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
+  void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -270,11 +272,11 @@ class TwoWayFMRefiner : public IRefiner {
     } endfor
   }
 
-  int numRepetitions() {
+  int numRepetitionsImpl() const final {
     return _config.two_way_fm.num_repetitions;
   }
 
-  std::string policyString() const {
+  std::string policyStringImpl() const final {
     return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()

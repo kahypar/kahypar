@@ -2,15 +2,17 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_
+#ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUESELECTIONPOLICIES_H_
+#define SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUESELECTIONPOLICIES_H_
 
 #include <limits>
 
+#include "lib/core/Mandatory.h"
+#include "lib/core/PolicyRegistry.h"
 #include "tools/RandomFunctions.h"
 
 namespace partition {
-template <typename Gain>
+template <typename Gain = Mandatory>
 struct EligibleTopGain {
   template <typename PrioQueue>
   static bool selectQueue(bool pq0_eligible, bool pq1_eligible,
@@ -31,4 +33,4 @@ struct EligibleTopGain {
   ~EligibleTopGain() { }
 };
 } // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_FMQUEUESELECTIONPOLICIES_H_
+#endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUESELECTIONPOLICIES_H_

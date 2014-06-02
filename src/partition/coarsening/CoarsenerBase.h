@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/Hypergraph.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -31,7 +32,9 @@ static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_rating = false;
 
-template <class Derived, class CoarseningMemento>
+template <class Derived = Mandatory,
+          class CoarseningMemento = Mandatory
+          >
 class CoarsenerBase {
   protected:
   struct Fingerprint {

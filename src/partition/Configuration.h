@@ -15,9 +15,6 @@
 using datastructure::HypergraphType;
 
 namespace partition {
-enum class StoppingRule { SIMPLE, ADAPTIVE1, ADAPTIVE2 };
-enum class CoarseningScheme { HEAVY_EDGE_FULL, HEAVY_EDGE_HEURISTIC, HYPEREDGE };
-
 struct Configuration {
   typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
   typedef typename HypergraphType::HypernodeID HypernodeID;
@@ -29,12 +26,12 @@ struct Configuration {
       threshold_node_weight(0),
       minimal_node_count(0),
       hypernode_weight_fraction(0.0),
-      scheme(CoarseningScheme::HEAVY_EDGE_FULL) { }
+      scheme() { }
 
     HypernodeWeight threshold_node_weight;
     HypernodeID minimal_node_count;
     double hypernode_weight_fraction;
-    CoarseningScheme scheme;
+    std::string scheme;
   };
 
   struct PartitioningParameters {
@@ -72,14 +69,14 @@ struct Configuration {
       num_repetitions(1),
       alpha(4),
       beta(0.0),
-      stopping_rule(StoppingRule::SIMPLE),
+      stopping_rule(),
       active(true) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
     double alpha;
     double beta;
-    StoppingRule stopping_rule;
+    std::string stopping_rule;
     bool active;
   };
 
@@ -87,12 +84,12 @@ struct Configuration {
     HERFMParameters() :
       max_number_of_fruitless_moves(10),
       num_repetitions(1),
-      stopping_rule(StoppingRule::SIMPLE),
+      stopping_rule(),
       active(false) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
-    StoppingRule stopping_rule;
+    std::string stopping_rule;
     bool active;
   };
 
@@ -132,19 +129,7 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(30) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
   << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(30) << "  scheme: ";
-  switch (config.coarsening.scheme) {
-    case CoarseningScheme::HEAVY_EDGE_FULL:
-      oss << "heavy_full";
-      break;
-    case CoarseningScheme::HEAVY_EDGE_HEURISTIC:
-      oss << "heavy_heuristic";
-      break;
-    case CoarseningScheme::HYPEREDGE:
-      oss << "hyperedge";
-      break;
-  }
-  oss << std::endl;
+  oss << std::setw(30) << "  scheme: " << config.coarsening.scheme << std::endl;
   oss << std::setw(30) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(30) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
@@ -153,19 +138,7 @@ inline std::string toString(const Configuration& config) {
   << std::endl;
   if (config.two_way_fm.active) {
     oss << "2-Way-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: ";
-    switch (config.two_way_fm.stopping_rule) {
-      case StoppingRule::SIMPLE:
-        oss << "simple";
-        break;
-      case StoppingRule::ADAPTIVE1:
-        oss << "adaptive1 (new implementation)";
-        break;
-      case StoppingRule::ADAPTIVE2:
-        oss << "adaptive2 (n-GP implementation)";
-        break;
-    }
-    oss << std::endl;
+    oss << std::setw(30) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;
     oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
     oss << std::setw(30) << "  max. # fruitless moves: "
     << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
@@ -176,19 +149,7 @@ inline std::string toString(const Configuration& config) {
   }
   if (config.her_fm.active) {
     oss << "HER-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: ";
-    switch (config.her_fm.stopping_rule) {
-      case StoppingRule::SIMPLE:
-        oss << "simple";
-        break;
-      case StoppingRule::ADAPTIVE1:
-        oss << "adaptive1 (new implementation)";
-        break;
-      case StoppingRule::ADAPTIVE2:
-        oss << "adaptive2 (n-GP implementation)";
-        break;
-    }
-    oss << std::endl;
+    oss << std::setw(30) << "  stopping rule: " << config.her_fm.stopping_rule << std::endl;
     oss << std::setw(30) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
     oss << std::setw(30) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
