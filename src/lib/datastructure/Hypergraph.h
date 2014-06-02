@@ -15,11 +15,13 @@
 #include <vector>
 
 #include "gtest/gtest_prod.h"
+#include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
 using defs::PartitionID;
+using core::Empty;
 
 namespace datastructure {
 static const bool dbg_hypergraph_uncontraction = false;
@@ -84,7 +86,9 @@ template <typename HypernodeType_ = Mandatory,
           typename HyperedgeType_ = Mandatory,
           typename HypernodeWeightType_ = Mandatory,
           typename HyperedgeWeightType_ = Mandatory,
-          typename PartitionIDType_ = Mandatory
+          typename PartitionIDType_ = Mandatory,
+          class HypernodeData = Empty,
+          class HyperedgeData = Empty
           >
 class Hypergraph {
   public:
@@ -110,8 +114,8 @@ class Hypergraph {
   const int INVALID_COUNT = std::numeric_limits<int>::min();
   const PartitionID kInvalidPartition = defs::INVALID_PARTITION;
 
-  template <typename VertexTypeTraits>
-  class InternalVertex {
+  template <typename VertexTypeTraits, class InternalVertexData>
+  class InternalVertex : public InternalVertexData {
     public:
     typedef typename VertexTypeTraits::WeightType WeightType;
     typedef typename VertexTypeTraits::IDType IDType;
@@ -185,27 +189,27 @@ class Hypergraph {
       _weight = weight;
     }
 
-    bool operator == (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator == (const InternalVertex& rhs) const {
       return _begin == rhs.firstEntry() && _size == rhs.size() && _weight == rhs.weight();
     }
 
-    bool operator != (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator != (const InternalVertex& rhs) const {
       return !operator == (this, rhs);
     }
 
-    bool operator < (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator < (const InternalVertex& rhs) const {
       return _begin == rhs.firstEntry();
     }
 
-    bool operator > (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator > (const InternalVertex& rhs) const {
       return operator < (rhs, this);
     }
 
-    bool operator <= (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator <= (const InternalVertex& rhs) const {
       return !operator > (this, rhs);
     }
 
-    bool operator >= (const InternalVertex<VertexTypeTraits>& rhs) const {
+    bool operator >= (const InternalVertex& rhs) const {
       return !operator < (this, rhs);
     }
 
@@ -226,12 +230,11 @@ class Hypergraph {
     typedef HyperedgeID IDType;
   };
 
-  typedef InternalVertex<HyperNodeTraits> HyperNode;
-  typedef InternalVertex<HyperEdgeTraits> HyperEdge;
+  typedef InternalVertex<HyperNodeTraits, HypernodeData> HyperNode;
+  typedef InternalVertex<HyperEdgeTraits, HyperedgeData> HyperEdge;
 
   template <typename VertexType>
   class VertexIterator {
-    typedef VertexIterator<VertexType> Self;
     typedef std::vector<VertexType> ContainerType;
     typedef typename VertexType::IDType IDType;
 
@@ -254,7 +257,7 @@ class Hypergraph {
       return _id;
     }
 
-    Self& operator ++ () {
+    VertexIterator& operator ++ () {
       ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
       do {
         ++_id;
@@ -262,13 +265,13 @@ class Hypergraph {
       return *this;
     }
 
-    Self operator ++ (int) {
-      Self copy = *this;
+    VertexIterator operator ++ (int) {
+      VertexIterator copy = *this;
       operator ++ ();
       return copy;
     }
 
-    Self& operator -- () {
+    VertexIterator& operator -- () {
       ASSERT(_id > 0, "Hypernode iterator out of bounds");
       do {
         --_id;
@@ -276,13 +279,13 @@ class Hypergraph {
       return *this;
     }
 
-    Self operator -- (int) {
-      Self copy = *this;
+    VertexIterator operator -- (int) {
+      VertexIterator copy = *this;
       operator -- ();
       return copy;
     }
 
-    bool operator != (const Self& rhs) {
+    bool operator != (const VertexIterator& rhs) {
       return _id != rhs._id;
     }
 
@@ -808,6 +811,16 @@ class Hypergraph {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(id < 2, "Partition ID " << id << " is out of bounds");
     return _partition_pin_counts[3 * he + (id + 1)];
+  }
+
+  HypernodeData & hypernodeData(HypernodeID hn) {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
+    return hypernode(hn);
+  }
+
+  HyperedgeData & hyperedgeData(HyperedgeID he) {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    return hyperedge(he);
   }
 
   private:
