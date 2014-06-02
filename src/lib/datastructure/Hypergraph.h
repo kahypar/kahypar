@@ -114,6 +114,8 @@ class Hypergraph {
   const int INVALID_COUNT = std::numeric_limits<int>::min();
   const PartitionID kInvalidPartition = defs::INVALID_PARTITION;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
   template <typename VertexTypeTraits, class InternalVertexData>
   class InternalVertex : public InternalVertexData {
     public:
@@ -229,6 +231,7 @@ class Hypergraph {
     typedef HyperedgeWeight WeightType;
     typedef HyperedgeID IDType;
   };
+#pragma GCC diagnostic pop
 
   typedef InternalVertex<HyperNodeTraits, HypernodeData> HyperNode;
   typedef InternalVertex<HyperEdgeTraits, HyperedgeData> HyperEdge;
