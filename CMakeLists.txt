@@ -40,7 +40,6 @@ else(KAHYPAR_VERSION_GIT_REFSPEC)
   message(FATAL_ERROR "No git refspec detected")
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
-#set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
@@ -48,6 +47,14 @@ if(CMAKE_BUILD_TYPE MATCHES DEBUG)
 # Enable codestyle checks at compile time
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
+site_name(HOSTNAME)
+if(${HOSTNAME} MATCHES "i10pc*")
+message(STATUS "hostname: ${HOSTNAME}")
+set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
+message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
+endif(${HOSTNAME} MATCHES "i10pc*")
+
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -pedantic -DPARANOID -Weffc++ -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wextra -std=c++11 -Weffc++ -DNDEBUG")
