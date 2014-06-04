@@ -19,8 +19,6 @@ using::testing::Eq;
 using::testing::Le;
 using::testing::Test;
 
-using defs::INVALID_PARTITION;
-
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
@@ -74,13 +72,13 @@ void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener, 
   ASSERT_THAT(hypergraph->numPins(), Eq(10));
 }
 
-template <class Coarsener, class Hypergraph, class Refiner>
-void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergraph& hypergraph, Refiner& refiner) {
+template <class Coarsener, class HypergraphT, class Refiner>
+void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph, Refiner& refiner) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
@@ -114,11 +112,11 @@ void decreasesNumberOfPinsOnParallelHyperedgeRemoval(Coarsener& coarsener, Hyper
 }
 
 
-template <class Coarsener, class Hypergraph, class Refiner>
-void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergraph& hypergraph, Refiner& refiner) {
+template <class Coarsener, class HypergraphT, class Refiner>
+void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph, Refiner& refiner) {
   coarsener.coarsen(2);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
 
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
@@ -143,8 +141,8 @@ void restoresParallelHyperedgesInReverseOrder() {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
@@ -169,8 +167,8 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-

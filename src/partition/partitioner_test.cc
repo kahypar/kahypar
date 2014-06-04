@@ -86,17 +86,17 @@ TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
 }
 
 TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph->pinCountInPartition(0, Hypergraph::kInvalidPartition), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(3));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, INVALID_PARTITION), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPartition(0, Hypergraph::kInvalidPartition), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(2));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, INVALID_PARTITION), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(3));
   ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
 }
@@ -113,12 +113,12 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
        RestoresHyperedgesExceedingThreshold) {
   std::vector<HyperedgeID> removed_hyperedges;
   partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges);
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
 
   partitioner.restoreLargeHyperedges(*hypergraph, removed_hyperedges);
 
@@ -149,12 +149,12 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
 
   std::vector<HyperedgeID> removed_hyperedges { 1 };
   std::vector<HypernodeWeight> partition_sizes { 2, 4 };
@@ -171,8 +171,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 8 },
                                   HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
   std::vector<HyperedgeID> removed_hyperedges { 1 };
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
 
   std::vector<HypernodeWeight> partition_sizes { 1, 1 };
 
@@ -190,13 +190,13 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   //simulate the first vcycle by explicitly setting a partitioning
   config.partitioning.global_search_iterations = 2;
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
   hypergraph->printGraphState();

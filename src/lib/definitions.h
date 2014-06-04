@@ -7,9 +7,7 @@ typedef unsigned int hypernode_id_t;
 typedef unsigned int hyperedge_id_t;
 typedef unsigned int hypernode_weight_t;
 typedef int hyperedge_weight_t;
-
 typedef int partition_id_t;
-const partition_id_t INVALID_PARTITION = -1;
 typedef double RatingType;
 
 typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,

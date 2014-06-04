@@ -13,7 +13,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using defs::INVALID_PARTITION;
 using defs::HypernodeID;
 using defs::IncidenceIterator;
 
@@ -396,7 +395,7 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   contraction_history.emplace(modified_hypergraph.contract(0, 5));
   contraction_history.emplace(modified_hypergraph.contract(0, 3));
   ASSERT_THAT(modified_hypergraph.nodeWeight(0), Eq(7));
-  modified_hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
+  modified_hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
 
   while (!contraction_history.empty()) {
     modified_hypergraph.uncontract(contraction_history.top());
@@ -451,22 +450,22 @@ TEST(AnUnconnectedHypernode, IsNotRemovedTogetherWithLastEdgeIfFlagIsFalse) {
 }
 
 TEST_F(AHypergraph, ReducesPinCountOfAffectedHEsOnContraction) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(3));
   hypergraph.contract(3, 4);
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(3));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(2));
 }
 
 TEST_F(AHypergraph, IncreasesPinCountOfAffectedHEsOnUnContraction) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(3));
   Memento memento = hypergraph.contract(3, 4);
-  hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
+  hypergraph.changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
   hypergraph.uncontract(memento);
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(2));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(2));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(1));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(1));
   ASSERT_THAT(hypergraph.pinCountInPartition(2, 0), Eq(2));
 }
 
@@ -483,7 +482,7 @@ TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
 }
 
 TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
 
   hypergraph.removeEdge(1, false);
 
@@ -494,45 +493,45 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
 }
 
 TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
   hypergraph.removeEdge(1, false);
   hypergraph.restoreEdge(1);
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
 }
 
 TEST_F(AHypergraph, DecrementsPartitionPinCountOnHypernodeRemoval) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(3));
   hypergraph.removeNode(3);
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(3));
-  ASSERT_THAT(hypergraph.pinCountInPartition(2, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPartition(2, Hypergraph::kInvalidPartition), Eq(2));
 }
 
 TEST_F(AHypergraph, UpdatesPartitionPinCountsIfANodeChangesPartition) {
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(0));
-  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(3));
+  hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(3));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(1));
 }
 
 TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
-  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(INVALID_PARTITION));
-  ASSERT_THAT(hypergraph.partitionIndex(4), Eq(INVALID_PARTITION));
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(4));
+  ASSERT_THAT(hypergraph.partitionIndex(1), Eq(Hypergraph::kInvalidPartition));
+  ASSERT_THAT(hypergraph.partitionIndex(4), Eq(Hypergraph::kInvalidPartition));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(4));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(0));
-  hypergraph.changeNodePartition(1, INVALID_PARTITION, 1);
-  hypergraph.changeNodePartition(4, INVALID_PARTITION, 1);
+  hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
 
   hypergraph.calculatePartitionPinCount(1);
 
-  ASSERT_THAT(hypergraph.pinCountInPartition(1, INVALID_PARTITION), Eq(2));
+  ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(2));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(2));
 }
 
 TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
   forall_hypernodes(hn, hypergraph) {
-    ASSERT_THAT(hypergraph.partitionIndex(*hn), Eq(INVALID_PARTITION));
+    ASSERT_THAT(hypergraph.partitionIndex(*hn), Eq(Hypergraph::kInvalidPartition));
   } endfor
 }
 } // namespace datastructure

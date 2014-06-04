@@ -9,7 +9,6 @@
 #include "lib/definitions.h"
 
 using::testing::Test;
-using defs::INVALID_PARTITION;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
@@ -61,10 +60,10 @@ class AContractionMemento : public AHypergraph {
 class AnUncontractionOperation : public AHypergraph {
   public:
   AnUncontractionOperation() : AHypergraph() {
-    hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(2, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
+    hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
   }
 };
 
@@ -82,13 +81,13 @@ class APartitionedHypergraph : public AHypergraph {
   public:
   APartitionedHypergraph() :
     AHypergraph() {
-    hypergraph.changeNodePartition(0, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(1, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(2, INVALID_PARTITION, 1);
-    hypergraph.changeNodePartition(3, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(4, INVALID_PARTITION, 0);
-    hypergraph.changeNodePartition(5, INVALID_PARTITION, 1);
-    hypergraph.changeNodePartition(6, INVALID_PARTITION, 1);
+    hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+    hypergraph.changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+    hypergraph.changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
   }
 };
 

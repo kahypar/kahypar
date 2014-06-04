@@ -19,9 +19,9 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using defs::Hypergraph;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
+using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 

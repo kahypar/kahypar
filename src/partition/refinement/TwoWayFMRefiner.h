@@ -27,11 +27,9 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using defs::INVALID_PARTITION;
-
-using defs::Hypergraph;
 using datastructure::PriorityQueue;
 using datastructure::BucketPQ;
+using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
@@ -101,7 +99,7 @@ class TwoWayFMRefiner : public IRefiner {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     forall_hypernodes(hn, _hg) {
-      ASSERT(_hg.partitionIndex(*hn) != INVALID_PARTITION,
+      ASSERT(_hg.partitionIndex(*hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
     } endfor

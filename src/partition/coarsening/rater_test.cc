@@ -13,8 +13,6 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::AnyOf;
 
-using defs::INVALID_PARTITION;
-
 using defs::Hypergraph;
 using defs::HypernodeWeight;
 using defs::HyperedgeIndexVector;
@@ -130,8 +128,8 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).value, Eq(1));
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
@@ -159,8 +157,8 @@ TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) 
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
   ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
               Eq(false));
 }

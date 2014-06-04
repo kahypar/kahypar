@@ -14,7 +14,6 @@
 using::testing::Test;
 using::testing::Eq;
 
-using defs::INVALID_PARTITION;
 using defs::HypernodeWeightVector;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
@@ -45,11 +44,11 @@ class AHyperedgeMovementOperation : public AHyperedgeFMRefiner {
   void SetUp() {
     hypergraph.reset(new Hypergraph(5, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
                                     HyperedgeVector { 0, 1, 2, 3, 4 }));
-    hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
   }
 };
 
@@ -61,15 +60,15 @@ class TheUpdateGainsMethod : public AHyperedgeFMRefiner {
   void SetUp() {
     hypergraph.reset(new Hypergraph(9, 7, HyperedgeIndexVector { 0, 3, 7, 9, 11, 13, 15, /*sentinel*/ 17 },
                                     HyperedgeVector { 3, 4, 8, 2, 5, 6, 7, 2, 3, 1, 2, 0, 3, 5, 4, 6, 7 }));
-    hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(7, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(7, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(8, Hypergraph::kInvalidPartition, 1);
   }
 };
 
@@ -82,15 +81,15 @@ class RollBackInformation : public AHyperedgeFMRefiner {
   void SetUp() {
     hypergraph.reset(new Hypergraph(9, 3, HyperedgeIndexVector { 0, 4, 7, /*sentinel*/ 9 },
                                     HyperedgeVector { 0, 1, 2, 3, 4, 5, 6, 7, 8 }));
-    hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-    hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
-    hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
+    hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
+    hypergraph->changeNodePartition(7, Hypergraph::kInvalidPartition, 0);
+    hypergraph->changeNodePartition(8, Hypergraph::kInvalidPartition, 1);
     config.partitioning.epsilon = 1;
     hyperedge_fm_refiner.reset(new HyperedgeFMRefinerSimpleStopping(*hypergraph, config));
     hyperedge_fm_refiner->initialize();
@@ -105,9 +104,9 @@ class RollBackInformation : public AHyperedgeFMRefiner {
 TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph.reset(new Hypergraph(3, 2, HyperedgeIndexVector { 0, 3, /*sentinel*/ 5 },
                                   HyperedgeVector { 0, 1, 2, 0, 1 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
@@ -117,10 +116,10 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
 TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNestedHyperedges) {
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 3, /*sentinel*/ 5 },
                                   HyperedgeVector { 0, 2, 3, 1, 2 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 1), Eq(true));
@@ -130,13 +129,13 @@ TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNes
 TEST_F(AHyperedgeFMRefiner, ComputesGainOfMovingAllPinsFromOneToAnotherPartition) {
   hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 3, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 5, 6, 1, 2, 3, 4, 4, 5 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
@@ -151,13 +150,13 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainOfMovingAllPinsFromOneToAnotherPartition
 TEST_F(AHyperedgeFMRefiner, ComputesGainValuesOnModifiedHypergraph) {
   hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 3, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 5, 6, 1, 2, 3, 4, 4, 5 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(1));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(0));
@@ -174,10 +173,10 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainValuesOnModifiedHypergraph) {
 TEST_F(AHyperedgeFMRefiner, ConsidersEachHyperedgeOnlyOnceDuringGainComputation) {
   hypergraph.reset(new Hypergraph(4, 3, HyperedgeIndexVector { 0, 2, 5, /*sentinel*/ 8 },
                                   HyperedgeVector { 0, 1, 1, 2, 3, 0, 2, 3 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(2));
@@ -186,12 +185,12 @@ TEST_F(AHyperedgeFMRefiner, ConsidersEachHyperedgeOnlyOnceDuringGainComputation)
 TEST_F(AHyperedgeFMRefiner, IncreasesGainOfHyperedgeMovementByOneWhenNestedCutHyperedgesExist) {
   hypergraph.reset(new Hypergraph(6, 3, HyperedgeIndexVector { 0, 6, 9, /*sentinel*/ 11 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 0, 2, 3, 1, 4 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(3));
@@ -201,11 +200,11 @@ TEST_F(AHyperedgeFMRefiner, IncreasesGainOfHyperedgeMovementByOneWhenNestedCutHy
 TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNonNestedCutHyperedges) {
   hypergraph.reset(new Hypergraph(5, 2, HyperedgeIndexVector { 0, 3, /*sentinel*/ 6 },
                                   HyperedgeVector { 0, 1, 2, 2, 4, 3 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
@@ -214,9 +213,9 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNonNestedCutH
 TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNestedNonCutHyperedges) {
   hypergraph.reset(new Hypergraph(3, 2, HyperedgeIndexVector { 0, 3, /*sentinel*/ 5 },
                                   HyperedgeVector { 0, 1, 2, 1, 2 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
@@ -225,10 +224,10 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNestedNonCutH
 TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNonCutHyperedgesExist) {
   hypergraph.reset(new Hypergraph(4, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
                                   HyperedgeVector { 0, 1, 1, 2, 1, 3 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(-1));
@@ -239,8 +238,8 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
   hypergraph.reset(new Hypergraph(2, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
                                   HyperedgeVector { 0, 1 }, nullptr, &hypernode_weights));
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
 
   hyperedge_fm_refiner.initialize();
   ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
@@ -251,9 +250,9 @@ TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
   hypergraph.reset(new Hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
                                   HyperedgeVector { 0, 1, 1, 2 }));
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(1), Eq(true));
@@ -265,9 +264,9 @@ TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
 TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
   hypergraph.reset(new Hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
                                   HyperedgeVector { 0, 1, 2 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
@@ -277,10 +276,10 @@ TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
 TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
                                   HyperedgeVector { 2, 3, 0, 1 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
   hypergraph->setEdgeWeight(0, 1);
   hypergraph->setEdgeWeight(1, 5);
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
@@ -313,12 +312,12 @@ TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(6 / static_cast<double>(config.partitioning.k));
   DBG(true, "config.partitioning.partition_size_upper_bound=" << config.partitioning.partition_size_upper_bound);
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
@@ -329,14 +328,14 @@ TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
 TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible) {
   hypergraph.reset(new Hypergraph(8, 2, HyperedgeIndexVector { 0, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 0, 6 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(7, INVALID_PARTITION, 0);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(7, Hypergraph::kInvalidPartition, 0);
   config.partitioning.epsilon = 0.02;
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(hypergraph->initialNumNodes() /
@@ -393,10 +392,10 @@ TEST_F(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQ
   // simpler hypergraph since this is the only case that is not covered by the example graph
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 4, /*sentinel*/ 6 },
                                   HyperedgeVector { 0, 1, 2, 3, 0, 3 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
@@ -481,10 +480,10 @@ TEST_F(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved) {
 TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 4 },
                                   HyperedgeVector { 0, 1, 2, 3 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
   hypergraph->setEdgeWeight(1, 5);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
@@ -506,18 +505,18 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
 TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   hypergraph.reset(new Hypergraph(12, 5, HyperedgeIndexVector { 0, 3, 6, 8, 11, /*sentinel*/ 20 },
                                   HyperedgeVector { 0, 7, 8, 2, 3, 4, 5, 6, 9, 10, 11, 0, 1, 2, 4, 7, 8, 5, 6, 9 }));
-  hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(1, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(2, INVALID_PARTITION, 0);
-  hypergraph->changeNodePartition(3, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(4, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(5, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(6, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(7, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(8, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(9, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(10, INVALID_PARTITION, 1);
-  hypergraph->changeNodePartition(11, INVALID_PARTITION, 1);
+  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
+  hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(7, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(8, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(9, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(10, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(11, Hypergraph::kInvalidPartition, 1);
   config.partitioning.epsilon = 0.02;
   config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
                                                    * ceil(12 / static_cast<double>(config.partitioning.k));

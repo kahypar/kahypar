@@ -14,8 +14,8 @@
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/Configuration.h"
 
-using defs::Hypergraph;
 using core::Parameters;
+using defs::Hypergraph;
 
 namespace partition {
 

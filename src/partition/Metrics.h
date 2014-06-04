@@ -74,8 +74,9 @@ inline double imbalance(const Hypergraph& hypergraph) {
   std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
   forall_hypernodes(hn, hypergraph) {
-    ASSERT(hypergraph.partitionIndex(*hn) < 2 && hypergraph.partitionIndex(*hn) != defs::INVALID_PARTITION
-           , "Invalid partition index for hypernode " << *hn << ": " << hypergraph.partitionIndex(*hn));
+    ASSERT(hypergraph.partitionIndex(*hn) < 2 &&
+           hypergraph.partitionIndex(*hn) != Hypergraph::kInvalidPartition,
+           "Invalid partition index for hypernode " << *hn << ": " << hypergraph.partitionIndex(*hn));
     partition_sizes[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
     total_weight += hypergraph.nodeWeight(*hn);
   } endfor
