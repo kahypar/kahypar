@@ -4,12 +4,11 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
 
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 
 namespace partition {
 typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;

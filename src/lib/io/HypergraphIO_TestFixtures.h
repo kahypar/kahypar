@@ -10,7 +10,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -34,6 +34,7 @@ using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
+using defs::Hypergraph;
 
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
@@ -115,7 +116,7 @@ class AnUnweightedHypergraph : public Test {
 
   void SetUp() {
     _filename = "test_instances/unweighted_hypergraph.hgr.out";
-    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector);
+    _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector);
   }
 
   void TearDown() {
@@ -132,7 +133,7 @@ class AnUnweightedHypergraph : public Test {
   HyperedgeIndexVector _written_index_vector;
   HyperedgeVector _written_edge_vector;
   std::ifstream _written_file;
-  HypergraphType* _hypergraph;
+  Hypergraph* _hypergraph;
 
   private:
   DISALLOW_COPY_AND_ASSIGN(AnUnweightedHypergraph);
@@ -147,8 +148,8 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
 
   void SetUp() {
     _filename = "test_instances/weighted_hyperedges_hypergraph.hgr.out";
-    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                     &_hyperedge_weights);
+    _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
+                                 &_hyperedge_weights);
   }
 
   HyperedgeWeightVector _hyperedge_weights;
@@ -164,8 +165,8 @@ class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
 
   void SetUp() {
     _filename = "test_instances/weighted_hypernodes_hypergraph.hgr.out";
-    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                     nullptr, &_hypernode_weights);
+    _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
+                                 nullptr, &_hypernode_weights);
   }
 
   HypernodeWeightVector _hypernode_weights;
@@ -183,8 +184,8 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 
   void SetUp() {
     _filename = "test_instances/weighted_hyperedges_and_hypernodes_hypergraph.hgr.out";
-    _hypergraph = new HypergraphType(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                     &_hyperedge_weights, &_hypernode_weights);
+    _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
+                                 &_hyperedge_weights, &_hypernode_weights);
   }
 
   HyperedgeWeightVector _hyperedge_weights;
@@ -219,7 +220,7 @@ class APartitionOfAHypergraph : public Test {
     std::remove(_config.partitioning.graph_partition_filename.c_str());
   }
 
-  HypergraphType _hypergraph;
+  Hypergraph _hypergraph;
   Configuration _config;
   Partitioner _partitioner;
   std::unique_ptr<ICoarsener> _coarsener;

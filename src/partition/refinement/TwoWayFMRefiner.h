@@ -19,7 +19,6 @@
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/BucketQueue.h"
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -30,15 +29,15 @@
 
 using defs::INVALID_PARTITION;
 
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 using datastructure::PriorityQueue;
 using datastructure::BucketPQ;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
-using datastructure::PartitionID;
-using datastructure::HyperedgeWeight;
-using datastructure::HypernodeWeight;
-using datastructure::IncidenceIterator;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::PartitionID;
+using defs::HyperedgeWeight;
+using defs::HypernodeWeight;
+using defs::IncidenceIterator;
 
 namespace partition {
 static const bool dbg_refinement_2way_fm_improvements = true;
@@ -65,7 +64,7 @@ class TwoWayFMRefiner : public IRefiner {
   static const int K = 2;
 
   public:
-  TwoWayFMRefiner(HypergraphType& hypergraph, const Configuration& config) :
+  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     // ToDo: We could also use different storage to avoid initialization like this
@@ -430,7 +429,7 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void rollback(std::vector<HypernodeID>& performed_moves, int last_index, int min_cut_index,
-                HypergraphType& hg) {
+                Hypergraph& hg) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -470,7 +469,7 @@ class TwoWayFMRefiner : public IRefiner {
     return is_border_node;
   }
 
-  HypergraphType& _hg;
+  Hypergraph& _hg;
   const Configuration& _config;
   std::array<RefinementPQ*, K> _pq;
   std::array<HypernodeWeight, K> _partition_size;

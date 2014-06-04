@@ -6,15 +6,16 @@
 
 #include "gmock/gmock.h"
 
+#include "lib/definitions.h"
+
 #include "lib/datastructure/BucketQueue.h"
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
 
 using::testing::Test;
 using::testing::Eq;
 
-using datastructure::HypernodeID;
-using datastructure::HyperedgeWeight;
+using defs::HypernodeID;
+using defs::HyperedgeWeight;
 using datastructure::BucketPQ;
 using datastructure::PriorityQueue;
 

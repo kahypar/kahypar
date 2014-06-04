@@ -11,12 +11,12 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
+using defs::Hypergraph;
+using defs::HypernodeID;
 
 namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
@@ -41,7 +41,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
 
-  HeuristicHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
+  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }

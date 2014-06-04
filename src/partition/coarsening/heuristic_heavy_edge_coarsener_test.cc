@@ -4,13 +4,12 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 
 namespace partition {
 typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
@@ -83,7 +82,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
   CoarsenerType coarsener(hypergraph, config);
   coarsener.coarsen(5);
   hypergraph.printGraphState();

@@ -9,20 +9,20 @@
 #include <fstream>
 #include <string>
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
 using partition::IRefiner;
 using partition::ICoarsener;
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 using partition::Configuration;
 
 namespace serializer {
 class SQLPlotToolsSerializer {
   public:
-  static void serialize(const Configuration& config, const HypergraphType& hypergraph,
+  static void serialize(const Configuration& config, const Hypergraph& hypergraph,
                         const ICoarsener& UNUSED(coarsener), const IRefiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::string& filename);

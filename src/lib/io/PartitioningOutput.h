@@ -5,14 +5,16 @@
 #include <iostream>
 #include <string>
 
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "lib/GitRevision.h"
 #include "partition/Metrics.h"
-#include "lib/datastructure/Hypergraph.h"
+
+using defs::Hypergraph;
 
 namespace io {
-inline void printHypergraphInfo(const HypergraphType& hypergraph, const std::string& name) {
+inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size  : "
@@ -27,7 +29,7 @@ inline void printPartitionerConfiguration(const Configuration& config) {
   std::cout << toString(config) << std::endl;
 }
 
-inline void printPartitioningResults(const HypergraphType& hypergraph,
+inline void printPartitioningResults(const Hypergraph& hypergraph,
                               const std::chrono::duration<double>& elapsed_seconds) {
   HypernodeWeight partition_weights[2] = { 0, 0 };
   metrics::partitionWeights(hypergraph, partition_weights);

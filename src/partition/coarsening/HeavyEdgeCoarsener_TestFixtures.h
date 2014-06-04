@@ -9,6 +9,7 @@
 
 #include "gmock/gmock.h"
 
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -20,14 +21,13 @@ using::testing::Test;
 
 using defs::INVALID_PARTITION;
 
-using datastructure::HypergraphType;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeWeightVector;
-using datastructure::HypernodeWeightVector;
-using datastructure::HyperedgeVector;
-using datastructure::HypernodeID;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeWeight;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeWeightVector;
+using defs::HypernodeWeightVector;
+using defs::HyperedgeVector;
+using defs::HypernodeID;
+using defs::HypernodeWeight;
+using defs::HyperedgeWeight;
 
 namespace partition {
 class DummyRefiner : public IRefiner {
@@ -40,9 +40,9 @@ class DummyRefiner : public IRefiner {
 template <class CoarsenerType>
 class ACoarsenerBase : public Test {
   public:
-  explicit ACoarsenerBase(HypergraphType* graph =
-                            new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
+  explicit ACoarsenerBase(Hypergraph* graph =
+                            new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
     coarsener(*hypergraph, config),
@@ -50,7 +50,7 @@ class ACoarsenerBase : public Test {
     config.coarsening.threshold_node_weight = 5;
   }
 
-  std::unique_ptr<HypergraphType> hypergraph;
+  std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
   CoarsenerType coarsener;
   std::unique_ptr<IRefiner> refiner;
@@ -133,9 +133,9 @@ void restoresParallelHyperedgesInReverseOrder() {
   // two successive parallel hyperedges.
   HyperedgeWeightVector edge_weights { 1, 1, 1, 1 };
   HypernodeWeightVector node_weights { 50, 1, 1 };
-  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                            HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
-                            &node_weights);
+  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+                        HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
+                        &node_weights);
 
   Configuration config;
   config.coarsening.threshold_node_weight = 4;
@@ -159,9 +159,9 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   // three single-node hyperedges.
   HyperedgeWeightVector edge_weights { 5, 5, 5, 1 };
   HypernodeWeightVector node_weights { 1, 1, 5 };
-  HypergraphType hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                            HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
-                            &node_weights);
+  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+                        HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
+                        &node_weights);
 
   Configuration config;
   config.coarsening.threshold_node_weight = 4;
@@ -178,11 +178,11 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   coarsener.uncoarsen(*refiner);
 }
 
-template <class Coarsener, class Hypergraph, class Config>
-void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, Hypergraph& hypergraph, Config& config) {
+template <class Coarsener, class HypergraphT, class Config>
+void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
   config.coarsening.threshold_node_weight = 3;
   coarsener.coarsen(2);
-  HypergraphType& hgr = *hypergraph;
+  Hypergraph& hgr = *hypergraph;
   forall_hypernodes(hn, hgr) {
     ASSERT_THAT(hgr.nodeWeight(*hn), Le(3));
   } endfor

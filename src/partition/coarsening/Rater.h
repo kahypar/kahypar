@@ -11,17 +11,17 @@
 #include <stack>
 #include <vector>
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
-using datastructure::HypernodeWeight;
-using datastructure::HypernodeIterator;
-using datastructure::IncidenceIterator;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::HypernodeWeight;
+using defs::HypernodeIterator;
+using defs::IncidenceIterator;
 
 namespace partition {
 static const bool dbg_partition_rating = false;
@@ -53,7 +53,7 @@ class Rater {
 
   public:
   typedef HeavyEdgeRating Rating;
-  Rater(HypergraphType& hypergraph, const Configuration& config) :
+  Rater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()),
@@ -117,7 +117,7 @@ class Rater {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 
-  HypergraphType& _hg;
+  Hypergraph& _hg;
   const Configuration& _config;
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;

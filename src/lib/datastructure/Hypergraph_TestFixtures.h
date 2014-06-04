@@ -6,10 +6,16 @@
 #define SRC_LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 
 using::testing::Test;
 using defs::INVALID_PARTITION;
+using defs::Hypergraph;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
+using defs::HyperedgeID;
+using defs::HypernodeIterator;
+using defs::HyperedgeIterator;
 
 namespace datastructure {
 class AHypergraph : public Test {
@@ -17,7 +23,7 @@ class AHypergraph : public Test {
   AHypergraph() :
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
-  HypergraphType hypergraph;
+  Hypergraph hypergraph;
 };
 
 class AHypernodeIterator : public AHypergraph {
@@ -69,7 +75,7 @@ class AnUncontractedHypergraph : public AHypergraph {
     modified_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                         HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
-  HypergraphType modified_hypergraph;
+  Hypergraph modified_hypergraph;
 };
 
 class APartitionedHypergraph : public AHypergraph {

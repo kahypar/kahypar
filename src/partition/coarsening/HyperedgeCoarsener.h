@@ -10,8 +10,8 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/CoarsenerBase.h"
 #include "partition/coarsening/HyperedgeRatingPolicies.h"
@@ -19,11 +19,11 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
+using defs::HypernodeID;
+using defs::HyperedgeID;
 
 namespace partition {
 struct HyperedgeCoarseningMemento {
@@ -48,7 +48,7 @@ class HyperedgeCoarsener : public ICoarsener,
                                                 HyperedgeCoarseningMemento>{
   private:
   typedef HyperedgeRating Rating;
-  typedef typename HypergraphType::ContractionMemento ContractionMemento;
+  typedef typename Hypergraph::ContractionMemento ContractionMemento;
   typedef CoarsenerBase<HyperedgeCoarsener<RatingPolicy>, HyperedgeCoarseningMemento> Base;
 
   public:
@@ -62,7 +62,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::performLocalSearch;
   using Base::initializeRefiner;
 
-  HyperedgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
+  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }

@@ -4,7 +4,7 @@
 
 #include <gmock/gmock.h>
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
@@ -21,11 +21,11 @@ using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
-using datastructure::HyperedgeWeight;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
+using defs::HyperedgeWeight;
 
 using defs::INVALID_PARTITION;
 
@@ -53,7 +53,7 @@ class AnUnPartitionedHypergraph : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
-  HypergraphType hypergraph;
+  Hypergraph hypergraph;
 };
 
 class TheDemoHypergraph : public AnUnPartitionedHypergraph {
@@ -80,7 +80,7 @@ class APartitionedHypergraph : public Test {
     partitioner.partition(hypergraph, *coarsener, *refiner);
   }
 
-  HypergraphType hypergraph;
+  Hypergraph hypergraph;
   Configuration config;
   Partitioner partitioner;
   std::unique_ptr<ICoarsener> coarsener;

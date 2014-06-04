@@ -7,12 +7,13 @@
 #include <string>
 #include <vector>
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "lib/macros.h"
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeWeight;
+
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeWeight;
 
 namespace partition {
 class IRefiner {

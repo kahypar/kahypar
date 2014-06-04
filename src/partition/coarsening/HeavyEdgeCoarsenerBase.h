@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/coarsening/CoarsenerBase.h"
@@ -21,17 +21,17 @@
 
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeWeight;
-using datastructure::IncidenceIterator;
-using datastructure::HypernodeIterator;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::HypernodeWeight;
+using defs::HyperedgeWeight;
+using defs::IncidenceIterator;
+using defs::HypernodeIterator;
 
 namespace partition {
 struct CoarseningMemento {
-  typedef typename HypergraphType::ContractionMemento Memento;
+  typedef typename Hypergraph::ContractionMemento Memento;
 
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
@@ -68,7 +68,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   using Base::initializeRefiner;
 
   public:
-  HeavyEdgeCoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
+  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes(), _hg.initialNumNodes())

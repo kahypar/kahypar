@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/Rater.h"
 
@@ -15,11 +15,12 @@ using::testing::AnyOf;
 
 using defs::INVALID_PARTITION;
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
-using datastructure::HypernodeID;
+using defs::Hypergraph;
+using defs::HypernodeWeight;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
+using defs::HypernodeID;
+using defs::PartitionID;
 
 namespace partition {
 typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
@@ -28,13 +29,13 @@ typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
 
 class ARater : public Test {
   public:
-  explicit ARater(HypergraphType* graph = nullptr) :
+  explicit ARater(Hypergraph* graph = nullptr) :
     hypergraph(graph),
     config() {
     config.coarsening.threshold_node_weight = 2;
   }
 
-  std::unique_ptr<HypergraphType> hypergraph;
+  std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
 
   private:
@@ -44,8 +45,8 @@ class ARater : public Test {
 class AFirstWinsRater : public ARater {
   public:
   AFirstWinsRater() :
-    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                          HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
   FirstWinsRater rater;
@@ -54,8 +55,8 @@ class AFirstWinsRater : public ARater {
 class ALastWinsRater : public ARater {
   public:
   ALastWinsRater() :
-    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                          HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
   LastWinsRater rater;
@@ -64,8 +65,8 @@ class ALastWinsRater : public ARater {
 class ARandomWinsRater : public ARater {
   public:
   ARandomWinsRater() :
-    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                          HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
   RandomWinsRater rater;
@@ -74,8 +75,8 @@ class ARandomWinsRater : public ARater {
 class AHyperedgeRater : public ARater {
   public:
   AHyperedgeRater() :
-    ARater(new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) { }
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                          HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) { }
 };
 
 TEST_F(AFirstWinsRater, UsesHeavyEdgeRatingToRateHypernodes) {
@@ -120,8 +121,8 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
 }
 
 TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
-  hypergraph.reset(new HypergraphType(2, 1, HyperedgeIndexVector { 0, 2 },
-                                      HyperedgeVector { 0, 1 }));
+  hypergraph.reset(new Hypergraph(2, 1, HyperedgeIndexVector { 0, 2 },
+                                  HyperedgeVector { 0, 1 }));
 
   FirstWinsRater rater(*hypergraph, config);
 

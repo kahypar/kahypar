@@ -12,27 +12,25 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 
 using defs::PartitionID;
-
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
-using datastructure::HypergraphWeightType;
-using datastructure::HyperedgeWeight;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
-using datastructure::HyperedgeWeightVector;
-using datastructure::HypernodeWeightVector;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::HyperedgeWeight;
+using defs::HypernodeWeight;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
+using defs::HyperedgeWeightVector;
+using defs::HypernodeWeightVector;
+using defs::HypergraphType;
 
 namespace io {
 typedef std::unordered_map<HypernodeID, HypernodeID> Mapping;
 
 inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
-                          HypernodeID& num_hypernodes, HypergraphWeightType& hypergraph_type) {
+                          HypernodeID& num_hypernodes, HypergraphType& hypergraph_type) {
   std::string line;
   std::getline(file, line);
 
@@ -44,7 +42,7 @@ inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
   std::istringstream sstream(line);
   int i = 0;
   sstream >> num_hyperedges >> num_hypernodes >> i;
-  hypergraph_type = static_cast<HypergraphWeightType>(i);
+  hypergraph_type = static_cast<HypergraphType>(i);
 }
 
 inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernodes,
@@ -54,21 +52,21 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
                                HyperedgeWeightVector* hyperedge_weights = nullptr,
                                HypernodeWeightVector* hypernode_weights = nullptr) {
   ASSERT(!filename.empty(), "No filename for hypergraph file specified");
-  HypergraphWeightType hypergraph_type = HypergraphWeightType::Unweighted;
+  HypergraphType hypergraph_type = HypergraphType::Unweighted;
   std::ifstream file(filename);
   if (file) {
     readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
-    ASSERT(hypergraph_type == HypergraphWeightType::Unweighted ||
-           hypergraph_type == HypergraphWeightType::EdgeWeights ||
-           hypergraph_type == HypergraphWeightType::NodeWeights ||
-           hypergraph_type == HypergraphWeightType::EdgeAndNodeWeights,
+    ASSERT(hypergraph_type == HypergraphType::Unweighted ||
+           hypergraph_type == HypergraphType::EdgeWeights ||
+           hypergraph_type == HypergraphType::NodeWeights ||
+           hypergraph_type == HypergraphType::EdgeAndNodeWeights,
            "Hypergraph in file has wrong type");
 
-    bool has_hyperedge_weights = hypergraph_type == HypergraphWeightType::EdgeWeights ||
-                                 hypergraph_type == HypergraphWeightType::EdgeAndNodeWeights ?
+    bool has_hyperedge_weights = hypergraph_type == HypergraphType::EdgeWeights ||
+                                 hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
                                  true : false;
-    bool has_hypernode_weights = hypergraph_type == HypergraphWeightType::NodeWeights ||
-                                 hypergraph_type == HypergraphWeightType::EdgeAndNodeWeights ?
+    bool has_hypernode_weights = hypergraph_type == HypergraphType::NodeWeights ||
+                                 hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
                                  true : false;
 
     index_vector.reserve(num_hyperedges + /*sentinel*/ 1);
@@ -112,28 +110,28 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
   }
 }
 
-inline void writeHypernodeWeights(std::ofstream& out_stream, const HypergraphType& hypergraph) {
+inline void writeHypernodeWeights(std::ofstream& out_stream, const Hypergraph& hypergraph) {
   forall_hypernodes(hn, hypergraph) {
     out_stream << hypergraph.nodeWeight(*hn) << std::endl;
   } endfor
 }
 
-inline void writeHGRHeader(std::ofstream& out_stream, const HypergraphType& hypergraph) {
+inline void writeHGRHeader(std::ofstream& out_stream, const Hypergraph& hypergraph) {
   out_stream << hypergraph.numEdges() << " " << hypergraph.numNodes() << " ";
-  if (hypergraph.type() != HypergraphWeightType::Unweighted) {
+  if (hypergraph.type() != HypergraphType::Unweighted) {
     out_stream << static_cast<int>(hypergraph.type());
   }
   out_stream << std::endl;
 }
 
-inline void writeHypergraphFile(const HypergraphType& hypergraph, const std::string& filename) {
+inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for hypergraph file specified");
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
 
   forall_hyperedges(he, hypergraph) {
-    if (hypergraph.type() == HypergraphWeightType::EdgeWeights ||
-        hypergraph.type() == HypergraphWeightType::EdgeAndNodeWeights) {
+    if (hypergraph.type() == HypergraphType::EdgeWeights ||
+        hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
       out_stream << hypergraph.edgeWeight(*he) << " ";
     }
     forall_pins(pin, *he, hypergraph) {
@@ -142,18 +140,18 @@ inline void writeHypergraphFile(const HypergraphType& hypergraph, const std::str
       out_stream << std::endl;
   } endfor
 
-  if (hypergraph.type() == HypergraphWeightType::NodeWeights ||
-      hypergraph.type() == HypergraphWeightType::EdgeAndNodeWeights) {
+  if (hypergraph.type() == HypergraphType::NodeWeights ||
+      hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
     writeHypernodeWeights(out_stream, hypergraph);
   }
   out_stream.close();
 }
 
-inline void writeHypergraphForhMetisPartitioning(const HypergraphType& hypergraph,
+inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
                                                  const std::string& filename,
                                                  const Mapping& mapping) {
   ASSERT(!filename.empty(), "No filename for hMetis initial partitioning file specified");
-  ASSERT(hypergraph.type() == HypergraphWeightType::EdgeAndNodeWeights,
+  ASSERT(hypergraph.type() == HypergraphType::EdgeAndNodeWeights,
          "Method can only be called for coarsened hypergraphs");
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
@@ -186,7 +184,7 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
   }
 }
 
-inline void writePartitionFile(const HypergraphType& hypergraph, const std::string& filename) {
+inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
   forall_hypernodes(hn, hypergraph) {

@@ -8,22 +8,22 @@
 #include <iostream>
 
 #include "lib/core/StaticDispatcher.h"
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/Configuration.h"
 
-using datastructure::HypergraphType;
+using defs::Hypergraph;
 using core::Parameters;
 
 namespace partition {
 
 struct RefinerParameters : public Parameters {
-  RefinerParameters(HypergraphType& hgr, Configuration& conf) :
+  RefinerParameters(Hypergraph& hgr, Configuration& conf) :
       hypergraph(hgr),
       config(conf) {}
-  HypergraphType& hypergraph;
+  Hypergraph& hypergraph;
   Configuration config;
 };
 

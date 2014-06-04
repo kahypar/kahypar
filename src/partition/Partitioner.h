@@ -14,7 +14,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
@@ -27,11 +26,11 @@
 #include "partition/Metrics.h"
 #endif
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeWeight;
-using datastructure::PartitionID;
-using datastructure::HypernodeID;
+using defs::Hypergraph;
+using defs::HypernodeWeight;
+using defs::HyperedgeWeight;
+using defs::PartitionID;
+using defs::HypernodeID;
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
@@ -47,7 +46,7 @@ class Partitioner {
   explicit Partitioner(Configuration& config) :
     _config(config) { }
 
-  void partition(HypergraphType& hypergraph, ICoarsener& coarsener, IRefiner& refiner);
+  void partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner);
 
   private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
@@ -63,20 +62,20 @@ class Partitioner {
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
 
-  void removeLargeHyperedges(HypergraphType& hg, std::vector<HyperedgeID>& removed_hyperedges);
-  void restoreLargeHyperedges(HypergraphType& hg, std::vector<HyperedgeID>& removed_hyperedges);
-  void partitionUnpartitionedPins(HyperedgeID he, HypergraphType& hg,
+  void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
+  void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
+  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
                                   PartitionWeights& partition_weights);
-  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, HypergraphType& hg,
+  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
                                           PartitionWeights& partition_weights);
-  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, HypergraphType& hg,
+  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
                                 PartitionWeights& partition_weights);
-  void distributePinsAcrossPartitions(HyperedgeID he, HypergraphType& hg,
+  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
                                       PartitionWeights& partition_weights);
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
-                                            const HypergraphType& hg);
-  void performInitialPartitioning(HypergraphType& hg);
+                                            const Hypergraph& hg);
+  void performInitialPartitioning(Hypergraph& hg);
 
   const Configuration& _config;
 };

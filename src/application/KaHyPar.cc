@@ -19,7 +19,6 @@
 #include "lib/core/PolicyRegistry.h"
 #include "lib/core/StaticDispatcher.h"
 #include "lib/core/Typelist.h"
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
@@ -75,14 +74,14 @@ using partition::RefinerParameters;
 
 using serializer::SQLPlotToolsSerializer;
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeID;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
-using datastructure::HyperedgeWeightVector;
-using datastructure::HypernodeWeightVector;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HypernodeWeight;
+using defs::HyperedgeID;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
+using defs::HyperedgeWeightVector;
+using defs::HypernodeWeightVector;
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e")) {
@@ -181,10 +180,10 @@ void setDefaults(Configuration& config) {
 }
 
 struct CoarsenerFactoryParameters {
-  CoarsenerFactoryParameters(HypergraphType& hgr, Configuration& conf) :
+  CoarsenerFactoryParameters(Hypergraph& hgr, Configuration& conf) :
     hypergraph(hgr),
     config(conf) { }
-  HypergraphType& hypergraph;
+  Hypergraph& hypergraph;
   Configuration& config;
 };
 
@@ -284,7 +283,7 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  HypergraphType hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   HypernodeWeight hypergraph_weight = 0;
   forall_hypernodes(hn, hypergraph) {

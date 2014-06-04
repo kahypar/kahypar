@@ -7,15 +7,14 @@
 
 #include <limits>
 
-
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/definitions.h"
 
-using datastructure::HyperedgeID;
-using datastructure::HypernodeWeight;
-using datastructure::HypergraphType;
-using datastructure::IncidenceIterator;
+using defs::HyperedgeID;
+using defs::HypernodeWeight;
+using defs::Hypergraph;
+using defs::IncidenceIterator;
 using defs::RatingType;
+using defs::PartitionID;
 
 namespace partition {
 struct HyperedgeRating {
@@ -33,7 +32,7 @@ struct HyperedgeRating {
 };
 
 struct EdgeWeightDivGeoMeanPinWeight {
-  static HyperedgeRating rate(HyperedgeID he, const HypergraphType& hypergraph,
+  static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
                               HypernodeWeight threshold_node_weight) {
     IncidenceIterator pins_begin, pins_end;
     std::tie(pins_begin, pins_end) = hypergraph.pins(he);

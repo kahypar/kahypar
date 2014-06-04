@@ -13,7 +13,7 @@
 namespace ip = boost::interprocess;
 
 namespace serializer {
-void SQLPlotToolsSerializer::serialize(const Configuration& config, const HypergraphType& hypergraph,
+void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
                                        const ICoarsener& coarsener, const IRefiner& refiner,
                                        const std::chrono::duration<double>& elapsed_seconds,
                                        const std::string& filename) {

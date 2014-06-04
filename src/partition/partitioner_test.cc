@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
@@ -19,9 +19,9 @@
 using::testing::Test;
 using::testing::Eq;
 
-using datastructure::HypergraphType;
-using datastructure::HyperedgeIndexVector;
-using datastructure::HyperedgeVector;
+using defs::Hypergraph;
+using defs::HyperedgeIndexVector;
+using defs::HyperedgeVector;
 
 using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
@@ -34,9 +34,9 @@ typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
 
 class APartitioner : public Test {
   public:
-  APartitioner(HypergraphType* graph =
-                 new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                    HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
+  APartitioner(Hypergraph* graph =
+                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
     partitioner(config),
@@ -53,7 +53,7 @@ class APartitioner : public Test {
                                                      * ceil(7 / static_cast<double>(config.partitioning.k));
   }
 
-  std::unique_ptr<HypergraphType> hypergraph;
+  std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
   Partitioner partitioner;
   std::unique_ptr<ICoarsener> coarsener;
@@ -127,8 +127,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        TriesToMinimizesCutIfNoPinOfRemainingHyperedgeIsPartitioned) {
-  hypergraph.reset(new HypergraphType(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
-                                      HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
+  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
+                                  HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
   std::vector<HyperedgeID> removed_hyperedges { 1, 2 };
   std::vector<HypernodeWeight> partition_sizes { 1, 1 };
@@ -146,8 +146,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        TriesToMinimizesCutIfOnlyOnePartitionIsUsed) {
-  hypergraph.reset(new HypergraphType(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
-                                      HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
+  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
+                                  HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);
@@ -168,8 +168,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized) {
-  hypergraph.reset(new HypergraphType(7, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 8 },
-                                      HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
+  hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 8 },
+                                  HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
   std::vector<HyperedgeID> removed_hyperedges { 1 };
   hypergraph->changeNodePartition(0, INVALID_PARTITION, 0);
   hypergraph->changeNodePartition(1, INVALID_PARTITION, 1);

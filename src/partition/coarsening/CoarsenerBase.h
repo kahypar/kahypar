@@ -11,18 +11,18 @@
 #include <vector>
 
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
-using datastructure::HyperedgeID;
-using datastructure::HypernodeWeight;
-using datastructure::HyperedgeWeight;
-using datastructure::IncidenceIterator;
-using datastructure::HypernodeIterator;
+using defs::Hypergraph;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::HypernodeWeight;
+using defs::HyperedgeWeight;
+using defs::IncidenceIterator;
+using defs::HypernodeIterator;
 
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
@@ -64,7 +64,7 @@ class CoarsenerBase {
   typedef std::unordered_map<HypernodeID, HyperedgeWeight, hash_nodes> SingleHEWeightsHashtable;
 
   public:
-  CoarsenerBase(HypergraphType& hypergraph, const Configuration& config) :
+  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _history(),
@@ -261,7 +261,7 @@ class CoarsenerBase {
               improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
   }
 
-  HypergraphType& _hg;
+  Hypergraph& _hg;
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;

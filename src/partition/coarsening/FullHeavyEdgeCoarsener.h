@@ -12,12 +12,12 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
 
-using datastructure::HypergraphType;
-using datastructure::HypernodeID;
+using defs::Hypergraph;
+using defs::HypernodeID;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -42,7 +42,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
 
-  FullHeavyEdgeCoarsener(HypergraphType& hypergraph, const Configuration& config) :
+  FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
 
   ~FullHeavyEdgeCoarsener() { }

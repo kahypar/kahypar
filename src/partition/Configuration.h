@@ -10,17 +10,15 @@
 #include <sstream>
 #include <string>
 
-#include "lib/datastructure/Hypergraph.h"
+#include "lib/definitions.h"
 
-using datastructure::HypergraphType;
+using defs::HypernodeWeight;
+using defs::HypernodeID;
+using defs::HyperedgeID;
+using defs::PartitionID;
 
 namespace partition {
 struct Configuration {
-  typedef typename HypergraphType::HypernodeWeight HypernodeWeight;
-  typedef typename HypergraphType::HypernodeID HypernodeID;
-  typedef typename HypergraphType::HyperedgeID HyperedgeID;
-  typedef typename HypergraphType::PartitionID PartitionID;
-
   struct CoarseningParameters {
     CoarseningParameters() :
       threshold_node_weight(0),

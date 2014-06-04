@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_
-#define SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#ifndef SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
+#define SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -20,7 +20,6 @@
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
-using defs::PartitionID;
 using core::Empty;
 
 namespace datastructure {
@@ -29,26 +28,26 @@ static const bool dbg_hypergraph_contraction = false;
 static const bool dbg_hypergraph_restore_edge = false;
 
 // external macros: Causion when modifying hypergraph during iteration!
-#define forall_hypernodes(hn, graph)                       \
-  {                                                        \
-    datastructure::HypernodeIterator __hn_begin, __hn_end; \
-    std::tie(__hn_begin, __hn_end) = graph.nodes();        \
-    for (datastructure::HypernodeIterator hn = __hn_begin; hn != __hn_end; ++hn) {
-#define forall_hyperedges(he, graph)                       \
-  {                                                        \
-    datastructure::HyperedgeIterator __he_begin, __he_end; \
-    std::tie(__he_begin, __he_end) = graph.edges();        \
-    for (datastructure::HyperedgeIterator he = __he_begin; he != __he_end; ++he) {
+#define forall_hypernodes(hn, graph)                    \
+  {                                                     \
+  typename Hypergraph::HypernodeIterator __hn_begin, __hn_end;  \
+  std::tie(__hn_begin, __hn_end) = graph.nodes();                       \
+  for (typename Hypergraph::HypernodeIterator hn = __hn_begin; hn != __hn_end; ++hn) {
+#define forall_hyperedges(he, graph)                    \
+  {                                                     \
+  typename Hypergraph::HyperedgeIterator __he_begin, __he_end;  \
+  std::tie(__he_begin, __he_end) = graph.edges();                       \
+  for (typename Hypergraph::HyperedgeIterator he = __he_begin; he != __he_end; ++he) {
 #define forall_incident_hyperedges(he, hn, graph)                     \
   {                                                                   \
-    datastructure::IncidenceIterator __inc_he_begin, __inc_he_end;    \
-    std::tie(__inc_he_begin, __inc_he_end) = graph.incidentEdges(hn); \
-    for (datastructure::IncidenceIterator he = __inc_he_begin; he != __inc_he_end; ++he) {
-#define forall_pins(pin, he, graph)                          \
-  {                                                          \
-    datastructure::IncidenceIterator __pin_begin, __pin_end; \
-    std::tie(__pin_begin, __pin_end) = graph.pins(he);       \
-    for (datastructure::IncidenceIterator pin = __pin_begin; pin != __pin_end; ++pin) {
+  typename Hypergraph::IncidenceIterator __inc_he_begin, __inc_he_end;  \
+  std::tie(__inc_he_begin, __inc_he_end) = graph.incidentEdges(hn);     \
+  for (typename Hypergraph::IncidenceIterator he = __inc_he_begin; he != __inc_he_end; ++he) {
+#define forall_pins(pin, he, graph)                       \
+  {                                                       \
+  typename Hypergraph::IncidenceIterator __pin_begin, __pin_end;        \
+  std::tie(__pin_begin, __pin_end) = graph.pins(he);                    \
+  for (typename Hypergraph::IncidenceIterator pin = __pin_begin; pin != __pin_end; ++pin) {
 #define endfor \
   }            \
   }
@@ -75,13 +74,6 @@ static const bool dbg_hypergraph_restore_edge = false;
          __pin_end = hyperedge(he).firstInvalidEntry(); __j < __pin_end; ++__j) { \
       HypernodeID hn = _incidence_array[__j];
 
-enum class HypergraphWeightType : int8_t {
-  Unweighted = 0,
-  EdgeWeights = 1,
-  NodeWeights = 10,
-  EdgeAndNodeWeights = 11,
-};
-
 template <typename HypernodeType_ = Mandatory,
           typename HyperedgeType_ = Mandatory,
           typename HypernodeWeightType_ = Mandatory,
@@ -90,7 +82,7 @@ template <typename HypernodeType_ = Mandatory,
           class HypernodeData = Empty,
           class HyperedgeData = Empty
           >
-class Hypergraph {
+class GenericHypergraph {
   public:
   typedef HypernodeType_ HypernodeID;
   typedef HyperedgeType_ HyperedgeID;
@@ -101,6 +93,14 @@ class Hypergraph {
   typedef std::vector<HypernodeID> HyperedgeVector;
   typedef std::vector<HypernodeWeight> HypernodeWeightVector;
   typedef std::vector<HyperedgeWeight> HyperedgeWeightVector;
+  enum { kInvalidPartition = -1 };
+
+  enum class Type : int8_t {
+    Unweighted = 0,
+    EdgeWeights = 1,
+    NodeWeights = 10,
+    EdgeAndNodeWeights = 11,
+  };
 
   private:
   typedef unsigned int VertexID;
@@ -111,8 +111,7 @@ class Hypergraph {
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
   typedef typename std::vector<VertexID>::iterator HeHandleIterator;
 
-  const int INVALID_COUNT = std::numeric_limits<int>::min();
-  const PartitionID kInvalidPartition = defs::INVALID_PARTITION;
+  const int kInvalidCount = std::numeric_limits<int>::min();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -311,7 +310,7 @@ class Hypergraph {
   typedef VertexIterator<HyperEdge> HyperedgeIterator;
   typedef Memento ContractionMemento;
 
-  Hypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
+  GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const HyperedgeIndexVector& index_vector,
              const HyperedgeVector& edge_vector,
              const HyperedgeWeightVector* hyperedge_weights = nullptr,
@@ -319,7 +318,7 @@ class Hypergraph {
     _num_hypernodes(num_hypernodes),
     _num_hyperedges(num_hyperedges),
     _num_pins(edge_vector.size()),
-    _type(HypergraphWeightType::Unweighted),
+    _type(Type::Unweighted),
     _current_num_hypernodes(_num_hypernodes),
     _current_num_hyperedges(_num_hyperedges),
     _current_num_pins(_num_pins),
@@ -374,11 +373,11 @@ class Hypergraph {
     }
 
     if (has_hyperedge_weights && has_hypernode_weights) {
-      _type = HypergraphWeightType::EdgeAndNodeWeights;
+      _type = Type::EdgeAndNodeWeights;
     } else if (has_hyperedge_weights) {
-      _type = HypergraphWeightType::EdgeWeights;
+      _type = Type::EdgeWeights;
     } else if (has_hypernode_weights) {
-      _type = HypergraphWeightType::NodeWeights;
+      _type = Type::NodeWeights;
     }
 
     calculatePartitionPinCounts();
@@ -542,7 +541,7 @@ class Hypergraph {
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
     setPartitionIndex(memento.v, partitionIndex(memento.u));
-    ASSERT(partitionIndex(memento.v) != defs::INVALID_PARTITION,
+    ASSERT(partitionIndex(memento.v) != kInvalidPartition,
            "PartitionID " << partitionIndex(memento.u) << " of representative HN " << memento.u <<
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
@@ -734,9 +733,9 @@ class Hypergraph {
              "Pincounts of HE " << he << " do not match the size of the HE");
   }
 
-  HypergraphWeightType type() const {
+  Type type() const {
     if (isModified()) {
-      return HypergraphWeightType::EdgeAndNodeWeights;
+      return Type::EdgeAndNodeWeights;
     } else {
       return _type;
     }
@@ -864,9 +863,9 @@ class Hypergraph {
   void invalidatePartitionPinCounts(HyperedgeID he) {
     ASSERT(hyperedge(he).isDisabled(),
            "Invalidation of pin counts only allowed for disabled hyperedges");
-    _partition_pin_counts[3 * he] = INVALID_COUNT;
-    _partition_pin_counts[3 * he + 1] = INVALID_COUNT;
-    _partition_pin_counts[3 * he + 2] = INVALID_COUNT;
+    _partition_pin_counts[3 * he] = kInvalidCount;
+    _partition_pin_counts[3 * he + 1] = kInvalidCount;
+    _partition_pin_counts[3 * he + 2] = kInvalidCount;
   }
 
   void resetPartitionPinCounts(HyperedgeID he) {
@@ -990,17 +989,17 @@ class Hypergraph {
 
   // To avoid code duplication we implement non-const version in terms of const version
   HyperNode & hypernode(HypernodeID u) {
-    return const_cast<HyperNode&>(static_cast<const Hypergraph&>(*this).hypernode(u));
+    return const_cast<HyperNode&>(static_cast<const GenericHypergraph&>(*this).hypernode(u));
   }
 
   HyperEdge & hyperedge(HyperedgeID e) {
-    return const_cast<HyperEdge&>(static_cast<const Hypergraph&>(*this).hyperedge(e));
+    return const_cast<HyperEdge&>(static_cast<const GenericHypergraph&>(*this).hyperedge(e));
   }
 
   const HypernodeID _num_hypernodes;
   const HyperedgeID _num_hyperedges;
   const HypernodeID _num_pins;
-  HypergraphWeightType _type;
+  Type _type;
 
   HypernodeID _current_num_hypernodes;
   HyperedgeID _current_num_hyperedges;
@@ -1021,15 +1020,15 @@ class Hypergraph {
   boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
 
   template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
-  friend bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
-                                const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
+  friend bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
+                                const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
 
-  DISALLOW_COPY_AND_ASSIGN(Hypergraph);
+  DISALLOW_COPY_AND_ASSIGN(GenericHypergraph);
 };
 
 template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
-bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
-                       const Hypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual) {
+bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
+                       const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual) {
   ASSERT(expected._current_num_hypernodes == actual._current_num_hypernodes,
          "Expected: _current_num_hypernodes= " << expected._current_num_hypernodes << "\n"
          << "  Actual: _current_num_hypernodes= " << actual._current_num_hypernodes);
@@ -1057,21 +1056,5 @@ bool verifyEquivalence(const Hypergraph<HNType, HEType, HNWType, HEWType, PartTy
          expected._hyperedges == actual._hyperedges &&
          expected_incidence_array == actual_incidence_array;
 }
-
-typedef Hypergraph<defs::HyperNodeID, defs::HyperEdgeID, defs::HyperNodeWeight,
-                   defs::HyperEdgeWeight, defs::PartitionID> HypergraphType;
-
-typedef HypergraphType::HypernodeID HypernodeID;
-typedef HypergraphType::HyperedgeID HyperedgeID;
-typedef HypergraphType::PartitionID PartitionID;
-typedef HypergraphType::HypernodeWeight HypernodeWeight;
-typedef HypergraphType::HyperedgeWeight HyperedgeWeight;
-typedef HypergraphType::HypernodeIterator HypernodeIterator;
-typedef HypergraphType::HyperedgeIterator HyperedgeIterator;
-typedef HypergraphType::IncidenceIterator IncidenceIterator;
-typedef HypergraphType::HyperedgeIndexVector HyperedgeIndexVector;
-typedef HypergraphType::HyperedgeVector HyperedgeVector;
-typedef HypergraphType::HyperedgeWeightVector HyperedgeWeightVector;
-typedef HypergraphType::HypernodeWeightVector HypernodeWeightVector;
 } // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_HYPERGRAPH_H_
+#endif  // SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_

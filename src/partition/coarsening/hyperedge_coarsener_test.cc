@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
+
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
@@ -15,15 +15,16 @@
 using::testing::UnorderedElementsAre;
 
 using datastructure::verifyEquivalence;
+using defs::Hypergraph;
 
 namespace partition {
 typedef HyperedgeCoarsener<EdgeWeightDivGeoMeanPinWeight> HyperedgeCoarsenerType;
 
 class AHyperedgeCoarsener : public Test {
   public:
-  explicit AHyperedgeCoarsener(HypergraphType* graph =
-                                 new HypergraphType(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                                    HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
+  explicit AHyperedgeCoarsener(Hypergraph* graph =
+                                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
     coarsener(*hypergraph, config),
@@ -31,7 +32,7 @@ class AHyperedgeCoarsener : public Test {
     config.coarsening.threshold_node_weight = 5;
   }
 
-  std::unique_ptr<HypergraphType> hypergraph;
+  std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
   HyperedgeCoarsenerType coarsener;
   std::unique_ptr<IRefiner> refiner;
@@ -62,8 +63,8 @@ TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeight
 }
 
 TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
-  HypergraphType hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
-                            HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
+  Hypergraph hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
+                        HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
@@ -76,8 +77,8 @@ TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
 }
 
 TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
-  HypergraphType hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
-                            HyperedgeVector { 0, 1, 0, 1, 2 });
+  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+                        HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
@@ -90,8 +91,8 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
 }
 
 TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
-  HypergraphType hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
-                            HyperedgeVector { 0, 1, 0, 2, 1, 2 });
+  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                        HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
@@ -116,8 +117,8 @@ TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAf
 }
 
 TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
-  HypergraphType hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
-                            HyperedgeVector { 0, 1, 0, 2, 1, 2 });
+  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+                        HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
@@ -132,8 +133,8 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
 }
 
 TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
-  HypergraphType hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
-                            HyperedgeVector { 0, 1, 0, 1, 2 });
+  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+                        HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.threshold_node_weight = 5;
@@ -148,8 +149,8 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
 }
 
 TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
-  HypergraphType input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
-                                  HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
+  Hypergraph input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
   config.coarsening.threshold_node_weight = 10;
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
@@ -161,8 +162,8 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
 }
 
 TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
-  HypergraphType hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
-                            HyperedgeVector { 0, 1, 2 });
+  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
+                        HyperedgeVector { 0, 1, 2 });
   Configuration config;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
   std::vector<HypernodeID> refinement_nodes = { 42, 42, 42 };

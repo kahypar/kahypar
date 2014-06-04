@@ -7,17 +7,18 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/datastructure/Hypergraph_TestFixtures.h"
+#include "lib/definitions.h"
 
 using::testing::Eq;
 using::testing::Test;
 
 using defs::INVALID_PARTITION;
+using defs::HypernodeID;
+using defs::IncidenceIterator;
 
 namespace datastructure {
-typedef HypergraphType::ContractionMemento Memento;
-
+typedef Hypergraph::ContractionMemento Memento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
@@ -434,16 +435,16 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
 }
 
 TEST(AnUnconnectedHypernode, IsRemovedTogetherWithLastEdgeIfFlagIsTrue) {
-  HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
-                            HyperedgeVector { 0 });
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+                        HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0, true);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(false));
 }
 
 TEST(AnUnconnectedHypernode, IsNotRemovedTogetherWithLastEdgeIfFlagIsFalse) {
-  HypergraphType hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
-                            HyperedgeVector { 0 });
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+                        HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0, false);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
@@ -487,9 +488,9 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.removeEdge(1, false);
 
   // We do not use accessor pinCountInPartition here since this asserts HE validity
-  ASSERT_THAT(hypergraph._partition_pin_counts[3], Eq(hypergraph.INVALID_COUNT));
-  ASSERT_THAT(hypergraph._partition_pin_counts[4], Eq(hypergraph.INVALID_COUNT));
-  ASSERT_THAT(hypergraph._partition_pin_counts[5], Eq(hypergraph.INVALID_COUNT));
+  ASSERT_THAT(hypergraph._partition_pin_counts[3], Eq(hypergraph.kInvalidCount));
+  ASSERT_THAT(hypergraph._partition_pin_counts[4], Eq(hypergraph.kInvalidCount));
+  ASSERT_THAT(hypergraph._partition_pin_counts[5], Eq(hypergraph.kInvalidCount));
 }
 
 TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
