@@ -30,24 +30,28 @@ static const bool dbg_hypergraph_restore_edge = false;
 // external macros: Causion when modifying hypergraph during iteration!
 #define forall_hypernodes(hn, graph)                    \
   {                                                     \
-  typename Hypergraph::HypernodeIterator __hn_begin, __hn_end;  \
+  typedef typename std::remove_reference<decltype(graph)>::type::HypernodeIterator __Iter; \
+  __Iter __hn_begin, __hn_end; \
   std::tie(__hn_begin, __hn_end) = graph.nodes();                       \
-  for (typename Hypergraph::HypernodeIterator hn = __hn_begin; hn != __hn_end; ++hn) {
+  for (__Iter hn = __hn_begin; hn != __hn_end; ++hn) {
 #define forall_hyperedges(he, graph)                    \
-  {                                                     \
-  typename Hypergraph::HyperedgeIterator __he_begin, __he_end;  \
+  {                                                                     \
+  typedef typename std::remove_reference<decltype(graph)>::type::HyperedgeIterator __Iter; \
+  __Iter __he_begin, __he_end;  \
   std::tie(__he_begin, __he_end) = graph.edges();                       \
-  for (typename Hypergraph::HyperedgeIterator he = __he_begin; he != __he_end; ++he) {
+  for (__Iter he = __he_begin; he != __he_end; ++he) {
 #define forall_incident_hyperedges(he, hn, graph)                     \
   {                                                                   \
-  typename Hypergraph::IncidenceIterator __inc_he_begin, __inc_he_end;  \
+  typedef typename std::remove_reference<decltype(graph)>::type::IncidenceIterator __Iter; \
+  __Iter __inc_he_begin, __inc_he_end;  \
   std::tie(__inc_he_begin, __inc_he_end) = graph.incidentEdges(hn);     \
-  for (typename Hypergraph::IncidenceIterator he = __inc_he_begin; he != __inc_he_end; ++he) {
+  for (__Iter he = __inc_he_begin; he != __inc_he_end; ++he) {
 #define forall_pins(pin, he, graph)                       \
   {                                                       \
-  typename Hypergraph::IncidenceIterator __pin_begin, __pin_end;        \
+  typedef typename std::remove_reference<decltype(graph)>::type::IncidenceIterator __Iter; \
+  __Iter __pin_begin, __pin_end;        \
   std::tie(__pin_begin, __pin_end) = graph.pins(he);                    \
-  for (typename Hypergraph::IncidenceIterator pin = __pin_begin; pin != __pin_end; ++pin) {
+  for (__Iter pin = __pin_begin; pin != __pin_end; ++pin) {
 #define endfor \
   }            \
   }
