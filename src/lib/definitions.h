@@ -1,8 +1,5 @@
 #ifndef LIB_DEFINITIONS_H_
 #define LIB_DEFINITIONS_H_
-
-#include <vector>
-
 #include "lib/datastructure/GenericHypergraph.h"
 
 namespace defs {
