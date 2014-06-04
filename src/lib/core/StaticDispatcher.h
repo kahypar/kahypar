@@ -1,14 +1,9 @@
 #ifndef SRC_LIB_CORE_STATICDISPATCHER_H_
 #define SRC_LIB_CORE_STATICDISPATCHER_H_
 
-#include "lib/datastructure/Hypergraph.h"
 #include "lib/core/Typelist.h"
 #include "lib/core/Parameters.h"
 #include "lib/core/Mandatory.h"
-#include "partition/Configuration.h"
-
-using datastructure::HypergraphType;
-using partition::Configuration;
 
 namespace core {
 template<

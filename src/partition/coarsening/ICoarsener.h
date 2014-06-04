@@ -8,9 +8,10 @@
 #include <string>
 
 #include "lib/macros.h"
-#include "partition/refinement/IRefiner.h"
 
 namespace partition {
+class IRefiner;
+
 class ICoarsener {
   public:
   void coarsen(int limit) {
