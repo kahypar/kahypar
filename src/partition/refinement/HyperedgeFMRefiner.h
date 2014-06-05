@@ -102,30 +102,31 @@ class HyperedgeFMRefiner : public IRefiner {
   void initializeImpl() final {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
-    forall_hypernodes(hn, _hg) {
-      ASSERT(_hg.partitionIndex(*hn) != Hypergraph::kInvalidPartition,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
-    } endfor
 
-      ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
-               HypernodeWeight total_weight = 0;
-               forall_hypernodes(hn, _hg) {
-                 total_weight += _hg.nodeWeight(*hn);
-               } endfor
-               return total_weight;
-             } ()
-             , "Calculated partition sizes do not match those induced by hypergraph");
+    for (auto hn : _hg.nodes()) {
+      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+             "TwoWayFmRefiner cannot work with HNs in invalid partition");
+      _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
+    }
+
+    ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
+             HypernodeWeight total_weight = 0;
+             for (auto hn : _hg.nodes()) {
+               total_weight += _hg.nodeWeight(hn);
+             }
+             return total_weight;
+           } ()
+           , "Calculated partition sizes do not match those induced by hypergraph");
     _is_initialized = true;
   }
 
   void activateIncidentCutHyperedges(HypernodeID hn) {
     DBG(false, "activating cut hyperedges of hypernode " << hn);
-    forall_incident_hyperedges(he, hn, _hg) {
-      if (isCutHyperedge(*he) && !isMarkedAsMoved(*he)) {
-        activateHyperedge(*he);
+    for (auto he : _hg.incidentEdges(hn)) {
+      if (isCutHyperedge(he) && !isMarkedAsMoved(he)) {
+        activateHyperedge(he);
       }
-    } endfor
+    }
   }
 
   void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
@@ -241,27 +242,27 @@ class HyperedgeFMRefiner : public IRefiner {
     if (isCutHyperedge(he)) {
       _gain_indicator.reset();
       Gain gain = _hg.edgeWeight(he);
-      forall_pins(pin, he, _hg) {
-        if (_hg.partitionIndex(*pin) != from) { continue; }
-        DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << *pin);
-        forall_incident_hyperedges(incident_he, *pin, _hg) {
-          if (*incident_he == he || _gain_indicator.isAlreadyEvaluated(*incident_he)) { continue; }
-          if (!isCutHyperedge(*incident_he) &&
-              !isNestedIntoInPartition(*incident_he, he, from)) {
-            gain -= _hg.edgeWeight(*incident_he);
+      for (auto pin : _hg.pins(he)) {
+        if (_hg.partitionIndex(pin) != from) { continue; }
+        DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << pin);
+        for (auto incident_he : _hg.incidentEdges(pin)) {
+          if (incident_he == he || _gain_indicator.isAlreadyEvaluated(incident_he)) { continue; }
+          if (!isCutHyperedge(incident_he) &&
+              !isNestedIntoInPartition(incident_he, he, from)) {
+            gain -= _hg.edgeWeight(incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
-                "pin " << *pin << " HE: " << *incident_he << " gain-="
-                << _hg.edgeWeight(*incident_he) << ": " << gain);
-          } else if (isCutHyperedge(*incident_he) &&
-                     isNestedIntoInPartition(*incident_he, he, from)) {
-            gain += _hg.edgeWeight(*incident_he);
+                "pin " << pin << " HE: " << incident_he << " gain-="
+                << _hg.edgeWeight(incident_he) << ": " << gain);
+          } else if (isCutHyperedge(incident_he) &&
+                     isNestedIntoInPartition(incident_he, he, from)) {
+            gain += _hg.edgeWeight(incident_he);
             DBG(dbg_refinement_he_fm_gain_computation,
-                "pin " << *pin << " HE: " << *incident_he << " g+="
-                << _hg.edgeWeight(*incident_he) << ": " << gain);
+                "pin " << pin << " HE: " << incident_he << " g+="
+                << _hg.edgeWeight(incident_he) << ": " << gain);
           }
-          _gain_indicator.markAsEvaluated(*incident_he);
-        } endfor
-      } endfor
+          _gain_indicator.markAsEvaluated(incident_he);
+        }
+      }
       return gain;
     } else {
       return 0;
@@ -275,16 +276,16 @@ class HyperedgeFMRefiner : public IRefiner {
       return false;
     }
     resetContainedHypernodes();
-    forall_pins(pin, outer_he, _hg) {
-      if (_hg.partitionIndex(*pin) == relevant_partition) {
-        markAsContained(*pin);
+    for (auto pin : _hg.pins(outer_he)) {
+      if (_hg.partitionIndex(pin) == relevant_partition) {
+        markAsContained(pin);
       }
-    } endfor forall_pins(pin, inner_he, _hg) {
-      if (_hg.partitionIndex(*pin) == relevant_partition && !isContained(*pin)) {
+    }
+    for (auto pin : _hg.pins(inner_he)) {
+      if (_hg.partitionIndex(pin) == relevant_partition && !isContained(pin)) {
         return false;
       }
     }
-    endfor
     return true;
   }
 
@@ -363,11 +364,11 @@ class HyperedgeFMRefiner : public IRefiner {
 
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
     HypernodeWeight pins_to_move_weight = 0;
-    forall_pins(pin, he, _hg) {
-      if (_hg.partitionIndex(*pin) == from) {
-        pins_to_move_weight += _hg.nodeWeight(*pin);
+    for (auto pin : _hg.pins(he)) {
+      if (_hg.partitionIndex(pin) == from) {
+        pins_to_move_weight += _hg.nodeWeight(pin);
       }
-    } endfor
+    }
     return _partition_size[to] + pins_to_move_weight <= _config.partitioning.partition_size_upper_bound;
   }
 
@@ -397,14 +398,14 @@ class HyperedgeFMRefiner : public IRefiner {
 
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
     int curr_index = _movement_indices[step];
-    forall_pins(pin, he, _hg) {
-      if (_hg.partitionIndex(*pin) == from) {
-        _hg.changeNodePartition(*pin, from, to);
-        _partition_size[from] -= _hg.nodeWeight(*pin);
-        _partition_size[to] += _hg.nodeWeight(*pin);
-        _performed_moves[curr_index++] = *pin;
+    for (auto pin : _hg.pins(he)) {
+      if (_hg.partitionIndex(pin) == from) {
+        _hg.changeNodePartition(pin, from, to);
+        _partition_size[from] -= _hg.nodeWeight(pin);
+        _partition_size[to] += _hg.nodeWeight(pin);
+        _performed_moves[curr_index++] = pin;
       }
-    } endfor
+    }
     if (_pq[to]->contains(he)) {
       _pq[to]->remove(he);
     }
@@ -415,51 +416,51 @@ class HyperedgeFMRefiner : public IRefiner {
 
   void updateNeighbours(HyperedgeID moved_he) {
     _update_indicator.reset();
-    forall_pins(pin, moved_he, _hg) {
-      DBG(dbg_refinement_he_fm_update_level, "--->Considering PIN " << *pin);
-      forall_incident_hyperedges(incident_he, *pin, _hg) {
-        if (*incident_he == moved_he) { continue; }
+    for (auto pin : _hg.pins(moved_he)) {
+      DBG(dbg_refinement_he_fm_update_level, "--->Considering PIN " << pin);
+      for (auto incident_he : _hg.incidentEdges(pin)) {
+        if (incident_he == moved_he) { continue; }
         DBG(dbg_refinement_he_fm_update_level, "-->Considering incident HE "
-            << *incident_he << "of PIN " << *pin);
-        forall_pins(incident_he_pin, *incident_he, _hg) {
-          if (*incident_he_pin == *pin) { continue; }
+            << incident_he << "of PIN " << pin);
+        for (auto incident_he_pin : _hg.pins(incident_he)) {
+          if (incident_he_pin == pin) { continue; }
           DBG(dbg_refinement_he_fm_update_level, "->Considering incident_he_pin "
-              << *incident_he_pin << " of HE " << *incident_he);
-          recomputeGainsForIncidentCutHyperedges(*incident_he_pin);
-        } endfor
-      } endfor
-    } endfor
+              << incident_he_pin << " of HE " << incident_he);
+          recomputeGainsForIncidentCutHyperedges(incident_he_pin);
+        }
+      }
+    }
   }
 
   void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) {
-    forall_incident_hyperedges(he, hn, _hg) {
-      if (_update_indicator.isAlreadyEvaluated(*he)) {
+    for (auto he : _hg.incidentEdges(hn)) {
+      if (_update_indicator.isAlreadyEvaluated(he)) {
         DBG(dbg_refinement_he_fm_update_evaluated,
-            "*** Skipping HE " << *he << " because it is already evaluated!");
+            "*** Skipping HE " << he << " because it is already evaluated!");
         continue;
       }
-      if (isMarkedAsMoved(*he)) {
-        ASSERT(!_pq[0]->contains(*he), "HE " << *he << "should not be present in PQ 0");
-        ASSERT(!_pq[1]->contains(*he), "HE " << *he << "should not be present in PQ 1");
-        DBG(dbg_refinement_he_fm_update_locked, "HE " << *he << " is locked");
-        _update_indicator.markAsEvaluated(*he);
+      if (isMarkedAsMoved(he)) {
+        ASSERT(!_pq[0]->contains(he), "HE " << he << "should not be present in PQ 0");
+        ASSERT(!_pq[1]->contains(he), "HE " << he << "should not be present in PQ 1");
+        DBG(dbg_refinement_he_fm_update_locked, "HE " << he << " is locked");
+        _update_indicator.markAsEvaluated(he);
         continue;
       }
       DBG(dbg_refinement_he_fm_update_level,
-          " Recomputing Gains for HE " << *he << "  incident to HN " << hn);
-      if (wasCutHyperedgeBeforeMove(*he)) {
-        if (isCutHyperedge(*he)) {
-          recomputeGainsForCutHyperedge(*he);
+          " Recomputing Gains for HE " << he << "  incident to HN " << hn);
+      if (wasCutHyperedgeBeforeMove(he)) {
+        if (isCutHyperedge(he)) {
+          recomputeGainsForCutHyperedge(he);
         } else {
-          removeNonCutHyperedgeFromQueues(*he);
+          removeNonCutHyperedgeFromQueues(he);
         }
-      } else if (isCutHyperedge(*he) && !isMarkedAsMoved(*he)) {
+      } else if (isCutHyperedge(he) && !isMarkedAsMoved(he)) {
         DBG(dbg_refinement_he_fm_update_cases,
-            " Activating HE " << *he << " because it has become a cut hyperedge");
-        activateHyperedge(*he);
+            " Activating HE " << he << " because it has become a cut hyperedge");
+        activateHyperedge(he);
       }
-      _update_indicator.markAsEvaluated(*he);
-    } endfor
+      _update_indicator.markAsEvaluated(he);
+    }
   }
 
   void removeNonCutHyperedgeFromQueues(HyperedgeID he) {

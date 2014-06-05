@@ -22,9 +22,9 @@ static const bool dbg_metrics_hyperedge_cut = false;
 
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
-  forall_hyperedges(he, hg) {
-    IncidenceIterator begin, end;
-    std::tie(begin, end) = hg.pins(*he);
+  for (auto he : hg.edges()) {
+    IncidenceIterator begin = hg.pins(he).begin();
+    IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
       continue;
     }
@@ -35,12 +35,12 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
 
     for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
       if (partition != hg.partitionIndex(*pin_it)) {
-        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << *he << " is cut-edge");
-        cut += hg.edgeWeight(*he);
+        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
+        cut += hg.edgeWeight(he);
         break;
       }
     }
-  } endfor
+  }
   return cut;
 }
 
@@ -48,9 +48,9 @@ template <typename CoarsendToHmetisMapping, typename Partition>
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                                     hg_to_hmetis, Partition& partitioning) {
   HyperedgeWeight cut = 0;
-  forall_hyperedges(he, hg) {
-    IncidenceIterator begin, end;
-    std::tie(begin, end) = hg.pins(*he);
+  for (auto he : hg.edges()) {
+    IncidenceIterator begin = hg.pins(he).begin();
+    IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
       continue;
     }
@@ -61,25 +61,25 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMappin
 
     for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
       if (partition != partitioning[hg_to_hmetis[*pin_it]]) {
-        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << *he << " is cut-edge");
-        cut += hg.edgeWeight(*he);
+        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
+        cut += hg.edgeWeight(he);
         break;
       }
     }
-  } endfor
+  }
   return cut;
 }
 
 inline double imbalance(const Hypergraph& hypergraph) {
   std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
-  forall_hypernodes(hn, hypergraph) {
-    ASSERT(hypergraph.partitionIndex(*hn) < 2 &&
-           hypergraph.partitionIndex(*hn) != Hypergraph::kInvalidPartition,
-           "Invalid partition index for hypernode " << *hn << ": " << hypergraph.partitionIndex(*hn));
-    partition_sizes[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
-    total_weight += hypergraph.nodeWeight(*hn);
-  } endfor
+  for (auto hn : hypergraph.nodes()) {
+    ASSERT(hypergraph.partitionIndex(hn) < 2 &&
+           hypergraph.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+           "Invalid partition index for hypernode " << hn << ": " << hypergraph.partitionIndex(hn));
+    partition_sizes[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
+    total_weight += hypergraph.nodeWeight(hn);
+  }
 
   HypernodeWeight max_weight = std::max(partition_sizes[0], partition_sizes[1]);
   return 2.0 * max_weight / total_weight - 1.0;
@@ -95,9 +95,9 @@ inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 
 template <class Weights>
 inline void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
-  forall_hypernodes(hn, hypergraph) {
-    weights[hypergraph.partitionIndex(*hn)] += hypergraph.nodeWeight(*hn);
-  } endfor
+  for (auto hn : hypergraph.nodes()) {
+    weights[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
+  }
 }
 } // namespace metrics
 

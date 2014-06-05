@@ -34,8 +34,8 @@ struct HyperedgeRating {
 struct EdgeWeightDivGeoMeanPinWeight {
   static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
                               HypernodeWeight threshold_node_weight) {
-    IncidenceIterator pins_begin, pins_end;
-    std::tie(pins_begin, pins_end) = hypergraph.pins(he);
+    IncidenceIterator pins_begin = hypergraph.pins(he).begin();
+    IncidenceIterator pins_end = hypergraph.pins(he).end();
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
 
     PartitionID partition = hypergraph.partitionIndex(*pins_begin);

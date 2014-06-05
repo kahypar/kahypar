@@ -111,9 +111,9 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
 }
 
 inline void writeHypernodeWeights(std::ofstream& out_stream, const Hypergraph& hypergraph) {
-  forall_hypernodes(hn, hypergraph) {
-    out_stream << hypergraph.nodeWeight(*hn) << std::endl;
-  } endfor
+  for (auto hn : hypergraph.nodes()) {
+    out_stream << hypergraph.nodeWeight(hn) << std::endl;
+  }
 }
 
 inline void writeHGRHeader(std::ofstream& out_stream, const Hypergraph& hypergraph) {
@@ -129,16 +129,16 @@ inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string&
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
 
-  forall_hyperedges(he, hypergraph) {
+  for (auto he : hypergraph.edges()) {
     if (hypergraph.type() == HypergraphType::EdgeWeights ||
         hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
-      out_stream << hypergraph.edgeWeight(*he) << " ";
+      out_stream << hypergraph.edgeWeight(he) << " ";
     }
-    forall_pins(pin, *he, hypergraph) {
-      out_stream << *pin + 1 << " ";
-    } endfor
-      out_stream << std::endl;
-  } endfor
+    for (auto pin : hypergraph.pins(he)) {
+      out_stream << pin + 1 << " ";
+    }
+    out_stream << std::endl;
+  }
 
   if (hypergraph.type() == HypergraphType::NodeWeights ||
       hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
@@ -156,16 +156,16 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
 
-  forall_hyperedges(he, hypergraph) {
-    out_stream << hypergraph.edgeWeight(*he) << " ";
-    forall_pins(pin, *he, hypergraph) {
-      ASSERT(mapping.find(*pin) != mapping.end(), "No mapping found for pin " << *pin);
-      out_stream << mapping.find(*pin)->second + 1 << " ";
-    } endfor
-      out_stream << std::endl;
-  } endfor
+  for (auto he : hypergraph.edges()) {
+    out_stream << hypergraph.edgeWeight(he) << " ";
+    for (auto pin : hypergraph.pins(he)) {
+      ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
+      out_stream << mapping.find(pin)->second + 1 << " ";
+    }
+    out_stream << std::endl;
+  }
 
-    writeHypernodeWeights(out_stream, hypergraph);
+  writeHypernodeWeights(out_stream, hypergraph);
   out_stream.close();
 }
 
@@ -187,9 +187,9 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
 inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
-  forall_hypernodes(hn, hypergraph) {
-    out_stream << hypergraph.partitionIndex(*hn) << std::endl;
-  } endfor
+  for (auto hn : hypergraph.nodes()) {
+    out_stream << hypergraph.partitionIndex(hn) << std::endl;
+  }
   out_stream.close();
 }
 } // namespace io

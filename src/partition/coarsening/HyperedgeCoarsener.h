@@ -78,9 +78,9 @@ class HyperedgeCoarsener : public ICoarsener,
 
       ASSERT([&]() {
                HypernodeWeight total_weight = 0;
-               forall_pins(pin, he_to_contract, _hg) {
-                 total_weight += _hg.nodeWeight(*pin);
-               } endfor
+               for (auto pin : _hg.pins(he_to_contract)) {
+                 total_weight += _hg.nodeWeight(pin);
+               }
                return total_weight;
              } () <= _config.coarsening.threshold_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight thsreshold");
@@ -145,9 +145,9 @@ class HyperedgeCoarsener : public ICoarsener,
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
     permutation.reserve(_hg.initialNumNodes());
-    forall_hyperedges(he, _hg) {
-      permutation.push_back(*he);
-    } endfor
+    for (auto he : _hg.edges()) {
+      permutation.push_back(he);
+    }
     Randomize::shuffleVector(permutation);
 
     Rating rating;
@@ -164,25 +164,25 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void reRateHyperedgesAffectedByContraction(HypernodeID representative) {
     Rating rating;
-    forall_incident_hyperedges(he, representative, _hg) {
-      DBG(false, "Looking at HE " << *he);
-      if (_pq.contains(*he)) {
-        rating = RatingPolicy::rate(*he, _hg, _config.coarsening.threshold_node_weight);
+    for (auto he : _hg.incidentEdges(representative)) {
+      DBG(false, "Looking at HE " << he);
+      if (_pq.contains(he)) {
+        rating = RatingPolicy::rate(he, _hg, _config.coarsening.threshold_node_weight);
         if (rating.valid) {
-          DBG(false, "Updating HE " << *he << " rating=" << rating.value);
-          _pq.updateKey(*he, rating.value);
+          DBG(false, "Updating HE " << he << " rating=" << rating.value);
+          _pq.updateKey(he, rating.value);
         } else {
-          _pq.remove(*he);
+          _pq.remove(he);
         }
       }
-    } endfor
+    }
   }
 
   HypernodeID performContraction(HyperedgeID he) {
     _history.emplace(HyperedgeCoarseningMemento());
     _history.top().mementos_begin = _contraction_mementos.size();
-    IncidenceIterator pins_begin, pins_end;
-    std::tie(pins_begin, pins_end) = _hg.pins(he);
+    IncidenceIterator pins_begin = _hg.pins(he).begin();
+    IncidenceIterator pins_end = _hg.pins(he).end();
     HypernodeID representative = *pins_begin;
     ++pins_begin;
     //TODO(schlag): modify hypergraph DS such that we can do index-based iteration over incidence array

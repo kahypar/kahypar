@@ -180,11 +180,10 @@ template <class Coarsener, class HypergraphT, class Config>
 void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
   config.coarsening.threshold_node_weight = 3;
   coarsener.coarsen(2);
-  Hypergraph& hgr = *hypergraph;
-  forall_hypernodes(hn, hgr) {
-    ASSERT_THAT(hgr.nodeWeight(*hn), Le(3));
-  } endfor
-    ASSERT_THAT(hypergraph->numNodes(), Eq(3));
+  for (auto hn : hypergraph->nodes()) {
+    ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));
+  }
+  ASSERT_THAT(hypergraph->numNodes(), Eq(3));
 }
 } // namespace partition
 

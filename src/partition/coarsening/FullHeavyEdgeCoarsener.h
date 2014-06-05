@@ -101,15 +101,15 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     Rating rating;
-    forall_incident_hyperedges(he, rep_node, _hg) {
-      forall_pins(pin, *he, _hg) {
-        if (!rerated_hypernodes[*pin] && !invalid_hypernodes[*pin]) {
-          rating = _rater.rate(*pin);
-          rerated_hypernodes[*pin] = 1;
-          updatePQandContractionTargets(*pin, rating, target, invalid_hypernodes);
+    for (auto he : _hg.incidentEdges(rep_node)) {
+      for (auto pin : _hg.pins(he)) {
+        if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
+          rating = _rater.rate(pin);
+          rerated_hypernodes[pin] = 1;
+          updatePQandContractionTargets(pin, rating, target, invalid_hypernodes);
         }
-      } endfor
-    } endfor
+      }
+    }
     rerated_hypernodes.reset();
   }
 

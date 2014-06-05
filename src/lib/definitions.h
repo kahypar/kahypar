@@ -26,6 +26,9 @@ typedef Hypergraph::HyperedgeIndexVector HyperedgeIndexVector;
 typedef Hypergraph::HyperedgeVector HyperedgeVector;
 typedef Hypergraph::HyperedgeWeightVector HyperedgeWeightVector;
 typedef Hypergraph::HypernodeWeightVector HypernodeWeightVector;
+typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
+typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
+typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
 
 } // namespace defs
 #endif  // LIB_DEFINITIONS_H_

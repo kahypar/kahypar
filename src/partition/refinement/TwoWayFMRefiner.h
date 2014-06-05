@@ -98,11 +98,11 @@ class TwoWayFMRefiner : public IRefiner {
   void initializeImpl(HyperedgeWeight max_gain) final {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
-    forall_hypernodes(hn, _hg) {
-      ASSERT(_hg.partitionIndex(*hn) != Hypergraph::kInvalidPartition,
+    for (auto hn : _hg.nodes()) {
+      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partitionIndex(*hn)] += _hg.nodeWeight(*hn);
-    } endfor
+      _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
+    }
 
 
 #ifdef USE_BUCKET_PQ
@@ -241,32 +241,32 @@ class TwoWayFMRefiner : public IRefiner {
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
     _just_activated.reset();
-    forall_incident_hyperedges(he, moved_node, _hg) {
-      HypernodeID new_size0 = _hg.pinCountInPartition(*he, 0);
-      HypernodeID new_size1 = _hg.pinCountInPartition(*he, 1);
+    for (auto he : _hg.incidentEdges(moved_node)) {
+      HypernodeID new_size0 = _hg.pinCountInPartition(he, 0);
+      HypernodeID new_size1 = _hg.pinCountInPartition(he, 1);
       HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
       HypernodeID old_size1 = new_size1 + (to == 1 ? -1 : 1);
 
       DBG(false, "old_size0=" << old_size0 << "   " << "new_size0=" << new_size0);
       DBG(false, "old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
 
-      if (_hg.edgeSize(*he) == 2) {
-        updatePinsOfHyperedge(*he, (new_size0 == 1 ? 2 : -2));
+      if (_hg.edgeSize(he) == 2) {
+        updatePinsOfHyperedge(he, (new_size0 == 1 ? 2 : -2));
       } else if (pinCountInOnePartitionIncreasedFrom0To1(old_size0, new_size0,
                                                          old_size1, new_size1)) {
-        updatePinsOfHyperedge(*he, 1);
+        updatePinsOfHyperedge(he, 1);
       } else if (pinCountInOnePartitionDecreasedFrom1To0(old_size0, new_size0,
                                                          old_size1, new_size1)) {
-        updatePinsOfHyperedge(*he, -1);
+        updatePinsOfHyperedge(he, -1);
       } else if (pinCountInOnePartitionDecreasedFrom2To1(old_size0, new_size0,
                                                          old_size1, new_size1)) {
         // special case if HE consists of only 3 pins
-        updatePinsOfHyperedge(*he, 1, (_hg.edgeSize(*he) == 3 ? -1 : 0), from);
+        updatePinsOfHyperedge(he, 1, (_hg.edgeSize(he) == 3 ? -1 : 0), from);
       } else if (pinCountInOnePartitionIncreasedFrom1To2(old_size0, new_size0,
                                                          old_size1, new_size1)) {
-        updatePinsOfHyperedge(*he, -1, 0, to);
+        updatePinsOfHyperedge(he, -1, 0, to);
       }
-    } endfor
+    }
   }
 
   int numRepetitionsImpl() const final {
@@ -366,15 +366,15 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
-    forall_pins(pin, he, _hg) {
-      updatePin(he, *pin, sign);
-    } endfor
+    for (auto pin : _hg.pins(he)) {
+      updatePin(he, pin, sign);
+    }
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
-    forall_pins(pin, he, _hg) {
-      updatePin(he, *pin, (compare == _hg.partitionIndex(*pin) ? sign1 : sign2));
-    } endfor
+    for (auto pin : _hg.pins(he)) {
+      updatePin(he, pin, (compare == _hg.partitionIndex(pin) ? sign1 : sign2));
+    }
   }
 
   bool pinCountInOnePartitionIncreasedFrom0To1(HypernodeID old_size0, HypernodeID new_size0,
@@ -444,26 +444,26 @@ class TwoWayFMRefiner : public IRefiner {
     ASSERT(_hg.partitionIndex(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partitionIndex(hn) ^ 1;
 
-    forall_incident_hyperedges(he, hn, _hg) {
-      ASSERT(_hg.pinCountInPartition(*he, 0) + _hg.pinCountInPartition(*he, 1) > 1,
-             "Trying to compute gain for single-node HE " << *he);
-      if (_hg.pinCountInPartition(*he, target_partition) == 0) {
-        gain -= _hg.edgeWeight(*he);
-      } else if (_hg.pinCountInPartition(*he, _hg.partitionIndex(hn)) == 1) {
-        gain += _hg.edgeWeight(*he);
+    for (auto he : _hg.incidentEdges(hn)) {
+      ASSERT(_hg.pinCountInPartition(he, 0) + _hg.pinCountInPartition(he, 1) > 1,
+             "Trying to compute gain for single-node HE " << he);
+      if (_hg.pinCountInPartition(he, target_partition) == 0) {
+        gain -= _hg.edgeWeight(he);
+      } else if (_hg.pinCountInPartition(he, _hg.partitionIndex(hn)) == 1) {
+        gain += _hg.edgeWeight(he);
       }
-    } endfor
+    }
     return gain;
   }
 
   bool isBorderNode(HypernodeID hn) const {
     bool is_border_node = false;
-    forall_incident_hyperedges(he, hn, _hg) {
-      if ((_hg.pinCountInPartition(*he, 0) > 0) && (_hg.pinCountInPartition(*he, 1) > 0)) {
+    for (auto he : _hg.incidentEdges(hn)) {
+      if ((_hg.pinCountInPartition(he, 0) > 0) && (_hg.pinCountInPartition(he, 1) > 0)) {
         is_border_node = true;
         break;
       }
-    } endfor
+    }
     return is_border_node;
   }
 

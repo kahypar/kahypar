@@ -15,53 +15,22 @@
 #include <vector>
 
 #include "gtest/gtest_prod.h"
+#include "lib/core/IteratorPair.h"
 #include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
 using core::Empty;
+using core::IteratorPair;
+using core::makeIteratorPair;
 
 namespace datastructure {
 static const bool dbg_hypergraph_uncontraction = false;
 static const bool dbg_hypergraph_contraction = false;
 static const bool dbg_hypergraph_restore_edge = false;
 
-// external macros: Causion when modifying hypergraph during iteration!
-#define forall_hypernodes(hn, graph)                    \
-  {                                                     \
-  typedef typename std::remove_reference<decltype(graph)>::type::HypernodeIterator __Iter; \
-  __Iter __hn_begin, __hn_end; \
-  std::tie(__hn_begin, __hn_end) = graph.nodes();                       \
-  for (__Iter hn = __hn_begin; hn != __hn_end; ++hn) {
-#define forall_hyperedges(he, graph)                    \
-  {                                                                     \
-  typedef typename std::remove_reference<decltype(graph)>::type::HyperedgeIterator __Iter; \
-  __Iter __he_begin, __he_end;  \
-  std::tie(__he_begin, __he_end) = graph.edges();                       \
-  for (__Iter he = __he_begin; he != __he_end; ++he) {
-#define forall_incident_hyperedges(he, hn, graph)                     \
-  {                                                                   \
-  typedef typename std::remove_reference<decltype(graph)>::type::IncidenceIterator __Iter; \
-  __Iter __inc_he_begin, __inc_he_end;  \
-  std::tie(__inc_he_begin, __inc_he_end) = graph.incidentEdges(hn);     \
-  for (__Iter he = __inc_he_begin; he != __inc_he_end; ++he) {
-#define forall_pins(pin, he, graph)                       \
-  {                                                       \
-  typedef typename std::remove_reference<decltype(graph)>::type::IncidenceIterator __Iter; \
-  __Iter __pin_begin, __pin_end;        \
-  std::tie(__pin_begin, __pin_end) = graph.pins(he);                    \
-  for (__Iter pin = __pin_begin; pin != __pin_end; ++pin) {
-#define endfor \
-  }            \
-  }
-
 // internal macros:
-#define __forall_active_hyperedges(he)                \
-  {                                                   \
-    HyperedgeIterator __act_he_begin, __act_he_end;   \
-    std::tie(__act_he_begin, __act_he_end) = edges(); \
-    for (HyperedgeIterator he = __act_he_begin; he != __act_he_end; ++he) {
 #define __forall_incident_hyperedges(he, hn)                                            \
   {                                                                                     \
     ASSERT(!hypernode(hn).isDisabled(),                                                 \
@@ -77,14 +46,17 @@ static const bool dbg_hypergraph_restore_edge = false;
     for (HyperedgeID __j = hyperedge(he).firstEntry(),                            \
          __pin_end = hyperedge(he).firstInvalidEntry(); __j < __pin_end; ++__j) { \
       HypernodeID hn = _incidence_array[__j];
+#define endfor \
+  }            \
+}
 
 template <typename HypernodeType_ = Mandatory,
           typename HyperedgeType_ = Mandatory,
           typename HypernodeWeightType_ = Mandatory,
           typename HyperedgeWeightType_ = Mandatory,
           typename PartitionIDType_ = Mandatory,
-          class HypernodeData = Empty,
-          class HyperedgeData = Empty
+          class HypernodeData_ = Empty,
+          class HyperedgeData_ = Empty
           >
 class GenericHypergraph {
   public:
@@ -97,6 +69,9 @@ class GenericHypergraph {
   typedef std::vector<HypernodeID> HyperedgeVector;
   typedef std::vector<HypernodeWeight> HypernodeWeightVector;
   typedef std::vector<HyperedgeWeight> HyperedgeWeightVector;
+  typedef HypernodeData_ HypernodeData;
+  typedef HyperedgeData_ HyperedgeData;
+
   enum { kInvalidPartition = -1 };
 
   enum class Type : int8_t {
@@ -115,7 +90,7 @@ class GenericHypergraph {
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
   typedef typename std::vector<VertexID>::iterator HeHandleIterator;
 
-  const int kInvalidCount = std::numeric_limits<int>::min();
+  static const int kInvalidCount = std::numeric_limits<int>::min();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -224,21 +199,8 @@ class GenericHypergraph {
     WeightType _weight;
     bool _valid;
   };
-
-  struct HyperNodeTraits {
-    typedef HypernodeWeight WeightType;
-    typedef HypernodeID IDType;
-  };
-
-  struct HyperEdgeTraits {
-    typedef HyperedgeWeight WeightType;
-    typedef HyperedgeID IDType;
-  };
 #pragma GCC diagnostic pop
-
-  typedef InternalVertex<HyperNodeTraits, HypernodeData> HyperNode;
-  typedef InternalVertex<HyperEdgeTraits, HyperedgeData> HyperEdge;
-
+  
   template <typename VertexType>
   class VertexIterator {
     typedef std::vector<VertexType> ContainerType;
@@ -308,10 +270,26 @@ class GenericHypergraph {
     HypernodeID u, u_first_entry, u_size, v;
   };
 
+  struct HypernodeTraits {
+    typedef HypernodeWeight WeightType;
+    typedef HypernodeID IDType;
+  };
+
+  struct HyperedgeTraits {
+    typedef HyperedgeWeight WeightType;
+    typedef HyperedgeID IDType;
+  };
+
+  typedef InternalVertex<HypernodeTraits, HypernodeData> HypernodeVertex;
+  typedef InternalVertex<HyperedgeTraits, HyperedgeData> HyperedgeVertex;
+
   public:
   typedef typename std::vector<VertexID>::const_iterator IncidenceIterator;
-  typedef VertexIterator<HyperNode> HypernodeIterator;
-  typedef VertexIterator<HyperEdge> HyperedgeIterator;
+  typedef VertexIterator<HypernodeVertex> HypernodeIterator;
+  typedef VertexIterator<HyperedgeVertex> HyperedgeIterator;
+  typedef IteratorPair<IncidenceIterator> IncidenceIteratorPair;
+  typedef IteratorPair<HypernodeIterator> HypernodeIteratorPair;
+  typedef IteratorPair<HyperedgeIterator> HyperedgeIteratorPair;
   typedef Memento ContractionMemento;
 
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
@@ -326,8 +304,8 @@ class GenericHypergraph {
     _current_num_hypernodes(_num_hypernodes),
     _current_num_hyperedges(_num_hyperedges),
     _current_num_pins(_num_pins),
-    _hypernodes(_num_hypernodes, HyperNode(0, 0, 1)),
-    _hyperedges(_num_hyperedges, HyperEdge(0, 0, 1)),
+    _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
+    _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
     _partition_indices(_num_hypernodes, kInvalidPartition),
     _partition_pin_counts(3 * _num_hyperedges, 0),
@@ -455,28 +433,28 @@ class GenericHypergraph {
     std::cout << std::endl;
   }
 
-  std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(HypernodeID u) const {
+  IncidenceIteratorPair incidentEdges(HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
-                          _incidence_array.begin() + hypernode(u).firstInvalidEntry());
+    return makeIteratorPair(_incidence_array.begin() + hypernode(u).firstEntry(),
+                            _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
-  std::pair<IncidenceIterator, IncidenceIterator> pins(HyperedgeID e) const {
+  IncidenceIteratorPair pins(HyperedgeID e) const {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
-    return std::make_pair(_incidence_array.begin() + hyperedge(e).firstEntry(),
-                          _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
+    return makeIteratorPair(_incidence_array.begin() + hyperedge(e).firstEntry(),
+                            _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
   }
 
-  std::pair<HypernodeIterator, HypernodeIterator> nodes() const {
-    return std::make_pair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
-                          HypernodeIterator(&_hypernodes, _num_hypernodes,
-                                            _num_hypernodes));
+  HypernodeIteratorPair nodes() const {
+    return makeIteratorPair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
+                            HypernodeIterator(&_hypernodes, _num_hypernodes,
+                                              _num_hypernodes));
   }
 
-  std::pair<HyperedgeIterator, HyperedgeIterator> edges() const {
-    return std::make_pair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
-                          HyperedgeIterator(&_hyperedges, _num_hyperedges,
-                                            _num_hyperedges));
+  HyperedgeIteratorPair edges() const {
+    return makeIteratorPair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
+                            HyperedgeIterator(&_hyperedges, _num_hyperedges,
+                                              _num_hyperedges));
   }
 
   Memento contract(HypernodeID u, HypernodeID v) {
@@ -624,9 +602,9 @@ class GenericHypergraph {
   }
 
   void calculatePartitionPinCounts() {
-    __forall_active_hyperedges(he) {
-      calculatePartitionPinCount(*he);
-    } endfor
+    for (auto he : edges()) {
+      calculatePartitionPinCount(he);
+    }
   }
 
   void calculatePartitionPinCount(HyperedgeID he) {
@@ -922,7 +900,7 @@ class GenericHypergraph {
     // the hypernode's point of view.
     _incidence_array[hyperedge(e).firstInvalidEntry() - 1] = u;
 
-    HyperNode& nodeU = hypernode(u);
+    HypernodeVertex& nodeU = hypernode(u);
     if (first_call) {
       _incidence_array.insert(_incidence_array.end(), _incidence_array.begin() + nodeU.firstEntry(),
                               _incidence_array.begin() + nodeU.firstInvalidEntry());
@@ -980,24 +958,24 @@ class GenericHypergraph {
   }
 
   // Accessor for hypernode-related information
-  const HyperNode & hypernode(HypernodeID u) const {
+  const HypernodeVertex & hypernode(HypernodeID u) const {
     ASSERT(u < _num_hypernodes, "Hypernode " << u << " does not exist");
     return _hypernodes[u];
   }
 
   // Accessor for hyperedge-related information
-  const HyperEdge & hyperedge(HyperedgeID e) const {
+  const HyperedgeVertex & hyperedge(HyperedgeID e) const {
     ASSERT(e < _num_hyperedges, "Hyperedge does not exist");
     return _hyperedges[e];
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
-  HyperNode & hypernode(HypernodeID u) {
-    return const_cast<HyperNode&>(static_cast<const GenericHypergraph&>(*this).hypernode(u));
+  HypernodeVertex & hypernode(HypernodeID u) {
+    return const_cast<HypernodeVertex&>(static_cast<const GenericHypergraph&>(*this).hypernode(u));
   }
 
-  HyperEdge & hyperedge(HyperedgeID e) {
-    return const_cast<HyperEdge&>(static_cast<const GenericHypergraph&>(*this).hyperedge(e));
+  HyperedgeVertex & hyperedge(HyperedgeID e) {
+    return const_cast<HyperedgeVertex&>(static_cast<const GenericHypergraph&>(*this).hyperedge(e));
   }
 
   const HypernodeID _num_hypernodes;
@@ -1009,8 +987,8 @@ class GenericHypergraph {
   HyperedgeID _current_num_hyperedges;
   HypernodeID _current_num_pins;
 
-  std::vector<HyperNode> _hypernodes;
-  std::vector<HyperEdge> _hyperedges;
+  std::vector<HypernodeVertex> _hypernodes;
+  std::vector<HyperedgeVertex> _hyperedges;
   std::vector<VertexID> _incidence_array;
 
   std::vector<PartitionID> _partition_indices;

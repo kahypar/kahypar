@@ -64,19 +64,19 @@ class Rater {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
-    forall_incident_hyperedges(he, u, _hg) {
-      forall_pins(v, *he, _hg) {
-        if (*v != u && (_hg.partitionIndex(u) == _hg.partitionIndex(*v)) &&
-            belowThresholdNodeWeight(*v, u)) {
-          _tmp_ratings[*v] += static_cast<RatingType>(_hg.edgeWeight(*he))
-                              / (_hg.edgeSize(*he) - 1);
-          if (!_visited_hypernodes[*v]) {
-            _visited_hypernodes[*v] = 1;
-            _used_entries.push(*v);
+    for (auto he : _hg.incidentEdges(u)) {
+      for (auto v : _hg.pins(he)) {
+        if (v != u && (_hg.partitionIndex(u) == _hg.partitionIndex(v)) &&
+            belowThresholdNodeWeight(v, u)) {
+          _tmp_ratings[v] += static_cast<RatingType>(_hg.edgeWeight(he))
+                             / (_hg.edgeSize(he) - 1);
+          if (!_visited_hypernodes[v]) {
+            _visited_hypernodes[v] = 1;
+            _used_entries.push(v);
           }
         }
-      } endfor
-    } endfor
+      }
+    }
 
     RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
