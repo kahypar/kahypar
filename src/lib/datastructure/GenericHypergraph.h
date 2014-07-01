@@ -30,26 +30,6 @@ static const bool dbg_hypergraph_uncontraction = false;
 static const bool dbg_hypergraph_contraction = false;
 static const bool dbg_hypergraph_restore_edge = false;
 
-// internal macros:
-#define __forall_incident_hyperedges(he, hn)                                            \
-  {                                                                                     \
-    ASSERT(!hypernode(hn).isDisabled(),                                                 \
-           "Trying to iterate over incident HEs of disabled HN" << hn);                 \
-    for (HyperedgeID __i = hypernode(hn).firstEntry(),                                  \
-         __inc_he_end = hypernode(hn).firstInvalidEntry(); __i < __inc_he_end; ++__i) { \
-      HyperedgeID he = _incidence_array[__i];
-
-#define __forall_pins(hn, he)                                                     \
-  {                                                                               \
-    ASSERT(!hyperedge(he).isDisabled(),                                           \
-           "Trying to iterate over pins of disabled HE" << he);                   \
-    for (HyperedgeID __j = hyperedge(he).firstEntry(),                            \
-         __pin_end = hyperedge(he).firstInvalidEntry(); __j < __pin_end; ++__j) { \
-      HypernodeID hn = _incidence_array[__j];
-#define endfor \
-  }            \
-}
-
 template <typename HypernodeType_ = Mandatory,
           typename HyperedgeType_ = Mandatory,
           typename HypernodeWeightType_ = Mandatory,
@@ -409,9 +389,9 @@ class GenericHypergraph {
   void printEdgeState(HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
       std::cout << "HE " << e << ": ";
-      __forall_pins(pin, e) {
+      for (auto&& pin : pins(e)) {
         std::cout << pin << " ";
-      } endfor
+      }
       std::cout << " (Part[0] =" << pinCountInPartition(e, 0)
       << ", Part[1]=" << pinCountInPartition(e, 1) << ")";
     } else {
@@ -423,9 +403,9 @@ class GenericHypergraph {
   void printNodeState(HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
       std::cout << "HN " << u << " (" << _partition_indices[u] << "): ";
-      __forall_incident_hyperedges(he, u) {
+      for (auto&& he : incidentEdges(u)) {
         std::cout << he << " ";
-      } endfor
+      }
     } else {
       std::cout << u << " -- invalid --";
     }
@@ -528,9 +508,9 @@ class GenericHypergraph {
            << memento.v);
 
     _active_hyperedges_v.reset();
-    __forall_incident_hyperedges(he, memento.v) {
+    for (auto&& he : incidentEdges(memento.v)) {
       _active_hyperedges_v[he] = 1;
-    } endfor
+    }
 
     _active_hyperedges_u.reset();
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
@@ -541,7 +521,7 @@ class GenericHypergraph {
       // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
       // Set incidence entry containing u for this HE e back to v, because this slot was used
       // to store the new edge to representative u during contraction as u was not a pin of e.
-      __forall_incident_hyperedges(he, memento.u) {
+      for (auto&& he : incidentEdges(memento.u)) {
         if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
           DBG(dbg_hypergraph_uncontraction, "resetting reused Pinslot of HE " << he << " from "
               << memento.u << " to " << memento.v);
@@ -551,7 +531,7 @@ class GenericHypergraph {
           // the state before contraction. Thus we don't need to process them any further.
           _processed_hyperedges[he] = 1;
         }
-      } endfor
+      }
 
       // Check if we can remove the dynamically added incidence entries for u:
       // If the old incidence entries are located before the current ones, than the
@@ -568,7 +548,7 @@ class GenericHypergraph {
 
     // Undo case 1 operations (i.e. Pin v was just cut off by decreasing size of HE e):
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
-    __forall_incident_hyperedges(he, memento.v) {
+    for (auto&& he : incidentEdges(memento.v)) {
       if (!_processed_hyperedges[he]) {
         DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
@@ -581,7 +561,7 @@ class GenericHypergraph {
         ++_current_num_pins;
       }
       _processed_hyperedges.reset(he);
-    } endfor
+    }
   }
 
   void changeNodePartition(HypernodeID hn, PartitionID from, PartitionID to) {
@@ -589,14 +569,14 @@ class GenericHypergraph {
     ASSERT(partitionIndex(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     if (from != to) {
       setPartitionIndex(hn, to);
-      __forall_incident_hyperedges(he, hn) {
+      for (auto&& he : incidentEdges(hn)) {
         decreasePinCountInPartition(he, from);
         increasePinCountInPartition(he, to);
         ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
                + pinCountInPartition(he, 1) == edgeSize(he),
                pinCountInPartition(he, kInvalidPartition) << "+" << pinCountInPartition(he, 0)
                << "+" << pinCountInPartition(he, 1) << "!=" << edgeSize(he));
-      } endfor
+      }
     }
   }
 
@@ -611,12 +591,12 @@ class GenericHypergraph {
     _partition_pin_counts[3 * he] = 0;  // pins not yet assigned to a partition
     _partition_pin_counts[3 * he + 1] = 0;
     _partition_pin_counts[3 * he + 2] = 0;
-    __forall_pins(pin, he) {
+    for (auto&& pin : pins(he)) {
       ++_partition_pin_counts[3 * he + (partitionIndex(pin) + 1)];
-    } endfor
-      ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
-             + pinCountInPartition(he, 1) == edgeSize(he),
-             "Incorrect calculation of pin counts");
+    }
+    ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
+           + pinCountInPartition(he, 1) == edgeSize(he),
+           "Incorrect calculation of pin counts");
   }
 
   // Deleting a hypernode amounts to removing the undirected internal edge between
@@ -639,11 +619,11 @@ class GenericHypergraph {
   //            in __reversed__ order.
   void removeNode(HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
-    __forall_incident_hyperedges(e, u) {
+    for (auto&& e : incidentEdges(u)) {
       removeInternalEdge(e, u, _hyperedges);
       decreasePinCountInPartition(e, partitionIndex(u));
       --_current_num_pins;
-    } endfor
+    }
       hypernode(u).disable();
     --_current_num_hypernodes;
   }
@@ -676,12 +656,12 @@ class GenericHypergraph {
   //     of the hyperedge.
   void removeEdge(HyperedgeID he, bool disable_unconnected_hypernodes) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
-    __forall_pins(pin, he) {
+    for (auto&& pin : pins(he)) {
       removeInternalEdge(pin, he, _hypernodes);
       disableHypernodeIfUnconnected(pin, disable_unconnected_hypernodes);
       --_current_num_pins;
-    } endfor
-      hyperedge(he).disable();
+    }
+    hyperedge(he).disable();
     invalidatePartitionPinCounts(he);
     --_current_num_hyperedges;
   }
@@ -696,7 +676,7 @@ class GenericHypergraph {
     ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
     enableEdge(he);
     resetPartitionPinCounts(he);
-    __forall_pins(pin, he) {
+    for (auto&& pin : pins(he)) {
       ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
                         _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), he)
              == 0,
@@ -708,10 +688,10 @@ class GenericHypergraph {
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == he,
              "Incorrect restore of HE " << he);
       ++_current_num_pins;
-    } endfor
-      ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
-             + pinCountInPartition(he, 1) == edgeSize(he),
-             "Pincounts of HE " << he << " do not match the size of the HE");
+    }
+    ASSERT(pinCountInPartition(he, kInvalidPartition) + pinCountInPartition(he, 0)
+           + pinCountInPartition(he, 1) == edgeSize(he),
+           "Pincounts of HE " << he << " do not match the size of the HE");
   }
 
   Type type() const {
