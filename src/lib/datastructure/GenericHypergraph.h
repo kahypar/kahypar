@@ -88,7 +88,6 @@ class GenericHypergraph {
   // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
   // Outside the Hypergraph class, both are represented by const_incidence_iterator
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
-  typedef typename std::vector<VertexID>::iterator HeHandleIterator;
 
   static const int kInvalidCount = std::numeric_limits<int>::min();
 
@@ -943,12 +942,6 @@ class GenericHypergraph {
     ASSERT(begin < _incidence_array.begin() + vertex.firstInvalidEntry(), "Iterator out of bounds");
     swap(*begin, *last_entry);
     vertex.decreaseSize();
-  }
-
-  // Accessor for handles of incident hyperedges of a hypernode
-  std::pair<HeHandleIterator, HeHandleIterator> incidentHyperedgeHandles(HypernodeID u) {
-    return std::make_pair(_incidence_array.begin() + hypernode(u).firstEntry(),
-                          _incidence_array.begin() + hypernode(u).firstInvalidEntry());
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
