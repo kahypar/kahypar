@@ -22,7 +22,7 @@ static const bool dbg_metrics_hyperedge_cut = false;
 
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
-  for (auto he : hg.edges()) {
+  for (const auto && he : hg.edges()) {
     IncidenceIterator begin = hg.pins(he).begin();
     IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
@@ -48,7 +48,7 @@ template <typename CoarsendToHmetisMapping, typename Partition>
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                                     hg_to_hmetis, Partition& partitioning) {
   HyperedgeWeight cut = 0;
-  for (auto he : hg.edges()) {
+  for (const auto && he : hg.edges()) {
     IncidenceIterator begin = hg.pins(he).begin();
     IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
@@ -73,7 +73,7 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMappin
 inline double imbalance(const Hypergraph& hypergraph) {
   std::vector<HypernodeWeight> partition_sizes { 0, 0 };
   HypernodeWeight total_weight = 0;
-  for (auto hn : hypergraph.nodes()) {
+  for (const auto && hn : hypergraph.nodes()) {
     ASSERT(hypergraph.partitionIndex(hn) < 2 &&
            hypergraph.partitionIndex(hn) != Hypergraph::kInvalidPartition,
            "Invalid partition index for hypernode " << hn << ": " << hypergraph.partitionIndex(hn));
@@ -95,7 +95,7 @@ inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 
 template <class Weights>
 inline void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
-  for (auto hn : hypergraph.nodes()) {
+  for (const auto && hn : hypergraph.nodes()) {
     weights[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
   }
 }

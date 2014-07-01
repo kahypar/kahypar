@@ -98,7 +98,7 @@ class TwoWayFMRefiner : public IRefiner {
   void initializeImpl(HyperedgeWeight max_gain) final {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
-    for (auto hn : _hg.nodes()) {
+    for (const auto && hn : _hg.nodes()) {
       ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
@@ -241,7 +241,7 @@ class TwoWayFMRefiner : public IRefiner {
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
     _just_activated.reset();
-    for (auto he : _hg.incidentEdges(moved_node)) {
+    for (auto && he : _hg.incidentEdges(moved_node)) {
       HypernodeID new_size0 = _hg.pinCountInPartition(he, 0);
       HypernodeID new_size1 = _hg.pinCountInPartition(he, 1);
       HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
@@ -366,13 +366,13 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       updatePin(he, pin, sign);
     }
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       updatePin(he, pin, (compare == _hg.partitionIndex(pin) ? sign1 : sign2));
     }
   }
@@ -444,7 +444,7 @@ class TwoWayFMRefiner : public IRefiner {
     ASSERT(_hg.partitionIndex(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partitionIndex(hn) ^ 1;
 
-    for (auto he : _hg.incidentEdges(hn)) {
+    for (auto && he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.pinCountInPartition(he, 0) + _hg.pinCountInPartition(he, 1) > 1,
              "Trying to compute gain for single-node HE " << he);
       if (_hg.pinCountInPartition(he, target_partition) == 0) {
@@ -458,7 +458,7 @@ class TwoWayFMRefiner : public IRefiner {
 
   bool isBorderNode(HypernodeID hn) const {
     bool is_border_node = false;
-    for (auto he : _hg.incidentEdges(hn)) {
+    for (auto && he : _hg.incidentEdges(hn)) {
       if ((_hg.pinCountInPartition(he, 0) > 0) && (_hg.pinCountInPartition(he, 1) > 0)) {
         is_border_node = true;
         break;

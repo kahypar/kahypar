@@ -180,7 +180,7 @@ template <class Coarsener, class HypergraphT, class Config>
 void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
   config.coarsening.threshold_node_weight = 3;
   coarsener.coarsen(2);
-  for (auto hn : hypergraph->nodes()) {
+  for (auto && hn : hypergraph->nodes()) {
     ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));
   }
   ASSERT_THAT(hypergraph->numNodes(), Eq(3));

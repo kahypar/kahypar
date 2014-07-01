@@ -236,7 +236,7 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
 TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
   HypernodeID hypernode_count = 0;
 
-  for (auto hn : hypergraph.nodes()) {
+  for (auto && hn : hypergraph.nodes()) {
     ASSERT_THAT(hn, Eq(hypernode_count));
     ++hypernode_count;
   }
@@ -246,7 +246,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
 TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
   HyperedgeID hyperedge_count = 0;
 
-  for (auto he : hypergraph.edges()) {
+  for (auto && he : hypergraph.edges()) {
     ASSERT_THAT(he, Eq(hyperedge_count));
     ++hyperedge_count;
   }
@@ -256,7 +256,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   int i = 0;
 
-  for (auto he : hypergraph.incidentEdges(6)) {
+  for (auto && he : hypergraph.incidentEdges(6)) {
     ASSERT_THAT(he, Eq(*(hypergraph._incidence_array.begin() +
                          hypergraph.hypernode(6).firstEntry() + i)));
     ++i;
@@ -265,7 +265,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
 
 TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
   int i = 0;
-  for (auto pin : hypergraph.pins(2)) {
+  for (auto && pin : hypergraph.pins(2)) {
     ASSERT_THAT(pin, Eq(*(hypergraph._incidence_array.begin() +
                           hypergraph.hyperedge(2).firstEntry() + i)));
     ++i;
@@ -507,7 +507,7 @@ TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
 }
 
 TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
-  for (auto hn : hypergraph.nodes()) {
+  for (auto && hn : hypergraph.nodes()) {
     ASSERT_THAT(hypergraph.partitionIndex(hn), Eq(Hypergraph::kInvalidPartition));
   }
 }

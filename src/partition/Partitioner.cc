@@ -39,7 +39,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
 
 void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
   if (_config.partitioning.hyperedge_size_threshold != -1) {
-    for (auto he : hg.edges()) {
+    for (auto && he : hg.edges()) {
       if (hg.edgeSize(he) > _config.partitioning.hyperedge_size_threshold) {
         DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
             << hg.edgeSize(he) << ")   exceeds threshold: "
@@ -54,13 +54,13 @@ void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>
 void Partitioner::restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
   if (_config.partitioning.hyperedge_size_threshold != -1) {
     PartitionWeights partition_weights { 0, 0 };
-    for (auto hn : hg.nodes()) {
+    for (auto && hn : hg.nodes()) {
       if (hg.partitionIndex(hn) != Hypergraph::kInvalidPartition) {
         partition_weights[hg.partitionIndex(hn)] += hg.nodeWeight(hn);
       }
     }
 
-    for (auto edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
+    for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
       DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
       hg.restoreEdge(*edge);
       partitionUnpartitionedPins(*edge, hg, partition_weights);
@@ -75,7 +75,7 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
   HypernodeID num_pins = hg.edgeSize(he);
   HypernodeID num_unpartitioned_hns = hg.pinCountInPartition(he, Hypergraph::kInvalidPartition);
   HypernodeWeight unpartitioned_weight = 0;
-  for (auto pin : hg.pins(he)) {
+  for (auto && pin : hg.pins(he)) {
     if (hg.partitionIndex(pin) == Hypergraph::kInvalidPartition) {
       unpartitioned_weight += hg.nodeWeight(pin);
     }
@@ -110,7 +110,7 @@ void Partitioner::assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID
                                                      PartitionWeights& partition_weights) {
   DBG(dbg_partition_large_he_removal,
       "Assigning unpartitioned pins of HE " << he << " to partition " << id);
-  for (auto pin : hg.pins(he)) {
+  for (auto && pin : hg.pins(he)) {
     ASSERT(hg.partitionIndex(pin) == Hypergraph::kInvalidPartition || hg.partitionIndex(pin) == id,
            "HN " << pin << " is not in partition " << id << " but in "
            << hg.partitionIndex(pin));
@@ -124,7 +124,7 @@ void Partitioner::assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID
 void Partitioner::assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg, PartitionWeights&
                                            partition_weights) {
   DBG(dbg_partition_large_he_removal, "Assigning all pins of HE " << he << " to partition " << id);
-  for (auto pin : hg.pins(he)) {
+  for (auto && pin : hg.pins(he)) {
     ASSERT(hg.partitionIndex(pin) == Hypergraph::kInvalidPartition,
            "HN " << pin << " is not in partition " << id << " but in "
            << hg.partitionIndex(pin));
@@ -137,7 +137,7 @@ void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
                                                  PartitionWeights& partition_weights) {
   DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
   size_t min_partition = 0;
-  for (auto pin : hg.pins(he)) {
+  for (auto && pin : hg.pins(he)) {
     if (hg.partitionIndex(pin) == Hypergraph::kInvalidPartition) {
       min_partition = std::min_element(partition_weights.begin(), partition_weights.end())
                       - partition_weights.begin();
@@ -151,7 +151,7 @@ void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping&
                                                        CoarsenedToHmetisMapping& hg_to_hmetis,
                                                        const Hypergraph& hg) {
   int i = 0;
-  for (auto hn : hg.nodes()) {
+  for (auto && hn : hg.nodes()) {
     hg_to_hmetis[hn] = i;
     hmetis_to_hg[i] = hn;
     ++i;
@@ -165,7 +165,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = "
       << std::to_string([&]() {
                           HypernodeID count = 0;
-                          for (auto hn : hg.nodes()) {
+                          for (auto && hn : hg.nodes()) {
                             if (hg.nodeDegree(hn) == 0) {
                               ++count;
                             }

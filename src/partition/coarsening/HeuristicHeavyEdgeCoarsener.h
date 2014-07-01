@@ -121,7 +121,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     Rating rating;
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
-      for (auto pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
+      for (auto && pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
         rating = _rater.rate(pin);
         updatePQandMappings(pin, rating, target, sources);
       }

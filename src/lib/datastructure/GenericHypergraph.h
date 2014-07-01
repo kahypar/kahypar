@@ -602,7 +602,7 @@ class GenericHypergraph {
   }
 
   void calculatePartitionPinCounts() {
-    for (auto he : edges()) {
+    for (auto&& he : edges()) {
       calculatePartitionPinCount(he);
     }
   }

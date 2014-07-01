@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   HypernodeWeight hypergraph_weight = 0;
-  for (auto hn : hypergraph.nodes()) {
+  for (auto && hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 

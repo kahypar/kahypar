@@ -103,7 +103,7 @@ class HyperedgeFMRefiner : public IRefiner {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
 
-    for (auto hn : _hg.nodes()) {
+    for (const auto && hn : _hg.nodes()) {
       ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
@@ -111,7 +111,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
     ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
              HypernodeWeight total_weight = 0;
-             for (auto hn : _hg.nodes()) {
+             for (const auto && hn : _hg.nodes()) {
                total_weight += _hg.nodeWeight(hn);
              }
              return total_weight;
@@ -122,7 +122,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
   void activateIncidentCutHyperedges(HypernodeID hn) {
     DBG(false, "activating cut hyperedges of hypernode " << hn);
-    for (auto he : _hg.incidentEdges(hn)) {
+    for (auto && he : _hg.incidentEdges(hn)) {
       if (isCutHyperedge(he) && !isMarkedAsMoved(he)) {
         activateHyperedge(he);
       }
@@ -242,10 +242,10 @@ class HyperedgeFMRefiner : public IRefiner {
     if (isCutHyperedge(he)) {
       _gain_indicator.reset();
       Gain gain = _hg.edgeWeight(he);
-      for (auto pin : _hg.pins(he)) {
+      for (auto && pin : _hg.pins(he)) {
         if (_hg.partitionIndex(pin) != from) { continue; }
         DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << pin);
-        for (auto incident_he : _hg.incidentEdges(pin)) {
+        for (auto && incident_he : _hg.incidentEdges(pin)) {
           if (incident_he == he || _gain_indicator.isAlreadyEvaluated(incident_he)) { continue; }
           if (!isCutHyperedge(incident_he) &&
               !isNestedIntoInPartition(incident_he, he, from)) {
@@ -276,12 +276,12 @@ class HyperedgeFMRefiner : public IRefiner {
       return false;
     }
     resetContainedHypernodes();
-    for (auto pin : _hg.pins(outer_he)) {
+    for (auto && pin : _hg.pins(outer_he)) {
       if (_hg.partitionIndex(pin) == relevant_partition) {
         markAsContained(pin);
       }
     }
-    for (auto pin : _hg.pins(inner_he)) {
+    for (auto && pin : _hg.pins(inner_he)) {
       if (_hg.partitionIndex(pin) == relevant_partition && !isContained(pin)) {
         return false;
       }
@@ -364,7 +364,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
     HypernodeWeight pins_to_move_weight = 0;
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       if (_hg.partitionIndex(pin) == from) {
         pins_to_move_weight += _hg.nodeWeight(pin);
       }
@@ -398,7 +398,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
     int curr_index = _movement_indices[step];
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       if (_hg.partitionIndex(pin) == from) {
         _hg.changeNodePartition(pin, from, to);
         _partition_size[from] -= _hg.nodeWeight(pin);
@@ -416,13 +416,13 @@ class HyperedgeFMRefiner : public IRefiner {
 
   void updateNeighbours(HyperedgeID moved_he) {
     _update_indicator.reset();
-    for (auto pin : _hg.pins(moved_he)) {
+    for (auto && pin : _hg.pins(moved_he)) {
       DBG(dbg_refinement_he_fm_update_level, "--->Considering PIN " << pin);
-      for (auto incident_he : _hg.incidentEdges(pin)) {
+      for (auto && incident_he : _hg.incidentEdges(pin)) {
         if (incident_he == moved_he) { continue; }
         DBG(dbg_refinement_he_fm_update_level, "-->Considering incident HE "
             << incident_he << "of PIN " << pin);
-        for (auto incident_he_pin : _hg.pins(incident_he)) {
+        for (auto && incident_he_pin : _hg.pins(incident_he)) {
           if (incident_he_pin == pin) { continue; }
           DBG(dbg_refinement_he_fm_update_level, "->Considering incident_he_pin "
               << incident_he_pin << " of HE " << incident_he);
@@ -433,7 +433,7 @@ class HyperedgeFMRefiner : public IRefiner {
   }
 
   void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) {
-    for (auto he : _hg.incidentEdges(hn)) {
+    for (auto && he : _hg.incidentEdges(hn)) {
       if (_update_indicator.isAlreadyEvaluated(he)) {
         DBG(dbg_refinement_he_fm_update_evaluated,
             "*** Skipping HE " << he << " because it is already evaluated!");

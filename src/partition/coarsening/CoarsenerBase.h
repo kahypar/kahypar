@@ -170,7 +170,7 @@ class CoarsenerBase {
 
   bool isParallelHyperedge(HyperedgeID he) const {
     bool is_parallel = true;
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       if (!_contained_hypernodes[pin]) {
         is_parallel = false;
         break;
@@ -181,7 +181,7 @@ class CoarsenerBase {
 
   void fillProbeBitset(HyperedgeID he) {
     _contained_hypernodes.reset();
-    for (auto pin : _hg.pins(he)) {
+    for (auto && pin : _hg.pins(he)) {
       _contained_hypernodes[pin] = 1;
     }
   }
@@ -200,9 +200,9 @@ class CoarsenerBase {
 
   void createFingerprints(HypernodeID u) {
     _fingerprints.clear();
-    for (auto he : _hg.incidentEdges(u)) {
+    for (auto && he : _hg.incidentEdges(u)) {
       HyperedgeID hash = /* seed */ 42;
-      for (auto pin : _hg.pins(he)) {
+      for (auto && pin : _hg.pins(he)) {
         hash ^= pin;
       }
       _fingerprints.emplace_back(he, hash, _hg.edgeSize(he));
@@ -212,18 +212,18 @@ class CoarsenerBase {
   void initializeRefiner(IRefiner& refiner) {
   #ifdef USE_BUCKET_PQ
     HyperedgeWeight max_single_he_induced_weight = 0;
-    for (auto iter = _weights_table.begin(); iter != _weights_table.end(); ++iter) {
+    for (auto && iter = _weights_table.begin(); iter != _weights_table.end(); ++iter) {
       if (iter->second > max_single_he_induced_weight) {
         max_single_he_induced_weight = iter->second;
       }
     }
     HyperedgeWeight max_degree = 0;
     HypernodeID max_node = 0;
-    for (auto hn : _hg.nodes()) {
+    for (auto && hn : _hg.nodes()) {
       ASSERT(_hg.partitionIndex(hn) != INVALID_PARTITION,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       HyperedgeWeight curr_degree = 0;
-      for (auto he : _hg.incidentEdges(hn)) {
+      for (auto && he : _hg.incidentEdges(hn)) {
         curr_degree += _hg.edgeWeight(he);
       }
       if (curr_degree > max_degree) {
