@@ -133,7 +133,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     for (int i = 0; i < _hg.initialNumNodes(); ++i) {
       permutation.push_back(i);
     }
-    Randomize::shuffleVector(permutation);
+    Randomize::shuffleVector(permutation, permutation.size());
   }
 
   Rater _rater;

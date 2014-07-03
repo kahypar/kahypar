@@ -27,8 +27,8 @@ class Randomize {
   }
 
   template <typename T>
-  static void shuffleVector(std::vector<T>& vector) {
-    std::shuffle(vector.begin(), vector.end(), _gen);
+  static void shuffleVector(std::vector<T>& vector, size_t num_elements) {
+    std::shuffle(vector.begin(), vector.begin() + num_elements, _gen);
   }
 
   private:

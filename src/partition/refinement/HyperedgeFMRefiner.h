@@ -143,7 +143,7 @@ class HyperedgeFMRefiner : public IRefiner {
     _pq[1]->clear();
     resetMarkedHyperedges();
 
-    Randomize::shuffleVector(refinement_nodes);
+    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       activateIncidentCutHyperedges(refinement_nodes[i]);
     }

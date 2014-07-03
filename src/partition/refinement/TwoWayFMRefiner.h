@@ -134,7 +134,7 @@ class TwoWayFMRefiner : public IRefiner {
     _pq[1]->clear();
     _marked.reset();
 
-    Randomize::shuffleVector(refinement_nodes);
+    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       activate(refinement_nodes[i]);
     }

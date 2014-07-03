@@ -149,7 +149,7 @@ class HyperedgeCoarsener : public ICoarsener,
     for (auto && he : _hg.edges()) {
       permutation.push_back(he);
     }
-    Randomize::shuffleVector(permutation);
+    Randomize::shuffleVector(permutation, permutation.size());
 
     Rating rating;
     for (auto && he : permutation) {
