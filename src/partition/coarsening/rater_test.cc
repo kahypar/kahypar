@@ -146,7 +146,7 @@ TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
   hypergraph->setNodeWeight(4, 4);
 
   ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).value,
-              DoubleEq(1 / std::pow(2 * 3 * 4, 1.0 / 4)));
+              DoubleEq(1.0 / (2 * 3 * 4)));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {

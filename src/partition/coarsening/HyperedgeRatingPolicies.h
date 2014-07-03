@@ -39,8 +39,8 @@ struct EdgeWeightDivGeoMeanPinWeight {
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
 
     PartitionID partition = hypergraph.partitionIndex(*pins_begin);
-    double geo_mean_node_weight = static_cast<double>(hypergraph.nodeWeight(*pins_begin));
-    HypernodeWeight sum_node_weights = hypergraph.nodeWeight(*pins_begin);
+    double pin_weights_mult = static_cast<double>(hypergraph.nodeWeight(*pins_begin));
+    HypernodeWeight sum_pin_weights = hypergraph.nodeWeight(*pins_begin);
     bool is_cut_hyperedge = false;
     ++pins_begin;
 
@@ -49,20 +49,18 @@ struct EdgeWeightDivGeoMeanPinWeight {
         is_cut_hyperedge = true;
         break;
       }
-      geo_mean_node_weight *= static_cast<double>(hypergraph.nodeWeight(*pin));
-      sum_node_weights += hypergraph.nodeWeight(*pin);
+      pin_weights_mult *= static_cast<double>(hypergraph.nodeWeight(*pin));
+      sum_pin_weights += hypergraph.nodeWeight(*pin);
     }
 
     HyperedgeRating rating;
-    rating.total_node_weight = sum_node_weights;
-    if (sum_node_weights > threshold_node_weight || is_cut_hyperedge) {
+    rating.total_node_weight = sum_pin_weights;
+    if (sum_pin_weights > threshold_node_weight || is_cut_hyperedge) {
       return rating;
     }
 
-    geo_mean_node_weight = std::pow(geo_mean_node_weight, 1.0 / hypergraph.edgeSize(he));
-
     rating.valid = true;
-    rating.value = hypergraph.edgeWeight(he) / geo_mean_node_weight;
+    rating.value = hypergraph.edgeWeight(he) / pin_weights_mult;
     return rating;
   }
 };
