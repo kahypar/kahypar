@@ -111,6 +111,7 @@ class HyperedgeCoarsener : public ICoarsener,
     refinement_nodes.reserve(_hg.initialNumNodes());
     size_t num_refinement_nodes = 0;
     while (!_history.empty()) {
+      num_refinement_nodes = 0;
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
       performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
@@ -204,7 +205,6 @@ class HyperedgeCoarsener : public ICoarsener,
   void performUncontraction(const HyperedgeCoarseningMemento& memento,
                             std::vector<HypernodeID>& refinement_nodes,
                             size_t& num_refinement_nodes) {
-    num_refinement_nodes = 0;
     refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
                                                                      + memento.mementos_size - 1].u;
     for (int i = memento.mementos_begin + memento.mementos_size - 1;
