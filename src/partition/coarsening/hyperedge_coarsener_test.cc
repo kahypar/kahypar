@@ -18,7 +18,7 @@ using datastructure::verifyEquivalence;
 using defs::Hypergraph;
 
 namespace partition {
-typedef HyperedgeCoarsener<EdgeWeightDivGeoMeanPinWeight> HyperedgeCoarsenerType;
+typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsenerType;
 
 class AHyperedgeCoarsener : public Test {
   public:
@@ -108,12 +108,12 @@ TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAf
   coarsener.coarsen(5);
   ASSERT_THAT(coarsener._pq.contains(2), Eq(false));
   ASSERT_THAT(coarsener._pq.key(0), DoubleEq(1.0));
-  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, 25).value));
-  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(EdgeWeightDivGeoMeanPinWeight::rate(3, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(EdgeWeightDivMultPinWeight::rate(3, *hypergraph, 25).value));
   coarsener.coarsen(4);
   ASSERT_THAT(coarsener._pq.contains(0), Eq(false));
-  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, 25).value));
-  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(EdgeWeightDivGeoMeanPinWeight::rate(3, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(1), DoubleEq(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, 25).value));
+  ASSERT_THAT(coarsener._pq.key(3), DoubleEq(EdgeWeightDivMultPinWeight::rate(3, *hypergraph, 25).value));
 }
 
 TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {

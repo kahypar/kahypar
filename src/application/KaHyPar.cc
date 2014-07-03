@@ -58,7 +58,7 @@ using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
 using partition::HyperedgeCoarsener;
-using partition::EdgeWeightDivGeoMeanPinWeight;
+using partition::EdgeWeightDivMultPinWeight;
 using partition::FMFactoryExecutor;
 using partition::TwoWayFMRefiner;
 using partition::HyperedgeFMRefiner;
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
   typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
   typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
   typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
-  typedef HyperedgeCoarsener<EdgeWeightDivGeoMeanPinWeight> HyperedgeCoarsener;
+  typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsener;
   typedef FMFactoryExecutor<TwoWayFMRefiner> TwoWayFMFactoryExecutor;
   typedef FMFactoryExecutor<HyperedgeFMRefiner> HyperedgeFMFactoryExecutor;
   typedef StaticDispatcher<TwoWayFMFactoryExecutor,

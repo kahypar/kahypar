@@ -137,7 +137,7 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 }
 
 TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).value,
               DoubleEq(1.0));
 
   config.coarsening.threshold_node_weight = 10;
@@ -145,21 +145,21 @@ TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
   hypergraph->setNodeWeight(3, 3);
   hypergraph->setNodeWeight(4, 4);
 
-  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).value,
               DoubleEq(1.0 / (2 * 3 * 4)));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
   config.coarsening.threshold_node_weight = 3;
 
-  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).valid,
               Eq(false));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
   hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
   hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
-  ASSERT_THAT(EdgeWeightDivGeoMeanPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
               Eq(false));
 }
 } // namespace partition

@@ -31,7 +31,7 @@ struct HyperedgeRating {
     valid(false) { }
 };
 
-struct EdgeWeightDivGeoMeanPinWeight {
+struct EdgeWeightDivMultPinWeight {
   static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
                               HypernodeWeight threshold_node_weight) {
     IncidenceIterator pins_begin = hypergraph.pins(he).begin();
