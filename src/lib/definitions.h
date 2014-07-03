@@ -1,5 +1,8 @@
 #ifndef LIB_DEFINITIONS_H_
 #define LIB_DEFINITIONS_H_
+
+#include <chrono>
+
 #include "lib/datastructure/GenericHypergraph.h"
 
 namespace defs {
@@ -29,6 +32,8 @@ typedef Hypergraph::HypernodeWeightVector HypernodeWeightVector;
 typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
 typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
 typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
+
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
 } // namespace defs
 #endif  // LIB_DEFINITIONS_H_

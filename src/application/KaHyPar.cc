@@ -82,6 +82,7 @@ using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
+using defs::HighResClockTimepoint;
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e")) {
@@ -211,7 +212,6 @@ int main(int argc, char* argv[]) {
   typedef Factory<ICoarsener, std::string,
                   ICoarsener* (*)(CoarsenerFactoryParameters&),
                   CoarsenerFactoryParameters> CoarsenerFactory;
-  typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
   PolicyRegistry::getInstance().registerPolicy("simple", new NumberOfFruitlessMovesStopsSearch());
   PolicyRegistry::getInstance().registerPolicy("adaptive1", new RandomWalkModelStopsSearch());
