@@ -75,7 +75,9 @@ class HyperedgeCoarsener : public ICoarsener,
     while (!_pq.empty() && _hg.numNodes() > limit) {
       he_to_contract = _pq.max();
       DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.maxKey());
-
+      DBG(dbg_coarsening_coarsen, "w(" << he_to_contract << ")=" << _hg.edgeWeight(he_to_contract));
+      DBG(dbg_coarsening_coarsen, "|" << he_to_contract << "|=" << _hg.edgeSize(he_to_contract));
+      //getchar();
       ASSERT([&]() {
                HypernodeWeight total_weight = 0;
                for (auto && pin : _hg.pins(he_to_contract)) {
