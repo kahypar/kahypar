@@ -5,6 +5,12 @@
 
 #include "lib/datastructure/GenericHypergraph.h"
 
+// Use bucket PQ for FM refinement.
+//#define USE_BUCKET_PQ
+
+// Gather advanced statistics
+#define GATHER_STATS
+
 namespace defs {
 typedef unsigned int hypernode_id_t;
 typedef unsigned int hyperedge_id_t;

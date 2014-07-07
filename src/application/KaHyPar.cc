@@ -1,14 +1,6 @@
 /***************************************************************************
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
-
-// If not defined, extensive self-verification is performed, which has high impact on
-// total running time.
-#define NSELF_VERIFICATION
-
-// Use bucket PQ for FM refinement.
-#define USE_BUCKET_PQ
-
 #include <boost/program_options.hpp>
 
 #include <chrono>
