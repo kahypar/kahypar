@@ -12,6 +12,7 @@
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/CoarsenerBase.h"
 #include "partition/coarsening/HyperedgeRatingPolicies.h"
@@ -24,6 +25,7 @@ using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
+using utils::Stats;
 
 namespace partition {
 struct HyperedgeCoarseningMemento {
@@ -55,6 +57,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_hg;
   using Base::_config;
   using Base::_history;
+  using Base::_stats;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
   using Base::restoreParallelHyperedges;
@@ -103,6 +106,8 @@ class HyperedgeCoarsener : public ICoarsener,
 
       reRateHyperedgesAffectedByContraction(rep_node);
     }
+    _stats.add("numCoarseHNs", _hg.numNodes());
+    _stats.add("numCoarseHEs", _hg.numEdges());
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {
@@ -124,6 +129,10 @@ class HyperedgeCoarsener : public ICoarsener,
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
            << " > " << _config.partitioning.epsilon);
+  }
+
+  const Stats & statsImpl() const {
+    return _stats;
   }
 
   void removeHyperedgeFromPQ(HyperedgeID he) {

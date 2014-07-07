@@ -12,11 +12,13 @@
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
+using utils::Stats;
 
 namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
@@ -36,6 +38,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::_history;
   using Base::_removed_parallel_hyperedges;
   using Base::_removed_single_node_hyperedges;
+  using Base::_stats;
   using Base::rateAllHypernodes;
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
@@ -93,10 +96,16 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         << _removed_single_node_hyperedges.size());
     DBG(dbg_coarsening_removed_hes, "# removed parallel HEs = "
         << _removed_parallel_hyperedges.size());
+    _stats.add("numCoarseHNs", _hg.numNodes());
+    _stats.add("numCoarseHEs", _hg.numEdges());
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {
     Base::doUncoarsen(refiner);
+  }
+
+  const Stats & statsImpl() const {
+    return _stats;
   }
 
   std::string policyStringImpl() const final {

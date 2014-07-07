@@ -41,6 +41,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
     << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
+    << coarsener.stats().toString()
     << " twowayFMactive=" << config.two_way_fm.active
     << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
     << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
@@ -49,6 +50,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " herFMactive=" << config.her_fm.active
     << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves
     << refiner.policyString()
+    //  << refiner.stats.toString();
     << " cut=" << metrics::hyperedgeCut(hypergraph)
     << " part0=" << partition_weights[0]
     << " part1=" << partition_weights[1]

@@ -17,11 +17,11 @@ typedef unsigned int hyperedge_id_t;
 typedef unsigned int hypernode_weight_t;
 typedef int hyperedge_weight_t;
 typedef int partition_id_t;
-typedef double RatingType;
 
 typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,
                                          hyperedge_weight_t, partition_id_t> Hypergraph;
 
+typedef double RatingType;
 typedef Hypergraph::HypernodeID HypernodeID;
 typedef Hypergraph::HyperedgeID HyperedgeID;
 typedef Hypergraph::PartitionID PartitionID;

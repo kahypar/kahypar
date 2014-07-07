@@ -12,6 +12,7 @@
 
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
@@ -23,6 +24,7 @@ using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using defs::IncidenceIterator;
 using defs::HypernodeIterator;
+using utils::Stats;
 
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
@@ -71,11 +73,11 @@ class CoarsenerBase {
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
-    _contained_hypernodes(_hg.initialNumNodes())
+    _contained_hypernodes(_hg.initialNumNodes()),
 #ifdef USE_BUCKET_PQ
-    ,
-    _weights_table()
+    _weights_table(),
 #endif
+    _stats()
   { }
 
   virtual ~CoarsenerBase() { }
@@ -271,6 +273,7 @@ class CoarsenerBase {
 #ifdef USE_BUCKET_PQ
   SingleHEWeightsHashtable _weights_table;
 #endif
+  Stats _stats;
 };
 } // namespace partition
 

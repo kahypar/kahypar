@@ -8,6 +8,9 @@
 #include <string>
 
 #include "lib/macros.h"
+#include "lib/utils/Stats.h"
+
+using utils::Stats;
 
 namespace partition {
 class IRefiner;
@@ -26,6 +29,10 @@ class ICoarsener {
     return policyStringImpl();
   }
 
+  const Stats & stats() const {
+    return statsImpl();
+  }
+
   virtual ~ICoarsener() { }
 
   protected:
@@ -35,6 +42,7 @@ class ICoarsener {
   virtual void coarsenImpl(int limit) = 0;
   virtual void uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
+  virtual const Stats & statsImpl() const = 0;
   DISALLOW_COPY_AND_ASSIGN(ICoarsener);
 };
 } // namespace partition

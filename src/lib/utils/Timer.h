@@ -1,5 +1,5 @@
-#ifndef SRC_LIB_TIMING_TIMER_H_
-#define SRC_LIB_TIMING_TIMER_H_
+#ifndef SRC_LIB_STATISTICS_TIMER_H_
+#define SRC_LIB_STATISTICS_TIMER_H_
 
 #include "lib/definitions.h"
 
@@ -7,6 +7,8 @@
 #include <string>
 
 using defs::HighResClockTimepoint;
+
+namespace utils {
 
 class Timer {
 public:
@@ -34,4 +36,6 @@ class NoTimer {
   void stop() { }
 };
 
-#endif  // SRC_LIB_TIMING_TIMER_H_
+} // namespace utils
+
+#endif  // SRC_LIB_STATISTICS_TIMER_H_

@@ -13,11 +13,13 @@
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
+using utils::Stats;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -37,6 +39,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::_hg;
   using Base::_rater;
   using Base::_history;
+  using Base::_stats;
   using Base::rateAllHypernodes;
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
@@ -85,10 +88,16 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
       reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
     }
+    _stats.add("numCoarseHNs", _hg.numNodes());
+    _stats.add("numCoarseHEs", _hg.numEdges());
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {
     Base::doUncoarsen(refiner);
+  }
+
+  const Stats & statsImpl() const {
+    return _stats;
   }
 
   std::string policyStringImpl() const final {
