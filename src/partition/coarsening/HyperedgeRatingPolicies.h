@@ -60,6 +60,7 @@ struct EdgeWeightDivMultPinWeight {
     }
 
     rating.valid = true;
+    //LOG("r(" << he << ")=" << hypergraph.edgeWeight(he) << "/" << pin_weights_mult << "=" << hypergraph.edgeWeight(he) / pin_weights_mult);
     rating.value = hypergraph.edgeWeight(he) / pin_weights_mult;
     return rating;
   }
