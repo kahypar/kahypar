@@ -7,6 +7,7 @@
 /home/schlag/repo/schlag_git/codestyle/../src/external/binary_heap/QueueStorages.hpp
 /home/schlag/repo/schlag_git/codestyle/../src/external/binary_heap/BinaryHeap.hpp
 /home/schlag/repo/schlag_git/codestyle/../src/external/binary_heap/HeapStatisticData.hpp
+/home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/cmake/FindPostgreSQL.cmake
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/CMakeLists.txt
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/README.md
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/src/fieldset.h
@@ -85,6 +86,7 @@
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/CXX.includecache
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/DependInfo.cmake
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/latex.cpp.o
+/home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/pgsql.cpp.o
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/mysql.cpp.o
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/sqlite-functions.cpp.o
 /home/schlag/repo/schlag_git/codestyle/../src/external/sqlplot-tools/build/src/CMakeFiles/sp-process.dir/sp-process.cpp.o
