@@ -61,6 +61,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     HypernodeID contracted_node;
     Rating rating;
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
+    // Used to prevent unnecessary re-rating of hypernodes that have been removed from
+    // PQ because they are heavier than allowed.
     boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
@@ -75,6 +77,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
              << _rater.rate(rep_node).value);
+      ASSERT(!invalid_hypernodes[rep_node], "Representative HN " << rep_node << " is invalid");
+      ASSERT(!invalid_hypernodes[contracted_node], "Contract HN " << contracted_node << " is invalid");
 
       performContraction(rep_node, contracted_node);
       _pq.remove(contracted_node);
