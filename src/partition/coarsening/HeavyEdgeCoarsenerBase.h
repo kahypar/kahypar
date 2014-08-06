@@ -46,7 +46,8 @@ struct CoarseningMemento {
     contraction_memento(contraction_memento_) { }
 };
 
-template <class Rater = Mandatory>
+template <class Rater = Mandatory,
+          class PrioQueue = PriorityQueue<HypernodeID, typename Rater::RatingType, MetaKeyDouble> >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
                                                     CoarseningMemento>{
   protected:
@@ -137,7 +138,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   }
 
   Rater _rater;
-  PriorityQueue<HypernodeID, RatingType, MetaKeyDouble> _pq;
+  PrioQueue _pq;
 };
 } // namespace partition
 
