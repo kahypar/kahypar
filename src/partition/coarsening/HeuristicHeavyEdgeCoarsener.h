@@ -46,28 +46,28 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::gatherCoarseningStats;
 
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
-    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
+    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
+    _target(hypergraph.initialNumNodes()),
+    _sources(hypergraph.initialNumNodes()) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
   void coarsenImpl(int limit) final {
     _pq.clear();
+    _sources.clear();
 
-    std::vector<HypernodeID> target(_hg.initialNumNodes());
-    TargetToSourcesMap sources;
-
-    rateAllHypernodes(target, sources);
+    rateAllHypernodes(_target, _sources);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
     Rating rating;
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      contracted_node = target[rep_node];
+      contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << target[rep_node] << ") prio: " << _pq.maxKey());
+          << _target[rep_node] << ") prio: " << _pq.maxKey());
 
-      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
       // The heuristic heavy edge coarsener does not update __all__ hypernodes
@@ -80,18 +80,18 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
       performContraction(rep_node, contracted_node);
       _pq.remove(contracted_node);
-      removeMappingEntryOfNode(contracted_node, target[contracted_node], sources);
+      removeMappingEntryOfNode(contracted_node, _target[contracted_node]);
 
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
       rating = _rater.rate(rep_node);
-      updatePQandMappings(rep_node, rating, target, sources);
+      updatePQandMappings(rep_node, rating);
 
-      reRateHypernodesAffectedByContraction(rep_node, contracted_node, target, sources);
-      reRateHypernodesAffectedByContraction(contracted_node, rep_node, target, sources);
+      reRateHypernodesAffectedByContraction(rep_node, contracted_node);
+      reRateHypernodesAffectedByContraction(contracted_node, rep_node);
 
-      reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
+      reRateHypernodesAffectedByParallelHyperedgeRemoval();
     }
     gatherCoarseningStats();
   }
@@ -109,71 +109,68 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   private:
-  void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target,
-                                TargetToSourcesMap& sources) {
-    auto range = sources.equal_range(hn_target);
+  void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target) {
+    auto range = _sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
       if (iter->second == hn) {
         DBG(false, "removing node " << hn << " from entries with key " << hn_target);
-        sources.erase(iter);
+        _sources.erase(iter);
         break;
       }
     }
   }
 
-  void reRateHypernodesAffectedByParallelHyperedgeRemoval(std::vector<HypernodeID>& target,
-                                                          TargetToSourcesMap& sources) {
+  void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
     Rating rating;
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
       for (auto && pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
         rating = _rater.rate(pin);
-        updatePQandMappings(pin, rating, target, sources);
+        updatePQandMappings(pin, rating);
       }
     }
   }
 
-  void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node,
-                                             std::vector<HypernodeID>& target,
-                                             TargetToSourcesMap& sources) {
+  void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node) {
     Rating rating;
-    auto source_range = sources.equal_range(hn);
+    auto source_range = _sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
       if (source_it->second == contraction_node) {
-        sources.erase(source_it++);
+        _sources.erase(source_it++);
       } else {
         DBG(false, "rerating HN " << source_it->second << " which had " << hn << " as target");
         rating = _rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
         HypernodeID source_hn = source_it->second;
         ++source_it;
-        updatePQandMappings(source_hn, rating, target, sources);
+        updatePQandMappings(source_hn, rating);
       }
     }
   }
 
-  void updatePQandMappings(HypernodeID hn, const Rating& rating,
-                           std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
+  void updatePQandMappings(HypernodeID hn, const Rating& rating) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
       _pq.updateKey(hn, rating.value);
-      if (rating.target != target[hn]) {
-        updateMappings(hn, rating, target, sources);
+      if (rating.target != _target[hn]) {
+        updateMappings(hn, rating);
       }
     } else if (_pq.contains(hn)) {
       _pq.remove(hn);
-      removeMappingEntryOfNode(hn, target[hn], sources);
+      removeMappingEntryOfNode(hn, _target[hn]);
     }
   }
 
-  void updateMappings(HypernodeID hn, const Rating& rating,
-                      std::vector<HypernodeID>& target, TargetToSourcesMap& sources) {
-    removeMappingEntryOfNode(hn, target[hn], sources);
-    target[hn] = rating.target;
-    sources.insert({ rating.target, hn });
+  void updateMappings(HypernodeID hn, const Rating& rating) {
+    removeMappingEntryOfNode(hn, _target[hn]);
+    _target[hn] = rating.target;
+    _sources.insert({ rating.target, hn });
   }
+
+  std::vector<HypernodeID> _target;
+  TargetToSourcesMap _sources;
 };
 } // namespace partition
 

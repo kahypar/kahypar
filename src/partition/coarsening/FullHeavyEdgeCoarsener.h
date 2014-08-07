@@ -47,16 +47,16 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::gatherCoarseningStats;
 
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
-    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
+    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
+    _target(hypergraph.initialNumNodes()) { }
 
   ~FullHeavyEdgeCoarsener() { }
 
   void coarsenImpl(int limit) final {
     _pq.clear();
 
-    std::vector<HypernodeID> target(_hg.initialNumNodes());
     NullMap null_map;
-    rateAllHypernodes(target, null_map);
+    rateAllHypernodes(_target, null_map);
 
     HypernodeID rep_node;
     HypernodeID contracted_node;
@@ -68,11 +68,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
       rep_node = _pq.max();
-      contracted_node = target[rep_node];
+      contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << target[rep_node] << ") prio: " << _pq.maxKey());
+          << _target[rep_node] << ") prio: " << _pq.maxKey());
 
-      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(target[rep_node])
+      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
       ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
@@ -89,9 +89,9 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
       rating = _rater.rate(rep_node);
       rerated_hypernodes[rep_node] = 1;
-      updatePQandContractionTargets(rep_node, rating, target, invalid_hypernodes);
+      updatePQandContractionTargets(rep_node, rating, invalid_hypernodes);
 
-      reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
+      reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
     gatherCoarseningStats();
   }
@@ -110,7 +110,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   void reRateAffectedHypernodes(HypernodeID rep_node,
-                                std::vector<HypernodeID>& target,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     Rating rating;
@@ -119,7 +118,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           rating = _rater.rate(pin);
           rerated_hypernodes[pin] = 1;
-          updatePQandContractionTargets(pin, rating, target, invalid_hypernodes);
+          updatePQandContractionTargets(pin, rating, invalid_hypernodes);
         }
       }
     }
@@ -128,18 +127,19 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
 
   void updatePQandContractionTargets(HypernodeID hn, const Rating& rating,
-                                     std::vector<HypernodeID>& target,
                                      boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
       _pq.updateKey(hn, rating.value);
-      target[hn] = rating.target;
+      _target[hn] = rating.target;
     } else if (_pq.contains(hn)) {
       _pq.remove(hn);
       invalid_hypernodes[hn] = 1;
     }
   }
+
+  std::vector<HypernodeID> _target;
 };
 } // namespace partition
 #endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
