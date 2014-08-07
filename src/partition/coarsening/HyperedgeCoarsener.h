@@ -75,13 +75,12 @@ class HyperedgeCoarsener : public ICoarsener,
     _pq.clear();
     rateAllHyperedges();
 
-    HyperedgeID he_to_contract;
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      he_to_contract = _pq.max();
+      const HyperedgeID he_to_contract = _pq.max();
       DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.maxKey());
       DBG(dbg_coarsening_coarsen, "w(" << he_to_contract << ")=" << _hg.edgeWeight(he_to_contract));
       DBG(dbg_coarsening_coarsen, "|" << he_to_contract << "|=" << _hg.edgeSize(he_to_contract));
-      //getchar();
+
       ASSERT([&]() {
                HypernodeWeight total_weight = 0;
                for (auto && pin : _hg.pins(he_to_contract)) {
@@ -89,7 +88,7 @@ class HyperedgeCoarsener : public ICoarsener,
                }
                return total_weight;
              } () <= _config.coarsening.threshold_node_weight,
-             "Contracting HE " << he_to_contract << "leads to violation of node weight thsreshold");
+             "Contracting HE " << he_to_contract << "leads to violation of node weight threshold");
       ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
                                                 _config.coarsening.threshold_node_weight).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
@@ -99,7 +98,7 @@ class HyperedgeCoarsener : public ICoarsener,
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
       //              Or do we just say we coarsen until there are no more than 150 nodes left?
 
-      HypernodeID rep_node = performContraction(he_to_contract);
+      const HypernodeID rep_node = performContraction(he_to_contract);
       _pq.remove(he_to_contract);
 
       removeSingleNodeHyperedges(rep_node);

@@ -58,17 +58,14 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     NullMap null_map;
     rateAllHypernodes(_target, null_map);
 
-    HypernodeID rep_node;
-    HypernodeID contracted_node;
-    Rating rating;
     boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
     boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      rep_node = _pq.max();
-      contracted_node = _target[rep_node];
+      const HypernodeID rep_node = _pq.max();
+      const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
           << _target[rep_node] << ") prio: " << _pq.maxKey());
 
@@ -87,10 +84,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      rating = _rater.rate(rep_node);
-      rerated_hypernodes[rep_node] = 1;
-      updatePQandContractionTargets(rep_node, rating, invalid_hypernodes);
-
+      // this call also re-rates rep_node
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
     gatherCoarseningStats();
@@ -118,7 +112,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           rating = _rater.rate(pin);
           rerated_hypernodes[pin] = 1;
-          updatePQandContractionTargets(pin, rating, invalid_hypernodes);
+          updatePQandContractionTarget(pin, rating, invalid_hypernodes);
         }
       }
     }
@@ -126,8 +120,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
 
-  void updatePQandContractionTargets(HypernodeID hn, const Rating& rating,
-                                     boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
+  void updatePQandContractionTarget(HypernodeID hn, const Rating& rating,
+                                    boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

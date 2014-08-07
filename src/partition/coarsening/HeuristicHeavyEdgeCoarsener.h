@@ -58,12 +58,9 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
     rateAllHypernodes(_target, _sources);
 
-    HypernodeID rep_node;
-    HypernodeID contracted_node;
-    Rating rating;
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      rep_node = _pq.max();
-      contracted_node = _target[rep_node];
+      const HypernodeID rep_node = _pq.max();
+      const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
           << _target[rep_node] << ") prio: " << _pq.maxKey());
 
@@ -85,8 +82,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      rating = _rater.rate(rep_node);
-      updatePQandMappings(rep_node, rating);
+      updatePQandMappings(rep_node, _rater.rate(rep_node));
 
       reRateHypernodesAffectedByContraction(rep_node, contracted_node);
       reRateHypernodesAffectedByContraction(contracted_node, rep_node);
