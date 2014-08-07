@@ -44,6 +44,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
 
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
@@ -92,8 +93,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
       reRateAffectedHypernodes(rep_node, target, rerated_hypernodes, invalid_hypernodes);
     }
-    _stats.add("numCoarseHNs", _hg.numNodes());
-    _stats.add("numCoarseHEs", _hg.numEdges());
+    gatherCoarseningStats();
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {

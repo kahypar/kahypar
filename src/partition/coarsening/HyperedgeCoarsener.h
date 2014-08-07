@@ -64,6 +64,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::restoreSingleNodeHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
+  using Base::gatherCoarseningStats;
 
   HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
@@ -106,8 +107,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
       reRateHyperedgesAffectedByContraction(rep_node);
     }
-    _stats.add("numCoarseHNs", _hg.numNodes());
-    _stats.add("numCoarseHEs", _hg.numEdges());
+    gatherCoarseningStats();
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {

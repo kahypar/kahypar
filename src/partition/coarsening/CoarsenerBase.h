@@ -263,6 +263,13 @@ class CoarsenerBase {
               improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
   }
 
+  void gatherCoarseningStats() {
+    _stats.add("numCoarseHNs", _hg.numNodes());
+    _stats.add("numCoarseHEs", _hg.numEdges());
+    _stats.add("numRemovedSingleNodeHEs", _removed_single_node_hyperedges.size());
+    _stats.add("numRemovedParalellHEs", _removed_parallel_hyperedges.size());
+  }
+
   Hypergraph& _hg;
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;

@@ -43,6 +43,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
 
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config) { }
@@ -92,12 +93,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
       reRateHypernodesAffectedByParallelHyperedgeRemoval(target, sources);
     }
-    DBG(dbg_coarsening_removed_hes, "# removed single-node HEs = "
-        << _removed_single_node_hyperedges.size());
-    DBG(dbg_coarsening_removed_hes, "# removed parallel HEs = "
-        << _removed_parallel_hyperedges.size());
-    _stats.add("numCoarseHNs", _hg.numNodes());
-    _stats.add("numCoarseHEs", _hg.numEdges());
+    gatherCoarseningStats();
   }
 
   void uncoarsenImpl(IRefiner& refiner) final {
