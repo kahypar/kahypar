@@ -77,7 +77,13 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
-  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
+  if (hypergraph->nodeIsEnabled(1)) {
+    hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  } else {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
+    hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 0);
+  }
   hypergraph->changeNodePartition(3, Hypergraph::kInvalidPartition, 1);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
@@ -89,14 +95,24 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
 template <class Coarsener, class Hypergraph>
 void removesParallelHyperedgesDuringCoarsening(Coarsener& coarsener, Hypergraph& hypergraph) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(3), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
+  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
+  if (hypergraph->edgeIsEnabled(3)) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(false));
+  } else {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
+  }
 }
 
 template <class Coarsener, class Hypergraph>
 void updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(Coarsener& coarsener, Hypergraph& hypergraph) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeWeight(1), Eq(2));
+  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
+  if (hypergraph->edgeIsEnabled(1)) {
+    ASSERT_THAT(hypergraph->edgeWeight(1), Eq(2));
+  } else {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(3), Eq(true));
+    ASSERT_THAT(hypergraph->edgeWeight(3), Eq(2));
+  }
 }
 
 template <class Coarsener, class Hypergraph>
@@ -115,7 +131,14 @@ void decreasesNumberOfPinsOnParallelHyperedgeRemoval(Coarsener& coarsener, Hyper
 template <class Coarsener, class HypergraphT, class Refiner>
 void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph, Refiner& refiner) {
   coarsener.coarsen(2);
-  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+
+  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
+  if (hypergraph->nodeIsEnabled(1)) {
+    hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  } else {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
+    hypergraph->changeNodePartition(5, Hypergraph::kInvalidPartition, 0);
+  }
   hypergraph->changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
 
   coarsener.uncoarsen(*refiner);
@@ -167,7 +190,14 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+
+  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
+  if (hypergraph.nodeIsEnabled(0)) {
+    hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
+  } else {
+    ASSERT_THAT(hypergraph.nodeIsEnabled(1), Eq(true));
+    hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
+  }
   hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`

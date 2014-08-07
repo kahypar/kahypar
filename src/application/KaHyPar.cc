@@ -24,6 +24,7 @@
 #include "partition/coarsening/HyperedgeCoarsener.h"
 #include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/ICoarsener.h"
+#include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/FMFactoryExecutor.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
@@ -46,6 +47,7 @@ using partition::ICoarsener;
 using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
+using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -184,6 +186,7 @@ int main(int argc, char* argv[]) {
   typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
   typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
   typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
+  typedef LazyUpdateHeavyEdgeCoarsener<RandomWinsRater> RandomWinsLazyUpdateCoarsener;
   typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsener;
   typedef FMFactoryExecutor<TwoWayFMRefiner> TwoWayFMFactoryExecutor;
   typedef FMFactoryExecutor<HyperedgeFMRefiner> HyperedgeFMFactoryExecutor;
@@ -227,6 +230,14 @@ int main(int argc, char* argv[]) {
       return new RandomWinsFullCoarsener(p.hypergraph, p.config);
     }
     );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "heavy_lazy",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+    }
+    );
+
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
@@ -238,7 +249,7 @@ int main(int argc, char* argv[]) {
     "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partitioning (disable:-1 (default))")
-    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic")
+    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
