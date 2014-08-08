@@ -38,6 +38,7 @@ struct Configuration {
       seed(0),
       initial_partitioning_attempts(1),
       global_search_iterations(1),
+      current_v_cycle(0),
       epsilon(1.0),
       partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
       hyperedge_size_threshold(-1),
@@ -51,6 +52,7 @@ struct Configuration {
     int seed;
     int initial_partitioning_attempts;
     int global_search_iterations;
+    int current_v_cycle;
     double epsilon;
     HypernodeWeight partition_size_upper_bound;
     HyperedgeID hyperedge_size_threshold;

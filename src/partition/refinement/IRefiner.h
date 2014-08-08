@@ -9,11 +9,12 @@
 
 #include "lib/definitions.h"
 #include "lib/macros.h"
-
+#include "lib/utils/Stats.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeWeight;
+using utils::Stats;
 
 namespace partition {
 class IRefiner {
@@ -39,6 +40,10 @@ class IRefiner {
     return policyStringImpl();
   }
 
+  const Stats & stats() const {
+    return statsImpl();
+  }
+
   virtual ~IRefiner() { }
 
   protected:
@@ -51,6 +56,7 @@ class IRefiner {
   virtual void initializeImpl(HyperedgeWeight) { }
   virtual int numRepetitionsImpl() const = 0;
   virtual std::string policyStringImpl() const = 0;
+  virtual const Stats & statsImpl() const = 0;
   DISALLOW_COPY_AND_ASSIGN(IRefiner);
 };
 } //namespace partition

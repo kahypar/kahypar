@@ -302,6 +302,12 @@ int main(int argc, char* argv[]) {
   io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
                             config.partitioning.graph_filename.find_last_of("/") + 1));
 
+#ifdef GATHER_STATS
+  LOG("*******************************");
+  LOG("***** GATHER_STATS ACTIVE *****");
+  LOG("*******************************");
+#endif
+
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
@@ -336,6 +342,7 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 
+  io::printPartitioningStatistics(*coarsener, *refiner);
   io::printPartitioningResults(hypergraph, elapsed_seconds);
   io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
 

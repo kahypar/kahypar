@@ -33,6 +33,7 @@ class DummyRefiner : public IRefiner {
                   HyperedgeWeight&, double, double&) final { }
   int numRepetitionsImpl() const final { return 1; }
   std::string policyStringImpl() const final { return std::string(""); }
+  const Stats & statsImpl() const final { }
 };
 
 template <class CoarsenerType>

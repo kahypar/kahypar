@@ -32,6 +32,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     coarsener.uncoarsen(refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    ++_config.partitioning.current_v_cycle;
   }
 
   restoreLargeHyperedges(hypergraph, removed_hyperedges);

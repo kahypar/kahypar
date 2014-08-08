@@ -2,7 +2,7 @@
 #define SRC_LIB_STATISTICS_STATS_H_
 
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <sstream>
 
 #include "lib/definitions.h"
@@ -16,21 +16,30 @@ namespace utils {
 
 class Stats{
  private:
-  typedef std::unordered_map<std::string, int> StatsMap;
+  
+  typedef std::map<std::string, double> StatsMap;
   
  public:
   
   Stats() :
       _stats() { }
 
-  void add(const std::string& key, int value) {
-    _stats[key] = value;
+  void add(const std::string& key, int vcycle, double value) {
+    _stats.emplace(std::to_string(vcycle) + key, value);
   }
 
   std::string toString() const {
     std::ostringstream s;
-    for (auto& statistic : _stats) {
-      s << " " << statistic.first << "=" << statistic.second;
+    for (auto& stat : _stats) {
+      s << " " << stat.first << "=" << stat.second;
+    }
+    return s.str();
+  }
+
+  std::string toConsoleString() const {
+    std::ostringstream s;
+    for (auto& stat : _stats) {
+      s << stat.first << " = " << stat.second << "\n";
     }
     return s.str();
   }
@@ -44,8 +53,11 @@ class Stats{
 
 class Stats{
  public:
-  void add(const std::string&, int) {}
+  void add(const std::string& key, int vcycle, double value) {}
   std::string toString() const {
+    return std::string("");
+  }
+   std::string toConsoleString() const {
     return std::string("");
   }
 };

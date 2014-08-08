@@ -77,7 +77,7 @@ class Partitioner {
                                             const Hypergraph& hg);
   void performInitialPartitioning(Hypergraph& hg);
 
-  const Configuration& _config;
+  Configuration& _config;
 };
 } // namespace partition
 

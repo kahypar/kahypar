@@ -264,10 +264,16 @@ class CoarsenerBase {
   }
 
   void gatherCoarseningStats() {
-    _stats.add("numCoarseHNs", _hg.numNodes());
-    _stats.add("numCoarseHEs", _hg.numEdges());
-    _stats.add("numRemovedSingleNodeHEs", _removed_single_node_hyperedges.size());
-    _stats.add("numRemovedParalellHEs", _removed_parallel_hyperedges.size());
+    _stats.add("numCoarseHNs", _config.partitioning.current_v_cycle, _hg.numNodes());
+    _stats.add("numCoarseHEs", _config.partitioning.current_v_cycle, _hg.numEdges());
+    _stats.add("numRemovedSingleNodeHEs", _config.partitioning.current_v_cycle,
+               _removed_single_node_hyperedges.size());
+    _stats.add("numRemovedParalellHEs", _config.partitioning.current_v_cycle,
+               _removed_parallel_hyperedges.size());
+    _stats.add("avgHEsizeCoarse", _config.partitioning.current_v_cycle,
+               metrics::avgHyperedgeDegree(_hg));
+    _stats.add("avgHNdegreeCoarse", _config.partitioning.current_v_cycle,
+               metrics::avgHypernodeDegree(_hg));
   }
 
   Hypergraph& _hg;

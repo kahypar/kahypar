@@ -58,6 +58,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   using Base::_hg;
   using Base::_config;
   using Base::_history;
+  using Base::_stats;
 #ifdef USE_BUCKET_PQ
   using Base::_weights_table;
 #endif
@@ -92,6 +93,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   void doUncoarsen(IRefiner& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+
+    _stats.add("initialCut", _config.partitioning.current_v_cycle, current_cut);
+    _stats.add("initialImbalance", _config.partitioning.current_v_cycle, current_imbalance);
+
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
 

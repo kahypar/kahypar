@@ -10,8 +10,12 @@
 #include "partition/Metrics.h"
 #include "lib/GitRevision.h"
 #include "partition/Metrics.h"
+#include "partition/coarsening/ICoarsener.h"
+#include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;
+using partition::IRefiner;
+using partition::ICoarsener;
 
 namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
@@ -40,5 +44,12 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "| partition 1 | = " << partition_weights[1] << std::endl;
   std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
 }
+
+inline void printPartitioningStatistics(const ICoarsener& coarsener, const IRefiner& refiner) {
+  std::cout << "*****************************Statistics******************************" << std::endl;
+  std::cout << coarsener.stats().toConsoleString();
+  std::cout << refiner.stats().toConsoleString();
+}
+
 } // namespace io
 #endif  // LIB_IO_PARTITIONINGOUTPUT_H_

@@ -50,7 +50,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " herFMactive=" << config.her_fm.active
     << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves
     << refiner.policyString()
-    //  << refiner.stats.toString();
+    << refiner.stats().toString()
     << " cut=" << metrics::hyperedgeCut(hypergraph)
     << " part0=" << partition_weights[0]
     << " part1=" << partition_weights[1]

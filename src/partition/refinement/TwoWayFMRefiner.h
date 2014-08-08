@@ -38,7 +38,7 @@ using defs::HypernodeWeight;
 using defs::IncidenceIterator;
 
 namespace partition {
-static const bool dbg_refinement_2way_fm_improvements = true;
+static const bool dbg_refinement_2way_fm_improvements = false;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
 static const bool dbg_refinement_2way_fm_eligible_pqs = false;
@@ -71,7 +71,8 @@ class TwoWayFMRefiner : public IRefiner {
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _performed_moves(),
-    _is_initialized(false) {
+    _is_initialized(false),
+    _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
 
@@ -286,6 +287,10 @@ class TwoWayFMRefiner : public IRefiner {
                        );
   }
 
+  const Stats & statsImpl() const {
+    return _stats;
+  }
+
   private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
@@ -475,6 +480,7 @@ class TwoWayFMRefiner : public IRefiner {
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
+  Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
 } // namespace partition
