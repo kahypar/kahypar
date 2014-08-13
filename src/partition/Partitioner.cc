@@ -193,7 +193,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
     int seed = Randomize::newRandomSeed();
 
     std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
-                 + _config.partitioning.coarse_graph_filename + " 2"
+                 + _config.partitioning.coarse_graph_filename
+                 + " " + std::to_string(_config.partitioning.k)
                  + " -seed=" + std::to_string(seed)
                  + " -ufactor=" + std::to_string(_config.partitioning.epsilon * 50)
                  + (_config.partitioning.verbose_output ? "" : " > /dev/null")).c_str());
