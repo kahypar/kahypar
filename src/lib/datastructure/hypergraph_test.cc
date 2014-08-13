@@ -14,6 +14,7 @@ using::testing::Eq;
 using::testing::Test;
 
 using defs::HypernodeID;
+using defs::PartitionID;
 using defs::IncidenceIterator;
 
 namespace datastructure {
@@ -447,7 +448,6 @@ TEST_F(AHypergraph, IncreasesPinCountOfAffectedHEsOnUnContraction) {
 }
 
 TEST_F(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges) {
-  hypergraph.calculatePartitionPinCounts();
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 0), Eq(1));
   ASSERT_THAT(hypergraph.pinCountInPartition(0, 1), Eq(1));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 0), Eq(4));
@@ -464,9 +464,15 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.removeEdge(1, false);
 
   // We do not use accessor pinCountInPartition here since this asserts HE validity
-  ASSERT_THAT(hypergraph._partition_pin_counts[3], Eq(hypergraph.kInvalidCount));
-  ASSERT_THAT(hypergraph._partition_pin_counts[4], Eq(hypergraph.kInvalidCount));
-  ASSERT_THAT(hypergraph._partition_pin_counts[5], Eq(hypergraph.kInvalidCount));
+  std::pair<HyperedgeID, PartitionID> e(1, Hypergraph::kInvalidPartition);
+  ASSERT_THAT(hypergraph._partition_pin_count[e], Eq(hypergraph.kInvalidCount));
+  for (PartitionID i = 0; i < 2; ++i) {
+    std::pair<HyperedgeID, PartitionID> element(1, i);
+    auto element_it = hypergraph._partition_pin_count.find(element);
+    if (element_it != hypergraph._partition_pin_count.end()) {
+      ASSERT_THAT(element_it->second, Eq(hypergraph.kInvalidCount));
+    }
+  }
 }
 
 TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
@@ -499,9 +505,6 @@ TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(0));
   hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
   hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 1);
-
-  hypergraph.calculatePartitionPinCount(1);
-
   ASSERT_THAT(hypergraph.pinCountInPartition(1, Hypergraph::kInvalidPartition), Eq(2));
   ASSERT_THAT(hypergraph.pinCountInPartition(1, 1), Eq(2));
 }
