@@ -772,6 +772,10 @@ class GenericHypergraph {
     return _current_num_pins;
   }
 
+  PartitionID k() const {
+    return _k;
+  }
+
   HypernodeID pinCountInPartition(HyperedgeID he, PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(id < _k, "Partition ID " << id << " is out of bounds");
