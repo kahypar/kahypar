@@ -71,18 +71,21 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMappin
 }
 
 inline double imbalance(const Hypergraph& hypergraph) {
-  std::vector<HypernodeWeight> partition_sizes { 0, 0 };
+  std::vector<HypernodeWeight> partition_sizes(hypergraph.k(), 0);
   HypernodeWeight total_weight = 0;
   for (const auto && hn : hypergraph.nodes()) {
-    ASSERT(hypergraph.partitionIndex(hn) < 2 &&
+    ASSERT(hypergraph.partitionIndex(hn) < hypergraph.k() &&
            hypergraph.partitionIndex(hn) != Hypergraph::kInvalidPartition,
            "Invalid partition index for hypernode " << hn << ": " << hypergraph.partitionIndex(hn));
     partition_sizes[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
     total_weight += hypergraph.nodeWeight(hn);
   }
 
-  HypernodeWeight max_weight = std::max(partition_sizes[0], partition_sizes[1]);
-  return 2.0 * max_weight / total_weight - 1.0;
+  HypernodeWeight max_weight = 0;
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    max_weight = std::max(max_weight, partition_sizes[i]);
+  }
+  return 1.0 * max_weight * hypergraph.k() / total_weight - 1.0;
 }
 
 inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
