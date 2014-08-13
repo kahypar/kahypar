@@ -236,7 +236,7 @@ TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNo
 TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize) {
   HypernodeWeightVector hypernode_weights { 4, 5 };
   hypergraph.reset(new Hypergraph(2, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
-                                  HyperedgeVector { 0, 1 }, nullptr, &hypernode_weights));
+                                  HyperedgeVector { 0, 1 }, 2, nullptr, &hypernode_weights));
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
   hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);

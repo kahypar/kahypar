@@ -50,7 +50,7 @@ TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
   ASSERT_THAT(edge_vector, ContainerEq(_control_edge_vector));
   ASSERT_THAT(hyperedge_weights, ContainerEq(_control_hyperedge_weights));
   Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                        &hyperedge_weights);
+                        2, &hyperedge_weights);
 }
 
 TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
@@ -65,7 +65,7 @@ TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
   ASSERT_THAT(edge_vector, ContainerEq(_control_edge_vector));
   //ASSERT_THAT(hypernode_weights, ContainerEq(_control_hypernode_weights));
   Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                        nullptr, &hypernode_weights);
+                        2, nullptr, &hypernode_weights);
 }
 
 TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergraph) {
@@ -82,7 +82,7 @@ TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergra
   ASSERT_THAT(hyperedge_weights, ContainerEq(_control_hyperedge_weights));
   ASSERT_THAT(hypernode_weights, ContainerEq(_control_hypernode_weights));
   Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
-                        &hyperedge_weights, &hypernode_weights);
+                        2, &hyperedge_weights, &hypernode_weights);
 }
 
 TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
@@ -102,7 +102,7 @@ TEST_F(AHypergraphWithHyperedgeWeights, CanBeWrittenToFile) {
   readHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, _written_index_vector,
                      _written_edge_vector, &_written_hyperedge_weights, nullptr);
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
-                         _written_edge_vector, &_written_hyperedge_weights);
+                         _written_edge_vector, 2, &_written_hyperedge_weights);
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }
 
@@ -112,7 +112,7 @@ TEST_F(AHypergraphWithHypernodeWeights, CanBeWrittenToFile) {
   readHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, _written_index_vector,
                      _written_edge_vector, nullptr, &_written_hypernode_weights);
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
-                         _written_edge_vector, nullptr, &_written_hypernode_weights);
+                         _written_edge_vector, 2, nullptr, &_written_hypernode_weights);
 
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }
@@ -124,7 +124,7 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
                      _written_edge_vector, &_written_hyperedge_weights,
                      &_written_hypernode_weights);
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
-                         _written_edge_vector, &_written_hyperedge_weights,
+                         _written_edge_vector, 2, &_written_hyperedge_weights,
                          &_written_hypernode_weights);
 
   ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));

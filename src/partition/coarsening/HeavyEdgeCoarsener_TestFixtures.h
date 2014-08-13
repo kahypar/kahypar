@@ -156,7 +156,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   HyperedgeWeightVector edge_weights { 1, 1, 1, 1 };
   HypernodeWeightVector node_weights { 50, 1, 1 };
   Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                        HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, &edge_weights,
+                        HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, 2, &edge_weights,
                         &node_weights);
 
   Configuration config;
@@ -182,7 +182,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   HyperedgeWeightVector edge_weights { 5, 5, 5, 1 };
   HypernodeWeightVector node_weights { 1, 1, 5 };
   Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
-                        HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, &edge_weights,
+                        HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, 2, &edge_weights,
                         &node_weights);
 
   Configuration config;

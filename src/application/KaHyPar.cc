@@ -79,13 +79,21 @@ using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
-  if (vm.count("hgr") && vm.count("e")) {
+  if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
     config.partitioning.graph_filename = vm["hgr"].as<std::string>();
+    config.partitioning.k = vm["k"].as<PartitionID>();
+
     config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
     config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of(
-                                                       "/") + 1, std::string("PID_") + std::to_string(getpid()) + "_coarse_");
-    config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part.2.KaHyPar";
-    config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename + ".part.2";
+                                                       "/") + 1,
+                                                     std::string("PID_")
+                                                     + std::to_string(getpid()) + "_coarse_");
+    config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part."
+                                                   + std::to_string(config.partitioning.k)
+                                                   + ".KaHyPar";
+    config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename
+                                                          + ".part."
+                                                          + std::to_string(config.partitioning.k);
     config.partitioning.epsilon = vm["e"].as<double>();
 
     if (vm.count("seed")) {
@@ -243,6 +251,7 @@ int main(int argc, char* argv[]) {
     ("help", "show help message")
     ("verbose", po::value<bool>(), "Verbose partitioner output")
     ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
+    ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
     ("nruns", po::value<int>(),
@@ -286,7 +295,7 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, config.partitioning.k);
 
   HypernodeWeight hypergraph_weight = 0;
   for (auto && hn : hypergraph.nodes()) {

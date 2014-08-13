@@ -149,7 +149,7 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
   void SetUp() {
     _filename = "test_instances/weighted_hyperedges_hypergraph.hgr.out";
     _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                 &_hyperedge_weights);
+                                 2, &_hyperedge_weights);
   }
 
   HyperedgeWeightVector _hyperedge_weights;
@@ -166,7 +166,7 @@ class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
   void SetUp() {
     _filename = "test_instances/weighted_hypernodes_hypergraph.hgr.out";
     _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                 nullptr, &_hypernode_weights);
+                                 2, nullptr, &_hypernode_weights);
   }
 
   HypernodeWeightVector _hypernode_weights;
@@ -185,7 +185,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   void SetUp() {
     _filename = "test_instances/weighted_hyperedges_and_hypernodes_hypergraph.hgr.out";
     _hypergraph = new Hypergraph(_num_hypernodes, _num_hyperedges, _index_vector, _edge_vector,
-                                 &_hyperedge_weights, &_hypernode_weights);
+                                 2, &_hyperedge_weights, &_hypernode_weights);
   }
 
   HyperedgeWeightVector _hyperedge_weights;

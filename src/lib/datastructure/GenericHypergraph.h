@@ -283,9 +283,9 @@ class GenericHypergraph {
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const HyperedgeIndexVector& index_vector,
              const HyperedgeVector& edge_vector,
+                   PartitionID k = 2,
              const HyperedgeWeightVector* hyperedge_weights = nullptr,
-                    const HypernodeWeightVector* hypernode_weights = nullptr,
-                    int k = 2) :
+             const HypernodeWeightVector* hypernode_weights = nullptr) :
     _num_hypernodes(num_hypernodes),
     _num_hyperedges(num_hyperedges),
     _num_pins(edge_vector.size()),
