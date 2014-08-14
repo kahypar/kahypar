@@ -100,7 +100,7 @@ class TwoWayFMRefiner : public IRefiner {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+      ASSERT(_hg.partitionIndex(hn) != _hg.invalidPartitionID(),
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
     }

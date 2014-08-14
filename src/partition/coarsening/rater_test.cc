@@ -128,8 +128,8 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).value, Eq(1));
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
-  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
-  hypergraph->changeNodePartition(1, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(0, hypergraph->invalidPartitionID(), 0);
+  hypergraph->changeNodePartition(1, hypergraph->invalidPartitionID(), 1);
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
@@ -157,8 +157,8 @@ TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) 
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
-  hypergraph->changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
-  hypergraph->changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
+  hypergraph->changeNodePartition(0, hypergraph->invalidPartitionID(), 0);
+  hypergraph->changeNodePartition(2, hypergraph->invalidPartitionID(), 1);
   ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
               Eq(false));
 }

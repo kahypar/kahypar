@@ -60,10 +60,10 @@ class AContractionMemento : public AHypergraph {
 class AnUncontractionOperation : public AHypergraph {
   public:
   AnUncontractionOperation() : AHypergraph() {
-    hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
+    hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(2, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(3, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(4, hypergraph.invalidPartitionID(), 0);
   }
 };
 
@@ -81,13 +81,13 @@ class APartitionedHypergraph : public AHypergraph {
   public:
   APartitionedHypergraph() :
     AHypergraph() {
-    hypergraph.changeNodePartition(0, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(1, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(2, Hypergraph::kInvalidPartition, 1);
-    hypergraph.changeNodePartition(3, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(4, Hypergraph::kInvalidPartition, 0);
-    hypergraph.changeNodePartition(5, Hypergraph::kInvalidPartition, 1);
-    hypergraph.changeNodePartition(6, Hypergraph::kInvalidPartition, 1);
+    hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(1, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(2, hypergraph.invalidPartitionID(), 1);
+    hypergraph.changeNodePartition(3, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(4, hypergraph.invalidPartitionID(), 0);
+    hypergraph.changeNodePartition(5, hypergraph.invalidPartitionID(), 1);
+    hypergraph.changeNodePartition(6, hypergraph.invalidPartitionID(), 1);
   }
 };
 

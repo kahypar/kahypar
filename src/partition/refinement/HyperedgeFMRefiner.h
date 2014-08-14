@@ -105,7 +105,7 @@ class HyperedgeFMRefiner : public IRefiner {
     _partition_size[1] = 0;
 
     for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+      ASSERT(_hg.partitionIndex(hn) != _hg.invalidPartitionID(),
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
     }
@@ -238,7 +238,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
   Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) {
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
-    ASSERT((from != Hypergraph::kInvalidPartition) && (to != Hypergraph::kInvalidPartition),
+    ASSERT((from != _hg.invalidPartitionID()) && (to != _hg.invalidPartitionID()),
            "Trying to compute gain for invalid partition");
     if (isCutHyperedge(he)) {
       _gain_indicator.reset();
