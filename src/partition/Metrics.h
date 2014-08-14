@@ -75,7 +75,7 @@ inline double imbalance(const Hypergraph& hypergraph) {
   HypernodeWeight total_weight = 0;
   for (const auto && hn : hypergraph.nodes()) {
     ASSERT(hypergraph.partitionIndex(hn) < hypergraph.k() &&
-           hypergraph.partitionIndex(hn) != hypergraph.invalidPartitionID(),
+           hypergraph.partitionIndex(hn) != Hypergraph::kInvalidPartition,
            "Invalid partition index for hypernode " << hn << ": " << hypergraph.partitionIndex(hn));
     partition_sizes[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
     total_weight += hypergraph.nodeWeight(hn);

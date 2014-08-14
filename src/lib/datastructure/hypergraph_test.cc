@@ -547,7 +547,7 @@ TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
 
 TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
   for (auto && hn : hypergraph.nodes()) {
-    ASSERT_THAT(hypergraph.partitionIndex(hn), Eq(hypergraph.invalidPartitionID()));
+    ASSERT_THAT(hypergraph.partitionIndex(hn), Eq(Hypergraph::kInvalidPartition));
   }
 }
 } // namespace datastructure
