@@ -53,8 +53,6 @@ class GenericHypergraph {
   typedef HypernodeData_ HypernodeData;
   typedef HyperedgeData_ HyperedgeData;
 
-// enum { kInvalidPartition = -1 };
-
   enum class Type : int8_t {
     Unweighted = 0,
     EdgeWeights = 1,
