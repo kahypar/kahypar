@@ -126,8 +126,8 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
-  hypergraph.changeNodePartition(1, hypergraph.invalidPartitionID(), 1);
+  hypergraph.setNodePartition(0, 0);
+  hypergraph.setNodePartition(1, 1);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
 }
@@ -142,7 +142,7 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(1);
-  hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
+  hypergraph.setNodePartition(0, 0);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
@@ -155,7 +155,7 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(1);
-  hypergraph->changeNodePartition(0, hypergraph->invalidPartitionID(), 0);
+  hypergraph->setNodePartition(0, 0);
   coarsener.uncoarsen(*refiner);
 
   ASSERT_THAT(verifyEquivalence(*hypergraph, input_hypergraph), Eq(true));
@@ -172,7 +172,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
   config.coarsening.threshold_node_weight = 5;
 
   coarsener.coarsen(1);
-  hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
+  hypergraph.setNodePartition(0, 0);
   coarsener.restoreSingleNodeHyperedges(coarsener._history.top());
 
   coarsener.performUncontraction(coarsener._history.top(), refinement_nodes,

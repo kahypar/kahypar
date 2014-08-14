@@ -80,12 +80,12 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph->nodeIsEnabled(1)) {
-    hypergraph->changeNodePartition(1, hypergraph->invalidPartitionID(), 0);
+    hypergraph->setNodePartition(1, 0);
   } else {
     ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
-    hypergraph->changeNodePartition(5, hypergraph->invalidPartitionID(), 0);
+    hypergraph->setNodePartition(5, 0);
   }
-  hypergraph->changeNodePartition(3, hypergraph->invalidPartitionID(), 1);
+  hypergraph->setNodePartition(3, 1);
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
@@ -135,12 +135,12 @@ void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergra
 
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph->nodeIsEnabled(1)) {
-    hypergraph->changeNodePartition(1, hypergraph->invalidPartitionID(), 0);
+    hypergraph->setNodePartition(1, 0);
   } else {
     ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
-    hypergraph->changeNodePartition(5, hypergraph->invalidPartitionID(), 0);
+    hypergraph->setNodePartition(5, 0);
   }
-  hypergraph->changeNodePartition(4, hypergraph->invalidPartitionID(), 1);
+  hypergraph->setNodePartition(4, 1);
 
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
@@ -165,8 +165,8 @@ void restoresParallelHyperedgesInReverseOrder() {
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
-  hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
-  hypergraph.changeNodePartition(1, hypergraph.invalidPartitionID(), 1);
+  hypergraph.setNodePartition(0, 0);
+  hypergraph.setNodePartition(1, 1);
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
@@ -194,12 +194,12 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
 
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph.nodeIsEnabled(0)) {
-    hypergraph.changeNodePartition(0, hypergraph.invalidPartitionID(), 0);
+    hypergraph.setNodePartition(0, 0);
   } else {
     ASSERT_THAT(hypergraph.nodeIsEnabled(1), Eq(true));
-    hypergraph.changeNodePartition(1, hypergraph.invalidPartitionID(), 0);
+    hypergraph.setNodePartition(1, 0);
   }
-  hypergraph.changeNodePartition(2, hypergraph.invalidPartitionID(), 0);
+  hypergraph.setNodePartition(2, 0);
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
   // failed: Incorrect restore of HE 0. In order to correctly restore the hypergraph during un-
