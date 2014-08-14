@@ -54,7 +54,7 @@ void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>
 
 void Partitioner::restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
   if (_config.partitioning.hyperedge_size_threshold != -1) {
-    PartitionWeights partition_weights { 0, 0 };
+    PartitionWeights partition_weights(_config.partitioning.k, 0);
     for (auto && hn : hg.nodes()) {
       if (hg.partitionIndex(hn) != Hypergraph::kInvalidPartition) {
         partition_weights[hg.partitionIndex(hn)] += hg.nodeWeight(hn);
