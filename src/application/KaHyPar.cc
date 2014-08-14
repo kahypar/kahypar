@@ -349,6 +349,19 @@ int main(int argc, char* argv[]) {
   partitioner.partition(hypergraph, *coarsener, *refiner);
   end = std::chrono::high_resolution_clock::now();
 
+#ifndef NDEBUG
+  for (auto && he : hypergraph.edges()) {
+    ASSERT([&]() -> bool {
+             HypernodeID num_pins = 0;
+             for (PartitionID i = 0; i < config.partitioning.k; ++i) {
+               num_pins += hypergraph.pinCountInPartition(he, i);
+             }
+             return num_pins == hypergraph.edgeSize(he);
+           } (),
+           "Incorrect calculation of pin counts");
+  }
+#endif
+
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   io::printPartitioningStatistics(*coarsener, *refiner);
