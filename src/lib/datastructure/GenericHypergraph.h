@@ -250,6 +250,11 @@ class GenericHypergraph {
     HypernodeID u, u_first_entry, u_size, v;
   };
 
+  struct PartInformation {
+    HypernodeWeight weight;
+    HypernodeID size;
+  };
+
   struct HypernodeTraits {
     typedef HypernodeWeight WeightType;
     typedef HypernodeID IDType;
@@ -290,6 +295,7 @@ class GenericHypergraph {
     _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
     _part_ids(_num_hypernodes, kInvalidPartition),
+    _part_info(_k),
     _partition_pin_count(_k),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
@@ -578,6 +584,7 @@ class GenericHypergraph {
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     if (from != to) {
       setPartID(hn, to);
+      updatePartInfo(hn, from, to);
       for (auto&& he : incidentEdges(hn)) {
         decreasePinCountInPart(he, from);
         increasePinCountInPart(he, to);
@@ -598,6 +605,7 @@ class GenericHypergraph {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: " <<  partID(hn));
     setPartID(hn, id);
+    updatePartInfo(hn, id);
     for (auto&& he : incidentEdges(hn)) {
       increasePinCountInPart(he, id);
     }
@@ -791,6 +799,14 @@ class GenericHypergraph {
     }
   }
 
+  HypernodeWeight partWeight(PartitionID id) const {
+    return _part_info[id].weight;
+  }
+
+  HypernodeID partSize(PartitionID id) const {
+    return _part_info[id].size;
+  }
+
   HypernodeData & hypernodeData(HypernodeID hn) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     return hypernode(hn);
@@ -819,6 +835,23 @@ class GenericHypergraph {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(id < _k, "Part ID" << id << " out of bounds!");
     _part_ids[u] = id;
+  }
+
+  void updatePartInfo(HypernodeID u, PartitionID id) {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    _part_info[id].weight += nodeWeight(u);
+    ++_part_info[id].size; 
+  }
+
+  void updatePartInfo(HypernodeID u, PartitionID from, PartitionID to) {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(from < _k, "Part ID" << from << " out of bounds!");
+    ASSERT(to < _k, "Part ID" << to << " out of bounds!");
+    _part_info[from].weight -= nodeWeight(u);
+    --_part_info[from].size;
+    _part_info[to].weight += nodeWeight(u);
+    ++_part_info[to].size; 
   }
 
   void decreasePinCountInPart(HyperedgeID he, PartitionID id) {
@@ -988,6 +1021,7 @@ class GenericHypergraph {
   std::vector<VertexID> _incidence_array;
 
   std::vector<PartitionID> _part_ids;
+  std::vector<PartInformation> _part_info;
   // for each partition id, we store the number of pins of each HE in that partition in a hash_map
   std::vector<google::dense_hash_map<HyperedgeID, HypernodeID>> _partition_pin_count;
 

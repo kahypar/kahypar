@@ -80,7 +80,6 @@ class HyperedgeFMRefiner : public IRefiner {
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
-    _partition_size{0, 0},
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
     _marked_HEs(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
@@ -101,23 +100,6 @@ class HyperedgeFMRefiner : public IRefiner {
   }
 
   void initializeImpl() final {
-    _partition_size[0] = 0;
-    _partition_size[1] = 0;
-
-    for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partID(hn)] += _hg.nodeWeight(hn);
-    }
-
-    ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
-             HypernodeWeight total_weight = 0;
-             for (const auto && hn : _hg.nodes()) {
-               total_weight += _hg.nodeWeight(hn);
-             }
-             return total_weight;
-           } ()
-           , "Calculated partition sizes do not match those induced by hypergraph");
     _is_initialized = true;
   }
 
@@ -334,8 +316,6 @@ class HyperedgeFMRefiner : public IRefiner {
         hn_to_move = _performed_moves[i];
         DBG(dbg_refinement_he_fm_rollback, "Moving HN " << hn_to_move << " from "
             << hg.partID(hn_to_move) << " back to " << (hg.partID(hn_to_move) ^ 1));
-        _partition_size[hg.partID(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
-        _partition_size[(hg.partID(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
         _hg.changeNodePart(hn_to_move, hg.partID(hn_to_move),
                            (hg.partID(hn_to_move) ^ 1));
       }
@@ -344,8 +324,8 @@ class HyperedgeFMRefiner : public IRefiner {
   }
 
   double calculateImbalance() const {
-    double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
-                       (_partition_size[0] + _partition_size[1]) - 1.0;
+    double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
+                       (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
@@ -374,7 +354,7 @@ class HyperedgeFMRefiner : public IRefiner {
         pins_to_move_weight += _hg.nodeWeight(pin);
       }
     }
-    return _partition_size[to] + pins_to_move_weight <= _config.partitioning.partition_size_upper_bound;
+    return _hg.partWeight(to) + pins_to_move_weight <= _config.partitioning.partition_size_upper_bound;
   }
 
   bool queuesAreEmpty() const {
@@ -406,8 +386,6 @@ class HyperedgeFMRefiner : public IRefiner {
     for (auto && pin : _hg.pins(he)) {
       if (_hg.partID(pin) == from) {
         _hg.changeNodePart(pin, from, to);
-        _partition_size[from] -= _hg.nodeWeight(pin);
-        _partition_size[to] += _hg.nodeWeight(pin);
         _performed_moves[curr_index++] = pin;
       }
     }
@@ -533,7 +511,6 @@ class HyperedgeFMRefiner : public IRefiner {
 
   Hypergraph& _hg;
   const Configuration _config;
-  std::array<HypernodeWeight, K> _partition_size;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;

@@ -242,8 +242,8 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
   hypergraph->setNodePart(1, 1);
 
   hyperedge_fm_refiner.initialize();
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(0), Eq(4));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(1), Eq(5));
 }
 
 TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
@@ -445,14 +445,14 @@ TEST_F(TheUpdateGainsMethod, RecomputesGainForHyperedgesThatRemainCutHyperedges)
 TEST_F(AHyperedgeMovementOperation, UpdatesPartitionSizes) {
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(4));
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(1));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(0), Eq(4));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(1), Eq(1));
   hyperedge_fm_refiner.activateIncidentCutHyperedges(2);
 
   hyperedge_fm_refiner.moveHyperedge(1, 0, 1, 0);
 
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[0], Eq(2));
-  ASSERT_THAT(hyperedge_fm_refiner._partition_size[1], Eq(3));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(0), Eq(2));
+  ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(1), Eq(3));
 }
 
 TEST_F(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry) {
@@ -570,8 +570,8 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex) {
 
   hyperedge_fm_refiner->rollback(2, 0, *hypergraph);
 
-  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[0], Eq(2));
-  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[1], Eq(7));
+  ASSERT_THAT(hyperedge_fm_refiner->_hg.partWeight(0), Eq(2));
+  ASSERT_THAT(hyperedge_fm_refiner->_hg.partWeight(1), Eq(7));
   ASSERT_THAT(hypergraph->partID(0), Eq(1));
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
@@ -594,8 +594,8 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImproveme
 
   hyperedge_fm_refiner->rollback(2, -1, *hypergraph);
 
-  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[0], Eq(5));
-  ASSERT_THAT(hyperedge_fm_refiner->_partition_size[1], Eq(4));
+  ASSERT_THAT(hyperedge_fm_refiner->_hg.partWeight(0), Eq(5));
+  ASSERT_THAT(hyperedge_fm_refiner->_hg.partWeight(1), Eq(4));
   ASSERT_THAT(hypergraph->partID(0), Eq(0));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(2), Eq(0));

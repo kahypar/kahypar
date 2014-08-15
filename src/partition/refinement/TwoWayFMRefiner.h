@@ -67,7 +67,6 @@ class TwoWayFMRefiner : public IRefiner {
     _config(config),
     // ToDo: We could also use different storage to avoid initialization like this
     _pq{nullptr, nullptr},
-    _partition_size{0, 0},
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _performed_moves(),
@@ -97,15 +96,6 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void initializeImpl(HyperedgeWeight max_gain) final {
-    _partition_size[0] = 0;
-    _partition_size[1] = 0;
-    for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partID(hn)] += _hg.nodeWeight(hn);
-    }
-
-
 #ifdef USE_BUCKET_PQ
     delete _pq[0];
     delete _pq[1];
@@ -334,17 +324,17 @@ class TwoWayFMRefiner : public IRefiner {
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
         "HN " << _pq[0]->max() << "w(hn)=" << _hg.nodeWeight(_pq[0]->max())
-        << " clogs PQ 0: w(p1)=" << _partition_size[1]);
+        << " clogs PQ 0: w(p1)=" << _hg.partWeight(1));
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && _pq[0]->empty(), "PQ 0 is empty");
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && !_pq[1]->empty(),
         "HN " << _pq[1]->max() << "w(hn)=" << _hg.nodeWeight(_pq[1]->max())
-        << " clogs PQ 1: w(p0)=" << _partition_size[0]);
+        << " clogs PQ 1: w(p0)=" << _hg.partWeight(0));
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
   }
 
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
     ASSERT(_hg.partID(hn) == from, "HN " << hn << " is not in partition " << from);
-    return _partition_size[to] + _hg.nodeWeight(hn)
+    return _hg.partWeight(to) + _hg.nodeWeight(hn)
            <= _config.partitioning.partition_size_upper_bound;
   }
 
@@ -353,8 +343,8 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   double calculateImbalance() const {
-    double imbalance = (2.0 * std::max(_partition_size[0], _partition_size[1])) /
-                       (_partition_size[0] + _partition_size[1]) - 1.0;
+    double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
+                       (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
@@ -366,8 +356,6 @@ class TwoWayFMRefiner : public IRefiner {
            << " is already in partition " << _hg.partID(hn));
     _hg.changeNodePart(hn, from, to);
     _marked[hn] = 1;
-    _partition_size[from] -= _hg.nodeWeight(hn);
-    _partition_size[to] += _hg.nodeWeight(hn);
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
@@ -437,8 +425,6 @@ class TwoWayFMRefiner : public IRefiner {
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = performed_moves[last_index];
-      _partition_size[hg.partID(hn)] -= _hg.nodeWeight(hn);
-      _partition_size[(hg.partID(hn) ^ 1)] += _hg.nodeWeight(hn);
       _hg.changeNodePart(hn, hg.partID(hn), (hg.partID(hn) ^ 1));
       --last_index;
     }
@@ -475,7 +461,6 @@ class TwoWayFMRefiner : public IRefiner {
   Hypergraph& _hg;
   const Configuration& _config;
   std::array<RefinementPQ*, K> _pq;
-  std::array<HypernodeWeight, K> _partition_size;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;
   std::vector<HypernodeID> _performed_moves;

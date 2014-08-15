@@ -85,8 +85,8 @@ TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
 }
 
 TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
-  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
-  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 }
 
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
@@ -102,26 +102,26 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
 
 
 TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
-  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
-  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 
   refiner->moveHypernode(1, 1, 0);
 
-  ASSERT_THAT(refiner->_partition_size[0], Eq(4));
-  ASSERT_THAT(refiner->_partition_size[1], Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
 }
 
 TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
-  ASSERT_THAT(refiner->_partition_size[0], Eq(3));
-  ASSERT_THAT(refiner->_partition_size[1], Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
   double old_imbalance = metrics::imbalance(hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   refiner->refine(refinement_nodes, 2, old_cut, 0.15, old_imbalance);
 
-  ASSERT_THAT(refiner->_partition_size[0], Eq(4));
-  ASSERT_THAT(refiner->_partition_size[1], Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
 }
 
 TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
