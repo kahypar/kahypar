@@ -35,13 +35,12 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                               const std::chrono::duration<double>& elapsed_seconds) {
-  HypernodeWeight partition_weights[2] = { 0, 0 };
-  metrics::partitionWeights(hypergraph, partition_weights);
   std::cout << "***********************2-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
-  std::cout << "| partition 0 | = " << partition_weights[0] << std::endl;
-  std::cout << "| partition 1 | = " << partition_weights[1] << std::endl;
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;
+  }
   std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
 }
 

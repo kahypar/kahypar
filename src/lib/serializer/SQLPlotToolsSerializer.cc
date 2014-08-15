@@ -17,9 +17,6 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
                                        const ICoarsener& coarsener, const IRefiner& refiner,
                                        const std::chrono::duration<double>& elapsed_seconds,
                                        const std::string& filename) {
-  HypernodeWeight partition_weights[2] = { 0, 0 };
-  metrics::partitionWeights(hypergraph, partition_weights);
-
   std::ofstream out_stream(filename.c_str(), std::ofstream::app);
   ip::file_lock f_lock(filename.c_str());
   {
@@ -51,10 +48,11 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves
     << refiner.policyString()
     << refiner.stats().toString()
-    << " cut=" << metrics::hyperedgeCut(hypergraph)
-    << " part0=" << partition_weights[0]
-    << " part1=" << partition_weights[1]
-    << " imbalance=" << metrics::imbalance(hypergraph)
+    << " cut=" << metrics::hyperedgeCut(hypergraph);
+    for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+      out_stream << " part" << i << "=" << hypergraph.partWeight(i);
+    }
+    out_stream << " imbalance=" << metrics::imbalance(hypergraph)
     << " time=" << elapsed_seconds.count()
     << " git=" << STR(KaHyPar_BUILD_VERSION)
     << std::endl;

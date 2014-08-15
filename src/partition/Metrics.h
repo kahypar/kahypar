@@ -95,13 +95,6 @@ inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
 inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
-
-template <class Weights>
-inline void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
-  for (const auto && hn : hypergraph.nodes()) {
-    weights[hypergraph.partID(hn)] += hypergraph.nodeWeight(hn);
-  }
-}
 } // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_
