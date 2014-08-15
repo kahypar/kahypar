@@ -70,31 +70,31 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
+  ASSERT_THAT(hypergraph->partID(1), Eq(0));
+  ASSERT_THAT(hypergraph->partID(3), Eq(1));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->partitionIndex(0), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(1), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(2), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(4), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(5), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(6), Eq(1));
+  ASSERT_THAT(hypergraph->partID(0), Eq(0));
+  ASSERT_THAT(hypergraph->partID(1), Eq(0));
+  ASSERT_THAT(hypergraph->partID(2), Eq(0));
+  ASSERT_THAT(hypergraph->partID(3), Eq(1));
+  ASSERT_THAT(hypergraph->partID(4), Eq(1));
+  ASSERT_THAT(hypergraph->partID(5), Eq(0));
+  ASSERT_THAT(hypergraph->partID(6), Eq(1));
 }
 
 TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPartition(0, 1), Eq(2));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 0), Eq(3));
-  ASSERT_THAT(hypergraph->pinCountInPartition(2, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
@@ -109,12 +109,12 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
        RestoresHyperedgesExceedingThreshold) {
   std::vector<HyperedgeID> removed_hyperedges;
   partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges);
-  hypergraph->setNodePartition(0, 0);
-  hypergraph->setNodePartition(2, 1);
-  hypergraph->setNodePartition(3, 0);
-  hypergraph->setNodePartition(4, 0);
-  hypergraph->setNodePartition(5, 1);
-  hypergraph->setNodePartition(6, 1);
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(2, 1);
+  hypergraph->setNodePart(3, 0);
+  hypergraph->setNodePart(4, 0);
+  hypergraph->setNodePart(5, 1);
+  hypergraph->setNodePart(6, 1);
 
   partitioner.restoreLargeHyperedges(*hypergraph, removed_hyperedges);
   ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
@@ -132,11 +132,11 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
     partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
   }
 
-  ASSERT_THAT(hypergraph->partitionIndex(2), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(4), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(5), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(6), Eq(1));
+  ASSERT_THAT(hypergraph->partID(2), Eq(0));
+  ASSERT_THAT(hypergraph->partID(3), Eq(0));
+  ASSERT_THAT(hypergraph->partID(4), Eq(1));
+  ASSERT_THAT(hypergraph->partID(5), Eq(1));
+  ASSERT_THAT(hypergraph->partID(6), Eq(1));
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
@@ -144,12 +144,12 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
-  hypergraph->setNodePartition(0, 0);
-  hypergraph->setNodePartition(1, 1);
-  hypergraph->setNodePartition(2, 0);
-  hypergraph->setNodePartition(4, 1);
-  hypergraph->setNodePartition(5, 1);
-  hypergraph->setNodePartition(6, 1);
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(1, 1);
+  hypergraph->setNodePart(2, 0);
+  hypergraph->setNodePart(4, 1);
+  hypergraph->setNodePart(5, 1);
+  hypergraph->setNodePart(6, 1);
 
   std::vector<HyperedgeID> removed_hyperedges { 1 };
   std::vector<HypernodeWeight> partition_sizes { 2, 4 };
@@ -158,7 +158,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
     partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
   }
 
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(0));
+  ASSERT_THAT(hypergraph->partID(3), Eq(0));
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
@@ -166,8 +166,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 8 },
                                   HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
   std::vector<HyperedgeID> removed_hyperedges { 1 };
-  hypergraph->setNodePartition(0, 0);
-  hypergraph->setNodePartition(1, 1);
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(1, 1);
 
   std::vector<HypernodeWeight> partition_sizes { 1, 1 };
 
@@ -175,11 +175,11 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
     partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
   }
 
-  ASSERT_THAT(hypergraph->partitionIndex(2), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(3), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(4), Eq(0));
-  ASSERT_THAT(hypergraph->partitionIndex(5), Eq(1));
-  ASSERT_THAT(hypergraph->partitionIndex(6), Eq(0));
+  ASSERT_THAT(hypergraph->partID(2), Eq(0));
+  ASSERT_THAT(hypergraph->partID(3), Eq(1));
+  ASSERT_THAT(hypergraph->partID(4), Eq(0));
+  ASSERT_THAT(hypergraph->partID(5), Eq(1));
+  ASSERT_THAT(hypergraph->partID(6), Eq(0));
 }
 
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {

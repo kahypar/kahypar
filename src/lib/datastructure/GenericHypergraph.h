@@ -289,7 +289,7 @@ class GenericHypergraph {
     _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
     _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
-    _partition_indices(_num_hypernodes, kInvalidPartition),
+    _part_ids(_num_hypernodes, kInvalidPartition),
     _partition_pin_count(_k),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
@@ -399,8 +399,8 @@ class GenericHypergraph {
       for (auto&& pin : pins(e)) {
         std::cout << pin << " ";
       }
-      std::cout << " (Part[0] =" << pinCountInPartition(e, 0)
-      << ", Part[1]=" << pinCountInPartition(e, 1) << ")";
+      std::cout << " (Part[0] =" << pinCountInPart(e, 0)
+      << ", Part[1]=" << pinCountInPart(e, 1) << ")";
     } else {
       std::cout << e << " -- invalid --";
     }
@@ -409,7 +409,7 @@ class GenericHypergraph {
 
   void printNodeState(HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
-      std::cout << "HN " << u << " (" << _partition_indices[u] << "): ";
+      std::cout << "HN " << u << " (" << _part_ids[u] << "): ";
       for (auto&& he : incidentEdges(u)) {
         std::cout << he << " ";
       }
@@ -486,8 +486,8 @@ class GenericHypergraph {
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
         hyperedge(_incidence_array[he_it]).decreaseSize();
-        if (partitionIndex(v) != kInvalidPartition) {
-          decreasePinCountInPartition(_incidence_array[he_it], partitionIndex(v));
+        if (partID(v) != kInvalidPartition) {
+          decreasePinCountInPart(_incidence_array[he_it], partID(v));
         }
         --_current_num_pins;
       } else {
@@ -510,9 +510,9 @@ class GenericHypergraph {
 
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
-    setPartitionIndex(memento.v, partitionIndex(memento.u));
-    ASSERT(partitionIndex(memento.v) != kInvalidPartition,
-           "PartitionID " << partitionIndex(memento.u) << " of representative HN " << memento.u <<
+    setPartID(memento.v, partID(memento.u));
+    ASSERT(partID(memento.v) != kInvalidPartition,
+           "PartitionID " << partID(memento.u) << " of representative HN " << memento.u <<
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
@@ -562,7 +562,7 @@ class GenericHypergraph {
         DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
         hyperedge(he).increaseSize();
-        increasePinCountInPartition(he, partitionIndex(memento.v));
+        increasePinCountInPart(he, partID(memento.v));
         ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
                "Incorrect case 1 restore of HE " << he << ": "
                << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
@@ -573,18 +573,18 @@ class GenericHypergraph {
     }
   }
 
-  void changeNodePartition(HypernodeID hn, PartitionID from, PartitionID to) {
+  void changeNodePart(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partitionIndex(hn) == from, "Hypernode" << hn << " is not in partition " << from);
+    ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     if (from != to) {
-      setPartitionIndex(hn, to);
+      setPartID(hn, to);
       for (auto&& he : incidentEdges(hn)) {
-        decreasePinCountInPartition(he, from);
-        increasePinCountInPartition(he, to);
+        decreasePinCountInPart(he, from);
+        increasePinCountInPart(he, to);
         ASSERT([&]() -> bool {
             HypernodeID num_pins = 0;
             for (PartitionID i=0; i < _k; ++i) {
-              num_pins += pinCountInPartition(he, i);
+              num_pins += pinCountInPart(he, i);
             }
             return num_pins == edgeSize(he);
           }(),
@@ -594,12 +594,12 @@ class GenericHypergraph {
   }
 
   // Used to initially set the partition ID of a HN after initial partitioning
-  void setNodePartition(HypernodeID hn, PartitionID id) {
+  void setNodePart(HypernodeID hn, PartitionID id) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partitionIndex(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: " <<  partitionIndex(hn));
-    setPartitionIndex(hn, id);
+    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: " <<  partID(hn));
+    setPartID(hn, id);
     for (auto&& he : incidentEdges(hn)) {
-      increasePinCountInPartition(he, id);
+      increasePinCountInPart(he, id);
     }
   }
 
@@ -625,8 +625,8 @@ class GenericHypergraph {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
     for (auto&& e : incidentEdges(u)) {
       removeInternalEdge(e, u, _hyperedges);
-      if (partitionIndex(u) != kInvalidPartition) {
-        decreasePinCountInPartition(e, partitionIndex(u));
+      if (partID(u) != kInvalidPartition) {
+        decreasePinCountInPart(e, partID(u));
       }
       --_current_num_pins;
     }
@@ -690,8 +690,8 @@ class GenericHypergraph {
       DBG(dbg_hypergraph_restore_edge, "re-adding pin  " << pin << " to HE " << he);
       enableHypernodeIfPreviouslyUnconnected(pin);
       hypernode(pin).increaseSize();
-      if (partitionIndex(pin) != kInvalidPartition) {
-        increasePinCountInPartition(he, partitionIndex(pin));
+      if (partID(pin) != kInvalidPartition) {
+        increasePinCountInPart(he, partID(pin));
       }
       
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == he,
@@ -739,9 +739,9 @@ class GenericHypergraph {
     hyperedge(e).setWeight(weight);
   }
 
-  PartitionID partitionIndex(HypernodeID u) const {
+  PartitionID partID(HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    return _partition_indices[u];
+    return _part_ids[u];
   }
 
   bool nodeIsEnabled(HypernodeID u) const {
@@ -780,7 +780,7 @@ class GenericHypergraph {
     return _k;
   }
 
-  HypernodeID pinCountInPartition(HyperedgeID he, PartitionID id) const {
+  HypernodeID pinCountInPart(HyperedgeID he, PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(id < _k, "Partition ID " << id << " is out of bounds");
     auto element_it = _partition_pin_count[id].find(he);
@@ -815,22 +815,22 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
   
-  void setPartitionIndex(HypernodeID u, PartitionID index) {
+  void setPartID(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(index < 2, "Currently only bipartitioning is supported!");
-    _partition_indices[u] = index;
+    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    _part_ids[u] = id;
   }
 
-  void decreasePinCountInPartition(HyperedgeID he, PartitionID id) {
+  void decreasePinCountInPart(HyperedgeID he, PartitionID id) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(pinCountInPartition(he, id) > 0,
+    ASSERT(pinCountInPart(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
     --_partition_pin_count[id][he];
   }
 
-  void increasePinCountInPartition(HyperedgeID he, PartitionID id) {
+  void increasePinCountInPart(HyperedgeID he, PartitionID id) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(pinCountInPartition(he, id) <= edgeSize(he),
+    ASSERT(pinCountInPart(he, id) <= edgeSize(he),
            "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_count[id][he]
            << "edgesize=" << edgeSize(he));
     ++_partition_pin_count[id][he];
@@ -987,7 +987,7 @@ class GenericHypergraph {
   std::vector<HyperedgeVertex> _hyperedges;
   std::vector<VertexID> _incidence_array;
 
-  std::vector<PartitionID> _partition_indices;
+  std::vector<PartitionID> _part_ids;
   // for each partition id, we store the number of pins of each HE in that partition in a hash_map
   std::vector<google::dense_hash_map<HyperedgeID, HypernodeID>> _partition_pin_count;
 

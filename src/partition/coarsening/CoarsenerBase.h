@@ -222,7 +222,7 @@ class CoarsenerBase {
     HyperedgeWeight max_degree = 0;
     HypernodeID max_node = 0;
     for (auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       HyperedgeWeight curr_degree = 0;
       for (auto && he : _hg.incidentEdges(hn)) {

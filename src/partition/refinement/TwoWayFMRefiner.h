@@ -84,11 +84,11 @@ class TwoWayFMRefiner : public IRefiner {
   void activate(HypernodeID hn) {
     if (isBorderNode(hn)) {
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
-      ASSERT(!_pq[_hg.partitionIndex(hn)]->contains(hn),
-             "HN " << hn << " is already contained in PQ " << _hg.partitionIndex(hn));
+      ASSERT(!_pq[_hg.partID(hn)]->contains(hn),
+             "HN " << hn << " is already contained in PQ " << _hg.partID(hn));
       DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain " << computeGain(hn)
-          << " in PQ " << _hg.partitionIndex(hn));
-      _pq[_hg.partitionIndex(hn)]->reInsert(hn, computeGain(hn));
+          << " in PQ " << _hg.partID(hn));
+      _pq[_hg.partID(hn)]->reInsert(hn, computeGain(hn));
     }
   }
 
@@ -100,9 +100,9 @@ class TwoWayFMRefiner : public IRefiner {
     _partition_size[0] = 0;
     _partition_size[1] = 0;
     for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
+      _partition_size[_hg.partID(hn)] += _hg.nodeWeight(hn);
     }
 
 
@@ -243,8 +243,8 @@ class TwoWayFMRefiner : public IRefiner {
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
     _just_activated.reset();
     for (auto && he : _hg.incidentEdges(moved_node)) {
-      HypernodeID new_size0 = _hg.pinCountInPartition(he, 0);
-      HypernodeID new_size1 = _hg.pinCountInPartition(he, 1);
+      HypernodeID new_size0 = _hg.pinCountInPart(he, 0);
+      HypernodeID new_size1 = _hg.pinCountInPart(he, 1);
       HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
       HypernodeID old_size1 = new_size1 + (to == 1 ? -1 : 1);
 
@@ -343,7 +343,7 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
-    ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn << " is not in partition " << from);
+    ASSERT(_hg.partID(hn) == from, "HN " << hn << " is not in partition " << from);
     return _partition_size[to] + _hg.nodeWeight(hn)
            <= _config.partitioning.partition_size_upper_bound;
   }
@@ -362,9 +362,9 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
-    ASSERT(_hg.partitionIndex(hn) == from, "HN " << hn
-           << " is already in partition " << _hg.partitionIndex(hn));
-    _hg.changeNodePartition(hn, from, to);
+    ASSERT(_hg.partID(hn) == from, "HN " << hn
+           << " is already in partition " << _hg.partID(hn));
+    _hg.changeNodePart(hn, from, to);
     _marked[hn] = 1;
     _partition_size[from] -= _hg.nodeWeight(hn);
     _partition_size[to] += _hg.nodeWeight(hn);
@@ -378,7 +378,7 @@ class TwoWayFMRefiner : public IRefiner {
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
     for (auto && pin : _hg.pins(he)) {
-      updatePin(he, pin, (compare == _hg.partitionIndex(pin) ? sign1 : sign2));
+      updatePin(he, pin, (compare == _hg.partID(pin) ? sign1 : sign2));
     }
   }
 
@@ -403,24 +403,24 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
-    if (_pq[_hg.partitionIndex(pin)]->contains(pin)) {
+    if (_pq[_hg.partID(pin)]->contains(pin)) {
       ASSERT(!_marked[pin],
-             " Trying to update marked HN " << pin << " in PQ " << _hg.partitionIndex(pin));
+             " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
       if (isBorderNode(pin)) {
         if (!_just_activated[pin]) {
-          Gain old_gain = _pq[_hg.partitionIndex(pin)]->key(pin);
+          Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
           Gain gain_delta = sign * _hg.edgeWeight(he);
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
-              << _hg.partitionIndex(pin));
+              << _hg.partID(pin));
           if (gain_delta != 0) {
-            _pq[_hg.partitionIndex(pin)]->updateKey(pin, old_gain + gain_delta);
+            _pq[_hg.partID(pin)]->updateKey(pin, old_gain + gain_delta);
           }
         }
       } else {
         DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
-            << _hg.partitionIndex(pin));
-        _pq[_hg.partitionIndex(pin)]->remove(pin);
+            << _hg.partID(pin));
+        _pq[_hg.partID(pin)]->remove(pin);
       }
     } else {
       if (!_marked[pin]) {
@@ -437,24 +437,24 @@ class TwoWayFMRefiner : public IRefiner {
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = performed_moves[last_index];
-      _partition_size[hg.partitionIndex(hn)] -= _hg.nodeWeight(hn);
-      _partition_size[(hg.partitionIndex(hn) ^ 1)] += _hg.nodeWeight(hn);
-      _hg.changeNodePartition(hn, hg.partitionIndex(hn), (hg.partitionIndex(hn) ^ 1));
+      _partition_size[hg.partID(hn)] -= _hg.nodeWeight(hn);
+      _partition_size[(hg.partID(hn) ^ 1)] += _hg.nodeWeight(hn);
+      _hg.changeNodePart(hn, hg.partID(hn), (hg.partID(hn) ^ 1));
       --last_index;
     }
   }
 
   Gain computeGain(HypernodeID hn) const {
     Gain gain = 0;
-    ASSERT(_hg.partitionIndex(hn) < 2, "Trying to do gain computation for k-way partitioning");
-    PartitionID target_partition = _hg.partitionIndex(hn) ^ 1;
+    ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
+    PartitionID target_partition = _hg.partID(hn) ^ 1;
 
     for (auto && he : _hg.incidentEdges(hn)) {
-      ASSERT(_hg.pinCountInPartition(he, 0) + _hg.pinCountInPartition(he, 1) > 1,
+      ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,
              "Trying to compute gain for single-node HE " << he);
-      if (_hg.pinCountInPartition(he, target_partition) == 0) {
+      if (_hg.pinCountInPart(he, target_partition) == 0) {
         gain -= _hg.edgeWeight(he);
-      } else if (_hg.pinCountInPartition(he, _hg.partitionIndex(hn)) == 1) {
+      } else if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
         gain += _hg.edgeWeight(he);
       }
     }
@@ -464,7 +464,7 @@ class TwoWayFMRefiner : public IRefiner {
   bool isBorderNode(HypernodeID hn) const {
     bool is_border_node = false;
     for (auto && he : _hg.incidentEdges(hn)) {
-      if ((_hg.pinCountInPartition(he, 0) > 0) && (_hg.pinCountInPartition(he, 1) > 0)) {
+      if ((_hg.pinCountInPart(he, 0) > 0) && (_hg.pinCountInPart(he, 1) > 0)) {
         is_border_node = true;
         break;
       }

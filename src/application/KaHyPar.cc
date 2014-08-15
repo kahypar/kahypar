@@ -354,7 +354,7 @@ int main(int argc, char* argv[]) {
     ASSERT([&]() -> bool {
              HypernodeID num_pins = 0;
              for (PartitionID i = 0; i < config.partitioning.k; ++i) {
-               num_pins += hypergraph.pinCountInPartition(he, i);
+               num_pins += hypergraph.pinCountInPart(he, i);
              }
              return num_pins == hypergraph.edgeSize(he);
            } (),

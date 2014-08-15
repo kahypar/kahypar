@@ -30,11 +30,11 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
     }
     ASSERT(begin != end, "Accessing empty hyperedge");
 
-    PartitionID partition = hg.partitionIndex(*begin);
+    PartitionID partition = hg.partID(*begin);
     ++begin;
 
     for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
-      if (partition != hg.partitionIndex(*pin_it)) {
+      if (partition != hg.partID(*pin_it)) {
         DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
         cut += hg.edgeWeight(he);
         break;
@@ -74,10 +74,10 @@ inline double imbalance(const Hypergraph& hypergraph) {
   std::vector<HypernodeWeight> partition_sizes(hypergraph.k(), 0);
   HypernodeWeight total_weight = 0;
   for (const auto && hn : hypergraph.nodes()) {
-    ASSERT(hypergraph.partitionIndex(hn) < hypergraph.k() &&
-           hypergraph.partitionIndex(hn) != Hypergraph::kInvalidPartition,
-           "Invalid partition index for hypernode " << hn << ": " << hypergraph.partitionIndex(hn));
-    partition_sizes[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
+    ASSERT(hypergraph.partID(hn) < hypergraph.k() &&
+           hypergraph.partID(hn) != Hypergraph::kInvalidPartition,
+           "Invalid partition index for hypernode " << hn << ": " << hypergraph.partID(hn));
+    partition_sizes[hypergraph.partID(hn)] += hypergraph.nodeWeight(hn);
     total_weight += hypergraph.nodeWeight(hn);
   }
 
@@ -99,7 +99,7 @@ inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 template <class Weights>
 inline void partitionWeights(const Hypergraph& hypergraph, Weights& weights) {
   for (const auto && hn : hypergraph.nodes()) {
-    weights[hypergraph.partitionIndex(hn)] += hypergraph.nodeWeight(hn);
+    weights[hypergraph.partID(hn)] += hypergraph.nodeWeight(hn);
   }
 }
 } // namespace metrics

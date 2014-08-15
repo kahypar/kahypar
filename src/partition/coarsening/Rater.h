@@ -66,7 +66,7 @@ class Rater {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     for (auto && he : _hg.incidentEdges(u)) {
       for (auto && v : _hg.pins(he)) {
-        if (v != u && (_hg.partitionIndex(u) == _hg.partitionIndex(v)) &&
+        if (v != u && (_hg.partID(u) == _hg.partID(v)) &&
             belowThresholdNodeWeight(v, u)) {
           _tmp_ratings[v] += static_cast<RatingType>(_hg.edgeWeight(he))
                              / (_hg.edgeSize(he) - 1);

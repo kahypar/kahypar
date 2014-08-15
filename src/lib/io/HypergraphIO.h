@@ -188,7 +188,7 @@ inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& 
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
   for (auto && hn : hypergraph.nodes()) {
-    out_stream << hypergraph.partitionIndex(hn) << std::endl;
+    out_stream << hypergraph.partID(hn) << std::endl;
   }
   out_stream.close();
 }

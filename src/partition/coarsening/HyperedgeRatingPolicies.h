@@ -38,14 +38,14 @@ struct EdgeWeightDivMultPinWeight {
     IncidenceIterator pins_end = hypergraph.pins(he).end();
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
 
-    PartitionID partition = hypergraph.partitionIndex(*pins_begin);
+    PartitionID partition = hypergraph.partID(*pins_begin);
     double pin_weights_mult = static_cast<double>(hypergraph.nodeWeight(*pins_begin));
     HypernodeWeight sum_pin_weights = hypergraph.nodeWeight(*pins_begin);
     bool is_cut_hyperedge = false;
     ++pins_begin;
 
     for (IncidenceIterator pin = pins_begin; pin != pins_end; ++pin) {
-      if (partition != hypergraph.partitionIndex(*pin)) {
+      if (partition != hypergraph.partID(*pin)) {
         is_cut_hyperedge = true;
         break;
       }

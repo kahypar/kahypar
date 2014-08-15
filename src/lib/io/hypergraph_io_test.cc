@@ -137,7 +137,7 @@ TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
   std::vector<PartitionID> read_partition;
   readPartitionFile(_config.partitioning.graph_partition_filename, read_partition);
   for (auto && hn : _hypergraph.nodes()) {
-    ASSERT_THAT(read_partition[hn], Eq(_hypergraph.partitionIndex(hn)));
+    ASSERT_THAT(read_partition[hn], Eq(_hypergraph.partID(hn)));
   }
 }
 } // namespace io

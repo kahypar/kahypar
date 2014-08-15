@@ -116,8 +116,8 @@ TEST_F(TheHyperedgeCutCalculationForInitialPartitioning, ReturnsCorrectResult) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
   ASSERT_THAT(hypergraph.nodeDegree(3), Eq(1));
-  hypergraph.setNodePartition(1, 0);
-  hypergraph.setNodePartition(3, 1);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(3, 1);
 
   ASSERT_THAT(hyperedgeCut(hypergraph, hg_to_hmetis, partition), Eq(hyperedgeCut(hypergraph)));
 }

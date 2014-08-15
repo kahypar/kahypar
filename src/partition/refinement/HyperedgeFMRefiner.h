@@ -105,9 +105,9 @@ class HyperedgeFMRefiner : public IRefiner {
     _partition_size[1] = 0;
 
     for (const auto && hn : _hg.nodes()) {
-      ASSERT(_hg.partitionIndex(hn) != Hypergraph::kInvalidPartition,
+      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      _partition_size[_hg.partitionIndex(hn)] += _hg.nodeWeight(hn);
+      _partition_size[_hg.partID(hn)] += _hg.nodeWeight(hn);
     }
 
     ASSERT(_partition_size[0] + _partition_size[1] ==[&]() {
@@ -244,7 +244,7 @@ class HyperedgeFMRefiner : public IRefiner {
       _gain_indicator.reset();
       Gain gain = _hg.edgeWeight(he);
       for (auto && pin : _hg.pins(he)) {
-        if (_hg.partitionIndex(pin) != from) { continue; }
+        if (_hg.partID(pin) != from) { continue; }
         DBG(dbg_refinement_he_fm_gain_computation, "evaluating pin " << pin);
         for (auto && incident_he : _hg.incidentEdges(pin)) {
           if (incident_he == he || _gain_indicator.isAlreadyEvaluated(incident_he)) { continue; }
@@ -272,18 +272,18 @@ class HyperedgeFMRefiner : public IRefiner {
 
   bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
                                PartitionID relevant_partition) {
-    if (_hg.pinCountInPartition(inner_he, relevant_partition) >
-        _hg.pinCountInPartition(outer_he, relevant_partition)) {
+    if (_hg.pinCountInPart(inner_he, relevant_partition) >
+        _hg.pinCountInPart(outer_he, relevant_partition)) {
       return false;
     }
     resetContainedHypernodes();
     for (auto && pin : _hg.pins(outer_he)) {
-      if (_hg.partitionIndex(pin) == relevant_partition) {
+      if (_hg.partID(pin) == relevant_partition) {
         markAsContained(pin);
       }
     }
     for (auto && pin : _hg.pins(inner_he)) {
-      if (_hg.partitionIndex(pin) == relevant_partition && !isContained(pin)) {
+      if (_hg.partID(pin) == relevant_partition && !isContained(pin)) {
         return false;
       }
     }
@@ -333,11 +333,11 @@ class HyperedgeFMRefiner : public IRefiner {
       for (int i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
         hn_to_move = _performed_moves[i];
         DBG(dbg_refinement_he_fm_rollback, "Moving HN " << hn_to_move << " from "
-            << hg.partitionIndex(hn_to_move) << " back to " << (hg.partitionIndex(hn_to_move) ^ 1));
-        _partition_size[hg.partitionIndex(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
-        _partition_size[(hg.partitionIndex(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
-        _hg.changeNodePartition(hn_to_move, hg.partitionIndex(hn_to_move),
-                                (hg.partitionIndex(hn_to_move) ^ 1));
+            << hg.partID(hn_to_move) << " back to " << (hg.partID(hn_to_move) ^ 1));
+        _partition_size[hg.partID(hn_to_move)] -= _hg.nodeWeight(hn_to_move);
+        _partition_size[(hg.partID(hn_to_move) ^ 1)] += _hg.nodeWeight(hn_to_move);
+        _hg.changeNodePart(hn_to_move, hg.partID(hn_to_move),
+                           (hg.partID(hn_to_move) ^ 1));
       }
       --last_index;
     }
@@ -370,7 +370,7 @@ class HyperedgeFMRefiner : public IRefiner {
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
     HypernodeWeight pins_to_move_weight = 0;
     for (auto && pin : _hg.pins(he)) {
-      if (_hg.partitionIndex(pin) == from) {
+      if (_hg.partID(pin) == from) {
         pins_to_move_weight += _hg.nodeWeight(pin);
       }
     }
@@ -382,7 +382,7 @@ class HyperedgeFMRefiner : public IRefiner {
   }
 
   bool isCutHyperedge(HyperedgeID he) const {
-    return _hg.pinCountInPartition(he, 0) * _hg.pinCountInPartition(he, 1) > 0;
+    return _hg.pinCountInPart(he, 0) * _hg.pinCountInPart(he, 1) > 0;
   }
 
   void activateHyperedge(HyperedgeID he) {
@@ -404,8 +404,8 @@ class HyperedgeFMRefiner : public IRefiner {
   void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
     int curr_index = _movement_indices[step];
     for (auto && pin : _hg.pins(he)) {
-      if (_hg.partitionIndex(pin) == from) {
-        _hg.changeNodePartition(pin, from, to);
+      if (_hg.partID(pin) == from) {
+        _hg.changeNodePart(pin, from, to);
         _partition_size[from] -= _hg.nodeWeight(pin);
         _partition_size[to] += _hg.nodeWeight(pin);
         _performed_moves[curr_index++] = pin;
