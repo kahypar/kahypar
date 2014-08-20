@@ -100,7 +100,16 @@ class Rater {
       ret.target = target;
       ret.valid = true;
     }
-    DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")");
+    ASSERT([&]() {
+             bool flag = true;
+             if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
+               flag = false;
+             }
+             return flag;
+           } (), "Representative " << u << " & contraction target " << ret.target
+           << " are in different parts!");
+    DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
+        << ret.valid << ")");
     return ret;
   }
 
