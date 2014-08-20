@@ -10,6 +10,7 @@
 #include "lib/macros.h"
 
 using external::BinaryHeap;
+using external::NullData;
 
 namespace datastructure {
 // ToDo: We need a more robust solution for min and max values!
@@ -24,10 +25,11 @@ struct MetaKeyDouble {
 
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
-          typename MetaKey = Mandatory
+          typename MetaKey = Mandatory,
+          typename DataType = NullData
           >
 class PriorityQueue {
-  typedef BinaryHeap<IDType, KeyType, MetaKey> Heap;
+  typedef BinaryHeap<IDType, KeyType, MetaKey, DataType> Heap;
 
   public:
   PriorityQueue(IDType size, size_t reserve_size = 0) :
@@ -47,6 +49,10 @@ class PriorityQueue {
 
   void reInsert(IDType id, KeyType key) {
     _heap.reinsertingPush(id, -key);
+  }
+
+  void reInsert(IDType id, KeyType key, DataType data) {
+    _heap.reinsertingPush(id, -key, data);
   }
 
   void deleteMax() {
@@ -87,6 +93,10 @@ class PriorityQueue {
 
   void remove(IDType id) {
     _heap.deleteNode(id);
+  }
+
+  const DataType& data(IDType id) const {
+   return _heap.getUserData(id);
   }
 
   void clear() {
