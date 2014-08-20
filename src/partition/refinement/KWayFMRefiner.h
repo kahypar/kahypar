@@ -71,6 +71,7 @@ class KWayFMRefiner : public IRefiner {
   }
 
   GainPartitionPair computeMaxGain(HypernodeID hn) {
+    ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     for (auto && he : _hg.incidentEdges(hn)) {
       for (PartitionID i = 0; i != _config.partitioning.k; ++i) {
         if (_hg.pinCountInPart(he, i) == 0) {

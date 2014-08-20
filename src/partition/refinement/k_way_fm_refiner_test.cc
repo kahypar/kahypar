@@ -23,6 +23,7 @@ typedef KWayFMRefiner<NumberOfFruitlessMovesStopsSearch> KWayFMRefinerSimpleStop
 class AKWayFMRefiner : public Test {
   public:
   AKWayFMRefiner() :
+    // example hypergraph with one additional HN and one additional HE
     hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 6, 9, 12, /*sentinel*/ 14 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6, 2, 7 }, 4),
     config(),
@@ -57,8 +58,9 @@ TEST_F(AKWayFMRefiner, IdentifiesBorderHypernodes) {
 }
 
 TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
-  Hypergraph hgr(7, 4, HyperedgeIndexVector { 0, 2, 4, 8, /*sentinel*/ 10 },
-                 HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6 }, 4);
+  // hypergraph with positive, zero and negative gain nodes
+  Hypergraph hgr(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10, /*sentinel*/ 13 },
+                 HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8 }, 4);
   hgr.setNodePart(0, 0);
   hgr.setNodePart(1, 1);
   hgr.setNodePart(2, 0);
@@ -66,6 +68,8 @@ TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   hgr.setNodePart(4, 3);
   hgr.setNodePart(5, 2);
   hgr.setNodePart(6, 2);
+  hgr.setNodePart(7, 2);
+  hgr.setNodePart(8, 1);
   delete refiner;
   refiner = new KWayFMRefinerSimpleStopping(hgr, config);
 
@@ -79,6 +83,7 @@ TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
 
   // negative gain
   ASSERT_THAT(refiner->computeMaxGain(6).first, Eq(-1));
-  ASSERT_THAT(refiner->computeMaxGain(6).second, Eq(3));
+  ASSERT_THAT(refiner->computeMaxGain(6).second, Eq(1));
+}
 }
 } // namespace partition
