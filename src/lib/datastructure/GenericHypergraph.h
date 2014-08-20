@@ -405,8 +405,9 @@ class GenericHypergraph {
       for (auto&& pin : pins(e)) {
         std::cout << pin << " ";
       }
-      std::cout << " (Part[0] =" << pinCountInPart(e, 0)
-      << ", Part[1]=" << pinCountInPart(e, 1) << ")";
+      for (PartitionID i = 0; i != _k; ++i) {
+        std::cout << " Part[" << i << "] =" << pinCountInPart(e, i);
+      }
     } else {
       std::cout << e << " -- invalid --";
     }
@@ -993,7 +994,7 @@ class GenericHypergraph {
 
   // Accessor for hyperedge-related information
   const HyperedgeVertex & hyperedge(HyperedgeID e) const {
-    ASSERT(e < _num_hyperedges, "Hyperedge does not exist");
+    ASSERT(e < _num_hyperedges, "Hyperedge " << e << " does not exist");
     return _hyperedges[e];
   }
 
