@@ -12,11 +12,13 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -50,7 +52,22 @@ class KWayFMRefiner : public IRefiner {
     _stats() { }
 
   void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final { }
+                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final {
+    ASSERT(best_cut == metrics::hyperedgeCut(_hg),
+           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
+           << metrics::hyperedgeCut(_hg));
+    ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
+             FloatingPoint<double>(metrics::imbalance(_hg))),
+           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
+           << " by hypergraph " << metrics::imbalance(_hg));
+
+    _pq.clear();
+
+    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
+    for (size_t i = 0; i < num_refinement_nodes; ++i) {
+      activate(refinement_nodes[i]);
+    }
+  }
 
   int numRepetitionsImpl() const final {
     return _config.two_way_fm.num_repetitions;
