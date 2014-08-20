@@ -282,7 +282,7 @@ class HyperedgeFMRefiner : public IRefiner {
                        + templateToString<StoppingPolicy>());
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const final {
     return _stats;
   }
 

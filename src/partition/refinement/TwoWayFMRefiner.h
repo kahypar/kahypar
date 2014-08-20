@@ -277,7 +277,7 @@ class TwoWayFMRefiner : public IRefiner {
                        );
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const final {
     return _stats;
   }
 
