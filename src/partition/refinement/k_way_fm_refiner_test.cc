@@ -85,5 +85,17 @@ TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   ASSERT_THAT(refiner->computeMaxGain(6).first, Eq(-1));
   ASSERT_THAT(refiner->computeMaxGain(6).second, Eq(1));
 }
+
+TEST_F(AKWayFMRefiner, ActivatesBorderNodes) {
+  refiner->activate(1);
+
+  ASSERT_THAT(refiner->_pq.max(), Eq(1));
+  ASSERT_THAT(refiner->_pq.maxKey(), Eq(0));
+}
+
+TEST_F(AKWayFMRefiner, DoesNotActivateInternalNodes) {
+  refiner->activate(7);
+
+  ASSERT_THAT(refiner->_pq.contains(7), Eq(false));
 }
 } // namespace partition

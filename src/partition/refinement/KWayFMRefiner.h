@@ -30,17 +30,24 @@ using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 
 namespace partition {
+static const bool dbg_refinement_kway_fm_activation = true;
+
+
 template <class StoppingPolicy = Mandatory>
 class KWayFMRefiner : public IRefiner {
   typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
+  typedef PriorityQueue<HypernodeID, HyperedgeWeight,
+                        std::numeric_limits<HyperedgeWeight>,
+                        PartitionID> KWayRefinementPQ;
 
   public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
-    _stats(),
-    _tmp_gains(_config.partitioning.k, 0) { }
+    _tmp_gains(_config.partitioning.k, 0),
+    _pq(_hg.initialNumNodes()),
+    _stats() { }
 
   void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
                   HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final { }
@@ -60,6 +67,20 @@ class KWayFMRefiner : public IRefiner {
   private:
   FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
+  FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
+
+  void activate(HypernodeID hn) {
+    if (isBorderNode(hn)) {
+      ASSERT(!_pq.contains(hn),
+             "HN " << hn << " is already contained in PQ ");
+      DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
+          << computeMaxGain(hn).first << " sourcePart=" << _hg.partID(hn)
+          << " targetPart= " << computeMaxGain(hn).second);
+      GainPartitionPair pair = computeMaxGain(hn);
+      _pq.reInsert(hn, pair.first, pair.second);
+    }
+  }
 
   bool isBorderNode(HypernodeID hn) const {
     for (auto && he : _hg.incidentEdges(hn)) {
@@ -99,8 +120,9 @@ class KWayFMRefiner : public IRefiner {
 
   Hypergraph& _hg;
   const Configuration& _config;
-  Stats _stats;
   std::vector<Gain> _tmp_gains;
+  KWayRefinementPQ _pq;
+  Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
 } // namespace partition
