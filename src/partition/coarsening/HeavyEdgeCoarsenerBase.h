@@ -100,7 +100,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
 
-    GPERF_START_PROFILER("/home/schlag/repo/schlag_git/profile/src/application/test.prof");
     while (!_history.empty()) {
       restoreParallelHyperedges(_history.top());
       restoreSingleNodeHyperedges(_history.top());
@@ -116,7 +115,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     ASSERT(current_imbalance <= _config.partitioning.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
            << " > " << _config.partitioning.epsilon);
-    GPERF_STOP_PROFILER();
   }
 
   template <typename Map>
