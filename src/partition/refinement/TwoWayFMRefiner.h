@@ -174,6 +174,7 @@ class TwoWayFMRefiner : public IRefiner {
 
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
+      ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation");
 
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ", weight="
@@ -220,11 +221,11 @@ class TwoWayFMRefiner : public IRefiner {
       ++num_moves;
     }
 
-    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves
+    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves - 1
         << " local search movements (" << step << " steps): stopped because of "
         << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, best_cut, cut) == true ?
             "policy" : "empty queue"));
-    rollback(_performed_moves, num_moves - 1, min_cut_index, _hg);
+    rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
@@ -354,6 +355,7 @@ class TwoWayFMRefiner : public IRefiner {
   void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(_hg.partID(hn) == from, "HN " << hn
            << " is already in partition " << _hg.partID(hn));
+    ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     _hg.changeNodePart(hn, from, to);
     _marked[hn] = 1;
   }
@@ -419,13 +421,12 @@ class TwoWayFMRefiner : public IRefiner {
     }
   }
 
-  void rollback(std::vector<HypernodeID>& performed_moves, int last_index, int min_cut_index,
-                Hypergraph& hg) {
+  void rollback(int last_index, int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
-      HypernodeID hn = performed_moves[last_index];
-      _hg.changeNodePart(hn, hg.partID(hn), (hg.partID(hn) ^ 1));
+      HypernodeID hn = _performed_moves[last_index];
+      _hg.changeNodePart(hn, _hg.partID(hn), (_hg.partID(hn) ^ 1));
       --last_index;
     }
   }
