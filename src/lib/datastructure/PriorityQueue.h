@@ -95,7 +95,7 @@ class PriorityQueue {
     _heap.deleteNode(id);
   }
 
-  const DataType & data(IDType id) const {
+  DataType & data(IDType id) {
     return _heap.getUserData(id);
   }
 
