@@ -95,18 +95,22 @@ class TwoWayFMRefiner : public IRefiner {
     return _is_initialized;
   }
 
-  void initializeImpl(HyperedgeWeight max_gain) final {
 #ifdef USE_BUCKET_PQ
+  void initializeImpl(HyperedgeWeight max_gain) final {
     delete _pq[0];
     delete _pq[1];
     _pq[0] = new RefinementPQ(max_gain);
     _pq[1] = new RefinementPQ(max_gain);
-#else
+
+    _is_initialized = true;
+  }
+#endif
+
+  void initializeImpl() final {
     if (!_is_initialized) {
       _pq[0] = new RefinementPQ(_hg.initialNumNodes());
       _pq[1] = new RefinementPQ(_hg.initialNumNodes());
     }
-#endif
     _is_initialized = true;
   }
 

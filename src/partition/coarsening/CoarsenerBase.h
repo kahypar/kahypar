@@ -238,7 +238,7 @@ class CoarsenerBase {
     DBG(true, "max_degree=" << max_degree << ", HN=" << max_node);
     refiner.initialize(max_degree + max_single_he_induced_weight);
 #else
-    refiner.initialize(0);
+    refiner.initialize();
 #endif
   }
 
@@ -255,6 +255,7 @@ class CoarsenerBase {
                      _config.partitioning.epsilon, current_imbalance);
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
+      ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
       DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
           << current_cut);
       ++iteration;
