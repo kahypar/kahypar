@@ -11,6 +11,10 @@ struct PolicyBase {
   virtual ~PolicyBase() {}
 };
 
+struct NullPolicy : PolicyBase {
+  virtual ~NullPolicy() {}
+};
+
 class PolicyRegistry{
  private:
   typedef std::unique_ptr<PolicyBase> PolicyBasePtr;

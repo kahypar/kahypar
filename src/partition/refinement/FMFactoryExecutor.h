@@ -47,5 +47,22 @@ template < class sP, class cP>
   
 };
 
+template <template <class > class  Refiner>
+class KFMFactoryExecutor {
+ public:
+  template <typename StoppingPolicy, typename Dummy>
+  IRefiner* fire(StoppingPolicy&, Dummy&, const Parameters& parameters) {
+    const RefinerParameters& p = static_cast<const RefinerParameters&>(parameters);
+    return new Refiner<StoppingPolicy>(p.hypergraph, p.config);
+  }
+
+  template <typename StoppingPolicy, typename Dummy>
+  IRefiner* onError(StoppingPolicy&, Dummy&, const Parameters&) {
+    std::cout << "error" << std::endl;
+    return nullptr;
+  }
+
+};
+
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMFACTORYEXECUTOR_H_

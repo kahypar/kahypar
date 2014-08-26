@@ -29,6 +29,7 @@
 #include "partition/refinement/FMFactoryExecutor.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
@@ -40,6 +41,7 @@ using core::StaticDispatcher;
 using core::Typelist;
 using core::NullType;
 using core::PolicyRegistry;
+using core::NullPolicy;
 using core::Factory;
 
 using partition::Rater;
@@ -54,8 +56,10 @@ using partition::Configuration;
 using partition::HyperedgeCoarsener;
 using partition::EdgeWeightDivMultPinWeight;
 using partition::FMFactoryExecutor;
+using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
 using partition::HyperedgeFMRefiner;
+using partition::KWayFMRefiner;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
@@ -198,6 +202,7 @@ int main(int argc, char* argv[]) {
   typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsener;
   typedef FMFactoryExecutor<TwoWayFMRefiner> TwoWayFMFactoryExecutor;
   typedef FMFactoryExecutor<HyperedgeFMRefiner> HyperedgeFMFactoryExecutor;
+  typedef KFMFactoryExecutor<KWayFMRefiner> KWayFMFactoryExecutor;
   typedef StaticDispatcher<TwoWayFMFactoryExecutor,
                            PolicyBase,
                            TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
@@ -212,6 +217,13 @@ int main(int argc, char* argv[]) {
                            PolicyBase,
                            TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
                            IRefiner*> HyperedgeFMFactoryDispatcher;
+  typedef StaticDispatcher<KWayFMFactoryExecutor,
+                           PolicyBase,
+                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
+                                      nGPRandomWalkStopsSearch),
+                           PolicyBase,
+                           TYPELIST_1(NullPolicy),
+                           IRefiner*> KWayFMFactoryDispatcher;
   typedef Factory<ICoarsener, std::string,
                   ICoarsener* (*)(CoarsenerFactoryParameters&),
                   CoarsenerFactoryParameters> CoarsenerFactory;
@@ -329,11 +341,20 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<IRefiner> refiner(nullptr);
 
   if (config.two_way_fm.active) {
-    TwoWayFMFactoryExecutor exec;
-    refiner.reset(TwoWayFMFactoryDispatcher::go(
-                    PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-                    *(clogging_policy.get()),
-                    exec, refiner_parameters));
+    if (config.partitioning.k == 2) {
+      TwoWayFMFactoryExecutor exec;
+      refiner.reset(TwoWayFMFactoryDispatcher::go(
+                      PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                      *(clogging_policy.get()),
+                      exec, refiner_parameters));
+    } else {
+      std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
+      KWayFMFactoryExecutor exec;
+      refiner.reset(KWayFMFactoryDispatcher::go(
+                      PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                      *(null_policy.get()),
+                      exec, refiner_parameters));
+    }
   } else {
     HyperedgeFMFactoryExecutor exec;
     refiner.reset(HyperedgeFMFactoryDispatcher::go(
