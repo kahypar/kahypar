@@ -359,15 +359,19 @@ class GenericHypergraph {
 
   void printHyperedgeInfo() const {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
-      << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
+      if (!hyperedge(i).isDisabled()) {
+        std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
+                  << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
+      }
     }
   }
 
   void printHypernodeInfo() const {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
-      << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
+      if (!hypernode(i).isDisabled()) {
+        std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
+                  << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
+      }
     }
   }
 
@@ -380,14 +384,18 @@ class GenericHypergraph {
   void printHyperedges() const {
     std::cout << "Hyperedges:" << std::endl;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      printEdgeState(i);
+      if (!hyperedge(i).isDisabled()) {
+        printEdgeState(i);
+      }
     }
   }
 
   void printHypernodes() const {
     std::cout << "Hypernodes:" << std::endl;
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      printNodeState(i);
+      if (!hypernode(i).isDisabled()) {
+        printNodeState(i);
+      }
     }
   }
 
@@ -396,12 +404,12 @@ class GenericHypergraph {
     printHyperedgeInfo();
     printHypernodes();
     printHyperedges();
-    printIncidenceArray();
+    //printIncidenceArray();
   }
 
   void printEdgeState(HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
-      std::cout << "HE " << e << ": ";
+      std::cout << "HE " << e << " w= " << edgeWeight(e) <<": ";
       for (auto&& pin : pins(e)) {
         std::cout << pin << " ";
       }
@@ -583,6 +591,7 @@ class GenericHypergraph {
   void changeNodePart(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
+    ASSERT(to < _k, "Invalid to_part:" << to);
     if (from != to) {
       setPartID(hn, to);
       updatePartInfo(hn, from, to);
@@ -774,10 +783,48 @@ class GenericHypergraph {
   }
 
   HypernodeID numNodes() const {
+    ASSERT([&]() {
+          HypernodeID count = 0;
+          for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+            if (!hypernode(i).isDisabled()) {
+              ++count;
+            }
+          }
+          return count;
+        }() == _current_num_hypernodes,
+        "Inconsistent Hypergraph State:" << "current_num_hypernodes=" << _current_num_hypernodes
+        << "!= # enabled hypernodes=" <<  [&]() {
+          HypernodeID count = 0;
+          for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+            if (!hypernode(i).isDisabled()) {
+              ++count;
+            }
+          }
+          return count;
+          }());
     return _current_num_hypernodes;
   }
 
   HyperedgeID numEdges() const {
+    ASSERT([&]() {
+        HyperedgeID count = 0;
+          for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+            if (!hyperedge(i).isDisabled()) {
+              ++count;
+            }
+          }
+          return count;
+        }() == _current_num_hyperedges,
+        "Inconsistent Hypergraph State:" << "current_num_hyperedges=" << _current_num_hyperedges
+        << "!= # enabled hyperedges=" <<  [&]() {
+          HyperedgeID count = 0;
+          for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+            if (!hyperedge(i).isDisabled()) {
+              ++count;
+            }
+          }
+          return count;
+          }());
     return _current_num_hyperedges;
   }
 
