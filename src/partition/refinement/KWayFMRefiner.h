@@ -137,7 +137,7 @@ class KWayFMRefiner : public IRefiner {
 
         if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
           DBG(dbg_refinement_kway_fm_improvements,
-              "TwoWayFM improved cut from " << best_cut << " to " << cut);
+              "KWayFM improved cut from " << best_cut << " to " << cut);
           best_cut = cut;
           min_cut_index = num_moves;
           StoppingPolicy::resetStatistics();
