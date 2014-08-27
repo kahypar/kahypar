@@ -86,7 +86,7 @@ TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
 
   // zero gain
   ASSERT_THAT(refiner->computeMaxGain(4).first, Eq(0));
-  ASSERT_THAT(refiner->computeMaxGain(4).second, Eq(2));
+  ASSERT_THAT(refiner->computeMaxGain(4).second, Eq(0));
 
   // negative gain
   ASSERT_THAT(refiner->computeMaxGain(6).first, Eq(-1));

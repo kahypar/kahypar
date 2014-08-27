@@ -6,6 +6,7 @@
 #define SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <sparsehash/dense_hash_set>
 
 #include <limits>
 #include <string>
@@ -61,12 +62,15 @@ class KWayFMRefiner : public IRefiner {
     _hg(hypergraph),
     _config(config),
     _tmp_gains(_config.partition.k, 0),
+    _tmp_target_parts(_config.partition.k), // for dense_hash_set this is expected # entries
     _pq(_hg.initialNumNodes()),
     _marked(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
     _performed_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
+    _tmp_target_parts.set_empty_key(Hypergraph::kInvalidPartition);
+    _tmp_target_parts.set_deleted_key(Hypergraph::kDeletedPartition);
   }
 
   void initializeImpl() final { }
@@ -271,7 +275,7 @@ class KWayFMRefiner : public IRefiner {
 
   bool isBorderNode(HypernodeID hn) const {
     for (auto && he : _hg.incidentEdges(hn)) {
-      if (_hg.pinCountInPart(he, _hg.partID(hn)) < _hg.edgeSize(he)) {
+      if (_hg.connectivity(he) > 1) {
         return true;
       }
     }
@@ -280,54 +284,74 @@ class KWayFMRefiner : public IRefiner {
 
   GainPartitionPair computeMaxGain(HypernodeID hn) {
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
+    ASSERT([&]() {
+             for (auto gain : _tmp_gains) {
+               if (gain != 0) {
+                 return false;
+               }
+             }
+             return true;
+           } () == true, "_tmp_gains not initialized correctly");
+
+    _tmp_target_parts.clear_no_resize();
+    const PartitionID source_part = _hg.partID(hn);
+    HyperedgeWeight internal_weight = 0;
+
     for (auto && he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
-      const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, _hg.partID(hn));
-      for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
-        const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
-        if ( pins_in_target_part == 0 && pins_in_source_part == _hg.edgeSize(he)) {
-          ASSERT(target_part != _hg.partID(hn), "inconsistent Hypergraph-DS");
-          _tmp_gains[target_part] -= _hg.edgeWeight(he);
-        }
-        if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
-          _tmp_gains[target_part] += _hg.edgeWeight(he);
+      if (_hg.connectivity(he) == 1) {
+        internal_weight += _hg.edgeWeight(he);
+      } else {
+        const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
+        for (PartitionID target_part : _hg.connectivitySet(he)) {
+          _tmp_target_parts.insert(target_part);
+          const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
+          if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
+            _tmp_gains[target_part] += _hg.edgeWeight(he);
+          }
         }
       }
     }
 
-    PartitionID max_gain_part = Hypergraph::kInvalidPartition;
-    Gain max_gain = std::numeric_limits<Gain>::min() + 1;
-    _tmp_gains[_hg.partID(hn)] = std::numeric_limits<Gain>::min();
-
     DBG(dbg_refinement_kway_fm_gain_comp, [&]() {
-          for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
+          for (PartitionID target_part : _tmp_target_parts) {
             LOG("gain(" << target_part << ")=" << _tmp_gains[target_part]);
           }
           return std::string("");
         } ());
 
-    for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
-      const Gain target_part_gain = _tmp_gains[target_part];
+    // own partition does not count
+    _tmp_target_parts.erase(source_part);
+    _tmp_gains[source_part] = 0;
+
+    PartitionID max_gain_part = Hypergraph::kInvalidPartition;
+    Gain max_gain = std::numeric_limits<Gain>::min();
+    for (PartitionID target_part : _tmp_target_parts) {
+      const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
       const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-      const HypernodeWeight source_part_weight =  _hg.partWeight(_hg.partID(hn));
-      const HypernodeWeight target_part_weight =  _hg.partWeight(target_part);
+      const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
+      const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
       if (target_part_gain > max_gain ||
           (target_part_gain == max_gain &&
            source_part_weight >= _config.partition.max_part_size &&
-           target_part_weight + node_weight  < _config.partition.max_part_size &&
+           target_part_weight + node_weight < _config.partition.max_part_size &&
            target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
         max_gain = target_part_gain;
         max_gain_part = target_part;
       }
       _tmp_gains[target_part] = 0;
     }
-    DBG(dbg_refinement_kway_fm_gain_comp, "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
+    DBG(dbg_refinement_kway_fm_gain_comp,
+        "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
+    ASSERT(max_gain != std::numeric_limits<Gain>::min(), "");
     return GainPartitionPair(max_gain, max_gain_part);
   }
 
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<Gain> _tmp_gains;
+  google::dense_hash_set<PartitionID> _tmp_target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_updated;
