@@ -550,4 +550,65 @@ TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
     ASSERT_THAT(hypergraph.partID(hn), Eq(Hypergraph::kInvalidPartition));
   }
 }
+
+TEST_F(AHypergraph, MaintainsAConnectivitySetForEachHyperedge) {
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(0));
+  ASSERT_THAT(hypergraph.connectivity(1), Eq(0));
+  ASSERT_THAT(hypergraph.connectivity(2), Eq(0));
+  ASSERT_THAT(hypergraph.connectivity(3), Eq(0));
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+  ASSERT_THAT(hypergraph.connectivity(1), Eq(1));
+  ASSERT_THAT(hypergraph.connectivity(2), Eq(2));
+  ASSERT_THAT(hypergraph.connectivity(3), Eq(1));
+}
+
+TEST_F(AHypergraph, RemovesPartFromConnectivitySetIfHEDoesNotConnectThatPart) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+
+  hypergraph.changeNodePart(2, 1, 0);
+
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+}
+
+TEST_F(AHypergraph, AddsPartToConnectivitySetIfHEConnectsThatPart) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+
+  hypergraph.changeNodePart(2, 0, 1);
+
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+}
+
+
+TEST_F(AHypergraph, AllowsIterationOverConnectivitySetOfAHyperege) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 1);
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+
+  int part_id = 0;
+  for (auto && part : hypergraph.connectivitySet(0)) {
+    ASSERT_THAT(part, Eq(part_id));
+    ++part_id;
+  }
+}
 } // namespace datastructure

@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 #include <sparsehash/dense_hash_map>
+#include <sparsehash/dense_hash_set>
 
 #include "gtest/gtest_prod.h"
 #include "lib/core/IteratorPair.h"
@@ -54,6 +55,7 @@ class GenericHypergraph {
   typedef HyperedgeData_ HyperedgeData;
 
   enum { kInvalidPartition = -1 };
+  enum { kDeletedPartition = -2 };
 
   enum class Type : int8_t {
     Unweighted = 0,
@@ -69,6 +71,8 @@ class GenericHypergraph {
   // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
   // Outside the Hypergraph class, both are represented by const_incidence_iterator
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
+
+  typedef google::dense_hash_set<PartitionID> ConnectivitySet;
 
   static const int kInvalidCount = std::numeric_limits<int>::min();
 
@@ -275,6 +279,7 @@ class GenericHypergraph {
   typedef IteratorPair<IncidenceIterator> IncidenceIteratorPair;
   typedef IteratorPair<HypernodeIterator> HypernodeIteratorPair;
   typedef IteratorPair<HyperedgeIterator> HyperedgeIteratorPair;
+  typedef IteratorPair<typename ConnectivitySet::const_iterator> ConnectivitySetIteratorPair;
   typedef Memento ContractionMemento;
 
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
@@ -297,6 +302,7 @@ class GenericHypergraph {
     _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
     _partition_pin_count(_k),
+    _connectivity_sets(_num_hyperedges), //we might have to initialize this lazy
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
     _active_hyperedges_v(_num_hyperedges) {
@@ -324,6 +330,9 @@ class GenericHypergraph {
         _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
         hypernode(pin).increaseSize();
       }
+      //dense hash set needs empty key and deleted key
+      _connectivity_sets[i].set_empty_key(kInvalidPartition);
+      _connectivity_sets[i].set_deleted_key(kDeletedPartition);
     }
 
     bool has_hyperedge_weights = false;
@@ -456,6 +465,12 @@ class GenericHypergraph {
     return makeIteratorPair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
                             HyperedgeIterator(&_hyperedges, _num_hyperedges,
                                               _num_hyperedges));
+  }
+
+  ConnectivitySetIteratorPair connectivitySet(HyperedgeID he) const {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    return makeIteratorPair(_connectivity_sets[he].begin(),
+                            _connectivity_sets[he].end());
   }
 
   Memento contract(HypernodeID u, HypernodeID v) {
@@ -618,6 +633,7 @@ class GenericHypergraph {
     updatePartInfo(hn, id);
     for (auto&& he : incidentEdges(hn)) {
       increasePinCountInPart(he, id);
+      connect(he, id);
     }
   }
 
@@ -847,6 +863,11 @@ class GenericHypergraph {
     }
   }
 
+  PartitionID connectivity(HyperedgeID he) const {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    return _connectivity_sets[he].size();
+  }
+
   HypernodeWeight partWeight(PartitionID id) const {
     return _part_info[id].weight;
   }
@@ -878,6 +899,20 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
+
+  void connect(HyperedgeID he, PartitionID id) {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    _connectivity_sets[he].insert(id);
+  }
+
+  void disconnect(HyperedgeID he, PartitionID id) {
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    ASSERT(_connectivity_sets[he].find(id) != _connectivity_sets[he].end(),
+           "HE " << he << "does not connect part " << id);
+    _connectivity_sets[he].erase(id);
+  }
   
   void setPartID(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
@@ -907,6 +942,11 @@ class GenericHypergraph {
     ASSERT(pinCountInPart(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
     --_partition_pin_count[id][he];
+    if (_partition_pin_count[id][he] == 0) {
+      ASSERT(_connectivity_sets[he].find(id) != _connectivity_sets[he].end(),
+             "HE" << he << " does not connect part " << id);
+      _connectivity_sets[he].erase(id);
+    }
   }
 
   void increasePinCountInPart(HyperedgeID he, PartitionID id) {
@@ -915,6 +955,7 @@ class GenericHypergraph {
            "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_count[id][he]
            << "edgesize=" << edgeSize(he));
     ++_partition_pin_count[id][he];
+    _connectivity_sets[he].insert(id);
   }
 
 
@@ -1072,6 +1113,8 @@ class GenericHypergraph {
   std::vector<PartInformation> _part_info;
   // for each partition id, we store the number of pins of each HE in that partition in a hash_map
   std::vector<google::dense_hash_map<HyperedgeID, HypernodeID>> _partition_pin_count;
+  // for each hyperedge we store the connectivity set, i.e. the parts it connects
+  std::vector<ConnectivitySet> _connectivity_sets;
 
   // Used during uncontraction to remember which hyperedges have already been processed
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
