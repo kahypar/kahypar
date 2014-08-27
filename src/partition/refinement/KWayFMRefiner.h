@@ -282,15 +282,15 @@ class KWayFMRefiner : public IRefiner {
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     for (auto && he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
-      HypernodeID num_pins_in_source_part =
-        _hg.pinCountInPart(he, _hg.partID(hn));
-      for (PartitionID i = 0; i != _config.partitioning.k; ++i) {
-        if (_hg.pinCountInPart(he, i) == 0 && num_pins_in_source_part == _hg.edgeSize(he)) {
-          ASSERT(i != _hg.partID(hn), "inconsistent Hypergraph-DS");
-          _tmp_gains[i] -= _hg.edgeWeight(he);
+      const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, _hg.partID(hn));
+      for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
+        const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
+        if ( pins_in_target_part == 0 && pins_in_source_part == _hg.edgeSize(he)) {
+          ASSERT(target_part != _hg.partID(hn), "inconsistent Hypergraph-DS");
+          _tmp_gains[target_part] -= _hg.edgeWeight(he);
         }
-        if (num_pins_in_source_part == 1 && _hg.pinCountInPart(he, i) == _hg.edgeSize(he) - 1) {
-          _tmp_gains[i] += _hg.edgeWeight(he);
+        if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
+          _tmp_gains[target_part] += _hg.edgeWeight(he);
         }
       }
     }
@@ -300,19 +300,26 @@ class KWayFMRefiner : public IRefiner {
     _tmp_gains[_hg.partID(hn)] = std::numeric_limits<Gain>::min();
 
     DBG(dbg_refinement_kway_fm_gain_comp, [&]() {
-          for (PartitionID i = 0; i != _config.partitioning.k; ++i) {
-            LOG("gain(" << i << ")=" << _tmp_gains[i]);
+          for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
+            LOG("gain(" << target_part << ")=" << _tmp_gains[target_part]);
           }
           return std::string("");
         } ());
 
-    for (PartitionID i = 0; i != _config.partitioning.k; ++i) {
-      if ((_tmp_gains[i] > max_gain) ||
-          ((_tmp_gains[i] == max_gain) && Randomize::flipCoin())) {
-        max_gain = _tmp_gains[i];
-        max_gain_part = i;
+    for (PartitionID target_part = 0; target_part != _config.partition.k; ++target_part) {
+      const Gain target_part_gain = _tmp_gains[target_part];
+      const HypernodeWeight node_weight = _hg.nodeWeight(hn);
+      const HypernodeWeight source_part_weight =  _hg.partWeight(_hg.partID(hn));
+      const HypernodeWeight target_part_weight =  _hg.partWeight(target_part);
+      if (target_part_gain > max_gain ||
+          (target_part_gain == max_gain &&
+           source_part_weight >= _config.partition.max_part_size &&
+           target_part_weight + node_weight  < _config.partition.max_part_size &&
+           target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
+        max_gain = target_part_gain;
+        max_gain_part = target_part;
       }
-      _tmp_gains[i] = 0;
+      _tmp_gains[target_part] = 0;
     }
     DBG(dbg_refinement_kway_fm_gain_comp, "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
     return GainPartitionPair(max_gain, max_gain_part);
