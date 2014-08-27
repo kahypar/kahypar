@@ -409,7 +409,7 @@ TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1) {
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 1);
   Configuration config;
-  config.partitioning.epsilon = 1;
+  config.partition.epsilon = 1;
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize(0);
 
@@ -434,10 +434,10 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   hypergraph.setNodePart(3, 1);
 
   Configuration config;
-  config.partitioning.epsilon = 0.02;
-  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
-                                                   * ceil(hypergraph.initialNumNodes()
-                                                          / static_cast<double>(config.partitioning.k));
+  config.partition.epsilon = 0.02;
+  config.partition.max_part_size = (1 + config.partition.epsilon)
+                                   * ceil(hypergraph.initialNumNodes()
+                                          / static_cast<double>(config.partition.k));
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize(0);

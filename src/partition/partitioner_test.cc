@@ -44,13 +44,13 @@ class APartitioner : public Test {
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.minimal_node_count = 2;
     config.coarsening.threshold_node_weight = 5;
-    config.partitioning.graph_filename = "PartitionerTest.hgr";
-    config.partitioning.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
-    config.partitioning.coarse_graph_filename = "PartitionerTest_coarse.hgr";
-    config.partitioning.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
-    config.partitioning.epsilon = 0.15;
-    config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
-                                                     * ceil(7 / static_cast<double>(config.partitioning.k));
+    config.partition.graph_filename = "PartitionerTest.hgr";
+    config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
+    config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";
+    config.partition.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
+    config.partition.epsilon = 0.15;
+    config.partition.max_part_size = (1 + config.partition.epsilon)
+                                     * ceil(7 / static_cast<double>(config.partition.k));
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -64,7 +64,7 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
   public:
   APartitionerWithHyperedgeSizeThreshold() :
     APartitioner() {
-    config.partitioning.hyperedge_size_threshold = 3;
+    config.partition.hyperedge_size_threshold = 3;
   }
 };
 
@@ -184,7 +184,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   //simulate the first vcycle by explicitly setting a partitioning
-  config.partitioning.global_search_iterations = 2;
+  config.partition.global_search_iterations = 2;
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
   hypergraph->printGraphState();

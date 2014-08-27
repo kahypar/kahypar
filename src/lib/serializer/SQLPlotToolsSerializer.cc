@@ -22,17 +22,17 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   {
     ip::scoped_lock<ip::file_lock> s_lock(f_lock);
     out_stream << "RESULT"
-    << " graph=" << config.partitioning.graph_filename.substr(
-      config.partitioning.graph_filename.find_last_of("/") + 1)
+    << " graph=" << config.partition.graph_filename.substr(
+      config.partition.graph_filename.find_last_of("/") + 1)
     << " numHNs=" << hypergraph.initialNumNodes()
     << " numHEs=" << hypergraph.initialNumEdges()
-    << " k=" << config.partitioning.k
-    << " epsilon=" << config.partitioning.epsilon
-    << " L_max=" << config.partitioning.partition_size_upper_bound
-    << " seed=" << config.partitioning.seed
-    << " numInitialPartitionings=" << config.partitioning.initial_partitioning_attempts
-    << " numVCycles=" << config.partitioning.global_search_iterations
-    << " HESizeThreshold=" << config.partitioning.hyperedge_size_threshold
+    << " k=" << config.partition.k
+    << " epsilon=" << config.partition.epsilon
+    << " L_max=" << config.partition.max_part_size
+    << " seed=" << config.partition.seed
+    << " numInitialPartitions=" << config.partition.initial_partitioning_attempts
+    << " numVCycles=" << config.partition.global_search_iterations
+    << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
     << " coarseningScheme=" << config.coarsening.scheme
     << coarsener.policyString()
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction

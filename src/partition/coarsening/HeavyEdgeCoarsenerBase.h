@@ -94,8 +94,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 
-    _stats.add("initialCut", _config.partitioning.current_v_cycle, current_cut);
-    _stats.add("initialImbalance", _config.partitioning.current_v_cycle, current_imbalance);
+    _stats.add("initialCut", _config.partition.current_v_cycle, current_cut);
+    _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
@@ -112,9 +112,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop();
     }
-    ASSERT(current_imbalance <= _config.partitioning.epsilon,
+    ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-           << " > " << _config.partitioning.epsilon);
+           << " > " << _config.partition.epsilon);
   }
 
   template <typename Map>

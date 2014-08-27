@@ -125,9 +125,9 @@ class HyperedgeCoarsener : public ICoarsener,
                          current_imbalance, current_cut);
       _history.pop();
     }
-    ASSERT(current_imbalance <= _config.partitioning.epsilon,
+    ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-           << " > " << _config.partitioning.epsilon);
+           << " > " << _config.partition.epsilon);
   }
 
   const Stats & statsImpl() const {

@@ -84,35 +84,35 @@ using defs::HighResClockTimepoint;
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
-    config.partitioning.graph_filename = vm["hgr"].as<std::string>();
-    config.partitioning.k = vm["k"].as<PartitionID>();
+    config.partition.graph_filename = vm["hgr"].as<std::string>();
+    config.partition.k = vm["k"].as<PartitionID>();
 
-    config.partitioning.coarse_graph_filename = config.partitioning.graph_filename;
-    config.partitioning.coarse_graph_filename.insert(config.partitioning.coarse_graph_filename.find_last_of(
-                                                       "/") + 1,
-                                                     std::string("PID_")
-                                                     + std::to_string(getpid()) + "_coarse_");
-    config.partitioning.graph_partition_filename = config.partitioning.graph_filename + ".part."
-                                                   + std::to_string(config.partitioning.k)
-                                                   + ".KaHyPar";
-    config.partitioning.coarse_graph_partition_filename = config.partitioning.coarse_graph_filename
-                                                          + ".part."
-                                                          + std::to_string(config.partitioning.k);
-    config.partitioning.epsilon = vm["e"].as<double>();
+    config.partition.coarse_graph_filename = config.partition.graph_filename;
+    config.partition.coarse_graph_filename.insert(config.partition.coarse_graph_filename.find_last_of(
+                                                    "/") + 1,
+                                                  std::string("PID_")
+                                                  + std::to_string(getpid()) + "_coarse_");
+    config.partition.graph_partition_filename = config.partition.graph_filename + ".part."
+                                                + std::to_string(config.partition.k)
+                                                + ".KaHyPar";
+    config.partition.coarse_graph_partition_filename = config.partition.coarse_graph_filename
+                                                       + ".part."
+                                                       + std::to_string(config.partition.k);
+    config.partition.epsilon = vm["e"].as<double>();
 
     if (vm.count("seed")) {
-      config.partitioning.seed = vm["seed"].as<int>();
+      config.partition.seed = vm["seed"].as<int>();
     }
     if (vm.count("nruns")) {
-      config.partitioning.initial_partitioning_attempts = vm["nruns"].as<int>();
+      config.partition.initial_partitioning_attempts = vm["nruns"].as<int>();
     }
     if (vm.count("vcycles")) {
-      config.partitioning.global_search_iterations = vm["vcycles"].as<int>();
+      config.partition.global_search_iterations = vm["vcycles"].as<int>();
     }
     if (vm.count("cmaxnet")) {
-      config.partitioning.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
-      if (config.partitioning.hyperedge_size_threshold == -1) {
-        config.partitioning.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+      config.partition.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
+      if (config.partition.hyperedge_size_threshold == -1) {
+        config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
       }
     }
     if (vm.count("ctype")) {
@@ -147,7 +147,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       }
     }
     if (vm.count("verbose")) {
-      config.partitioning.verbose_output = vm["verbose"].as<bool>();
+      config.partition.verbose_output = vm["verbose"].as<bool>();
     }
     if (vm.count("rtype")) {
       if (vm["rtype"].as<std::string>() == "twoway_fm") {
@@ -168,12 +168,12 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
 }
 
 void setDefaults(Configuration& config) {
-  config.partitioning.k = 2;
-  config.partitioning.epsilon = 0.05;
-  config.partitioning.seed = -1;
-  config.partitioning.initial_partitioning_attempts = 10;
-  config.partitioning.global_search_iterations = 10;
-  config.partitioning.hyperedge_size_threshold = -1;
+  config.partition.k = 2;
+  config.partition.epsilon = 0.05;
+  config.partition.seed = -1;
+  config.partition.initial_partitioning_attempts = 10;
+  config.partition.global_search_iterations = 10;
+  config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
   config.coarsening.minimal_node_count = 100;
   config.coarsening.hypernode_weight_fraction = 0.0375;
@@ -267,9 +267,9 @@ int main(int argc, char* argv[]) {
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
     ("nruns", po::value<int>(),
-    "# initial partitioning trials, the final bisection corresponds to the one with the smallest cut")
+    "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
-    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partitioning (disable:-1 (default))")
+    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
@@ -298,30 +298,30 @@ int main(int argc, char* argv[]) {
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
 
-  Randomize::setSeed(config.partitioning.seed);
+  Randomize::setSeed(config.partition.seed);
 
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
 
-  io::readHypergraphFile(config.partitioning.graph_filename, num_hypernodes, num_hyperedges,
+  io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, config.partitioning.k);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, config.partition.k);
 
   HypernodeWeight hypergraph_weight = 0;
   for (auto && hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 
-  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
-                                                   * ceil(hypergraph_weight / static_cast<double>(config.partitioning.k));
+  config.partition.max_part_size = (1 + config.partition.epsilon)
+                                   * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
   io::printPartitionerConfiguration(config);
-  io::printHypergraphInfo(hypergraph, config.partitioning.graph_filename.substr(
-                            config.partitioning.graph_filename.find_last_of("/") + 1));
+  io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
+                            config.partition.graph_filename.find_last_of("/") + 1));
 
 #ifdef GATHER_STATS
   LOG("*******************************");
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<IRefiner> refiner(nullptr);
 
   if (config.two_way_fm.active) {
-    if (config.partitioning.k == 2) {
+    if (config.partition.k == 2) {
       TwoWayFMFactoryExecutor exec;
       refiner.reset(TwoWayFMFactoryDispatcher::go(
                       PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
   for (auto && he : hypergraph.edges()) {
     ASSERT([&]() -> bool {
              HypernodeID num_pins = 0;
-             for (PartitionID i = 0; i < config.partitioning.k; ++i) {
+             for (PartitionID i = 0; i < config.partition.k; ++i) {
                num_pins += hypergraph.pinCountInPart(he, i);
              }
              return num_pins == hypergraph.edgeSize(he);
@@ -387,10 +387,10 @@ int main(int argc, char* argv[]) {
 
   io::printPartitioningStatistics(*coarsener, *refiner);
   io::printPartitioningResults(hypergraph, elapsed_seconds);
-  io::writePartitionFile(hypergraph, config.partitioning.graph_partition_filename);
+  io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
-  std::remove(config.partitioning.coarse_graph_filename.c_str());
-  std::remove(config.partitioning.coarse_graph_partition_filename.c_str());
+  std::remove(config.partition.coarse_graph_filename.c_str());
+  std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
   SQLPlotToolsSerializer::serialize(config, hypergraph, *coarsener, *refiner, elapsed_seconds,
                                     result_file);

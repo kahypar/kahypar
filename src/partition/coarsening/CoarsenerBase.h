@@ -86,16 +86,16 @@ class CoarsenerBase {
   bool improvedCutWithinBalance(HyperedgeWeight old_cut, HyperedgeWeight current_cut,
                                 double current_imbalance) {
     DBG(dbg_coarsening_uncoarsen_improvement && (current_cut < old_cut) &&
-        (current_imbalance < _config.partitioning.epsilon),
+        (current_imbalance < _config.partition.epsilon),
         "improved cut: " << old_cut << "-->" << current_cut);
-    return (current_cut < old_cut) && (current_imbalance < _config.partitioning.epsilon);
+    return (current_cut < old_cut) && (current_imbalance < _config.partition.epsilon);
   }
 
   bool improvedOldImbalanceTowardsValidSolution(double old_imbalance, double current_imbalance) {
-    DBG(dbg_coarsening_uncoarsen_improvement && (old_imbalance > _config.partitioning.epsilon) &&
+    DBG(dbg_coarsening_uncoarsen_improvement && (old_imbalance > _config.partition.epsilon) &&
         (current_imbalance < old_imbalance), "improved imbalance: " << old_imbalance << "-->"
         << current_imbalance);
-    return (old_imbalance > _config.partitioning.epsilon) && (current_imbalance < old_imbalance);
+    return (old_imbalance > _config.partition.epsilon) && (current_imbalance < old_imbalance);
   }
 
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
@@ -252,7 +252,7 @@ class CoarsenerBase {
       old_imbalance = current_imbalance;
       old_cut = current_cut;
       refiner.refine(refinement_nodes, num_refinement_nodes, current_cut,
-                     _config.partitioning.epsilon, current_imbalance);
+                     _config.partition.epsilon, current_imbalance);
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
       ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
@@ -265,15 +265,15 @@ class CoarsenerBase {
   }
 
   void gatherCoarseningStats() {
-    _stats.add("numCoarseHNs", _config.partitioning.current_v_cycle, _hg.numNodes());
-    _stats.add("numCoarseHEs", _config.partitioning.current_v_cycle, _hg.numEdges());
-    _stats.add("numRemovedSingleNodeHEs", _config.partitioning.current_v_cycle,
+    _stats.add("numCoarseHNs", _config.partition.current_v_cycle, _hg.numNodes());
+    _stats.add("numCoarseHEs", _config.partition.current_v_cycle, _hg.numEdges());
+    _stats.add("numRemovedSingleNodeHEs", _config.partition.current_v_cycle,
                _removed_single_node_hyperedges.size());
-    _stats.add("numRemovedParalellHEs", _config.partitioning.current_v_cycle,
+    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle,
                _removed_parallel_hyperedges.size());
-    _stats.add("avgHEsizeCoarse", _config.partitioning.current_v_cycle,
+    _stats.add("avgHEsizeCoarse", _config.partition.current_v_cycle,
                metrics::avgHyperedgeDegree(_hg));
-    _stats.add("avgHNdegreeCoarse", _config.partitioning.current_v_cycle,
+    _stats.add("avgHNdegreeCoarse", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
   }
 

@@ -340,7 +340,7 @@ class TwoWayFMRefiner : public IRefiner {
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
     ASSERT(_hg.partID(hn) == from, "HN " << hn << " is not in partition " << from);
     return _hg.partWeight(to) + _hg.nodeWeight(hn)
-           <= _config.partitioning.partition_size_upper_bound;
+           <= _config.partition.max_part_size;
   }
 
   bool queuesAreEmpty() const {

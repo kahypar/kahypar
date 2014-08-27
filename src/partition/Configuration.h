@@ -40,7 +40,7 @@ struct Configuration {
       global_search_iterations(1),
       current_v_cycle(0),
       epsilon(1.0),
-      partition_size_upper_bound(std::numeric_limits<HypernodeWeight>::max()),
+      max_part_size(std::numeric_limits<HypernodeWeight>::max()),
       hyperedge_size_threshold(-1),
       verbose_output(false),
       graph_filename(),
@@ -54,7 +54,7 @@ struct Configuration {
     int global_search_iterations;
     int current_v_cycle;
     double epsilon;
-    HypernodeWeight partition_size_upper_bound;
+    HypernodeWeight max_part_size;
     HyperedgeID hyperedge_size_threshold;
     bool verbose_output;
     std::string graph_filename;
@@ -93,13 +93,13 @@ struct Configuration {
     bool active;
   };
 
-  PartitioningParameters partitioning;
+  PartitioningParameters partition;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
   HERFMParameters her_fm;
 
   Configuration() :
-    partitioning(),
+    partition(),
     coarsening(),
     two_way_fm(),
     her_fm() { }
@@ -109,24 +109,24 @@ inline std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
   oss << "Partitioning Parameters:" << std::endl;
-  oss << std::setw(30) << "  Hypergraph: " << config.partitioning.graph_filename << std::endl;
-  oss << std::setw(30) << "  Partition File: " << config.partitioning.graph_partition_filename
+  oss << std::setw(30) << "  Hypergraph: " << config.partition.graph_filename << std::endl;
+  oss << std::setw(30) << "  Partition File: " << config.partition.graph_partition_filename
   << std::endl;
-  oss << std::setw(30) << "  Coarsened Hypergraph: " << config.partitioning.coarse_graph_filename
+  oss << std::setw(30) << "  Coarsened Hypergraph: " << config.partition.coarse_graph_filename
   << std::endl;
   oss << std::setw(30) << "  Coarsened Partition File: "
-  << config.partitioning.coarse_graph_partition_filename << std::endl;
-  oss << std::setw(30) << "  k: " << config.partitioning.k << std::endl;
-  oss << std::setw(30) << "  epsilon: " << config.partitioning.epsilon
+  << config.partition.coarse_graph_partition_filename << std::endl;
+  oss << std::setw(30) << "  k: " << config.partition.k << std::endl;
+  oss << std::setw(30) << "  epsilon: " << config.partition.epsilon
   << std::endl;
-  oss << std::setw(30) << "  L_max: " << config.partitioning.partition_size_upper_bound
+  oss << std::setw(30) << "  L_max: " << config.partition.max_part_size
   << std::endl;
-  oss << std::setw(30) << "  seed: " << config.partitioning.seed << std::endl;
+  oss << std::setw(30) << "  seed: " << config.partition.seed << std::endl;
   oss << std::setw(30) << "  # initial partitionings: "
-  << config.partitioning.initial_partitioning_attempts << std::endl;
+  << config.partition.initial_partitioning_attempts << std::endl;
   oss << std::setw(30) << "  # global search iterations: "
-  << config.partitioning.global_search_iterations << std::endl;
-  oss << std::setw(30) << "  hyperedge size threshold: " << config.partitioning.hyperedge_size_threshold
+  << config.partition.global_search_iterations << std::endl;
+  oss << std::setw(30) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold
   << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
   oss << std::setw(30) << "  scheme: " << config.coarsening.scheme << std::endl;

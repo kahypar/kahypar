@@ -19,7 +19,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges);
 
-  for (int vcycle = 0; vcycle < _config.partitioning.global_search_iterations; ++vcycle) {
+  for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
     coarsener.coarsen(_config.coarsening.minimal_node_count);
 
     if (vcycle == 0) {
@@ -32,19 +32,19 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     coarsener.uncoarsen(refiner);
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
-    ++_config.partitioning.current_v_cycle;
+    ++_config.partition.current_v_cycle;
   }
 
   restoreLargeHyperedges(hypergraph, removed_hyperedges);
 }
 
 void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
-  if (_config.partitioning.hyperedge_size_threshold != -1) {
+  if (_config.partition.hyperedge_size_threshold != -1) {
     for (auto && he : hg.edges()) {
-      if (hg.edgeSize(he) > _config.partitioning.hyperedge_size_threshold) {
+      if (hg.edgeSize(he) > _config.partition.hyperedge_size_threshold) {
         DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
             << hg.edgeSize(he) << ")   exceeds threshold: "
-            << _config.partitioning.hyperedge_size_threshold);
+            << _config.partition.hyperedge_size_threshold);
         removed_hyperedges.push_back(he);
         hg.removeEdge(he, true);
       }
@@ -53,8 +53,8 @@ void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>
 }
 
 void Partitioner::restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
-  if (_config.partitioning.hyperedge_size_threshold != -1) {
-    PartitionWeights partition_weights(_config.partitioning.k, 0);
+  if (_config.partition.hyperedge_size_threshold != -1) {
+    PartitionWeights partition_weights(_config.partition.k, 0);
     for (auto && hn : hg.nodes()) {
       if (hg.partID(hn) != Hypergraph::kInvalidPartition) {
         partition_weights[hg.partID(hn)] += hg.nodeWeight(hn);
@@ -66,7 +66,7 @@ void Partitioner::restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID
       hg.restoreEdge(*edge);
       partitionUnpartitionedPins(*edge, hg, partition_weights);
     }
-    ASSERT(metrics::imbalance(hg) <= _config.partitioning.epsilon,
+    ASSERT(metrics::imbalance(hg) <= _config.partition.epsilon,
            "Final assignment of unpartitioned pins violated balance constraint");
   }
 }
@@ -85,23 +85,23 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
 
   if (num_unpartitioned_hns == num_pins) {
     if (partition_weights[0] + unpartitioned_weight
-        <= _config.partitioning.partition_size_upper_bound) {
+        <= _config.partition.max_part_size) {
       assignAllPinsToPartition(he, 0, hg, partition_weights);
     } else if (partition_weights[1] + unpartitioned_weight
-               <= _config.partitioning.partition_size_upper_bound) {
+               <= _config.partition.max_part_size) {
       assignAllPinsToPartition(he, 1, hg, partition_weights);
     }
     return;
   }
   if ((hg.pinCountInPart(he, 0) > 0 && hg.pinCountInPart(he, 1) == 0) &&
       (partition_weights[0] + unpartitioned_weight
-       <= _config.partitioning.partition_size_upper_bound)) {
+       <= _config.partition.max_part_size)) {
     assignUnpartitionedPinsToPartition(he, 0, hg, partition_weights);
     return;
   }
   if ((hg.pinCountInPart(he, 1) > 0 && hg.pinCountInPart(he, 0) == 0) &&
       (partition_weights[1] + unpartitioned_weight
-       <= _config.partitioning.partition_size_upper_bound)) {
+       <= _config.partition.max_part_size)) {
     assignUnpartitionedPinsToPartition(he, 1, hg, partition_weights);
     return;
   }
@@ -161,8 +161,8 @@ void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping&
 }
 
 void Partitioner::performInitialPartitioning(Hypergraph& hg) {
-  io::printHypergraphInfo(hg, _config.partitioning.coarse_graph_filename.substr(
-                            _config.partitioning.coarse_graph_filename.find_last_of("/") + 1));
+  io::printHypergraphInfo(hg, _config.partition.coarse_graph_filename.substr(
+                            _config.partition.coarse_graph_filename.find_last_of("/") + 1));
 
   DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = "
       << std::to_string([&]() {
@@ -179,7 +179,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   CoarsenedToHmetisMapping hg_to_hmetis;
   createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
-  io::writeHypergraphForhMetisPartitioning(hg, _config.partitioning.coarse_graph_filename,
+  io::writeHypergraphForhMetisPartitioning(hg, _config.partition.coarse_graph_filename,
                                            hg_to_hmetis);
 
   std::vector<PartitionID> partitioning;
@@ -190,17 +190,17 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
 
-  for (int attempt = 0; attempt < _config.partitioning.initial_partitioning_attempts; ++attempt) {
+  for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = Randomize::newRandomSeed();
 
     std::system((std::string("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
-                 + _config.partitioning.coarse_graph_filename
-                 + " " + std::to_string(_config.partitioning.k)
+                 + _config.partition.coarse_graph_filename
+                 + " " + std::to_string(_config.partition.k)
                  + " -seed=" + std::to_string(seed)
-                 + " -ufactor=" + std::to_string(_config.partitioning.epsilon * 50)
-                 + (_config.partitioning.verbose_output ? "" : " > /dev/null")).c_str());
+                 + " -ufactor=" + std::to_string(_config.partition.epsilon * 50)
+                 + (_config.partition.verbose_output ? "" : " > /dev/null")).c_str());
 
-    io::readPartitionFile(_config.partitioning.coarse_graph_partition_filename, partitioning);
+    io::readPartitionFile(_config.partition.coarse_graph_partition_filename, partitioning);
     ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
 
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);

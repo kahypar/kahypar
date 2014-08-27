@@ -28,7 +28,7 @@ class AKWayFMRefiner : public Test {
     hypergraph(new Hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 6, 9, 12, /*sentinel*/ 14 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6, 2, 7 }, 4)),
     refiner(new KWayFMRefinerSimpleStopping(*hypergraph, config)) {
-    config.partitioning.k = 4;
+    config.partition.k = 4;
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 0);
     hypergraph->setNodePart(2, 1);
@@ -104,11 +104,11 @@ TEST_F(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
   hypergraph->setNodePart(5, 2);
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
-  config.partitioning.k = 4;
-  config.partitioning.epsilon = 0.02;
-  config.partitioning.partition_size_upper_bound = (1 + config.partitioning.epsilon)
-                                                   * ceil(hypergraph->numNodes() /
-                                                          static_cast<double>(config.partitioning.k));
+  config.partition.k = 4;
+  config.partition.epsilon = 0.02;
+  config.partition.max_part_size = (1 + config.partition.epsilon)
+                                   * ceil(hypergraph->numNodes() /
+                                          static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
@@ -126,11 +126,11 @@ TEST_F(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
   hypergraph->setNodePart(5, 2);
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
-  config.partitioning.k = 4;
-  config.partitioning.epsilon = 1.0;
-  config.partitioning.partition_size_upper_bound =
-    (1 + config.partitioning.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partitioning.k));
+  config.partition.k = 4;
+  config.partition.epsilon = 1.0;
+  config.partition.max_part_size =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
@@ -160,11 +160,11 @@ TEST_F(AKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
   orig_hgr.setNodePart(6, 3);
   orig_hgr.setNodePart(7, 3);
 
-  config.partitioning.k = 4;
-  config.partitioning.epsilon = 1.0;
-  config.partitioning.partition_size_upper_bound =
-    (1 + config.partitioning.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partitioning.k));
+  config.partition.k = 4;
+  config.partition.epsilon = 1.0;
+  config.partition.max_part_size =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
@@ -191,11 +191,11 @@ TEST_F(AKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph->setNodePart(8, 1);
   hypergraph->setNodePart(9, 1);
 
-  config.partitioning.k = 4;
-  config.partitioning.epsilon = 1.0;
-  config.partitioning.partition_size_upper_bound =
-    (1 + config.partitioning.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partitioning.k));
+  config.partition.k = 4;
+  config.partition.epsilon = 1.0;
+  config.partition.max_part_size =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 

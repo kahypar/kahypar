@@ -35,7 +35,8 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                               const std::chrono::duration<double>& elapsed_seconds) {
-  std::cout << "***********************2-way Partition Result************************" << std::endl;
+  std::cout << "***********************" << hypergraph.k()
+            << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {

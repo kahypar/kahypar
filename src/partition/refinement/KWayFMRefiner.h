@@ -60,7 +60,7 @@ class KWayFMRefiner : public IRefiner {
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
-    _tmp_gains(_config.partitioning.k, 0),
+    _tmp_gains(_config.partition.k, 0),
     _pq(_hg.initialNumNodes()),
     _marked(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
@@ -246,7 +246,7 @@ class KWayFMRefiner : public IRefiner {
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     _marked[hn] = true;
     if ((_hg.partWeight(to_part) + _hg.nodeWeight(hn)
-         >= _config.partitioning.partition_size_upper_bound) ||
+         >= _config.partition.max_part_size) ||
         (_hg.partSize(from_part) - 1 == 0)) {
       DBG(dbg_refinement_kway_fm_move, "skipping move of HN " << hn << " (" << from_part << "->" << to_part << ")");
       return false;
