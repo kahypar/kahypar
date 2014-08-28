@@ -418,7 +418,7 @@ class GenericHypergraph {
 
   void printEdgeState(HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
-      std::cout << "HE " << e << " w= " << edgeWeight(e) <<": ";
+      std::cout << "HE " << e << " w= " << edgeWeight(e) << "c=" << connectivity(e) << ": ";
       for (auto&& pin : pins(e)) {
         std::cout << pin << " ";
       }
@@ -608,7 +608,7 @@ class GenericHypergraph {
   void changeNodePart(HypernodeID hn, PartitionID from, PartitionID to) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
-    ASSERT(to < _k, "Invalid to_part:" << to);
+    ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
     if (from != to) {
       setPartID(hn, to);
       updatePartInfo(hn, from, to);
@@ -630,7 +630,9 @@ class GenericHypergraph {
   // Used to initially set the partition ID of a HN after initial partitioning
   void setNodePart(HypernodeID hn, PartitionID id) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: " <<  partID(hn));
+    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: "
+           <<  partID(hn));
+    ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
     setPartID(hn, id);
     updatePartInfo(hn, id);
     for (auto&& he : incidentEdges(hn)) {
@@ -866,14 +868,26 @@ class GenericHypergraph {
 
   PartitionID connectivity(HyperedgeID he) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT([&](){
+        ConnectivitySet s;
+         s.set_empty_key(kInvalidPartition);
+         s.set_deleted_key(kDeletedPartition);
+         for (auto pin : pins(he)) {
+           s.insert(partID(pin));
+         }
+         return s.size();
+      }() == _connectivity_sets[he].size(),
+           "Connectivity set is inconsistent!");
     return _connectivity_sets[he].size();
   }
 
   HypernodeWeight partWeight(PartitionID id) const {
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
     return _part_info[id].weight;
   }
 
   HypernodeID partSize(PartitionID id) const {
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
     return _part_info[id].size;
   }
 
