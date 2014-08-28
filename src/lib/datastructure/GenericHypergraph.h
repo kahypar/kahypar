@@ -1019,8 +1019,10 @@ class GenericHypergraph {
   void connectHyperedgeToRepresentative(HyperedgeID e, HypernodeID u, bool& first_call) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
-
-    // Hyperedge e does not contain u. Therefore we use thise entry of v (i.e. the last entry
+    ASSERT(partID(_incidence_array[hyperedge(e).firstInvalidEntry() - 1]) == partID(u),
+                  "Contraction target " << _incidence_array[hyperedge(e).firstInvalidEntry() - 1]
+                  << "& representative " << u <<  "are in different parts");
+    // Hyperedge e does not contain u. Therefore we use the entry of v (i.e. the last entry
     // -- this is ensured by the contract method) in e's edge array to store the information
     // that u is now connected to e and add the edge (u,e) to indicate this conection also from
     // the hypernode's point of view.
