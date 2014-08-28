@@ -121,7 +121,8 @@ class KWayFMRefiner : public IRefiner {
 
       ASSERT([&]() {
                _hg.changeNodePart(max_gain_node, from_part, to_part);
-               ASSERT((cut - max_gain) == metrics::hyperedgeCut(_hg), "cut=" << cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+               ASSERT((cut - max_gain) == metrics::hyperedgeCut(_hg),
+                      "cut=" << cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
                _hg.changeNodePart(max_gain_node, to_part, from_part);
                return true;
              } ()
@@ -185,15 +186,8 @@ class KWayFMRefiner : public IRefiner {
   FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
 
   bool isCutHyperedge(HyperedgeID he) const {
-    IncidenceIterator begin = _hg.pins(he).begin();
-    IncidenceIterator end = _hg.pins(he).end();
-    ASSERT(begin != end, "Accessing empty hyperedge");
-    PartitionID partition = _hg.partID(*begin);
-    ++begin;
-    for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
-      if (partition != _hg.partID(*pin_it)) {
-        return true;
-      }
+    if (_hg.connectivity(he) > 1) {
+      return true;
     }
     return false;
   }
@@ -275,7 +269,7 @@ class KWayFMRefiner : public IRefiner {
 
   bool isBorderNode(HypernodeID hn) const {
     for (auto && he : _hg.incidentEdges(hn)) {
-      if (_hg.connectivity(he) > 1) {
+      if (isCutHyperedge(he)) {
         return true;
       }
     }
@@ -338,6 +332,8 @@ class KWayFMRefiner : public IRefiner {
            target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
         max_gain = target_part_gain;
         max_gain_part = target_part;
+        ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
+               "Hn can't be moved to invalid partition");
       }
       _tmp_gains[target_part] = 0;
     }
