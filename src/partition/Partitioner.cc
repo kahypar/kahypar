@@ -19,6 +19,10 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges);
 
+#ifndef NDEBUG
+  HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
+#endif
+
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
     coarsener.coarsen(_config.coarsening.minimal_node_count);
 
@@ -26,13 +30,15 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
       performInitialPartitioning(hypergraph);
     }
 
-#ifndef NDEBUG
-    HyperedgeWeight initial_cut = metrics::hyperedgeCut(hypergraph);
-#endif
+
     coarsener.uncoarsen(refiner);
-    ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut");
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
+      << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ++_config.partition.current_v_cycle;
+#ifndef NDEBUG
+    initial_cut = metrics::hyperedgeCut(hypergraph);
+#endif
   }
 
   restoreLargeHyperedges(hypergraph, removed_hyperedges);
