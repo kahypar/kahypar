@@ -477,6 +477,8 @@ class GenericHypergraph {
     using std::swap;
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(!hypernode(v).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(partID(u) == partID(v), "Hypernodes " << u << " & " << v << " are in different parts: "
+           << partID(u) << " & " << partID(v));
 
     DBG(dbg_hypergraph_contraction, "contracting (" << u << "," << v << ")");
 
@@ -853,7 +855,7 @@ class GenericHypergraph {
 
   HypernodeID pinCountInPart(HyperedgeID he, PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(id < _k, "Partition ID " << id << " is out of bounds");
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
     auto element_it = _partition_pin_count[id].find(he);
     if (element_it != _partition_pin_count[id].end()) {
       return element_it->second;
@@ -901,21 +903,21 @@ class GenericHypergraph {
 
   void setPartID(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     _part_ids[u] = id;
   }
 
   void updatePartInfo(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     _part_info[id].weight += nodeWeight(u);
     ++_part_info[id].size; 
   }
 
   void updatePartInfo(HypernodeID u, PartitionID from, PartitionID to) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(from < _k, "Part ID" << from << " out of bounds!");
-    ASSERT(to < _k, "Part ID" << to << " out of bounds!");
+    ASSERT(from < _k && from != kInvalidPartition, "Part ID" << from << " out of bounds!");
+    ASSERT(to < _k && to != kInvalidPartition, "Part ID" << to << " out of bounds!");
     _part_info[from].weight -= nodeWeight(u);
     --_part_info[from].size;
     _part_info[to].weight += nodeWeight(u);
@@ -926,6 +928,7 @@ class GenericHypergraph {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(pinCountInPart(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     --_partition_pin_count[id][he];
     if (_partition_pin_count[id][he] == 0) {
       ASSERT(_connectivity_sets[he].find(id) != _connectivity_sets[he].end(),
@@ -939,6 +942,7 @@ class GenericHypergraph {
     ASSERT(pinCountInPart(he, id) <= edgeSize(he),
            "HE " << he << ": pin_count[" << id << "]=" << _partition_pin_count[id][he]
            << "edgesize=" << edgeSize(he));
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ++_partition_pin_count[id][he];
     _connectivity_sets[he].insert(id);
   }

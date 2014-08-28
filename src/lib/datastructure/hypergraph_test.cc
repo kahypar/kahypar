@@ -402,9 +402,6 @@ TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
 }
 
 TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
-  hypergraph.setNodePart(1, 0);
-  hypergraph.setNodePart(5, 0);
-  hypergraph.setNodePart(6, 0);
   ASSERT_THAT(hypergraph.partID(2), Eq(0));
 
   Memento memento = hypergraph.contract(0, 2);

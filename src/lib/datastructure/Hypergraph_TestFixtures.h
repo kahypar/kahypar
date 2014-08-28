@@ -61,9 +61,12 @@ class AnUncontractionOperation : public AHypergraph {
   public:
   AnUncontractionOperation() : AHypergraph() {
     hypergraph.setNodePart(0, 0);
+    hypergraph.setNodePart(1, 0);
     hypergraph.setNodePart(2, 0);
     hypergraph.setNodePart(3, 0);
     hypergraph.setNodePart(4, 0);
+    hypergraph.setNodePart(5, 0);
+    hypergraph.setNodePart(6, 0);
   }
 };
 
