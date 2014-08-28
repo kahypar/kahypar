@@ -4,6 +4,7 @@
 
 #include "partition/Partitioner.h"
 
+#include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
@@ -13,6 +14,9 @@
 #ifndef NDEBUG
 #include "partition/Metrics.h"
 #endif
+
+using defs::HighResClockTimepoint;
+
 namespace partition {
 void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
                             IRefiner& refiner) {
@@ -23,18 +27,29 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
+  HighResClockTimepoint start;
+  HighResClockTimepoint end;
+
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
+    start = std::chrono::high_resolution_clock::now();
     coarsener.coarsen(_config.coarsening.minimal_node_count);
+    end = std::chrono::high_resolution_clock::now();
+    _timings[kCoarsening] += end - start;
 
     if (vcycle == 0) {
+      start = std::chrono::high_resolution_clock::now();
       performInitialPartitioning(hypergraph);
+      end = std::chrono::high_resolution_clock::now();
+      _timings[kInitialPartitioning] = end - start;
     }
 
-
+    start = std::chrono::high_resolution_clock::now();
     coarsener.uncoarsen(refiner);
+    end = std::chrono::high_resolution_clock::now();
+    _timings[kUncoarseningRefinement] += end - start;
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
-      << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
+           << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ++_config.partition.current_v_cycle;
 #ifndef NDEBUG
     initial_cut = metrics::hyperedgeCut(hypergraph);

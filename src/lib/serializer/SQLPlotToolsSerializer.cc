@@ -16,6 +16,7 @@ namespace serializer {
 void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
                                        const ICoarsener& coarsener, const IRefiner& refiner,
                                        const std::chrono::duration<double>& elapsed_seconds,
+                                       const std::array<std::chrono::duration<double>, 3>& timings,
                                        const std::string& filename) {
   std::ofstream out_stream(filename.c_str(), std::ofstream::app);
   ip::file_lock f_lock(filename.c_str());
@@ -53,7 +54,10 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
       out_stream << " part" << i << "=" << hypergraph.partWeight(i);
     }
     out_stream << " imbalance=" << metrics::imbalance(hypergraph)
-    << " time=" << elapsed_seconds.count()
+    << " totalPartitionTime=" << elapsed_seconds.count()
+    << " coarseningTime=" << timings[0].count()
+    << " initialPartitionTime=" << timings[1].count()
+    << " uncoarseningRefinementTime=" << timings[2].count()
     << " git=" << STR(KaHyPar_BUILD_VERSION)
     << std::endl;
     out_stream.flush();

@@ -8,6 +8,7 @@
 #include <cstdlib>
 
 #include <algorithm>
+#include <chrono>
 #include <limits>
 #include <memory>
 #include <string>
@@ -42,11 +43,20 @@ class Partitioner {
   typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
   typedef std::vector<HypernodeWeight> PartitionWeights;
 
+  enum { kCoarsening = 0 };
+  enum { kInitialPartitioning = 1 };
+  enum { kUncoarseningRefinement = 2 };
+
   public:
-  explicit Partitioner(Configuration& config) :
-    _config(config) { }
+  Partitioner(Configuration& config) :
+    _config(config),
+    _timings() { }
 
   void partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner);
+
+  const std::array<std::chrono::duration<double>, 3> & timings() const {
+    return _timings;
+  }
 
   private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
@@ -78,6 +88,7 @@ class Partitioner {
   void performInitialPartitioning(Hypergraph& hg);
 
   Configuration& _config;
+  std::array<std::chrono::duration<double>, 3> _timings;
 };
 } // namespace partition
 
