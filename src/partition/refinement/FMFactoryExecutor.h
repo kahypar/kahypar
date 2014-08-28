@@ -24,7 +24,7 @@ struct RefinerParameters : public Parameters {
       hypergraph(hgr),
       config(conf) {}
   Hypergraph& hypergraph;
-  Configuration config;
+  Configuration& config;
 };
 
 template <template <class,
