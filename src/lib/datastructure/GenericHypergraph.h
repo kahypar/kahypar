@@ -633,7 +633,6 @@ class GenericHypergraph {
     updatePartInfo(hn, id);
     for (auto&& he : incidentEdges(hn)) {
       increasePinCountInPart(he, id);
-      connect(he, id);
     }
   }
 
@@ -900,20 +899,6 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
 
-  void connect(HyperedgeID he, PartitionID id) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
-    _connectivity_sets[he].insert(id);
-  }
-
-  void disconnect(HyperedgeID he, PartitionID id) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(id < _k, "Part ID" << id << " out of bounds!");
-    ASSERT(_connectivity_sets[he].find(id) != _connectivity_sets[he].end(),
-           "HE " << he << "does not connect part " << id);
-    _connectivity_sets[he].erase(id);
-  }
-  
   void setPartID(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(id < _k, "Part ID" << id << " out of bounds!");
