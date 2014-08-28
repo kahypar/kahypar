@@ -609,21 +609,21 @@ class GenericHypergraph {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
-    if (from != to) {
-      setPartID(hn, to);
-      updatePartInfo(hn, from, to);
-      for (auto&& he : incidentEdges(hn)) {
-        decreasePinCountInPart(he, from);
-        increasePinCountInPart(he, to);
-        ASSERT([&]() -> bool {
-            HypernodeID num_pins = 0;
-            for (PartitionID i=0; i < _k; ++i) {
-              num_pins += pinCountInPart(he, i);
-            }
-            return num_pins == edgeSize(he);
-          }(),
-          "Incorrect calculation of pin counts");
-      }
+    ASSERT(from != to, "from part " << from << " == " << to << " part");
+    setPartID(hn, to);
+    updatePartInfo(hn, from, to);
+    for (auto&& he : incidentEdges(hn)) {
+      decreasePinCountInPart(he, from);
+      increasePinCountInPart(he, to);
+
+      ASSERT([&]() -> bool {
+          HypernodeID num_pins = 0;
+          for (PartitionID i=0; i < _k; ++i) {
+            num_pins += pinCountInPart(he, i);
+          }
+          return num_pins == edgeSize(he);
+        }(),
+        "Incorrect calculation of pin counts");
     }
   }
 
