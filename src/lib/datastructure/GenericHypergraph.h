@@ -72,7 +72,20 @@ class GenericHypergraph {
   // Outside the Hypergraph class, both are represented by const_incidence_iterator
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
 
-  typedef google::dense_hash_set<PartitionID> ConnectivitySet;
+  struct HashParts {
+    size_t operator() (const PartitionID part_id) const {
+      return part_id;
+    }
+  };
+
+  struct HashHyperedge {
+    size_t operator() (const HyperedgeID he) const {
+      return he;
+    }
+  };
+
+  typedef google::dense_hash_set<PartitionID,HashParts> ConnectivitySet;
+  typedef google::dense_hash_map<HyperedgeID, HypernodeID, HashHyperedge> PartPinCounts;
 
   static const int kInvalidCount = std::numeric_limits<int>::min();
 
@@ -1108,7 +1121,7 @@ class GenericHypergraph {
   std::vector<PartitionID> _part_ids;
   std::vector<PartInformation> _part_info;
   // for each partition id, we store the number of pins of each HE in that partition in a hash_map
-  std::vector<google::dense_hash_map<HyperedgeID, HypernodeID>> _partition_pin_count;
+  std::vector<PartPinCounts> _partition_pin_count;
   // for each hyperedge we store the connectivity set, i.e. the parts it connects
   std::vector<ConnectivitySet> _connectivity_sets;
 

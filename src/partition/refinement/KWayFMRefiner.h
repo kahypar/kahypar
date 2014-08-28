@@ -57,6 +57,12 @@ class KWayFMRefiner : public IRefiner {
     PartitionID to_part;
   };
 
+  struct HashParts {
+    size_t operator() (const PartitionID part_id) const {
+      return part_id;
+    }
+  };
+
   public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
@@ -347,7 +353,7 @@ class KWayFMRefiner : public IRefiner {
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<Gain> _tmp_gains;
-  google::dense_hash_set<PartitionID> _tmp_target_parts;
+  google::dense_hash_set<PartitionID,HashParts> _tmp_target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_updated;
