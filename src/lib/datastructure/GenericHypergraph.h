@@ -868,16 +868,6 @@ class GenericHypergraph {
 
   PartitionID connectivity(HyperedgeID he) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT([&](){
-        ConnectivitySet s;
-         s.set_empty_key(kInvalidPartition);
-         s.set_deleted_key(kDeletedPartition);
-         for (auto pin : pins(he)) {
-           s.insert(partID(pin));
-         }
-         return s.size();
-      }() == _connectivity_sets[he].size(),
-           "Connectivity set is inconsistent!");
     return _connectivity_sets[he].size();
   }
 
@@ -971,6 +961,7 @@ class GenericHypergraph {
         element_it->second = kInvalidCount;
       }
     }
+    _connectivity_sets[he].clear_no_resize();
   }
 
   void resetPartitionPinCounts(HyperedgeID he) {

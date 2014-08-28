@@ -608,4 +608,19 @@ TEST_F(AHypergraph, AllowsIterationOverConnectivitySetOfAHyperege) {
     ++part_id;
   }
 }
+
+TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+                        HyperedgeVector { 0 });
+  hypergraph.setNodePart(0, 0);
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+  ASSERT_THAT(*(hypergraph.connectivitySet(0).begin()), Eq(0));
+
+  hypergraph.removeEdge(0, false);
+  hypergraph.changeNodePart(0, 0, 1);
+  hypergraph.restoreEdge(0);
+
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+  ASSERT_THAT(*(hypergraph.connectivitySet(0).begin()), Eq(1));
+}
 } // namespace datastructure
