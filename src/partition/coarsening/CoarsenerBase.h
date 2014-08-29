@@ -83,21 +83,6 @@ class CoarsenerBase {
   virtual ~CoarsenerBase() { }
 
   protected:
-  bool improvedCutWithinBalance(HyperedgeWeight old_cut, HyperedgeWeight current_cut,
-                                double current_imbalance) {
-    DBG(dbg_coarsening_uncoarsen_improvement && (current_cut < old_cut) &&
-        (current_imbalance < _config.partition.epsilon),
-        "improved cut: " << old_cut << "-->" << current_cut);
-    return (current_cut < old_cut) && (current_imbalance < _config.partition.epsilon);
-  }
-
-  bool improvedOldImbalanceTowardsValidSolution(double old_imbalance, double current_imbalance) {
-    DBG(dbg_coarsening_uncoarsen_improvement && (old_imbalance > _config.partition.epsilon) &&
-        (current_imbalance < old_imbalance), "improved imbalance: " << old_imbalance << "-->"
-        << current_imbalance);
-    return (old_imbalance > _config.partition.epsilon) && (current_imbalance < old_imbalance);
-  }
-
   void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
     for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
          i >= memento.one_pin_hes_begin; --i) {
@@ -245,23 +230,20 @@ class CoarsenerBase {
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           size_t num_refinement_nodes, double& current_imbalance,
                           HyperedgeWeight& current_cut) {
-    double old_imbalance = current_imbalance;
     HyperedgeWeight old_cut = current_cut;
     int iteration = 0;
+    bool improvement_found = false;
     do {
-      old_imbalance = current_imbalance;
       old_cut = current_cut;
-      refiner.refine(refinement_nodes, num_refinement_nodes, current_cut,
-                     _config.partition.epsilon, current_imbalance);
+      improvement_found = refiner.refine(refinement_nodes, num_refinement_nodes, current_cut,
+                                         current_imbalance);
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
       ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
       DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
           << current_cut);
       ++iteration;
-    } while ((iteration < refiner.numRepetitions()) &&
-             (improvedCutWithinBalance(old_cut, current_cut, current_imbalance) ||
-              improvedOldImbalanceTowardsValidSolution(old_imbalance, current_imbalance)));
+    } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }
 
   void gatherCoarseningStats() {

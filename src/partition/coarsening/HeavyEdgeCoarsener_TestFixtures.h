@@ -29,11 +29,15 @@ using defs::HyperedgeWeight;
 
 namespace partition {
 class DummyRefiner : public IRefiner {
-  void refineImpl(std::vector<HypernodeID>&, size_t,
-                  HyperedgeWeight&, double, double&) final { }
+  public:
+  DummyRefiner() :
+    _stats() { }
+  bool refineImpl(std::vector<HypernodeID>&, size_t,
+                  HyperedgeWeight&, double&) final { return true; }
   int numRepetitionsImpl() const final { return 1; }
   std::string policyStringImpl() const final { return std::string(""); }
-  const Stats & statsImpl() const final { }
+  const Stats & statsImpl() const final { return _stats; }
+  Stats _stats;
 };
 
 template <class CoarsenerType>

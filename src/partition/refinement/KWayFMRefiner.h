@@ -84,8 +84,8 @@ class KWayFMRefiner : public IRefiner,
 
   void initializeImpl() final { }
 
-  void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final {
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                  HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -163,14 +163,18 @@ class KWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves - 1
         << " local search movements (" << step << " steps): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, cut) == true ?
-            "policy" : "empty queue"));
+        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, cut)
+            == true ? "policy" : "empty queue"));
     DBG(dbg_refinement_kway_fm_min_cut_idx, "min_cut_index=" << min_cut_index);
 
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
+    if (min_cut_index != -1) {
+      return true;
+    }
+    return false;
   }
 
   int numRepetitionsImpl() const final {

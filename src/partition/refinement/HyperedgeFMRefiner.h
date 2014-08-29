@@ -115,8 +115,8 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) final {
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                  HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -195,7 +195,8 @@ class HyperedgeFMRefiner : public IRefiner,
       updateNeighbours(max_gain_hyperedge);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      bool improved_cut_within_balance = (cut < best_cut) && (imbalance < max_imbalance);
+      bool improved_cut_within_balance = (cut < best_cut) &&
+                                         (imbalance < _config.partition.epsilon);
       bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
       if (improved_balance_equal_cut || improved_cut_within_balance) {
@@ -219,6 +220,10 @@ class HyperedgeFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
+    if (min_cut_index != -1) {
+      return true;
+    }
+    return false;
   }
 
   Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) {

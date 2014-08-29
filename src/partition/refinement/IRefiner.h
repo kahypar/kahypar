@@ -19,9 +19,9 @@ using utils::Stats;
 namespace partition {
 class IRefiner {
   public:
-  void refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-              HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) {
-    refineImpl(refinement_nodes, num_refinement_nodes, best_cut, max_imbalance, best_imbalance);
+  bool refine(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+              HyperedgeWeight& best_cut, double& best_imbalance) {
+    return refineImpl(refinement_nodes, num_refinement_nodes, best_cut, best_imbalance);
   }
 
   void initialize() {
@@ -50,8 +50,8 @@ class IRefiner {
   IRefiner() { }
 
   private:
-  virtual void refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                          HyperedgeWeight& best_cut, double max_imbalance, double& best_imbalance) = 0;
+  virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                          HyperedgeWeight& best_cut, double& best_imbalance) = 0;
   virtual void initializeImpl() { }
   virtual void initializeImpl(HyperedgeWeight) { }
   virtual int numRepetitionsImpl() const = 0;
