@@ -4,7 +4,8 @@
 namespace core {
 
 struct Parameters {
-  virtual ~Parameters() { }
+ protected:
+  ~Parameters() { }
 };
 
 struct NullParameters : public Parameters { };

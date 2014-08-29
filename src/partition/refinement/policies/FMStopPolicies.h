@@ -12,7 +12,8 @@ using core::PolicyBase;
 
 namespace partition {
 struct StoppingPolicy : PolicyBase {
-  virtual ~StoppingPolicy() { }
+  protected:
+  StoppingPolicy() { }
 };
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
