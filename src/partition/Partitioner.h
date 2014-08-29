@@ -48,7 +48,7 @@ class Partitioner {
   enum { kUncoarseningRefinement = 2 };
 
   public:
-  Partitioner(Configuration& config) :
+  explicit Partitioner(Configuration& config) :
     _config(config),
     _timings() { }
 
