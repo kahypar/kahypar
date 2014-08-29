@@ -22,6 +22,7 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -44,7 +45,8 @@ static const bool dbg_refinement_kway_fm_move = false;
 static const bool dbg_refinement_kway_fm_gain_comp = false;
 
 template <class StoppingPolicy = Mandatory>
-class KWayFMRefiner : public IRefiner {
+class KWayFMRefiner : public IRefiner,
+                      private FMRefinerBase {
   typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef PriorityQueue<HypernodeID, HyperedgeWeight,
@@ -65,8 +67,7 @@ class KWayFMRefiner : public IRefiner {
 
   public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
-    _hg(hypergraph),
-    _config(config),
+    FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k), // for dense_hash_set this is expected # entries
     _pq(_hg.initialNumNodes()),
@@ -191,13 +192,6 @@ class KWayFMRefiner : public IRefiner {
   FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
   FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
 
-  bool isCutHyperedge(HyperedgeID he) const {
-    if (_hg.connectivity(he) > 1) {
-      return true;
-    }
-    return false;
-  }
-
   void rollback(int last_index, int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
@@ -273,15 +267,6 @@ class KWayFMRefiner : public IRefiner {
     }
   }
 
-  bool isBorderNode(HypernodeID hn) const {
-    for (auto && he : _hg.incidentEdges(hn)) {
-      if (isCutHyperedge(he)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   GainPartitionPair computeMaxGain(HypernodeID hn) {
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
@@ -350,8 +335,8 @@ class KWayFMRefiner : public IRefiner {
     return GainPartitionPair(max_gain, max_gain_part);
   }
 
-  Hypergraph& _hg;
-  const Configuration& _config;
+  using FMRefinerBase::_hg;
+  using FMRefinerBase::_config;
   std::vector<Gain> _tmp_gains;
   google::dense_hash_set<PartitionID, HashParts> _tmp_target_parts;
   KWayRefinementPQ _pq;

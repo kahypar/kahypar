@@ -24,6 +24,7 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
+#include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -49,7 +50,8 @@ template <class StoppingPolicy = Mandatory,
           template <class> class QueueSelectionPolicy = MandatoryTemplate,
           class QueueCloggingPolicy = Mandatory
           >
-class TwoWayFMRefiner : public IRefiner {
+class TwoWayFMRefiner : public IRefiner,
+                        private FMRefinerBase {
   private:
   typedef HyperedgeWeight Gain;
 #ifdef USE_BUCKET_PQ
@@ -63,8 +65,7 @@ class TwoWayFMRefiner : public IRefiner {
 
   public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
-    _hg(hypergraph),
-    _config(config),
+    FMRefinerBase(hypergraph, config),
     // ToDo: We could also use different storage to avoid initialization like this
     _pq{nullptr, nullptr},
     _marked(_hg.initialNumNodes()),
@@ -452,24 +453,8 @@ class TwoWayFMRefiner : public IRefiner {
     return gain;
   }
 
-  bool isBorderNode(HypernodeID hn) const {
-    for (auto && he : _hg.incidentEdges(hn)) {
-      if (isCutHyperedge(he)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool isCutHyperedge(HyperedgeID he) const {
-    if (_hg.connectivity(he) > 1) {
-      return true;
-    }
-    return false;
-  }
-
-  Hypergraph& _hg;
-  const Configuration& _config;
+  using FMRefinerBase::_hg;
+  using FMRefinerBase::_config;
   std::array<RefinementPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_activated;

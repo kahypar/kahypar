@@ -18,6 +18,7 @@
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
@@ -45,7 +46,8 @@ template <class StoppingPolicy = Mandatory,
           template <class> class QueueSelectionPolicy = MandatoryTemplate,
           class QueueCloggingPolicy = Mandatory
           >
-class HyperedgeFMRefiner : public IRefiner {
+class HyperedgeFMRefiner : public IRefiner,
+                           private FMRefinerBase {
   private:
   typedef HyperedgeWeight Gain;
   typedef PriorityQueue<HyperedgeID, HyperedgeWeight,
@@ -78,8 +80,7 @@ class HyperedgeFMRefiner : public IRefiner {
 
   public:
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
-    _hg(hypergraph),
-    _config(config),
+    FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
     _marked_HEs(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
@@ -509,8 +510,8 @@ class HyperedgeFMRefiner : public IRefiner {
     _marked_HEs.reset();
   }
 
-  Hypergraph& _hg;
-  const Configuration _config;
+  using FMRefinerBase::_hg;
+  using FMRefinerBase::_config;
   std::array<HyperedgeFMPQ*, K> _pq;
   boost::dynamic_bitset<uint64_t> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;
