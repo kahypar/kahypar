@@ -46,6 +46,8 @@ static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 static const bool dbg_refinement_2way_fm__activation = false;
 static const bool dbg_refinement_2way_fm_eligible = false;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           template <class> class QueueSelectionPolicy = MandatoryTemplate,
           class QueueCloggingPolicy = Mandatory
@@ -463,6 +465,7 @@ class TwoWayFMRefiner : public IRefiner,
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
+#pragma GCC diagnostic pop
 } // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_

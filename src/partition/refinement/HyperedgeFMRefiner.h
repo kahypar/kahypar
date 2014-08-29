@@ -42,6 +42,8 @@ static const bool dbg_refinement_he_fm_rollback = false;
 static const bool dbg_refinement_he_fm_remove_clogging = false;
 static const bool dbg_refinement_he_fm_eligible_pqs = false;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           template <class> class QueueSelectionPolicy = MandatoryTemplate,
           class QueueCloggingPolicy = Mandatory
@@ -523,6 +525,7 @@ class HyperedgeFMRefiner : public IRefiner,
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
+#pragma GCC diagnostic pop
 }   // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_HYPEREDGEFMREFINER_H_

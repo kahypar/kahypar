@@ -44,6 +44,8 @@ static const bool dbg_refinement_kway_fm_gain_update = false;
 static const bool dbg_refinement_kway_fm_move = false;
 static const bool dbg_refinement_kway_fm_gain_comp = false;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory>
 class KWayFMRefiner : public IRefiner,
                       private FMRefinerBase {
@@ -346,5 +348,6 @@ class KWayFMRefiner : public IRefiner,
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
+#pragma GCC diagnostic pop
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
