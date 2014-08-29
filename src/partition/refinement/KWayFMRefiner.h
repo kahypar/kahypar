@@ -324,7 +324,6 @@ class KWayFMRefiner : public IRefiner,
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
       if (target_part_gain > max_gain ||
           (target_part_gain == max_gain &&
-           source_part_weight >= _config.partition.max_part_size &&
            target_part_weight + node_weight < _config.partition.max_part_size &&
            target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
         max_gain = target_part_gain;
