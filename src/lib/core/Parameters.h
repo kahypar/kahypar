@@ -8,7 +8,10 @@ struct Parameters {
   ~Parameters() { }
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 struct NullParameters : public Parameters { };
+#pragma GCC diagnostic pop
 
 } // namespace core
 
