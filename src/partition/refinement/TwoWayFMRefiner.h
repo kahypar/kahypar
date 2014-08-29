@@ -453,14 +453,19 @@ class TwoWayFMRefiner : public IRefiner {
   }
 
   bool isBorderNode(HypernodeID hn) const {
-    bool is_border_node = false;
     for (auto && he : _hg.incidentEdges(hn)) {
-      if ((_hg.pinCountInPart(he, 0) > 0) && (_hg.pinCountInPart(he, 1) > 0)) {
-        is_border_node = true;
-        break;
+      if (isCutHyperedge(he)) {
+        return true;
       }
     }
-    return is_border_node;
+    return false;
+  }
+
+  bool isCutHyperedge(HyperedgeID he) const {
+    if (_hg.connectivity(he) > 1) {
+      return true;
+    }
+    return false;
   }
 
   Hypergraph& _hg;
