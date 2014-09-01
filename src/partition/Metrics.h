@@ -87,6 +87,40 @@ inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
 inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
+
+inline HypernodeID rank(const Hypergraph& hypergraph) {
+  HypernodeID rank = 0;
+  for (auto he : hypergraph.edges()) {
+    rank = std::max(rank,hypergraph.edgeSize(he));
+  }
+  return rank;
+}
+
+inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, int percentile) {
+  std::vector<HypernodeID> he_sizes;
+  he_sizes.reserve(hypergraph.numEdges());
+  for (auto he : hypergraph.edges()) {
+    he_sizes.push_back(hypergraph.edgeSize(he));
+  }
+  std::sort(he_sizes.begin(), he_sizes.end());
+
+  size_t rank = ceil(static_cast<double>(percentile) / 100 * he_sizes.size());
+  return he_sizes[rank];
+}
+
+
+inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int percentile) {
+  std::vector<HyperedgeID> hn_degrees;
+  hn_degrees.reserve(hypergraph.numNodes());
+  for (auto hn : hypergraph.nodes()) {
+    hn_degrees.push_back(hypergraph.nodeDegree(hn));
+  }
+  std::sort(hn_degrees.begin(), hn_degrees.end());
+
+  size_t rank = ceil(static_cast<double>(percentile) / 100 * hn_degrees.size());
+  return hn_degrees[rank];
+}
+
 } // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_

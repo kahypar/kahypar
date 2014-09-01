@@ -21,10 +21,14 @@ namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
-  std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size  : "
-            << metrics::avgHyperedgeDegree(hypergraph) << "]" << std::endl;
+  std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size: "
+            << metrics::avgHyperedgeDegree(hypergraph) << ", 90th percentile:"
+            << metrics::hyperedgeSizePercentile(hypergraph,90) << ", 95th percentile:"
+            << metrics::hyperedgeSizePercentile(hypergraph,95) << "]" << std::endl;
   std::cout << "# HNs: " << hypergraph.numNodes() << "\t [avg HN degree: "
-            << metrics::avgHypernodeDegree(hypergraph) << "]" << std::endl;
+            << metrics::avgHypernodeDegree(hypergraph) << ", 90th percentile:"
+            << metrics::hypernodeDegreePercentile(hypergraph,90) << ", 95th percentile:"
+            << metrics::hypernodeDegreePercentile(hypergraph,95) << "]" << std::endl;
 }
 
 template <class Configuration>
