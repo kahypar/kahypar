@@ -66,11 +66,6 @@ class GenericHypergraph {
 
   private:
   typedef unsigned int VertexID;
-  // Iterators that abstract away the duality of entries in the edge_ array.
-  // For hypernodes, the entries correspond to the handles of the incident hyperedges.
-  // For hyperedges, the entries correspond to the handles of the contained hypernodes (aka pins)
-  // Outside the Hypergraph class, both are represented by const_incidence_iterator
-  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
 
   struct HashParts {
     size_t operator() (const PartitionID part_id) const {
@@ -198,10 +193,9 @@ class GenericHypergraph {
   };
 #pragma GCC diagnostic pop
   
-  template <typename VertexType>
+  template <typename ContainerType>
   class VertexIterator {
-    typedef std::vector<VertexType> ContainerType;
-    typedef typename VertexType::IDType IDType;
+    typedef typename ContainerType::value_type::IDType IDType;
 
     public:
     VertexIterator() :
@@ -285,10 +279,12 @@ class GenericHypergraph {
   typedef InternalVertex<HypernodeTraits, HypernodeData> HypernodeVertex;
   typedef InternalVertex<HyperedgeTraits, HyperedgeData> HyperedgeVertex;
 
-  public:
+  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
+
+ public:
   typedef typename std::vector<VertexID>::const_iterator IncidenceIterator;
-  typedef VertexIterator<HypernodeVertex> HypernodeIterator;
-  typedef VertexIterator<HyperedgeVertex> HyperedgeIterator;
+  typedef VertexIterator<std::vector<HypernodeVertex>> HypernodeIterator;
+  typedef VertexIterator<std::vector<HyperedgeVertex>> HyperedgeIterator;
   typedef IteratorPair<IncidenceIterator> IncidenceIteratorPair;
   typedef IteratorPair<HypernodeIterator> HypernodeIteratorPair;
   typedef IteratorPair<HyperedgeIterator> HyperedgeIteratorPair;
