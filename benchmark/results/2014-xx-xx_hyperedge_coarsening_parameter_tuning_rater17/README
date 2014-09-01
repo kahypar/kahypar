@@ -1,7 +1,0 @@
-See Commitmsg: 848d4e7f770c7c81db08481d351e377506e2c080
-
-This has to be re-evaluated again, since rater1 is bad!
-
-Re-evaluation should happen after we implemented k-way partitioning, since
-we need to re-evaluate the performance of all schemes as well was re-tune
-all parameters for k>2 anyway
