@@ -114,10 +114,10 @@ class KWayFMRefiner : public IRefiner,
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
-      Gain max_gain = _pq.maxKey();
-      HypernodeID max_gain_node = _pq.max();
-      PartitionID from_part = _hg.partID(max_gain_node);
-      PartitionID to_part = _pq.data(max_gain_node);
+      const Gain max_gain = _pq.maxKey();
+      const HypernodeID max_gain_node = _pq.max();
+      const PartitionID from_part = _hg.partID(max_gain_node);
+      const PartitionID to_part = _pq.data(max_gain_node);
       _pq.deleteMax();
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node << " gain=" << max_gain << " target_part=" << to_part);
@@ -137,7 +137,7 @@ class KWayFMRefiner : public IRefiner,
              } ()
              , "BARFG!");
 
-      bool move_successful = moveHypernode(max_gain_node, from_part, to_part);
+      const bool move_successful = moveHypernode(max_gain_node, from_part, to_part);
 
       if (move_successful) {
         cut -= max_gain;
@@ -224,7 +224,7 @@ class KWayFMRefiner : public IRefiner,
       ASSERT(!_marked[pin], " Trying to update marked HN " << pin);
       if (isBorderNode(pin)) {
         if (!_just_updated[pin]) {
-          GainPartitionPair pair = computeMaxGain(pin);
+          const GainPartitionPair pair = computeMaxGain(pin);
           DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
               << " from gain " << _pq.key(pin) << " to " << pair.first << " (to_part="
               << pair.second << ")");
