@@ -16,6 +16,8 @@ using defs::HypernodeWeight;
 using defs::IncidenceIterator;
 using defs::Hypergraph;
 using defs::PartitionID;
+using defs::HypernodeID;
+using defs::HyperedgeID;
 
 namespace metrics {
 static const bool dbg_metrics_hyperedge_cut = false;
@@ -91,7 +93,7 @@ inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 inline HypernodeID rank(const Hypergraph& hypergraph) {
   HypernodeID rank = 0;
   for (auto he : hypergraph.edges()) {
-    rank = std::max(rank,hypergraph.edgeSize(he));
+    rank = std::max(rank, hypergraph.edgeSize(he));
   }
   return rank;
 }
@@ -120,7 +122,6 @@ inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int p
   size_t rank = ceil(static_cast<double>(percentile) / 100 * hn_degrees.size());
   return hn_degrees[rank];
 }
-
 } // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_
