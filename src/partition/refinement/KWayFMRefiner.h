@@ -149,9 +149,14 @@ class KWayFMRefiner : public IRefiner,
 
         updateNeighbours(max_gain_node);
 
-        if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
-          DBG(dbg_refinement_kway_fm_improvements,
+        // Current gain computation tries to decrease imbalance for zero-gain moves,
+        // therefore we accept them without randomization.
+        if (cut < best_cut || (cut == best_cut /*&& Randomize::flipCoin()*/)) {
+          DBG(dbg_refinement_kway_fm_improvements && cut < best_cut,
               "KWayFM improved cut from " << best_cut << " to " << cut);
+          DBG(dbg_refinement_kway_fm_improvements && max_gain == 0,
+              "KWayFM improved balance between " << from_part << " and " << to_part
+              << "(max_gain=" << max_gain <<")");
           best_cut = cut;
           min_cut_index = num_moves;
           StoppingPolicy::resetStatistics();
