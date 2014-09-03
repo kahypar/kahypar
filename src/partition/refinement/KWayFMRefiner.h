@@ -136,7 +136,7 @@ class KWayFMRefiner : public IRefiner,
                _hg.changeNodePart(max_gain_node, to_part, from_part);
                return true;
              } ()
-             , "BARFG!");
+             , "max_gain move does not correspond to expected cut!");
 
       const bool move_successful = moveHypernode(max_gain_node, from_part, to_part);
 
