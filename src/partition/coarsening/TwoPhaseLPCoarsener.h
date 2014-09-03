@@ -18,21 +18,20 @@
 namespace partition
 {
   struct TwoPhaseLPCoarseningMemento {
-    typedef typename Hypergraph::ContractionMemento Memento;
-
     int one_pin_hes_begin;        // start of removed single pin hyperedges
     int one_pin_hes_size;         // # removed single pin hyperedges
     int parallel_hes_begin;       // start of removed parallel hyperedges
     int parallel_hes_size;        // # removed parallel hyperedges
 
-    Memento contraction_memento;
-
-    explicit TwoPhaseLPCoarseningMemento(Memento contraction_memento_) :
+    int mementos_begin;           // start of mementos corresponding to HE contraction
+    int mementos_size;            // # mementos
+    explicit TwoPhaseLPCoarseningMemento() :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
       parallel_hes_size(0),
-      contraction_memento(contraction_memento_) { }
+      mementos_begin(0),
+      mementos_size(0) { }
   };
 
   template<typename NodeInitializationPolicy,
@@ -92,6 +91,7 @@ namespace partition
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
       TwoPhaseLPCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
+      _contraction_mementos(),
       _gen(_config.partition.seed), _nodes(hg.numNodes()),
       _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes())
         {
@@ -250,12 +250,16 @@ namespace partition
 
         for (const auto val : cluster)
         {
-          // the first node is representative for this cluster
-          for (int i = 1; i< val.second.size(); ++i)
+          // only contract more than 1 node
+          if (val.second.size() > 1)
           {
-            performContraction(val.second[0], val.second[i]);
+            auto repr = performContraction(val.second);
+            removeSingleNodeHyperedges(repr);
+            removeParallelHyperedges(repr);
           }
         }
+
+        gatherCoarseningStats();
       };
 
       void uncoarsenImpl(IRefiner &refiner) final
@@ -268,18 +272,19 @@ namespace partition
         _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
 
         initializeRefiner(refiner);
-        std::vector<HypernodeID> refinement_nodes(2, 0);
+        std::vector<HypernodeID> refinement_nodes;
+        refinement_nodes.reserve(_hg.initialNumNodes());
+        size_t num_refinement_nodes = 0;
+
 
         while (!_history.empty()) {
+          num_refinement_nodes = 0;
+
           restoreParallelHyperedges(_history.top());
           restoreSingleNodeHyperedges(_history.top());
+          performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
 
-          DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
-              << _history.top().contraction_memento.v << ")");
-          _hg.uncontract(_history.top().contraction_memento);
-          refinement_nodes[0] = _history.top().contraction_memento.u;
-          refinement_nodes[1] = _history.top().contraction_memento.v;
-          performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
+          performLocalSearch(refiner, refinement_nodes, num_refinement_nodes, current_imbalance, current_cut);
           _history.pop();
         }
         ASSERT(current_imbalance <= _config.partition.epsilon,
@@ -287,9 +292,38 @@ namespace partition
             << " > " << _config.partition.epsilon);
       }
 
-      void performContraction(HypernodeID rep_node, HypernodeID contracted_node)
+      HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
       {
-        _history.emplace(_hg.contract(rep_node, contracted_node));
+        _history.emplace(TwoPhaseLPCoarseningMemento());
+        _history.top().mementos_begin = _contraction_mementos.size();
+        _history.top().mementos_size = nodes.size()-1;
+
+        // the first node is representative
+        for (int i = 1; i< nodes.size(); i++)
+        {
+          DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
+          _contraction_mementos.push_back(_hg.contract(nodes[0], nodes[i]));
+        }
+        return nodes[0];
+      }
+
+      void performUncontraction(const TwoPhaseLPCoarseningMemento &memento,
+                                std::vector<HypernodeID> &refinement_nodes,
+                                size_t &num_refinement_nodes)
+      {
+        refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
+          + memento.mementos_size - 1].u;
+        for (int i = memento.mementos_begin + memento.mementos_size - 1;
+            i >= memento.mementos_begin; --i) {
+          ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
+              "Representative HN " << _contraction_mementos[i].u << " is disabled ");
+          ASSERT(!_hg.nodeIsEnabled(_contraction_mementos[i].v),
+              "Representative HN " << _contraction_mementos[i].v << " is enabled");
+          DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
+              << _contraction_mementos[i].v << ")");
+          _hg.uncontract(_contraction_mementos[i]);
+          refinement_nodes[num_refinement_nodes++] = _contraction_mementos[i].v;
+        }
       }
 
       const Stats& statsImpl() const final
@@ -298,7 +332,7 @@ namespace partition
       }
 
       // mockup
-      void removeHyperedgeFromPQ(HyperedgeID &he)
+      void removeHyperedgeFromPQ(HyperedgeID he)
       {
         // do nothing
       }
@@ -330,6 +364,9 @@ namespace partition
       std::vector<HypernodeWeight> _size_constraint;
 
       MyHashMap<Label, double> _incident_labels_score;
+
+
+      std::vector<ContractionMemento> _contraction_mementos;
 
   };
 };
