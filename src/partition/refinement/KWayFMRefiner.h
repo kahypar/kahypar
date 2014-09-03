@@ -37,7 +37,8 @@ using defs::HypernodeWeight;
 
 namespace partition {
 static const bool dbg_refinement_kway_fm_activation = false;
-static const bool dbg_refinement_kway_fm_improvements = true;
+static const bool dbg_refinement_kway_fm_improvements_cut = true;
+static const bool dbg_refinement_kway_fm_improvements_balance = false;
 static const bool dbg_refinement_kway_fm_stopping_crit = false;
 static const bool dbg_refinement_kway_fm_min_cut_idx = false;
 static const bool dbg_refinement_kway_fm_gain_update = false;
@@ -152,11 +153,11 @@ class KWayFMRefiner : public IRefiner,
         // Current gain computation tries to decrease imbalance for zero-gain moves,
         // therefore we accept them without randomization.
         if (cut < best_cut || (cut == best_cut /*&& Randomize::flipCoin()*/)) {
-          DBG(dbg_refinement_kway_fm_improvements && cut < best_cut,
+          DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
               "KWayFM improved cut from " << best_cut << " to " << cut);
-          DBG(dbg_refinement_kway_fm_improvements && max_gain == 0,
+          DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
               "KWayFM improved balance between " << from_part << " and " << to_part
-              << "(max_gain=" << max_gain <<")");
+              << "(max_gain=" << max_gain << ")");
           best_cut = cut;
           min_cut_index = num_moves;
           StoppingPolicy::resetStatistics();
