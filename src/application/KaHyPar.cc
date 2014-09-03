@@ -35,6 +35,14 @@
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
+
+// vitali lp-includes
+#include "partition/coarsening/lp_policies/policies.hpp"
+#include "partition/coarsening/TwoPhaseLPCoarsener.h"
+
+Configuration lpa_hypergraph::BasePolicy::config_ = Configuration();
+
+
 namespace po = boost::program_options;
 
 using core::StaticDispatcher;
@@ -50,6 +58,7 @@ using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
+using partition::TwoPhaseLPCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -69,6 +78,38 @@ using partition::OnlyRemoveIfBothQueuesClogged;
 using partition::RemoveOnlyTheCloggingEntry;
 using partition::DoNotRemoveAnyCloggingEntriesAndResetEligiblity;
 using partition::RefinerParameters;
+
+// LP=policies
+using lpa_hypergraph::OnlyLabelsInitialization;
+using lpa_hypergraph::NodeOrderingInitialization;
+using lpa_hypergraph::NoNodeInitialization;
+using lpa_hypergraph::InitializeSamples;
+using lpa_hypergraph::InitializeSamplesWithUpdates;
+using lpa_hypergraph::NoEdgeInitialization;
+using lpa_hypergraph::PermutateNodes;
+using lpa_hypergraph::DontPermutateNodes;
+using lpa_hypergraph::PermutateLabelsWithUpdates;
+using lpa_hypergraph::PermutateLabelsNoUpdates;
+using lpa_hypergraph::DontPermutateLabels;
+using lpa_hypergraph::CollectInformationNoUpdates;
+using lpa_hypergraph::CollectInformationNoUpdatesWithCleanup;
+using lpa_hypergraph::CollectInformationWithUpdates;
+using lpa_hypergraph::DontCollectInformation;
+using lpa_hypergraph::BiasedSampledScoreComputation;
+using lpa_hypergraph::AllLabelsSampledScoreComputation;
+using lpa_hypergraph::AllLabelsScoreComputation;
+using lpa_hypergraph::SemiBiasedSampledScoreComputation;
+using lpa_hypergraph::NonBiasedSampledScoreComputation;
+using lpa_hypergraph::DefaultNewLabelComputation;
+using lpa_hypergraph::DefaultGain;
+using lpa_hypergraph::IgnoreGain;
+using lpa_hypergraph::UpdateInformation;
+using lpa_hypergraph::DontUpdateInformation;
+using lpa_hypergraph::MaxIterationCondition;
+using lpa_hypergraph::AdaptiveIterationsCondition;
+
+using lpa_hypergraph::BasePolicy;
+//
 
 using serializer::SQLPlotToolsSerializer;
 
@@ -258,6 +299,25 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new TwoPhaseLPCoarsener<
+        OnlyLabelsInitialization,
+        InitializeSamplesWithUpdates,
+        CollectInformationWithUpdates,
+        DontCollectInformation,
+        PermutateNodes,
+        PermutateLabelsWithUpdates,
+        NonBiasedSampledScoreComputation,
+        DefaultNewLabelComputation,
+        DefaultGain,
+        UpdateInformation,
+        MaxIterationCondition>(p.hypergraph, p.config);
+    }
+    );
+
+
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
@@ -270,7 +330,7 @@ int main(int argc, char* argv[]) {
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
-    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
+    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge, two_phase_lp")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
@@ -297,6 +357,9 @@ int main(int argc, char* argv[]) {
   Configuration config;
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
+
+  // Vitali : set the config for the policies
+  BasePolicy::config_ = config;
 
   Randomize::setSeed(config.partition.seed);
 
