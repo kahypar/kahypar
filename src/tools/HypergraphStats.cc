@@ -15,6 +15,8 @@ using defs::HyperedgeID;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 using defs::Hypergraph;
+using defs::HypernodeWeightVector;
+using defs::HyperedgeWeightVector;
 
 int main(int argc, char* argv[]) {
 
@@ -30,15 +32,17 @@ int main(int argc, char* argv[]) {
   HyperedgeID num_hyperedges;
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
+  HyperedgeWeightVector hyperedge_weights;
+  HypernodeWeightVector hypernode_weights;
 
   io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
-                         index_vector, edge_vector);
+                         index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   std::string graph_name = graph_filename.substr(graph_filename.find_last_of("/") + 1);
   std::ofstream out_stream(stats_filename.c_str(), std::ofstream::app);
 
-  out_stream << "graph=" << graph_name
+  out_stream << "RESULT graph=" << graph_name
              << " HNs=" << num_hypernodes
              << " HEs=" << num_hyperedges
              << " pins=" << edge_vector.size()
