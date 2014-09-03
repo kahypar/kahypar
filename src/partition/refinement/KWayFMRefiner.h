@@ -86,7 +86,7 @@ class KWayFMRefiner : public IRefiner,
   void initializeImpl() final { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  HyperedgeWeight& best_cut, double& best_imbalance) final {
+                  HyperedgeWeight& best_cut, double&) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -150,9 +150,7 @@ class KWayFMRefiner : public IRefiner,
 
         updateNeighbours(max_gain_node);
 
-        // Current gain computation tries to decrease imbalance for zero-gain moves,
-        // therefore we accept them without randomization.
-        if (cut < best_cut || (cut == best_cut /*&& Randomize::flipCoin()*/)) {
+        if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
           DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
               "KWayFM improved cut from " << best_cut << " to " << cut);
           DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
