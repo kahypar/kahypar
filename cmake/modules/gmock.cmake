@@ -1,7 +1,6 @@
-# GMOCK_DIR and GTEST_DIR environment variables have to be set!
-include_directories(SYSTEM "$ENV{GMOCK_DIR}/include")
-include_directories(SYSTEM "$ENV{GTEST_DIR}/include")
-set(Libgmock "$ENV{GMOCK_DIR}/build/libgmock_main.a")
+include_directories(SYSTEM "${PROJECT_SOURCE_DIR}/gmock/include")
+include_directories(SYSTEM "${PROJECT_SOURCE_DIR}/gmock/gtest/include")
+set(Libgmock "${PROJECT_BINARY_DIR}/gmock-prefix/src/gmock-build/libgmock_main.a")
 
 # taken from http://johnlamp.net/cmake-tutorial-5-functionally-improved-testing.html
 function(add_gmock_test target)
