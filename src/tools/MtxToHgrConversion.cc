@@ -16,11 +16,11 @@ MatrixInfo parseHeader(std::ifstream& file) {
   std::istringstream sstream(line);
   std::string matrix_market, object, matrix_format, data_format, symmetry;
   sstream >> matrix_market >> object >> matrix_format >> data_format >> symmetry;
-  DBG(false, "matrix_market=" << matrix_market);
-  DBG(false, "object=" << object);
-  DBG(false, "matrix_format=" << matrix_format);
-  DBG(false, "data_format=" << data_format);
-  DBG(false, "symmetry=" << symmetry);
+  LOG("matrix_market=" << matrix_market);
+  LOG("object=" << object);
+  LOG("matrix_format=" << matrix_format);
+  LOG("data_format=" << data_format);
+  LOG("symmetry=" << symmetry);
   ALWAYS_ASSERT(matrix_market == "%%MatrixMarket");
   ALWAYS_ASSERT(object == "matrix");
 
@@ -50,6 +50,9 @@ void parseDimensionInformation(std::ifstream& file, MatrixInfo& info) {
   }
   std::istringstream sstream(line);
   sstream >> info.num_rows >> info.num_columns >> info.num_entries;
+  LOG("num_rows=" << info.num_rows);
+  LOG("num_columns=" << info.num_columns);
+  LOG("num_entries=" << info.num_entries);
 }
 
 void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data) {

@@ -37,7 +37,8 @@ using defs::HypernodeWeight;
 
 namespace partition {
 static const bool dbg_refinement_kway_fm_activation = false;
-static const bool dbg_refinement_kway_fm_improvements = true;
+static const bool dbg_refinement_kway_fm_improvements_cut = true;
+static const bool dbg_refinement_kway_fm_improvements_balance = false;
 static const bool dbg_refinement_kway_fm_stopping_crit = false;
 static const bool dbg_refinement_kway_fm_min_cut_idx = false;
 static const bool dbg_refinement_kway_fm_gain_update = false;
@@ -85,7 +86,7 @@ class KWayFMRefiner : public IRefiner,
   void initializeImpl() final { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  HyperedgeWeight& best_cut, double& best_imbalance) final {
+                  HyperedgeWeight& best_cut, double&) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -114,10 +115,10 @@ class KWayFMRefiner : public IRefiner,
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
-      Gain max_gain = _pq.maxKey();
-      HypernodeID max_gain_node = _pq.max();
-      PartitionID from_part = _hg.partID(max_gain_node);
-      PartitionID to_part = _pq.data(max_gain_node);
+      const Gain max_gain = _pq.maxKey();
+      const HypernodeID max_gain_node = _pq.max();
+      const PartitionID from_part = _hg.partID(max_gain_node);
+      const PartitionID to_part = _pq.data(max_gain_node);
       _pq.deleteMax();
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node << " gain=" << max_gain << " target_part=" << to_part);
@@ -135,9 +136,9 @@ class KWayFMRefiner : public IRefiner,
                _hg.changeNodePart(max_gain_node, to_part, from_part);
                return true;
              } ()
-             , "BARFG!");
+             , "max_gain move does not correspond to expected cut!");
 
-      bool move_successful = moveHypernode(max_gain_node, from_part, to_part);
+      const bool move_successful = moveHypernode(max_gain_node, from_part, to_part);
 
       if (move_successful) {
         cut -= max_gain;
@@ -150,8 +151,11 @@ class KWayFMRefiner : public IRefiner,
         updateNeighbours(max_gain_node);
 
         if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
-          DBG(dbg_refinement_kway_fm_improvements,
+          DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
               "KWayFM improved cut from " << best_cut << " to " << cut);
+          DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
+              "KWayFM improved balance between " << from_part << " and " << to_part
+              << "(max_gain=" << max_gain << ")");
           best_cut = cut;
           min_cut_index = num_moves;
           StoppingPolicy::resetStatistics();
@@ -224,7 +228,7 @@ class KWayFMRefiner : public IRefiner,
       ASSERT(!_marked[pin], " Trying to update marked HN " << pin);
       if (isBorderNode(pin)) {
         if (!_just_updated[pin]) {
-          GainPartitionPair pair = computeMaxGain(pin);
+          const GainPartitionPair pair = computeMaxGain(pin);
           DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
               << " from gain " << _pq.key(pin) << " to " << pair.first << " (to_part="
               << pair.second << ")");
