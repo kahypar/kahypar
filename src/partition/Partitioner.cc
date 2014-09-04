@@ -218,8 +218,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   // (1+epsilon) * ceil(total_weight / k).
   double exp = 1.0 / log2(_config.partition.k);
   double ub_factor = 50.0 * (2 * pow((1 + _config.partition.epsilon), exp)
-                             * pow(ceil(hg.initialNumNodes() / _config.partition.k)
-                                   / hg.initialNumNodes(), exp) - 1);
+                             * pow(ceil(_config.partition.total_graph_weight / _config.partition.k)
+                                   / _config.partition.total_graph_weight, exp) - 1);
 
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = Randomize::newRandomSeed();

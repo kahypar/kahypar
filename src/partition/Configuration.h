@@ -41,6 +41,7 @@ struct Configuration {
       current_v_cycle(0),
       epsilon(1.0),
       max_part_size(std::numeric_limits<HypernodeWeight>::max()),
+      total_graph_weight(0),
       hyperedge_size_threshold(-1),
       verbose_output(false),
       graph_filename(),
@@ -55,6 +56,7 @@ struct Configuration {
     int current_v_cycle;
     double epsilon;
     HypernodeWeight max_part_size;
+    HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
     bool verbose_output;
     std::string graph_filename;
