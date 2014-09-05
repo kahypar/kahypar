@@ -128,11 +128,12 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     config.partition.graph_filename = vm["hgr"].as<std::string>();
     config.partition.k = vm["k"].as<PartitionID>();
 
-    config.partition.coarse_graph_filename = config.partition.graph_filename;
-    config.partition.coarse_graph_filename.insert(config.partition.coarse_graph_filename.find_last_of(
-                                                    "/") + 1,
-                                                  std::string("PID_")
-                                                  + std::to_string(getpid()) + "_coarse_");
+    config.partition.coarse_graph_filename = std::string("/tmp/PID_")
+                                             + std::to_string(getpid())
+                                             + std::string("_coarse_")
+                                             + config.partition.graph_filename.substr(
+      config.partition.graph_filename.find_last_of("/")
+      + 1);
     config.partition.graph_partition_filename = config.partition.graph_filename + ".part."
                                                 + std::to_string(config.partition.k)
                                                 + ".KaHyPar";
@@ -379,6 +380,7 @@ int main(int argc, char* argv[]) {
 
   config.partition.max_part_size = (1 + config.partition.epsilon)
                                    * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
+  config.partition.total_graph_weight = hypergraph_weight;
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 

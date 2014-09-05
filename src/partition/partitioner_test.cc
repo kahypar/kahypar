@@ -49,6 +49,8 @@ class APartitioner : public Test {
     config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
     config.partition.epsilon = 0.15;
+    config.partition.k = 2;
+    config.partition.total_graph_weight = 7;
     config.partition.max_part_size = (1 + config.partition.epsilon)
                                      * ceil(7 / static_cast<double>(config.partition.k));
   }
