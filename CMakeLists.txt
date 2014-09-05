@@ -5,7 +5,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 #ensure that gmock is built before tests are executed
-include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
+#include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
+include(ExternalProject)
 include(${PROJECT_SOURCE_DIR}/gmock)
 ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
@@ -14,7 +15,7 @@ ExternalProject_Add(gmock
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS}) 
+  include_directories(${Boost_INCLUDE_DIRS})
   message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
   message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
