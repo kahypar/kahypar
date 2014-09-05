@@ -101,6 +101,7 @@ namespace partition
       void coarsenImpl(int limit) final
       {
         // TODO limit
+        // TODO vcycling used existing partition
         node_initialization_(_nodes, _size_constraint, _nodeData, _hg);
 
         edge_initialization_(_hg, _edgeData);
