@@ -315,8 +315,8 @@ int main(int argc, char* argv[]) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
   config.partition.total_graph_weight = hypergraph_weight;
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);

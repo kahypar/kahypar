@@ -106,9 +106,9 @@ TEST_F(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
   hypergraph->setNodePart(7, 3);
   config.partition.k = 4;
   config.partition.epsilon = 0.02;
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph->numNodes() /
-                                          static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph->numNodes() /
+                                            static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
@@ -128,7 +128,7 @@ TEST_F(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
   hypergraph->setNodePart(7, 3);
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
-  config.partition.max_part_size =
+  config.partition.max_part_weight =
     (1 + config.partition.epsilon)
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
@@ -162,7 +162,7 @@ TEST_F(AKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
-  config.partition.max_part_size =
+  config.partition.max_part_weight =
     (1 + config.partition.epsilon)
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
@@ -193,7 +193,7 @@ TEST_F(AKWayFMRefiner, ComputesCorrectGainValues) {
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
-  config.partition.max_part_size =
+  config.partition.max_part_weight =
     (1 + config.partition.epsilon)
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 

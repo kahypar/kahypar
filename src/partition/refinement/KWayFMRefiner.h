@@ -255,7 +255,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     _marked[hn] = true;
     if ((_hg.partWeight(to_part) + _hg.nodeWeight(hn)
-         >= _config.partition.max_part_size) ||
+         >= _config.partition.max_part_weight) ||
         (_hg.partSize(from_part) - 1 == 0)) {
       DBG(dbg_refinement_kway_fm_move, "skipping move of HN " << hn << " (" << from_part << "->" << to_part << ")");
       return false;
@@ -336,8 +336,8 @@ class KWayFMRefiner : public IRefiner,
           (target_part_gain == max_gain &&
            target_part_connectivity_decrease > max_connectivity_decrease) ||
           (target_part_gain == max_gain &&
-           source_part_weight >= _config.partition.max_part_size &&
-           target_part_weight + node_weight < _config.partition.max_part_size &&
+           source_part_weight >= _config.partition.max_part_weight &&
+           target_part_weight + node_weight < _config.partition.max_part_weight &&
            target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
         max_gain = target_part_gain;
         max_gain_part = target_part;

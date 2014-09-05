@@ -438,9 +438,9 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
 
   Configuration config;
   config.partition.epsilon = 0.02;
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph.initialNumNodes()
-                                          / static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph.initialNumNodes()
+                                            / static_cast<double>(config.partition.k));
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();

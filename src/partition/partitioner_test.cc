@@ -51,8 +51,8 @@ class APartitioner : public Test {
     config.partition.epsilon = 0.15;
     config.partition.k = 2;
     config.partition.total_graph_weight = 7;
-    config.partition.max_part_size = (1 + config.partition.epsilon)
-                                     * ceil(7 / static_cast<double>(config.partition.k));
+    config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                       * ceil(7 / static_cast<double>(config.partition.k));
     double exp = 1.0 / log2(config.partition.k);
     config.partition.hmetis_ub_factor =
       50.0 * (2 * pow((1 + config.partition.epsilon), exp)

@@ -362,7 +362,7 @@ class HyperedgeFMRefiner : public IRefiner,
         pins_to_move_weight += _hg.nodeWeight(pin);
       }
     }
-    return _hg.partWeight(to) + pins_to_move_weight <= _config.partition.max_part_size;
+    return _hg.partWeight(to) + pins_to_move_weight <= _config.partition.max_part_weight;
   }
 
   bool queuesAreEmpty() const {

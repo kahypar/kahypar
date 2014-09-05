@@ -106,23 +106,23 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
 
   if (num_unpartitioned_hns == num_pins) {
     if (partition_weights[0] + unpartitioned_weight
-        <= _config.partition.max_part_size) {
+        <= _config.partition.max_part_weight) {
       assignAllPinsToPartition(he, 0, hg, partition_weights);
     } else if (partition_weights[1] + unpartitioned_weight
-               <= _config.partition.max_part_size) {
+               <= _config.partition.max_part_weight) {
       assignAllPinsToPartition(he, 1, hg, partition_weights);
     }
     return;
   }
   if ((hg.pinCountInPart(he, 0) > 0 && hg.pinCountInPart(he, 1) == 0) &&
       (partition_weights[0] + unpartitioned_weight
-       <= _config.partition.max_part_size)) {
+       <= _config.partition.max_part_weight)) {
     assignUnpartitionedPinsToPartition(he, 0, hg, partition_weights);
     return;
   }
   if ((hg.pinCountInPart(he, 1) > 0 && hg.pinCountInPart(he, 0) == 0) &&
       (partition_weights[1] + unpartitioned_weight
-       <= _config.partition.max_part_size)) {
+       <= _config.partition.max_part_weight)) {
     assignUnpartitionedPinsToPartition(he, 1, hg, partition_weights);
     return;
   }
