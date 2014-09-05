@@ -141,16 +141,16 @@ inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int p
   return hn_degrees[rank];
 }
 
-inline void connectivityValues(const Hypergraph& hypergraph,
-                               std::vector<PartitionID>& connectivity_vals) {
+inline void connectivityStats(const Hypergraph& hypergraph,
+                              std::vector<PartitionID>& connectivity_stats) {
   PartitionID max_connectivity = 0;
   for (auto he : hypergraph.edges()) {
     max_connectivity = std::max(max_connectivity, hypergraph.connectivity(he));
   }
-  connectivity_vals.resize(max_connectivity, 0);
+  connectivity_stats.resize(max_connectivity, 0);
 
   for (auto he : hypergraph.edges()) {
-    ++connectivity_vals[hypergraph.connectivity(he)];
+    ++connectivity_stats[hypergraph.connectivity(he)];
   }
 }
 } // namespace metrics

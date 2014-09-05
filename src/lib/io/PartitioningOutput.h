@@ -59,10 +59,10 @@ inline void printPartitioningStatistics(const ICoarsener& coarsener, const IRefi
   std::cout << refiner.stats().toConsoleString();
 }
 
-inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_vals) {
+inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {
   std::cout << "*************************Connectivity Values*************************" << std::endl;
-  for (size_t i = 0; i < connectivity_vals.size(); ++i) {
-    std::cout << "# HEs with λ=" << i << ": " << connectivity_vals[i] << std::endl;
+  for (size_t i = 0; i < connectivity_stats.size(); ++i) {
+    std::cout << "# HEs with λ=" << i << ": " << connectivity_stats[i] << std::endl;
   }
 }
 
