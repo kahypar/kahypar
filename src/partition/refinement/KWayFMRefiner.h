@@ -157,9 +157,11 @@ class KWayFMRefiner : public IRefiner,
           DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
               "KWayFM improved balance between " << from_part << " and " << to_part
               << "(max_gain=" << max_gain << ")");
+          if (cut < best_cut) {
+            StoppingPolicy::resetStatistics();
+          }
           best_cut = cut;
           min_cut_index = num_moves;
-          StoppingPolicy::resetStatistics();
         }
         _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
         ++num_moves;
