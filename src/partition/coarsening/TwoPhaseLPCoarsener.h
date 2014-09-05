@@ -93,16 +93,16 @@ namespace partition
       TwoPhaseLPCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
       _contraction_mementos(),
       _gen(_config.partition.seed), _nodes(hg.numNodes()),
-      _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes())
+      _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes()),
+      _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
         {
         //incident_labels_score.init(_hg.numNodes(), 1.0);
         }
 
       void coarsenImpl(int limit) final
       {
-        // TODO limit
         // TODO vcycling used existing partition
-        node_initialization_(_nodes, _size_constraint, _nodeData, _hg);
+        node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
 
         edge_initialization_(_hg, _edgeData);
 
@@ -129,7 +129,6 @@ namespace partition
             // we decrease the weight for the cluster of the current node,
             // so that this node can decide to stay in this cluster
             // TODO think about better way?
-
             _size_constraint[_nodeData[hn].label] -= _hg.nodeWeight(hn);
 
             int i = 0;
@@ -152,17 +151,23 @@ namespace partition
             if (new_label != old_label &&
                 gain_(hn, _nodeData, _edgeData, old_label, new_label, _hg) >= 0)
             {
-
-              _nodeData[hn].label = new_label;
-              ++labels_changed;
-              update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
+              // only allow this label change if hn was not the last node with old_label (if limit was reached)
+              if (_num_labels > limit || _labels_count[old_label] > 1)
+              {
+                _num_labels -= (_num_labels > limit ?
+                                      (--_labels_count[old_label] == 0 ? 1 :
+                                                                           0 ) : 0 );
+                _nodeData[hn].label = new_label;
+                ++labels_changed;
+                update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
+              }
             }
 
             // update the size_constraint_vector
             _size_constraint[new_label] += _hg.nodeWeight(hn);
           }
 
-          //#define HARD_DEBUG
+          #define HARD_DEBUG
 #ifdef HARD_DEBUG
           {
             std::cout << "Validating...." << std::flush;
@@ -173,7 +178,7 @@ namespace partition
               for (const auto he : _hg.incidentEdges(hn))
               {
                 assert(_nodeData[hn].label == _edgeData[he].incident_labels.at(
-                      _nodeData[hn].location_incident_edges_incident_labels.at(i++)));
+                      _nodeData[hn].location_incident_edges_incident_labels.at(i++)).first);
               }
             }
 
@@ -200,7 +205,7 @@ namespace partition
               int i = 0;
               for (auto pin : _hg.pins(he))
               {
-                assert(_edgeData[he].incident_labels[i++] == _nodeData[pin].label);
+                assert(_edgeData[he].incident_labels[i++].first == _nodeData[pin].label);
               }
             }
 
@@ -220,7 +225,7 @@ namespace partition
             }
 
             // check the size_constraint
-            if (p1._config.lp.max_size_constraint > 0)
+            if (_config.lp.max_size_constraint > 0)
             {
               std::unordered_map<Label, HypernodeWeight> cluster_weight;
               for (auto hn : _hg.nodes())
@@ -240,7 +245,6 @@ namespace partition
           finished |= check_finished_condition_(_hg.numNodes(), iter, labels_changed);
           ++iter;
         }
-        //return --iter;
         // perform the contractions
 
         MyHashMap <defs::Label, std::vector<HypernodeID> > cluster;
@@ -364,11 +368,12 @@ namespace partition
       std::vector<EdgeData> _edgeData;
       std::vector<HypernodeWeight> _size_constraint;
 
+      std::vector<size_t> _labels_count;
+      size_t _num_labels;
+
       MyHashMap<Label, double> _incident_labels_score;
 
-
       std::vector<ContractionMemento> _contraction_mementos;
-
   };
 };
 

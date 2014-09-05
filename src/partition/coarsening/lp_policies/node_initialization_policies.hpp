@@ -10,7 +10,8 @@ namespace lpa_hypergraph
   struct OnlyLabelsInitialization : public BasePolicy
   {
     static inline void initialize(std::vector<HypernodeID> &nodes, std::vector<HypernodeWeight> &size_constraint,
-                                  std::vector<NodeData> &nodeData, Hypergraph &hg)
+                                  std::vector<NodeData> &nodeData, std::vector<size_t> &labels_count,
+                                  Hypergraph &hg)
     {
       // Each vertex is in its own cluster
       Label label = 0;
@@ -19,7 +20,7 @@ namespace lpa_hypergraph
         nodes[label] = hn;
         size_constraint[hn] = hg.nodeWeight(hn); // hmmm....
         nodeData[hn].label = label;
-        ++label;
+        ++labels_count[label++];
       }
     };
   };
@@ -27,7 +28,9 @@ namespace lpa_hypergraph
   struct NodeOrderingInitialization : public BasePolicy
   {
     static inline void initialize(std::vector<HypernodeID> &nodes, std::vector<HypernodeWeight> &size_constraint,
-                                  std::vector<NodeData> &nodeData, Hypergraph &hg)
+                                  std::vector<NodeData> &nodeData, std::vector<size_t> &labels_count,
+                                  Hypergraph &hg)
+
     {
       // Each vertex is in its own cluster
       Label label = 0;
@@ -38,7 +41,7 @@ namespace lpa_hypergraph
         size_constraint[hn] = hg.nodeWeight(hn);
         temp[label] = std::make_pair(hn, hg.nodeDegree(hn));
         nodeData[hn].label = label;
-        ++label;
+        ++labels_count[label++];
       }
 
       // sort the nodes in increasing order, depending on their degree
@@ -62,7 +65,8 @@ namespace lpa_hypergraph
   struct NoNodeInitialization : public BasePolicy
   {
     static inline void initialize(std::vector<HypernodeID> &nodes, std::vector<HypernodeWeight> &size_constraint,
-                                  std::vector<NodeData> &nodeData, Hypergraph &hg)
+                                  std::vector<NodeData> &nodeData, std::vector<size_t> &labels_count,
+                                  Hypergraph &hg)
     {
       return;
     }

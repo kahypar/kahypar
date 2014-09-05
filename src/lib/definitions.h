@@ -20,6 +20,31 @@ typedef unsigned int hypernode_weight_t;
 typedef int hyperedge_weight_t;
 typedef int partition_id_t;
 
+typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,
+                                         hyperedge_weight_t, partition_id_t> Hypergraph;
+
+typedef double RatingType;
+typedef Hypergraph::HypernodeID HypernodeID;
+typedef Hypergraph::HyperedgeID HyperedgeID;
+typedef Hypergraph::PartitionID PartitionID;
+typedef Hypergraph::HypernodeWeight HypernodeWeight;
+typedef Hypergraph::HyperedgeWeight HyperedgeWeight;
+typedef Hypergraph::Type HypergraphType;
+typedef Hypergraph::HypernodeIterator HypernodeIterator;
+typedef Hypergraph::HyperedgeIterator HyperedgeIterator;
+typedef Hypergraph::IncidenceIterator IncidenceIterator;
+typedef Hypergraph::HyperedgeIndexVector HyperedgeIndexVector;
+typedef Hypergraph::HyperedgeVector HyperedgeVector;
+typedef Hypergraph::HyperedgeWeightVector HyperedgeWeightVector;
+typedef Hypergraph::HypernodeWeightVector HypernodeWeightVector;
+typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
+typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
+typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
+typedef Hypergraph::ConnectivitySetIteratorPair ConnectivitySetIteratorPair;
+
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
+
+
 
 // Vitali LP-definitions
 typedef unsigned int Label;
@@ -36,12 +61,12 @@ struct NodeData
 struct EdgeData
 {
   //Label label;
-  std::vector<Label> incident_labels;
-  std::vector<int> location;
+  std::vector<std::pair<Label, PartitionID> > incident_labels;
+  std::vector<int> location; // location of the incident_labels in the sample
 
   bool small_edge = false;
 
-  Label *sampled = nullptr;
+  std::pair<Label, PartitionID> *sampled = nullptr;
   uint32_t sample_size= 0;
 
   std::unordered_map<Label, uint32_t> label_count_map;
@@ -68,30 +93,6 @@ struct EdgeData
 
 // end LP-definitions
 
-
-typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,
-                                         hyperedge_weight_t, partition_id_t> Hypergraph;
-
-typedef double RatingType;
-typedef Hypergraph::HypernodeID HypernodeID;
-typedef Hypergraph::HyperedgeID HyperedgeID;
-typedef Hypergraph::PartitionID PartitionID;
-typedef Hypergraph::HypernodeWeight HypernodeWeight;
-typedef Hypergraph::HyperedgeWeight HyperedgeWeight;
-typedef Hypergraph::Type HypergraphType;
-typedef Hypergraph::HypernodeIterator HypernodeIterator;
-typedef Hypergraph::HyperedgeIterator HyperedgeIterator;
-typedef Hypergraph::IncidenceIterator IncidenceIterator;
-typedef Hypergraph::HyperedgeIndexVector HyperedgeIndexVector;
-typedef Hypergraph::HyperedgeVector HyperedgeVector;
-typedef Hypergraph::HyperedgeWeightVector HyperedgeWeightVector;
-typedef Hypergraph::HypernodeWeightVector HypernodeWeightVector;
-typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
-typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
-typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
-typedef Hypergraph::ConnectivitySetIteratorPair ConnectivitySetIteratorPair;
-
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
 } // namespace defs
 #endif  // LIB_DEFINITIONS_H_

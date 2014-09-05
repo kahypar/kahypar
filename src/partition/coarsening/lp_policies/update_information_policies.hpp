@@ -23,7 +23,7 @@ namespace lpa_hypergraph
 
         // change the label in the incident_label vector
         auto&& label = cur_data.incident_labels[
-            nodeData[hn].location_incident_edges_incident_labels[i]];
+            nodeData[hn].location_incident_edges_incident_labels[i]].first;
 
         assert (old_label == label);
         label = new_label;
@@ -37,8 +37,8 @@ namespace lpa_hypergraph
         // hn was sampled in he, so we need to update the information in the sampled vector
         if (location >= 0)
         {
-          assert(old_label == cur_data.sampled[location]);
-          cur_data.sampled[location] = new_label;
+          assert(old_label == cur_data.sampled[location].first);
+          cur_data.sampled[location].first = new_label;
         }
       }
     }

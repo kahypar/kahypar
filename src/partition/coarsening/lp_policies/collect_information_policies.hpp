@@ -16,7 +16,7 @@ namespace lpa_hypergraph
         for (const auto pin : hg.pins(he))
         {
           Label pin_label = nodeData[pin].label;
-          edgeData[he].incident_labels[i++] = pin_label;
+          edgeData[he].incident_labels[i++] = {pin_label, hg.partID(pin)};
           ++edgeData[he].label_count_map[pin_label];
         }
       }
@@ -30,7 +30,6 @@ namespace lpa_hypergraph
     {
       for (const auto he : hg.edges())
       {
-
         // clear the data fields for this edge
         edgeData[he].label_count_map.clear();
 
@@ -38,7 +37,7 @@ namespace lpa_hypergraph
         for (const auto pin : hg.pins(he))
         {
           Label pin_label = nodeData[pin].label;
-          edgeData[he].incident_labels[i++] = pin_label;
+          edgeData[he].incident_labels[i++] = {pin_label, hg.partID(pin)};
           ++edgeData[he].label_count_map[pin_label];
         }
       }
@@ -70,7 +69,7 @@ namespace lpa_hypergraph
         for (const auto pin : hg.pins(he))
         {
           Label pin_label = nodeData[pin].label;
-          edgeData[he].incident_labels[i] = pin_label;
+          edgeData[he].incident_labels[i] = {pin_label,hg.partID(pin)};
           nodeData[pin].location_incident_edges_incident_labels[temp[pin][he]] = i++;
           ++edgeData[he].label_count_map[pin_label];
         }

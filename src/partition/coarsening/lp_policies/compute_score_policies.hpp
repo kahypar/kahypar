@@ -24,9 +24,10 @@ namespace lpa_hypergraph
     {
       for (size_t i = 0; i < edgeData[he].sample_size; i++)
       {
-        Label label = edgeData[he].sampled[i];
-        if (config_.lp.max_size_constraint == 0 ||
-            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint)
+        Label label = edgeData[he].sampled[i].first;
+        if (edgeData[he].sampled[i].second == hg.partID(hn) &&
+            (config_.lp.max_size_constraint == 0 ||
+            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint))
         {
           incident_labels_score[label] += score(hg, he);
         }
@@ -48,10 +49,11 @@ namespace lpa_hypergraph
 
       for (const auto val : edgeData[he].incident_labels)
       {
-        if (config_.lp.max_size_constraint == 0 ||
-            size_constraint[val] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint)
+        if (val.second == hg.partID(hn) &&
+           (config_.lp.max_size_constraint == 0 ||
+            size_constraint[val.first] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint))
         {
-          incident_labels_score[val] += score(hg, he);
+          incident_labels_score[val.first] += score(hg, he);
         }
       }
     }
@@ -69,8 +71,9 @@ namespace lpa_hypergraph
       for (const auto pin : hg.pins(he))
       {
         Label label = nodeData[pin].label;
-        if (config_.lp.max_size_constraint == 0 ||
-            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint)
+        if (hg.partID(pin) == hg.partID(hn) &&
+            (config_.lp.max_size_constraint == 0 ||
+            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint))
         {
           incident_labels_score[nodeData[pin].label] += score(hg,he);
         }
@@ -92,11 +95,12 @@ namespace lpa_hypergraph
 
       for (size_t i = 0; i < edgeData[he].sample_size; i++)
       {
-        Label label = edgeData[he].sampled[i];
-        if (config_.lp.max_size_constraint == 0 ||
-            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint)
+        Label label = edgeData[he].sampled[i].first;
+        if (edgeData[he].sampled[i].second == hg.partID(hn) &&
+           (config_.lp.max_size_constraint == 0 ||
+            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint))
         {
-          incident_labels_score[edgeData[he].sampled[i]] += score(hg,he);
+          incident_labels_score[label] += score(hg,he);
         }
       }
     }
@@ -122,9 +126,10 @@ namespace lpa_hypergraph
 
       for (size_t i = 0; i < edgeData[he].sample_size; i++)
       {
-        Label label = edgeData[he].sampled[i];
-        if (config_.lp.max_size_constraint == 0 ||
-            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint)
+        Label label = edgeData[he].sampled[i].first;
+        if (edgeData[he].sampled[i].second == hg.partID(hn) &&
+           (config_.lp.max_size_constraint == 0 ||
+            size_constraint[label] + hg.nodeWeight(hn) <= config_.lp.max_size_constraint))
         {
           incident_labels_score[label] += score(hg,he);
         }
