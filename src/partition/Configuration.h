@@ -40,6 +40,7 @@ struct Configuration {
       global_search_iterations(1),
       current_v_cycle(0),
       epsilon(1.0),
+      hmetis_ub_factor(-1.0),
       max_part_size(std::numeric_limits<HypernodeWeight>::max()),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
@@ -55,6 +56,7 @@ struct Configuration {
     int global_search_iterations;
     int current_v_cycle;
     double epsilon;
+    double hmetis_ub_factor;
     HypernodeWeight max_part_size;
     HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
@@ -121,9 +123,12 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(30) << "  k: " << config.partition.k << std::endl;
   oss << std::setw(30) << "  epsilon: " << config.partition.epsilon
   << std::endl;
+  oss << std::setw(30) << "  total_graph_weight: "
+  << config.partition.total_graph_weight << std::endl;
   oss << std::setw(30) << "  L_max: " << config.partition.max_part_size
   << std::endl;
   oss << std::setw(30) << "  seed: " << config.partition.seed << std::endl;
+  oss << std::setw(30) << " hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
   oss << std::setw(30) << "  # initial partitionings: "
   << config.partition.initial_partitioning_attempts << std::endl;
   oss << std::setw(30) << "  # global search iterations: "

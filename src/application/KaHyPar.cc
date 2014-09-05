@@ -321,6 +321,17 @@ int main(int argc, char* argv[]) {
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
+  // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
+  // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
+  // In order to provide a balanced initial partitioning, we determine the UBfactor such that
+  // the maximal allowed partiton size corresponds to our upper bound i.e.
+  // (1+epsilon) * ceil(total_weight / k).
+  double exp = 1.0 / log2(config.partition.k);
+  config.partition.hmetis_ub_factor =
+    50.0 * (2 * pow((1 + config.partition.epsilon), exp)
+            * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
+                       / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
+
   io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
                             config.partition.graph_filename.find_last_of("/") + 1));

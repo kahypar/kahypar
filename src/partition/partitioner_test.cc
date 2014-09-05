@@ -53,6 +53,11 @@ class APartitioner : public Test {
     config.partition.total_graph_weight = 7;
     config.partition.max_part_size = (1 + config.partition.epsilon)
                                      * ceil(7 / static_cast<double>(config.partition.k));
+    double exp = 1.0 / log2(config.partition.k);
+    config.partition.hmetis_ub_factor =
+      50.0 * (2 * pow((1 + config.partition.epsilon), exp)
+              * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
+                         / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
   }
 
   std::unique_ptr<Hypergraph> hypergraph;

@@ -211,24 +211,13 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
 
-  // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
-  // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
-  // In order to provide a balanced initial partitioning, we determine the UBfactor such that
-  // the maximal allowed partiton size corresponds to our upper bound i.e.
-  // (1+epsilon) * ceil(total_weight / k).
-  double exp = 1.0 / log2(_config.partition.k);
-  double ub_factor = 50.0 * (2 * pow((1 + _config.partition.epsilon), exp)
-                             * pow(ceil(static_cast<double>(_config.partition.total_graph_weight)
-                                        / _config.partition.k)
-                                   / _config.partition.total_graph_weight, exp) - 1);
-
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = Randomize::newRandomSeed();
     std::string hmetis_call("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
                             + _config.partition.coarse_graph_filename
                             + " " + std::to_string(_config.partition.k)
                             + " -seed=" + std::to_string(seed)
-                            + " -ufactor=" + std::to_string(ub_factor)
+                            + " -ufactor=" + std::to_string(_config.partition.hmetis_ub_factor)
                             + (_config.partition.verbose_output ? "" : " > /dev/null"));
     LOG(hmetis_call);
     std::system(hmetis_call.c_str());
