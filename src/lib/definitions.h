@@ -4,6 +4,8 @@
 #include <chrono>
 
 #include "lib/datastructure/GenericHypergraph.h"
+#include <exception>
+#include <unordered_map>
 
 // Use bucket PQ for FM refinement.
 //#define USE_BUCKET_PQ
@@ -17,6 +19,55 @@ typedef unsigned int hyperedge_id_t;
 typedef unsigned int hypernode_weight_t;
 typedef int hyperedge_weight_t;
 typedef int partition_id_t;
+
+
+// Vitali LP-definitions
+typedef unsigned int Label;
+
+template <typename K, typename V>
+using MyHashMap = std::unordered_map<K,V>;
+
+struct NodeData
+{
+  Label label;
+  std::vector<int> location_incident_edges_incident_labels;
+};
+
+struct EdgeData
+{
+  //Label label;
+  std::vector<Label> incident_labels;
+  std::vector<int> location;
+
+  bool small_edge = false;
+
+  Label *sampled = nullptr;
+  uint32_t sample_size= 0;
+
+  std::unordered_map<Label, uint32_t> label_count_map;
+
+  EdgeData() :
+    incident_labels(),
+    location(),
+    label_count_map()
+  { }
+
+  ~EdgeData()
+  {
+    if (!small_edge)
+    {
+      delete[] sampled;
+    }
+  }
+
+  EdgeData(const EdgeData &e)
+  {
+    throw(std::logic_error("EdgeData with set sampled_pointer was copied!"));
+  }
+};
+
+// end LP-definitions
+
 
 typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,
                                          hyperedge_weight_t, partition_id_t> Hypergraph;

@@ -95,16 +95,33 @@ struct Configuration {
     bool active;
   };
 
+  struct LPParameters {
+    LPParameters() :
+      max_iterations(20),
+      sample_size(5),
+      small_edge_threshold(5),
+      percent(5),
+      max_size_constraint(0) { }
+
+    long long max_iterations;
+    int sample_size;
+    int small_edge_threshold;
+    int percent;
+    HypernodeWeight max_size_constraint;
+  };
+
   PartitioningParameters partition;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
   HERFMParameters her_fm;
+  LPParameters lp;
 
   Configuration() :
     partition(),
     coarsening(),
     two_way_fm(),
-    her_fm() { }
+    her_fm(),
+    lp() { }
 };
 
 inline std::string toString(const Configuration& config) {
