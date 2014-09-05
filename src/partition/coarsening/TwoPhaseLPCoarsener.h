@@ -101,8 +101,6 @@ namespace partition
 
       void coarsenImpl(int limit) final
       {
-        std::cout << "limit: " << limit << std::endl;
-        //limit = 0;
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
 
         edge_initialization_(_hg, _edgeData);
