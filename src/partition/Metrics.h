@@ -140,6 +140,19 @@ inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int p
   size_t rank = ceil(static_cast<double>(percentile) / 100 * hn_degrees.size());
   return hn_degrees[rank];
 }
+
+inline void connectivityValues(const Hypergraph& hypergraph,
+                               std::vector<PartitionID>& connectivity_vals) {
+  PartitionID max_connectivity = 0;
+  for (auto he : hypergraph.edges()) {
+    max_connectivity = std::max(max_connectivity, hypergraph.connectivity(he));
+  }
+  connectivity_vals.resize(max_connectivity, 0);
+
+  for (auto he : hypergraph.edges()) {
+    ++connectivity_vals[hypergraph.connectivity(he)];
+  }
+}
 } // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_
