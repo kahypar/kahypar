@@ -4,7 +4,7 @@
 #include <string>
 #include <random>
 #include <vector>
-
+#include <unordered_set>
 
 #include "partition/coarsening/CoarsenerBase.h"
 #include "partition/refinement/IRefiner.h"
@@ -101,7 +101,8 @@ namespace partition
 
       void coarsenImpl(int limit) final
       {
-        // TODO vcycling used existing partition
+        std::cout << "limit: " << limit << std::endl;
+        //limit = 0;
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
 
         edge_initialization_(_hg, _edgeData);
@@ -154,9 +155,12 @@ namespace partition
               // only allow this label change if hn was not the last node with old_label (if limit was reached)
               if (_num_labels > limit || _labels_count[old_label] > 1)
               {
-                _num_labels -= (_num_labels > limit ?
-                                      (--_labels_count[old_label] == 0 ? 1 :
-                                                                           0 ) : 0 );
+                _num_labels -= --_labels_count[old_label] == 0 ? 1 : 0 ;
+
+                assert(_labels_count[new_label]!=0);
+
+                ++_labels_count[new_label];
+
                 _nodeData[hn].label = new_label;
                 ++labels_changed;
                 update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
@@ -238,6 +242,25 @@ namespace partition
                 assert(val.second <= _config.lp.max_size_constraint);
               }
             }
+
+            // validate the num_labels
+
+            std::unordered_map<Label, size_t> labels;
+            for (const auto hn : _hg.nodes())
+            {
+              labels[_nodeData[hn].label]++;
+            }
+            size_t temp = 0;
+            for (auto val : labels)
+            {
+              assert(val.second == _labels_count[val.first]);
+              if (val.second != 0) temp++;
+            }
+            assert(temp == _num_labels);
+
+
+
+
           }
           std::cout << "all good!" << std::endl;
 #endif
