@@ -94,6 +94,7 @@ using lpa_hypergraph::DontPermutateLabels;
 using lpa_hypergraph::CollectInformationNoUpdates;
 using lpa_hypergraph::CollectInformationNoUpdatesWithCleanup;
 using lpa_hypergraph::CollectInformationWithUpdates;
+using lpa_hypergraph::CollectInformationWithUpdatesWithCleanup;
 using lpa_hypergraph::DontCollectInformation;
 using lpa_hypergraph::BiasedSampledScoreComputation;
 using lpa_hypergraph::AllLabelsSampledScoreComputation;
@@ -306,7 +307,7 @@ int main(int argc, char* argv[]) {
       return new TwoPhaseLPCoarsener<
         OnlyLabelsInitialization,
         InitializeSamplesWithUpdates,
-        CollectInformationWithUpdates,
+        CollectInformationWithUpdatesWithCleanup,
         DontCollectInformation,
         PermutateNodes,
         PermutateLabelsWithUpdates,

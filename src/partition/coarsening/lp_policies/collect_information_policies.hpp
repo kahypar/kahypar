@@ -12,6 +12,8 @@ namespace lpa_hypergraph
     {
       for (const auto he : hg.edges())
       {
+        // we need to clear the label_map due to vcycling
+        edgeData[he].label_count_map.clear();
         int i = 0;
         for (const auto pin : hg.pins(he))
         {
@@ -65,6 +67,42 @@ namespace lpa_hypergraph
       for (const auto he : hg.edges())
       {
         int i = 0;
+
+        for (const auto pin : hg.pins(he))
+        {
+          Label pin_label = nodeData[pin].label;
+          edgeData[he].incident_labels[i] = {pin_label,hg.partID(pin)};
+          nodeData[pin].location_incident_edges_incident_labels[temp[pin][he]] = i++;
+          ++edgeData[he].label_count_map[pin_label];
+        }
+      }
+      temp.clear();
+    }
+  };
+
+  struct CollectInformationWithUpdatesWithCleanup : public BasePolicy
+  {
+    static inline void collect_information(Hypergraph &hg, std::vector<NodeData> &nodeData,
+        std::vector<EdgeData> &edgeData)
+    {
+      // TODO .... ugly!
+      static std::unordered_map<HypernodeID, std::unordered_map<HyperedgeID, int> > temp;
+
+      for (const auto hn : hg.nodes())
+      {
+        int i = 0;
+        nodeData[hn].location_incident_edges_incident_labels.resize(hg.nodeDegree(hn));
+        for (const auto he : hg.incidentEdges(hn))
+        {
+          temp[hn][he] = i++;
+        }
+      }
+
+      for (const auto he : hg.edges())
+      {
+        int i = 0;
+        // we need to clear the label_map due to vcycling
+        edgeData[he].label_count_map.clear();
 
         for (const auto pin : hg.pins(he))
         {

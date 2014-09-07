@@ -101,6 +101,8 @@ namespace partition
 
       void coarsenImpl(int limit) final
       {
+        // TODO init method?
+        _num_labels = _hg.numNodes();
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
 
         edge_initialization_(_hg, _edgeData);
@@ -141,13 +143,8 @@ namespace partition
             Label new_label;
             Label old_label = _nodeData[hn].label;
 
-            if(!compute_new_label_(_incident_labels_score, _gen, new_label))
-            {
-              std::cout << "something weird happened" << std::endl;
-              continue;
-            }
-
-            if (new_label != old_label &&
+            if (compute_new_label_(_incident_labels_score, _gen, new_label) &&
+                new_label != old_label &&
                 gain_(hn, _nodeData, _edgeData, old_label, new_label, _hg) >= 0)
             {
               // only allow this label change if hn was not the last node with old_label (if limit was reached)
@@ -169,7 +166,7 @@ namespace partition
             _size_constraint[new_label] += _hg.nodeWeight(hn);
           }
 
-          #define HARD_DEBUG
+          //#define HARD_DEBUG
 #ifdef HARD_DEBUG
           {
             std::cout << "Validating...." << std::flush;

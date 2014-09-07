@@ -20,7 +20,7 @@ namespace lpa_hypergraph
         nodes[label] = hn;
         size_constraint[hn] = hg.nodeWeight(hn); // hmmm....
         nodeData[hn].label = label;
-        ++labels_count[label++];
+        labels_count[label++] = 1;
       }
     };
   };
@@ -41,7 +41,7 @@ namespace lpa_hypergraph
         size_constraint[hn] = hg.nodeWeight(hn);
         temp[label] = std::make_pair(hn, hg.nodeDegree(hn));
         nodeData[hn].label = label;
-        ++labels_count[label++];
+        labels_count[label++] = 1;
       }
 
       // sort the nodes in increasing order, depending on their degree

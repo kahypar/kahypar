@@ -21,6 +21,11 @@ namespace lpa_hypergraph
           cur_data.sampled = cur_data.incident_labels.data();
           cur_data.sample_size = cur_data.incident_labels.size();
         } else {
+          // check if cur_data.sampled is set (prevent memory leaks)
+          if (cur_data.sampled != nullptr)
+          {
+            delete[] cur_data.sampled;
+          }
           cur_data.sampled = new std::pair<Label,PartitionID>[config_.lp.sample_size];
           cur_data.sample_size = config_.lp.sample_size;
         }
@@ -46,6 +51,11 @@ namespace lpa_hypergraph
           cur_data.sampled = cur_data.incident_labels.data();
           cur_data.sample_size = cur_data.incident_labels.size();
         } else {
+          // check if cur_data.sampled is set (prevent memory leaks)
+          if (cur_data.sampled != nullptr)
+          {
+            delete[] cur_data.sampled;
+          }
           cur_data.sampled = new std::pair<Label,PartitionID>[config_.lp.sample_size];
           cur_data.sample_size = config_.lp.sample_size;
           cur_data.location.resize(hg.edgeSize(he));
