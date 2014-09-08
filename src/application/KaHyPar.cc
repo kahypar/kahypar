@@ -177,7 +177,7 @@ void setDefaults(Configuration& config) {
   config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
   config.coarsening.minimal_node_count = 100;
-  config.coarsening.hypernode_weight_fraction = 0.0375;
+  config.coarsening.hypernode_weight_fraction = -1.0;
   config.two_way_fm.stopping_rule = "simple";
   config.two_way_fm.num_repetitions = 1;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
@@ -324,7 +324,7 @@ int main(int argc, char* argv[]) {
   // temporary workaround; default corresponds to bipartitioning, so
   // in case of no s parameter is given as input, we calculate the correct
   // one like KaSPar.
-  if (config.coarsening.hypernode_weight_fraction == 0.0375) {
+  if (config.coarsening.hypernode_weight_fraction == -1.0) {
     config.coarsening.hypernode_weight_fraction = (1.5 * hypergraph.numNodes()) /
                                                   (20 * config.partition.k);
   }
