@@ -20,7 +20,7 @@
 #include "lib/core/IteratorPair.h"
 #include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
-#include "lib/definitions.h"
+//#include "lib/definitions.h"
 #include "lib/macros.h"
 
 using core::Empty;
@@ -192,7 +192,7 @@ class GenericHypergraph {
     bool _valid;
   };
 #pragma GCC diagnostic pop
-  
+
   template <typename ContainerType>
   class VertexIterator {
     typedef typename ContainerType::value_type::IDType IDType;
@@ -739,7 +739,7 @@ class GenericHypergraph {
       if (partID(pin) != kInvalidPartition) {
         increasePinCountInPart(he, partID(pin));
       }
-      
+
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == he,
              "Incorrect restore of HE " << he);
       ++_current_num_pins;
@@ -924,7 +924,7 @@ class GenericHypergraph {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     _part_info[id].weight += nodeWeight(u);
-    ++_part_info[id].size; 
+    ++_part_info[id].size;
   }
 
   void updatePartInfo(HypernodeID u, PartitionID from, PartitionID to) {
@@ -934,7 +934,7 @@ class GenericHypergraph {
     _part_info[from].weight -= nodeWeight(u);
     --_part_info[from].size;
     _part_info[to].weight += nodeWeight(u);
-    ++_part_info[to].size; 
+    ++_part_info[to].size;
   }
 
   void decreasePinCountInPart(HyperedgeID he, PartitionID id) {

@@ -2,6 +2,7 @@
 #define LP_POLICIES_HPP_ 1
 
 #include "lib/definitions.h"
+
 #include "partition/Configuration.h"
 
 namespace lpa_hypergraph
@@ -10,10 +11,12 @@ namespace lpa_hypergraph
   {
     virtual ~BasePolicy() {};
 
-    static Configuration config_;
+    static partition::Configuration config_;
   };
 };
 
+
+using defs::Hypergraph;
 using defs::NodeData;
 using defs::EdgeData;
 using defs::Label;

@@ -94,6 +94,7 @@ namespace partition
       _contraction_mementos(),
       _gen(_config.partition.seed), _nodes(hg.numNodes()),
       _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes()),
+      _iter(0),
       _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
         {
         //incident_labels_score.init(_hg.numNodes(), 1.0);
@@ -103,12 +104,13 @@ namespace partition
       {
         // TODO init method?
         _num_labels = _hg.numNodes();
+        _iter = 0;
+
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
 
         edge_initialization_(_hg, _edgeData);
 
         bool finished = false;
-        int iter = 1;
 
         collect_information_before_(_hg, _nodeData, _edgeData);
 
@@ -260,11 +262,11 @@ namespace partition
           std::cout << "all good!" << std::endl;
 #endif
 
-          finished |= check_finished_condition_(_hg.numNodes(), iter, labels_changed);
-          ++iter;
+          finished |= check_finished_condition_(_hg.numNodes(), _iter, labels_changed);
+          ++_iter;
         }
         // perform the contractions
-
+#ifndef CLUSTER_ONLY
         MyHashMap <defs::Label, std::vector<HypernodeID> > cluster;
         for (const auto hn : _hg.nodes())
         {
@@ -283,6 +285,7 @@ namespace partition
         }
 
         gatherCoarseningStats();
+#endif
       };
 
       void uncoarsenImpl(IRefiner &refiner) final
@@ -364,9 +367,7 @@ namespace partition
         return "TwoPhaseLP";
       }
 
-
-    private:
-
+    public:
       static auto constexpr node_initialization_ = NodeInitializationPolicy::initialize;
       static auto constexpr edge_initialization_ = EdgeInitializationPolicy::initialize;
       static auto constexpr collect_information_before_ = CollectInformationBeforeLoopPolicy::collect_information;
@@ -386,6 +387,7 @@ namespace partition
       std::vector<EdgeData> _edgeData;
       std::vector<HypernodeWeight> _size_constraint;
 
+      int _iter;
       std::vector<size_t> _labels_count;
       size_t _num_labels;
 
