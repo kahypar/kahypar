@@ -38,6 +38,12 @@ int main(int argc, char* argv[]) {
                          index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
+  HyperedgeID max_hn_degree = 0;
+  for (auto hn : hypergraph.nodes()) {
+    max_hn_degree = std::max(max_hn_degree, hypergraph.nodeDegree(hn));
+  }
+
+
   std::string graph_name = graph_filename.substr(graph_filename.find_last_of("/") + 1);
   std::ofstream out_stream(stats_filename.c_str(), std::ofstream::app);
 
@@ -52,6 +58,7 @@ int main(int argc, char* argv[]) {
   << " avgHNdegree=" << metrics::avgHypernodeDegree(hypergraph)
   << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
   << " hnDegree95thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 95)
+  << " maxHnDegree=" << max_hn_degree
   << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
   << std::endl;
   out_stream.flush();

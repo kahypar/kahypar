@@ -308,7 +308,8 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, config.partition.k);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                        config.partition.k);
 
   HypernodeWeight hypergraph_weight = 0;
   for (auto && hn : hypergraph.nodes()) {
@@ -316,9 +317,21 @@ int main(int argc, char* argv[]) {
   }
 
   config.partition.max_part_weight = (1 + config.partition.epsilon)
-                                     * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
+                                     * ceil(hypergraph_weight /
+                                            static_cast<double>(config.partition.k));
   config.partition.total_graph_weight = hypergraph_weight;
-  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
+
+  // temporary workaround; default corresponds to bipartitioning, so
+  // in case of no s parameter is given as input, we calculate the correct
+  // one like KaSPar.
+  if (config.coarsening.hypernode_weight_fraction == 0.0375) {
+    config.coarsening.hypernode_weight_fraction = (1.5 * hypergraph.numNodes()) /
+                                                  (20 * config.partition.k);
+  }
+
+
+  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction *
+                                            hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
