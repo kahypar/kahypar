@@ -227,6 +227,12 @@ void setDefaults(Configuration& config) {
   config.her_fm.stopping_rule = "simple";
   config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
+
+  // lp defaults
+  config.lp.max_iterations=20;
+  config.lp.sample_size=5;
+  config.lp.small_edge_threshold=5;
+  config.lp.percent=5;
 }
 
 struct CoarsenerFactoryParameters {
@@ -384,6 +390,8 @@ int main(int argc, char* argv[]) {
   config.partition.total_graph_weight = hypergraph_weight;
   config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
+
+  config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
 
   io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(

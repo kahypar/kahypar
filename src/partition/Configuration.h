@@ -103,6 +103,7 @@ struct Configuration {
       percent(5),
       max_size_constraint(0) { }
 
+
     long long max_iterations;
     int sample_size;
     int small_edge_threshold;
