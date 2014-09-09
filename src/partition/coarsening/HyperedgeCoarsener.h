@@ -109,9 +109,11 @@ class HyperedgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  void uncoarsenImpl(IRefiner& refiner) final {
+  bool uncoarsenImpl(IRefiner& refiner) final {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+    const HyperedgeWeight initial_cut = current_cut;
+
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes;
     refinement_nodes.reserve(_hg.initialNumNodes());
@@ -125,9 +127,10 @@ class HyperedgeCoarsener : public ICoarsener,
                          current_imbalance, current_cut);
       _history.pop();
     }
-    ASSERT(current_imbalance <= _config.partition.epsilon,
-           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-           << " > " << _config.partition.epsilon);
+    return current_cut < initial_cut;
+    // ASSERT(current_imbalance <= _config.partition.epsilon,
+    //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+    //        << " > " << _config.partition.epsilon);
   }
 
   const Stats & statsImpl() const {

@@ -137,10 +137,7 @@ class TwoWayFMRefiner : public IRefiner,
       activate(refinement_nodes[i]);
     }
 
-#ifndef NDEBUG
-    HyperedgeWeight initial_cut = best_cut;
-#endif
-
+    const HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     double imbalance = best_imbalance;
@@ -237,10 +234,7 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    if (min_cut_index != -1) {
-      return true;
-    }
-    return false;
+    return best_cut < initial_cut;
   }
 
   void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
@@ -348,7 +342,7 @@ class TwoWayFMRefiner : public IRefiner,
   bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
     ASSERT(_hg.partID(hn) == from, "HN " << hn << " is not in partition " << from);
     return _hg.partWeight(to) + _hg.nodeWeight(hn)
-           <= _config.partition.max_part_size;
+           <= _config.partition.max_part_weight;
   }
 
   bool queuesAreEmpty() const {

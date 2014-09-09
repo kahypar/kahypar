@@ -219,7 +219,7 @@ void setDefaults(Configuration& config) {
   config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
   config.coarsening.minimal_node_count = 100;
-  config.coarsening.hypernode_weight_fraction = 0.0375;
+  config.coarsening.hypernode_weight_fraction = -1.0;
   config.two_way_fm.stopping_rule = "simple";
   config.two_way_fm.num_repetitions = 1;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
@@ -378,20 +378,44 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, config.partition.k);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                        config.partition.k);
 
   HypernodeWeight hypergraph_weight = 0;
   for (auto && hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph_weight / static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph_weight /
+                                            static_cast<double>(config.partition.k));
   config.partition.total_graph_weight = hypergraph_weight;
-  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction * hypergraph_weight;
+
+  // temporary workaround; default corresponds to bipartitioning, so
+  // in case of no s parameter is given as input, we calculate the correct
+  // one like KaSPar.
+  if (config.coarsening.hypernode_weight_fraction == -1.0) {
+    config.coarsening.hypernode_weight_fraction = 1.5 / (20.0 * config.partition.k);
+  }
+
+
+  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction *
+                                            hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
+  // set the maximum size constraint for label propagation
   config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
+
+  // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
+  // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
+  // In order to provide a balanced initial partitioning, we determine the UBfactor such that
+  // the maximal allowed partiton size corresponds to our upper bound i.e.
+  // (1+epsilon) * ceil(total_weight / k).
+  double exp = 1.0 / log2(config.partition.k);
+  config.partition.hmetis_ub_factor =
+    50.0 * (2 * pow((1 + config.partition.epsilon), exp)
+            * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
+                       / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
 
   io::printPartitionerConfiguration(config);
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(

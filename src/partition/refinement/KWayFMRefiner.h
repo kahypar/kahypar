@@ -72,6 +72,7 @@ class KWayFMRefiner : public IRefiner,
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
+    _tmp_connectivity_decrease(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k), // for dense_hash_set this is expected # entries
     _pq(_hg.initialNumNodes()),
     _marked(_hg.initialNumNodes()),
@@ -103,10 +104,7 @@ class KWayFMRefiner : public IRefiner,
       activate(refinement_nodes[i]);
     }
 
-#ifndef NDEBUG
-    HyperedgeWeight initial_cut = best_cut;
-#endif
-
+    const HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     int step = 0; // counts total number of loop iterations - might be removed
@@ -156,9 +154,11 @@ class KWayFMRefiner : public IRefiner,
           DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
               "KWayFM improved balance between " << from_part << " and " << to_part
               << "(max_gain=" << max_gain << ")");
+          if (cut < best_cut) {
+            StoppingPolicy::resetStatistics();
+          }
           best_cut = cut;
           min_cut_index = num_moves;
-          StoppingPolicy::resetStatistics();
         }
         _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
         ++num_moves;
@@ -175,10 +175,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    if (min_cut_index != -1) {
-      return true;
-    }
-    return false;
+    return best_cut < initial_cut;
   }
 
   int numRepetitionsImpl() const final {
@@ -254,7 +251,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     _marked[hn] = true;
     if ((_hg.partWeight(to_part) + _hg.nodeWeight(hn)
-         >= _config.partition.max_part_size) ||
+         >= _config.partition.max_part_weight) ||
         (_hg.partSize(from_part) - 1 == 0)) {
       DBG(dbg_refinement_kway_fm_move, "skipping move of HN " << hn << " (" << from_part << "->" << to_part << ")");
       return false;
@@ -304,6 +301,9 @@ class KWayFMRefiner : public IRefiner,
           if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
             _tmp_gains[target_part] += _hg.edgeWeight(he);
           }
+          if (pins_in_source_part == 1) {
+            _tmp_connectivity_decrease[target_part] += 1;
+          }
         }
       }
     }
@@ -321,22 +321,28 @@ class KWayFMRefiner : public IRefiner,
 
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = std::numeric_limits<Gain>::min();
+    PartitionID max_connectivity_decrease = 0;
     for (PartitionID target_part : _tmp_target_parts) {
       const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
+      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part];
       const HypernodeWeight node_weight = _hg.nodeWeight(hn);
       const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
       if (target_part_gain > max_gain ||
           (target_part_gain == max_gain &&
-           source_part_weight >= _config.partition.max_part_size &&
-           target_part_weight + node_weight < _config.partition.max_part_size &&
+           target_part_connectivity_decrease > max_connectivity_decrease) ||
+          (target_part_gain == max_gain &&
+           source_part_weight >= _config.partition.max_part_weight &&
+           target_part_weight + node_weight < _config.partition.max_part_weight &&
            target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
         max_gain = target_part_gain;
         max_gain_part = target_part;
+        max_connectivity_decrease = target_part_connectivity_decrease;
         ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
                "Hn can't be moved to invalid partition");
       }
       _tmp_gains[target_part] = 0;
+      _tmp_connectivity_decrease[target_part] = 0;
     }
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
@@ -348,6 +354,7 @@ class KWayFMRefiner : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::vector<Gain> _tmp_gains;
+  std::vector<PartitionID> _tmp_connectivity_decrease;
   google::dense_hash_set<PartitionID, HashParts> _tmp_target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;

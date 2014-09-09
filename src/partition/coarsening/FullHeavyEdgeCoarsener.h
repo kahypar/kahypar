@@ -90,8 +90,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  void uncoarsenImpl(IRefiner& refiner) final {
-    Base::doUncoarsen(refiner);
+  bool uncoarsenImpl(IRefiner& refiner) final {
+    return Base::doUncoarsen(refiner);
   }
 
   const Stats & statsImpl() const {

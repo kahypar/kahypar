@@ -90,12 +90,15 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     _history.emplace(_hg.contract(rep_node, contracted_node));
   }
 
-  void doUncoarsen(IRefiner& refiner) {
+  bool doUncoarsen(IRefiner& refiner) {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+    const HyperedgeWeight initial_cut = current_cut;
 
-    _stats.add("initialCut", _config.partition.current_v_cycle, current_cut);
+    _stats.add("initialCut", _config.partition.current_v_cycle, initial_cut);
     _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
+    DBG(true, "initial cut =" << current_cut);
+    DBG(true, "initial imbalance=" << current_imbalance);
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
@@ -112,9 +115,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop();
     }
-    ASSERT(current_imbalance <= _config.partition.epsilon,
-           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-           << " > " << _config.partition.epsilon);
+    return current_cut < initial_cut;
+    // ASSERT(current_imbalance <= _config.partition.epsilon,
+    //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+    //        << " > " << _config.partition.epsilon);
   }
 
   template <typename Map>

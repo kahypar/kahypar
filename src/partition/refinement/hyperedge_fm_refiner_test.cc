@@ -282,9 +282,9 @@ TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   hypergraph->setNodePart(3, 1);
   hypergraph->setEdgeWeight(0, 1);
   hypergraph->setEdgeWeight(1, 5);
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph->initialNumNodes() /
-                                          static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph->initialNumNodes() /
+                                            static_cast<double>(config.partition.k));
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
@@ -309,9 +309,9 @@ TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
   hypergraph.reset(new Hypergraph(6, 2, HyperedgeIndexVector { 0, 4, /*sentinel*/ 6 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5 }));
   config.partition.epsilon = 0.02;
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(6 / static_cast<double>(config.partition.k));
-  DBG(true, "config.partition.max_part_size=" << config.partition.max_part_size);
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(6 / static_cast<double>(config.partition.k));
+  DBG(true, "config.partition.max_part_weight=" << config.partition.max_part_weight);
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 0);
@@ -337,9 +337,9 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   hypergraph->setNodePart(6, 1);
   hypergraph->setNodePart(7, 0);
   config.partition.epsilon = 0.02;
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(hypergraph->initialNumNodes() /
-                                          static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph->initialNumNodes() /
+                                            static_cast<double>(config.partition.k));
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
@@ -518,8 +518,8 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   hypergraph->setNodePart(10, 1);
   hypergraph->setNodePart(11, 1);
   config.partition.epsilon = 0.02;
-  config.partition.max_part_size = (1 + config.partition.epsilon)
-                                   * ceil(12 / static_cast<double>(config.partition.k));
+  config.partition.max_part_weight = (1 + config.partition.epsilon)
+                                     * ceil(12 / static_cast<double>(config.partition.k));
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 

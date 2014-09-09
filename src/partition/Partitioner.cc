@@ -44,10 +44,15 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     }
 
     start = std::chrono::high_resolution_clock::now();
-    coarsener.uncoarsen(refiner);
+    const bool found_improved_cut = coarsener.uncoarsen(refiner);
     end = std::chrono::high_resolution_clock::now();
     _timings[kUncoarseningRefinement] += end - start;
+
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    if (!found_improved_cut) {
+      LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
+      break;
+    }
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
            << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ++_config.partition.current_v_cycle;
@@ -106,23 +111,23 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
 
   if (num_unpartitioned_hns == num_pins) {
     if (partition_weights[0] + unpartitioned_weight
-        <= _config.partition.max_part_size) {
+        <= _config.partition.max_part_weight) {
       assignAllPinsToPartition(he, 0, hg, partition_weights);
     } else if (partition_weights[1] + unpartitioned_weight
-               <= _config.partition.max_part_size) {
+               <= _config.partition.max_part_weight) {
       assignAllPinsToPartition(he, 1, hg, partition_weights);
     }
     return;
   }
   if ((hg.pinCountInPart(he, 0) > 0 && hg.pinCountInPart(he, 1) == 0) &&
       (partition_weights[0] + unpartitioned_weight
-       <= _config.partition.max_part_size)) {
+       <= _config.partition.max_part_weight)) {
     assignUnpartitionedPinsToPartition(he, 0, hg, partition_weights);
     return;
   }
   if ((hg.pinCountInPart(he, 1) > 0 && hg.pinCountInPart(he, 0) == 0) &&
       (partition_weights[1] + unpartitioned_weight
-       <= _config.partition.max_part_size)) {
+       <= _config.partition.max_part_weight)) {
     assignUnpartitionedPinsToPartition(he, 1, hg, partition_weights);
     return;
   }
@@ -213,13 +218,14 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = Randomize::newRandomSeed();
-
-    std::system((std::string("/home/kurayami/code/bin/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 ")
-                 + _config.partition.coarse_graph_filename
-                 + " " + std::to_string(_config.partition.k)
-                 + " -seed=" + std::to_string(seed)
-                 + " -ufactor=" + std::to_string(_config.partition.epsilon * 50)
-                 + (_config.partition.verbose_output ? "" : " > /dev/null")).c_str());
+    std::string hmetis_call("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
+                            + _config.partition.coarse_graph_filename
+                            + " " + std::to_string(_config.partition.k)
+                            + " -seed=" + std::to_string(seed)
+                            + " -ufactor=" + std::to_string(_config.partition.hmetis_ub_factor)
+                            + (_config.partition.verbose_output ? "" : " > /dev/null"));
+    LOG(hmetis_call);
+    std::system(hmetis_call.c_str());
 
     io::readPartitionFile(_config.partition.coarse_graph_partition_filename, partitioning);
     ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
