@@ -64,18 +64,22 @@ struct EdgeData
   std::vector<std::pair<Label, PartitionID> > incident_labels;
   std::vector<int> location; // location of the incident_labels in the sample
 
-  bool small_edge = false;
+  bool small_edge;
 
-  std::pair<Label, PartitionID> *sampled = nullptr;
-  uint32_t sample_size= 0;
+  std::pair<Label, PartitionID> *sampled;
+  uint32_t sample_size;
 
   std::unordered_map<Label, uint32_t> label_count_map;
 
   EdgeData() :
     incident_labels(),
     location(),
+    small_edge(false),
+    sampled(nullptr),
+    sample_size(0),
     label_count_map()
-  { }
+  {
+  }
 
   ~EdgeData()
   {

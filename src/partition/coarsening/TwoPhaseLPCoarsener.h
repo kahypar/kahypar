@@ -78,6 +78,7 @@ namespace partition
                                                     FinishedPolicy>,
                                 TwoPhaseLPCoarseningMemento>;
 
+
     public:
       using Base::_hg;
       using Base::_config;
@@ -92,22 +93,28 @@ namespace partition
       using Base::gatherCoarseningStats;
       TwoPhaseLPCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
       _contraction_mementos(),
-      _gen(_config.partition.seed), _nodes(hg.numNodes()),
+      _gen(_config.partition.seed),
       _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes()),
       _iter(0),
       _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
-        {
-        //incident_labels_score.init(_hg.numNodes(), 1.0);
-        }
+    {
+    }
 
       void coarsenImpl(int limit) final
       {
-        // TODO init method?
-        _num_labels = _hg.numNodes();
+        initialize();
+
+        // reset the data from a possible previous run
+        // we will reuse the nodeData and edgeData...
+        _nodes.clear();
+        _nodes.resize(_hg.numNodes());
         _iter = 0;
+        _labels_count.clear();
+        _labels_count.resize(_hg.numNodes());
+        _num_labels = _hg.numNodes();
+
 
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
-
         edge_initialization_(_hg, _edgeData);
 
         bool finished = false;
@@ -254,10 +261,6 @@ namespace partition
               if (val.second != 0) temp++;
             }
             assert(temp == _num_labels);
-
-
-
-
           }
           std::cout << "all good!" << std::endl;
 #endif
@@ -283,6 +286,9 @@ namespace partition
             removeParallelHyperedges(repr);
           }
         }
+
+        // recursive call aslong we have less than limit nodes
+        if (_num_labels > limit) coarsenImpl(limit);
 
         gatherCoarseningStats();
 #endif
@@ -334,8 +340,8 @@ namespace partition
       }
 
       void performUncontraction(const TwoPhaseLPCoarseningMemento &memento,
-                                std::vector<HypernodeID> &refinement_nodes,
-                                size_t &num_refinement_nodes)
+          std::vector<HypernodeID> &refinement_nodes,
+          size_t &num_refinement_nodes)
       {
         refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
           + memento.mementos_size - 1].u;
