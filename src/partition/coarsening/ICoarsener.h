@@ -21,8 +21,8 @@ class ICoarsener {
     coarsenImpl(limit);
   }
 
-  void uncoarsen(IRefiner& refiner) {
-    uncoarsenImpl(refiner);
+  bool uncoarsen(IRefiner& refiner) {
+    return uncoarsenImpl(refiner);
   }
 
   std::string policyString() const {
@@ -40,7 +40,7 @@ class ICoarsener {
 
   private:
   virtual void coarsenImpl(int limit) = 0;
-  virtual void uncoarsenImpl(IRefiner& refiner) = 0;
+  virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;
   DISALLOW_COPY_AND_ASSIGN(ICoarsener);

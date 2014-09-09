@@ -44,10 +44,15 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     }
 
     start = std::chrono::high_resolution_clock::now();
-    coarsener.uncoarsen(refiner);
+    const bool found_improved_cut = coarsener.uncoarsen(refiner);
     end = std::chrono::high_resolution_clock::now();
     _timings[kUncoarseningRefinement] += end - start;
+
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    if (!found_improved_cut) {
+      LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
+      break;
+    }
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
            << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ++_config.partition.current_v_cycle;
