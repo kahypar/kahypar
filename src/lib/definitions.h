@@ -108,6 +108,8 @@ struct EdgeData
     } else {
       sampled = new std::pair<Label, PartitionID>[sample_size];
     }
+
+    return *this;
   }
 
   EdgeData& operator=(EdgeData &&edge_data)
@@ -126,6 +128,8 @@ struct EdgeData
     // "steal" the sampled array
     sampled = edge_data.sampled;
     edge_data.sampled = nullptr;
+
+    return *this;
   }
 
   EdgeData(const EdgeData &e)
