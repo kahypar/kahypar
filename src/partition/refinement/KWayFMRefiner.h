@@ -104,10 +104,7 @@ class KWayFMRefiner : public IRefiner,
       activate(refinement_nodes[i]);
     }
 
-#ifndef NDEBUG
-    HyperedgeWeight initial_cut = best_cut;
-#endif
-
+    const HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
     int min_cut_index = -1;
     int step = 0; // counts total number of loop iterations - might be removed
@@ -178,10 +175,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    if (min_cut_index != -1) {
-      return true;
-    }
-    return false;
+    return best_cut < initial_cut;
   }
 
   int numRepetitionsImpl() const final {
