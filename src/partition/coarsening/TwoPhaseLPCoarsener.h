@@ -184,7 +184,7 @@ namespace partition
             _size_constraint[new_label] += _hg.nodeWeight(hn);
             assert(_size_constraint[new_label] <= _config.lp.max_size_constraint);
          }
-#define HARD_DEBUG
+//#define HARD_DEBUG
 #ifdef HARD_DEBUG
           {
             std::cout << "Validating...." << std::flush;
@@ -343,7 +343,8 @@ namespace partition
         //ASSERT(current_imbalance <= _config.partition.epsilon,
             //"balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
             //<< " > " << _config.partition.epsilon);
-        return current_cut < initial_cut;
+        return true;
+        //return current_cut < initial_cut;
       }
 
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)

@@ -83,15 +83,59 @@ struct EdgeData
 
   ~EdgeData()
   {
-    if (!small_edge)
+    if (!small_edge && sampled != nullptr)
     {
       delete[] sampled;
     }
   }
 
+  EdgeData& operator=(const EdgeData &edge_data)
+  {
+    if (!small_edge && sampled != nullptr)
+    {
+      delete[] sampled;
+    }
+
+    incident_labels = edge_data.incident_labels;
+    location = edge_data.location;
+    small_edge = edge_data.small_edge;
+    sample_size = edge_data.sample_size;
+    label_count_map = edge_data.label_count_map;
+
+    if (small_edge)
+    {
+      sampled = incident_labels.data();
+    } else {
+      sampled = new std::pair<Label, PartitionID>[sample_size];
+    }
+  }
+
+  EdgeData& operator=(EdgeData &&edge_data)
+  {
+    if (!small_edge && sampled != nullptr)
+    {
+      delete[] sampled;
+    }
+
+    incident_labels = std::move(edge_data.incident_labels);
+    location = std::move(edge_data.location);
+    small_edge = edge_data.small_edge;
+    sample_size = edge_data.sample_size;
+    label_count_map = std::move(edge_data.label_count_map);
+
+    // "steal" the sampled array
+    sampled = edge_data.sampled;
+    edge_data.sampled = nullptr;
+  }
+
   EdgeData(const EdgeData &e)
   {
-    throw(std::logic_error("EdgeData with set sampled_pointer was copied!"));
+    throw std::logic_error("EdgeData was copy-constructed... not supported yet!");
+  }
+
+  EdgeData(const EdgeData &&e)
+  {
+    throw std::logic_error("EdgeData was move-constructed... not supported yet!");
   }
 };
 
