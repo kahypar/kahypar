@@ -325,8 +325,7 @@ int main(int argc, char* argv[]) {
   // in case of no s parameter is given as input, we calculate the correct
   // one like KaSPar.
   if (config.coarsening.hypernode_weight_fraction == -1.0) {
-    config.coarsening.hypernode_weight_fraction = (1.5 * hypergraph.numNodes()) /
-                                                  (20 * config.partition.k);
+    config.coarsening.hypernode_weight_fraction = 1.5 / (20.0 * config.partition.k);
   }
 
 
