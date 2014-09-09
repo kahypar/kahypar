@@ -18,7 +18,7 @@ namespace lpa_hypergraph
       for (const auto hn : hg.nodes())
       {
         nodes[label] = hn;
-        size_constraint[hn] = hg.nodeWeight(hn); // hmmm....
+        size_constraint[label] = hg.nodeWeight(hn); // hmmm....
         nodeData[hn].label = label;
         labels_count[label++] = 1;
       }
@@ -38,7 +38,7 @@ namespace lpa_hypergraph
 
       for (const auto hn : hg.nodes())
       {
-        size_constraint[hn] = hg.nodeWeight(hn);
+        size_constraint[label] = hg.nodeWeight(hn);
         temp[label] = std::make_pair(hn, hg.nodeDegree(hn));
         nodeData[hn].label = label;
         labels_count[label++] = 1;

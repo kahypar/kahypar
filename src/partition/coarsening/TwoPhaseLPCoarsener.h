@@ -95,15 +95,13 @@ namespace partition
       _contraction_mementos(),
       _gen(_config.partition.seed),
       _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes()),
-      _iter(0),
+      _iter(0), _recursive_call(0),
       _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
     {
     }
 
       void coarsenImpl(int limit) final
       {
-        initialize();
-
         // reset the data from a possible previous run
         // we will reuse the nodeData and edgeData...
         _nodes.clear();
@@ -112,7 +110,8 @@ namespace partition
         _labels_count.clear();
         _labels_count.resize(_hg.numNodes());
         _num_labels = _hg.numNodes();
-
+        _size_constraint.clear();
+        _size_constraint.resize(_hg.numNodes());
 
         node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
         edge_initialization_(_hg, _edgeData);
@@ -139,6 +138,7 @@ namespace partition
             // we decrease the weight for the cluster of the current node,
             // so that this node can decide to stay in this cluster
             // TODO think about better way?
+            assert (_size_constraint[_nodeData[hn].label] >= _hg.nodeWeight(hn));
             _size_constraint[_nodeData[hn].label] -= _hg.nodeWeight(hn);
 
             int i = 0;
@@ -149,33 +149,42 @@ namespace partition
             }
 
             //compute new label
-            Label new_label;
             Label old_label = _nodeData[hn].label;
+            Label new_label = old_label;
 
             if (compute_new_label_(_incident_labels_score, _gen, new_label) &&
-                new_label != old_label &&
-                gain_(hn, _nodeData, _edgeData, old_label, new_label, _hg) >= 0)
+                new_label != old_label)
             {
-              // only allow this label change if hn was not the last node with old_label (if limit was reached)
-              if (_num_labels > limit || _labels_count[old_label] > 1)
+              auto gain = gain_(hn, _nodeData, _edgeData, old_label, new_label, _hg);
+              // very ugly part!
+              if (gain >=0)
               {
-                _num_labels -= --_labels_count[old_label] == 0 ? 1 : 0 ;
+                // only allow this label change if hn was not the last node with old_label (if limit was reached)
+                if (_num_labels > limit || _labels_count[old_label] > 1)
+                {
+                  _num_labels -= --_labels_count[old_label] == 0 ? 1 : 0 ;
 
-                assert(_labels_count[new_label]!=0);
+                  assert(_labels_count[new_label]!=0);
 
-                ++_labels_count[new_label];
+                  ++_labels_count[new_label];
+                  _nodeData[hn].label = new_label;
+                  ++labels_changed;
+                  // TODO utilize the positive gain moves!
 
-                _nodeData[hn].label = new_label;
-                ++labels_changed;
-                update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
+                  update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
+                } else {
+                  new_label = old_label;
+                }
+              } else {
+                new_label = old_label;
               }
             }
 
             // update the size_constraint_vector
             _size_constraint[new_label] += _hg.nodeWeight(hn);
-          }
-
-          //#define HARD_DEBUG
+            assert(_size_constraint[new_label] <= _config.lp.max_size_constraint);
+         }
+#define HARD_DEBUG
 #ifdef HARD_DEBUG
           {
             std::cout << "Validating...." << std::flush;
@@ -244,6 +253,7 @@ namespace partition
               for (const auto val : cluster_weight)
               {
                 assert(val.second <= _config.lp.max_size_constraint);
+                assert(val.second == _size_constraint[val.first]);
               }
             }
 
@@ -264,6 +274,9 @@ namespace partition
           }
           std::cout << "all good!" << std::endl;
 #endif
+
+
+
 
           finished |= check_finished_condition_(_hg.numNodes(), _iter, labels_changed);
           ++_iter;
@@ -287,18 +300,24 @@ namespace partition
           }
         }
 
-        // recursive call aslong we have less than limit nodes
-        if (_num_labels > limit) coarsenImpl(limit);
-
         gatherCoarseningStats();
+        // recursive call aslong we have less than limit nodes or
+        if (_recursive_call++ < _config.lp.max_recursive_calls &&
+            _num_labels > limit)
+        {
+          coarsenImpl(limit);
+        }
+
+        _recursive_call = 0;
 #endif
       };
 
-      void uncoarsenImpl(IRefiner &refiner) final
+      bool uncoarsenImpl(IRefiner &refiner) final
       {
         // copied from HeavyEdgeCoarsenerBase.h
         double current_imbalance = metrics::imbalance(_hg);
         HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+        const HyperedgeWeight initial_cut = current_cut;
 
         _stats.add("initialCut", _config.partition.current_v_cycle, current_cut);
         _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
@@ -318,10 +337,13 @@ namespace partition
 
           performLocalSearch(refiner, refinement_nodes, num_refinement_nodes, current_imbalance, current_cut);
           _history.pop();
+          // TODO ask sebastian
+          //assert(current_imbalance == metrics::imbalance(_hg));
         }
-        ASSERT(current_imbalance <= _config.partition.epsilon,
-            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-            << " > " << _config.partition.epsilon);
+        //ASSERT(current_imbalance <= _config.partition.epsilon,
+            //"balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+            //<< " > " << _config.partition.epsilon);
+        return current_cut < initial_cut;
       }
 
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
@@ -394,6 +416,8 @@ namespace partition
       std::vector<HypernodeWeight> _size_constraint;
 
       int _iter;
+      int _recursive_call;
+
       std::vector<size_t> _labels_count;
       size_t _num_labels;
 
@@ -401,7 +425,7 @@ namespace partition
 
       std::vector<ContractionMemento> _contraction_mementos;
   };
-};
+}
 
 
 #endif

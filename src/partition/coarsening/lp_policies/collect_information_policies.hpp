@@ -52,7 +52,7 @@ namespace lpa_hypergraph
         std::vector<EdgeData> &edgeData)
     {
       // TODO .... ugly!
-      static std::unordered_map<HypernodeID, std::unordered_map<HyperedgeID, int> > temp;
+      std::unordered_map<HypernodeID, std::unordered_map<HyperedgeID, int> > temp;
 
       for (const auto hn : hg.nodes())
       {

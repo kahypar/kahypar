@@ -366,8 +366,6 @@ int main(int argc, char* argv[]) {
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
 
-  // Vitali : set the config for the policies
-  BasePolicy::config_ = config;
 
   Randomize::setSeed(config.partition.seed);
 
@@ -403,8 +401,6 @@ int main(int argc, char* argv[]) {
                                             hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
-  // set the maximum size constraint for label propagation
-  config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
   // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
@@ -426,6 +422,11 @@ int main(int argc, char* argv[]) {
   LOG("***** GATHER_STATS ACTIVE *****");
   LOG("*******************************");
 #endif
+
+  // Vitali : set the config for the policies
+  // set the maximum size constraint for label propagation
+  config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
+  BasePolicy::config_ = config;
 
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
