@@ -39,6 +39,7 @@ typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
 typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
 typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
 typedef Hypergraph::ConnectivitySetIteratorPair ConnectivitySetIteratorPair;
+typedef Hypergraph::PartInfoIteratorPair  PartInfoIteratorPair;
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
 
