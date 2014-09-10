@@ -3,6 +3,10 @@
 
 #include <chrono>
 
+#include "lib/datastructure/PseudoHashmap.h"
+#include "lib/datastructure/LinearProbingHashmap.h"
+#include <google/dense_hash_map>
+
 #include "lib/datastructure/GenericHypergraph.h"
 #include <exception>
 #include <unordered_map>
@@ -50,7 +54,9 @@ typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClock
 typedef unsigned int Label;
 
 template <typename K, typename V>
-using MyHashMap = std::unordered_map<K,V>;
+//using MyHashMap = std::unordered_map<K,V>;
+//using MyHashMap = lpa_hypergraph::linear_probing_hashmap<K,V>;
+using MyHashMap = lpa_hypergraph::pseudo_hashmap<K,V>;
 
 struct NodeData
 {

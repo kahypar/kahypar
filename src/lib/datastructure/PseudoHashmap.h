@@ -1,0 +1,107 @@
+#ifndef PSEUDO_HASHMAP_HPP_
+#define PSEUDO_HASHMAP_HPP_
+
+#include <vector>
+#include <exception>
+#include <iostream>
+#include <stack>
+#include <limits>
+#include <memory>
+
+namespace lpa_hypergraph
+{
+  // no resize, no deletes
+  template <typename Key, typename Value>
+    class pseudo_hashmap {
+
+      public:
+      // custom iterator, used for range loops
+      class Iter
+      {
+        public:
+          Iter (const int pos, const pseudo_hashmap <Key, Value> *map) : pos_(pos), map_(map)
+        {}
+
+          bool inline operator!= (const Iter& other)
+          {
+            return pos_ != other.pos_;
+          }
+
+          const inline Iter& operator++()
+          {
+            ++pos_;
+            return *this;
+          }
+
+          inline std::pair<Key, Value> operator*()
+          {
+            auto&& entry = (*map_).m_internal_map[(*map_).m_contained_key_positions[pos_]];
+            return std::make_pair(entry.key, entry.value);
+          }
+
+        private:
+          int pos_;
+          const pseudo_hashmap<Key, Value> *map_;
+      };
+
+      static const Key NOT_CONTAINED = std::numeric_limits<Key>::max();
+
+      struct KeyValuePair {
+        Key key;
+        Value value;
+
+        KeyValuePair() {
+          key = NOT_CONTAINED;
+          value = {};
+        }
+      };
+
+      pseudo_hashmap() {
+      };
+
+      virtual ~pseudo_hashmap() {};
+
+      Iter begin() const
+      {
+        return Iter(0, this);
+      }
+
+      Iter end() const
+      {
+        return Iter(m_contained_key_positions.size(), this);
+      };
+
+
+      void init( int max_size ) {
+        m_size      = max_size;
+
+        m_internal_map.resize(m_size);
+      }
+
+      void clear() {
+        while( m_contained_key_positions.size() > 0 ) {
+          Key cur_key_position = m_contained_key_positions.back();
+          m_contained_key_positions.pop_back();
+
+          m_internal_map[cur_key_position].key   = NOT_CONTAINED;
+          m_internal_map[cur_key_position].value = 0;
+        }
+      }
+
+      Value& operator[](Key key) {
+        if (m_internal_map[key].key == NOT_CONTAINED)
+        {
+          m_contained_key_positions.push_back(key);
+          m_internal_map[key].key = key;
+        }
+
+        return m_internal_map[key].value;
+      };
+
+      private:
+      Key m_size;
+      std::vector< KeyValuePair > m_internal_map;
+      std::vector< Key > m_contained_key_positions;
+    };
+};
+#endif

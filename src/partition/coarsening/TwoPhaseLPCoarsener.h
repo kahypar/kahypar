@@ -98,6 +98,7 @@ namespace partition
       _iter(0), _recursive_call(0),
       _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
     {
+      _incident_labels_score.init(_hg.numNodes());
     }
 
       void coarsenImpl(int limit) final
@@ -275,21 +276,17 @@ namespace partition
           std::cout << "all good!" << std::endl;
 #endif
 
-
-
-
           finished |= check_finished_condition_(_hg.numNodes(), _iter, labels_changed);
           ++_iter;
         }
         // perform the contractions
 #ifndef CLUSTER_ONLY
-        MyHashMap <defs::Label, std::vector<HypernodeID> > cluster;
         for (const auto hn : _hg.nodes())
         {
-          cluster[_nodeData[hn].label].push_back(hn);
+          _cluster_nodes_map[_nodeData[hn].label].push_back(hn);
         }
 
-        for (const auto val : cluster)
+        for (const auto val : _cluster_nodes_map)
         {
           // only contract more than 1 node
           if (val.second.size() > 1)
@@ -300,6 +297,7 @@ namespace partition
           }
         }
 
+        _cluster_nodes_map.clear();
         gatherCoarseningStats();
         // recursive call aslong we have less than limit nodes or
         if (_recursive_call++ < _config.lp.max_recursive_calls &&
@@ -392,7 +390,17 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return "TwoPhaseLP";
+        return std::string(" NodeInitializationPolicy=" + templateToString<NodeInitializationPolicy>() +
+                           " EdgeInitializationPolicy=" + templateToString<EdgeInitializationPolicy>() +
+                           " CollectInformationBeforeLoopPolicy=" + templateToString<CollectInformationBeforeLoopPolicy>() +
+                           " CollectInformationInsideLoopPolicy=" + templateToString<CollectInformationInsideLoopPolicy>() +
+                           " PermutateNodesPolicy=" + templateToString<PermutateNodesPolicy>() +
+                           " PermutateSampleLabelsPolicy=" + templateToString<PermutateSampleLabelsPolicy>() +
+                           " ComputeScorePolicy=" + templateToString<ComputeScorePolicy>() +
+                           " ComputeNewLabelPolicy=" + templateToString<ComputeNewLabelPolicy>() +
+                           " GainPolicy=" + templateToString<GainPolicy>() +
+                           " UpdateInformationPolicy=" + templateToString<UpdateInformationPolicy>() +
+                           " FinishedPolicy=" + templateToString<FinishedPolicy>());
       }
 
     public:
@@ -422,6 +430,7 @@ namespace partition
       size_t _num_labels;
 
       MyHashMap<Label, double> _incident_labels_score;
+      std::unordered_map<Label, std::vector<HypernodeID> > _cluster_nodes_map;
 
       std::vector<ContractionMemento> _contraction_mementos;
   };
