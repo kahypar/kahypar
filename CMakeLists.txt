@@ -29,6 +29,12 @@ if(SQLITE3_FOUND)
     message(STATUS "Sqlite3 Library debug: ${SQLITE3_LIBRARY_DEBUG}")
 endif(SQLITE3_FOUND)
 
+
+find_package(SparseHash REQUIRED)
+if(SPARSEHASH_FOUND)
+  message(STATUS "SparseHash Include: ${SPARSEHASH_INCLUDE_DIR}")
+endif(SPARSEHASH_FOUND)
+
 if(NOT CMAKE_BUILD_TYPE)
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
        "Choose the type of build, options are: Debug Release"
