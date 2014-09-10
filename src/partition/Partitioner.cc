@@ -143,7 +143,9 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg) {
   }
 
   // Third case: Distribute the remaining pins such that imbalance is minimzed.
-  // TODO(schlag): If we add global objective functions, this has to be adapted.
+  // TODO(schlag): If we add global objective functions, this has to be adapted:
+  // In this case, we would probably want to distibute the pins only into connected
+  // parts.
   distributePinsAcrossPartitions(he, hg);
 }
 
