@@ -261,7 +261,7 @@ class GenericHypergraph {
     HypernodeID u, u_first_entry, u_size, v;
   };
 
-  struct PartInformation {
+  struct PartInfo {
     HypernodeWeight weight;
     HypernodeID size;
   };
@@ -282,6 +282,8 @@ class GenericHypergraph {
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
 
  public:
+  typedef Memento ContractionMemento;
+  typedef PartInfo PartInformation;
   typedef typename std::vector<VertexID>::const_iterator IncidenceIterator;
   typedef VertexIterator<std::vector<HypernodeVertex>> HypernodeIterator;
   typedef VertexIterator<std::vector<HyperedgeVertex>> HyperedgeIterator;
@@ -289,7 +291,8 @@ class GenericHypergraph {
   typedef IteratorPair<HypernodeIterator> HypernodeIteratorPair;
   typedef IteratorPair<HyperedgeIterator> HyperedgeIteratorPair;
   typedef IteratorPair<typename ConnectivitySet::const_iterator> ConnectivitySetIteratorPair;
-  typedef Memento ContractionMemento;
+  typedef IteratorPair<typename std::vector<PartInformation>::const_iterator> PartInfoIteratorPair;
+
 
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const HyperedgeIndexVector& index_vector,
@@ -879,6 +882,11 @@ class GenericHypergraph {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     return _connectivity_sets[he].size();
   }
+
+  PartInfoIteratorPair partInfos() const {
+    return makeIteratorPair(_part_info.begin(), _part_info.end());
+  }
+
 
   HypernodeWeight partWeight(PartitionID id) const {
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");

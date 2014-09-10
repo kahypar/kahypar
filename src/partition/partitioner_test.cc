@@ -133,10 +133,9 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
   std::vector<HyperedgeID> removed_hyperedges { 1, 2 };
-  std::vector<HypernodeWeight> partition_sizes { 1, 1 };
 
   for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
+    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
   }
 
   ASSERT_THAT(hypergraph->partID(2), Eq(0));
@@ -159,10 +158,9 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph->setNodePart(6, 1);
 
   std::vector<HyperedgeID> removed_hyperedges { 1 };
-  std::vector<HypernodeWeight> partition_sizes { 2, 4 };
 
   for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
+    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
   }
 
   ASSERT_THAT(hypergraph->partID(3), Eq(0));
@@ -176,10 +174,8 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);
 
-  std::vector<HypernodeWeight> partition_sizes { 1, 1 };
-
   for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph, partition_sizes);
+    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
   }
 
   ASSERT_THAT(hypergraph->partID(2), Eq(0));

@@ -68,13 +68,21 @@ class APartitionedHypergraph : public Test {
     partitioner(config),
     coarsener(new FirstWinsCoarsener(hypergraph, config)),
     refiner(new Refiner(hypergraph, config)) {
+    config.partition.k = 2;
     config.coarsening.minimal_node_count = 2;
+    config.partition.total_graph_weight = 7;
     config.coarsening.threshold_node_weight = 5;
     config.partition.graph_filename = "Test";
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
     config.partition.epsilon = 0.15;
+    config.partition.max_part_weight = (1 + config.partition.epsilon) * ceil(7.0 / 2);
+    double exp = 1.0 / log2(config.partition.k);
+    config.partition.hmetis_ub_factor =
+      50.0 * (2 * pow((1 + config.partition.epsilon), exp)
+              * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
+                         / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
     partitioner.partition(hypergraph, *coarsener, *refiner);
   }
 

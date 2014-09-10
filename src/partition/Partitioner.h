@@ -35,6 +35,7 @@ using defs::HypernodeID;
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
+static const bool dbg_partition_large_he_restore = true;
 static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
@@ -74,14 +75,10 @@ class Partitioner {
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
   void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
-  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg,
-                                  PartitionWeights& partition_weights);
-  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
-                                          PartitionWeights& partition_weights);
-  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg,
-                                PartitionWeights& partition_weights);
-  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg,
-                                      PartitionWeights& partition_weights);
+  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg);
+  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg);
+  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg);
+  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg);
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg);
