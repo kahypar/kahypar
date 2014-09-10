@@ -77,24 +77,24 @@ void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>
       }
     }
   }
-  LOG("removed " << removed_hyperedges.size()  << " HEs that had more than "
+  LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
       << _config.partition.hyperedge_size_threshold << " pins");
 }
 
 void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
                                          std::vector<HyperedgeID>& removed_hyperedges) {
-    HyperedgeID conn_one_hes = 0;
-    for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-      DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
-      hg.restoreEdge(*edge);
-      if (hg.connectivity(*edge) == 1) {
-        ++conn_one_hes;
-      }
-      partitionUnpartitionedPins(*edge, hg);
+  HyperedgeID conn_one_hes = 0;
+  for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
+    DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
+    hg.restoreEdge(*edge);
+    if (hg.connectivity(*edge) == 1) {
+      ++conn_one_hes;
     }
-    LOG(conn_one_hes << " could have been assigned to one part");
-    ASSERT(metrics::imbalance(hg) <= _config.partition.epsilon,
-           "Final assignment of unpartitioned pins violated balance constraint");
+    partitionUnpartitionedPins(*edge, hg);
+  }
+  LOG(conn_one_hes << " could have been assigned to one part");
+  ASSERT(metrics::imbalance(hg) <= _config.partition.epsilon,
+         "Final assignment of unpartitioned pins violated balance constraint");
 }
 
 void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg) {
@@ -113,7 +113,7 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg) {
   PartitionID target_part = Hypergraph::kInvalidPartition;
   HypernodeWeight target_part_weight_after_assignment = std::numeric_limits<HypernodeWeight>::max();
   if (num_unpartitioned_hns == num_pins) {
-    ASSERT(hg.connectivity(he) == 0, "HE " << he " does already contain partitioned pins");
+    ASSERT(hg.connectivity(he) == 0, "HE " << he << " does already contain partitioned pins");
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       const HypernodeWeight current_part_weight_after_assignment = hg.partWeight(part)
                                                                    + unpartitioned_weight;
@@ -177,8 +177,8 @@ void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg)
 
   static auto comparePartWeights = [](const Hypergraph::PartInformation& a,
                                       const Hypergraph::PartInformation& b) {
-    return a.weight < b.weight;
-  };
+                                     return a.weight < b.weight;
+                                   };
 
   PartitionID min_partition = 0;
   PartInfoIteratorPair part_info_iters = hg.partInfos();
