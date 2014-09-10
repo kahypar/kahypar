@@ -343,8 +343,7 @@ namespace partition
         //ASSERT(current_imbalance <= _config.partition.epsilon,
             //"balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
             //<< " > " << _config.partition.epsilon);
-        return true;
-        //return current_cut < initial_cut;
+        return current_cut < initial_cut;
       }
 
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
