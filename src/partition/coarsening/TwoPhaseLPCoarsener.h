@@ -98,7 +98,11 @@ namespace partition
       _iter(0), _recursive_call(0),
       _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
     {
-      _incident_labels_score.init(_hg.numNodes());
+      //_incident_labels_score.init(hg.numNodes(), 1.0); // linear probing
+      //_incident_labels_score.set_empty_key(std::numeric_limits<Label>::max()); // google
+      //_incident_labels_score.resize(hg.numNodes());
+      //
+      _incident_labels_score.init(_hg.numNodes()); // pseudo hashmap
     }
 
       void coarsenImpl(int limit) final
