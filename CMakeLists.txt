@@ -33,6 +33,7 @@ endif(SQLITE3_FOUND)
 
 find_package(SparseHash REQUIRED)
 if(SPARSEHASH_FOUND)
+  include_directories(${SPARSEHASH_INCLUDE_DIR})
   message(STATUS "SparseHash Include: ${SPARSEHASH_INCLUDE_DIR}")
 endif(SPARSEHASH_FOUND)
 
