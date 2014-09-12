@@ -273,7 +273,8 @@ class TwoWayFMRefiner : public IRefiner,
             // because now there are pins in both parts.
             updatePin(he, pin, -1);
           }
-          // otherwise delta-gain would be zero!
+          // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
+          // See for example [CadKaMa99]
         }
       }
     }
@@ -433,7 +434,8 @@ class TwoWayFMRefiner : public IRefiner,
              "Trying to compute gain for single-node HE " << he);
       if (_hg.pinCountInPart(he, target_partition) == 0) {
         gain -= _hg.edgeWeight(he);
-      } else if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+      }
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
         gain += _hg.edgeWeight(he);
       }
     }
