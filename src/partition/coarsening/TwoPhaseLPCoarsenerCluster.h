@@ -201,7 +201,7 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return std::string();
+        return std::string(" coarsener=TwoPhaseLPCoarsenerCluster ")+_clusterer.clusterer_string();
       }
 
     private:
