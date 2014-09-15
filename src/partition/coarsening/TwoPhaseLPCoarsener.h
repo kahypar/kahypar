@@ -1,5 +1,4 @@
-#ifndef TWO_PHASE_LP_COARSENER_HPP_
-#define TWO_PHASE_LP_COARSENER_HPP_
+#pragma once
 
 #include <string>
 #include <random>
@@ -7,6 +6,7 @@
 #include <unordered_set>
 
 #include "partition/coarsening/CoarsenerBase.h"
+#include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/Metrics.h"
 #include "lib/TemplateParameterToString.h"
@@ -14,6 +14,12 @@
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
+
+#include "clusterer/two_phase_lp.hpp"
+#include "clusterer/policies.hpp"
+
+lpa_hypergraph::Configuration lpa_hypergraph::BasePolicy::config_ = lpa_hypergraph::Configuration();
+
 
 namespace partition
 {
@@ -34,50 +40,18 @@ namespace partition
       mementos_size(0) { }
   };
 
-  template<typename NodeInitializationPolicy,
-           typename EdgeInitializationPolicy,
-           typename CollectInformationBeforeLoopPolicy,
-           typename CollectInformationInsideLoopPolicy,
-           typename PermutateNodesPolicy,
-           typename PermutateSampleLabelsPolicy,
-           typename ComputeScorePolicy,
-           typename ComputeNewLabelPolicy,
-           typename GainPolicy,
-           typename UpdateInformationPolicy,
-           typename FinishedPolicy>
+
+
   class TwoPhaseLPCoarsener : public ICoarsener,
-                              public CoarsenerBase<
-                                TwoPhaseLPCoarsener<NodeInitializationPolicy,
-                                                    EdgeInitializationPolicy,
-                                                    CollectInformationBeforeLoopPolicy,
-                                                    CollectInformationInsideLoopPolicy,
-                                                    PermutateNodesPolicy,
-                                                    PermutateSampleLabelsPolicy,
-                                                    ComputeScorePolicy,
-                                                    ComputeNewLabelPolicy,
-                                                    GainPolicy,
-                                                    UpdateInformationPolicy,
-                                                    FinishedPolicy>,
+                              public CoarsenerBase<TwoPhaseLPCoarsener,
                                 TwoPhaseLPCoarseningMemento>
   {
     private:
       using ContractionMemento = typename Hypergraph::ContractionMemento;
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
-      using Base = CoarsenerBase<
-                                TwoPhaseLPCoarsener<NodeInitializationPolicy,
-                                                    EdgeInitializationPolicy,
-                                                    CollectInformationBeforeLoopPolicy,
-                                                    CollectInformationInsideLoopPolicy,
-                                                    PermutateNodesPolicy,
-                                                    PermutateSampleLabelsPolicy,
-                                                    ComputeScorePolicy,
-                                                    ComputeNewLabelPolicy,
-                                                    GainPolicy,
-                                                    UpdateInformationPolicy,
-                                                    FinishedPolicy>,
+      using Base = CoarsenerBase<TwoPhaseLPCoarsener,
                                 TwoPhaseLPCoarseningMemento>;
-
 
     public:
       using Base::_hg;
@@ -92,226 +66,68 @@ namespace partition
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
       TwoPhaseLPCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
-      _contraction_mementos(),
-      _gen(_config.partition.seed),
-      _nodeData(hg.numNodes()), _edgeData(hg.numEdges()), _size_constraint(hg.numNodes()),
-      _iter(0), _recursive_call(0),
-      _labels_count(hg.numNodes()), _num_labels(hg.numNodes())
+      _clusterer(hg,convert_config(config)),
+      _recursive_call(0),
+      _contraction_mementos()
     {
-      //_incident_labels_score.init(hg.numNodes(), 1.0); // linear probing
-      //_incident_labels_score.set_empty_key(std::numeric_limits<Label>::max()); // google
-      //_incident_labels_score.resize(hg.numNodes());
-      //
-      _incident_labels_score.init(_hg.numNodes()); // pseudo hashmap
+      lpa_hypergraph::BasePolicy::config_ = convert_config(config);
     }
 
       void coarsenImpl(int limit) final
       {
-        // reset the data from a possible previous run
-        // we will reuse the nodeData and edgeData...
-        _nodes.clear();
-        _nodes.resize(_hg.numNodes());
-        _iter = 0;
-        _labels_count.clear();
-        _labels_count.resize(_hg.numNodes());
-        _num_labels = _hg.numNodes();
-        _size_constraint.clear();
-        _size_constraint.resize(_hg.numNodes());
-
-        node_initialization_(_nodes, _size_constraint, _nodeData, _labels_count, _hg);
-        edge_initialization_(_hg, _edgeData);
-
-        bool finished = false;
-
-        collect_information_before_(_hg, _nodeData, _edgeData);
-
-        while (!finished)
+        // set the max_cluster in the config TODO redesign?
+        _clusterer.set_limit(limit);
+//        auto nodes = _hg.nodes();
+//      // UUUUGLY
+        std::vector<HypernodeID> nodes;
+        nodes.reserve(_hg.numNodes());
+        for (const auto& hn : _hg.nodes())
         {
-          long long labels_changed = 0;
-          collect_information_each_iteration_(_hg, _nodeData, _edgeData);
-          permutate_nodes_(_nodes, _gen);
+          nodes.push_back(hn);
+        }
+        _clusterer.cluster_impl(nodes); // not utilized yet
+        // get the clustering
+        auto clustering = _clusterer.get_clustering();
 
-          // draw a new sample for each edge
-          permutate_labels_(_hg, _edgeData, _gen);
 
-          // Phase 2
-          for (const auto hn : _nodes)
+        assert (nodes.size() <= clustering.size());
+        for (size_t i = 0; i < nodes.size(); ++i)
+        {
+          _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
+        }
+
+
+        for (auto&& val : _clustering_map)
+        {
+          HypernodeWeight tmp=0;
+          for (auto&& w : val.second)
           {
-            _incident_labels_score.clear();
-
-            // kind of hacky...
-            // we decrease the weight for the cluster of the current node,
-            // so that this node can decide to stay in this cluster
-            // TODO think about better way?
-            assert (_size_constraint[_nodeData[hn].label] >= _hg.nodeWeight(hn));
-            _size_constraint[_nodeData[hn].label] -= _hg.nodeWeight(hn);
-
-            int i = 0;
-            for (const auto he : _hg.incidentEdges(hn))
-            {
-              compute_score_(_hg, hn, he,
-                  _nodeData, _edgeData, _incident_labels_score, _size_constraint, i++);
-            }
-
-            //compute new label
-            Label old_label = _nodeData[hn].label;
-            Label new_label = old_label;
-
-            if (compute_new_label_(_incident_labels_score, _gen, new_label) &&
-                new_label != old_label)
-            {
-              auto gain = gain_(hn, _nodeData, _edgeData, old_label, new_label, _hg);
-              // very ugly part!
-              if (gain >=0)
-              {
-                // only allow this label change if hn was not the last node with old_label (if limit was reached)
-                if (_num_labels > limit || _labels_count[old_label] > 1)
-                {
-                  _num_labels -= --_labels_count[old_label] == 0 ? 1 : 0 ;
-
-                  assert(_labels_count[new_label]!=0);
-
-                  ++_labels_count[new_label];
-                  _nodeData[hn].label = new_label;
-                  ++labels_changed;
-                  // TODO utilize the positive gain moves!
-
-                  update_information_(_hg, _nodeData, _edgeData, hn, old_label, new_label);
-                } else {
-                  new_label = old_label;
-                }
-              } else {
-                new_label = old_label;
-              }
-            }
-
-            // update the size_constraint_vector
-            _size_constraint[new_label] += _hg.nodeWeight(hn);
-            assert(_size_constraint[new_label] <= _config.lp.max_size_constraint);
-         }
-//#define HARD_DEBUG
-#ifdef HARD_DEBUG
-          {
-            std::cout << "Validating...." << std::flush;
-            // validate the location_incident_edges_
-            for (auto hn : _hg.nodes())
-            {
-              int i = 0;
-              for (const auto he : _hg.incidentEdges(hn))
-              {
-                assert(_nodeData[hn].label == _edgeData[he].incident_labels.at(
-                      _nodeData[hn].location_incident_edges_incident_labels.at(i++)).first);
-              }
-            }
-
-            // validate the location data
-            for (auto he : _hg.edges())
-            {
-              if (_edgeData[he].small_edge) continue;
-
-              int total_count = 0;
-              for (int i = 0; i < _edgeData[he].location.size(); i++)
-              {
-                if (_edgeData[he].location.at(i) < 0) continue;
-
-                ++total_count;
-                assert(_edgeData[he].sampled[_edgeData[he].location.at(i)] ==
-                    _edgeData[he].incident_labels.at(i));
-              }
-              assert (total_count == _edgeData[he].sample_size);
-            }
-
-            // validate the incident_labels
-            for (auto he : _hg.edges())
-            {
-              int i = 0;
-              for (auto pin : _hg.pins(he))
-              {
-                assert(_edgeData[he].incident_labels[i++].first == _nodeData[pin].label);
-              }
-            }
-
-            // validate the count_map
-            for (auto he : _hg.edges())
-            {
-              std::unordered_map<Label, int> count;
-              for (auto pin : _hg.pins(he))
-              {
-                ++count[_nodeData[pin].label];
-              }
-
-              for (auto val : count)
-              {
-                assert(_edgeData[he].label_count_map.at(val.first) == val.second);
-              }
-            }
-
-            // check the size_constraint
-            if (_config.lp.max_size_constraint > 0)
-            {
-              std::unordered_map<Label, HypernodeWeight> cluster_weight;
-              for (auto hn : _hg.nodes())
-              {
-                cluster_weight[_nodeData[hn].label] += _hg.nodeWeight(hn);
-              }
-
-              for (const auto val : cluster_weight)
-              {
-                assert(val.second <= _config.lp.max_size_constraint);
-                assert(val.second == _size_constraint[val.first]);
-              }
-            }
-
-            // validate the num_labels
-
-            std::unordered_map<Label, size_t> labels;
-            for (const auto hn : _hg.nodes())
-            {
-              labels[_nodeData[hn].label]++;
-            }
-            size_t temp = 0;
-            for (auto val : labels)
-            {
-              assert(val.second == _labels_count[val.first]);
-              if (val.second != 0) temp++;
-            }
-            assert(temp == _num_labels);
+            tmp += _hg.nodeWeight(w);
           }
-          std::cout << "all good!" << std::endl;
-#endif
-
-          finished |= check_finished_condition_(_hg.numNodes(), _iter, labels_changed);
-          ++_iter;
-        }
-        // perform the contractions
-#ifndef CLUSTER_ONLY
-        for (const auto hn : _hg.nodes())
-        {
-          _cluster_nodes_map[_nodeData[hn].label].push_back(hn);
+          assert (tmp <= _config.lp.max_size_constraint);
         }
 
-        for (const auto val : _cluster_nodes_map)
+        // perform the contrraction
+        for (auto&& val : _clustering_map)
         {
-          // only contract more than 1 node
+          // dont contract single nodes
           if (val.second.size() > 1)
           {
-            auto repr = performContraction(val.second);
-            removeSingleNodeHyperedges(repr);
-            removeParallelHyperedges(repr);
+            auto rep_node = performContraction(val.second);
+            removeSingleNodeHyperedges(rep_node);
+            removeParallelHyperedges(rep_node);
           }
         }
 
-        _cluster_nodes_map.clear();
+        _clustering_map.clear();
         gatherCoarseningStats();
-        // recursive call aslong we have less than limit nodes or
+
         if (_recursive_call++ < _config.lp.max_recursive_calls &&
-            _num_labels > limit)
+            _hg.numNodes() > limit)
         {
           coarsenImpl(limit);
         }
-
         _recursive_call = 0;
-#endif
       };
 
       bool uncoarsenImpl(IRefiner &refiner) final
@@ -359,7 +175,10 @@ namespace partition
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
           _contraction_mementos.push_back(_hg.contract(nodes[0], nodes[i]));
+          assert(_hg.nodeWeight(nodes[0] <= _config.lp.max_size_constraint));
         }
+          //assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          //std::cout << "nodeweight: " << _hg.nodeWeight(nodes[0]) <<" < " <<_config.lp.max_size_constraint<< std::endl;
         return nodes[0];
       }
 
@@ -394,51 +213,43 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return std::string(" NodeInitializationPolicy=" + templateToString<NodeInitializationPolicy>() +
-                           " EdgeInitializationPolicy=" + templateToString<EdgeInitializationPolicy>() +
-                           " CollectInformationBeforeLoopPolicy=" + templateToString<CollectInformationBeforeLoopPolicy>() +
-                           " CollectInformationInsideLoopPolicy=" + templateToString<CollectInformationInsideLoopPolicy>() +
-                           " PermutateNodesPolicy=" + templateToString<PermutateNodesPolicy>() +
-                           " PermutateSampleLabelsPolicy=" + templateToString<PermutateSampleLabelsPolicy>() +
-                           " ComputeScorePolicy=" + templateToString<ComputeScorePolicy>() +
-                           " ComputeNewLabelPolicy=" + templateToString<ComputeNewLabelPolicy>() +
-                           " GainPolicy=" + templateToString<GainPolicy>() +
-                           " UpdateInformationPolicy=" + templateToString<UpdateInformationPolicy>() +
-                           " FinishedPolicy=" + templateToString<FinishedPolicy>());
+        return std::string();
       }
 
-    public:
-      static auto constexpr node_initialization_ = NodeInitializationPolicy::initialize;
-      static auto constexpr edge_initialization_ = EdgeInitializationPolicy::initialize;
-      static auto constexpr collect_information_before_ = CollectInformationBeforeLoopPolicy::collect_information;
-      static auto constexpr collect_information_each_iteration_ =
-        CollectInformationInsideLoopPolicy::collect_information;
-      static auto constexpr permutate_nodes_ = PermutateNodesPolicy::permutate;
-      static auto constexpr permutate_labels_ = PermutateSampleLabelsPolicy::permutate;
-      static auto constexpr compute_score_ = ComputeScorePolicy::compute_score;
-      static auto constexpr compute_new_label_ = ComputeNewLabelPolicy::compute_new_label_double;
-      static auto constexpr gain_ = GainPolicy::gain;
-      static auto constexpr update_information_ = UpdateInformationPolicy::update_information;
-      static auto constexpr check_finished_condition_ = FinishedPolicy::check_finished_condition;
+    private:
 
-      std::mt19937 _gen;
-      std::vector<HypernodeID> _nodes;
-      std::vector<NodeData> _nodeData;
-      std::vector<EdgeData> _edgeData;
-      std::vector<HypernodeWeight> _size_constraint;
+      lpa_hypergraph::Configuration convert_config(const partition::Configuration &config)
+      {
+        return lpa_hypergraph::Configuration(config.lp.max_iterations,
+                                             config.partition.seed,
+                                             config.lp.sample_size,
+                                             config.partition.graph_filename,
+                                             "lp_temp",
+                                             -1,
+                                             0,
+                                             config.lp.percent,
+                                             config.lp.small_edge_threshold,
+                                             0.1,
+                                             config.lp.max_size_constraint);
+      }
 
-      int _iter;
+      lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition> _clusterer;
+
       int _recursive_call;
 
-      std::vector<size_t> _labels_count;
-      size_t _num_labels;
-
-      MyHashMap<Label, double> _incident_labels_score;
-      std::unordered_map<Label, std::vector<HypernodeID> > _cluster_nodes_map;
-
       std::vector<ContractionMemento> _contraction_mementos;
+      std::unordered_map<lpa_hypergraph::Label, std::vector<HypernodeID>> _clustering_map;
+
   };
 }
-
-
-#endif

@@ -37,10 +37,10 @@
 
 
 // vitali lp-includes
-#include "partition/coarsening/lp_policies/policies.hpp"
+#include "external/lpa_hypergraph/include/clusterer/policies.hpp"
 #include "partition/coarsening/TwoPhaseLPCoarsener.h"
 
-Configuration lpa_hypergraph::BasePolicy::config_ = Configuration();
+////Configuration lpa_hypergraph::BasePolicy::config_ = Configuration();
 
 
 namespace po = boost::program_options;
@@ -310,18 +310,7 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new TwoPhaseLPCoarsener<
-        OnlyLabelsInitialization,
-        InitializeSamplesWithUpdates,
-        CollectInformationWithUpdatesWithCleanup,
-        DontCollectInformation,
-        PermutateNodes,
-        PermutateLabelsWithUpdates,
-        NonBiasedSampledScoreComputation,
-        DefaultNewLabelComputation,
-        DefaultGain,
-        UpdateInformation,
-        MaxIterationCondition>(p.hypergraph, p.config);
+      return new TwoPhaseLPCoarsener(p.hypergraph, p.config);
     }
     );
 
@@ -426,7 +415,7 @@ int main(int argc, char* argv[]) {
   // Vitali : set the config for the policies
   // set the maximum size constraint for label propagation
   config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
-  BasePolicy::config_ = config;
+//  BasePolicy::config_ = config;
 
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);

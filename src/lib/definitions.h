@@ -3,10 +3,6 @@
 
 #include <chrono>
 
-#include "lib/datastructure/PseudoHashmap.h"
-#include "lib/datastructure/LinearProbingHashmap.h"
-#include <google/dense_hash_map>
-
 #include "lib/datastructure/GenericHypergraph.h"
 #include <exception>
 #include <unordered_map>
@@ -48,110 +44,6 @@ typedef Hypergraph::ConnectivitySetIteratorPair ConnectivitySetIteratorPair;
 typedef Hypergraph::PartInfoIteratorPair  PartInfoIteratorPair;
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
-
-
-
-// Vitali LP-definitions
-typedef unsigned int Label;
-
-template <typename K, typename V>
-//using MyHashMap = std::unordered_map<K,V>;
-//using MyHashMap = lpa_hypergraph::linear_probing_hashmap<K,V>;
-using MyHashMap = lpa_hypergraph::pseudo_hashmap<K,V>;
-
-struct NodeData
-{
-  Label label;
-  std::vector<int> location_incident_edges_incident_labels;
-};
-
-struct EdgeData
-{
-  //Label label;
-  std::vector<std::pair<Label, PartitionID> > incident_labels;
-  std::vector<int> location; // location of the incident_labels in the sample
-
-  bool small_edge;
-
-  std::pair<Label, PartitionID> *sampled;
-  uint32_t sample_size;
-
-  std::unordered_map<Label, uint32_t> label_count_map;
-
-  EdgeData() :
-    incident_labels(),
-    location(),
-    small_edge(false),
-    sampled(nullptr),
-    sample_size(0),
-    label_count_map()
-  {
-  }
-
-  ~EdgeData()
-  {
-    if (!small_edge && sampled != nullptr)
-    {
-      delete[] sampled;
-    }
-  }
-
-  EdgeData& operator=(const EdgeData &edge_data)
-  {
-    if (!small_edge && sampled != nullptr)
-    {
-      delete[] sampled;
-    }
-
-    incident_labels = edge_data.incident_labels;
-    location = edge_data.location;
-    small_edge = edge_data.small_edge;
-    sample_size = edge_data.sample_size;
-    label_count_map = edge_data.label_count_map;
-
-    if (small_edge)
-    {
-      sampled = incident_labels.data();
-    } else {
-      sampled = new std::pair<Label, PartitionID>[sample_size];
-    }
-
-    return *this;
-  }
-
-  EdgeData& operator=(EdgeData &&edge_data)
-  {
-    if (!small_edge && sampled != nullptr)
-    {
-      delete[] sampled;
-    }
-
-    incident_labels = std::move(edge_data.incident_labels);
-    location = std::move(edge_data.location);
-    small_edge = edge_data.small_edge;
-    sample_size = edge_data.sample_size;
-    label_count_map = std::move(edge_data.label_count_map);
-
-    // "steal" the sampled array
-    sampled = edge_data.sampled;
-    edge_data.sampled = nullptr;
-
-    return *this;
-  }
-
-  EdgeData(const EdgeData &e)
-  {
-    throw std::logic_error("EdgeData was copy-constructed... not supported yet!");
-  }
-
-  EdgeData(const EdgeData &&e)
-  {
-    throw std::logic_error("EdgeData was move-constructed... not supported yet!");
-  }
-};
-
-// end LP-definitions
-
 
 } // namespace defs
 #endif  // LIB_DEFINITIONS_H_

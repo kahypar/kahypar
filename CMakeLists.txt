@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
+
+# vitali: hacky...
+include_directories(${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/include)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 #ensure that gmock is built before tests are executed
@@ -96,5 +100,9 @@ include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)
+
+add_library(Clusterer OBJECT ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/best_choice.cpp
+                             ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/bipartite_lp.cpp
+                             ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/first_choice.cpp)
 
 

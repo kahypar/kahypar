@@ -1,3 +1,6 @@
 [submodule "src/external/sqlplot-tools"]
 	path = src/external/sqlplot-tools
 	url = https://github.com/bingmann/sqlplot-tools.git
+[submodule "src/external/lpa_hypergraph"]
+	path = src/external/lpa_hypergraph
+	url = https://VHenne@bitbucket.org/VHenne/lpa_hypergraph
