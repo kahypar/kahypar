@@ -19,39 +19,37 @@
 #include "clusterer/policies.hpp"
 
 
-
 namespace partition
 {
-  struct TwoPhaseLPCoarseningMemento {
-
-    typedef typename Hypergraph::ContractionMemento Memento;
-
+  struct TwoPhaseLPClusterCoarseningMemento {
     int one_pin_hes_begin;        // start of removed single pin hyperedges
     int one_pin_hes_size;         // # removed single pin hyperedges
     int parallel_hes_begin;       // start of removed parallel hyperedges
     int parallel_hes_size;        // # removed parallel hyperedges
 
-    Memento contraction_memento;
-    explicit TwoPhaseLPCoarseningMemento(Memento contr_memento) :
+    int mementos_begin;           // start of mementos corresponding to HE contraction
+    int mementos_size;            // # mementos
+    explicit TwoPhaseLPClusterCoarseningMemento() :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
       parallel_hes_size(0),
-      contraction_memento(contr_memento){ }
+      mementos_begin(0),
+      mementos_size(0) { }
   };
 
 
 
-  class TwoPhaseLPCoarsener : public ICoarsener,
-                              public CoarsenerBase<TwoPhaseLPCoarsener,
-                                TwoPhaseLPCoarseningMemento>
+  class TwoPhaseLPCoarsenerCluster : public ICoarsener,
+                              public CoarsenerBase<TwoPhaseLPCoarsenerCluster,
+                                TwoPhaseLPClusterCoarseningMemento>
   {
     private:
       using ContractionMemento = typename Hypergraph::ContractionMemento;
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
-      using Base = CoarsenerBase<TwoPhaseLPCoarsener,
-                                TwoPhaseLPCoarseningMemento>;
+      using Base = CoarsenerBase<TwoPhaseLPCoarsenerCluster,
+                                TwoPhaseLPClusterCoarseningMemento>;
 
     public:
       using Base::_hg;
@@ -65,9 +63,10 @@ namespace partition
       using Base::performLocalSearch;
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
-      TwoPhaseLPCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
+      TwoPhaseLPCoarsenerCluster(Hypergraph& hg, const Configuration &config) : Base(hg, config),
       _clusterer(hg,convert_config(config)),
-      _recursive_call(0)
+      _recursive_call(0),
+      _contraction_mementos()
     {
       lpa_hypergraph::BasePolicy::config_ = convert_config(config);
     }
@@ -94,6 +93,7 @@ namespace partition
         {
           _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
         }
+
 
         // perform the contrraction
         for (auto&& val : _clustering_map)
@@ -129,18 +129,19 @@ namespace partition
         _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
 
         initializeRefiner(refiner);
-        std::vector<HypernodeID> refinement_nodes(2,0);
+        std::vector<HypernodeID> refinement_nodes;
+        refinement_nodes.reserve(_hg.initialNumNodes());
+        size_t num_refinement_nodes = 0;
 
 
         while (!_history.empty()) {
+          num_refinement_nodes = 0;
+
           restoreParallelHyperedges(_history.top());
           restoreSingleNodeHyperedges(_history.top());
+          performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
 
-          _hg.uncontract(_history.top().contraction_memento);
-          refinement_nodes[0] = _history.top().contraction_memento.u;
-          refinement_nodes[1] = _history.top().contraction_memento.v;
-
-          performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
+          performLocalSearch(refiner, refinement_nodes, num_refinement_nodes, current_imbalance, current_cut);
           _history.pop();
           // TODO ask sebastian
           //assert(current_imbalance == metrics::imbalance(_hg));
@@ -153,16 +154,39 @@ namespace partition
 
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
       {
+        _history.emplace(TwoPhaseLPClusterCoarseningMemento());
+        _history.top().mementos_begin = _contraction_mementos.size();
+        _history.top().mementos_size = nodes.size()-1;
+
         // the first node is representative
         for (int i = 1; i< nodes.size(); i++)
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
-
-          _history.emplace(_hg.contract(nodes[0], nodes[i]));
-
+          _contraction_mementos.push_back(_hg.contract(nodes[0], nodes[i]));
           assert(_hg.nodeWeight(nodes[0] <= _config.lp.max_size_constraint));
         }
+          //assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          //std::cout << "nodeweight: " << _hg.nodeWeight(nodes[0]) <<" < " <<_config.lp.max_size_constraint<< std::endl;
         return nodes[0];
+      }
+
+      void performUncontraction(const TwoPhaseLPClusterCoarseningMemento &memento,
+          std::vector<HypernodeID> &refinement_nodes,
+          size_t &num_refinement_nodes)
+      {
+        refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
+          + memento.mementos_size - 1].u;
+        for (int i = memento.mementos_begin + memento.mementos_size - 1;
+            i >= memento.mementos_begin; --i) {
+          ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
+              "Representative HN " << _contraction_mementos[i].u << " is disabled ");
+          ASSERT(!_hg.nodeIsEnabled(_contraction_mementos[i].v),
+              "Representative HN " << _contraction_mementos[i].v << " is enabled");
+          DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
+              << _contraction_mementos[i].v << ")");
+          _hg.uncontract(_contraction_mementos[i]);
+          refinement_nodes[num_refinement_nodes++] = _contraction_mementos[i].v;
+        }
       }
 
       const Stats& statsImpl() const final
@@ -212,6 +236,7 @@ namespace partition
 
       int _recursive_call;
 
+      std::vector<ContractionMemento> _contraction_mementos;
       std::unordered_map<lpa_hypergraph::Label, std::vector<HypernodeID>> _clustering_map;
 
   };

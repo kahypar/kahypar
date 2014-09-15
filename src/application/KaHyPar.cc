@@ -39,8 +39,9 @@
 // vitali lp-includes
 #include "external/lpa_hypergraph/include/clusterer/policies.hpp"
 #include "partition/coarsening/TwoPhaseLPCoarsener.h"
+#include "partition/coarsening/TwoPhaseLPCoarsenerCluster.h"
 
-////Configuration lpa_hypergraph::BasePolicy::config_ = Configuration();
+lpa_hypergraph::Configuration lpa_hypergraph::BasePolicy::config_ = lpa_hypergraph::Configuration();
 
 
 namespace po = boost::program_options;
@@ -59,6 +60,7 @@ using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::TwoPhaseLPCoarsener;
+using partition::TwoPhaseLPCoarsenerCluster;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -204,6 +206,23 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         exit(0);
       }
     }
+
+    if (vm.count("max_iterations")) {
+      config.lp.max_iterations = vm["max_iterations"].as<long long>();
+    }
+
+    if (vm.count("sample_size")) {
+      config.lp.sample_size = vm["sample_size"].as<int>();
+    }
+
+    if (vm.count("percent")) {
+      config.lp.percent = vm["percent"].as<int>();
+    }
+
+    if (vm.count("max_recursive_calls")) {
+      config.lp.max_recursive_calls = vm["max_recursive_calls"].as<int>();
+    }
+
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
@@ -314,6 +333,12 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_cluster",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new TwoPhaseLPCoarsenerCluster(p.hypergraph, p.config);
+    }
+    );
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -327,7 +352,7 @@ int main(int argc, char* argv[]) {
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
-    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge, two_phase_lp")
+    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge, two_phase_lp, two_phase_lp_cluster")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
@@ -336,7 +361,11 @@ int main(int argc, char* argv[]) {
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
-    ("file", po::value<std::string>(), "filename of result file");
+    ("file", po::value<std::string>(), "filename of result file")
+    ("max_iterations", po::value<long long>(), "label_propagation max_iterations")
+    ("sample_size", po::value<int>(), "label_propagation sample_size")
+    ("percent", po::value<int>(), "label_propagation percent")
+    ("max_recursive_calls", po::value<int>(), "label_propagation max_recursive_calls");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);

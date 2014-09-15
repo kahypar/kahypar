@@ -103,7 +103,7 @@ struct Configuration {
       sample_size(5),
       small_edge_threshold(5),
       percent(5),
-      max_recursive_calls(3),
+      max_recursive_calls(0),
       max_size_constraint(0) { }
 
 
