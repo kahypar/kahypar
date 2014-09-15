@@ -13,6 +13,8 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 
 namespace partition {
+static const bool dbg_refinement_fm_border_node_check = false;
+
 class FMRefinerBase {
   protected:
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :
@@ -24,9 +26,11 @@ class FMRefinerBase {
   bool isBorderNode(HypernodeID hn) const {
     for (auto && he : _hg.incidentEdges(hn)) {
       if (isCutHyperedge(he)) {
+        DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is a border node");
         return true;
       }
     }
+    DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is NO border node");
     return false;
   }
 

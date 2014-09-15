@@ -178,7 +178,9 @@ class TwoWayFMRefiner : public IRefiner,
 
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
-      ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation");
+      ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation: " <<
+             "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
+             " - got g(" << max_gain_node << ")=" << max_gain);
 
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ", weight="
@@ -237,32 +239,42 @@ class TwoWayFMRefiner : public IRefiner,
     return best_cut < initial_cut;
   }
 
-  void updateNeighbours(HypernodeID moved_node, PartitionID from, PartitionID to) {
+  // Gain update as decribed in [ParMar06]
+  void updateNeighbours(HypernodeID moved_node, PartitionID source_part, PartitionID target_part) {
     _just_activated.reset();
     for (auto && he : _hg.incidentEdges(moved_node)) {
-      HypernodeID new_size0 = _hg.pinCountInPart(he, 0);
-      HypernodeID new_size1 = _hg.pinCountInPart(he, 1);
-      HypernodeID old_size0 = new_size0 + (to == 0 ? -1 : 1);
-      HypernodeID old_size1 = new_size1 + (to == 1 ? -1 : 1);
-
-      DBG(false, "old_size0=" << old_size0 << "   " << "new_size0=" << new_size0);
-      DBG(false, "old_size1=" << old_size1 << "   " << "new_size1=" << new_size1);
-
       if (_hg.edgeSize(he) == 2) {
-        updatePinsOfHyperedge(he, (new_size0 == 1 ? 2 : -2));
-      } else if (pinCountInOnePartitionIncreasedFrom0To1(old_size0, new_size0,
-                                                         old_size1, new_size1)) {
+        // moved_node is not updated here, since updatePin only updates HNs that
+        // are contained in the PQ and only activates HNs that are unmarked
+        updatePinsOfHyperedge(he, (_hg.pinCountInPart(he, 0) == 1 ? 2 : -2));
+      } else if (_hg.pinCountInPart(he, target_part) == 1) {
+        // HE was an internal edge before move and is a cut HE now.
+        // Before the move, all pins had gain -w(e). Now after the move,
+        // these pins have gain 0 (since all of them are in source_part).
         updatePinsOfHyperedge(he, 1);
-      } else if (pinCountInOnePartitionDecreasedFrom1To0(old_size0, new_size0,
-                                                         old_size1, new_size1)) {
+      } else if (_hg.pinCountInPart(he, source_part) == 0) {
+        // HE was cut HE before move and is internal HE now.
+        // Since the HE is now internal, moving a pin incurs gain -w(e)
+        // and make it a cut HE again.
         updatePinsOfHyperedge(he, -1);
-      } else if (pinCountInOnePartitionDecreasedFrom2To1(old_size0, new_size0,
-                                                         old_size1, new_size1)) {
-        // special case if HE consists of only 3 pins
-        updatePinsOfHyperedge(he, 1, (_hg.edgeSize(he) == 3 ? -1 : 0), from);
-      } else if (pinCountInOnePartitionIncreasedFrom1To2(old_size0, new_size0,
-                                                         old_size1, new_size1)) {
-        updatePinsOfHyperedge(he, -1, 0, to);
+      } else {
+        for (auto && pin : _hg.pins(he)) {
+          if (_hg.partID(pin) == source_part) {
+            if (_hg.pinCountInPart(he, source_part) == 1) {
+              // Before move, there were two pins (moved_node and the current pin) in source_part.
+              // After moving moved_node to target_part, the gain of the remaining pin in
+              // source_part increases by w(he).
+              updatePin(he, pin, 1);
+            }
+          } else if (_hg.pinCountInPart(he, target_part) == 2) {
+            // Before move, pin was the only HN in target_part. It thus had a
+            // positive gain, because moving it to source_part would have removed
+            // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
+            // because now there are pins in both parts.
+            updatePin(he, pin, -1);
+          }
+          // otherwise delta-gain would be zero!
+        }
       }
     }
   }
@@ -370,32 +382,6 @@ class TwoWayFMRefiner : public IRefiner,
     for (auto && pin : _hg.pins(he)) {
       updatePin(he, pin, sign);
     }
-  }
-
-  void updatePinsOfHyperedge(HyperedgeID he, Gain sign1, Gain sign2, PartitionID compare) {
-    for (auto && pin : _hg.pins(he)) {
-      updatePin(he, pin, (compare == _hg.partID(pin) ? sign1 : sign2));
-    }
-  }
-
-  bool pinCountInOnePartitionIncreasedFrom0To1(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) const {
-    return (old_size0 == 0 && new_size0 == 1) || (old_size1 == 0 && new_size1 == 1);
-  }
-
-  bool pinCountInOnePartitionDecreasedFrom1To0(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) const {
-    return (old_size0 == 1 && new_size0 == 0) || (old_size1 == 1 && new_size1 == 0);
-  }
-
-  bool pinCountInOnePartitionDecreasedFrom2To1(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) const {
-    return (old_size0 == 2 && new_size0 == 1) || (old_size1 == 2 && new_size1 == 1);
-  }
-
-  bool pinCountInOnePartitionIncreasedFrom1To2(HypernodeID old_size0, HypernodeID new_size0,
-                                               HypernodeID old_size1, HypernodeID new_size1) const {
-    return (old_size0 == 1 && new_size0 == 2) || (old_size1 == 1 && new_size1 == 2);
   }
 
   void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
