@@ -125,6 +125,7 @@ class KWayFMRefiner : public IRefiner,
              "HN " << max_gain_node << "is marked and not eligable to be moved");
       ASSERT(max_gain == computeMaxGain(max_gain_node).first,
              "Inconsistent gain caculation");
+      ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
       // to_part cannot be double-checked, since random tie-breaking might lead to a different to_part
 
       ASSERT([&]() {
