@@ -235,7 +235,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = Randomize::newRandomSeed();
-    std::string hmetis_call("/home/schlag/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
+    std::string hmetis_call("/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
                             + _config.partition.coarse_graph_filename
                             + " " + std::to_string(_config.partition.k)
                             + " -seed=" + std::to_string(seed)
