@@ -258,24 +258,32 @@ class TwoWayFMRefiner : public IRefiner,
         // and make it a cut HE again.
         updatePinsOfHyperedge(he, -1);
       } else {
-        for (auto && pin : _hg.pins(he)) {
-          if (_hg.partID(pin) == source_part) {
-            if (_hg.pinCountInPart(he, source_part) == 1) {
+        if (_hg.pinCountInPart(he, source_part) == 1) {
+          for (auto && pin : _hg.pins(he)) {
+            if (_hg.partID(pin) == source_part && pin != moved_node) {
               // Before move, there were two pins (moved_node and the current pin) in source_part.
               // After moving moved_node to target_part, the gain of the remaining pin in
               // source_part increases by w(he).
               updatePin(he, pin, 1);
+              break;
             }
-          } else if (_hg.pinCountInPart(he, target_part) == 2) {
+          }
+        }
+        if (_hg.pinCountInPart(he, target_part) == 2) {
+          for (auto && pin : _hg.pins(he)) {
             // Before move, pin was the only HN in target_part. It thus had a
             // positive gain, because moving it to source_part would have removed
             // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
             // because now there are pins in both parts.
-            updatePin(he, pin, -1);
+            if (_hg.partID(pin) == target_part && pin != moved_node) {
+              updatePin(he, pin, -1);
+              break;
+            }
           }
-          // otherwise delta-gain would be zero!
         }
       }
+      // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
+      // See for example [CadKaMa99]
     }
   }
 
@@ -395,9 +403,7 @@ class TwoWayFMRefiner : public IRefiner,
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
               << _hg.partID(pin));
-          if (gain_delta != 0) {
-            _pq[_hg.partID(pin)]->updateKey(pin, old_gain + gain_delta);
-          }
+          _pq[_hg.partID(pin)]->updateKey(pin, old_gain + gain_delta);
         }
       } else {
         DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
@@ -433,7 +439,8 @@ class TwoWayFMRefiner : public IRefiner,
              "Trying to compute gain for single-node HE " << he);
       if (_hg.pinCountInPart(he, target_partition) == 0) {
         gain -= _hg.edgeWeight(he);
-      } else if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+      }
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
         gain += _hg.edgeWeight(he);
       }
     }
