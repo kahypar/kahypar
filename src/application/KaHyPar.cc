@@ -31,6 +31,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/TwoPhaseLPRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -38,6 +39,13 @@
 
 // vitali lp-includes
 #include "external/lpa_hypergraph/include/clusterer/policies.hpp"
+#include "external/lpa_hypergraph/include/clusterer/best_choice.hpp"
+#include "external/lpa_hypergraph/include/clusterer/bipartite_lp.hpp"
+#include "external/lpa_hypergraph/include/clusterer/first_choice.hpp"
+#include "external/lpa_hypergraph/include/clusterer/heavy_connectivity.hpp"
+#include "external/lpa_hypergraph/include/clusterer/two_phase_lp.hpp"
+#include "partition/coarsening/GenericCoarsener.h"
+#include "partition/coarsening/GenericCoarsenerCluster.h"
 #include "partition/coarsening/TwoPhaseLPCoarsener.h"
 #include "partition/coarsening/TwoPhaseLPCoarsenerCluster.h"
 
@@ -59,6 +67,8 @@ using partition::IRefiner;
 using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
+using partition::GenericCoarsener;
+using partition::GenericCoarsenerCluster;
 using partition::TwoPhaseLPCoarsener;
 using partition::TwoPhaseLPCoarsenerCluster;
 using partition::Partitioner;
@@ -69,6 +79,7 @@ using partition::EdgeWeightDivMultPinWeight;
 using partition::FMFactoryExecutor;
 using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
+using partition::TwoPhaseLPRefiner;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::StoppingPolicy;
@@ -203,7 +214,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.her_fm.active = true;
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
-        exit(0);
+        //exit(0);
       }
     }
 
@@ -326,19 +337,82 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  //CoarsenerFactory::getInstance().registerObject(
+    //"two_phase_lp",
+    //[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      //return new TwoPhaseLPCoarsener(p.hypergraph, p.config);
+    //}
+    //);
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new TwoPhaseLPCoarsener(p.hypergraph, p.config);
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
+
+  //CoarsenerFactory::getInstance().registerObject(
+    //"two_phase_lp_cluster",
+    //[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      //return new TwoPhaseLPCoarsenerCluster(p.hypergraph, p.config);
+    //}
+    //);
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_cluster",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new TwoPhaseLPCoarsenerCluster(p.hypergraph, p.config);
+      return new GenericCoarsenerCluster<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
+
+
+  CoarsenerFactory::getInstance().registerObject(
+    "first_choice",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::FirstChoiceOptimized>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "best_choice",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BestChoice>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "heavy_connectivity",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::HeavyConnectivity>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP>(p.hypergraph, p.config);
+    }
+    );
+
+
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -356,7 +430,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm, two_phase_lp_refiner")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -385,7 +459,12 @@ int main(int argc, char* argv[]) {
   configurePartitionerFromCommandLineInput(config, vm);
 
 
-  Randomize::setSeed(config.partition.seed);
+  if (config.partition.seed == -1)
+  {
+    Randomize::setSeed(std::random_device()());
+  } else {
+    Randomize::setSeed(config.partition.seed);
+  }
 
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
@@ -478,6 +557,12 @@ int main(int argc, char* argv[]) {
                     PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
                     *(clogging_policy.get()),
                     exec, refiner_parameters));
+  }
+
+  if (vm.count("rtype") &&
+      vm["rtype"].as<std::string>() == "two_phase_lp_refiner")
+  {
+    refiner.reset(new TwoPhaseLPRefiner(hypergraph, config));
   }
 
   HighResClockTimepoint start;

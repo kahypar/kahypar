@@ -11,8 +11,15 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "tools/RandomFunctions.h"
 
+
 #ifndef NDEBUG
 #include "partition/Metrics.h"
+#endif
+
+//#define PREPROCESS
+
+#ifdef PREPROCESS
+#include "partition/coarsening/TwoPhaseLPCoarsener.h"
 #endif
 
 using defs::HighResClockTimepoint;
@@ -31,7 +38,18 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   HighResClockTimepoint start;
   HighResClockTimepoint end;
 
+#ifdef PREPROCESS
+  TwoPhaseLPCoarsener preproc(hypergraph, _config);
+#endif
+
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
+
+#ifdef PREPROCESS
+    preproc.coarsen(_config.coarsening.minimal_node_count*10);
+    preproc.gatherCoarseningStats();
+    std::cout << preproc.stats().toConsoleString() << std::endl;
+#endif
+
     start = std::chrono::high_resolution_clock::now();
     coarsener.coarsen(_config.coarsening.minimal_node_count);
     end = std::chrono::high_resolution_clock::now();
@@ -48,6 +66,10 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     const bool found_improved_cut = coarsener.uncoarsen(refiner);
     end = std::chrono::high_resolution_clock::now();
     _timings[kUncoarseningRefinement] += end - start;
+
+#ifdef PREPROCESS
+    preproc.uncoarsenImpl(refiner);
+#endif
 
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {

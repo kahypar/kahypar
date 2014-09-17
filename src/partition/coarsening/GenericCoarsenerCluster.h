@@ -21,7 +21,7 @@
 
 namespace partition
 {
-  struct TwoPhaseLPClusterCoarseningMemento {
+  struct GenericClusterCoarseningMemento {
     int one_pin_hes_begin;        // start of removed single pin hyperedges
     int one_pin_hes_size;         // # removed single pin hyperedges
     int parallel_hes_begin;       // start of removed parallel hyperedges
@@ -29,7 +29,7 @@ namespace partition
 
     int mementos_begin;           // start of mementos corresponding to HE contraction
     int mementos_size;            // # mementos
-    explicit TwoPhaseLPClusterCoarseningMemento() :
+    explicit GenericClusterCoarseningMemento() :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
@@ -40,16 +40,17 @@ namespace partition
 
 
 
-  class TwoPhaseLPCoarsenerCluster : public ICoarsener,
-                              public CoarsenerBase<TwoPhaseLPCoarsenerCluster,
-                                TwoPhaseLPClusterCoarseningMemento>
+  template<typename Coarsener>
+  class GenericCoarsenerCluster : public ICoarsener,
+                                public CoarsenerBase<GenericCoarsenerCluster<Coarsener>,
+                                GenericClusterCoarseningMemento>
   {
     private:
       using ContractionMemento = typename Hypergraph::ContractionMemento;
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
-      using Base = CoarsenerBase<TwoPhaseLPCoarsenerCluster,
-                                TwoPhaseLPClusterCoarseningMemento>;
+      using Base = CoarsenerBase<GenericCoarsenerCluster,
+                                 GenericClusterCoarseningMemento>;
 
     public:
       using Base::_hg;
@@ -63,30 +64,27 @@ namespace partition
       using Base::performLocalSearch;
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
-      TwoPhaseLPCoarsenerCluster(Hypergraph& hg, const Configuration &config) : Base(hg, config),
-      _clusterer(hg,convert_config(config)),
+      GenericCoarsenerCluster(Hypergraph& hg, const Configuration &config) : Base(hg, config),
       _recursive_call(0),
       _contraction_mementos()
     {
       lpa_hypergraph::BasePolicy::config_ = convert_config(config);
+      _clusterer = std::unique_ptr<lpa_hypergraph::IClusterer>(new Coarsener(hg, convert_config(config)));
     }
 
       void coarsenImpl(int limit) final
       {
-      lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
         // set the max_cluster in the config TODO redesign?
-        //_clusterer.set_limit(limit);
-//        auto nodes = _hg.nodes();
-//      // UUUUGLY
+        lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
         std::vector<HypernodeID> nodes;
         nodes.reserve(_hg.numNodes());
         for (const auto& hn : _hg.nodes())
         {
           nodes.push_back(hn);
         }
-        _clusterer.cluster(nodes,limit);
+        _clusterer->cluster(nodes, limit);
         // get the clustering
-        auto clustering = _clusterer.get_clustering();
+        auto clustering = _clusterer->get_clustering();
 
 
         assert (nodes.size() <= clustering.size());
@@ -155,7 +153,7 @@ namespace partition
 
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
       {
-        _history.emplace(TwoPhaseLPClusterCoarseningMemento());
+        _history.emplace(GenericClusterCoarseningMemento());
         _history.top().mementos_begin = _contraction_mementos.size();
         _history.top().mementos_size = nodes.size()-1;
 
@@ -171,7 +169,7 @@ namespace partition
         return nodes[0];
       }
 
-      void performUncontraction(const TwoPhaseLPClusterCoarseningMemento &memento,
+      void performUncontraction(const GenericClusterCoarseningMemento &memento,
           std::vector<HypernodeID> &refinement_nodes,
           size_t &num_refinement_nodes)
       {
@@ -202,7 +200,7 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return std::string(" coarsener=TwoPhaseLPCoarsenerCluster ")+_clusterer.clusterer_string();
+        return std::string(" coarsener=GenericCoarsenerCluster ")+_clusterer->clusterer_string();
       }
 
     private:
@@ -222,18 +220,8 @@ namespace partition
                                              config.lp.max_size_constraint);
       }
 
-      lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdates,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition> _clusterer;
+
+      std::unique_ptr<lpa_hypergraph::IClusterer> _clusterer;
 
       int _recursive_call;
 

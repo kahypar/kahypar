@@ -51,7 +51,7 @@ namespace partition
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
       using Base = CoarsenerBase<TwoPhaseLPCoarsener,
-                                TwoPhaseLPCoarseningMemento>;
+                                 TwoPhaseLPCoarseningMemento>;
 
     public:
       using Base::_hg;
@@ -74,8 +74,9 @@ namespace partition
 
       void coarsenImpl(int limit) final
       {
+        lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
         // set the max_cluster in the config TODO redesign?
-        _clusterer.set_limit(limit);
+        //_clusterer.set_limit(limit);
 //        auto nodes = _hg.nodes();
 //      // UUUUGLY
         std::vector<HypernodeID> nodes;
@@ -84,7 +85,7 @@ namespace partition
         {
           nodes.push_back(hn);
         }
-        _clusterer.cluster_impl(nodes); // not utilized yet
+        _clusterer.cluster(nodes,limit);
         // get the clustering
         auto clustering = _clusterer.get_clustering();
 
@@ -102,8 +103,6 @@ namespace partition
           if (val.second.size() > 1)
           {
             auto rep_node = performContraction(val.second);
-            removeSingleNodeHyperedges(rep_node);
-            removeParallelHyperedges(rep_node);
           }
         }
 
@@ -159,8 +158,10 @@ namespace partition
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
 
           _history.emplace(_hg.contract(nodes[0], nodes[i]));
+          removeSingleNodeHyperedges(nodes[0]);
+          removeParallelHyperedges(nodes[0]);
 
-          assert(_hg.nodeWeight(nodes[0] <= _config.lp.max_size_constraint));
+          assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
         }
         return nodes[0];
       }
