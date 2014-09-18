@@ -461,11 +461,10 @@ int main(int argc, char* argv[]) {
 
   if (config.partition.seed == -1)
   {
-    Randomize::setSeed(std::random_device()());
-  } else {
-    Randomize::setSeed(config.partition.seed);
+    config.partition.seed = std::random_device()();
   }
 
+  Randomize::setSeed(config.partition.seed);
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   HyperedgeIndexVector index_vector;

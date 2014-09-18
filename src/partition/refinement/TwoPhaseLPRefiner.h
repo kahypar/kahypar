@@ -159,6 +159,19 @@ namespace partition
         lpa_hypergraph::DontUpdateInformation,
         lpa_hypergraph::MaxIterationCondition> clusterer_;
 
+      //lpa_hypergraph::TwoPhaseLPClusterer<
+        //lpa_hypergraph::PartitionInitialization,
+        //lpa_hypergraph::InitializeSamplesWithUpdates,
+        //lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        //lpa_hypergraph::DontCollectInformation,
+        //lpa_hypergraph::PermutateNodes,
+        //lpa_hypergraph::PermutateLabelsWithUpdates,
+        //lpa_hypergraph::NonBiasedRefinementSampledScoreComputation,
+        //lpa_hypergraph::DefaultNewLabelComputation,
+        //lpa_hypergraph::CutGain,
+        //lpa_hypergraph::UpdateInformation,
+        //lpa_hypergraph::MaxIterationCondition> clusterer_;
+
       Stats stats_;
   };
 };
