@@ -46,6 +46,7 @@
 #include "external/lpa_hypergraph/include/clusterer/two_phase_lp.hpp"
 #include "partition/coarsening/GenericCoarsener.h"
 #include "partition/coarsening/GenericCoarsenerCluster.h"
+#include "partition/coarsening/BestChoiceCoarsener.h"
 #include "partition/coarsening/TwoPhaseLPCoarsener.h"
 #include "partition/coarsening/TwoPhaseLPCoarsenerCluster.h"
 
@@ -69,8 +70,7 @@ using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::GenericCoarsener;
 using partition::GenericCoarsenerCluster;
-using partition::TwoPhaseLPCoarsener;
-using partition::TwoPhaseLPCoarsenerCluster;
+using partition::BestChoiceCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
 using partition::Configuration;
@@ -337,12 +337,6 @@ int main(int argc, char* argv[]) {
     }
     );
 
-  //CoarsenerFactory::getInstance().registerObject(
-    //"two_phase_lp",
-    //[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      //return new TwoPhaseLPCoarsener(p.hypergraph, p.config);
-    //}
-    //);
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -361,13 +355,6 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
-  //CoarsenerFactory::getInstance().registerObject(
-    //"two_phase_lp_cluster",
-    //[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      //return new TwoPhaseLPCoarsenerCluster(p.hypergraph, p.config);
-    //}
-    //);
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_cluster",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -394,12 +381,6 @@ int main(int argc, char* argv[]) {
     }
     );
   CoarsenerFactory::getInstance().registerObject(
-    "best_choice",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::BestChoice>(p.hypergraph, p.config);
-    }
-    );
-  CoarsenerFactory::getInstance().registerObject(
     "heavy_connectivity",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::HeavyConnectivity>(p.hypergraph, p.config);
@@ -412,6 +393,12 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  CoarsenerFactory::getInstance().registerObject(
+    "best_choice",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new BestChoiceCoarsener(p.hypergraph, p.config);
+    }
+    );
 
 
   po::options_description desc("Allowed options");
