@@ -356,6 +356,25 @@ int main(int argc, char* argv[]) {
     );
 
   CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_node_ordering",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::AdaptiveIterationsCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_cluster",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsenerCluster<lpa_hypergraph::TwoPhaseLPClusterer<
@@ -509,7 +528,6 @@ int main(int argc, char* argv[]) {
   // Vitali : set the config for the policies
   // set the maximum size constraint for label propagation
   config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
-//  BasePolicy::config_ = config;
 
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
