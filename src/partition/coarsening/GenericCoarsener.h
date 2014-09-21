@@ -174,9 +174,9 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return std::string(" coarsener=GenericCoarsener max_iterations=") + _config.lp.max_iterations +
-                           " sample_size=" + _config.lp.sample_size +
-                           " max_recursive_calls=" + _config.lp.max_recursive_calls + _clusterer->clusterer_string();
+        return "coarsener=GenericCoarsener max_iterations=" + std::to_string(_config.lp.max_iterations) +
+                           " sample_size=" + std::to_string(_config.lp.sample_size) +
+                           " max_recursive_calls=" + std::to_string(_config.lp.max_recursive_calls) + _clusterer->clusterer_string();
       }
 
     private:
