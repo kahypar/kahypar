@@ -157,7 +157,7 @@ class KWayFMRefiner : public IRefiner,
                "Calculated cut (" << cut << ") and cut induced by hypergraph ("
                << metrics::hyperedgeCut(_hg) << ") do not match");
 
-        updateNeighbours(max_gain_node, to_part);
+        updateNeighbours(max_gain_node, from_part, to_part);
 
         if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
           DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
@@ -222,19 +222,35 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void updateNeighbours(HypernodeID hn, PartitionID to_part) {
+  bool moveAffectsGainUpdate(HypernodeID pin_count_source_part_before_move,
+                             HypernodeID pin_count_dest_part_before_move,
+                             HypernodeID pin_count_source_part_after_move) const {
+    return (pin_count_dest_part_before_move == 0 || pin_count_dest_part_before_move == 1 ||
+            pin_count_source_part_before_move == 1 || pin_count_source_part_after_move == 1);
+  }
+
+  void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
     _just_updated.reset();
     for (auto && he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
       if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
         if (_locked_hes[he] == to_part) {
           // he is loose
-          for (auto && pin : _hg.pins(he)) {
-            updatePin(pin);
+          const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+          const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+          const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+          if (moveAffectsGainUpdate(pin_count_source_part_before_move,
+                                    pin_count_dest_part_before_move,
+                                    pin_count_source_part_after_move)) {
+            for (auto && pin : _hg.pins(he)) {
+              updatePin(pin);
+            }
           }
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: free");
         } else if (_locked_hes[he] == -1) {
-          // he is free
+          // he is free.
+          // This means that we encounter the HE for the first time and therefore
+          // have to call updatePin for all pins in order to activate new border nodes.
           _locked_hes[he] = to_part;
           _current_locked_hes.push(he);
           for (auto && pin : _hg.pins(he)) {
@@ -243,8 +259,15 @@ class KWayFMRefiner : public IRefiner,
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
         } else {
           // he is loose and becomes locked after the move
-          for (auto && pin : _hg.pins(he)) {
-            updatePin(pin);
+          const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+          const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+          const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+          if (moveAffectsGainUpdate(pin_count_source_part_before_move,
+                                    pin_count_dest_part_before_move,
+                                    pin_count_source_part_after_move)) {
+            for (auto && pin : _hg.pins(he)) {
+              updatePin(pin);
+            }
           }
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
           _locked_hes[he] = std::numeric_limits<PartitionID>::max();
