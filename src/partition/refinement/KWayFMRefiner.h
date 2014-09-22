@@ -9,6 +9,7 @@
 #include <sparsehash/dense_hash_set>
 
 #include <limits>
+#include <stack>
 #include <string>
 #include <utility>
 #include <vector>
@@ -44,6 +45,7 @@ static const bool dbg_refinement_kway_fm_min_cut_idx = false;
 static const bool dbg_refinement_kway_fm_gain_update = false;
 static const bool dbg_refinement_kway_fm_move = false;
 static const bool dbg_refinement_kway_fm_gain_comp = false;
+static const bool dbg_refinement_kaway_locked_hes = false;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -78,8 +80,11 @@ class KWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
     _performed_moves(),
+    _locked_hes(),
+    _current_locked_hes(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
+    _locked_hes.resize(_hg.initialNumEdges(), -1);
     _tmp_target_parts.set_empty_key(Hypergraph::kInvalidPartition);
     _tmp_target_parts.set_deleted_key(Hypergraph::kDeletedPartition);
   }
@@ -98,6 +103,10 @@ class KWayFMRefiner : public IRefiner,
 
     _pq.clear();
     _marked.reset();
+    while (!_current_locked_hes.empty()) {
+      _locked_hes[_current_locked_hes.top()] = -1;
+      _current_locked_hes.pop();
+    }
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -119,7 +128,8 @@ class KWayFMRefiner : public IRefiner,
       const PartitionID to_part = _pq.data(max_gain_node);
       _pq.deleteMax();
 
-      DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node << " gain=" << max_gain << " target_part=" << to_part);
+      DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
+          << " gain=" << max_gain << " target_part=" << to_part);
 
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
@@ -147,7 +157,7 @@ class KWayFMRefiner : public IRefiner,
                "Calculated cut (" << cut << ") and cut induced by hypergraph ("
                << metrics::hyperedgeCut(_hg) << ") do not match");
 
-        updateNeighbours(max_gain_node);
+        updateNeighbours(max_gain_node, to_part);
 
         if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
           DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
@@ -212,13 +222,69 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void updateNeighbours(HypernodeID hn) {
+  void updateNeighbours(HypernodeID hn, PartitionID to_part) {
     _just_updated.reset();
     for (auto && he : _hg.incidentEdges(hn)) {
-      for (auto && pin : _hg.pins(he)) {
-        updatePin(pin);
+      DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
+      if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
+        if (_locked_hes[he] == to_part) {
+          // he is loose
+          for (auto && pin : _hg.pins(he)) {
+            updatePin(pin);
+          }
+          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: free");
+        } else if (_locked_hes[he] == -1) {
+          // he is free
+          _locked_hes[he] = to_part;
+          _current_locked_hes.push(he);
+          for (auto && pin : _hg.pins(he)) {
+            updatePin(pin);
+          }
+          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
+        } else {
+          // he is loose and becomes locked after the move
+          for (auto && pin : _hg.pins(he)) {
+            updatePin(pin);
+          }
+          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
+          _locked_hes[he] = std::numeric_limits<PartitionID>::max();
+        }
       }
+      // he is locked
     }
+    ASSERT([&]() {
+             for (auto && he : _hg.incidentEdges(hn)) {
+               bool valid = true;
+               for (auto pin : _hg.pins(he)) {
+                 if (!isBorderNode(pin)) {
+                   valid = (_pq.contains(pin) == false);
+                   if (!valid) {
+                     LOG("HN " << pin << " should not be contained in PQ");
+                   }
+                 } else {
+                   if (_pq.contains(pin)) {
+                     ASSERT(isBorderNode(pin), "BorderFail");
+                     const GainPartitionPair pair = computeMaxGain(pin);
+                     valid = (_pq.key(pin) == pair.first);
+                     if (!valid) {
+                       LOG("Incorrect maxGain for HN " << pin);
+                       LOG("expected key=" << pair.first);
+                       LOG("actual key=" << _pq.key(pin));
+                     }
+                   } else {
+                     valid = (_marked[pin] == true);
+                     if (!valid) {
+                       LOG("HN " << pin << " not in PQ but also not marked");
+                     }
+                   }
+                 }
+                 if (valid == false) {
+                   return false;
+                 }
+               }
+             }
+             return true;
+           } (), "Gain update failed");
   }
 
   void updatePin(HypernodeID pin) {
@@ -361,6 +427,8 @@ class KWayFMRefiner : public IRefiner,
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_updated;
   std::vector<RollbackInfo> _performed_moves;
+  std::vector<PartitionID> _locked_hes;
+  std::stack<HyperedgeID> _current_locked_hes;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
