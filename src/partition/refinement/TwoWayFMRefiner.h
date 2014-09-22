@@ -181,6 +181,7 @@ class TwoWayFMRefiner : public IRefiner,
       ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation: " <<
              "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
              " - got g(" << max_gain_node << ")=" << max_gain);
+      ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
 
       DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
           << " to " << to_partition << " (gain: " << max_gain << ", weight="

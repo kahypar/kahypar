@@ -55,6 +55,9 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
 
 inline void printPartitioningStatistics(const ICoarsener& coarsener, const IRefiner& refiner) {
   std::cout << "*****************************Statistics******************************" << std::endl;
+  std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
+  std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
+            << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
   std::cout << coarsener.stats().toConsoleString();
   std::cout << refiner.stats().toConsoleString();
 }

@@ -121,6 +121,8 @@ class CoarsenerBase {
         _weights_table[u] += _hg.edgeWeight(*he_it);
 #endif
         _removed_single_node_hyperedges.push_back(*he_it);
+        _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
+                   _hg.edgeWeight(*he_it));
         static_cast<Derived*>(this)->removeHyperedgeFromPQ(*he_it);
         ++_history.top().one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
@@ -179,6 +181,7 @@ class CoarsenerBase {
                       + _hg.edgeWeight(to_remove));
     DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
         << representative);
+    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle,1);
     _hg.removeEdge(to_remove, false);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
     static_cast<Derived*>(this)->removeHyperedgeFromPQ(to_remove);
@@ -249,10 +252,6 @@ class CoarsenerBase {
   void gatherCoarseningStats() {
     _stats.add("numCoarseHNs", _config.partition.current_v_cycle, _hg.numNodes());
     _stats.add("numCoarseHEs", _config.partition.current_v_cycle, _hg.numEdges());
-    _stats.add("numRemovedSingleNodeHEs", _config.partition.current_v_cycle,
-               _removed_single_node_hyperedges.size());
-    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle,
-               _removed_parallel_hyperedges.size());
     _stats.add("avgHEsizeCoarse", _config.partition.current_v_cycle,
                metrics::avgHyperedgeDegree(_hg));
     _stats.add("avgHNdegreeCoarse", _config.partition.current_v_cycle,
