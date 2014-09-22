@@ -121,10 +121,8 @@ class CoarsenerBase {
         _weights_table[u] += _hg.edgeWeight(*he_it);
 #endif
         _removed_single_node_hyperedges.push_back(*he_it);
-        _stats.add("numRemovedSingleNodeHEs", _config.partition.current_v_cycle,
+        _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
                    _hg.edgeWeight(*he_it));
-        _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle,
-                   -(_hg.edgeWeight(*he_it)-1));
         static_cast<Derived*>(this)->removeHyperedgeFromPQ(*he_it);
         ++_history.top().one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
