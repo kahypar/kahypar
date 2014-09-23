@@ -399,8 +399,8 @@ class TwoWayFMRefiner : public IRefiner,
              " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
       if (isBorderNode(pin)) {
         if (!_just_activated[pin]) {
-          Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
-          Gain gain_delta = sign * _hg.edgeWeight(he);
+          const Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
+          const Gain gain_delta = sign * _hg.edgeWeight(he);
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
               << _hg.partID(pin));
