@@ -436,6 +436,8 @@ class TwoWayFMRefiner : public IRefiner,
     PartitionID target_partition = _hg.partID(hn) ^ 1;
 
     for (auto && he : _hg.incidentEdges(hn)) {
+      // Some MCNC Instances like primary1 and industry3 have hyperedges that
+      // only contain one hypernode. Thus this assertion will fail in this case.
       ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,
              "Trying to compute gain for single-node HE " << he);
       if (_hg.pinCountInPart(he, target_partition) == 0) {
