@@ -6,11 +6,13 @@
 #define SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 
 #include "external/binary_heap/BinaryHeap.hpp"
+#include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/macros.h"
 
 using external::BinaryHeap;
 using external::NullData;
+using external::ArrayStorage;
 
 namespace datastructure {
 // ToDo: We need a more robust solution for min and max values!
@@ -26,10 +28,10 @@ struct MetaKeyDouble {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
-          typename DataType = NullData
-          >
+          typename DataType = NullData,
+          typename Storage = ArrayStorage<IDType> >
 class PriorityQueue {
-  typedef BinaryHeap<IDType, KeyType, MetaKey, DataType> Heap;
+  typedef BinaryHeap<IDType, KeyType, MetaKey, DataType, Storage> Heap;
 
   public:
   PriorityQueue(IDType size, size_t reserve_size = 0) :
