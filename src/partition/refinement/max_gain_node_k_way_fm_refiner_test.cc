@@ -5,7 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "lib/definitions.h"
-#include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
@@ -18,11 +18,11 @@ using defs::HyperedgeWeight;
 using defs::HypernodeID;
 
 namespace partition {
-typedef KWayFMRefiner<NumberOfFruitlessMovesStopsSearch> KWayFMRefinerSimpleStopping;
+typedef MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch> KWayFMRefinerSimpleStopping;
 
-class AKWayFMRefiner : public Test {
+class AMaxGainNodeKWayFMRefiner : public Test {
   public:
-  AKWayFMRefiner() :
+  AMaxGainNodeKWayFMRefiner() :
     config(),
     // example hypergraph with one additional HN and one additional HE
     hypergraph(new Hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 6, 9, 12, /*sentinel*/ 14 },
@@ -46,26 +46,26 @@ class AKWayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
-TEST_F(AKWayFMRefiner, IdentifiesBorderHypernodes) {
+TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
   ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(6), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(7), Eq(false));
 }
 
-TEST_F(AKWayFMRefiner, ActivatesBorderNodes) {
+TEST_F(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes) {
   refiner->activate(1);
 
   ASSERT_THAT(refiner->_pq.max(), Eq(1));
   ASSERT_THAT(refiner->_pq.maxKey(), Eq(0));
 }
 
-TEST_F(AKWayFMRefiner, DoesNotActivateInternalNodes) {
+TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
   refiner->activate(7);
 
   ASSERT_THAT(refiner->_pq.contains(7), Eq(false));
 }
 
-TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
+TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   // hypergraph with positive, zero and negative gain nodes
   hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10, /*sentinel*/ 13 },
                                   HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8 }, 4));
@@ -93,7 +93,7 @@ TEST_F(AKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   ASSERT_THAT(refiner->computeMaxGain(6).second, Eq(1));
 }
 
-TEST_F(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
+TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
   hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 5, 6 }, 4));
   hypergraph->setNodePart(0, 0);
@@ -115,7 +115,7 @@ TEST_F(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
   ASSERT_THAT(refiner->moveHypernode(7, 3, 2), Eq(false));
 }
 
-TEST_F(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
+TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
   hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 5, 6 }, 4));
   hypergraph->setNodePart(0, 0);
@@ -137,7 +137,7 @@ TEST_F(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
   ASSERT_THAT(refiner->moveHypernode(7, 3, 2), Eq(true));
 }
 
-TEST_F(AKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
+TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
   hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11, /*sentinel*/ 13 },
                                   HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4));
   hypergraph->setNodePart(0, 0);
@@ -177,7 +177,7 @@ TEST_F(AKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
   ASSERT_THAT(verifyEquivalence(orig_hgr, *hypergraph), Eq(true));
 }
 
-TEST_F(AKWayFMRefiner, ComputesCorrectGainValues) {
+TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph.reset(new Hypergraph(10, 5, HyperedgeIndexVector { 0, 4, 7, 9, 12, /*sentinel*/ 15 },
                                   HyperedgeVector { 1, 2, 5, 6, 2, 3, 4, 0, 2, 2, 8, 9, 0, 2, 8 }, 4));
   hypergraph->setNodePart(0, 0);
