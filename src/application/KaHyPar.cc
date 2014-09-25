@@ -30,6 +30,7 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
@@ -60,6 +61,7 @@ using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
+using partition::MaxGainNodeKWayFMRefiner;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
@@ -151,7 +153,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.partition.verbose_output = vm["verbose"].as<bool>();
     }
     if (vm.count("rtype")) {
-      if (vm["rtype"].as<std::string>() == "twoway_fm") {
+      if (vm["rtype"].as<std::string>() == "twoway_fm" ||
+          vm["rtype"].as<std::string>() == "max_gain_kfm" ||
+          vm["rtype"].as<std::string>() == "kfm") {
         config.two_way_fm.active = true;
         config.her_fm.active = false;
       } else if (vm["rtype"].as<std::string>() == "her_fm") {
@@ -204,6 +208,7 @@ int main(int argc, char* argv[]) {
   typedef FMFactoryExecutor<TwoWayFMRefiner> TwoWayFMFactoryExecutor;
   typedef FMFactoryExecutor<HyperedgeFMRefiner> HyperedgeFMFactoryExecutor;
   typedef KFMFactoryExecutor<KWayFMRefiner> KWayFMFactoryExecutor;
+  typedef KFMFactoryExecutor<MaxGainNodeKWayFMRefiner> MaxGainNodeKWayFMFactoryExecutor;
   typedef StaticDispatcher<TwoWayFMFactoryExecutor,
                            PolicyBase,
                            TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
@@ -225,6 +230,13 @@ int main(int argc, char* argv[]) {
                            PolicyBase,
                            TYPELIST_1(NullPolicy),
                            IRefiner*> KWayFMFactoryDispatcher;
+  typedef StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
+                           PolicyBase,
+                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
+                                      nGPRandomWalkStopsSearch),
+                           PolicyBase,
+                           TYPELIST_1(NullPolicy),
+                           IRefiner*> MaxGainNodeKWayFMFactoryDispatcher;
   typedef Factory<ICoarsener, std::string,
                   ICoarsener* (*)(CoarsenerFactoryParameters&),
                   CoarsenerFactoryParameters> CoarsenerFactory;
@@ -275,7 +287,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -366,7 +378,7 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<IRefiner> refiner(nullptr);
 
   if (config.two_way_fm.active) {
-    if (config.partition.k == 2) {
+    if (vm["rtype"].as<std::string>() == "twoway_fm") {
       TwoWayFMFactoryExecutor exec;
       refiner.reset(TwoWayFMFactoryDispatcher::go(
                       PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
@@ -374,11 +386,19 @@ int main(int argc, char* argv[]) {
                       exec, refiner_parameters));
     } else {
       std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
-      KWayFMFactoryExecutor exec;
-      refiner.reset(KWayFMFactoryDispatcher::go(
-                      PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-                      *(null_policy.get()),
-                      exec, refiner_parameters));
+      if (vm["rtype"].as<std::string>() == "max_gain_kfm") {
+        MaxGainNodeKWayFMFactoryExecutor exec;
+        refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
+                        PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                        *(null_policy.get()),
+                        exec, refiner_parameters));
+      } else if (vm["rtype"].as<std::string>() == "kfm") {
+        KWayFMFactoryExecutor exec;
+        refiner.reset(KWayFMFactoryDispatcher::go(
+                        PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                        *(null_policy.get()),
+                        exec, refiner_parameters));
+      }
     }
   } else {
     HyperedgeFMFactoryExecutor exec;
