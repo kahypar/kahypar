@@ -161,7 +161,7 @@ namespace partition
           removeSingleNodeHyperedges(nodes[0]);
           removeParallelHyperedges(nodes[0]);
 
-          assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          assert(_hg.nodeWeight(nodes[0]) < _config.lp.max_size_constraint);
         }
         return nodes[0];
       }

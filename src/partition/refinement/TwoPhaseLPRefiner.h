@@ -27,12 +27,17 @@ namespace partition
     public:
       TwoPhaseLPRefiner(Hypergraph& hg, const Configuration &configuration) :
         hg_(hg), config_(configuration), clusterer_(hg,convert_config(configuration))
-    {
-    }
+        //buffer_.reserve(hg.initialNumEdges())
+      {
+        contained_.init(hg_.initialNumNodes());
+      }
 
       bool refineImpl(std::vector<HypernodeID> &refinement_nodes, size_t num_refinement_nodes,
           HyperedgeWeight &best_cut, double &best_imbalance) final
       {
+        constexpr int min_count = 1000;
+
+        assert (metrics::imbalance(hg_) < config_.partition.epsilon);
         ASSERT(best_cut == metrics::hyperedgeCut(hg_),
             "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
             << metrics::hyperedgeCut(hg_));
@@ -40,29 +45,39 @@ namespace partition
 
         lpa_hypergraph::BasePolicy::config_ = convert_config(config_);
         bool run = true;
-        std::vector<HypernodeID> ref_nodes;
         for (int i = 0; i < num_refinement_nodes; ++i)
-          //for (const auto hn : refinement_nodes)
         {
-          if (isBorderNode(refinement_nodes[i])) ref_nodes.push_back(refinement_nodes[i]);
+          if (!contained_[refinement_nodes[i]] && isBorderNode(refinement_nodes[i]))
+          {
+            buffer_.push_back(refinement_nodes[i]);
+            contained_[refinement_nodes[i]] = true;
+          }
         }
 
+        if (buffer_.size() < min_count) return false;
         int i = 0;
         while (run)
         {
-          if (ref_nodes.empty())
+          if (buffer_.size() < min_count)
           {
-            best_cut = metrics::hyperedgeCut(hg_);
-
             return best_cut < in_cut;
           }
 
-          clusterer_.cluster(ref_nodes);
+          auto iter = clusterer_.cluster(buffer_);
+          std::cout << "Iteration: " << i << " iterations: " << iter << std::endl;
 
           auto clustering = clusterer_.get_clustering();
 
+          auto diff = clusterer_.gain_difference();
+          assert (diff >= 0);
+          if (diff > 0)
+          {
+            std::cout << "TwoPhaseLPRefiner reduced cut from: " << best_cut << " to " << best_cut-diff << std::endl;
+          }
+          best_cut -= clusterer_.gain_difference();
+
           std::unordered_set<HypernodeID> next;
-          for (const auto hn : ref_nodes)
+          for (const auto& hn : buffer_)
           {
             if (hg_.partID(hn) != clustering.at(hn))
             {
@@ -78,19 +93,25 @@ namespace partition
             }
           }
 
-          ref_nodes.clear();
+          assert (metrics::imbalance(hg_) <= config_.partition.epsilon);
+          assert (metrics::hyperedgeCut(hg_) == best_cut);
 
-          for (auto val : next)
+          buffer_.clear();
+          contained_.clear();
+
+          for (const auto& val : next)
           {
-            if (isBorderNode(val)) ref_nodes.push_back(val);
+            if (!contained_[val] && isBorderNode(val))
+            {
+              buffer_.push_back(val);
+              contained_[val] = true;
+            }
           }
 
           run = i++ < 10;
         }
 
-        best_cut = metrics::hyperedgeCut(hg_);
-
-        return best_cut < in_cut;
+          return best_cut < in_cut;
       }
 
       int numRepetitionsImpl() const final
@@ -117,6 +138,12 @@ namespace partition
         return false;
       }
 
+      void initializeImpl() final
+      {
+        buffer_.clear();
+        contained_.clear();
+      }
+
 
       bool isBorderNode(HypernodeID hn) const {
         for (auto && he : hg_.incidentEdges(hn)) {
@@ -130,7 +157,7 @@ namespace partition
 
       lpa_hypergraph::Configuration convert_config(const partition::Configuration &config) const
       {
-        return lpa_hypergraph::Configuration(10,
+        return lpa_hypergraph::Configuration(2,
             config.partition.seed,
             config.lp.sample_size,
             config.partition.graph_filename,
@@ -145,32 +172,34 @@ namespace partition
 
       Hypergraph &hg_;
       const Configuration &config_;
-
-      lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::PartitionInitialization,
-        lpa_hypergraph::NoEdgeInitialization,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::DontPermutateLabels,
-        lpa_hypergraph::AllLabelsRefinementScoreComputation,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::IgnoreGain,
-        lpa_hypergraph::DontUpdateInformation,
-        lpa_hypergraph::MaxIterationCondition> clusterer_;
+      std::vector<HypernodeID> buffer_;
+      lpa_hypergraph::pseudo_hashmap<HypernodeID, bool> contained_;
 
       //lpa_hypergraph::TwoPhaseLPClusterer<
         //lpa_hypergraph::PartitionInitialization,
-        //lpa_hypergraph::InitializeSamplesWithUpdates,
-        //lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        //lpa_hypergraph::NoEdgeInitialization,
+        //lpa_hypergraph::DontCollectInformation,
         //lpa_hypergraph::DontCollectInformation,
         //lpa_hypergraph::PermutateNodes,
-        //lpa_hypergraph::PermutateLabelsWithUpdates,
-        //lpa_hypergraph::NonBiasedRefinementSampledScoreComputation,
+        //lpa_hypergraph::DontPermutateLabels,
+        //lpa_hypergraph::AllLabelsRefinementScoreComputation,
         //lpa_hypergraph::DefaultNewLabelComputation,
-        //lpa_hypergraph::CutGain,
-        //lpa_hypergraph::UpdateInformation,
+        //lpa_hypergraph::IgnoreGain,
+        //lpa_hypergraph::DontUpdateInformation,
         //lpa_hypergraph::MaxIterationCondition> clusterer_;
+
+      lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::PartitionInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedRefinementSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::CutGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::AdaptiveIterationsCondition> clusterer_;
 
       Stats stats_;
   };

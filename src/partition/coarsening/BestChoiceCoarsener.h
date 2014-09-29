@@ -82,7 +82,7 @@ namespace partition
       {
         if (hn == pin) continue;
         if (_hg.partID(hn) >= 0 && _hg.partID(hn) != _hg.partID(pin)) continue;
-        if (_hg.nodeWeight(hn) + _hg.nodeWeight(pin) > _config.lp.max_size_constraint) continue;
+        if (_hg.nodeWeight(hn) + _hg.nodeWeight(pin) >= _config.lp.max_size_constraint) continue;
         score_[pin] += (_hg.edgeWeight(he)/(_hg.edgeSize(he)-1.));
       }
     }
@@ -228,13 +228,13 @@ namespace partition
         // the first node is representative
         DBG(dbg_coarsening_coarsen, "Contracting (" <<node1 << ", " << node2 << ")");
 
-        if (_hg.nodeWeight(node1) + _hg.nodeWeight(node2) > _config.lp.max_size_constraint) return node1;
+        if (_hg.nodeWeight(node1) + _hg.nodeWeight(node2) >= _config.lp.max_size_constraint) return node1;
 
         _history.emplace(_hg.contract(node1, node2));
         removeSingleNodeHyperedges(node1);
         removeParallelHyperedges(node1);
 
-        assert(_hg.nodeWeight(node1) <= _config.lp.max_size_constraint);
+        assert(_hg.nodeWeight(node1) < _config.lp.max_size_constraint);
         return node1;
       }
 

@@ -164,7 +164,7 @@ namespace partition
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
           _contraction_mementos.push_back(_hg.contract(nodes[0], nodes[i]));
-          assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          assert(_hg.nodeWeight(nodes[0]) < _config.lp.max_size_constraint);
         }
           //assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
           //std::cout << "nodeweight: " << _hg.nodeWeight(nodes[0]) <<" < " <<_config.lp.max_size_constraint<< std::endl;

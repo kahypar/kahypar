@@ -32,6 +32,7 @@
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/TwoPhaseLPRefiner.h"
+#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -80,6 +81,7 @@ using partition::FMFactoryExecutor;
 using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
 using partition::TwoPhaseLPRefiner;
+using partition::LPRefiner;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::StoppingPolicy;
@@ -568,6 +570,14 @@ int main(int argc, char* argv[]) {
   {
     refiner.reset(new TwoPhaseLPRefiner(hypergraph, config));
   }
+
+  if (vm.count("rtype") &&
+      vm["rtype"].as<std::string>() == "lp_refiner")
+  {
+    refiner.reset(new LPRefiner(hypergraph, config));
+  }
+
+
 
   HighResClockTimepoint start;
   HighResClockTimepoint end;
