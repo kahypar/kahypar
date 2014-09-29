@@ -181,7 +181,7 @@ class CoarsenerBase {
                       + _hg.edgeWeight(to_remove));
     DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
         << representative);
-    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle,1);
+    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle, 1);
     _hg.removeEdge(to_remove, false);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
     static_cast<Derived*>(this)->removeHyperedgeFromPQ(to_remove);
