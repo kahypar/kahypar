@@ -39,43 +39,48 @@ taskfilename=$RESULT_DIR"/"$taskfilename
 output=$RESULT_DIR"/"$name"."results
 
 
-for file in $GRAPH_DIR"/"*.hgr
-do
-  continue
-  for k in 2 #4 8 16 32
-  do
-    for  run in $(seq 1 $reps)
-    do
-      seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_lazy" >> $taskfilename
-      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_heuristic" >> $taskfilename
-      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=hyperedge" >> $taskfilename
-    done
-  done
-done
+#for file in $GRAPH_DIR"/"*.hgr
+#do
+#  continue
+#  for k in 2 #4 8 16 32
+#  do
+#    for  run in $(seq 1 $reps)
+#    do
+#      seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
+#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_lazy" >> $taskfilename
+#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_heuristic" >> $taskfilename
+#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=hyperedge" >> $taskfilename
+#    done
+#  done
+#done
 
 # two_phase_lp
 for file in $GRAPH_DIR"/"*.hgr
 do
-  for k in 2 #4 8 16 32
+  for k in 2 4 8 16 32
   do
     for  run in $(seq 1 $reps)
     do
-      for ma_iter in 20
+      for ma_iter in 1 5 10 15 20 25 30
       do
-        for smpl in 5
+        for smpl in 1 2 3 4 5 6 7 8 9 10
         do
           for rec in 3
           do
-            seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-            echo "$CLUSTERER --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=two_phase_lp" >> $taskfilename
-            echo "$CLUSTERER --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=two_phase_lp_cluster" >> $taskfilename
+            for t in 100 500 1000
+            do
+              seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
+              echo "$CLUSTERER --t $t --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=two_phase_lp" >> $taskfilename
+              echo "$CLUSTERER --t $t --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=two_phase_lp_cluster" >> $taskfilename
+            done
           done
         done
       done
     done
   done
 done
+
+exit
 
 #reference
 for file in $GRAPH_DIR"/"*.hgr
