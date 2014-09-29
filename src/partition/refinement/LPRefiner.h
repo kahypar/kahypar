@@ -48,8 +48,8 @@ namespace partition
         for (int i = 0; i < num_refinement_nodes; ++i)
         {
           const auto& cur_node = refinement_nodes[i];
-          //if (!(*contained_cur)[cur_node] && isBorderNode(cur_node))
-          if (!(*contained_cur_queue_)[cur_node])
+          if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
+          //if (!(*contained_cur_queue_)[cur_node])
           {
             assert (hg_.partWeight(hg_.partID(cur_node)) < config_.partition.max_part_weight);
 
@@ -62,9 +62,10 @@ namespace partition
         contained_cur_queue_->resize(hg_.initialNumNodes());
 
         if (cur_queue_->empty())
-          throw std::logic_error("ASDF");
+          return false;
+          //throw std::logic_error("ASDF");
 
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < config_.lp.max_refinement_iterations; ++i)
         {
           Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
           for (const auto &hn : *cur_queue_)
@@ -135,9 +136,10 @@ namespace partition
             if (best_part != hg_.partID(hn))
             {
               hg_.changeNodePart(hn, hg_.partID(hn), best_part);
-              std::cout << "LPRefiner improved cut from: " << best_cut;
+#ifndef NDEBUG
+              std::cout << "LPRefiner improved cut from: " << best_cut << " to " << best_cut-best_score << std::endl;
+#endif
               best_cut -= best_score;
-              std::cout << " to "<< best_cut << std::endl;
             }
 
             assert (hg_.partWeight(best_part) < config_.partition.max_part_weight);

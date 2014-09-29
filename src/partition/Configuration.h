@@ -104,6 +104,7 @@ struct Configuration {
       small_edge_threshold(5),
       percent(5),
       max_recursive_calls(0),
+      max_refinement_iterations(20),
       max_size_constraint(0) { }
 
 
@@ -111,7 +112,8 @@ struct Configuration {
     int sample_size;
     int small_edge_threshold;
     int percent;
-    int max_recursive_calls;
+    unsigned int max_recursive_calls;
+    unsigned int max_refinement_iterations;
     HypernodeWeight max_size_constraint;
   };
 

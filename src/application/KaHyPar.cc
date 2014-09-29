@@ -232,8 +232,12 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.lp.percent = vm["percent"].as<int>();
     }
 
+    if (vm.count("max_refinement_iterations")) {
+      config.lp.max_refinement_iterations = vm["max_refinement_iterations"].as<unsigned int>();
+    }
+
     if (vm.count("max_recursive_calls")) {
-      config.lp.max_recursive_calls = vm["max_recursive_calls"].as<int>();
+      config.lp.max_recursive_calls = vm["max_recursive_calls"].as<unsigned int>();
     }
 
   } else {
@@ -265,6 +269,9 @@ void setDefaults(Configuration& config) {
   config.lp.sample_size=5;
   config.lp.small_edge_threshold=5;
   config.lp.percent=5;
+
+  config.lp.max_refinement_iterations = 10;
+  config.lp.max_recursive_calls = 3;
 }
 
 struct CoarsenerFactoryParameters {
@@ -438,7 +445,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm, two_phase_lp_refiner")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm, two_phase_lp_refiner, lp_refiner")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -447,7 +454,8 @@ int main(int argc, char* argv[]) {
     ("max_iterations", po::value<long long>(), "label_propagation max_iterations")
     ("sample_size", po::value<int>(), "label_propagation sample_size")
     ("percent", po::value<int>(), "label_propagation percent")
-    ("max_recursive_calls", po::value<int>(), "label_propagation max_recursive_calls");
+    ("max_refinement_iterations", po::value<unsigned int>(), "label_propagation max refinement iterations")
+    ("max_recursive_calls", po::value<unsigned int>(), "label_propagation max_recursive_calls");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
