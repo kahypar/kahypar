@@ -28,6 +28,11 @@ i=100
 alpha=12
 
 
+# hmetis
+nruns=1
+nvcycles=1
+ufactor=3
+
 if [ ! -d $RESULT_DIR ]
 then
   mkdir -v -p $RESULT_DIR
@@ -38,21 +43,34 @@ taskfilename=$RESULT_DIR"/"$taskfilename
 
 output=$RESULT_DIR"/"$name"."results
 
+#hmetis
+for file in $GRAPH_DIR"/"*.hgr
+do
+  for k in 2 4 8 16 32
+  do
+    for run in $(seq 1 $reps)
+    do
+      seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
+      echo "./start_hmetis.py $file $ufactor $k $seed $nruns $nvcycles" >> $taskfilename
+    done
+  done
+done
 
-#for file in $GRAPH_DIR"/"*.hgr
-#do
-#  continue
-#  for k in 2 #4 8 16 32
-#  do
-#    for  run in $(seq 1 $reps)
-#    do
-#      seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_lazy" >> $taskfilename
-#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_heuristic" >> $taskfilename
-#      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=hyperedge" >> $taskfilename
-#    done
-#  done
-#done
+exit
+
+for file in $GRAPH_DIR"/"*.hgr
+do
+  for k in 2 #4 8 16 32
+  do
+    for  run in $(seq 1 $reps)
+    do
+      seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
+      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_lazy" >> $taskfilename
+      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_heuristic" >> $taskfilename
+      echo "$CLUSTERER --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=hyperedge" >> $taskfilename
+    done
+  done
+done
 
 # two_phase_lp
 for file in $GRAPH_DIR"/"*.hgr
@@ -80,7 +98,6 @@ do
   done
 done
 
-exit
 
 #reference
 for file in $GRAPH_DIR"/"*.hgr
