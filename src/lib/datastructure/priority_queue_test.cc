@@ -15,7 +15,7 @@ namespace datastructure {
 class APriorityQueue : public Test {
   public:
   APriorityQueue() :
-    prio_queue(3, 3) { }
+    prio_queue(3) { }
 
   PriorityQueue<defs::HypernodeID, defs::RatingType, MetaKeyDouble> prio_queue;
 };

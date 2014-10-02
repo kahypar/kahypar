@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H__H_
-#define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H__H_
+#ifndef SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
+#define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
 #include <sparsehash/dense_hash_set>

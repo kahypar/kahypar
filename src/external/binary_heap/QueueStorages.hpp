@@ -48,9 +48,9 @@ public:
 	inline size_t & operator[]( id_slot node ){
 		GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
 		return positions[node];
-	}
+        }
 
-	void clear(){ /* do nothing */ }
+        void clear(){ /* do nothing */ }
 protected:
 	size_t size;
 	size_t* positions;
@@ -131,8 +131,9 @@ protected:
 template< typename id_slot >
 class DenseHashStorage{
 public:
-	DenseHashStorage( id_slot empty_node = std::numeric_limits< id_slot >::max() ){
-                node_positions.set_empty_key( empty_node );
+DenseHashStorage( id_slot size ) {
+                node_positions.set_empty_key( std::numeric_limits< id_slot >::max() );
+                node_positions.set_deleted_key(std::numeric_limits< id_slot >::max() -1);
 	}
 
 	const size_t & operator[]( id_slot node ) const {
@@ -144,7 +145,7 @@ public:
 	}
 
 	void clear(){
-		node_positions.clear();
+                node_positions.clear_no_resize();
 	}
 protected:
 	google::dense_hash_map< id_slot, size_t > node_positions;

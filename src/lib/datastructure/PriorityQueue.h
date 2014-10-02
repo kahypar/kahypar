@@ -34,8 +34,8 @@ class PriorityQueue {
   typedef BinaryHeap<IDType, KeyType, MetaKey, DataType, Storage> Heap;
 
   public:
-  PriorityQueue(IDType size, size_t reserve_size = 0) :
-    _heap(size, reserve_size) { }
+  explicit PriorityQueue(IDType size) :
+    _heap(size) { }
 
   size_t size() const {
     return _heap.size();

@@ -73,7 +73,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _rater(_hg, _config),
-    _pq(_hg.initialNumNodes(), _hg.initialNumNodes())
+    _pq(_hg.initialNumNodes())
   { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
