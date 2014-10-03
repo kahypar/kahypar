@@ -42,8 +42,9 @@ i = 0
 results = []
 for line in iter(p.stdout.readline, b''):
     s = str(line).strip()
-#    print(s)
+    print(s)
     if ("Vtxs" in s):
+        print(s.split())
         result_string += (" numHNs="+str(int(s.split()[4][:-1])))
         result_string += (" numHEs="+str(int(s.split()[6][:-1])))
     if ("initial cut" in s):

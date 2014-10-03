@@ -445,7 +445,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm, two_phase_lp_refiner, lp_refiner")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default), her_fm, lp_refiner")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -455,7 +455,8 @@ int main(int argc, char* argv[]) {
     ("sample_size", po::value<int>(), "label_propagation sample_size")
     ("percent", po::value<int>(), "label_propagation percent")
     ("max_refinement_iterations", po::value<unsigned int>(), "label_propagation max refinement iterations")
-    ("max_recursive_calls", po::value<unsigned int>(), "label_propagation max_recursive_calls");
+    ("max_recursive_calls", po::value<unsigned int>(), "label_propagation max_recursive_calls")
+    ("preprocess", "perform preprocessing step");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -488,8 +489,73 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+  Hypergraph hypergraph_initial(num_hypernodes, num_hyperedges, index_vector, edge_vector,
                         config.partition.k);
+
+  bool preprocess = vm.count("preprocess") > 0;
+  // TODO set config params???
+  config.lp.max_size_constraint = 9999;
+  std::unique_ptr<ICoarsener> preprocess_coarsener(new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(hypergraph_initial, config));
+  auto preprocess_refiner =
+    std::unique_ptr<IRefiner>(new LPRefiner(hypergraph_initial, config));
+  HighResClockTimepoint start_t;
+  HighResClockTimepoint end_t;
+
+  start_t = std::chrono::high_resolution_clock::now();
+  if (preprocess) preprocess_coarsener->coarsen(0);
+  end_t = std::chrono::high_resolution_clock::now();
+
+  HypernodeID num_coarsened_hypernodes = hypergraph_initial.numNodes();
+  HypernodeID num_coarsened_hyperedges = hypergraph_initial.numEdges();
+  HyperedgeIndexVector coarsened_index_vector;
+  HyperedgeVector coarsened_edge_vector;
+  HypernodeWeightVector coarsened_node_weight_vector;
+  HyperedgeWeightVector coarsened_edge_weight_vector;
+
+  coarsened_index_vector.reserve(num_coarsened_hyperedges + 1);
+  coarsened_index_vector.push_back(coarsened_edge_vector.size());
+
+  // TODO need to create the mapping
+  std::unordered_map<HypernodeID, HypernodeID> map_initial_coarsened;
+  std::unordered_map<HypernodeID, HypernodeID> map_coarsened_initial;
+
+  int i = 0;
+  for (const auto &hn : hypergraph_initial.nodes())
+  {
+    map_initial_coarsened[hn] = i;
+    map_coarsened_initial[i++] = hn;
+  }
+
+  for (const auto &he : hypergraph_initial.edges())
+  {
+    coarsened_edge_weight_vector.push_back(hypergraph_initial.edgeWeight(he));
+    for (const auto &pin : hypergraph_initial.pins(he))
+    {
+      coarsened_edge_vector.push_back(map_initial_coarsened[pin]);
+    }
+    coarsened_index_vector.push_back(coarsened_edge_vector.size());
+  }
+
+  for (const auto &hn : hypergraph_initial.nodes())
+  {
+    coarsened_node_weight_vector.push_back(hypergraph_initial.nodeWeight(hn));
+  }
+
+  std::cout  << "COARSENED: " << num_coarsened_hypernodes << ", " << num_coarsened_hyperedges << std::endl;
+  Hypergraph hypergraph(num_coarsened_hypernodes, num_coarsened_hyperedges, coarsened_index_vector,
+                        coarsened_edge_vector, config.partition.k, &coarsened_edge_weight_vector,
+                        &coarsened_node_weight_vector);
 
   HypernodeWeight hypergraph_weight = 0;
   for (auto && hn : hypergraph.nodes()) {
@@ -574,12 +640,6 @@ int main(int argc, char* argv[]) {
   }
 
   if (vm.count("rtype") &&
-      vm["rtype"].as<std::string>() == "two_phase_lp_refiner")
-  {
-    refiner.reset(new TwoPhaseLPRefiner(hypergraph, config));
-  }
-
-  if (vm.count("rtype") &&
       vm["rtype"].as<std::string>() == "lp_refiner")
   {
     refiner.reset(new LPRefiner(hypergraph, config));
@@ -594,29 +654,45 @@ int main(int argc, char* argv[]) {
   partitioner.partition(hypergraph, *coarsener, *refiner);
   end = std::chrono::high_resolution_clock::now();
 
+
+  // project the partition to the initial hypergraph
+  for (const auto &hn : hypergraph_initial.nodes())
+  {
+    hypergraph_initial.setNodePart(hn, hypergraph.partID(map_initial_coarsened[hn]));
+  }
+
+  // refine
+  std::chrono::duration<double> elapse_seconds_preprocess = end_t - start_t;
+  start_t = std::chrono::high_resolution_clock::now();
+  if (preprocess) preprocess_coarsener->uncoarsen(*preprocess_refiner);
+  end_t = std::chrono::high_resolution_clock::now();
+
+
+  elapse_seconds_preprocess += end_t - start_t;
+  std::cout << "PREPROCESS TOOK " << elapse_seconds_preprocess.count() << std::endl;
 #ifndef NDEBUG
-  for (auto && he : hypergraph.edges()) {
+  for (auto && he : hypergraph_initial.edges()) {
     ASSERT([&]() -> bool {
              HypernodeID num_pins = 0;
              for (PartitionID i = 0; i < config.partition.k; ++i) {
-               num_pins += hypergraph.pinCountInPart(he, i);
+               num_pins += hypergraph_initial.pinCountInPart(he, i);
              }
-             return num_pins == hypergraph.edgeSize(he);
+             return num_pins == hypergraph_initial.edgeSize(he);
            } (),
            "Incorrect calculation of pin counts");
   }
 #endif
 
-  std::chrono::duration<double> elapsed_seconds = end - start;
+  std::chrono::duration<double> elapsed_seconds = end - start + elapse_seconds_preprocess;
 
   io::printPartitioningStatistics(*coarsener, *refiner);
-  io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
-  io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
+  io::printPartitioningResults(hypergraph_initial, elapsed_seconds, partitioner.timings());
+  io::writePartitionFile(hypergraph_initial, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  SQLPlotToolsSerializer::serialize(config, hypergraph, *coarsener, *refiner, elapsed_seconds,
+  SQLPlotToolsSerializer::serialize(config, hypergraph_initial, *coarsener, *refiner, elapsed_seconds,
                                     partitioner.timings(), result_file);
   return 0;
 }

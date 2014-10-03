@@ -64,16 +64,11 @@ namespace partition
           }
 
           auto iter = clusterer_.cluster(buffer_);
-          std::cout << "Iteration: " << i << " iterations: " << iter << std::endl;
 
           auto clustering = clusterer_.get_clustering();
 
           auto diff = clusterer_.gain_difference();
           assert (diff >= 0);
-          if (diff > 0)
-          {
-            std::cout << "TwoPhaseLPRefiner reduced cut from: " << best_cut << " to " << best_cut-diff << std::endl;
-          }
           best_cut -= clusterer_.gain_difference();
 
           std::unordered_set<HypernodeID> next;

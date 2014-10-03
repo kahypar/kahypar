@@ -32,8 +32,8 @@ namespace partition
         contained_cur_queue_(new std::vector<bool>()),
         next_queue_(new std::vector<HypernodeID>()),
         contained_next_queue_(new std::vector<bool>())
-      {
-      }
+    {
+    }
 
       bool refineImpl(std::vector<HypernodeID> &refinement_nodes, size_t num_refinement_nodes,
           HyperedgeWeight &best_cut, double &best_imbalance) final
@@ -45,11 +45,19 @@ namespace partition
 
         auto in_cut = best_cut;
 
+        // cleanup
+        cur_queue_->clear();
+        next_queue_->clear();
+        contained_cur_queue_->clear();
+        contained_cur_queue_->resize(hg_.initialNumNodes());
+        contained_next_queue_->clear();
+        contained_next_queue_->resize(hg_.initialNumNodes());
+
         for (int i = 0; i < num_refinement_nodes; ++i)
         {
           const auto& cur_node = refinement_nodes[i];
           if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
-          //if (!(*contained_cur_queue_)[cur_node])
+            //if (!(*contained_cur_queue_)[cur_node])
           {
             assert (hg_.partWeight(hg_.partID(cur_node)) < config_.partition.max_part_weight);
 
@@ -61,11 +69,8 @@ namespace partition
         contained_cur_queue_->clear();
         contained_cur_queue_->resize(hg_.initialNumNodes());
 
-        if (cur_queue_->empty())
-          return false;
-          //throw std::logic_error("ASDF");
-
-        for (int i = 0; i < config_.lp.max_refinement_iterations; ++i)
+        int i;
+        for (i = 0; !cur_queue_->empty() && i < config_.lp.max_refinement_iterations; ++i)
         {
           Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
           for (const auto &hn : *cur_queue_)
@@ -74,7 +79,8 @@ namespace partition
 
             incident_partitions_.clear();
             incident_partition_score_.clear();
-            incident_partitions_.insert(hg_.partID(hn));
+            //incident_partitions_.insert(hg_.partID(hn));
+            incident_partitions_[hg_.partID(hn)] = true;
 
             for (const auto &he : hg_.incidentEdges(hn))
             {
@@ -86,32 +92,36 @@ namespace partition
                 for (const auto &val : incident_partitions_)
                 {
                   // decrease the score for all partitions, but this
-                  incident_partition_score_[val] -= (val == hg_.partID(hn) ? 0 : hg_.edgeWeight(he));
+                  //incident_partition_score_[val] -= (val == hg_.partID(hn) ? 0 : hg_.edgeWeight(he));
+                  incident_partition_score_[val.first] -= (val.first == hg_.partID(hn) ? 0 : hg_.edgeWeight(he));
                 }
               } else if (hg_.connectivity(he) == 2)
               {
-                if (hg_.pinCountInPart(he, hg_.partID(hn))== 1)
-                {
-                  auto other_part = (hg_.partID(hn) == *hg_.connectivitySet(he).begin() ?
+                auto other_part = (hg_.partID(hn) == *hg_.connectivitySet(he).begin() ?
                     *(++hg_.connectivitySet(he).begin()) :
                     *(hg_.connectivitySet(he).begin()));
-                  assert (other_part != hg_.partID(hn));
+                assert (other_part != hg_.partID(hn));
+                //if (incident_partitions_.count(other_part) == 0)
+                if (incident_partitions_[other_part] == false)
+                {
+                  incident_partition_score_[other_part] -= malus;
+                  //incident_partitions_.insert(other_part);
+                  incident_partitions_[other_part] = true;
+                }
 
+                if (hg_.pinCountInPart(he, hg_.partID(hn))== 1)
+                {
                   incident_partition_score_[other_part] += hg_.edgeWeight(he);
-
-                  if (incident_partitions_.count(other_part) == 0)
-                  {
-                    incident_partition_score_[other_part] -= malus;
-                    incident_partitions_.insert(other_part);
-                  }
                 }
               } else {
                 for (const auto &val : hg_.connectivitySet(he))
                 {
-                  if (incident_partitions_.count(val) == 0)
+                  //if (incident_partitions_.count(val) == 0)
+                  if (incident_partitions_[val] == false)
                   {
                     incident_partition_score_[val] -= malus;
-                    incident_partitions_.insert(val);
+                    //incident_partitions_.insert(val);
+                    incident_partitions_[val] = true;
                   }
                 }
               }
@@ -122,7 +132,8 @@ namespace partition
             long long best_score = -1;
             for (const auto & val :incident_partition_score_)
             {
-              if ((val.second > best_score || (val.second == best_score && Randomize::flipCoin())) &&
+              if ((val.second > best_score || (val.second == best_score && Randomize::flipCoin()) ||
+                  (val.second == best_score && hg_.partWeight(hg_.partID(hn)) > hg_.partWeight(val.first))) &&
                   (hg_.partWeight(val.first) + hg_.nodeWeight(hn) < config_.partition.max_part_weight ||
                    (val.first ==  hg_.partID(hn) && hg_.partWeight(val.first) < config_.partition.max_part_weight)))
               {
@@ -131,25 +142,22 @@ namespace partition
               }
             }
 
-            if (best_score < 0) continue;
 
+            // add adjacent nodes to the next queue
             if (best_part != hg_.partID(hn))
             {
+
               hg_.changeNodePart(hn, hg_.partID(hn), best_part);
 #ifndef NDEBUG
               std::cout << "LPRefiner improved cut from: " << best_cut << " to " << best_cut-best_score << std::endl;
 #endif
               best_cut -= best_score;
-            }
 
-            assert (hg_.partWeight(best_part) < config_.partition.max_part_weight);
-            assert (best_cut <= in_cut);
-            assert (best_cut == metrics::hyperedgeCut(hg_));
-            assert (metrics::imbalance(hg_) < config_.partition.epsilon);
+              assert (hg_.partWeight(best_part) < config_.partition.max_part_weight);
+              assert (best_cut <= in_cut);
+              assert (best_cut == metrics::hyperedgeCut(hg_));
+              assert (metrics::imbalance(hg_) < config_.partition.epsilon);
 
-            // add adjacent nodes to the next queue
-            if (best_part != hg_.partID(hn))
-            {
               for (const auto &he : hg_.incidentEdges(hn))
               {
                 for (const auto &pin : hg_.pins(he))
@@ -171,7 +179,8 @@ namespace partition
           std::swap(cur_queue_, next_queue_);
           std::swap(contained_cur_queue_, contained_next_queue_);
         }
-          return best_cut < in_cut;
+        //std::cout << "I: " << i << std::endl;
+        return best_cut < in_cut;
       }
 
       int numRepetitionsImpl() const final
@@ -213,7 +222,8 @@ namespace partition
         contained_next_queue_->resize(hg_.initialNumNodes());
 
         incident_partitions_.clear();
-        incident_partitions_.reserve(config_.partition.k);
+        //incident_partitions_.reserve(config_.partition.k);
+        incident_partitions_.init(config_.partition.k);
 
         incident_partition_score_.clear();
         incident_partition_score_.init(config_.partition.k);
@@ -237,7 +247,8 @@ namespace partition
       std::unique_ptr<std::vector<bool> > contained_cur_queue_;
       std::unique_ptr<std::vector<bool> > contained_next_queue_;
 
-      std::unordered_set<PartitionID> incident_partitions_;
+      //std::unordered_set<PartitionID> incident_partitions_;
+      lpa_hypergraph::pseudo_hashmap<PartitionID, bool> incident_partitions_;
       lpa_hypergraph::pseudo_hashmap<PartitionID, long long> incident_partition_score_;
 
       Stats stats_;

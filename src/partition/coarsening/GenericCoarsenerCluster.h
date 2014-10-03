@@ -86,7 +86,6 @@ namespace partition
         // get the clustering
         auto clustering = _clusterer->get_clustering();
 
-
         assert (nodes.size() <= clustering.size());
         for (size_t i = 0; i < nodes.size(); ++i)
         {
