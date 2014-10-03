@@ -47,9 +47,8 @@
 #include "external/lpa_hypergraph/include/clusterer/two_phase_lp.hpp"
 #include "partition/coarsening/GenericCoarsener.h"
 #include "partition/coarsening/GenericCoarsenerCluster.h"
+#include "partition/coarsening/GenericCoarsenerMultilevel.h"
 #include "partition/coarsening/BestChoiceCoarsener.h"
-#include "partition/coarsening/TwoPhaseLPCoarsener.h"
-#include "partition/coarsening/TwoPhaseLPCoarsenerCluster.h"
 
 lpa_hypergraph::Configuration lpa_hypergraph::BasePolicy::config_ = lpa_hypergraph::Configuration();
 
@@ -70,6 +69,7 @@ using partition::HeuristicHeavyEdgeCoarsener;
 using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::GenericCoarsener;
+using partition::GenericCoarsenerMultilevel;
 using partition::GenericCoarsenerCluster;
 using partition::BestChoiceCoarsener;
 using partition::Partitioner;
@@ -364,6 +364,23 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_multilevel",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_node_ordering",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {

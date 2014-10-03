@@ -149,7 +149,7 @@ namespace partition
 
               hg_.changeNodePart(hn, hg_.partID(hn), best_part);
 #ifndef NDEBUG
-              std::cout << "LPRefiner improved cut from: " << best_cut << " to " << best_cut-best_score << std::endl;
+              //std::cout << "LPRefiner improved cut from: " << best_cut << " to " << best_cut-best_score << std::endl;
 #endif
               best_cut -= best_score;
 
