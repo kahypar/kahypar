@@ -33,6 +33,7 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/TwoPhaseLPRefiner.h"
 #include "partition/refinement/LPRefiner.h"
+#include "partition/refinement/LPRefinerBetterGain.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -82,6 +83,7 @@ using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
 using partition::TwoPhaseLPRefiner;
 using partition::LPRefiner;
+using partition::LPRefinerBetterGain;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::StoppingPolicy;
@@ -696,6 +698,12 @@ int main(int argc, char* argv[]) {
   {
     refiner.reset(new LPRefiner(hypergraph, config));
   }
+  if (vm.count("rtype") &&
+      vm["rtype"].as<std::string>() == "lp_refiner_better_gain")
+  {
+    refiner.reset(new LPRefinerBetterGain(hypergraph, config));
+  }
+
 
 
 
