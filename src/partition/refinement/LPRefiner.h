@@ -129,24 +129,24 @@ namespace partition
 
             // get the best score
             PartitionID best_part = hg_.partID(hn);
-            long long best_score = -1;
+            long long best_score = 0;
             for (const auto & val :incident_partition_score_)
             {
-              if ((val.second > best_score || (val.second == best_score && Randomize::flipCoin()) ||
-                  (val.second == best_score && hg_.partWeight(hg_.partID(hn)) > hg_.partWeight(val.first))) &&
-                  (hg_.partWeight(val.first) + hg_.nodeWeight(hn) < config_.partition.max_part_weight ||
-                   (val.first ==  hg_.partID(hn) && hg_.partWeight(val.first) < config_.partition.max_part_weight)))
+              if ((val.second > best_score ||
+                  (val.second == best_score && (
+                                (hg_.partWeight(hg_.partID(hn))-hg_.nodeWeight(hn)) >
+                                (hg_.partWeight(val.first)+hg_.nodeWeight(hn))))) &&
+                  (((hg_.partWeight(val.first) + hg_.nodeWeight(hn)) < config_.partition.max_part_weight) ||
+                  (val.first ==  hg_.partID(hn) && hg_.partWeight(val.first) < config_.partition.max_part_weight)))
               {
                 best_part = val.first;
                 best_score = val.second;
               }
             }
 
-
             // add adjacent nodes to the next queue
             if (best_part != hg_.partID(hn))
             {
-
               hg_.changeNodePart(hn, hg_.partID(hn), best_part);
 #ifndef NDEBUG
               //std::cout << "LPRefiner improved cut from: " << best_cut << " to " << best_cut-best_score << std::endl;
@@ -171,7 +171,6 @@ namespace partition
               }
             }
           }
-
           contained_cur_queue_->clear();
           contained_cur_queue_->resize(hg_.initialNumNodes());
           cur_queue_->clear();
@@ -179,7 +178,6 @@ namespace partition
           std::swap(cur_queue_, next_queue_);
           std::swap(contained_cur_queue_, contained_next_queue_);
         }
-        //std::cout << "I: " << i << std::endl;
         return best_cut < in_cut;
       }
 

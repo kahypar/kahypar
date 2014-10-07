@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
     );
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp",
+    "two_phase_lp_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -364,6 +364,41 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_node_ordering_no_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdates,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_multilevel",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -382,7 +417,7 @@ int main(int argc, char* argv[]) {
     }
     );
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_node_ordering",
+    "two_phase_lp_node_ordering_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::NodeOrderingInitialization,
