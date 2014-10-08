@@ -60,6 +60,7 @@ class NoDataBinaryHeap{
   typedef id_slot value_type;
   typedef key_slot key_type;
   typedef meta_key_slot meta_key_type;
+  typedef void data_type;
 
   NoDataBinaryHeap( const NoDataBinaryHeap & other) :
       handles(other.max_size - 1 /* no storage for sentinel */),
