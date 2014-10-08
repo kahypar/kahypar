@@ -77,43 +77,44 @@ namespace partition
       {
         // set the max_cluster in the config TODO redesign?
         lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
-        std::vector<HypernodeID> nodes;
-        nodes.reserve(_hg.numNodes());
-        for (const auto& hn : _hg.nodes())
-        {
-          nodes.push_back(hn);
-        }
-        _clusterer->cluster(nodes, limit);
-        // get the clustering
-        auto clustering = _clusterer->get_clustering();
 
-        assert (nodes.size() <= clustering.size());
-        for (size_t i = 0; i < nodes.size(); ++i)
+        do
         {
-          _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
-        }
-
-
-        // perform the contrraction
-        for (auto&& val : _clustering_map)
-        {
-          // dont contract single nodes
-          if (val.second.size() > 1)
+          std::vector<HypernodeID> nodes;
+          nodes.reserve(_hg.numNodes());
+          for (const auto& hn : _hg.nodes())
           {
-            auto rep_node = performContraction(val.second);
-            removeSingleNodeHyperedges(rep_node);
-            removeParallelHyperedges(rep_node);
+            nodes.push_back(hn);
           }
-        }
+          _clusterer->cluster(nodes, limit);
+          // get the clustering
+          auto clustering = _clusterer->get_clustering();
 
-        _levels.push(_history.size());
-        _clustering_map.clear();
+          assert (nodes.size() <= clustering.size());
+          for (size_t i = 0; i < nodes.size(); ++i)
+          {
+            _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
+          }
 
-        if (_recursive_call++ < _config.lp.max_recursive_calls &&
-            _hg.numNodes() > limit)
-        {
-          coarsenImpl(0);
-        }
+
+          // perform the contrraction
+          for (auto&& val : _clustering_map)
+          {
+            // dont contract single nodes
+            if (val.second.size() > 1)
+            {
+              auto rep_node = performContraction(val.second);
+              removeSingleNodeHyperedges(rep_node);
+              removeParallelHyperedges(rep_node);
+            }
+          }
+
+          _levels.push(_history.size());
+          _clustering_map.clear();
+
+        } while (_recursive_call++ < _config.lp.max_recursive_calls &&
+            _hg.numNodes() > limit);
+
         gatherCoarseningStats();
         _recursive_call = 0;
       };

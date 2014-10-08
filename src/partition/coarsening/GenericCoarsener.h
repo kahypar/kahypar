@@ -78,42 +78,42 @@ namespace partition
         // set the max_cluster in the config TODO redesign?
         lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
 
-        // we want to cluster all nodes
-        std::vector<HypernodeID> nodes;
-        nodes.reserve(_hg.numNodes());
-        for (const auto& hn : _hg.nodes())
+        do
         {
-          nodes.push_back(hn);
-        }
-
-        _clusterer->cluster(nodes, limit);
-
-        // get the clustering
-        auto clustering = _clusterer->get_clustering();
-
-        assert (nodes.size() <= clustering.size());
-        for (size_t i = 0; i < nodes.size(); ++i)
-        {
-          _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
-        }
-
-        // perform the contraction
-        for (auto&& val : _clustering_map)
-        {
-          // dont contract single nodes
-          if (val.second.size() > 1)
+          // we want to cluster all nodes
+          std::vector<HypernodeID> nodes;
+          nodes.reserve(_hg.numNodes());
+          for (const auto& hn : _hg.nodes())
           {
-            auto rep_node = performContraction(val.second);
+            nodes.push_back(hn);
           }
-        }
 
-        _clustering_map.clear();
+          _clusterer->cluster(nodes, limit);
 
-        if (_recursive_call++ < _config.lp.max_recursive_calls &&
-            _hg.numNodes() > limit)
-        {
-          coarsenImpl(limit);
-        }
+          // get the clustering
+          auto clustering = _clusterer->get_clustering();
+
+          assert (nodes.size() <= clustering.size());
+          for (size_t i = 0; i < nodes.size(); ++i)
+          {
+            _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
+          }
+
+          // perform the contraction
+          for (auto&& val : _clustering_map)
+          {
+            // dont contract single nodes
+            if (val.second.size() > 1)
+            {
+              auto rep_node = performContraction(val.second);
+            }
+          }
+
+          _clustering_map.clear();
+
+        } while (_recursive_call++ < _config.lp.max_recursive_calls &&
+            _hg.numNodes() > limit);
+
         gatherCoarseningStats();
         _recursive_call = 0;
       };

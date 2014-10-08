@@ -432,7 +432,7 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::AdaptiveIterationsCondition>>(p.hypergraph, p.config);
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
