@@ -44,17 +44,17 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << coarsener.stats().toString();
     if (config.two_way_fm.active) {
       out_stream << " twowayFMactive=" << config.two_way_fm.active
-                 << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
-                 << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
-                 << " twowayFMalpha=" << config.two_way_fm.alpha
-                 << " twowayFMbeta=" << config.two_way_fm.beta;
+      << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
+      << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
+      << " twowayFMalpha=" << config.two_way_fm.alpha
+      << " twowayFMbeta=" << config.two_way_fm.beta;
     }
     if (config.her_fm.active) {
       out_stream << " herFMactive=" << config.her_fm.active
-                 << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
+      << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
     }
     out_stream << refiner.policyString()
-               << refiner.stats().toString();
+    << refiner.stats().toString();
     for (PartitionID i = 0; i != hypergraph.k(); ++i) {
       out_stream << " part" << i << "=" << hypergraph.partWeight(i);
     }
