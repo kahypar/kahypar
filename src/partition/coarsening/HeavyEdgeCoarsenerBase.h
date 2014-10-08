@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
@@ -19,6 +20,7 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
+using external::BinaryHeap;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
@@ -47,7 +49,9 @@ struct CoarseningMemento {
 };
 
 template <class Rater = Mandatory,
-          class PrioQueue = PriorityQueue<HypernodeID, typename Rater::RatingType, MetaKeyDouble> >
+          class PrioQueue = PriorityQueue<BinaryHeap<HypernodeID,
+                                                     typename Rater::RatingType,
+                                                     MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
                                                     CoarseningMemento>{
   protected:

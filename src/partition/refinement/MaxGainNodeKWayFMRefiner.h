@@ -16,6 +16,7 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
@@ -28,7 +29,7 @@
 #include "tools/RandomFunctions.h"
 
 using datastructure::PriorityQueue;
-
+using external::BinaryHeap;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -54,9 +55,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
-  typedef PriorityQueue<HypernodeID, HyperedgeWeight,
-                        std::numeric_limits<HyperedgeWeight>,
-                        PartitionID> KWayRefinementPQ;
+  typedef BinaryHeap<HypernodeID, HyperedgeWeight,
+                     std::numeric_limits<HyperedgeWeight>,
+                     PartitionID> MaxGainNodeKWayFMHeap;
+  typedef PriorityQueue<MaxGainNodeKWayFMHeap> KWayRefinementPQ;
 
   struct RollbackInfo {
     HypernodeID hn;
