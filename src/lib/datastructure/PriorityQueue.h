@@ -45,7 +45,9 @@ class PriorityQueue {
     _heap.reinsertingPush(id, -key);
   }
 
-  void reInsert(IDType id, KeyType key, std::enable_if<!std::is_void<DataType>::value> data) {
+  template <typename T>
+  void reInsert(IDType id, KeyType key, T data,
+                typename std::enable_if<std::is_same<T, DataType>::value>::type* = 0) {
     _heap.reinsertingPush(id, -key, data);
   }
 
@@ -89,7 +91,8 @@ class PriorityQueue {
     _heap.deleteNode(id);
   }
 
-  typename std::enable_if<!std::is_void<DataType>::value> & data(IDType id) {
+  template <typename T = DataType>
+  typename std::enable_if<std::is_same<DataType, T>::value, T&>::type data(IDType id) {
     return _heap.getUserData(id);
   }
 
