@@ -108,13 +108,13 @@ namespace partition
         }
 
         _clustering_map.clear();
-        gatherCoarseningStats();
 
         if (_recursive_call++ < _config.lp.max_recursive_calls &&
             _hg.numNodes() > limit)
         {
           coarsenImpl(limit);
         }
+        gatherCoarseningStats();
         _recursive_call = 0;
       };
 
