@@ -33,7 +33,7 @@ namespace external {
 //id_slot : ID Type for stored elements
 //key_slot: type of key_slot used
 //Meta key slot: min/max values for key_slot accessible via static functions ::max() / ::min()
-template< typename id_slot, typename key_slot, typename meta_key_slot, typename data_slot = NullData, typename storage_slot = ArrayStorage< id_slot > >
+template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
 class NoDataBinaryHeap{
  private:
   void operator=( const NoDataBinaryHeap& ){}	//really, do not copy
@@ -60,7 +60,6 @@ class NoDataBinaryHeap{
   typedef id_slot value_type;
   typedef key_slot key_type;
   typedef meta_key_slot meta_key_type;
-  typedef data_slot data_type;
 
   NoDataBinaryHeap( const NoDataBinaryHeap & other) :
       handles(other.max_size - 1 /* no storage for sentinel */),
@@ -107,18 +106,8 @@ class NoDataBinaryHeap{
            << heap[handles[id]].id << "!=" << id );
   }
 
-  //push with user data - only to temporarily satisfy PQ interface
-  inline void push( const id_slot & id, const key_slot & key, const data_slot & data ){
-    push(id, key);
-  }
-
   //  only to temporarily satisfy PQ interface
   inline void reinsertingPush( const id_slot & id, const key_slot & key ){
-    push(id, key);
-  }
-
-  //  only to temporarily satisfy PQ interface
-  inline void reinsertingPush( const id_slot & id, const key_slot & key, const data_slot & data ){
     push(id, key);
   }
 
