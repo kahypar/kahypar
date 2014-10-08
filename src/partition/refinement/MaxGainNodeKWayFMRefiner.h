@@ -161,9 +161,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
         if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
           DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
-              "KWayFM improved cut from " << best_cut << " to " << cut);
+              "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
           DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
-              "KWayFM improved balance between " << from_part << " and " << to_part
+              "MaxGainNodeKWayFM improved balance between " << from_part << " and " << to_part
               << "(max_gain=" << max_gain << ")");
           if (cut < best_cut) {
             StoppingPolicy::resetStatistics();
