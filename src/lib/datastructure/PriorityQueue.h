@@ -45,7 +45,7 @@ class PriorityQueue {
     _heap.reinsertingPush(id, -key);
   }
 
-  void reInsert(IDType id, KeyType key, DataType data) {
+  void reInsert(IDType id, KeyType key, std::enable_if<!std::is_void<DataType>::value> data) {
     _heap.reinsertingPush(id, -key, data);
   }
 
@@ -89,7 +89,7 @@ class PriorityQueue {
     _heap.deleteNode(id);
   }
 
-  DataType & data(IDType id) {
+  typename std::enable_if<!std::is_void<DataType>::value> & data(IDType id) {
     return _heap.getUserData(id);
   }
 
