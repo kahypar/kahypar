@@ -87,10 +87,10 @@ class KWayFMRefiner : public IRefiner,
     _performed_moves(),
     _locked_hes(),
     _current_locked_hes(),
-    _infeasible_moves(),
+    //_infeasible_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
-    _infeasible_moves.reserve(_hg.initialNumNodes());
+    //_infeasible_moves.reserve(_hg.initialNumNodes());
     _locked_hes.resize(_hg.initialNumEdges(), -1);
     _tmp_target_parts.set_empty_key(Hypergraph::kInvalidPartition);
     _tmp_target_parts.set_deleted_key(Hypergraph::kDeletedPartition);
@@ -142,7 +142,7 @@ class KWayFMRefiner : public IRefiner,
               << " with gain " << max_gain
               << " sourcePart=" << from_part
               << " targetPart= " << to_part);
-        _infeasible_moves[free_index] = std::make_tuple(max_gain_node,to_part,max_gain);
+        // _infeasible_moves[free_index] = std::make_tuple(max_gain_node,to_part,max_gain);
         _pq.deleteMax();
         ++num_infeasible_deletes;
         if (_pq.empty()) {
@@ -178,21 +178,23 @@ class KWayFMRefiner : public IRefiner,
 
       moveHypernode(max_gain_node, from_part, to_part);
 
+      // TODO(schlag): Reevaluate! Currently it seems that reinsertion decreases quality!
       // max_gain_node was moved and is marked now. So we remove the remaining PQ entries
       // that contain max_gain_node and reinsert previously infeasible moves.
-      while(free_index >= 0){
-        if(std::get<0>(_infeasible_moves[free_index]) != max_gain_node) {
-            DBG(dbg_refinement_kway_infeasible_moves,
-                "inserting infeasible move of HN " << std::get<0>(_infeasible_moves[free_index])
-                << " with gain " << std::get<2>(_infeasible_moves[free_index])
-                << " sourcePart=" << _hg.partID(std::get<0>(_infeasible_moves[free_index]))
-                << " targetPart= " << std::get<1>(_infeasible_moves[free_index]));
-          _pq.reInsert(std::get<0>(_infeasible_moves[free_index]),
-                       std::get<1>(_infeasible_moves[free_index]),
-                       std::get<2>(_infeasible_moves[free_index]));
-        }
-        --free_index;
-      }
+      // while(free_index >= 0){
+      //   if(std::get<0>(_infeasible_moves[free_index]) != max_gain_node) {
+      //       DBG(dbg_refinement_kway_infeasible_moves,
+      //           "inserting infeasible move of HN " << std::get<0>(_infeasible_moves[free_index])
+      //           << " with gain " << std::get<2>(_infeasible_moves[free_index])
+      //           << " sourcePart=" << _hg.partID(std::get<0>(_infeasible_moves[free_index]))
+      //           << " targetPart= " << std::get<1>(_infeasible_moves[free_index]));
+      //     _pq.reInsert(std::get<0>(_infeasible_moves[free_index]),
+      //                  std::get<1>(_infeasible_moves[free_index]),
+      //                  std::get<2>(_infeasible_moves[free_index]));
+      //   }
+      //   --free_index;
+      // }
+
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
         if (_pq.contains(max_gain_node, part)) {
           _pq.remove(max_gain_node,part);
@@ -551,7 +553,7 @@ class KWayFMRefiner : public IRefiner,
   std::vector<RollbackInfo> _performed_moves;
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;
-  std::vector<std::tuple<HypernodeID,PartitionID,Gain>> _infeasible_moves;
+  //std::vector<std::tuple<HypernodeID,PartitionID,Gain>> _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
