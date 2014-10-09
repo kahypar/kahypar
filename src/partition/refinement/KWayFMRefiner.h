@@ -79,7 +79,7 @@ class KWayFMRefiner : public IRefiner,
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
-    _tmp_target_parts(_config.partition.k), // for dense_hash_set this is expected # entries
+    _tmp_target_parts(_config.partition.k, Hypergraph::kInvalidPartition),
     _pq(_hg.initialNumNodes(), _config.partition.k),
     _marked(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
@@ -92,8 +92,6 @@ class KWayFMRefiner : public IRefiner,
     _performed_moves.reserve(_hg.initialNumNodes());
     //_infeasible_moves.reserve(_hg.initialNumNodes());
     _locked_hes.resize(_hg.initialNumEdges(), -1);
-    _tmp_target_parts.set_empty_key(Hypergraph::kInvalidPartition);
-    _tmp_target_parts.set_deleted_key(Hypergraph::kDeletedPartition);
   }
 
   void initializeImpl() final { }
@@ -503,7 +501,6 @@ class KWayFMRefiner : public IRefiner,
              return true;
            } () == true, "_tmp_gains not initialized correctly");
 
-    _tmp_target_parts.clear_no_resize();
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
@@ -514,7 +511,7 @@ class KWayFMRefiner : public IRefiner,
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
         for (PartitionID target_part : _hg.connectivitySet(he)) {
-          _tmp_target_parts.insert(target_part);
+          _tmp_target_parts[target_part] = target_part;
           const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
           if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
             _tmp_gains[target_part] += _hg.edgeWeight(he);
@@ -532,22 +529,25 @@ class KWayFMRefiner : public IRefiner,
     //   } ());
 
     // own partition does not count
-    _tmp_target_parts.erase(source_part);
+    _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
     _tmp_gains[source_part] = 0;
 
-    for (PartitionID target_part : _tmp_target_parts) {
+    for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
+      if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
       DBG(dbg_refinement_kway_fm_gain_comp, "inserting HN " << hn << " with gain "
           << (_tmp_gains[target_part] - internal_weight)  << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << target_part);
       _pq.reInsert(hn, target_part, _tmp_gains[target_part] - internal_weight);
       _tmp_gains[target_part] = 0;
+      _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
+      }
     }
   }
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::vector<Gain> _tmp_gains;
-  google::dense_hash_set<PartitionID, HashParts> _tmp_target_parts;
+  std::vector<PartitionID> _tmp_target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;
   boost::dynamic_bitset<uint64_t> _just_updated;
