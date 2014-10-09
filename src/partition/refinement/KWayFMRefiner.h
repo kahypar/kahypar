@@ -179,6 +179,8 @@ class KWayFMRefiner : public IRefiner,
       moveHypernode(max_gain_node, from_part, to_part);
 
       // TODO(schlag): Reevaluate! Currently it seems that reinsertion decreases quality!
+      //               Actually not reinserting seems to be the same as taking the max gain move
+      //               and only perform updates after move was successful.
       // max_gain_node was moved and is marked now. So we remove the remaining PQ entries
       // that contain max_gain_node and reinsert previously infeasible moves.
       // while(free_index >= 0){

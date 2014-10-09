@@ -46,6 +46,8 @@ class AMaxGainNodeKWayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
+typedef AMaxGainNodeKWayFMRefiner AMaxGainNodeKWayFMRefinerDeathTest;
+
 TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
   ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(6), Eq(true));
@@ -93,7 +95,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   ASSERT_THAT(refiner->computeMaxGain(6).second, Eq(1));
 }
 
-TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
+TEST_F(AMaxGainNodeKWayFMRefinerDeathTest, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
   hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7, /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 5, 6 }, 4));
   hypergraph->setNodePart(0, 0);
@@ -112,7 +114,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPa
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
-  ASSERT_THAT(refiner->moveHypernode(7, 3, 2), Eq(false));
+  ASSERT_EXIT(refiner->moveHypernode(7, 3, 2), ::testing::KilledBySignal(SIGABRT),
+              ".*");
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
@@ -134,7 +137,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 
-  ASSERT_THAT(refiner->moveHypernode(7, 3, 2), Eq(true));
+  refiner->moveHypernode(7, 3, 2);
+  ASSERT_THAT(hypergraph->partID(7), Eq(2));
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
