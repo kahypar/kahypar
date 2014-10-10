@@ -410,14 +410,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         internal_weight += _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (PartitionID target_part : _hg.connectivitySet(he)) {
-          _tmp_target_parts[target_part] = target_part;
-          const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
-          if (pins_in_source_part == 1 && pins_in_target_part == _hg.edgeSize(he) - 1) {
-            _tmp_gains[target_part] += _hg.edgeWeight(he);
+        for (Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
+          _tmp_target_parts[target.part] = target.part;
+          if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
+            _tmp_gains[target.part] += _hg.edgeWeight(he);
           }
           if (pins_in_source_part == 1) {
-            _tmp_connectivity_decrease[target_part] += 1;
+            _tmp_connectivity_decrease[target.part] += 1;
           }
         }
       }
