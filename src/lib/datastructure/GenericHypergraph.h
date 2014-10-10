@@ -1140,7 +1140,8 @@ class GenericHypergraph {
 
   std::vector<PartitionID> _part_ids;
   std::vector<PartInformation> _part_info;
-  // for each hyperedge we store the connectivity set, i.e. the parts it connects
+  // for each hyperedge we store the connectivity set,
+  // i.e. the parts it connects and the number of pins in that part
   std::vector<ConnectivitySet> _connectivity_sets;
 
   // Used during uncontraction to remember which hyperedges have already been processed
