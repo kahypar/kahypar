@@ -85,8 +85,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _performed_moves(),
     _locked_hes(),
     _current_locked_hes(),
+    _infeasible_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
+    _infeasible_moves.reserve(_hg.initialNumNodes());
     _locked_hes.resize(_hg.initialNumEdges(), -1);
   }
 
@@ -137,7 +139,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             << " with gain " << max_gain
             << " sourcePart=" << from_part
             << " targetPart= " << to_part);
-        // _infeasible_moves[free_index] = std::make_tuple(max_gain_node,to_part,max_gain);
+        _infeasible_moves[free_index] = std::make_tuple(max_gain_node, to_part, max_gain);
         _pq.deleteMax();
         ++num_infeasible_deletes;
         if (_pq.empty()) {
@@ -175,6 +177,18 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
              , "max_gain move does not correspond to expected cut!");
 
       moveHypernode(max_gain_node, from_part, to_part);
+
+      while (free_index >= 0) {
+        DBG(dbg_refinement_kway_infeasible_moves,
+            "inserting infeasible move of HN " << std::get<0>(_infeasible_moves[free_index])
+            << " with gain " << std::get<2>(_infeasible_moves[free_index])
+            << " sourcePart=" << _hg.partID(std::get<0>(_infeasible_moves[free_index]))
+            << " targetPart= " << std::get<1>(_infeasible_moves[free_index]));
+        _pq.reInsert(std::get<0>(_infeasible_moves[free_index]),
+                     std::get<2>(_infeasible_moves[free_index]),
+                     std::get<1>(_infeasible_moves[free_index]));
+        --free_index;
+      }
 
       cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
@@ -328,7 +342,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                    } else {
                      valid = (_marked[pin] == true);
                      if (!valid) {
+                       const GainPartitionPair pair = computeMaxGain(pin);
                        LOG("HN " << pin << " not in PQ but also not marked");
+                       LOG("gain=" << pair.first);
+                       LOG("to_part=" << pair.second);
+                       LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), pair.second));
                      }
                    }
                  }
@@ -479,6 +497,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<RollbackInfo> _performed_moves;
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;
+  std::vector<std::tuple<HypernodeID, PartitionID, Gain> > _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
