@@ -79,7 +79,7 @@ class GenericHypergraph {
     }
   };
 
-  typedef google::dense_hash_set<PartitionID,HashParts> ConnectivitySet;
+  typedef std::vector<PartitionID> ConnectivitySet;
   typedef google::dense_hash_map<HyperedgeID, HypernodeID, HashHyperedge> PartPinCounts;
 
   static const int kInvalidCount = std::numeric_limits<int>::min();
@@ -314,10 +314,11 @@ class GenericHypergraph {
     _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
     _partition_pin_count(_k),
-    _connectivity_sets(_num_hyperedges), //we might have to initialize this lazy
+    _connectivity_sets(_num_hyperedges),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
     _active_hyperedges_v(_num_hyperedges) {
+
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).setFirstEntry(edge_vector_index);
@@ -327,6 +328,7 @@ class GenericHypergraph {
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
       }
+      _connectivity_sets[i].reserve(_k);
     }
 
     hypernode(0).setFirstEntry(_num_pins);
@@ -342,9 +344,6 @@ class GenericHypergraph {
         _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
         hypernode(pin).increaseSize();
       }
-      //dense hash set needs empty key and deleted key
-      _connectivity_sets[i].set_empty_key(kInvalidPartition);
-      _connectivity_sets[i].set_deleted_key(kDeletedPartition);
     }
 
     bool has_hyperedge_weights = false;
@@ -952,9 +951,16 @@ class GenericHypergraph {
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     --_partition_pin_count[id][he];
     if (_partition_pin_count[id][he] == 0) {
-      ASSERT(_connectivity_sets[he].find(id) != _connectivity_sets[he].end(),
-             "HE" << he << " does not connect part " << id);
-      _connectivity_sets[he].erase(id);
+      ASSERT(std::find(_connectivity_sets[he].begin(),_connectivity_sets[he].end(),id)
+             != _connectivity_sets[he].end(), "HE" << he << " does not connect part " << id);
+      ConnectivitySet& connectivity_set = _connectivity_sets[he];
+      for (auto it = connectivity_set.begin(); it != connectivity_set.end(); ++it) {
+        if (*it == id) {
+          std::iter_swap(it, connectivity_set.end() -1);
+          connectivity_set.pop_back();
+          break;
+        }
+      }
     }
   }
 
@@ -965,7 +971,10 @@ class GenericHypergraph {
            << "edgesize=" << edgeSize(he));
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ++_partition_pin_count[id][he];
-    _connectivity_sets[he].insert(id);
+    ConnectivitySet& connectivity_set = _connectivity_sets[he];
+    if (std::find(connectivity_set.begin(),connectivity_set.end(), id) == connectivity_set.end()) {
+      connectivity_set.push_back(id);
+    }
   }
 
 
@@ -978,7 +987,7 @@ class GenericHypergraph {
         element_it->second = kInvalidCount;
       }
     }
-    _connectivity_sets[he].clear_no_resize();
+    _connectivity_sets[he].clear();
   }
 
   void resetPartitionPinCounts(HyperedgeID he) {
