@@ -5,12 +5,8 @@
 #ifndef SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 #define SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_
 
-#include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/macros.h"
-
-using external::BinaryHeap;
-using external::NullData;
 
 namespace datastructure {
 // ToDo: We need a more robust solution for min and max values!
@@ -23,17 +19,15 @@ struct MetaKeyDouble {
   }
 };
 
-template <typename IDType = Mandatory,
-          typename KeyType = Mandatory,
-          typename MetaKey = Mandatory,
-          typename DataType = NullData
-          >
+template <class BinaryHeap>
 class PriorityQueue {
-  typedef BinaryHeap<IDType, KeyType, MetaKey, DataType> Heap;
+  typedef typename BinaryHeap::value_type IDType;
+  typedef typename BinaryHeap::key_type KeyType;
+  typedef typename BinaryHeap::data_type DataType;
 
   public:
-  PriorityQueue(IDType size, size_t reserve_size = 0) :
-    _heap(size, reserve_size) { }
+  explicit PriorityQueue(IDType size) :
+    _heap(size) { }
 
   size_t size() const {
     return _heap.size();
@@ -51,7 +45,9 @@ class PriorityQueue {
     _heap.reinsertingPush(id, -key);
   }
 
-  void reInsert(IDType id, KeyType key, DataType data) {
+  template <typename T>
+  void reInsert(IDType id, KeyType key, T data,
+                typename std::enable_if<std::is_same<T, DataType>::value>::type* = 0) {
     _heap.reinsertingPush(id, -key, data);
   }
 
@@ -95,7 +91,8 @@ class PriorityQueue {
     _heap.deleteNode(id);
   }
 
-  DataType & data(IDType id) {
+  template <typename T = DataType>
+  typename std::enable_if<std::is_same<DataType, T>::value, T&>::type data(IDType id) {
     return _heap.getUserData(id);
   }
 
@@ -104,7 +101,7 @@ class PriorityQueue {
   }
 
   private:
-  Heap _heap;
+  BinaryHeap _heap;
   DISALLOW_COPY_AND_ASSIGN(PriorityQueue);
 };
 } // namespace datastructure

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
@@ -28,6 +29,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
+using external::BinaryHeap;
 using datastructure::PriorityQueue;
 using datastructure::BucketPQ;
 using defs::Hypergraph;
@@ -59,8 +61,9 @@ class TwoWayFMRefiner : public IRefiner,
 #ifdef USE_BUCKET_PQ
   typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
 #else
-  typedef PriorityQueue<HypernodeID, HyperedgeWeight,
-                        std::numeric_limits<HyperedgeWeight> > RefinementPQ;
+  typedef BinaryHeap<HypernodeID, HyperedgeWeight,
+                     std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
+  typedef PriorityQueue<TwoWayFMHeap> RefinementPQ;
 #endif
 
   static const int K = 2;
@@ -293,7 +296,7 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const final {
-    return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
+    return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()
                        + " UsesBucketPQ="
@@ -399,8 +402,8 @@ class TwoWayFMRefiner : public IRefiner,
              " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
       if (isBorderNode(pin)) {
         if (!_just_activated[pin]) {
-          Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
-          Gain gain_delta = sign * _hg.edgeWeight(he);
+          const Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
+          const Gain gain_delta = sign * _hg.edgeWeight(he);
           DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
               << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
               << _hg.partID(pin));
@@ -436,6 +439,8 @@ class TwoWayFMRefiner : public IRefiner,
     PartitionID target_partition = _hg.partID(hn) ^ 1;
 
     for (auto && he : _hg.incidentEdges(hn)) {
+      // Some MCNC Instances like primary1 and industry3 have hyperedges that
+      // only contain one hypernode. Thus this assertion will fail in this case.
       ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,
              "Trying to compute gain for single-node HE " << he);
       if (_hg.pinCountInPart(he, target_partition) == 0) {
