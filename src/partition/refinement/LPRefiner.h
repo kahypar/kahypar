@@ -53,7 +53,7 @@ namespace partition
         contained_next_queue_->clear();
         contained_next_queue_->resize(hg_.initialNumNodes());
 
-        for (int i = 0; i < num_refinement_nodes; ++i)
+        for (size_t i = 0; i < num_refinement_nodes; ++i)
         {
           const auto& cur_node = refinement_nodes[i];
           if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
@@ -69,7 +69,7 @@ namespace partition
         contained_cur_queue_->clear();
         contained_cur_queue_->resize(hg_.initialNumNodes());
 
-        int i;
+        size_t i;
         for (i = 0; !cur_queue_->empty() && i < config_.lp.max_refinement_iterations; ++i)
         {
           Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
@@ -86,7 +86,7 @@ namespace partition
             {
               if (hg_.connectivity(he) == 1)
               {
-                assert (*hg_.connectivitySet(he).begin() == hg_.partID(hn));
+                assert ((*hg_.connectivitySet(he).begin()).part == hg_.partID(hn));
                 malus += hg_.edgeWeight(he);
 
                 for (const auto &val : incident_partitions_)
@@ -97,9 +97,10 @@ namespace partition
                 }
               } else if (hg_.connectivity(he) == 2)
               {
-                auto other_part = (hg_.partID(hn) == *hg_.connectivitySet(he).begin() ?
-                    *(++hg_.connectivitySet(he).begin()) :
-                    *(hg_.connectivitySet(he).begin()));
+                auto other_part = hg_.partID(hn) == (*hg_.connectivitySet(he).begin()).part ?
+                    (*(++hg_.connectivitySet(he).begin())).part :
+                    (*(hg_.connectivitySet(he).begin())).part;
+
                 assert (other_part != hg_.partID(hn));
                 //if (incident_partitions_.count(other_part) == 0)
                 if (incident_partitions_[other_part] == false)
@@ -117,11 +118,11 @@ namespace partition
                 for (const auto &val : hg_.connectivitySet(he))
                 {
                   //if (incident_partitions_.count(val) == 0)
-                  if (incident_partitions_[val] == false)
+                  if (incident_partitions_[val.part] == false)
                   {
-                    incident_partition_score_[val] -= malus;
+                    incident_partition_score_[val.part] -= malus;
                     //incident_partitions_.insert(val);
-                    incident_partitions_[val] = true;
+                    incident_partitions_[val.part] = true;
                   }
                 }
               }

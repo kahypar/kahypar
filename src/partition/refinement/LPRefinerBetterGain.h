@@ -195,8 +195,9 @@ namespace partition
             internal_weight += hg_.edgeWeight(he);
           } else {
             const HypernodeID pins_in_source_part = hg_.pinCountInPart(he, source_part);
-            for (const auto & target_part : hg_.connectivitySet(he))
+            for (const auto & con : hg_.connectivitySet(he))
             {
+              const auto& target_part = con.part;
               tmp_target_parts_.insert(target_part);
 
               const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
@@ -230,9 +231,9 @@ namespace partition
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
 
           if ((target_part_gain > max_gain ||
-                //(target_part_gain == max_gain && (
-                                                  //source_part_weight - node_weight >
-                                                  //target_part_weight + node_weight)) ||
+                (target_part_gain == max_gain && (
+                                                  source_part_weight - node_weight >
+                                                  target_part_weight + node_weight)) ||
                 (target_part_gain == max_gain &&
                  target_part_connectivity_decrease > max_connectivity_decrease) ||
                 (target_part_gain == max_gain &&
