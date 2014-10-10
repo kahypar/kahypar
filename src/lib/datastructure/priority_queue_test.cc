@@ -4,9 +4,11 @@
 
 #include "gmock/gmock.h"
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 
+using external::BinaryHeap;
 using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
@@ -15,9 +17,10 @@ namespace datastructure {
 class APriorityQueue : public Test {
   public:
   APriorityQueue() :
-    prio_queue(3, 3) { }
+    prio_queue(3) { }
 
-  PriorityQueue<defs::HypernodeID, defs::RatingType, MetaKeyDouble> prio_queue;
+  PriorityQueue<BinaryHeap<defs::HypernodeID, defs::RatingType,
+                           MetaKeyDouble> > prio_queue;
 };
 
 TEST_F(APriorityQueue, IsEmptyWhenCreated) {

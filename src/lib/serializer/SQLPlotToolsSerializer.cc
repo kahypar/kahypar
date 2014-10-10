@@ -41,21 +41,25 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
     << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
-    << coarsener.stats().toString()
-    << " twowayFMactive=" << config.two_way_fm.active
-    << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
-    << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
-    << " twowayFMalpha=" << config.two_way_fm.alpha
-    << " twowayFMbeta=" << config.two_way_fm.beta
-    << " herFMactive=" << config.her_fm.active
-    << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves
-    << refiner.policyString()
-    << refiner.stats().toString()
-    << " cut=" << metrics::hyperedgeCut(hypergraph);
+    << coarsener.stats().toString();
+    if (config.two_way_fm.active) {
+      out_stream << " twowayFMactive=" << config.two_way_fm.active
+      << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
+      << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
+      << " twowayFMalpha=" << config.two_way_fm.alpha
+      << " twowayFMbeta=" << config.two_way_fm.beta;
+    }
+    if (config.her_fm.active) {
+      out_stream << " herFMactive=" << config.her_fm.active
+      << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
+    }
+    out_stream << refiner.policyString()
+    << refiner.stats().toString();
     for (PartitionID i = 0; i != hypergraph.k(); ++i) {
       out_stream << " part" << i << "=" << hypergraph.partWeight(i);
     }
-    out_stream << " imbalance=" << metrics::imbalance(hypergraph)
+    out_stream << " cut=" << metrics::hyperedgeCut(hypergraph)
+    << " imbalance=" << metrics::imbalance(hypergraph)
     << " totalPartitionTime=" << elapsed_seconds.count()
     << " coarseningTime=" << timings[0].count()
     << " initialPartitionTime=" << timings[1].count()

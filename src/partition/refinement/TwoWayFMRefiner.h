@@ -15,6 +15,7 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
@@ -28,6 +29,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
+using external::BinaryHeap;
 using datastructure::PriorityQueue;
 using datastructure::BucketPQ;
 using defs::Hypergraph;
@@ -59,8 +61,9 @@ class TwoWayFMRefiner : public IRefiner,
 #ifdef USE_BUCKET_PQ
   typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
 #else
-  typedef PriorityQueue<HypernodeID, HyperedgeWeight,
-                        std::numeric_limits<HyperedgeWeight> > RefinementPQ;
+  typedef BinaryHeap<HypernodeID, HyperedgeWeight,
+                     std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
+  typedef PriorityQueue<TwoWayFMHeap> RefinementPQ;
 #endif
 
   static const int K = 2;
@@ -293,7 +296,7 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const final {
-    return std::string(" QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
+    return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()
                        + " UsesBucketPQ="

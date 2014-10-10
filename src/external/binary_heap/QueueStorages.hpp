@@ -10,6 +10,8 @@
 
 #include "exception.h"
 
+#include <sparsehash/dense_hash_map>
+
 #include <cstring>
 #include <limits>
 #include <map>
@@ -46,9 +48,9 @@ public:
 	inline size_t & operator[]( id_slot node ){
 		GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
 		return positions[node];
-	}
+        }
 
-	void clear(){ /* do nothing */ }
+        void clear(){ /* do nothing */ }
 protected:
 	size_t size;
 	size_t* positions;
@@ -125,16 +127,17 @@ protected:
 	std::unordered_map< id_slot, size_t > node_positions;
 };
 
-#ifdef USE_GOOGLE_DATASTRUCTURES
+//#ifdef USE_GOOGLE_DATASTRUCTURES
 template< typename id_slot >
 class DenseHashStorage{
 public:
-	DenseHashStorage( id_slot empty_node = std::numeric_limits< id_slot >::max() ){
-		node_positions.set_empty_key_slot( empty_node );
+DenseHashStorage( id_slot size ) {
+                node_positions.set_empty_key( std::numeric_limits< id_slot >::max() );
+                node_positions.set_deleted_key(std::numeric_limits< id_slot >::max() -1);
 	}
 
 	const size_t & operator[]( id_slot node ) const {
-		return node_positions[node];
+          return node_positions.find(node)->second;
 	}
 
 	size_t & operator[]( id_slot node ){
@@ -142,12 +145,12 @@ public:
 	}
 
 	void clear(){
-		node_positions.clear();
+                node_positions.clear_no_resize();
 	}
 protected:
 	google::dense_hash_map< id_slot, size_t > node_positions;
 };
-#endif
+//#endif
 #pragma GCC diagnostic pop
 
 } // namespace external

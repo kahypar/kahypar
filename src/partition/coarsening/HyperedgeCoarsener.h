@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "external/binary_heap/BinaryHeap.hpp"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -20,6 +21,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
+using external::BinaryHeap;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
@@ -233,7 +235,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  PriorityQueue<HyperedgeID, RatingType, MetaKeyDouble> _pq;
+  PriorityQueue<BinaryHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };
 } // namespace partition
