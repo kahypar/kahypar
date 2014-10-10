@@ -439,27 +439,27 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID max_connectivity_decrease = 0;
     for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
       if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
-      const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part];
-      const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-      const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
-      const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
-      if (target_part_gain > max_gain ||
-          (target_part_gain == max_gain &&
-           target_part_connectivity_decrease > max_connectivity_decrease) ||
-          (target_part_gain == max_gain &&
-           source_part_weight >= _config.partition.max_part_weight &&
-           target_part_weight + node_weight < _config.partition.max_part_weight &&
-           target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
-        max_gain = target_part_gain;
-        max_gain_part = target_part;
-        max_connectivity_decrease = target_part_connectivity_decrease;
-        ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
-               "Hn can't be moved to invalid partition");
-      }
-      _tmp_gains[target_part] = 0;
-      _tmp_connectivity_decrease[target_part] = 0;
-      _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
+        const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
+        const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part];
+        const HypernodeWeight node_weight = _hg.nodeWeight(hn);
+        const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
+        const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
+        if (target_part_gain > max_gain ||
+            (target_part_gain == max_gain &&
+             target_part_connectivity_decrease > max_connectivity_decrease) ||
+            (target_part_gain == max_gain &&
+             source_part_weight >= _config.partition.max_part_weight &&
+             target_part_weight + node_weight < _config.partition.max_part_weight &&
+             target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
+          max_gain = target_part_gain;
+          max_gain_part = target_part;
+          max_connectivity_decrease = target_part_connectivity_decrease;
+          ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
+                 "Hn can't be moved to invalid partition");
+        }
+        _tmp_gains[target_part] = 0;
+        _tmp_connectivity_decrease[target_part] = 0;
+        _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
       }
     }
     DBG(dbg_refinement_kway_fm_gain_comp,
