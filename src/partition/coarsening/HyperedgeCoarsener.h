@@ -220,18 +220,23 @@ class HyperedgeCoarsener : public ICoarsener,
   void performUncontraction(const HyperedgeCoarseningMemento& memento,
                             std::vector<HypernodeID>& refinement_nodes,
                             size_t& num_refinement_nodes) {
-    refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
-                                                                     + memento.mementos_size - 1].u;
-    for (int i = memento.mementos_begin + memento.mementos_size - 1;
-         i >= memento.mementos_begin; --i) {
-      ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
-             "Representative HN " << _contraction_mementos[i].u << " is disabled ");
-      ASSERT(!_hg.nodeIsEnabled(_contraction_mementos[i].v),
-             "Representative HN " << _contraction_mementos[i].v << " is enabled");
-      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
-          << _contraction_mementos[i].v << ")");
-      _hg.uncontract(_contraction_mementos[i]);
-      refinement_nodes[num_refinement_nodes++] = _contraction_mementos[i].v;
+    // Hypergraphs can contain hyperedges of size 1. These HEs will get contracted without
+    // a contraction memento. Thus the HyperedgeCoarseningMemento will only contain information
+    // about removed single-node hyperedges and nothing should be done here.
+    if (memento.mementos_size > 0) {
+      refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
+                                                                       + memento.mementos_size - 1].u;
+      for (int i = memento.mementos_begin + memento.mementos_size - 1;
+           i >= memento.mementos_begin; --i) {
+        ASSERT(_hg.nodeIsEnabled(_contraction_mementos[i].u),
+               "Representative HN " << _contraction_mementos[i].u << " is disabled ");
+        ASSERT(!_hg.nodeIsEnabled(_contraction_mementos[i].v),
+               "Representative HN " << _contraction_mementos[i].v << " is enabled");
+        DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _contraction_mementos[i].u << ","
+            << _contraction_mementos[i].v << ")");
+        _hg.uncontract(_contraction_mementos[i]);
+        refinement_nodes[num_refinement_nodes++] = _contraction_mementos[i].v;
+      }
     }
   }
 
