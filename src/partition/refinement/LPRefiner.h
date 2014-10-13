@@ -9,9 +9,7 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 
-#include "clusterer/policies.hpp"
-#include "clusterer/two_phase_lp.hpp"
-
+#include "core/pseudo_hashmap.hpp"
 
 using defs::Hypergraph;
 using defs::HypernodeID;

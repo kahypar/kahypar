@@ -80,22 +80,14 @@ namespace partition
 
         do
         {
-          std::vector<HypernodeID> nodes;
-          nodes.reserve(_hg.numNodes());
-          for (const auto& hn : _hg.nodes())
-          {
-            nodes.push_back(hn);
-          }
-          _clusterer->cluster(nodes, limit);
+          _clusterer->cluster(limit);
           // get the clustering
           auto clustering = _clusterer->get_clustering();
 
-          assert (nodes.size() <= clustering.size());
-          for (size_t i = 0; i < nodes.size(); ++i)
+          for (const auto &hn : _hg.nodes())
           {
-            _clustering_map[clustering[nodes[i]]].push_back(nodes[i]);
+            _clustering_map[clustering[hn]].push_back(hn);
           }
-
 
           // perform the contrraction
           for (auto&& val : _clustering_map)

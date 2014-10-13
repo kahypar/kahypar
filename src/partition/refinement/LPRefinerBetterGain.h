@@ -10,9 +10,6 @@
 #include "partition/Metrics.h"
 
 #include <sparsehash/dense_hash_set>
-#include "clusterer/policies.hpp"
-#include "clusterer/two_phase_lp.hpp"
-
 
 using defs::Hypergraph;
 using defs::HypernodeID;

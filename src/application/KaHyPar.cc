@@ -32,7 +32,6 @@
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/TwoPhaseLPRefiner.h"
 #include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/LPRefinerBetterGain.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
@@ -42,7 +41,6 @@
 
 // vitali lp-includes
 #include "external/lpa_hypergraph/include/clusterer/policies.hpp"
-#include "external/lpa_hypergraph/include/clusterer/best_choice.hpp"
 #include "external/lpa_hypergraph/include/clusterer/bipartite_lp.hpp"
 #include "external/lpa_hypergraph/include/clusterer/first_choice.hpp"
 #include "external/lpa_hypergraph/include/clusterer/heavy_connectivity.hpp"
@@ -82,7 +80,6 @@ using partition::EdgeWeightDivMultPinWeight;
 using partition::FMFactoryExecutor;
 using partition::KFMFactoryExecutor;
 using partition::TwoWayFMRefiner;
-using partition::TwoPhaseLPRefiner;
 using partition::LPRefiner;
 using partition::LPRefinerBetterGain;
 using partition::HyperedgeFMRefiner;
@@ -413,6 +410,26 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_multilevel",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
