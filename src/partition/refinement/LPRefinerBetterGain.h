@@ -41,10 +41,10 @@ namespace partition
       contained_next_queue_(new std::vector<bool>()),
       tmp_gains_(configuration.partition.k, 0),
       tmp_connectivity_decrease_(configuration.partition.k, 0),
-      tmp_target_parts_(configuration.partition.k)
+      tmp_target_parts_(configuration.partition.k, Hypergraph::kInvalidPartition)
     {
-      tmp_target_parts_.set_empty_key(Hypergraph::kInvalidPartition);
-      tmp_target_parts_.set_deleted_key(Hypergraph::kDeletedPartition);
+      //tmp_target_parts_.set_empty_key(Hypergraph::kInvalidPartition);
+      //tmp_target_parts_.set_deleted_key(Hypergraph::kDeletedPartition);
     }
 
       bool refineImpl(std::vector<HypernodeID> &refinement_nodes, size_t num_refinement_nodes,
@@ -169,17 +169,6 @@ namespace partition
 
       GainPartitionPair computeMaxGain(const HypernodeID& hn)
       {
-        tmp_target_parts_.clear_no_resize();
-        ASSERT([&]() {
-            for (auto gain : tmp_gains_) {
-            if (gain != 0) {
-            return false;
-            }
-            }
-            return true;
-            } () == true, "tmp_gains_ not initialized correctly");
-
-
         const PartitionID source_part = hg_.partID(hn);
         HyperedgeWeight internal_weight = 0;
 
@@ -195,7 +184,7 @@ namespace partition
             for (const auto & con : hg_.connectivitySet(he))
             {
               const auto& target_part = con.part;
-              tmp_target_parts_.insert(target_part);
+              tmp_target_parts_[target_part] = target_part;
 
               const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
               if (pins_in_source_part == 1 && pins_in_target_part == hg_.edgeSize(he) - 1)
@@ -211,7 +200,7 @@ namespace partition
           }
         }
 
-        tmp_target_parts_.erase(source_part);
+        tmp_target_parts_[source_part] = Hypergraph::kInvalidPartition;
         tmp_gains_[source_part] = 0;
 
         PartitionID max_gain_part = source_part;
@@ -219,8 +208,11 @@ namespace partition
 
         PartitionID max_connectivity_decrease = 0;
 
-        for (const auto &target_part : tmp_target_parts_)
+        for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
         {
+
+          if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
+
           const Gain target_part_gain = tmp_gains_[target_part] - internal_weight;
           const PartitionID target_part_connectivity_decrease = tmp_connectivity_decrease_[target_part];
           const HypernodeWeight node_weight = hg_.nodeWeight(hn);
@@ -248,6 +240,7 @@ namespace partition
           }
           tmp_gains_[target_part] = 0;
           tmp_connectivity_decrease_[target_part] = 0;
+          tmp_target_parts_[target_part] = Hypergraph::kInvalidPartition;
         }
 
         ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
@@ -299,7 +292,8 @@ namespace partition
       //std::unordered_set<PartitionID> incident_partitions_;
       std::vector<Gain> tmp_gains_;
       std::vector<PartitionID> tmp_connectivity_decrease_;
-      google::dense_hash_set<PartitionID, HashParts> tmp_target_parts_;
+      //google::dense_hash_set<PartitionID, HashParts> tmp_target_parts_;
+      std::vector<PartitionID> tmp_target_parts_;
 
       //lpa_hypergraph::pseudo_hashmap<PartitionID, bool> incident_partitions_;
       //lpa_hypergraph::pseudo_hashmap<PartitionID, long long> incident_partition_score_;
