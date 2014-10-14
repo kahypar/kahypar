@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 #include <random>
 #include <vector>
 #include <unordered_set>
@@ -41,6 +42,17 @@ namespace partition
   };
 
 
+  //template<typename K, typename V>
+  //std::ostream& operator<<(std::ostream &ost, std::map<K,V> &m)
+  //{
+    //ost << "{" << std::endl;
+    //for (const auto &val : m)
+    //{
+      //ost << val.first << " => " << val.second << std::endl;
+    //}
+
+    //ost << "}" << std::endl;
+  //}
 
   template<typename Coarsener>
   class GenericCoarsener: public ICoarsener,
@@ -82,6 +94,8 @@ namespace partition
         {
           _clusterer->cluster(limit);
 
+          //std::cout << lpa_hypergraph::gain_count << std::endl;
+          //lpa_hypergraph::gain_count.clear();
           // get the clustering
           auto clustering = _clusterer->get_clustering();
 
