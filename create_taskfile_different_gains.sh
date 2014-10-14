@@ -45,6 +45,7 @@ output=$RESULT_DIR"/"$name"."results
 
 # two_phase_lp
 smpl=5
+max_ref_iterations=5
 for file in $GRAPH_DIR"/"*.hgr
 do
   for k in 2 4 8 16 32
