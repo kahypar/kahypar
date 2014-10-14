@@ -189,7 +189,7 @@ namespace partition
 
       std::string policyStringImpl() const final
       {
-        return " refiner=LPRefiner refiner_max_iterations= " + std::to_string(config_.lp.max_refinement_iterations);
+        return " refiner=LPRefiner refiner_max_iterations=" + std::to_string(config_.lp.max_refinement_iterations);
       }
 
       const Stats &statsImpl() const final

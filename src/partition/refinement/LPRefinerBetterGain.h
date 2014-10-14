@@ -69,7 +69,6 @@ namespace partition
         {
           const auto& cur_node = refinement_nodes[i];
           if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
-            //if (!(*contained_cur_queue_)[cur_node])
           {
             assert (hg_.partWeight(hg_.partID(cur_node)) < config_.partition.max_part_weight);
 
@@ -130,7 +129,7 @@ namespace partition
 
       std::string policyStringImpl() const final
       {
-        return " refiner=LPRefinerBetterGain refiner_max_iterations= " + std::to_string(config_.lp.max_refinement_iterations);
+        return " refiner=LPRefinerBetterGain refiner_max_iterations=" + std::to_string(config_.lp.max_refinement_iterations);
       }
 
       const Stats &statsImpl() const final
