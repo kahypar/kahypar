@@ -53,7 +53,7 @@ do
     for run in $(seq 1 $reps)
     do
       seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-      for ma_iter in 5
+      for ma_iter in 1 3 5 10 15
       do
         for rec in 3
         do
