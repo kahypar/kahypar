@@ -868,8 +868,6 @@ int main(int argc, char* argv[]) {
   }
 
 
-
-
   HighResClockTimepoint start;
   HighResClockTimepoint end;
 
