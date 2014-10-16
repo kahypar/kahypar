@@ -157,10 +157,12 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
                                                  const std::string& filename,
                                                  const Mapping& mapping) {
   ASSERT(!filename.empty(), "No filename for hMetis initial partitioning file specified");
-  ASSERT(hypergraph.type() == HypergraphType::EdgeAndNodeWeights,
-         "Method can only be called for coarsened hypergraphs");
   std::ofstream out_stream(filename.c_str());
-  writeHGRHeader(out_stream, hypergraph);
+
+  // coarse graphs always have edge and node weights, even if graph wasn't coarsend
+  out_stream << hypergraph.numEdges() << " " << hypergraph.numNodes() << " ";
+  out_stream << static_cast<int>(HypergraphType::EdgeAndNodeWeights);
+  out_stream << std::endl;
 
   for (auto && he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
