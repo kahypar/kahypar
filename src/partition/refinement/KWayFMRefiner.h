@@ -434,12 +434,6 @@ class KWayFMRefiner : public IRefiner,
         DBG(dbg_refinement_kway_fm_gain_update, "deleting pin " << pin << " from PQ ");
         _pq.remove(pin, part);
       }
-    } else {
-      if (!_marked[pin] && !_active[pin]) {
-          // border node check is performed in activate
-        activate(pin);
-        _just_updated[pin] = true;
-      }
     }
   }
 
