@@ -31,6 +31,11 @@ class Randomize {
     std::shuffle(vector.begin(), vector.begin() + num_elements, _gen);
   }
 
+  static int getRandomInt(int low, int high)
+  {
+    return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low,high));
+  }
+
   private:
   static int _seed;
   static std::mt19937 _gen;
