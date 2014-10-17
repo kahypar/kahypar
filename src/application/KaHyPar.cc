@@ -797,7 +797,7 @@ int main(int argc, char* argv[]) {
 
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_cut_gain_new_score",
+    "two_phase_lp_node_ordering_no_sampling_cut_gain_new_score",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::NodeOrderingInitialization,
