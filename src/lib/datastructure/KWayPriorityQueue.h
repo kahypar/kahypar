@@ -27,7 +27,7 @@ class KWayPriorityQueue {
 
   struct BufferElement {
     BufferElement() :
-        key(std::numeric_limits<KeyType>::min()),
+        key(MetaKey::min()),
         id(-1)
     {}
     KeyType key;
@@ -101,7 +101,7 @@ class KWayPriorityQueue {
 
   void deleteMax() {
     PartitionID max_part = -1;
-    KeyType max_key = std::numeric_limits<KeyType>::min();
+    KeyType max_key = MetaKey::min();
     for (PartitionID i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
@@ -117,14 +117,14 @@ class KWayPriorityQueue {
       _buf[max_part].key = -_heaps[max_part].getMinKey();
       _buf[max_part].id = _heaps[max_part].getMin();
     } else {
-      _buf[max_part].key = std::numeric_limits<KeyType>::min();
+      _buf[max_part].key = MetaKey::min();
       _buf[max_part].id = -1;
     }
   }
 
   IDType max() const {
     PartitionID max_part = -1;
-    KeyType max_key = std::numeric_limits<KeyType>::min();
+    KeyType max_key = MetaKey::min();
     for (PartitionID i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
@@ -137,7 +137,7 @@ class KWayPriorityQueue {
 
   KeyType maxKey() const {
     PartitionID max_part = -1;
-    KeyType max_key = std::numeric_limits<KeyType>::min();
+    KeyType max_key = MetaKey::min();
     for (PartitionID i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
@@ -150,7 +150,7 @@ class KWayPriorityQueue {
 
   PartitionID maxPart() const {
     PartitionID max_part = -1;
-    KeyType max_key = std::numeric_limits<KeyType>::min();
+    KeyType max_key = MetaKey::min();
     for (PartitionID i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
@@ -202,7 +202,7 @@ class KWayPriorityQueue {
       _buf[part].key = -_heaps[part].getMinKey();
       _buf[part].id = _heaps[part].getMin();
     } else {
-      _buf[part].key = std::numeric_limits<KeyType>::min();
+      _buf[part].key = MetaKey::min();
       _buf[part].id = -1;
     }
     }
@@ -211,7 +211,7 @@ class KWayPriorityQueue {
   void clear() {
     for (PartitionID i = 0; i < _heaps.size(); ++i) {
       _heaps[i].clear();
-      _buf[i].key = std::numeric_limits<KeyType>::min();
+      _buf[i].key = MetaKey::min();
       _buf[i].id = -1;
     }
   }
