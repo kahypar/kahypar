@@ -1,5 +1,5 @@
 #!/bin/bash
-name=different_gains
+name=different_gains_new_score
 taskfilename=$name"."task
 subdir=$name
 dbname_test=$name"."db
@@ -45,7 +45,7 @@ output=$RESULT_DIR"/"$name"."results
 
 # two_phase_lp
 smpl=5
-max_ref_iterations=5
+max_ref_iterations=10
 for file in $GRAPH_DIR"/"*.hgr
 do
   for k in 2 4 8 16 32
@@ -53,41 +53,42 @@ do
     for run in $(seq 1 $reps)
     do
       seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-      for ma_iter in 1 3 5 10 15
+      for ma_iter in 1 2 3 4 5 10 15 20
       do
         for rec in 3
         do
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_cut_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_cut_gain_new_score" >> $taskfilename
+          t=$((100*$k))
+          s="$(echo "1.50/$t" | bc -l)"
 
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_cut_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_cut_gain_new_score" >> $taskfilename
 
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_cut_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_cut_gain_new_score" >> $taskfilename
 
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_cut_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_no_gain_new_score" >> $taskfilename
-          echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_recursive_calls $rec --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_cut_gain_new_score" >> $taskfilename
+
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_cut_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_no_gain_new_score" >> $taskfilename
+          echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner_better_gain --max_iterations=$ma_iter --sample=$smpl --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_node_ordering_no_sampling_cut_gain_new_score" >> $taskfilename
         done
       done
     done
   done
 done
-
-exit

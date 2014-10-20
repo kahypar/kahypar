@@ -1,5 +1,5 @@
 #!/bin/bash
-name=test
+name=comparison_hmetis
 taskfilename=$name"."task
 subdir=$name
 dbname_test=$name"."db
@@ -66,9 +66,14 @@ do
     for  run in $(seq 1 $reps)
     do
       seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-      echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_lazy" >> $taskfilename
-      echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=heavy_heuristic" >> $taskfilename
-      echo "$CLUSTERER --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --stopFM=$stopFM --FMreps=$FMreps --i=$i --alpha=$alpha --ctype=hyperedge" >> $taskfilename
+      t=$((100*$k))
+      s="$(echo "1.50/$t" | bc -l)"
+
+      echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_new_samples_gain_new_score" >> $taskfilename
+      echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_new_samples_gain" >> $taskfilename
+
+      echo "$CLUSTERER --t $t --s $s --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_no_sampling_gain" >> $taskfilename
+      echo "$CLUSTERER --t $t --s $s --max_iterations 3 --sample 999999 --max_refinement_iterations $max_ref_iterations --rtype lp_refiner --seed=$seed --file=$output --hgr=$file --k=$k --e=$e --nruns=$nruns --vcycles=$vcycles --cmaxnet=$cmaxnet --ctype=two_phase_lp_gain" >> $taskfilename
     done
   done
 done

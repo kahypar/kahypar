@@ -219,9 +219,9 @@ namespace partition
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
 
           if ((target_part_gain > max_gain ||
-                (target_part_gain == max_gain && (
-                                                  source_part_weight - node_weight >
-                                                  target_part_weight + node_weight)) ||
+                //(target_part_gain == max_gain && (
+                                                  //source_part_weight - node_weight >
+                                                  //target_part_weight + node_weight)) ||
                 (target_part_gain == max_gain &&
                  target_part_connectivity_decrease > max_connectivity_decrease) ||
                 (target_part_gain == max_gain &&
@@ -229,7 +229,8 @@ namespace partition
                  target_part_weight + node_weight < config_.partition.max_part_weight &&
                  target_part_weight + node_weight < hg_.partWeight(max_gain_part) + node_weight))
               &&
-              (target_part_weight + node_weight < config_.partition.max_part_weight))
+              ((target_part_weight + node_weight < config_.partition.max_part_weight) ||
+               (target_part == source_part && target_part_weight < config_.partition.max_part_weight)))
           {
             max_gain = target_part_gain;
             max_gain_part = target_part;

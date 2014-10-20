@@ -368,8 +368,23 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
-
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_new_samples_gain_new_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation2,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
 
 
   CoarsenerFactory::getInstance().registerObject(
