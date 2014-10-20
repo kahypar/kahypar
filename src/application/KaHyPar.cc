@@ -236,10 +236,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.lp.max_refinement_iterations = vm["max_refinement_iterations"].as<unsigned int>();
     }
 
-    if (vm.count("max_recursive_calls")) {
-      config.lp.max_recursive_calls = vm["max_recursive_calls"].as<unsigned int>();
-    }
-
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
@@ -271,7 +267,6 @@ void setDefaults(Configuration& config) {
   config.lp.percent=5;
 
   config.lp.max_refinement_iterations = 10;
-  config.lp.max_recursive_calls = 3;
 }
 
 struct CoarsenerFactoryParameters {
@@ -905,7 +900,6 @@ int main(int argc, char* argv[]) {
     ("sample_size", po::value<int>(), "label_propagation sample_size")
     ("percent", po::value<int>(), "label_propagation percent")
     ("max_refinement_iterations", po::value<unsigned int>(), "label_propagation max refinement iterations")
-    ("max_recursive_calls", po::value<unsigned int>(), "label_propagation max_recursive_calls")
     ("preprocess", "perform preprocessing step");
 
   po::variables_map vm;

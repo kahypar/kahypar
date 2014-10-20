@@ -78,8 +78,7 @@ namespace partition
       using Base::performLocalSearch;
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
-      GenericCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
-      _recursive_call(0)
+      GenericCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config)
     {
       lpa_hypergraph::BasePolicy::config_ = convert_config(config);
       _clusterer = std::unique_ptr<lpa_hypergraph::IClusterer>(new Coarsener(hg, convert_config(config)));
@@ -90,6 +89,7 @@ namespace partition
         // set the max_cluster in the config TODO redesign?
         lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
 
+        int count_contr = 0;
         do
         {
           _clusterer->cluster(limit);
@@ -105,6 +105,7 @@ namespace partition
             _clustering_map[clustering[hn]].push_back(hn);
           }
 
+          count_contr = 0;
           // perform the contraction
           for (auto&& val : _clustering_map)
           {
@@ -112,16 +113,16 @@ namespace partition
             if (val.second.size() > 1)
             {
               auto rep_node = performContraction(val.second);
+              ++count_contr;
             }
           }
 
           _clustering_map.clear();
 
-        } while (_recursive_call++ < _config.lp.max_recursive_calls &&
+        } while (count_contr > 0 &&
             _hg.numNodes() > limit);
 
         gatherCoarseningStats();
-        _recursive_call = 0;
       };
 
       bool uncoarsenImpl(IRefiner &refiner) final
@@ -182,7 +183,7 @@ namespace partition
       std::string policyStringImpl() const final {
         return " coarsener=GenericCoarsener max_iterations=" + std::to_string(_config.lp.max_iterations) +
                            " sample_size=" + std::to_string(_config.lp.sample_size) +
-                           " max_recursive_calls=" + std::to_string(_config.lp.max_recursive_calls) + _clusterer->clusterer_string();
+                           _clusterer->clusterer_string();
       }
 
     private:
@@ -203,8 +204,6 @@ namespace partition
       }
 
       std::unique_ptr<lpa_hypergraph::IClusterer> _clusterer;
-
-      int _recursive_call;
 
       std::unordered_map<lpa_hypergraph::Label, std::vector<HypernodeID>> _clustering_map;
 

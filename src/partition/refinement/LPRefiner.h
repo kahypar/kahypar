@@ -82,6 +82,7 @@ namespace partition
 
             for (const auto &he : hg_.incidentEdges(hn))
             {
+              ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
               if (hg_.connectivity(he) == 1)
               {
                 assert ((*hg_.connectivitySet(he).begin()).part == hg_.partID(hn));
