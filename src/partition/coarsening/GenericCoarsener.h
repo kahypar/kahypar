@@ -92,8 +92,8 @@ namespace partition
         int count_contr = 0;
         do
         {
-          _clusterer->cluster(limit);
-
+          int iter = _clusterer->cluster(limit);
+          std::cout << "ITER: " << iter << std::endl;
           //std::cout << lpa_hypergraph::gain_count << std::endl;
           //lpa_hypergraph::gain_count.clear();
           // get the clustering

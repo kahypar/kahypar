@@ -3,6 +3,7 @@
  **************************************************************************/
 
 #include "partition/Partitioner.h"
+#include <map>
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
@@ -39,6 +40,19 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
     _timings[kCoarsening] += end - start;
 
     if (vcycle == 0) {
+      // DEBUG: print out node weights
+      std::map<HypernodeWeight, size_t> histo;
+      for (const auto &hn : hypergraph.nodes())
+      {
+        histo[hypergraph.nodeWeight(hn)]++;
+      }
+
+      for (auto val : histo)
+      {
+        std::cout << val.first << " => " <<  val.second << std::endl;
+      }
+
+
       start = std::chrono::high_resolution_clock::now();
       performInitialPartitioning(hypergraph);
       end = std::chrono::high_resolution_clock::now();
