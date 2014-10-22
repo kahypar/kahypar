@@ -314,7 +314,7 @@ class KWayFMRefiner : public IRefiner,
       for (auto && pin : _hg.pins(he)) {
         if (_hg.partID(pin) != from_part && pin != moved_node) {
           // in this case we can actually break here
-          updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, moved_node);
+          updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part);
           break;
         }
       }
@@ -342,16 +342,12 @@ class KWayFMRefiner : public IRefiner,
   void updatePinRemainingOutsideOfTargetPartAfterApplyingMove(HypernodeID pin,
                                                               HyperedgeWeight he_weight,
                                                               PartitionID to_part) {
-    if(_hg.partID(pin) != to_part) {
-      updatePin(pin, to_part, he_weight);
-    }
+    updatePin(pin, to_part, he_weight);
   }
 
   void updatePinOutsideFromPartBeforeApplyingMove(HypernodeID pin, HyperedgeWeight he_weight,
-                                                  PartitionID from_part, HypernodeID moved_node) {
-    if (_hg.partID(pin) != from_part && pin != moved_node) {
-      updatePin(pin, from_part, -he_weight);
-    }
+                                                  PartitionID from_part) {
+    updatePin(pin, from_part, -he_weight);
   }
 
   void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
@@ -374,15 +370,16 @@ class KWayFMRefiner : public IRefiner,
                 activate(pin);
                 _just_updated[pin] = true;
               } else {
-                    const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-                    const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
-                    const HypernodeID he_size = _hg.edgeSize(he);
-                    const PartitionID he_connectivity = _hg.connectivity(he);
-                    const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+                const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+                const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
+                const HypernodeID he_size = _hg.edgeSize(he);
+                const PartitionID he_connectivity = _hg.connectivity(he);
+                const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
                 if (he_connectivity == 2 && pin_count_target_part_after_move == 1
                     && pin_count_source_part_before_move > 1) {
-                  DBG(dbg_refinement_kway_fm_gain_update,"he " << he << " is not cut before applying move");
+                  DBG(dbg_refinement_kway_fm_gain_update,
+                      "he " << he << " is not cut before applying move");
                   updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part);
                 }
                 if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
@@ -390,15 +387,19 @@ class KWayFMRefiner : public IRefiner,
                       << " is cut before applying move and uncut after");
                   updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part);
                 }
-                if (_hg.pinCountInPart(he, to_part) == he_size - 1) {
+                if (pin_count_target_part_after_move == he_size - 1) {
                   DBG(dbg_refinement_kway_fm_gain_update,he
                       << ": Only one vertex remains outside of to_part after applying the move");
-                  updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part);
+                  if(_hg.partID(pin) != to_part) {
+                    updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part);
+                  }
                 }
                 if (pin_count_source_part_before_move == he_size - 1) {
                   DBG(dbg_refinement_kway_fm_gain_update, he
                       << ": Only one vertex outside from_part before applying move");
-                  updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, hn);
+                  if (_hg.partID(pin) != from_part && pin != hn) {
+                    updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part);
+                  }
                 }
               }
             }
@@ -432,12 +433,6 @@ class KWayFMRefiner : public IRefiner,
       } else {
         DBG(dbg_refinement_kway_fm_gain_update, "deleting pin " << pin << " from PQ ");
         _pq.remove(pin, part);
-      }
-    } else {
-      if (!_marked[pin] && !_active[pin]) {
-          // border node check is performed in activate
-        activate(pin);
-        _just_updated[pin] = true;
       }
     }
   }
