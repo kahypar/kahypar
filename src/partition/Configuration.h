@@ -21,14 +21,18 @@ namespace partition {
 struct Configuration {
   struct CoarseningParameters {
     CoarseningParameters() :
-      threshold_node_weight(0),
-      minimal_node_count(0),
+      max_allowed_node_weight(0),
+      contraction_limit(0),
+      contraction_limit_multiplier(0),
       hypernode_weight_fraction(0.0),
+      max_allowed_weight_multiplier(0.0),
       scheme() { }
 
-    HypernodeWeight threshold_node_weight;
-    HypernodeID minimal_node_count;
+    HypernodeWeight max_allowed_node_weight;
+    HypernodeID contraction_limit;
+    HypernodeID contraction_limit_multiplier;
     double hypernode_weight_fraction;
+    double max_allowed_weight_multiplier;
     std::string scheme;
   };
 
@@ -113,52 +117,56 @@ inline std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
   oss << "Partitioning Parameters:" << std::endl;
-  oss << std::setw(30) << "  Hypergraph: " << config.partition.graph_filename << std::endl;
-  oss << std::setw(30) << "  Partition File: " << config.partition.graph_partition_filename
+  oss << std::setw(35) << "  Hypergraph: " << config.partition.graph_filename << std::endl;
+  oss << std::setw(35) << "  Partition File: " << config.partition.graph_partition_filename
   << std::endl;
-  oss << std::setw(30) << "  Coarsened Hypergraph: " << config.partition.coarse_graph_filename
+  oss << std::setw(35) << "  Coarsened Hypergraph: " << config.partition.coarse_graph_filename
   << std::endl;
-  oss << std::setw(30) << "  Coarsened Partition File: "
+  oss << std::setw(35) << "  Coarsened Partition File: "
   << config.partition.coarse_graph_partition_filename << std::endl;
-  oss << std::setw(30) << "  k: " << config.partition.k << std::endl;
-  oss << std::setw(30) << "  epsilon: " << config.partition.epsilon
+  oss << std::setw(35) << "  k: " << config.partition.k << std::endl;
+  oss << std::setw(35) << "  epsilon: " << config.partition.epsilon
   << std::endl;
-  oss << std::setw(30) << "  total_graph_weight: "
+  oss << std::setw(35) << "  total_graph_weight: "
   << config.partition.total_graph_weight << std::endl;
-  oss << std::setw(30) << "  L_max: " << config.partition.max_part_weight
+  oss << std::setw(35) << "  L_max: " << config.partition.max_part_weight
   << std::endl;
-  oss << std::setw(30) << "  seed: " << config.partition.seed << std::endl;
-  oss << std::setw(30) << " hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
-  oss << std::setw(30) << "  # initial partitionings: "
+  oss << std::setw(35) << "  seed: " << config.partition.seed << std::endl;
+  oss << std::setw(35) << " hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
+  oss << std::setw(35) << "  # initial partitionings: "
   << config.partition.initial_partitioning_attempts << std::endl;
-  oss << std::setw(30) << "  # global search iterations: "
+  oss << std::setw(35) << "  # global search iterations: "
   << config.partition.global_search_iterations << std::endl;
-  oss << std::setw(30) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold
+  oss << std::setw(35) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold
   << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(30) << "  scheme: " << config.coarsening.scheme << std::endl;
-  oss << std::setw(30) << "  hypernode weight fraction: "
+  oss << std::setw(35) << "  scheme: " << config.coarsening.scheme << std::endl;
+  oss << std::setw(35) << "  max-allowed-weight-multiplier: "
+      << config.coarsening.max_allowed_weight_multiplier << std::endl;
+  oss << std::setw(35) << "  contraction-limit-multiplier: "
+      << config.coarsening.contraction_limit_multiplier << std::endl;
+  oss << std::setw(35) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
-  oss << std::setw(30) << "  max. hypernode weight: " << config.coarsening.threshold_node_weight
+  oss << std::setw(35) << "  max. allowed hypernode weight: " << config.coarsening.max_allowed_node_weight
   << std::endl;
-  oss << std::setw(30) << "  min. # hypernodes: " << config.coarsening.minimal_node_count
+  oss << std::setw(35) << "  contraction limit: " << config.coarsening.contraction_limit
   << std::endl;
   if (config.two_way_fm.active) {
     oss << "2-Way-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;
-    oss << std::setw(30) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
-    oss << std::setw(30) << "  max. # fruitless moves: "
+    oss << std::setw(35) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;
+    oss << std::setw(35) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
+    oss << std::setw(35) << "  max. # fruitless moves: "
     << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
-    oss << std::setw(30) << "  random walk stop alpha: "
+    oss << std::setw(35) << "  random walk stop alpha: "
     << config.two_way_fm.alpha << std::endl;
-    oss << std::setw(30) << "  random walk stop beta : "
+    oss << std::setw(35) << "  random walk stop beta : "
     << config.two_way_fm.beta << std::endl;
   }
   if (config.her_fm.active) {
     oss << "HER-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(30) << "  stopping rule: " << config.her_fm.stopping_rule << std::endl;
-    oss << std::setw(30) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
-    oss << std::setw(30) << "  max. # fruitless moves: "
+    oss << std::setw(35) << "  stopping rule: " << config.her_fm.stopping_rule << std::endl;
+    oss << std::setw(35) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
+    oss << std::setw(35) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
   }
   return oss.str();

@@ -30,7 +30,7 @@ class ARater : public Test {
   explicit ARater(Hypergraph* graph = nullptr) :
     hypergraph(graph),
     config() {
-    config.coarsening.threshold_node_weight = 2;
+    config.coarsening.max_allowed_node_weight = 2;
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -137,29 +137,29 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 }
 
 TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.max_allowed_node_weight).value,
               DoubleEq(1.0));
 
-  config.coarsening.threshold_node_weight = 10;
+  config.coarsening.max_allowed_node_weight = 10;
   hypergraph->setNodeWeight(1, 2);
   hypergraph->setNodeWeight(3, 3);
   hypergraph->setNodeWeight(4, 4);
 
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.max_allowed_node_weight).value,
               DoubleEq(1.0 / (2 * 3 * 4)));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
-  config.coarsening.threshold_node_weight = 3;
+  config.coarsening.max_allowed_node_weight = 3;
 
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.threshold_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.max_allowed_node_weight).valid,
               Eq(false));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(2, 1);
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.threshold_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.max_allowed_node_weight).valid,
               Eq(false));
 }
 } // namespace partition

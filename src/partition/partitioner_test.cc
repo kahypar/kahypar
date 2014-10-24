@@ -42,8 +42,8 @@ class APartitioner : public Test {
     partitioner(config),
     coarsener(new FirstWinsCoarsener(*hypergraph, config)),
     refiner(new Refiner(*hypergraph, config)) {
-    config.coarsening.minimal_node_count = 2;
-    config.coarsening.threshold_node_weight = 5;
+    config.coarsening.contraction_limit = 2;
+    config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "PartitionerTest.hgr";
     config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";

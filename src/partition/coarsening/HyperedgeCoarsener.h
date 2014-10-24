@@ -89,12 +89,12 @@ class HyperedgeCoarsener : public ICoarsener,
                  total_weight += _hg.nodeWeight(pin);
                }
                return total_weight;
-             } () <= _config.coarsening.threshold_node_weight,
+             } () <= _config.coarsening.max_allowed_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight threshold");
       ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
-                                                _config.coarsening.threshold_node_weight).value,
+                                                _config.coarsening.max_allowed_node_weight).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
-             << RatingPolicy::rate(he_to_contract, _hg, _config.coarsening.threshold_node_weight).value);
+             << RatingPolicy::rate(he_to_contract, _hg, _config.coarsening.max_allowed_node_weight).value);
 
       //TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
@@ -168,7 +168,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
     Rating rating;
     for (auto && he : permutation) {
-      rating = RatingPolicy::rate(he, _hg, _config.coarsening.threshold_node_weight);
+      rating = RatingPolicy::rate(he, _hg, _config.coarsening.max_allowed_node_weight);
       if (rating.valid) {
         // HEs that would violate node_weight_treshold are not inserted
         // since their rating is set to invalid!
@@ -183,7 +183,7 @@ class HyperedgeCoarsener : public ICoarsener,
     for (auto && he : _hg.incidentEdges(representative)) {
       DBG(false, "Looking at HE " << he);
       if (_pq.contains(he)) {
-        rating = RatingPolicy::rate(he, _hg, _config.coarsening.threshold_node_weight);
+        rating = RatingPolicy::rate(he, _hg, _config.coarsening.max_allowed_node_weight);
         if (rating.valid) {
           DBG(false, "Updating HE " << he << " rating=" << rating.value);
           _pq.updateKey(he, rating.value);

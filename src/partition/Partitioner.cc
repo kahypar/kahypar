@@ -33,7 +33,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
 
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
     start = std::chrono::high_resolution_clock::now();
-    coarsener.coarsen(_config.coarsening.minimal_node_count);
+    coarsener.coarsen(_config.coarsening.contraction_limit);
     end = std::chrono::high_resolution_clock::now();
     _timings[kCoarsening] += end - start;
 

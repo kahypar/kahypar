@@ -115,12 +115,12 @@ class Rater {
   }
 
   HypernodeWeight thresholdNodeWeight() const {
-    return _config.coarsening.threshold_node_weight;
+    return _config.coarsening.max_allowed_node_weight;
   }
 
   private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
-    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
+    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }
 
   bool acceptRating(RatingType tmp, RatingType max_rating) const {

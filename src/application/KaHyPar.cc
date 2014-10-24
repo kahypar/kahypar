@@ -122,10 +122,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.coarsening.scheme = vm["ctype"].as<std::string>();
     }
     if (vm.count("s")) {
-      config.coarsening.hypernode_weight_fraction = vm["s"].as<double>();
+      config.coarsening.max_allowed_weight_multiplier = vm["s"].as<double>();
     }
     if (vm.count("t")) {
-      config.coarsening.minimal_node_count = vm["t"].as<HypernodeID>();
+      config.coarsening.contraction_limit_multiplier = vm["t"].as<HypernodeID>();
     }
     if (vm.count("stopFM")) {
       config.two_way_fm.stopping_rule = vm["stopFM"].as<std::string>();
@@ -170,6 +170,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
   }
+  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
+  config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
+                                                / config.coarsening.contraction_limit;
 }
 
 void setDefaults(Configuration& config) {
@@ -180,10 +183,13 @@ void setDefaults(Configuration& config) {
   config.partition.global_search_iterations = 10;
   config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
-  config.coarsening.minimal_node_count = 100;
-  config.coarsening.hypernode_weight_fraction = -1.0;
+  config.coarsening.contraction_limit_multiplier = 20;
+  config.coarsening.max_allowed_weight_multiplier = 1.5;
+  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
+  config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
+                                                / config.coarsening.contraction_limit;
   config.two_way_fm.stopping_rule = "simple";
-  config.two_way_fm.num_repetitions = 1;
+  config.two_way_fm.num_repetitions = -1;
   config.two_way_fm.max_number_of_fruitless_moves = 100;
   config.two_way_fm.alpha = 4;
   config.her_fm.stopping_rule = "simple";
@@ -285,8 +291,8 @@ int main(int argc, char* argv[]) {
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(),
-    "Coarsening: The maximum weight of a representative hypernode is: s * |hypernodes|")
-    ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stopps when there are no more than t hypernodes left")
+    "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
+    ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
@@ -333,15 +339,8 @@ int main(int argc, char* argv[]) {
                                             static_cast<double>(config.partition.k));
   config.partition.total_graph_weight = hypergraph_weight;
 
-  // temporary workaround; default corresponds to bipartitioning, so
-  // in case of no s parameter is given as input, we calculate the correct
-  // one like KaSPar.
-  if (config.coarsening.hypernode_weight_fraction == -1.0) {
-    config.coarsening.hypernode_weight_fraction = 1.5 / (20.0 * config.partition.k);
-  }
 
-
-  config.coarsening.threshold_node_weight = config.coarsening.hypernode_weight_fraction *
+  config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
                                             hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 

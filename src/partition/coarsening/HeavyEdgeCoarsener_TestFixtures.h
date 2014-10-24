@@ -50,7 +50,7 @@ class ACoarsenerBase : public Test {
     config(),
     coarsener(*hypergraph, config),
     refiner(new DummyRefiner()) {
-    config.coarsening.threshold_node_weight = 5;
+    config.coarsening.max_allowed_node_weight = 5;
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -164,7 +164,7 @@ void restoresParallelHyperedgesInReverseOrder() {
                         &node_weights);
 
   Configuration config;
-  config.coarsening.threshold_node_weight = 4;
+  config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
@@ -190,7 +190,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
                         &node_weights);
 
   Configuration config;
-  config.coarsening.threshold_node_weight = 4;
+  config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
@@ -213,7 +213,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
 
 template <class Coarsener, class HypergraphT, class Config>
 void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
-  config.coarsening.threshold_node_weight = 3;
+  config.coarsening.max_allowed_node_weight = 3;
   coarsener.coarsen(2);
   for (auto && hn : hypergraph->nodes()) {
     ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));

@@ -210,8 +210,8 @@ class APartitionOfAHypergraph : public Test {
     _refiner(new Refiner(_hypergraph, _config)) {
     _config.partition.k = 2;
     _config.partition.total_graph_weight = 7;
-    _config.coarsening.minimal_node_count = 2;
-    _config.coarsening.threshold_node_weight = 5;
+    _config.coarsening.contraction_limit = 2;
+    _config.coarsening.max_allowed_node_weight = 5;
     _config.partition.graph_filename = "APartitionOfAHypergrpahTest";
     _config.partition.graph_partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2.KaHyPar";
     _config.partition.coarse_graph_filename = "APartitionOfAHypergrpahTest_coarse.hgr";
