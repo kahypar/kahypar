@@ -256,6 +256,17 @@ class CoarsenerBase {
                metrics::avgHyperedgeDegree(_hg));
     _stats.add("avgHNdegreeCoarse", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
+    _stats.add("HeReductionFactor", _config.partition.current_v_cycle,
+               static_cast<double>(_hg.initialNumEdges()) / _hg.numEdges());
+#ifdef GATHER_STATS
+    std::map<HypernodeID,HypernodeID> weight_map;
+    for (HypernodeID hn : _hg.nodes()) {
+      weight_map[_hg.nodeWeight(hn)] += 1;
+    }
+    for (auto& entry : weight_map) {
+      LOG("w=" << entry.first << ": " << entry.second);
+    }
+#endif
   }
 
   Hypergraph& _hg;
