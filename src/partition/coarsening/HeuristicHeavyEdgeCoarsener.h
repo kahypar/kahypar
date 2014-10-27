@@ -161,6 +161,9 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         updateMappings(hn, rating);
       }
     } else if (_pq.contains(hn)) {
+      // explicit containment check is necessary because of V-cycles. In this case, not
+      // all hypernodes will be inserted into the PQ at the beginning, because of the
+      // restriction that only hypernodes within the same part can be contracted.
       _pq.remove(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
     }
