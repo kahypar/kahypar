@@ -160,9 +160,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
       if (rating.target != _target[hn]) {
         updateMappings(hn, rating);
       }
-    } else {
-      ASSERT(_pq.contains(hn),
-             "Trying to remove rating of HN " << hn << " which is not in PQ");
+    } else if (_pq.contains(hn)) {
       _pq.remove(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
     }

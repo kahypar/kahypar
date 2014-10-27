@@ -127,9 +127,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
              "Trying to update rating of HN " << hn << " which is not in PQ");
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
-    } else {
-      ASSERT(_pq.contains(hn),
-             "Trying to remove rating of HN " << hn << " which is not in PQ");
+    } else if (_pq.contains(hn)) {
       _pq.remove(hn);
       invalid_hypernodes[hn] = 1;
     }
