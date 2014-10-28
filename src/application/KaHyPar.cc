@@ -700,7 +700,7 @@ int main(int argc, char* argv[]) {
 
   // Vitali : set the config for the policies
   // set the maximum size constraint for label propagation
-  config.lp.max_size_constraint = config.coarsening.threshold_node_weight;
+  config.lp.max_size_constraint = config.coarsening.max_allowed_node_weight;
 
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
