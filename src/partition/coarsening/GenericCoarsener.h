@@ -99,28 +99,41 @@ namespace partition
           // get the clustering
           auto clustering = _clusterer->get_clustering();
 
-          // a hypernode in i-th position in hg.nodes() has label i
           for (const auto &hn : _hg.nodes())
           {
             _clustering_map[clustering[hn]].push_back(hn);
           }
 
           count_contr = 0;
-          // perform the contraction
+#define RANDOM_CONTRACT
+#ifdef RANDOM_CONTRACT
+          for (const auto &hn : _hg.nodes())
+          {
+            const auto label = clustering[hn];
+            // we are not representative of our cluster, and we are not a single node cluster
+            if (_clustering_map[label][0] != hn)
+            {
+              performContraction({_clustering_map[label][0], hn});
+              assert(_clustering_map[label].size() > 1);
+              ++count_contr;
+            }
+          }
+#else
+           //perform the contraction
           for (auto&& val : _clustering_map)
           {
-            // dont contract single nodes
+             //dont contract single nodes
             if (val.second.size() > 1)
             {
               auto rep_node = performContraction(val.second);
               ++count_contr;
             }
           }
+#endif
 
           _clustering_map.clear();
 
-        } while (count_contr > 0 &&
-            _hg.numNodes() > limit);
+        } while (count_contr > 0 && _hg.numNodes() > limit);
 
         gatherCoarseningStats();
       };
