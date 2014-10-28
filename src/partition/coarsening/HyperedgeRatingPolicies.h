@@ -33,7 +33,7 @@ struct HyperedgeRating {
 
 struct EdgeWeightDivMultPinWeight {
   static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
-                              HypernodeWeight threshold_node_weight) {
+                              HypernodeWeight max_allowed_node_weight) {
     IncidenceIterator pins_begin = hypergraph.pins(he).begin();
     IncidenceIterator pins_end = hypergraph.pins(he).end();
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
@@ -55,7 +55,7 @@ struct EdgeWeightDivMultPinWeight {
 
     HyperedgeRating rating;
     rating.total_node_weight = sum_pin_weights;
-    if (sum_pin_weights > threshold_node_weight || is_cut_hyperedge) {
+    if (sum_pin_weights > max_allowed_node_weight || is_cut_hyperedge) {
       return rating;
     }
 

@@ -65,11 +65,12 @@ class Rater {
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     for (auto && he : _hg.incidentEdges(u)) {
+      const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (auto && v : _hg.pins(he)) {
-        if (v != u && (_hg.partID(u) == _hg.partID(v)) &&
-            belowThresholdNodeWeight(v, u)) {
-          _tmp_ratings[v] += static_cast<RatingType>(_hg.edgeWeight(he))
-                             / (_hg.edgeSize(he) - 1);
+        if (v != u
+            && belowThresholdNodeWeight(v, u)
+            && (_hg.partID(u) == _hg.partID(v))) {
+          _tmp_ratings[v] += score;
           if (!_visited_hypernodes[v]) {
             _visited_hypernodes[v] = 1;
             _used_entries.push(v);
@@ -78,20 +79,20 @@ class Rater {
       }
     }
 
-    RatingType tmp = 0.0;
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     while (!_used_entries.empty()) {
-      tmp = _tmp_ratings[_used_entries.top()] /
-            (_hg.nodeWeight(u) * _hg.nodeWeight(_used_entries.top()));
-      DBG(false, "r(" << u << "," << _used_entries.top() << ")=" << tmp);
+      const HypernodeID tmp_target = _used_entries.top();
+      _used_entries.pop();
+      const RatingType tmp = _tmp_ratings[tmp_target] /
+                             (_hg.nodeWeight(u) * _hg.nodeWeight(tmp_target));
+      _tmp_ratings[tmp_target] = 0.0;
+      DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
       if (acceptRating(tmp, max_rating)) {
         max_rating = tmp;
-        target = _used_entries.top();
+        target = tmp_target;
       }
-      _tmp_ratings[_used_entries.top()] = 0.0;
-      _visited_hypernodes[_used_entries.top()] = 0;
-      _used_entries.pop();
+      _visited_hypernodes[tmp_target] = 0;
     }
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
@@ -114,15 +115,15 @@ class Rater {
   }
 
   HypernodeWeight thresholdNodeWeight() const {
-    return _config.coarsening.threshold_node_weight;
+    return _config.coarsening.max_allowed_node_weight;
   }
 
   private:
   bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
-    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.threshold_node_weight;
+    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(RatingType tmp, RatingType max_rating) {
+  bool acceptRating(RatingType tmp, RatingType max_rating) const {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 

@@ -38,9 +38,11 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
     << " coarseningScheme=" << config.coarsening.scheme
     << coarsener.policyString()
+    << " coarseningMaxAllowedWeightMultiplier="  << config.coarsening.max_allowed_weight_multiplier
+    << " coarseningContractionLimitMultiplier=" << config.coarsening.contraction_limit_multiplier
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
-    << " coarseningNodeWeightThreshold=" << config.coarsening.threshold_node_weight
-    << " coarseningMinNodeCount=" << config.coarsening.minimal_node_count
+    << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
+    << " coarseningContractionLimit=" << config.coarsening.contraction_limit
     << coarsener.stats().toString();
     if (config.two_way_fm.active) {
       out_stream << " twowayFMactive=" << config.two_way_fm.active

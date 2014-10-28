@@ -29,7 +29,7 @@ class AHyperedgeCoarsener : public Test {
     config(),
     coarsener(*hypergraph, config),
     refiner(new DummyRefiner()) {
-    config.coarsening.threshold_node_weight = 5;
+    config.coarsening.max_allowed_node_weight = 5;
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -49,13 +49,13 @@ TEST_F(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseni
 }
 
 TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight) {
-  config.coarsening.threshold_node_weight = 3;
+  config.coarsening.max_allowed_node_weight = 3;
   coarsener.rateAllHyperedges();
   ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
 }
 
 TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate) {
-  config.coarsening.threshold_node_weight = 4;
+  config.coarsening.max_allowed_node_weight = 4;
   coarsener.coarsen(6);
   ASSERT_THAT(coarsener._pq.contains(1), Eq(false));
   ASSERT_THAT(coarsener._pq.contains(3), Eq(false));
@@ -67,7 +67,7 @@ TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
                         HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(2);
@@ -81,7 +81,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
                         HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(1);
@@ -95,7 +95,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
                         HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(2);
@@ -104,7 +104,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
 }
 
 TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction) {
-  config.coarsening.threshold_node_weight = 25;
+  config.coarsening.max_allowed_node_weight = 25;
   coarsener.coarsen(5);
   ASSERT_THAT(coarsener._pq.contains(2), Eq(false));
   ASSERT_THAT(coarsener._pq.key(0), DoubleEq(1.0));
@@ -121,7 +121,7 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
                         HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
@@ -137,7 +137,7 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
                         HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
@@ -151,7 +151,7 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
 TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   Hypergraph input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
-  config.coarsening.threshold_node_weight = 10;
+  config.coarsening.max_allowed_node_weight = 10;
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(1);
@@ -169,7 +169,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
   std::vector<HypernodeID> refinement_nodes = { 42, 42, 42 };
   size_t num_refinement_nodes = 0;
   refinement_nodes.reserve(hypergraph.initialNumNodes());
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);

@@ -5,6 +5,8 @@
 #ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 
+#include <boost/dynamic_bitset.hpp>
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -48,7 +50,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()),
-    _sources(hypergraph.initialNumNodes()) { }
+    _sources(hypergraph.initialNumNodes()),
+    _just_updated(_hg.initialNumNodes()) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
@@ -118,11 +121,15 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
     Rating rating;
+    _just_updated.reset();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
       for (auto && pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
-        rating = _rater.rate(pin);
-        updatePQandMappings(pin, rating);
+        if (!_just_updated[pin]) {
+          rating = _rater.rate(pin);
+          updatePQandMappings(pin, rating);
+          _just_updated[pin] = true;
+        }
       }
     }
   }
@@ -154,6 +161,9 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         updateMappings(hn, rating);
       }
     } else if (_pq.contains(hn)) {
+      // explicit containment check is necessary because of V-cycles. In this case, not
+      // all hypernodes will be inserted into the PQ at the beginning, because of the
+      // restriction that only hypernodes within the same part can be contracted.
       _pq.remove(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
     }
@@ -167,6 +177,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
+  boost::dynamic_bitset<uint64_t> _just_updated;
 };
 } // namespace partition
 

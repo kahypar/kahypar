@@ -69,7 +69,7 @@ TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
   Hypergraph hypergraph(5, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 7 },
                         HyperedgeVector { 0, 1, 0, 1, 2, 3, 4 });
   Configuration config;
-  config.coarsening.threshold_node_weight = 5;
+  config.coarsening.max_allowed_node_weight = 5;
   CoarsenerType coarsener(hypergraph, config);
 
   coarsener.coarsen(4);

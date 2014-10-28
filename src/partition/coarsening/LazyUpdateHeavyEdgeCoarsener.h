@@ -130,6 +130,8 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
     } else {
+      // In this case, no explicit contaiment check is necessary because the
+      // method is only called on rep_node, which is definetly in the PQ.
       ASSERT(_pq.contains(hn),
              "Trying to remove rating of HN " << hn << " which is not in PQ");
       _pq.remove(hn);
