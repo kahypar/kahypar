@@ -5,6 +5,7 @@ import argparse
 import time
 import re
 import math
+import random
 
 
 parser = argparse.ArgumentParser()
@@ -24,6 +25,8 @@ graph = args.graph
 k = args.k
 seed = args.seed
 
+if (seed == -1):
+    seed = random.randint(0, 2**32 - 1)
 start = time.time()
 p = Popen(['/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1',
            '-ptype=kway',
@@ -101,6 +104,7 @@ result_string = ("RESULT graph="+ntpath.basename(graph) +
 
 exp = 1.0 / (log2(float(k)))
 ufactor = 50.0 * (2 * ((1+float(ufactor/100.0))**exp) * ((math.ceil(float(total_weight)/float(k))/float(total_weight))**exp)-1)
+#ufactor = 100.0 * (((1+float(ufactor)/100.0)* math.ceil(float(total_weight)/float(k))/float(total_weight))**exp - 0.5)
 
 start = time.time()
 p = Popen(['/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1',
@@ -119,7 +123,7 @@ part_sizes = []
 hg_weight = 0
 for line in iter(p.stdout.readline, b''):
     s = str(line).strip()
-    #print(s)
+#    print(s)
     if ("Vtxs" in s):
         #print(s.split(','))
         result_string += (" numHNs="+str(int(s.split(',')[1][7:])))
