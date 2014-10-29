@@ -84,7 +84,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      // this call also re-rates rep_node
+      // We re-rate the representative HN here, because it might not have any incident HEs left.
+      // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
+      updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
+      rerated_hypernodes[rep_node] = 1;
+
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
     gatherCoarseningStats();
@@ -133,6 +137,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       // restriction that only hypernodes within the same part can be contracted.
       _pq.remove(hn);
       invalid_hypernodes[hn] = 1;
+      _target[hn] = std::numeric_limits<HypernodeID>::max();
     }
   }
 
