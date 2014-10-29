@@ -6,6 +6,7 @@
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>

@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
 
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
-                                            hypergraph_weight;
+                                              hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts

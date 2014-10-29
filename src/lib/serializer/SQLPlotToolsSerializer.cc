@@ -38,7 +38,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
     << " coarseningScheme=" << config.coarsening.scheme
     << coarsener.policyString()
-    << " coarseningMaxAllowedWeightMultiplier="  << config.coarsening.max_allowed_weight_multiplier
+    << " coarseningMaxAllowedWeightMultiplier=" << config.coarsening.max_allowed_weight_multiplier
     << " coarseningContractionLimitMultiplier=" << config.coarsening.contraction_limit_multiplier
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight

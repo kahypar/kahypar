@@ -142,9 +142,9 @@ inline std::string toString(const Configuration& config) {
   oss << "Coarsening Parameters:" << std::endl;
   oss << std::setw(35) << "  scheme: " << config.coarsening.scheme << std::endl;
   oss << std::setw(35) << "  max-allowed-weight-multiplier: "
-      << config.coarsening.max_allowed_weight_multiplier << std::endl;
+  << config.coarsening.max_allowed_weight_multiplier << std::endl;
   oss << std::setw(35) << "  contraction-limit-multiplier: "
-      << config.coarsening.contraction_limit_multiplier << std::endl;
+  << config.coarsening.contraction_limit_multiplier << std::endl;
   oss << std::setw(35) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(35) << "  max. allowed hypernode weight: " << config.coarsening.max_allowed_node_weight

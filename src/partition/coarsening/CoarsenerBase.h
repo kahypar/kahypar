@@ -6,6 +6,7 @@
 #define SRC_PARTITION_COARSENING_COARSENERBASE_H_
 
 #include <algorithm>
+#include <map>
 #include <stack>
 #include <unordered_map>
 #include <vector>
@@ -259,7 +260,7 @@ class CoarsenerBase {
     _stats.add("HeReductionFactor", _config.partition.current_v_cycle,
                static_cast<double>(_hg.initialNumEdges()) / _hg.numEdges());
 #ifdef GATHER_STATS
-    std::map<HypernodeID,HypernodeID> weight_map;
+    std::map<HypernodeID, HypernodeID> weight_map;
     for (HypernodeID hn : _hg.nodes()) {
       weight_map[_hg.nodeWeight(hn)] += 1;
     }
