@@ -143,8 +143,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
 
   void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
     permutation.reserve(_hg.initialNumNodes());
-    for (int i = 0; i < _hg.initialNumNodes(); ++i) {
-      permutation.push_back(i);
+    for (HypernodeID hn : _hg.nodes()) {
+      permutation.push_back(hn);
     }
     Randomize::shuffleVector(permutation, permutation.size());
   }
