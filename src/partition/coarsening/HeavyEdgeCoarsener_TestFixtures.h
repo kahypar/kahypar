@@ -170,7 +170,14 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
-  hypergraph.setNodePart(1, 1);
+
+  // depends on permutation and pq
+  if (hypergraph.nodeIsEnabled(1)) {
+    hypergraph.setNodePart(1, 1);
+  } else {
+    hypergraph.setNodePart(2, 1);
+  }
+
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
