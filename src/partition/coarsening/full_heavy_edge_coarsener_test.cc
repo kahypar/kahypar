@@ -70,4 +70,19 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   ASSERT_THAT(coarsener._history.top().contraction_memento.u, Eq(0));
   ASSERT_THAT(coarsener._history.top().contraction_memento.v, Eq(2));
 }
+
+TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
+  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
+                        HyperedgeVector { 0, 1 });
+
+  Configuration config;
+  config.coarsening.max_allowed_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, config);
+
+  coarsener.coarsen(1);
+
+  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
+  ASSERT_THAT(hypergraph.nodeIsEnabled(1), Eq(false));
+  ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
+}
 } // namespace partition
