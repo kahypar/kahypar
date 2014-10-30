@@ -34,6 +34,7 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_rating = false;
+static const bool dbg_coarsening_fingerprinting = false;
 
 template <class Derived = Mandatory,
           class CoarseningMemento = Mandatory
@@ -134,6 +135,18 @@ class CoarsenerBase {
     }
   }
 
+  // Parallel hyperedge detection is done via fingerprinting. For each hyperedge incident
+  // to the representative, we first create a fingerprint ({he,hash,|he|}). The fingerprints
+  // are then sorted according to the hash value, which brings those hyperedges together that
+  // are likely to be parallel (due to same hash). Afterwards we perform one pass over the vector
+  // of fingerprints and check whether two neighboring hashes are equal. In this case we have
+  // to check the pins of both HEs in order to determine whether they are really equal or not.
+  // This check is only performed, if the sizes of both HEs match - otherwise they can't be
+  // parallel. In case we detect a parallel HE, it is removed from the graph and we proceed by
+  // checking if there are more fingerprints with the same hash value. Since we remove (i.e.disable)
+  // HEs from the graph during this process, we have to ensure that both i and j point to finger-
+  // prints that correspond to enabled HEs. This is necessary because we currently do not delete a
+  // fingerprint after the corresponding hyperedge is removed.
   void removeParallelHyperedges(HypernodeID u) {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
@@ -143,35 +156,56 @@ class CoarsenerBase {
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
-    for (size_t i = 0; i < _fingerprints.size(); ++i) {
+    //debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
+    //[](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
+    DBG(dbg_coarsening_fingerprinting, [&]() {
+          for (auto& fp : _fingerprints) {
+            LOG("{" << fp.id << "," << fp.hash << "," << fp.size << "}");
+          }
+          return std::string("");
+        } ());
+
+    size_t i = 0;
+    while (i < _fingerprints.size()) {
       size_t j = i + 1;
-      if (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
+      DBG(dbg_coarsening_fingerprinting, "i=" << i << ", j=" << j);
+      if (j < _fingerprints.size() && _hg.edgeIsEnabled(_fingerprints[i].id) &&
+          _fingerprints[i].hash == _fingerprints[j].hash) {
         fillProbeBitset(_fingerprints[i].id);
-        for ( ; j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash; ++j) {
+        while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
+          DBG(dbg_coarsening_fingerprinting,
+              _fingerprints[i].hash << "==" << _fingerprints[j].hash);
+          DBG(dbg_coarsening_fingerprinting,
+              "Size:" << _fingerprints[i].size << "==" << _fingerprints[j].size);
           if (_fingerprints[i].size == _fingerprints[j].size &&
+              _hg.edgeIsEnabled(_fingerprints[j].id) &&
               isParallelHyperedge(_fingerprints[j].id)) {
             removeParallelHyperedge(_fingerprints[i].id, _fingerprints[j].id);
           }
+          ++j;
         }
-        i = j;
       }
+      ++i;
     }
   }
 
   bool isParallelHyperedge(HyperedgeID he) const {
     bool is_parallel = true;
-    for (auto && pin : _hg.pins(he)) {
+    for (const HypernodeID pin : _hg.pins(he)) {
       if (!_contained_hypernodes[pin]) {
         is_parallel = false;
         break;
       }
     }
+    DBG(dbg_coarsening_fingerprinting, "HE " << he << " is parallel HE= " << is_parallel);
     return is_parallel;
   }
 
   void fillProbeBitset(HyperedgeID he) {
     _contained_hypernodes.reset();
-    for (auto && pin : _hg.pins(he)) {
+    DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
+    for (const HypernodeID pin : _hg.pins(he)) {
+      DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
       _contained_hypernodes[pin] = 1;
     }
   }
@@ -191,11 +225,13 @@ class CoarsenerBase {
 
   void createFingerprints(HypernodeID u) {
     _fingerprints.clear();
-    for (auto && he : _hg.incidentEdges(u)) {
+    for (const HyperedgeID he : _hg.incidentEdges(u)) {
       HyperedgeID hash = /* seed */ 42;
-      for (auto && pin : _hg.pins(he)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         hash ^= pin;
       }
+      DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
+          << "= {" << he << "," << hash << "," << _hg.edgeSize(he) << "}");
       _fingerprints.emplace_back(he, hash, _hg.edgeSize(he));
     }
   }
@@ -210,11 +246,11 @@ class CoarsenerBase {
     }
     HyperedgeWeight max_degree = 0;
     HypernodeID max_node = 0;
-    for (auto && hn : _hg.nodes()) {
+    for (const HypernodeID hn : _hg.nodes()) {
       ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       HyperedgeWeight curr_degree = 0;
-      for (auto && he : _hg.incidentEdges(hn)) {
+      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
         curr_degree += _hg.edgeWeight(he);
       }
       if (curr_degree > max_degree) {
