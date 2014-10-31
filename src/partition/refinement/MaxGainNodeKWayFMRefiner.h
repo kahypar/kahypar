@@ -276,7 +276,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
     _just_updated.reset();
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
       if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
         if (_locked_hes[he] == to_part) {
@@ -287,7 +287,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           if (moveAffectsGainUpdate(pin_count_source_part_before_move,
                                     pin_count_dest_part_before_move,
                                     pin_count_source_part_after_move)) {
-            for (auto && pin : _hg.pins(he)) {
+            for (const HypernodeID pin : _hg.pins(he)) {
               updatePin(pin);
             }
           }
@@ -298,7 +298,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           // have to call updatePin for all pins in order to activate new border nodes.
           _locked_hes[he] = to_part;
           _current_locked_hes.push(he);
-          for (auto && pin : _hg.pins(he)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
             updatePin(pin);
           }
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
@@ -310,7 +310,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           if (moveAffectsGainUpdate(pin_count_source_part_before_move,
                                     pin_count_dest_part_before_move,
                                     pin_count_source_part_after_move)) {
-            for (auto && pin : _hg.pins(he)) {
+            for (const HypernodeID pin : _hg.pins(he)) {
               updatePin(pin);
             }
           }
@@ -321,9 +321,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       // he is locked
     }
     ASSERT([&]() {
-             for (auto && he : _hg.incidentEdges(hn)) {
+             for (const HyperedgeID he : _hg.incidentEdges(hn)) {
                bool valid = true;
-               for (auto pin : _hg.pins(he)) {
+               for (const HypernodeID pin : _hg.pins(he)) {
                  if (!isBorderNode(pin)) {
                    valid = (_pq.contains(pin) == false);
                    if (!valid) {
@@ -411,7 +411,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   GainPartitionPair computeMaxGain(HypernodeID hn) {
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
-             for (auto gain : _tmp_gains) {
+             for (Gain gain : _tmp_gains) {
                if (gain != 0) {
                  return false;
                }
@@ -422,7 +422,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       if (_hg.connectivity(he) == 1) {
         internal_weight += _hg.edgeWeight(he);

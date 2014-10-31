@@ -85,7 +85,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
       ASSERT([&]() {
                HypernodeWeight total_weight = 0;
-               for (auto && pin : _hg.pins(he_to_contract)) {
+               for (const HypernodeID pin : _hg.pins(he_to_contract)) {
                  total_weight += _hg.nodeWeight(pin);
                }
                return total_weight;
@@ -161,13 +161,13 @@ class HyperedgeCoarsener : public ICoarsener,
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
     permutation.reserve(_hg.initialNumNodes());
-    for (auto && he : _hg.edges()) {
+    for (const HyperedgeID he : _hg.edges()) {
       permutation.push_back(he);
     }
     Randomize::shuffleVector(permutation, permutation.size());
 
     Rating rating;
-    for (auto && he : permutation) {
+    for (const HyperedgeID he : permutation) {
       rating = RatingPolicy::rate(he, _hg, _config.coarsening.max_allowed_node_weight);
       if (rating.valid) {
         // HEs that would violate node_weight_treshold are not inserted
@@ -180,7 +180,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void reRateHyperedgesAffectedByContraction(HypernodeID representative) {
     Rating rating;
-    for (auto && he : _hg.incidentEdges(representative)) {
+    for (const HyperedgeID he : _hg.incidentEdges(representative)) {
       DBG(false, "Looking at HE " << he);
       if (_pq.contains(he)) {
         rating = RatingPolicy::rate(he, _hg, _config.coarsening.max_allowed_node_weight);
@@ -208,7 +208,7 @@ class HyperedgeCoarsener : public ICoarsener,
       hns_to_contract.push_back(*pins_begin);
       ++pins_begin;
     }
-    for (auto && hn_to_contract : hns_to_contract) {
+    for (const HypernodeID hn_to_contract : hns_to_contract) {
       DBG(dbg_coarsening_coarsen, "Contracting (" << representative << "," << hn_to_contract
           << ") from HE " << he);
       _contraction_mementos.push_back(_hg.contract(representative, hn_to_contract));

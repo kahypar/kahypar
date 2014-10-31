@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
                         config.partition.k);
 
   HypernodeWeight hypergraph_weight = 0;
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 
@@ -415,7 +415,7 @@ int main(int argc, char* argv[]) {
   end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
-  for (auto && he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     ASSERT([&]() -> bool {
              HypernodeID num_pins = 0;
              for (PartitionID i = 0; i < config.partition.k; ++i) {

@@ -117,7 +117,7 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
 }
 
 inline void writeHypernodeWeights(std::ofstream& out_stream, const Hypergraph& hypergraph) {
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     out_stream << hypergraph.nodeWeight(hn) << std::endl;
   }
 }
@@ -135,12 +135,12 @@ inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::string&
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
 
-  for (auto && he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     if (hypergraph.type() == HypergraphType::EdgeWeights ||
         hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
       out_stream << hypergraph.edgeWeight(he) << " ";
     }
-    for (auto && pin : hypergraph.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       out_stream << pin + 1 << " ";
     }
     out_stream << std::endl;
@@ -164,9 +164,9 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
   out_stream << static_cast<int>(HypergraphType::EdgeAndNodeWeights);
   out_stream << std::endl;
 
-  for (auto && he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
-    for (auto && pin : hypergraph.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << mapping.find(pin)->second + 1 << " ";
     }
@@ -195,7 +195,7 @@ inline void readPartitionFile(const std::string& filename, std::vector<Partition
 inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     out_stream << hypergraph.partID(hn) << std::endl;
   }
   out_stream.close();

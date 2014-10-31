@@ -112,8 +112,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     Rating rating;
-    for (auto && he : _hg.incidentEdges(rep_node)) {
-      for (auto && pin : _hg.pins(he)) {
+    for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           rating = _rater.rate(pin);
           rerated_hypernodes[pin] = 1;

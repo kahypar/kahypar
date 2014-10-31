@@ -124,7 +124,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     _just_updated.reset();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
-      for (auto && pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
+      for (const HypernodeID pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
         if (!_just_updated[pin]) {
           rating = _rater.rate(pin);
           updatePQandMappings(pin, rating);

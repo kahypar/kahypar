@@ -286,21 +286,21 @@ class KWayFMRefiner : public IRefiner,
     if (he_connectivity == 2 && pin_count_target_part_after_move == 1
         && pin_count_source_part_before_move > 1) {
       DBG(dbg_refinement_kway_fm_gain_update,"he " << he << " is not cut before applying move");
-      for (auto && pin : _hg.pins(he)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part);
       }
     }
     if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
       DBG(dbg_refinement_kway_fm_gain_update,"he " << he
           << " is cut before applying move and uncut after");
-      for (auto && pin : _hg.pins(he)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part);
       }
     }
     if (pin_count_target_part_after_move == he_size - 1) {
        DBG(dbg_refinement_kway_fm_gain_update,he
         << ": Only one vertex remains outside of to_part after applying the move");
-      for (auto && pin : _hg.pins(he)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         if(_hg.partID(pin) != to_part) {
           // in this case we can actually break here
           updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part);
@@ -311,7 +311,7 @@ class KWayFMRefiner : public IRefiner,
     if (pin_count_source_part_before_move == he_size - 1) {
       DBG(dbg_refinement_kway_fm_gain_update, he
           << ": Only one vertex outside from_part before applying move");
-      for (auto && pin : _hg.pins(he)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         if (_hg.partID(pin) != from_part && pin != moved_node) {
           // in this case we can actually break here
           updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part);
@@ -352,7 +352,7 @@ class KWayFMRefiner : public IRefiner,
 
   void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
     _just_updated.reset();
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
       if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
         if (_locked_hes[he] == to_part) {
@@ -363,7 +363,7 @@ class KWayFMRefiner : public IRefiner,
           // he is free.
           // This means that we encounter the HE for the first time and therefore
           // have to call updatePin for all pins in order to activate new border nodes.
-          for (auto && pin : _hg.pins(he)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
             if (!_marked[pin]) {
               if (!_active[pin]) {
                 // border node check is performed in activate
@@ -467,7 +467,7 @@ class KWayFMRefiner : public IRefiner,
   Gain gainInducedByHypergraph(HypernodeID hn, PartitionID target_part) const {
      const PartitionID source_part = _hg.partID(hn);
      Gain gain = 0;
-     for (auto && he : _hg.incidentEdges(hn)) {
+     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
        ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
        if (_hg.connectivity(he) == 1) {
          gain -= _hg.edgeWeight(he);
@@ -488,7 +488,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(!_marked[hn], " Trying to insertHNintoPQ for  marked HN " << hn);
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
-             for (auto gain : _tmp_gains) {
+             for (Gain gain : _tmp_gains) {
                if (gain != 0) {
                  return false;
                }
@@ -499,7 +499,7 @@ class KWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       if (_hg.connectivity(he) == 1) {
         internal_weight += _hg.edgeWeight(he);

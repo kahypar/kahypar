@@ -64,12 +64,12 @@ class Rater {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
-    for (auto && he : _hg.incidentEdges(u)) {
+    for (const HyperedgeID he : _hg.incidentEdges(u)) {
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
-      for (auto && v : _hg.pins(he)) {
-        if (v != u
-            && belowThresholdNodeWeight(v, u)
-            && (_hg.partID(u) == _hg.partID(v))) {
+      for (const HypernodeID v : _hg.pins(he)) {
+        if (v != u &&
+            belowThresholdNodeWeight(v, u) &&
+            (_hg.partID(u) == _hg.partID(v))) {
           _tmp_ratings[v] += score;
           if (!_visited_hypernodes[v]) {
             _visited_hypernodes[v] = 1;
