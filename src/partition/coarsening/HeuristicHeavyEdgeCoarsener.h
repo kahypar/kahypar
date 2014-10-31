@@ -38,9 +38,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::_hg;
   using Base::_rater;
   using Base::_history;
-  using Base::_removed_parallel_hyperedges;
-  using Base::_removed_single_node_hyperedges;
   using Base::_stats;
+  using Base::_hypergraph_pruner;
   using Base::rateAllHypernodes;
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
@@ -122,9 +121,10 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
     Rating rating;
     _just_updated.reset();
+    const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
-      for (const HypernodeID pin : _hg.pins(_removed_parallel_hyperedges[i].representative_id)) {
+      for (const HypernodeID pin : _hg.pins(removed_parallel_hyperedges[i].representative_id)) {
         if (!_just_updated[pin]) {
           rating = _rater.rate(pin);
           updatePQandMappings(pin, rating);

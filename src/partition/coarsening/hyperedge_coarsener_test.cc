@@ -173,7 +173,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);
-  coarsener.restoreSingleNodeHyperedges(coarsener._history.top());
+  coarsener.restoreSingleNodeHyperedges();
 
   coarsener.performUncontraction(coarsener._history.top(), refinement_nodes,
                                  num_refinement_nodes);

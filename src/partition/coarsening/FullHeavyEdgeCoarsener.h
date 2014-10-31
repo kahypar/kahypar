@@ -41,10 +41,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::_rater;
   using Base::_history;
   using Base::_stats;
+  using Base::_hypergraph_pruner;
+  using Base::removeParallelHyperedges;
+  using Base::removeSingleNodeHyperedges;
   using Base::rateAllHypernodes;
   using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
   using Base::gatherCoarseningStats;
 
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :

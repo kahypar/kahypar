@@ -48,18 +48,18 @@ struct HyperedgeCoarseningMemento {
 
 template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
-                           public CoarsenerBase<HyperedgeCoarsener<RatingPolicy>,
-                                                HyperedgeCoarseningMemento>{
+                           public CoarsenerBase<HyperedgeCoarseningMemento>{
   private:
   typedef HyperedgeRating Rating;
   typedef typename Hypergraph::ContractionMemento ContractionMemento;
-  typedef CoarsenerBase<HyperedgeCoarsener<RatingPolicy>, HyperedgeCoarseningMemento> Base;
+  typedef CoarsenerBase<HyperedgeCoarseningMemento> Base;
 
   public:
   using Base::_hg;
   using Base::_config;
   using Base::_history;
   using Base::_stats;
+  using Base::_hypergraph_pruner;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
   using Base::restoreParallelHyperedges;
@@ -106,6 +106,9 @@ class HyperedgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
+      deleteRemovedSingleNodeHyperedgesFromPQ();
+      deleteRemovedParallelHyperedgesFromPQ();
+
       reRateHyperedgesAffectedByContraction(rep_node);
     }
     gatherCoarseningStats();
@@ -122,8 +125,8 @@ class HyperedgeCoarsener : public ICoarsener,
     size_t num_refinement_nodes = 0;
     while (!_history.empty()) {
       num_refinement_nodes = 0;
-      restoreParallelHyperedges(_history.top());
-      restoreSingleNodeHyperedges(_history.top());
+      restoreParallelHyperedges();
+      restoreSingleNodeHyperedges();
       performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
       performLocalSearch(refiner, refinement_nodes, num_refinement_nodes,
                          current_imbalance, current_cut);
@@ -157,6 +160,23 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
   FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
   FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
+
+  void deleteRemovedSingleNodeHyperedgesFromPQ() {
+    const auto& removed_single_node_hyperedges = _hypergraph_pruner.removedSingleNodeHyperedges();
+    for (int i = _history.top().one_pin_hes_begin; i != _history.top().one_pin_hes_begin +
+         _history.top().one_pin_hes_size; ++i) {
+      removeHyperedgeFromPQ(removed_single_node_hyperedges[i]);
+    }
+  }
+
+  void deleteRemovedParallelHyperedgesFromPQ() {
+    const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
+    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
+         _history.top().parallel_hes_size; ++i) {
+      removeHyperedgeFromPQ(removed_parallel_hyperedges[i].removed_id);
+    }
+  }
+
 
   void rateAllHyperedges() {
     std::vector<HyperedgeID> permutation;
