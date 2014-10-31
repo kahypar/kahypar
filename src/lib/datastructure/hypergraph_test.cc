@@ -622,4 +622,33 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
   ASSERT_THAT(hypergraph.connectivitySet(0).begin()->part, Eq(1));
 }
+
+TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 1));
+  mementos.push(hypergraph.contract(0, 3));
+  mementos.push(hypergraph.contract(0, 4));
+  mementos.push(hypergraph.contract(2, 5));
+  mementos.push(hypergraph.contract(2, 6));
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 1);
+  ASSERT_THAT(hypergraph.partSize(0), Eq(1));
+  ASSERT_THAT(hypergraph.partSize(1), Eq(1));
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(4));
+}
 } // namespace datastructure

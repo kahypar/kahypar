@@ -501,7 +501,7 @@ class GenericHypergraph {
   Memento contract(HypernodeID u, HypernodeID v) {
     using std::swap;
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << v << " is disabled");
     ASSERT(partID(u) == partID(v), "Hypernodes " << u << " & " << v << " are in different parts: "
            << partID(u) << " & " << partID(v));
 
@@ -567,7 +567,9 @@ class GenericHypergraph {
 
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
-    setPartID(memento.v, partID(memento.u));
+    _part_ids[memento.v] = _part_ids[memento.u];
+    ++_part_info[partID(memento.u)].size;
+
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID " << partID(memento.u) << " of representative HN " << memento.u <<
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
@@ -635,7 +637,6 @@ class GenericHypergraph {
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
     ASSERT(from != to, "from part " << from << " == " << to << " part");
-    setPartID(hn, to);
     updatePartInfo(hn, from, to);
     for (auto&& he : incidentEdges(hn)) {
       decreasePinCountInPart(he, from);
@@ -658,7 +659,6 @@ class GenericHypergraph {
     ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: "
            <<  partID(hn));
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
-    setPartID(hn, id);
     updatePartInfo(hn, id);
     for (auto&& he : incidentEdges(hn)) {
       increasePinCountInPart(he, id);
@@ -937,15 +937,11 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
 
-  void setPartID(HypernodeID u, PartitionID id) {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    _part_ids[u] = id;
-  }
-
   void updatePartInfo(HypernodeID u, PartitionID id) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
+    ASSERT(_part_ids[u] == kInvalidPartition, "HN " << u << " is already assigned to part " << id);
+    _part_ids[u] = id;
     _part_info[id].weight += nodeWeight(u);
     ++_part_info[id].size; 
   }
@@ -954,6 +950,8 @@ class GenericHypergraph {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(from < _k && from != kInvalidPartition, "Part ID" << from << " out of bounds!");
     ASSERT(to < _k && to != kInvalidPartition, "Part ID" << to << " out of bounds!");
+    ASSERT(_part_ids[u] == from, "HN " << u << " is not in part " << from);
+    _part_ids[u] = to;
     _part_info[from].weight -= nodeWeight(u);
     --_part_info[from].size;
     _part_info[to].weight += nodeWeight(u);
