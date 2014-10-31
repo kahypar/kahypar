@@ -39,7 +39,7 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const std::chrono::duration<double>& elapsed_seconds,
-                                     const std::array<std::chrono::duration<double>,3>& timings) {
+                                     const std::array<std::chrono::duration<double>,7>& timings) {
   std::cout << "***********************" << hypergraph.k()
             << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
@@ -48,9 +48,13 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
     std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;
   }
   std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
-  std::cout << "     | coarsening time               = " << timings[0].count() << " s" << std::endl;
-  std::cout << "     | initial partition time        = " << timings[1].count() << " s" << std::endl;
-  std::cout << "     | uncoarsening/refinement time  = " << timings[2].count() << " s" << std::endl;
+  std::cout << "     | initial parallel HE removal time  = " << timings[0].count() << " s" << std::endl;
+  std::cout << "     | initial large HE removal time     = " << timings[1].count() << " s" << std::endl;
+  std::cout << "     | coarsening time                   = " << timings[2].count() << " s" << std::endl;
+  std::cout << "     | initial partition time            = " << timings[3].count() << " s" << std::endl;
+  std::cout << "     | uncoarsening/refinement time      = " << timings[4].count() << " s" << std::endl;
+  std::cout << "     | initial large HE restore time     = " << timings[5].count() << " s" << std::endl;
+  std::cout << "     | initial parallel HE restore time  = " << timings[6].count() << " s" << std::endl;
 }
 
 inline void printPartitioningStatistics(const ICoarsener& coarsener, const IRefiner& refiner) {

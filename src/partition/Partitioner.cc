@@ -21,15 +21,25 @@ using defs::PartInfoIteratorPair;
 namespace partition {
 void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
                             IRefiner& refiner) {
+  HighResClockTimepoint start;
+  HighResClockTimepoint end;
+
+  HypergraphPruner hypergraph_pruner(hypergraph, _config, _stats);
+  RemovedParallelHyperedgesStack parallel_he_stack;
+  if (_config.partition.initial_parallel_he_removal) {
+    removeParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+  }
+
+
+  start = std::chrono::high_resolution_clock::now();
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges);
+  end = std::chrono::high_resolution_clock::now();
+  _timings[kInitialLargeHEremoval] = end - start;
 
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
-
-  HighResClockTimepoint start;
-  HighResClockTimepoint end;
 
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
     start = std::chrono::high_resolution_clock::now();
@@ -54,6 +64,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
       LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
       break;
     }
+
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
            << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ++_config.partition.current_v_cycle;
@@ -62,10 +73,43 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
 #endif
   }
 
+  start = std::chrono::high_resolution_clock::now();
   restoreLargeHyperedges(hypergraph, removed_hyperedges);
+  end = std::chrono::high_resolution_clock::now();
+  _timings[kInitialLargeHErestore] = end - start;
+
+  if (_config.partition.initial_parallel_he_removal) {
+    restoreParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+  }
 }
 
-void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges) {
+void Partitioner::removeParallelHyperedges(Hypergraph& hypergraph,
+                                           HypergraphPruner& hypergraph_pruner,
+                                           RemovedParallelHyperedgesStack& stack) {
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    stack.emplace(std::make_pair(0, 0));
+    hypergraph_pruner.removeParallelHyperedges(hn, stack.top().first, stack.top().second);
+  }
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  _timings[kInitialParallelHEremoval] = end - start;
+  LOG("Initially removed parallel HEs:" << _stats.toString());
+}
+
+void Partitioner::restoreParallelHyperedges(Hypergraph& hypergraph,
+                                            HypergraphPruner& hypergraph_pruner,
+                                            RemovedParallelHyperedgesStack& stack) {
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  while (!stack.empty()) {
+    hypergraph_pruner.restoreParallelHyperedges(stack.top().first, stack.top().second);
+    stack.pop();
+  }
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  _timings[kInitialParallelHErestore] = end - start;
+}
+
+void Partitioner::removeLargeHyperedges(Hypergraph& hg,
+                                        std::vector<HyperedgeID>& removed_hyperedges) {
   if (_config.partition.hyperedge_size_threshold != -1) {
     for (const HyperedgeID he : hg.edges()) {
       if (hg.edgeSize(he) > _config.partition.hyperedge_size_threshold) {
@@ -77,6 +121,8 @@ void Partitioner::removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>
       }
     }
   }
+  _stats.add("numInitiallyRemovedLargeHEs", _config.partition.current_v_cycle,
+             removed_hyperedges.size());
   LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
       << _config.partition.hyperedge_size_threshold << " pins");
 }

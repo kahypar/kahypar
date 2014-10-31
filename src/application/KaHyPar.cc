@@ -152,6 +152,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("verbose")) {
       config.partition.verbose_output = vm["verbose"].as<bool>();
     }
+    if (vm.count("init-remove-hes")) {
+      config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
+    }
     if (vm.count("rtype")) {
       if (vm["rtype"].as<std::string>() == "twoway_fm" ||
           vm["rtype"].as<std::string>() == "max_gain_kfm" ||
@@ -285,6 +288,7 @@ int main(int argc, char* argv[]) {
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
+    ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")

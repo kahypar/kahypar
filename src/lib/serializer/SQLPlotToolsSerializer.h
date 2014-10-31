@@ -26,7 +26,7 @@ class SQLPlotToolsSerializer {
   static void serialize(const Configuration& config, const Hypergraph& hypergraph,
                         const ICoarsener& UNUSED(coarsener), const IRefiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
-                        const std::array<std::chrono::duration<double>, 3>& timings,
+                        const std::array<std::chrono::duration<double>, 7>& timings,
                         const std::string& filename);
 };
 } // namespace serializer
