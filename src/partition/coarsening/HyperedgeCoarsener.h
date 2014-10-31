@@ -262,6 +262,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   PriorityQueue<BinaryHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
+  DISALLOW_COPY_AND_ASSIGN(HyperedgeCoarsener);
 };
 } // namespace partition
 

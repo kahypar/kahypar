@@ -143,6 +143,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   Rater _rater;
   PrioQueue _pq;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(HeavyEdgeCoarsenerBase);
 };
 } // namespace partition
 

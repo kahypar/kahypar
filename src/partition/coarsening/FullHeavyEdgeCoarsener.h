@@ -144,6 +144,9 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
   std::vector<HypernodeID> _target;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(FullHeavyEdgeCoarsener);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

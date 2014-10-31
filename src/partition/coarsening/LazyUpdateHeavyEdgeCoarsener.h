@@ -140,6 +140,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
 
   std::vector<bool> _outdated_rating;
   std::vector<HypernodeID> _target;
+  DISALLOW_COPY_AND_ASSIGN(LazyUpdateHeavyEdgeCoarsener);
 };
 }              // namespace partition
 

@@ -161,6 +161,9 @@ class CoarsenerBase {
 #endif
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(CoarsenerBase);
 };
 } // namespace partition
 

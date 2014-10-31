@@ -43,6 +43,9 @@ class FMRefinerBase {
 
   Hypergraph& _hg;
   const Configuration& _config;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(FMRefinerBase);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_
