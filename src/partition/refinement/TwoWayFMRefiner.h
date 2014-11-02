@@ -246,7 +246,7 @@ class TwoWayFMRefiner : public IRefiner,
   // Gain update as decribed in [ParMar06]
   void updateNeighbours(HypernodeID moved_node, PartitionID source_part, PartitionID target_part) {
     _just_activated.reset();
-    for (auto && he : _hg.incidentEdges(moved_node)) {
+    for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
       if (_hg.edgeSize(he) == 2) {
         // moved_node is not updated here, since updatePin only updates HNs that
         // are contained in the PQ and only activates HNs that are unmarked
@@ -263,7 +263,7 @@ class TwoWayFMRefiner : public IRefiner,
         updatePinsOfHyperedge(he, -1);
       } else {
         if (_hg.pinCountInPart(he, source_part) == 1) {
-          for (auto && pin : _hg.pins(he)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
             if (_hg.partID(pin) == source_part && pin != moved_node) {
               // Before move, there were two pins (moved_node and the current pin) in source_part.
               // After moving moved_node to target_part, the gain of the remaining pin in
@@ -274,7 +274,7 @@ class TwoWayFMRefiner : public IRefiner,
           }
         }
         if (_hg.pinCountInPart(he, target_part) == 2) {
-          for (auto && pin : _hg.pins(he)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
             // Before move, pin was the only HN in target_part. It thus had a
             // positive gain, because moving it to source_part would have removed
             // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
@@ -391,7 +391,7 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
-    for (auto && pin : _hg.pins(he)) {
+    for (const HypernodeID pin : _hg.pins(he)) {
       updatePin(he, pin, sign);
     }
   }
@@ -438,7 +438,7 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partID(hn) ^ 1;
 
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       // Some MCNC Instances like primary1 and industry3 have hyperedges that
       // only contain one hypernode. Thus this assertion will fail in this case.
       ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,

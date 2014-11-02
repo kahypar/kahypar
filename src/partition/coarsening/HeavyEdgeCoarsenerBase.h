@@ -53,12 +53,11 @@ template <class Rater = Mandatory,
             NoDataBinaryHeap<HypernodeID,
                              typename Rater::RatingType,
                              MetaKeyDouble> > >
-class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>,
-                                                    CoarseningMemento>{
+class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
   typedef typename Rater::Rating Rating;
   typedef typename Rater::RatingType RatingType;
-  typedef CoarsenerBase<HeavyEdgeCoarsenerBase<Rater>, CoarseningMemento> Base;
+  typedef CoarsenerBase<CoarseningMemento> Base;
 
   using Base::_hg;
   using Base::_config;
@@ -67,10 +66,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
 #ifdef USE_BUCKET_PQ
   using Base::_weights_table;
 #endif
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::restoreParallelHyperedges;
   using Base::restoreSingleNodeHyperedges;
+  using Base::restoreParallelHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
 
@@ -82,11 +79,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
   { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
-
-  // Nothing to do in case of a hypernode-based coarsener
-  // CRTP for hyperedge-based coarseners that need to delete single-node HEs and
-  // parallel HEs from their PQ
-  void removeHyperedgeFromPQ(HyperedgeID) { }
 
   protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
@@ -109,8 +101,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
     std::vector<HypernodeID> refinement_nodes(2, 0);
 
     while (!_history.empty()) {
-      restoreParallelHyperedges(_history.top());
-      restoreSingleNodeHyperedges(_history.top());
+      restoreParallelHyperedges();
+      restoreSingleNodeHyperedges();
 
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
           << _history.top().contraction_memento.v << ")");
@@ -143,14 +135,17 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<HeavyEdgeCoarsenerBase<Rater
 
   void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
     permutation.reserve(_hg.initialNumNodes());
-    for (int i = 0; i < _hg.initialNumNodes(); ++i) {
-      permutation.push_back(i);
+    for (HypernodeID hn : _hg.nodes()) {
+      permutation.push_back(hn);
     }
     Randomize::shuffleVector(permutation, permutation.size());
   }
 
   Rater _rater;
   PrioQueue _pq;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(HeavyEdgeCoarsenerBase);
 };
 } // namespace partition
 

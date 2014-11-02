@@ -6,6 +6,7 @@
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
 #include <boost/dynamic_bitset.hpp>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>
@@ -40,10 +41,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::_rater;
   using Base::_history;
   using Base::_stats;
+  using Base::_hypergraph_pruner;
+  using Base::removeParallelHyperedges;
+  using Base::removeSingleNodeHyperedges;
   using Base::rateAllHypernodes;
   using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
   using Base::gatherCoarseningStats;
 
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
@@ -84,7 +86,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
 
-      // this call also re-rates rep_node
+      // We re-rate the representative HN here, because it might not have any incident HEs left.
+      // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
+      updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
+      rerated_hypernodes[rep_node] = 1;
+
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
     gatherCoarseningStats();
@@ -107,8 +113,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     Rating rating;
-    for (auto && he : _hg.incidentEdges(rep_node)) {
-      for (auto && pin : _hg.pins(he)) {
+    for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           rating = _rater.rate(pin);
           rerated_hypernodes[pin] = 1;
@@ -133,10 +139,14 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       // restriction that only hypernodes within the same part can be contracted.
       _pq.remove(hn);
       invalid_hypernodes[hn] = 1;
+      _target[hn] = std::numeric_limits<HypernodeID>::max();
     }
   }
 
   std::vector<HypernodeID> _target;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(FullHeavyEdgeCoarsener);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

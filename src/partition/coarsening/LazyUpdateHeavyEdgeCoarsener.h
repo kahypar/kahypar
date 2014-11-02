@@ -115,8 +115,8 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void invalidateAffectedHypernodes(HypernodeID rep_node) {
-    for (auto && he : _hg.incidentEdges(rep_node)) {
-      for (auto && pin : _hg.pins(he)) {
+    for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
+      for (const HypernodeID pin : _hg.pins(he)) {
         _outdated_rating[pin] = true;
       }
     }
@@ -140,6 +140,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
 
   std::vector<bool> _outdated_rating;
   std::vector<HypernodeID> _target;
+  DISALLOW_COPY_AND_ASSIGN(LazyUpdateHeavyEdgeCoarsener);
 };
 }              // namespace partition
 

@@ -204,6 +204,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("verbose")) {
       config.partition.verbose_output = vm["verbose"].as<bool>();
     }
+    if (vm.count("init-remove-hes")) {
+      config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
+    }
     if (vm.count("rtype")) {
       if (vm["rtype"].as<std::string>() == "twoway_fm" ||
           vm["rtype"].as<std::string>() == "max_gain_kfm" ||
@@ -633,6 +636,7 @@ int main(int argc, char* argv[]) {
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
+    ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
@@ -753,7 +757,7 @@ int main(int argc, char* argv[]) {
                         &coarsened_node_weight_vector);
 
   HypernodeWeight hypergraph_weight = 0;
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
 
@@ -764,7 +768,7 @@ int main(int argc, char* argv[]) {
 
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
-                                            hypergraph_weight;
+                                              hypergraph_weight;
   config.two_way_fm.beta = log(num_hypernodes);
 
 

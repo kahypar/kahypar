@@ -24,7 +24,7 @@ class FMRefinerBase {
   ~FMRefinerBase() { }
 
   bool isBorderNode(HypernodeID hn) const {
-    for (auto && he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (isCutHyperedge(he)) {
         DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is a border node");
         return true;
@@ -43,6 +43,9 @@ class FMRefinerBase {
 
   Hypergraph& _hg;
   const Configuration& _config;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(FMRefinerBase);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_

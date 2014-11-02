@@ -237,7 +237,7 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
 TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
   HypernodeID hypernode_count = 0;
 
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     ASSERT_THAT(hn, Eq(hypernode_count));
     ++hypernode_count;
   }
@@ -247,7 +247,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
 TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
   HyperedgeID hyperedge_count = 0;
 
-  for (auto && he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     ASSERT_THAT(he, Eq(hyperedge_count));
     ++hyperedge_count;
   }
@@ -257,7 +257,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   int i = 0;
 
-  for (auto && he : hypergraph.incidentEdges(6)) {
+  for (const HyperedgeID he : hypergraph.incidentEdges(6)) {
     ASSERT_THAT(he, Eq(*(hypergraph._incidence_array.begin() +
                          hypergraph.hypernode(6).firstEntry() + i)));
     ++i;
@@ -266,7 +266,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
 
 TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
   int i = 0;
-  for (auto && pin : hypergraph.pins(2)) {
+  for (const HypernodeID pin : hypergraph.pins(2)) {
     ASSERT_THAT(pin, Eq(*(hypergraph._incidence_array.begin() +
                           hypergraph.hyperedge(2).firstEntry() + i)));
     ++i;
@@ -542,7 +542,7 @@ TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
 }
 
 TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
-  for (auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     ASSERT_THAT(hypergraph.partID(hn), Eq(Hypergraph::kInvalidPartition));
   }
 }
@@ -621,5 +621,34 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
 
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
   ASSERT_THAT(hypergraph.connectivitySet(0).begin()->part, Eq(1));
+}
+
+TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 1));
+  mementos.push(hypergraph.contract(0, 3));
+  mementos.push(hypergraph.contract(0, 4));
+  mementos.push(hypergraph.contract(2, 5));
+  mementos.push(hypergraph.contract(2, 6));
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 1);
+  ASSERT_THAT(hypergraph.partSize(0), Eq(1));
+  ASSERT_THAT(hypergraph.partSize(1), Eq(1));
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(4));
 }
 } // namespace datastructure

@@ -6,7 +6,9 @@
 #define SRC_PARTITION_COARSENING_COARSENERBASE_H_
 
 #include <algorithm>
+#include <map>
 #include <stack>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -15,6 +17,7 @@
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/coarsening/HypergraphPruner.h"
 #include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;
@@ -30,33 +33,11 @@ namespace partition {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
-static const bool dbg_coarsening_single_node_he_removal = false;
-static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_rating = false;
 
-template <class Derived = Mandatory,
-          class CoarseningMemento = Mandatory
-          >
+template <class CoarseningMemento = Mandatory>
 class CoarsenerBase {
   protected:
-  struct Fingerprint {
-    HyperedgeID id;
-    HyperedgeID hash;
-    HypernodeID size;
-    Fingerprint(HyperedgeID id_, HyperedgeID hash_, HypernodeID size_) :
-      id(id_),
-      hash(hash_),
-      size(size_) { }
-  };
-
-  struct ParallelHE {
-    HyperedgeID representative_id;
-    HyperedgeID removed_id;
-    ParallelHE(HyperedgeID representative_id_, HyperedgeID removed_id_) :
-      representative_id(representative_id_),
-      removed_id(removed_id_) { }
-  };
-
   struct hash_nodes {
     size_t operator () (HypernodeID index) const {
       return index;
@@ -70,133 +51,36 @@ class CoarsenerBase {
     _hg(hypergraph),
     _config(config),
     _history(),
-    _removed_single_node_hyperedges(),
-    _removed_parallel_hyperedges(),
-    _fingerprints(),
-    _contained_hypernodes(_hg.initialNumNodes()),
 #ifdef USE_BUCKET_PQ
     _weights_table(),
 #endif
-    _stats()
+    _stats(),
+    _hypergraph_pruner(_hg, _config, _stats)
   { }
 
   virtual ~CoarsenerBase() { }
 
   protected:
-  void restoreSingleNodeHyperedges(const CoarseningMemento& memento) {
-    for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
-         i >= memento.one_pin_hes_begin; --i) {
-      ASSERT(i < _removed_single_node_hyperedges.size(), "Index out of bounds");
-      DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
-          << _removed_single_node_hyperedges[i]);
-      _hg.restoreEdge(_removed_single_node_hyperedges[i]);
-      _removed_single_node_hyperedges.pop_back();
-    }
+  void removeSingleNodeHyperedges(HypernodeID rep_node) {
+    _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
+                                                  _history.top().one_pin_hes_begin,
+                                                  _history.top().one_pin_hes_size);
   }
 
-  void restoreParallelHyperedges(const CoarseningMemento& memento) {
-    for (int i = memento.parallel_hes_begin + memento.parallel_hes_size - 1;
-         i >= memento.parallel_hes_begin; --i) {
-      ASSERT(i < _removed_parallel_hyperedges.size(), "Index out of bounds");
-      DBG(dbg_coarsening_parallel_he_removal, "restore HE "
-          << _removed_parallel_hyperedges[i].removed_id << " which is parallel to "
-          << _removed_parallel_hyperedges[i].representative_id);
-      _hg.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
-      _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
-                        _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
-                        _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
-      _removed_parallel_hyperedges.pop_back();
-    }
+  void removeParallelHyperedges(HypernodeID rep_node) {
+    _hypergraph_pruner.removeParallelHyperedges(rep_node,
+                                                _history.top().parallel_hes_begin,
+                                                _history.top().parallel_hes_size);
   }
 
-  void removeSingleNodeHyperedges(HypernodeID u) {
-    // ASSERT(_history.top().contraction_memento.u == u,
-    //        "Current coarsening memento does not belong to hypernode" << u);
-    _history.top().one_pin_hes_begin = _removed_single_node_hyperedges.size();
-    IncidenceIterator begin = _hg.incidentEdges(u).begin();
-    IncidenceIterator end = _hg.incidentEdges(u).end();
-    for (IncidenceIterator he_it = begin; he_it != end; ++he_it) {
-      if (_hg.edgeSize(*he_it) == 1) {
-#ifdef USE_BUCKET_PQ
-        _weights_table[u] += _hg.edgeWeight(*he_it);
-#endif
-        _removed_single_node_hyperedges.push_back(*he_it);
-        _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
-                   _hg.edgeWeight(*he_it));
-        static_cast<Derived*>(this)->removeHyperedgeFromPQ(*he_it);
-        ++_history.top().one_pin_hes_size;
-        DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
-        _hg.removeEdge(*he_it, false);
-        --he_it;
-        --end;
-      }
-    }
+  void restoreParallelHyperedges() {
+    _hypergraph_pruner.restoreParallelHyperedges(_history.top().parallel_hes_begin,
+                                                 _history.top().parallel_hes_size);
   }
 
-  void removeParallelHyperedges(HypernodeID u) {
-    // ASSERT(_history.top().contraction_memento.u == u,
-    //        "Current coarsening memento does not belong to hypernode" << u);
-    _history.top().parallel_hes_begin = _removed_parallel_hyperedges.size();
-
-    createFingerprints(u);
-    std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
-
-    for (size_t i = 0; i < _fingerprints.size(); ++i) {
-      size_t j = i + 1;
-      if (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
-        fillProbeBitset(_fingerprints[i].id);
-        for ( ; j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash; ++j) {
-          if (_fingerprints[i].size == _fingerprints[j].size &&
-              isParallelHyperedge(_fingerprints[j].id)) {
-            removeParallelHyperedge(_fingerprints[i].id, _fingerprints[j].id);
-          }
-        }
-        i = j;
-      }
-    }
-  }
-
-  bool isParallelHyperedge(HyperedgeID he) const {
-    bool is_parallel = true;
-    for (auto && pin : _hg.pins(he)) {
-      if (!_contained_hypernodes[pin]) {
-        is_parallel = false;
-        break;
-      }
-    }
-    return is_parallel;
-  }
-
-  void fillProbeBitset(HyperedgeID he) {
-    _contained_hypernodes.reset();
-    for (auto && pin : _hg.pins(he)) {
-      _contained_hypernodes[pin] = 1;
-    }
-  }
-
-  void removeParallelHyperedge(HyperedgeID representative, HyperedgeID to_remove) {
-    _hg.setEdgeWeight(representative,
-                      _hg.edgeWeight(representative)
-                      + _hg.edgeWeight(to_remove));
-    DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
-        << representative);
-    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle, 1);
-    _hg.removeEdge(to_remove, false);
-    _removed_parallel_hyperedges.emplace_back(representative, to_remove);
-    static_cast<Derived*>(this)->removeHyperedgeFromPQ(to_remove);
-    ++_history.top().parallel_hes_size;
-  }
-
-  void createFingerprints(HypernodeID u) {
-    _fingerprints.clear();
-    for (auto && he : _hg.incidentEdges(u)) {
-      HyperedgeID hash = /* seed */ 42;
-      for (auto && pin : _hg.pins(he)) {
-        hash ^= pin;
-      }
-      _fingerprints.emplace_back(he, hash, _hg.edgeSize(he));
-    }
+  void restoreSingleNodeHyperedges() {
+    _hypergraph_pruner.restoreSingleNodeHyperedges(_history.top().one_pin_hes_begin,
+                                                   _history.top().one_pin_hes_size);
   }
 
   void initializeRefiner(IRefiner& refiner) {
@@ -209,11 +93,11 @@ class CoarsenerBase {
     }
     HyperedgeWeight max_degree = 0;
     HypernodeID max_node = 0;
-    for (auto && hn : _hg.nodes()) {
+    for (const HypernodeID hn : _hg.nodes()) {
       ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
              "TwoWayFmRefiner cannot work with HNs in invalid partition");
       HyperedgeWeight curr_degree = 0;
-      for (auto && he : _hg.incidentEdges(hn)) {
+      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
         curr_degree += _hg.edgeWeight(he);
       }
       if (curr_degree > max_degree) {
@@ -256,19 +140,30 @@ class CoarsenerBase {
                metrics::avgHyperedgeDegree(_hg));
     _stats.add("avgHNdegreeCoarse", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
+    _stats.add("HeReductionFactor", _config.partition.current_v_cycle,
+               static_cast<double>(_hg.initialNumEdges()) / _hg.numEdges());
+#ifdef GATHER_STATS
+    std::map<HypernodeID, HypernodeID> weight_map;
+    for (HypernodeID hn : _hg.nodes()) {
+      weight_map[_hg.nodeWeight(hn)] += 1;
+    }
+    for (auto& entry : weight_map) {
+      LOG("w=" << entry.first << ": " << entry.second);
+    }
+#endif
   }
 
   Hypergraph& _hg;
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;
-  std::vector<HyperedgeID> _removed_single_node_hyperedges;
-  std::vector<ParallelHE> _removed_parallel_hyperedges;
-  std::vector<Fingerprint> _fingerprints;
-  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
 #ifdef USE_BUCKET_PQ
   SingleHEWeightsHashtable _weights_table;
 #endif
   Stats _stats;
+  HypergraphPruner _hypergraph_pruner;
+
+  private:
+  DISALLOW_COPY_AND_ASSIGN(CoarsenerBase);
 };
 } // namespace partition
 

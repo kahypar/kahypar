@@ -24,7 +24,7 @@ static const bool dbg_metrics_hyperedge_cut = false;
 
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
-  for (const auto && he : hg.edges()) {
+  for (const HyperedgeID he : hg.edges()) {
     IncidenceIterator begin = hg.pins(he).begin();
     IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
@@ -50,7 +50,7 @@ template <typename CoarsendToHmetisMapping, typename Partition>
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                                     hg_to_hmetis, const Partition& partitioning) {
   HyperedgeWeight cut = 0;
-  for (const auto && he : hg.edges()) {
+  for (const HyperedgeID he : hg.edges()) {
     IncidenceIterator begin = hg.pins(he).begin();
     IncidenceIterator end = hg.pins(he).end();
     if (begin == end) {
@@ -87,7 +87,7 @@ inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMapping&
                         hg_to_hmetis, const Partition& partitioning) {
   std::vector<HypernodeWeight> part_weights(hypergraph.k(), 0);
 
-  for (const auto && hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
   }
 
@@ -110,7 +110,7 @@ inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 
 inline HypernodeID rank(const Hypergraph& hypergraph) {
   HypernodeID rank = 0;
-  for (auto he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     rank = std::max(rank, hypergraph.edgeSize(he));
   }
   return rank;

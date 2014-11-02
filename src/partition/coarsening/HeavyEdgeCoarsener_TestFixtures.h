@@ -170,7 +170,14 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
-  hypergraph.setNodePart(1, 1);
+
+  // depends on permutation and pq
+  if (hypergraph.nodeIsEnabled(1)) {
+    hypergraph.setNodePart(1, 1);
+  } else {
+    hypergraph.setNodePart(2, 1);
+  }
+
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
@@ -215,7 +222,7 @@ template <class Coarsener, class HypergraphT, class Config>
 void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
   config.coarsening.max_allowed_node_weight = 3;
   coarsener.coarsen(2);
-  for (auto && hn : hypergraph->nodes()) {
+  for (const HypernodeID hn : hypergraph->nodes()) {
     ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));
   }
   ASSERT_THAT(hypergraph->numNodes(), Eq(3));

@@ -48,6 +48,7 @@ struct Configuration {
       max_part_weight(std::numeric_limits<HypernodeWeight>::max()),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
+      initial_parallel_he_removal(false),
       verbose_output(false),
       graph_filename(),
       graph_partition_filename(),
@@ -64,6 +65,7 @@ struct Configuration {
     HypernodeWeight max_part_weight;
     HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
+    bool initial_parallel_he_removal;
     bool verbose_output;
     std::string graph_filename;
     std::string graph_partition_filename;
@@ -159,12 +161,14 @@ inline std::string toString(const Configuration& config) {
   << config.partition.global_search_iterations << std::endl;
   oss << std::setw(35) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold
   << std::endl;
+  oss << std::setw(35) << "  initially remove parallel HEs: " << std::boolalpha
+  << config.partition.initial_parallel_he_removal << std::endl;
   oss << "Coarsening Parameters:" << std::endl;
   oss << std::setw(35) << "  scheme: " << config.coarsening.scheme << std::endl;
   oss << std::setw(35) << "  max-allowed-weight-multiplier: "
-      << config.coarsening.max_allowed_weight_multiplier << std::endl;
+  << config.coarsening.max_allowed_weight_multiplier << std::endl;
   oss << std::setw(35) << "  contraction-limit-multiplier: "
-      << config.coarsening.contraction_limit_multiplier << std::endl;
+  << config.coarsening.contraction_limit_multiplier << std::endl;
   oss << std::setw(35) << "  hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
   oss << std::setw(35) << "  max. allowed hypernode weight: " << config.coarsening.max_allowed_node_weight
