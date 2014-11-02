@@ -506,6 +506,24 @@ int main(int argc, char* argv[]) {
     );
 
 
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_score_no_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
 
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_label_samples_default_score_gain",

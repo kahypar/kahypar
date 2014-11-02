@@ -172,12 +172,14 @@ namespace partition
         HyperedgeWeight internal_weight = 0;
 
 
+        //size_t connectivity_increase = 0;
         for (const auto & he : hg_.incidentEdges(hn))
         {
           ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
           if (hg_.connectivity(he) == 1)
           {
             internal_weight += hg_.edgeWeight(he);
+            //++connectivity_increase;
           } else {
             const HypernodeID pins_in_source_part = hg_.pinCountInPart(he, source_part);
             for (const auto & con : hg_.connectivitySet(he))
@@ -201,19 +203,22 @@ namespace partition
 
         tmp_target_parts_[source_part] = Hypergraph::kInvalidPartition;
         tmp_gains_[source_part] = 0;
+        tmp_connectivity_decrease_[source_part] = 0;
 
         PartitionID max_gain_part = source_part;
         Gain max_gain = 0;
-
         PartitionID max_connectivity_decrease = 0;
 
         for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
         {
+          assert(tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition ||
+                 tmp_target_parts_[target_part] == target_part);
 
           if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
 
           const Gain target_part_gain = tmp_gains_[target_part] - internal_weight;
           const PartitionID target_part_connectivity_decrease = tmp_connectivity_decrease_[target_part];
+            //tmp_connectivity_decrease_[target_part] - connectivity_increase;
           const HypernodeWeight node_weight = hg_.nodeWeight(hn);
           const HypernodeWeight source_part_weight = hg_.partWeight(source_part);
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
@@ -235,6 +240,7 @@ namespace partition
             max_gain = target_part_gain;
             max_gain_part = target_part;
             max_connectivity_decrease = target_part_connectivity_decrease;
+            //std::cout << "con dec: " << max_connectivity_decrease << std::endl;
             ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
                 "Hn can't be moved to invalid partition");
           }
@@ -243,6 +249,7 @@ namespace partition
           tmp_target_parts_[target_part] = Hypergraph::kInvalidPartition;
         }
 
+        //std::cout << "source part: " << source_part << " best part: " << max_gain_part << std::endl;
         ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
 
         return GainPartitionPair(max_gain, max_gain_part);
@@ -262,10 +269,11 @@ namespace partition
           return false;
         }
 
-        if (hg_.partSize(from_part) == 1)
-        {
-          return false;
-        }
+        //if (hg_.partSize(from_part) == 1)
+        //{
+          //std::cout << "PART SIZE 0!!! for " <<from_part << std::endl;
+          //return false;
+        //}
 
         hg_.changeNodePart(hn, from_part, to_part);
         return true;
