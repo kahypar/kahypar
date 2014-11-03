@@ -279,8 +279,11 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
 
+  std::uniform_int_distribution<int> int_dist;
+  std::mt19937 generator(_config.partition.seed);
+
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
-    int seed = Randomize::newRandomSeed();
+    int seed = int_dist(generator);
     std::string hmetis_call("/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
                             + _config.partition.coarse_graph_filename
                             + " " + std::to_string(_config.partition.k)
