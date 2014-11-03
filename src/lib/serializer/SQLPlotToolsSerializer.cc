@@ -14,6 +14,7 @@ namespace ip = boost::interprocess;
 
 namespace serializer {
 void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
+                                       const Partitioner& partitioner,
                                        const ICoarsener& coarsener, const IRefiner& refiner,
                                        const std::chrono::duration<double>& elapsed_seconds,
                                        const std::array<std::chrono::duration<double>, 7>& timings,
@@ -44,7 +45,8 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
     << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
     << " coarseningContractionLimit=" << config.coarsening.contraction_limit
-    << coarsener.stats().toString();
+    << coarsener.stats().toString()
+    << partitioner.stats().toString();
     if (config.two_way_fm.active) {
       out_stream << " twowayFMactive=" << config.two_way_fm.active
       << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions

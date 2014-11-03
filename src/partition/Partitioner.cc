@@ -299,6 +299,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
     DBG(dbg_partition_initial_partitioning, "attempt " << attempt << " seed("
         << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning));
+    _stats.add("initialPartitioningAttempt_" + std::to_string(attempt) + "_", 0, current_cut);
+
     if (current_cut < best_cut) {
       DBG(dbg_partition_initial_partitioning, "Attempt " << attempt
           << " improved initial cut from " << best_cut << " to " << current_cut);
