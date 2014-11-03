@@ -42,15 +42,13 @@ namespace partition
 
 
   class BestChoiceCoarsener: public ICoarsener,
-                              public CoarsenerBase<BestChoiceCoarsener,
-                                           BestChoiceCoarseningMemento>
+                              public CoarsenerBase<BestChoiceCoarseningMemento>
   {
     private:
       using ContractionMemento = typename Hypergraph::ContractionMemento;
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
-      using Base = CoarsenerBase<BestChoiceCoarsener,
-                                 BestChoiceCoarseningMemento>;
+      using Base = CoarsenerBase<BestChoiceCoarseningMemento>;
 
       std::unordered_map<HypernodeID, double> score_;
 
@@ -210,8 +208,8 @@ namespace partition
 
 
         while (!_history.empty()) {
-          restoreParallelHyperedges(_history.top());
-          restoreSingleNodeHyperedges(_history.top());
+          restoreParallelHyperedges();
+          restoreSingleNodeHyperedges();
 
           _hg.uncontract(_history.top().contraction_memento);
           refinement_nodes[0] = _history.top().contraction_memento.u;
@@ -241,12 +239,6 @@ namespace partition
       const Stats& statsImpl() const final
       {
         return _stats;
-      }
-
-      // mockup
-      void removeHyperedgeFromPQ(HyperedgeID he)
-      {
-        // do nothing
       }
 
       std::string policyStringImpl() const final {

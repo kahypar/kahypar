@@ -42,15 +42,13 @@ namespace partition
 
   template<typename Coarsener>
   class GenericCoarsenerCluster : public ICoarsener,
-                                public CoarsenerBase<GenericCoarsenerCluster<Coarsener>,
-                                GenericClusterCoarseningMemento>
+                                public CoarsenerBase<GenericClusterCoarseningMemento>
   {
     private:
       using ContractionMemento = typename Hypergraph::ContractionMemento;
       using HypernodeID = typename Hypergraph::HypernodeID;
       using HyperedgeID = typename Hypergraph::HyperedgeID;
-      using Base = CoarsenerBase<GenericCoarsenerCluster,
-                                 GenericClusterCoarseningMemento>;
+      using Base = CoarsenerBase<GenericClusterCoarseningMemento>;
 
     public:
       using Base::_hg;
@@ -128,8 +126,8 @@ namespace partition
         while (!_history.empty()) {
           num_refinement_nodes = 0;
 
-          restoreParallelHyperedges(_history.top());
-          restoreSingleNodeHyperedges(_history.top());
+          restoreParallelHyperedges();
+          restoreSingleNodeHyperedges();
           performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
 
           performLocalSearch(refiner, refinement_nodes, num_refinement_nodes, current_imbalance, current_cut);
@@ -183,12 +181,6 @@ namespace partition
       const Stats& statsImpl() const final
       {
         return _stats;
-      }
-
-      // mockup
-      void removeHyperedgeFromPQ(HyperedgeID he)
-      {
-        // do nothing
       }
 
       std::string policyStringImpl() const final {
