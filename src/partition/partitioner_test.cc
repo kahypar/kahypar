@@ -98,10 +98,10 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
-  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
-  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
-  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(2));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(3));
 }
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,

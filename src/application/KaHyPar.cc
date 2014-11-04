@@ -1130,14 +1130,14 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start + elapse_seconds_preprocess;
 
-  io::printPartitioningStatistics(*coarsener, *refiner);
-  io::printPartitioningResults(hypergraph_initial, elapsed_seconds, partitioner.timings());
-  io::writePartitionFile(hypergraph_initial, config.partition.graph_partition_filename);
+  io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
+  io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
+  io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  SQLPlotToolsSerializer::serialize(config, hypergraph_initial, *coarsener, *refiner, elapsed_seconds,
-                                    partitioner.timings(), result_file);
+  SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner, *coarsener, *refiner,
+                                    elapsed_seconds, partitioner.timings(), result_file);
   return 0;
 }

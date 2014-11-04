@@ -206,4 +206,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   ASSERT_THAT(refiner->computeMaxGain(2).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGain(2).second, Eq(0));
 }
+
+TEST_F(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation) {
+  refiner->computeMaxGain(0);
+  for (const PartitionID tmp_value : refiner->_tmp_connectivity_decrease) {
+    ASSERT_THAT(tmp_value, Eq(0));
+  }
+}
 } // namespace partition

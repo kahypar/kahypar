@@ -11,6 +11,7 @@
 #include <chrono>
 #include <limits>
 #include <memory>
+#include <random>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -19,7 +20,6 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "lib/io/PartitioningOutput.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/HypergraphPruner.h"
@@ -67,6 +67,10 @@ class Partitioner {
 
   const std::array<std::chrono::duration<double>, 7> & timings() const {
     return _timings;
+  }
+
+  const Stats & stats() const {
+    return _stats;
   }
 
   private:

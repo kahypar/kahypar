@@ -10,12 +10,14 @@
 #include "partition/Metrics.h"
 #include "lib/GitRevision.h"
 #include "partition/Metrics.h"
+#include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;
 using partition::IRefiner;
 using partition::ICoarsener;
+using partition::Partitioner;
 
 namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
@@ -57,11 +59,13 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "     | initial parallel HE restore time  = " << timings[6].count() << " s" << std::endl;
 }
 
-inline void printPartitioningStatistics(const ICoarsener& coarsener, const IRefiner& refiner) {
+inline void printPartitioningStatistics(const Partitioner& partitioner, const ICoarsener& coarsener,
+                                        const IRefiner& refiner) {
   std::cout << "*****************************Statistics******************************" << std::endl;
   std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
   std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
             << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
+  std::cout << partitioner.stats().toConsoleString();
   std::cout << coarsener.stats().toConsoleString();
   std::cout << refiner.stats().toConsoleString();
 }

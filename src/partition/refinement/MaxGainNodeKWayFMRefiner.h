@@ -200,12 +200,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       updateNeighbours(max_gain_node, from_part, to_part);
 
       if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
-        DBG(dbg_refinement_kway_fm_improvements_cut && cut < best_cut,
-            "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
             "MaxGainNodeKWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
         if (cut < best_cut) {
+          DBG(dbg_refinement_kway_fm_improvements_cut,
+            "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
           StoppingPolicy::resetStatistics();
         }
         best_cut = cut;
@@ -249,6 +249,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation);
 
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
@@ -403,7 +404,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
           << computeMaxGain(hn).first << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << computeMaxGain(hn).second);
-      GainPartitionPair pair = computeMaxGain(hn);
+      const GainPartitionPair pair = computeMaxGain(hn);
       _pq.reInsert(hn, pair.first, pair.second);
     }
   }
@@ -411,17 +412,26 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   GainPartitionPair computeMaxGain(HypernodeID hn) {
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
-             for (Gain gain : _tmp_gains) {
+             for (const Gain gain : _tmp_gains) {
                if (gain != 0) {
                  return false;
                }
              }
              return true;
-           } () == true, "_tmp_gains not initialized correctly");
+           } () == true, "incorrect _tmp_gains initialization");
+    ASSERT([&]() {
+             for (const PartitionID tmp_decrease : _tmp_connectivity_decrease) {
+               if (tmp_decrease != 0) {
+                 return false;
+               }
+             }
+             return true;
+           } () == true, "incorrect _tmp_connectivity_decrease initialization");
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
+    const HyperedgeID connectivity_increase = _hg.nodeDegree(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       if (_hg.connectivity(he) == 1) {
@@ -433,9 +443,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
             _tmp_gains[target.part] += _hg.edgeWeight(he);
           }
-          if (pins_in_source_part == 1) {
-            _tmp_connectivity_decrease[target.part] += 1;
-          }
+          _tmp_connectivity_decrease[target.part] += (pins_in_source_part == 1 ? 2 : 1);
         }
       }
     }
@@ -450,6 +458,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     // own partition does not count
     _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
     _tmp_gains[source_part] = 0;
+    _tmp_connectivity_decrease[source_part] = 0;
 
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = std::numeric_limits<Gain>::min();
@@ -457,7 +466,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
       if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
         const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-        const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part];
+        const PartitionID target_part_connectivity_decrease =
+          _tmp_connectivity_decrease[target_part] - connectivity_increase;
         const HypernodeWeight node_weight = _hg.nodeWeight(hn);
         const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
         const HypernodeWeight target_part_weight = _hg.partWeight(target_part);

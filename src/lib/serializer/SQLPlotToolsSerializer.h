@@ -12,19 +12,22 @@
 
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 
-using partition::IRefiner;
-using partition::ICoarsener;
 using defs::Hypergraph;
 using partition::Configuration;
+using partition::IRefiner;
+using partition::ICoarsener;
+using partition::Partitioner;
 
 namespace serializer {
 class SQLPlotToolsSerializer {
   public:
   static void serialize(const Configuration& config, const Hypergraph& hypergraph,
-                        const ICoarsener& UNUSED(coarsener), const IRefiner& refiner,
+                        const Partitioner& partitioner,
+                        const ICoarsener& coarsener, const IRefiner& refiner,
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::array<std::chrono::duration<double>, 7>& timings,
                         const std::string& filename);
