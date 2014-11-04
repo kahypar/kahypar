@@ -36,8 +36,8 @@ namespace partition
     LPRefinerBetterGain(Hypergraph& hg, const Configuration &configuration) :
       hg_(hg), config_(configuration),
       cur_queue_(new std::vector<HypernodeID>()),
-      contained_cur_queue_(new std::vector<bool>()),
       next_queue_(new std::vector<HypernodeID>()),
+      contained_cur_queue_(new std::vector<bool>()),
       contained_next_queue_(new std::vector<bool>()),
       tmp_gains_(configuration.partition.k, 0),
       tmp_connectivity_decrease_(configuration.partition.k, 0),
@@ -65,7 +65,7 @@ namespace partition
         contained_next_queue_->clear();
         contained_next_queue_->resize(hg_.initialNumNodes());
 
-        for (int i = 0; i < num_refinement_nodes; ++i)
+        for (size_t i = 0; i < num_refinement_nodes; ++i)
         {
           const auto& cur_node = refinement_nodes[i];
           if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
@@ -77,7 +77,7 @@ namespace partition
           }
         }
 
-        int i;
+        size_t i;
         for (i = 0; !cur_queue_->empty() && i < config_.lp.max_refinement_iterations; ++i)
         {
           Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
@@ -186,7 +186,6 @@ namespace partition
             {
               const auto& target_part = con.part;
               tmp_target_parts_[target_part] = target_part;
-              //++tmp_connectivity_decrease_[target_part];
 
               const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
               if (pins_in_source_part == 1 && pins_in_target_part == hg_.edgeSize(he) - 1)
@@ -195,6 +194,7 @@ namespace partition
               }
 
 
+              //++tmp_connectivity_decrease_[target_part];
               tmp_connectivity_decrease_[target_part] += pins_in_source_part == 1 ? 2 : 1;
               //if (pins_in_source_part == 1)
               //{
@@ -259,13 +259,10 @@ namespace partition
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
 
           if ((target_part_gain > max_gain ||
-                //(target_part_gain == max_gain && (
-                                                  //source_part_weight - node_weight >
-                                                  //target_part_weight + node_weight)) ||
                 (target_part_gain == max_gain &&
                  target_part_connectivity_decrease > max_connectivity_decrease) ||
+                (target_part_gain == max_gain && Randomize::flipCoin()) ||
                 (target_part_gain == max_gain &&
-                 source_part_weight >= config_.partition.max_part_weight &&
                  target_part_weight + node_weight < config_.partition.max_part_weight &&
                  target_part_weight + node_weight < hg_.partWeight(max_gain_part) + node_weight))
               &&

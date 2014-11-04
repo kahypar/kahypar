@@ -167,7 +167,7 @@ namespace partition
       HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
       {
         // the first node is representative
-        for (int i = 1; i< nodes.size(); i++)
+        for (size_t i = 1; i< nodes.size(); ++i)
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
 
