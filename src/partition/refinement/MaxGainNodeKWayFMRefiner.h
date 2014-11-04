@@ -431,6 +431,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
+    const HyperedgeID connectivity_increase = _hg.nodeDegree(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       if (_hg.connectivity(he) == 1) {
@@ -442,9 +443,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
             _tmp_gains[target.part] += _hg.edgeWeight(he);
           }
-          if (pins_in_source_part == 1) {
-            _tmp_connectivity_decrease[target.part] += 1;
-          }
+          _tmp_connectivity_decrease[target.part] += (pins_in_source_part == 1 ? 2 : 1);
         }
       }
     }
@@ -467,7 +466,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
       if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
         const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-        const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part];
+        const PartitionID target_part_connectivity_decrease =
+          _tmp_connectivity_decrease[target_part] - connectivity_increase;
         const HypernodeWeight node_weight = _hg.nodeWeight(hn);
         const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
         const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
