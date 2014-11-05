@@ -220,13 +220,16 @@ class TwoWayFMRefiner : public IRefiner,
         if (cut < best_cut) {
           DBG(dbg_refinement_2way_fm_improvements,
               "TwoWayFM improved cut from " << best_cut << " to " << cut);
+          best_cut = cut;
+          // Currently only a reduction in cut is considered an improvement!
+          // To also consider a zero-gain rebalancing move as an improvement we
+          // always have to reset the stats.
+          StoppingPolicy::resetStatistics();
         }
         DBG(dbg_refinement_2way_fm_improvements,
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
-        best_cut = cut;
         min_cut_index = num_moves;
-        StoppingPolicy::resetStatistics();
       }
       _performed_moves[num_moves] = max_gain_node;
       ++num_moves;

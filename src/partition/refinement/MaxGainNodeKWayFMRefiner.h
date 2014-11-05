@@ -206,9 +206,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         if (cut < best_cut) {
           DBG(dbg_refinement_kway_fm_improvements_cut,
             "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
+          best_cut = cut;
+          // Currently only a reduction in cut is considered an improvement!
+          // To also consider a zero-gain rebalancing move as an improvement we
+          // always have to reset the stats.
           StoppingPolicy::resetStatistics();
         }
-        best_cut = cut;
         min_cut_index = num_moves;
       }
       _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
