@@ -17,19 +17,28 @@ struct StoppingPolicy : PolicyBase {
 };
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(int min_cut_index, int current_index, const Configuration& config,
+  static bool searchShouldStop(int, int, const Configuration& config,
                                HyperedgeWeight, HyperedgeWeight) {
-    return current_index - min_cut_index > config.two_way_fm.max_number_of_fruitless_moves;
+    return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
   }
 
-  static void resetStatistics() { }
+  static void resetStatistics() {
+    _num_moves = 0;
+  }
 
   template <typename Gain>
-  static void updateStatistics(Gain) { }
+  static void updateStatistics(Gain) {
+    ++_num_moves;
+  }
 
   protected:
   ~NumberOfFruitlessMovesStopsSearch() { }
+
+  private:
+  static int _num_moves;
 };
+
+int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int, int, const Configuration& config,
