@@ -13,8 +13,6 @@
 #include <limits>
 #include <utility>
 #include <vector>
-#include <sparsehash/dense_hash_map>
-#include <sparsehash/dense_hash_set>
 
 #include "gtest/gtest_prod.h"
 #include "lib/core/IteratorPair.h"

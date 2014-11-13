@@ -10,8 +10,6 @@
 
 #include "exception.h"
 
-#include <sparsehash/dense_hash_map>
-
 #include <cstring>
 #include <limits>
 #include <map>
@@ -127,7 +125,8 @@ protected:
 	std::unordered_map< id_slot, size_t > node_positions;
 };
 
-//#ifdef USE_GOOGLE_DATASTRUCTURES
+#ifdef USE_GOOGLE_DATASTRUCTURES
+#include <sparsehash/dense_hash_map>
 template< typename id_slot >
 class DenseHashStorage{
 public:
@@ -150,7 +149,7 @@ DenseHashStorage( id_slot size ) {
 protected:
 	google::dense_hash_map< id_slot, size_t > node_positions;
 };
-//#endif
+#endif
 #pragma GCC diagnostic pop
 
 } // namespace external

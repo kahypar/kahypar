@@ -6,7 +6,6 @@
 #define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
-#include <sparsehash/dense_hash_set>
 
 #include <limits>
 #include <stack>

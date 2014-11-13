@@ -6,7 +6,6 @@
 #define SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
-#include <sparsehash/dense_hash_set>
 
 #include <limits>
 #include <stack>
@@ -31,7 +30,6 @@
 
 using datastructure::KWayPriorityQueue;
 
-using external::DenseHashStorage;
 using external::NullData;
 
 using defs::Hypergraph;
