@@ -217,8 +217,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ++num_moves;
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
-        << " local search movements (" << num_infeasible_deletes
-        << " moves marked infeasible): stopped because of "
+        << " local search movements ( min_cut_index=" << min_cut_index << ", "
+        << num_infeasible_deletes << " moves marked infeasible): stopped because of "
         << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, cut)
             == true ? "policy" : "empty queue"));
     DBG(dbg_refinement_kway_fm_min_cut_idx, "min_cut_index=" << min_cut_index);
