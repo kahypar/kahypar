@@ -263,7 +263,7 @@ class KWayFMRefiner : public IRefiner,
 
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-            < _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
+            <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
   }
 
   void rollback(int last_index, int min_cut_index) {
