@@ -59,7 +59,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
 
-  void coarsenImpl(int limit) final {
+  void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
 
     NullMap null_map;

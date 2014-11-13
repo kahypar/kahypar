@@ -7,9 +7,11 @@
 
 #include <string>
 
+#include "lib/definitions.h"
 #include "lib/macros.h"
 #include "lib/utils/Stats.h"
 
+using defs::HypernodeID;
 using utils::Stats;
 
 namespace partition {
@@ -17,7 +19,7 @@ class IRefiner;
 
 class ICoarsener {
   public:
-  void coarsen(int limit) {
+  void coarsen(HypernodeID limit) {
     coarsenImpl(limit);
   }
 
@@ -39,7 +41,7 @@ class ICoarsener {
   ICoarsener() { }
 
   private:
-  virtual void coarsenImpl(int limit) = 0;
+  virtual void coarsenImpl(HypernodeID limit) = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;

@@ -73,7 +73,7 @@ class HyperedgeCoarsener : public ICoarsener,
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
-  void coarsenImpl(int limit) final {
+  void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
     rateAllHyperedges();
 

@@ -54,7 +54,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
   ~FullHeavyEdgeCoarsener() { }
 
-  void coarsenImpl(int limit) final {
+  void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
 
     NullMap null_map;

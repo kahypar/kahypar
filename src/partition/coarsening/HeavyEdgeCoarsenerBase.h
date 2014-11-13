@@ -123,7 +123,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     Rating rating;
-    for (int i = 0; i < permutation.size(); ++i) {
+    for (size_t i = 0; i < permutation.size(); ++i) {
       rating = _rater.rate(permutation[i]);
       if (rating.valid) {
         _pq.insert(permutation[i], rating.value);

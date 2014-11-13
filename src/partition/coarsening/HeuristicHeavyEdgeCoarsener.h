@@ -54,7 +54,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
-  void coarsenImpl(int limit) final {
+  void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
     _sources.clear();
 
