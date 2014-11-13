@@ -369,8 +369,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         if (!_just_updated[pin]) {
           const GainPartitionPair pair = computeMaxGain(pin);
           DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
-              << " from gain " << _pq.key(pin) << " to " << pair.first << " (to_part="
-              << pair.second << ")");
+              << " from gain " << _pq.key(pin) << " to " << pair.first << " (from part="
+              << _pq.data(pin) << ", to_part="<< pair.second << ")");
           _pq.updateKey(pin, pair.first);
           PartitionID& target_part = _pq.data(pin);
           target_part = pair.second;
