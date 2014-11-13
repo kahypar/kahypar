@@ -11,6 +11,17 @@ ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
   INSTALL_COMMAND "")
 
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+
+site_name(HOSTNAME)
+if(${HOSTNAME} MATCHES "i10pc1.*")
+message(STATUS "hostname: ${HOSTNAME}")
+set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
+message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
+set(BOOST_ROOT "/software/boost_1_55_0")
+message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
+endif(${HOSTNAME} MATCHES "i10pc1.*")
+
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
@@ -54,21 +65,11 @@ else(KAHYPAR_VERSION_GIT_REFSPEC)
   message(FATAL_ERROR "No git refspec detected")
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
     message(STATUS "Debug Mode:")
 # Enable codestyle checks at compile time
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
-
-site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc1.*")
-message(STATUS "hostname: ${HOSTNAME}")
-set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
-message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
-endif(${HOSTNAME} MATCHES "i10pc1.*")
-
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++11 -Weffc++ -DNDEBUG")
