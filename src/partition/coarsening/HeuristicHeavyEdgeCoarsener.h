@@ -34,18 +34,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
   public:
-  using Base::_pq;
-  using Base::_hg;
-  using Base::_rater;
-  using Base::_history;
-  using Base::_stats;
-  using Base::_hypergraph_pruner;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
-
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()),
@@ -53,6 +41,15 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     _just_updated(_hg.initialNumNodes()) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }
+
+  private:
+  FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
+
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
 
   void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
@@ -106,7 +103,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  private:
   void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target) {
     auto range = _sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
@@ -175,6 +171,12 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     _sources.insert({ rating.target, hn });
   }
 
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::_history;
+  using Base::_stats;
+  using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
   boost::dynamic_bitset<uint64_t> _just_updated;

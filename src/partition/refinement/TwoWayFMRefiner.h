@@ -101,7 +101,30 @@ class TwoWayFMRefiner : public IRefiner,
     return _is_initialized;
   }
 
-#ifdef USE_BUCKET_PQ
+  private:
+  FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
+  FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
+  FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
+  FRIEND_TEST(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement);
+  FRIEND_TEST(ATwoWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions);
+  FRIEND_TEST(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements);
+  FRIEND_TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2);
+  FRIEND_TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2);
+  // TODO(schlag): find better names for testcases
+  FRIEND_TEST(AGainUpdateMethod, HandlesCase0To1);
+  FRIEND_TEST(AGainUpdateMethod, HandlesCase1To0);
+  FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
+  FRIEND_TEST(AGainUpdateMethod, HandlesCase1To2);
+  FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
+  FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
+  FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
+  FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
+  FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
+  FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
+  FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
+
+  #ifdef USE_BUCKET_PQ
   void initializeImpl(HyperedgeWeight max_gain) final {
     delete _pq[0];
     delete _pq[1];
@@ -315,28 +338,6 @@ class TwoWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
-  FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
-  FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
-  FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
-  FRIEND_TEST(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement);
-  FRIEND_TEST(ATwoWayFMRefiner, ActivatesBorderNodes);
-  FRIEND_TEST(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions);
-  FRIEND_TEST(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements);
-  FRIEND_TEST(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSize2);
-  FRIEND_TEST(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSize2);
-  // TODO(schlag): find better names for testcases
-  FRIEND_TEST(AGainUpdateMethod, HandlesCase0To1);
-  FRIEND_TEST(AGainUpdateMethod, HandlesCase1To0);
-  FRIEND_TEST(AGainUpdateMethod, HandlesCase2To1);
-  FRIEND_TEST(AGainUpdateMethod, HandlesCase1To2);
-  FRIEND_TEST(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins);
-  FRIEND_TEST(AGainUpdateMethod, ActivatesUnmarkedNeighbors);
-  FRIEND_TEST(AGainUpdateMethod, RemovesNonBorderNodesFromPQ);
-  FRIEND_TEST(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack);
-  FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
-  FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
-  FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
 
   bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");

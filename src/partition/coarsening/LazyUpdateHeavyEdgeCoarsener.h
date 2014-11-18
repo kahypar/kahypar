@@ -37,17 +37,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   };
 
   public:
-  using Base::_pq;
-  using Base::_hg;
-  using Base::_rater;
-  using Base::_history;
-  using Base::_stats;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
-
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _outdated_rating(hypergraph.initialNumNodes(), false),
@@ -58,6 +47,12 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
+
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
 
   void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
@@ -138,6 +133,11 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::_history;
+  using Base::_stats;
   std::vector<bool> _outdated_rating;
   std::vector<HypernodeID> _target;
   DISALLOW_COPY_AND_ASSIGN(LazyUpdateHeavyEdgeCoarsener);

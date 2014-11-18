@@ -91,6 +91,17 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _locked_hes.resize(_hg.initialNumEdges(), -1);
   }
 
+  private:
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefinerDeathTest,
+              DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation);
+
   void initializeImpl() final { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
@@ -242,17 +253,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefinerDeathTest,
-              DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation);
-
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
             <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
@@ -370,7 +370,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           const GainPartitionPair pair = computeMaxGain(pin);
           DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
               << " from gain " << _pq.key(pin) << " to " << pair.first << " (from part="
-              << _pq.data(pin) << ", to_part="<< pair.second << ")");
+              << _pq.data(pin) << ", to_part=" << pair.second << ")");
           _pq.updateKey(pin, pair.first);
           PartitionID& target_part = _pq.data(pin);
           target_part = pair.second;

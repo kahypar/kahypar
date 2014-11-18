@@ -55,11 +55,20 @@ class HyperedgeCoarsener : public ICoarsener,
   typedef CoarsenerBase<HyperedgeCoarseningMemento> Base;
 
   public:
-  using Base::_hg;
-  using Base::_config;
-  using Base::_history;
-  using Base::_stats;
-  using Base::_hypergraph_pruner;
+  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
+    Base(hypergraph, config),
+    _pq(_hg.initialNumEdges()),
+    _contraction_mementos() { }
+
+  private:
+  FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
+  FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
+  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
+  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
+  FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
+  FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
+  FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
+
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
   using Base::restoreParallelHyperedges;
@@ -67,11 +76,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::performLocalSearch;
   using Base::initializeRefiner;
   using Base::gatherCoarseningStats;
-
-  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
-    Base(hypergraph, config),
-    _pq(_hg.initialNumEdges()),
-    _contraction_mementos() { }
 
   void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
@@ -151,15 +155,6 @@ class HyperedgeCoarsener : public ICoarsener,
   std::string policyStringImpl() const final {
     return std::string(" ratingFunction=" + templateToString<RatingPolicy>());
   }
-
-  private:
-  FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
-  FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
-  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
-  FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ);
-  FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
-  FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
-  FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
 
   void deleteRemovedSingleNodeHyperedgesFromPQ() {
     const auto& removed_single_node_hyperedges = _hypergraph_pruner.removedSingleNodeHyperedges();
@@ -260,6 +255,11 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
+  using Base::_hg;
+  using Base::_config;
+  using Base::_history;
+  using Base::_stats;
+  using Base::_hypergraph_pruner;
   PriorityQueue<BinaryHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeCoarsener);

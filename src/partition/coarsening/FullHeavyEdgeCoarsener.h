@@ -36,23 +36,20 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   };
 
   public:
-  using Base::_pq;
-  using Base::_hg;
-  using Base::_rater;
-  using Base::_history;
-  using Base::_stats;
-  using Base::_hypergraph_pruner;
-  using Base::removeParallelHyperedges;
-  using Base::removeSingleNodeHyperedges;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::gatherCoarseningStats;
-
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()) { }
 
   ~FullHeavyEdgeCoarsener() { }
+
+  private:
+  FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
+
+  using Base::removeParallelHyperedges;
+  using Base::removeSingleNodeHyperedges;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::gatherCoarseningStats;
 
   void coarsenImpl(HypernodeID limit) final {
     _pq.clear();
@@ -108,15 +105,14 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  private:
+
   void reRateAffectedHypernodes(HypernodeID rep_node,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
-    Rating rating;
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
-          rating = _rater.rate(pin);
+          const Rating rating = _rater.rate(pin);
           rerated_hypernodes[pin] = 1;
           updatePQandContractionTarget(pin, rating, invalid_hypernodes);
         }
@@ -143,6 +139,12 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
+  using Base::_pq;
+  using Base::_hg;
+  using Base::_rater;
+  using Base::_history;
+  using Base::_stats;
+  using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
 
   private:

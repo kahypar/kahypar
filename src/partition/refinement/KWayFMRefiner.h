@@ -92,6 +92,15 @@ class KWayFMRefiner : public IRefiner,
     _locked_hes.resize(_hg.initialNumEdges(), -1);
   }
 
+  private:
+  FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
+  FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
+  FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
+  FRIEND_TEST(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
+  FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
+  FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
+
   void initializeImpl() final { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
@@ -251,15 +260,6 @@ class KWayFMRefiner : public IRefiner,
   const Stats & statsImpl() const {
     return _stats;
   }
-
-  private:
-  FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
-  FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
-  FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
-  FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
-  FRIEND_TEST(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
-  FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
-  FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
 
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
