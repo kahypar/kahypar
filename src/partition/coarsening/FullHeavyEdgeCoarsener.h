@@ -127,6 +127,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
+      DBG(false, "Updating prio of HN " << hn << ": " << _pq.key(hn) << " (target=" << _target[hn]
+          << ") --- >" << rating.value << "(target" << rating.target << ")");
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
     } else if (_pq.contains(hn)) {
