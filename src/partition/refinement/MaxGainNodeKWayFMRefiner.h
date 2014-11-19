@@ -339,11 +339,18 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                    if (_pq.contains(pin)) {
                      ASSERT(isBorderNode(pin), "BorderFail");
                      const GainPartitionPair pair = computeMaxGain(pin);
-                     valid = (_pq.key(pin) == pair.first);
+                     // Currently the target part might be different because pins that are only
+                     // contained in locked HEs (and therefore don't experience a gain update)
+                     // might have a target part, which is not the best regarding connectivity
+                     // decrease. Theses pins would have to be evaluated spearately in order to
+                     // choose the "best possible" target_part (i.e. with most decrease).
+                     valid = (_pq.key(pin) == pair.first /* && _pq.data(pin) == pair.second */);
                      if (!valid) {
-                       LOG("Incorrect maxGain for HN " << pin);
+                       LOG("Incorrect maxGain or target_part for HN " << pin);
                        LOG("expected key=" << pair.first);
                        LOG("actual key=" << _pq.key(pin));
+                       LOG("expected part=" << pair.second);
+                       LOG("actual part=" << _pq.data(pin));
                      }
                    } else {
                      valid = (_marked[pin] == true);
