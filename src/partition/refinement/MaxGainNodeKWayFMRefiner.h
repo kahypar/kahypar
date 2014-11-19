@@ -72,6 +72,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
   };
 
+  static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
+  static const PartitionID kFree = -1;
+
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
@@ -88,7 +91,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
     _infeasible_moves.reserve(_hg.initialNumNodes());
-    _locked_hes.resize(_hg.initialNumEdges(), -1);
+    _locked_hes.resize(_hg.initialNumEdges(), kFree);
   }
 
   private:
@@ -117,7 +120,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _pq.clear();
     _marked.reset();
     while (!_current_locked_hes.empty()) {
-      _locked_hes[_current_locked_hes.top()] = -1;
+      _locked_hes[_current_locked_hes.top()] = kFree;
       _current_locked_hes.pop();
     }
 
@@ -281,7 +284,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
-      if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
+      if (_locked_hes[he] != kLocked) {
         if (_locked_hes[he] == to_part) {
           // he is loose
           const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
@@ -295,7 +298,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             }
           }
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: free");
-        } else if (_locked_hes[he] == -1) {
+        } else if (_locked_hes[he] == kFree) {
           // he is free.
           // This means that we encounter the HE for the first time and therefore
           // have to call updatePin for all pins in order to activate new border nodes.
@@ -318,7 +321,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             }
           }
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
-          _locked_hes[he] = std::numeric_limits<PartitionID>::max();
+          _locked_hes[he] = kLocked;
         }
       }
       // he is locked
@@ -513,6 +516,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
+
+template <class T> constexpr PartitionID MaxGainNodeKWayFMRefiner<T>::kLocked;
+template <class T> const PartitionID MaxGainNodeKWayFMRefiner<T>::kFree;
+
 #pragma GCC diagnostic pop
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
