@@ -6,7 +6,6 @@
 #define SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
-#include <sparsehash/dense_hash_set>
 
 #include <limits>
 #include <stack>
@@ -31,7 +30,6 @@
 
 using datastructure::KWayPriorityQueue;
 
-using external::DenseHashStorage;
 using external::NullData;
 
 using defs::Hypergraph;
@@ -93,6 +91,15 @@ class KWayFMRefiner : public IRefiner,
     _infeasible_moves.reserve(_hg.initialNumNodes());
     _locked_hes.resize(_hg.initialNumEdges(), -1);
   }
+
+  private:
+  FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
+  FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
+  FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
+  FRIEND_TEST(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
+  FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
+  FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
 
   void initializeImpl() final { }
 
@@ -254,18 +261,9 @@ class KWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
-  FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
-  FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
-  FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
-  FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
-  FRIEND_TEST(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
-  FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
-  FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
-
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-            < _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
+            <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
   }
 
   void rollback(int last_index, int min_cut_index) {

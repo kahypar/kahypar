@@ -57,7 +57,7 @@ class KWayPriorityQueue {
   }
 
   bool empty() const {
-    for (PartitionID i = 0; i < _heaps.size(); ++i) {
+    for (size_t i = 0; i < _heaps.size(); ++i) {
       if (_heaps[i].size() != 0) {
         return false;
       }
@@ -102,7 +102,7 @@ class KWayPriorityQueue {
   void deleteMax() {
     PartitionID max_part = -1;
     KeyType max_key = MetaKey::min();
-    for (PartitionID i = 0; i < _buf.size(); ++i) {
+    for (size_t i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
         max_key = _buf[i].key;
@@ -125,7 +125,7 @@ class KWayPriorityQueue {
   IDType max() const {
     PartitionID max_part = -1;
     KeyType max_key = MetaKey::min();
-    for (PartitionID i = 0; i < _buf.size(); ++i) {
+    for (size_t i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
         max_key = _buf[i].key;
@@ -138,7 +138,7 @@ class KWayPriorityQueue {
   KeyType maxKey() const {
     PartitionID max_part = -1;
     KeyType max_key = MetaKey::min();
-    for (PartitionID i = 0; i < _buf.size(); ++i) {
+    for (size_t i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
         max_key = _buf[i].key;
@@ -151,7 +151,7 @@ class KWayPriorityQueue {
   PartitionID maxPart() const {
     PartitionID max_part = -1;
     KeyType max_key = MetaKey::min();
-    for (PartitionID i = 0; i < _buf.size(); ++i) {
+    for (size_t i = 0; i < _buf.size(); ++i) {
       if (_buf[i].key > max_key) {
         max_part = i;
         max_key = _buf[i].key;
@@ -209,7 +209,7 @@ class KWayPriorityQueue {
   }
 
   void clear() {
-    for (PartitionID i = 0; i < _heaps.size(); ++i) {
+    for (size_t i = 0; i < _heaps.size(); ++i) {
       _heaps[i].clear();
       _buf[i].key = MetaKey::min();
       _buf[i].id = -1;

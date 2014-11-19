@@ -6,7 +6,6 @@
 #define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 
 #include <boost/dynamic_bitset.hpp>
-#include <sparsehash/dense_hash_set>
 
 #include <limits>
 #include <stack>
@@ -91,6 +90,17 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _infeasible_moves.reserve(_hg.initialNumNodes());
     _locked_hes.resize(_hg.initialNumEdges(), -1);
   }
+
+  private:
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefinerDeathTest,
+              DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation);
 
   void initializeImpl() final { }
 
@@ -205,7 +215,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             << "(max_gain=" << max_gain << ")");
         if (cut < best_cut) {
           DBG(dbg_refinement_kway_fm_improvements_cut,
-            "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
+              "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
           best_cut = cut;
           // Currently only a reduction in cut is considered an improvement!
           // To also consider a zero-gain rebalancing move as an improvement we
@@ -218,8 +228,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ++num_moves;
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
-        << " local search movements (" << num_infeasible_deletes
-        << " moves marked infeasible): stopped because of "
+        << " local search movements ( min_cut_index=" << min_cut_index << ", "
+        << num_infeasible_deletes << " moves marked infeasible): stopped because of "
         << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, cut)
             == true ? "policy" : "empty queue"));
     DBG(dbg_refinement_kway_fm_min_cut_idx, "min_cut_index=" << min_cut_index);
@@ -243,20 +253,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefinerDeathTest,
-              DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues);
-  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation);
-
   bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-            < _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
+            <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
   }
 
   void rollback(int last_index, int min_cut_index) {
@@ -370,8 +369,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         if (!_just_updated[pin]) {
           const GainPartitionPair pair = computeMaxGain(pin);
           DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
-              << " from gain " << _pq.key(pin) << " to " << pair.first << " (to_part="
-              << pair.second << ")");
+              << " from gain " << _pq.key(pin) << " to " << pair.first << " (from part="
+              << _pq.data(pin) << ", to_part=" << pair.second << ")");
           _pq.updateKey(pin, pair.first);
           PartitionID& target_part = _pq.data(pin);
           target_part = pair.second;

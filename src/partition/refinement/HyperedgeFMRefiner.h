@@ -323,7 +323,7 @@ class HyperedgeFMRefiner : public IRefiner,
     HypernodeID hn_to_move;
     while (last_index != min_cut_index) {
       DBG(dbg_refinement_he_fm_rollback, "last_index = " << last_index);
-      for (int i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
+      for (size_t i = _movement_indices[last_index]; i < _movement_indices[last_index + 1]; ++i) {
         hn_to_move = _performed_moves[i];
         DBG(dbg_refinement_he_fm_rollback, "Moving HN " << hn_to_move << " from "
             << hg.partID(hn_to_move) << " back to " << (hg.partID(hn_to_move) ^ 1));

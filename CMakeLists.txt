@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -16,6 +17,17 @@ ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
   INSTALL_COMMAND "")
 
+site_name(HOSTNAME)
+if(${HOSTNAME} MATCHES "i10pc1.*")
+message(STATUS "hostname: ${HOSTNAME}")
+set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
+message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
+set(ENV{LD_LIBRARY_PATH} "/software/gcc/4.9.1/lib64")
+message(STATUS "Setting LD_LIBRARY_PATH to $ENV{LD_LIBRARY_PATH}")
+set(BOOST_ROOT "/software/boost_1_55_0")
+message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
+endif(${HOSTNAME} MATCHES "i10pc1.*")
+
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
@@ -24,16 +36,6 @@ if(Boost_FOUND)
   message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
 endif()
-
-find_package(SQLite REQUIRED)
-if(SQLITE3_FOUND)
-    include_directories(${SQLITE3_INCLUDE_DIR})
-    message(STATUS "Sqlite3 Include: ${SQLITE3_INCLUDE_DIR}")
-    message(STATUS "Sqlite3 Libraries: ${SQLITE3_LIBRARIES}")
-    message(STATUS "Sqlite3 Library release: ${SQLITE3_LIBRARY_RELEASE}")
-    message(STATUS "Sqlite3 Library debug: ${SQLITE3_LIBRARY_DEBUG}")
-endif(SQLITE3_FOUND)
-
 
 find_package(SparseHash REQUIRED)
 if(SPARSEHASH_FOUND)
@@ -59,21 +61,11 @@ else(KAHYPAR_VERSION_GIT_REFSPEC)
   message(FATAL_ERROR "No git refspec detected")
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-
 if(CMAKE_BUILD_TYPE MATCHES DEBUG)
     message(STATUS "Debug Mode:")
 # Enable codestyle checks at compile time
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
-
-site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc1.*")
-message(STATUS "hostname: ${HOSTNAME}")
-set(CMAKE_CXX_COMPILER "/software/gcc/4.8.2/bin/g++")
-message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
-endif(${HOSTNAME} MATCHES "i10pc1.*")
-
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++11 -Weffc++ -DNDEBUG")
