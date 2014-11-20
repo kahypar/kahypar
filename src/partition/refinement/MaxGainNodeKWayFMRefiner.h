@@ -74,6 +74,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
 
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
@@ -175,8 +176,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
-      ASSERT(max_gain == computeMaxGain(max_gain_node).first,
-             "Inconsistent gain caculation");
+      ASSERT(max_gain == computeMaxGain(max_gain_node).first, "Inconsistent gain caculation");
       ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
       // to_part cannot be double-checked, since random tie-breaking might lead to a different to_part
 
@@ -473,7 +473,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_connectivity_decrease[source_part] = 0;
 
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
-    Gain max_gain = std::numeric_limits<Gain>::min();
+    Gain max_gain = kInvalidGain;
     PartitionID max_connectivity_decrease = 0;
     for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
       if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
@@ -503,8 +503,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
-    ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
-    ASSERT(max_gain != std::numeric_limits<Gain>::min(), "");
+
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition &&  max_gain != kInvalidGain,
+           "Invalid Gain calculation for HN " << hn << " gain="
+           << max_gain << " to_part=" << max_gain_part);
     return GainPartitionPair(max_gain, max_gain_part);
   }
 
@@ -524,8 +526,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
 
-template <class T> constexpr PartitionID MaxGainNodeKWayFMRefiner<T>::kLocked;
-template <class T> const PartitionID MaxGainNodeKWayFMRefiner<T>::kFree;
+template <class T>
+constexpr PartitionID MaxGainNodeKWayFMRefiner<T>::kLocked;
+template <class T>
+const PartitionID MaxGainNodeKWayFMRefiner<T>::kFree;
+template <class T>
+constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidGain;
 
 #pragma GCC diagnostic pop
 } // namespace partition
