@@ -284,48 +284,59 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
-      if (_locked_hes[he] != kLocked) {
-        if (_locked_hes[he] == to_part) {
-          // he is loose
-          const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-          const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
-          const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
-          if (moveAffectsGainUpdate(pin_count_source_part_before_move,
-                                    pin_count_dest_part_before_move,
-                                    pin_count_source_part_after_move)) {
-            for (const HypernodeID pin : _hg.pins(he)) {
-              updatePin(pin);
-            }
-          }
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: free");
-        } else if (_locked_hes[he] == kFree) {
-          // he is free.
-          // This means that we encounter the HE for the first time and therefore
-          // have to call updatePin for all pins in order to activate new border nodes.
-          _locked_hes[he] = to_part;
-          _current_locked_hes.push(he);
-          for (const HypernodeID pin : _hg.pins(he)) {
-            updatePin(pin);
-          }
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
-        } else {
-          // he is loose and becomes locked after the move
-          const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-          const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
-          const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
-          if (moveAffectsGainUpdate(pin_count_source_part_before_move,
-                                    pin_count_dest_part_before_move,
-                                    pin_count_source_part_after_move)) {
-            for (const HypernodeID pin : _hg.pins(he)) {
-              updatePin(pin);
-            }
-          }
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
-          _locked_hes[he] = kLocked;
-        }
+      // Temporarily disabled, because it currently affected quality: Since we break ties in favor
+      // of moves that decrease connectivity, locking- and affectedGainUpdate-optimizations prevent
+      // certain gain computations where the gain would not change, but where better decisions
+      // regarding connectivity decrease could be made. See [Notebook1, p. 115].
+      // To re-enable this without negative effects, we would need to need to re-evaluate pins of
+      // locked HEs regarding their connectivity decrease and would always have to look at all
+      // moves, not only those that affect gain update (or we would have to find out if we can
+      // somehow qualify "affects connectivity decrease")
+      // Increase in running time due to not doing these optimizations only is serious for MCNC
+      // instances!
+      // if (_locked_hes[he] != kLocked) {
+      //   if (_locked_hes[he] == to_part) {
+      //     // he is loose
+      //     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+      //     const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+      //     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+      //     if (moveAffectsGainUpdate(pin_count_source_part_before_move,
+      //                               pin_count_dest_part_before_move,
+      //                               pin_count_source_part_after_move)) {
+      //       for (const HypernodeID pin : _hg.pins(he)) {
+      //         updatePin(pin);
+      //       }
+      //     }
+      //     DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: free");
+      //   } else if (_locked_hes[he] == kFree) {
+      //     // he is free.
+      //     // This means that we encounter the HE for the first time and therefore
+      //     // have to call updatePin for all pins in order to activate new border nodes.
+      //     _locked_hes[he] = to_part;
+      //     _current_locked_hes.push(he);
+      for (const HypernodeID pin : _hg.pins(he)) {
+        updatePin(pin);
       }
-      // he is locked
+      //       DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
+      //     } else {
+      //       // he is loose and becomes locked after the move
+      //       const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+      //       const HypernodeID pin_count_dest_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+      //       const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+      //       if (moveAffectsGainUpdate(pin_count_source_part_before_move,
+      //                                 pin_count_dest_part_before_move,
+      //                                 pin_count_source_part_after_move)) {
+      //         for (const HypernodeID pin : _hg.pins(he)) {
+      //           updatePin(pin);
+      //         }
+      //       }
+      //       DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
+      //       _locked_hes[he] = kLocked;
+      //     }
+      //   }
+      //   // he is locked
     }
+
     ASSERT([&]() {
              for (const HyperedgeID he : _hg.incidentEdges(hn)) {
                bool valid = true;
