@@ -186,15 +186,15 @@ void setDefaults(Configuration& config) {
   config.partition.global_search_iterations = 10;
   config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
-  config.coarsening.contraction_limit_multiplier = 20;
-  config.coarsening.max_allowed_weight_multiplier = 1.5;
+  config.coarsening.contraction_limit_multiplier = 160;
+  config.coarsening.max_allowed_weight_multiplier = 3.5;
   config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
   config.two_way_fm.stopping_rule = "simple";
   config.two_way_fm.num_repetitions = -1;
-  config.two_way_fm.max_number_of_fruitless_moves = 100;
-  config.two_way_fm.alpha = 4;
+  config.two_way_fm.max_number_of_fruitless_moves = 150;
+  config.two_way_fm.alpha = 8;
   config.her_fm.stopping_rule = "simple";
   config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
