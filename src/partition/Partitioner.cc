@@ -268,8 +268,16 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   CoarsenedToHmetisMapping hg_to_hmetis;
   createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
-  io::writeHypergraphForhMetisPartitioning(hg, _config.partition.coarse_graph_filename,
-                                           hg_to_hmetis);
+  switch (_config.partition.initial_partitioner) {
+    case InitialPartitioner::hMetis:
+      io::writeHypergraphForhMetisPartitioning(hg, _config.partition.coarse_graph_filename,
+                                               hg_to_hmetis);
+      break;
+    case InitialPartitioner::PaToH:
+      io::writeHypergraphForPaToHPartitioning(hg, _config.partition.coarse_graph_filename,
+                                              hg_to_hmetis);
+      break;
+  }
 
   std::vector<PartitionID> partitioning;
   std::vector<PartitionID> best_partitioning;
@@ -284,14 +292,32 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
   for (int attempt = 0; attempt < _config.partition.initial_partitioning_attempts; ++attempt) {
     int seed = int_dist(generator);
-    std::string hmetis_call("/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
-                            + _config.partition.coarse_graph_filename
-                            + " " + std::to_string(_config.partition.k)
-                            + " -seed=" + std::to_string(seed)
-                            + " -ufactor=" + std::to_string(_config.partition.hmetis_ub_factor)
-                            + (_config.partition.verbose_output ? "" : " > /dev/null"));
-    LOG(hmetis_call);
-    std::system(hmetis_call.c_str());
+    std::string initial_partitioner_call;
+    switch (_config.partition.initial_partitioner) {
+      case InitialPartitioner::hMetis:
+        initial_partitioner_call = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
+                                   + _config.partition.coarse_graph_filename
+                                   + " " + std::to_string(_config.partition.k)
+                                   + " -seed=" + std::to_string(seed)
+                                   + " -ufactor=" + std::to_string(_config.partition.hmetis_ub_factor)
+                                   + (_config.partition.verbose_output ? "" : " > /dev/null");
+        break;
+      case InitialPartitioner::PaToH:
+        initial_partitioner_call = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh "
+                                   + _config.partition.coarse_graph_filename
+                                   + " " + std::to_string(_config.partition.k)
+                                   + " SD=" + std::to_string(seed)
+                                   + " FI=" + std::to_string(_config.partition.epsilon)
+                                   + " PQ=Q" // quality preset
+                                   + " UM=U" // net-cut metric
+                                   + " WI=1" // write partition info
+                                   + " BO=C" // balance on cell weights
+                                   + (_config.partition.verbose_output ? " OD=2" : " > /dev/null");
+        break;
+    }
+
+    LOG(initial_partitioner_call);
+    std::system(initial_partitioner_call.c_str());
 
     io::readPartitionFile(_config.partition.coarse_graph_partition_filename, partitioning);
     ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
