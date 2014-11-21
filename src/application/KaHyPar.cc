@@ -53,6 +53,7 @@ using partition::FullHeavyEdgeCoarsener;
 using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
+using partition::InitialPartitioner;
 using partition::Configuration;
 using partition::HyperedgeCoarsener;
 using partition::EdgeWeightDivMultPinWeight;
@@ -108,6 +109,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     }
     if (vm.count("nruns")) {
       config.partition.initial_partitioning_attempts = vm["nruns"].as<int>();
+    }
+    if (vm.count("part")) {
+      if (vm["part"].as<std::string>() == "hMetis") {
+        config.partition.initial_partitioner = InitialPartitioner::hMetis;
+      } else if (vm["part"].as<std::string>() == "PaToH") {
+        config.partition.initial_partitioner = InitialPartitioner::PaToH;
+      }
     }
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
@@ -291,6 +299,7 @@ int main(int argc, char* argv[]) {
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
+    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
