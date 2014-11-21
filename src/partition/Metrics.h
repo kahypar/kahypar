@@ -80,7 +80,7 @@ inline double imbalance(const Hypergraph& hypergraph) {
     max_weight = std::max(max_weight, hypergraph.partWeight(i));
   }
   return static_cast<double>(max_weight) /
-      ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
@@ -99,7 +99,7 @@ inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMapping&
     max_weight = std::max(max_weight, part_weights[i]);
   }
   return static_cast<double>(max_weight) /
-      ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
 }
 
 inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
