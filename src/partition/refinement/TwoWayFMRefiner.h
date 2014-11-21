@@ -378,8 +378,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   double calculateImbalance() const {
-    double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
-                       (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
+    double imbalance = (std::max(_hg.partWeight(0), _hg.partWeight(1)) /
+                        (ceil(_hg.partWeight(0) + _hg.partWeight(1) / 2.0))) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
@@ -468,6 +468,6 @@ class TwoWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
 #pragma GCC diagnostic pop
-} // namespace partition
+}                                   // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
