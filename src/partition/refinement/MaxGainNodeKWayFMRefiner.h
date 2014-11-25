@@ -43,7 +43,7 @@ template <class StoppingPolicy = Mandatory>
 class MaxGainNodeKWayFMRefiner : public IRefiner,
                                  private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
-  static const bool dbg_refinement_kway_fm_improvements_cut = true;
+  static const bool dbg_refinement_kway_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_fm_min_cut_idx = false;

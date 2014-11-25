@@ -45,8 +45,8 @@ namespace partition {
 template <class StoppingPolicy = Mandatory>
 class KWayFMRefiner : public IRefiner,
                       private FMRefinerBase {
-  static const bool dbg_refinement_kway_fm_activation = true;
-  static const bool dbg_refinement_kway_fm_improvements_cut = true;
+  static const bool dbg_refinement_kway_fm_activation = false;
+  static const bool dbg_refinement_kway_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_fm_min_cut_idx = false;
@@ -65,12 +65,6 @@ class KWayFMRefiner : public IRefiner,
     HypernodeID hn;
     PartitionID from_part;
     PartitionID to_part;
-  };
-
-  struct HashParts {
-    size_t operator () (const PartitionID part_id) const {
-      return part_id;
-    }
   };
 
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
