@@ -25,22 +25,9 @@ static const bool dbg_metrics_hyperedge_cut = false;
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID he : hg.edges()) {
-    IncidenceIterator begin = hg.pins(he).begin();
-    IncidenceIterator end = hg.pins(he).end();
-    if (begin == end) {
-      continue;
-    }
-    ASSERT(begin != end, "Accessing empty hyperedge");
-
-    PartitionID partition = hg.partID(*begin);
-    ++begin;
-
-    for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
-      if (partition != hg.partID(*pin_it)) {
-        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
-        cut += hg.edgeWeight(he);
-        break;
-      }
+    if (hg.connectivity(he) > 1) {
+      DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
+      cut += hg.edgeWeight(he);
     }
   }
   return cut;
