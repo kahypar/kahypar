@@ -65,6 +65,9 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
       out_stream << " part" << i << "=" << hypergraph.partWeight(i);
     }
     out_stream << " cut=" << metrics::hyperedgeCut(hypergraph)
+    << " soed=" << metrics::soed(hypergraph)
+    << " kMinusOne=" << metrics::kMinus1(hypergraph)
+    << " absorption=" << metrics::absorption(hypergraph)
     << " imbalance=" << metrics::imbalance(hypergraph)
     << " totalPartitionTime=" << elapsed_seconds.count()
     << " initialParallelHEremovalTime=" << timings[0].count()

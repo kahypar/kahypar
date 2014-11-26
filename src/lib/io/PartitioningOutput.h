@@ -44,7 +44,10 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const std::array<std::chrono::duration<double>,7>& timings) {
   std::cout << "***********************" << hypergraph.k()
             << "-way Partition Result************************" << std::endl;
-  std::cout << "Hyperedge Cut   = " << metrics::hyperedgeCut(hypergraph) << std::endl;
+  std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
+  std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
+  std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
+  std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;

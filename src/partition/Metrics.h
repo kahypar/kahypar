@@ -33,6 +33,37 @@ inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   return cut;
 }
 
+inline HyperedgeWeight soed(const Hypergraph& hg) {
+  HyperedgeWeight soed = 0;
+  for (const HyperedgeID he : hg.edges()) {
+    if (hg.connectivity(he) > 1) {
+      soed += hg.connectivity(he) * hg.edgeWeight(he);
+    }
+  }
+  return soed;
+}
+
+inline HyperedgeWeight kMinus1(const Hypergraph& hg) {
+  HyperedgeWeight k_minus_1 = 0;
+  for (const HyperedgeID he : hg.edges()) {
+    k_minus_1 += (hg.connectivity(he) - 1) * hg.edgeWeight(he);
+  }
+  return k_minus_1;
+}
+
+inline double absorption(const Hypergraph& hg) {
+  double absorption_val = 0.0;
+  for (PartitionID part = 0; part < hg.k(); ++part) {
+    for (const HyperedgeID he : hg.edges()) {
+      if (hg.pinCountInPart(he, part) > 0 && hg.edgeSize(he) > 1) {
+        absorption_val += static_cast<double>((hg.pinCountInPart(he,part) - 1)) / (hg.edgeSize(he) - 1)
+                          * hg.edgeWeight(he);
+      }
+    }
+  }
+  return absorption_val;
+}
+
 template <typename CoarsendToHmetisMapping, typename Partition>
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                                     hg_to_hmetis, const Partition& partitioning) {
