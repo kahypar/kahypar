@@ -483,6 +483,40 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_gains[source_part] = 0;
     _tmp_connectivity_decrease[source_part] = 0;
 
+    // validate the connectivity decrease
+    ASSERT([&] () {
+        for (PartitionID t_p = 0; t_p < _config.partition.k; ++t_p) {
+          if (_tmp_target_parts[t_p] == Hypergraph::kInvalidPartition){
+            continue;
+          }
+
+          // the move to partition t_p should decrease the connectivity by
+          // tmp_connectivity_decrease_ - connectivity_increase
+          PartitionID dec = 0;
+          for (const auto &he : _hg.incidentEdges(hn)) {
+            const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
+              bool partition_exists = false;
+              for (const auto & con : _hg.connectivitySet(he)) {
+                const auto& target_part = con.part;
+                if (_tmp_target_parts[t_p] == target_part) {
+                  partition_exists = true;
+                  if (pins_in_source_part == 1) {
+                    dec++;
+                  }
+                }
+              }
+              if (!partition_exists) {
+                dec--;
+              }
+          }
+          if (dec != _tmp_connectivity_decrease[_tmp_target_parts[t_p]] - connectivity_increase) {
+            return false;
+          }
+        }
+          return true;
+      }(), "connectivity decrease inconsistent!");
+
+
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = kInvalidGain;
     PartitionID max_connectivity_decrease = 0;
