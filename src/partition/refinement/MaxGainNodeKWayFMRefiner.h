@@ -529,12 +529,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
         const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
         if (target_part_gain > max_gain ||
-            (target_part_gain == max_gain &&
-             target_part_connectivity_decrease > max_connectivity_decrease) ||
-            (target_part_gain == max_gain &&
-             source_part_weight >= _config.partition.max_part_weight &&
+            ((target_part_gain == max_gain) &&
+             ((target_part_connectivity_decrease > max_connectivity_decrease) ||
+            (source_part_weight >= _config.partition.max_part_weight &&
              target_part_weight + node_weight < _config.partition.max_part_weight &&
-             target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)) {
+             target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
           max_gain = target_part_gain;
           max_gain_part = target_part;
           max_connectivity_decrease = target_part_connectivity_decrease;
