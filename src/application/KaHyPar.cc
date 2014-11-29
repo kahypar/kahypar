@@ -74,6 +74,7 @@ using partition::GenericCoarsenerCluster;
 using partition::BestChoiceCoarsener;
 using partition::Partitioner;
 using partition::RandomRatingWins;
+using partition::InitialPartitioner;
 using partition::Configuration;
 using partition::HyperedgeCoarsener;
 using partition::EdgeWeightDivMultPinWeight;
@@ -160,6 +161,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     }
     if (vm.count("nruns")) {
       config.partition.initial_partitioning_attempts = vm["nruns"].as<int>();
+    }
+    if (vm.count("part")) {
+      if (vm["part"].as<std::string>() == "hMetis") {
+        config.partition.initial_partitioner = InitialPartitioner::hMetis;
+      } else if (vm["part"].as<std::string>() == "PaToH") {
+        config.partition.initial_partitioner = InitialPartitioner::PaToH;
+      }
     }
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
@@ -256,15 +264,15 @@ void setDefaults(Configuration& config) {
   config.partition.global_search_iterations = 10;
   config.partition.hyperedge_size_threshold = -1;
   config.coarsening.scheme = "heavy_full";
-  config.coarsening.contraction_limit_multiplier = 20;
-  config.coarsening.max_allowed_weight_multiplier = 1.5;
+  config.coarsening.contraction_limit_multiplier = 160;
+  config.coarsening.max_allowed_weight_multiplier = 3.5;
   config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
   config.two_way_fm.stopping_rule = "simple";
   config.two_way_fm.num_repetitions = -1;
-  config.two_way_fm.max_number_of_fruitless_moves = 100;
-  config.two_way_fm.alpha = 4;
+  config.two_way_fm.max_number_of_fruitless_moves = 150;
+  config.two_way_fm.alpha = 8;
   config.her_fm.stopping_rule = "simple";
   config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
@@ -880,6 +888,7 @@ int main(int argc, char* argv[]) {
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
+    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge, two_phase_lp, two_phase_lp_cluster")

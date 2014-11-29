@@ -18,6 +18,11 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 
 namespace partition {
+enum class InitialPartitioner {
+  hMetis,
+  PaToH
+};
+
 struct Configuration {
   struct CoarseningParameters {
     CoarseningParameters() :
@@ -50,6 +55,7 @@ struct Configuration {
       hyperedge_size_threshold(-1),
       initial_parallel_he_removal(false),
       verbose_output(false),
+      initial_partitioner(InitialPartitioner::hMetis),
       graph_filename(),
       graph_partition_filename(),
       coarse_graph_filename(),
@@ -67,6 +73,7 @@ struct Configuration {
     HyperedgeID hyperedge_size_threshold;
     bool initial_parallel_he_removal;
     bool verbose_output;
+    InitialPartitioner initial_partitioner;
     std::string graph_filename;
     std::string graph_partition_filename;
     std::string coarse_graph_filename;
@@ -157,6 +164,9 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(35) << " hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
   oss << std::setw(35) << "  # initial partitionings: "
   << config.partition.initial_partitioning_attempts << std::endl;
+  oss << std::setw(35) << "  # initial partitioner: " <<
+  (config.partition.initial_partitioner == InitialPartitioner::hMetis ? "hMetis" : "PaToH")
+  << std::endl;
   oss << std::setw(35) << "  # global search iterations: "
   << config.partition.global_search_iterations << std::endl;
   oss << std::setw(35) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold

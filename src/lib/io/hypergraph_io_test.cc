@@ -140,4 +140,39 @@ TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
     ASSERT_THAT(read_partition[hn], Eq(_hypergraph.partID(hn)));
   }
 }
+
+TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
+  HyperedgeWeightVector he_weights = { 10, 15, 13, 18, 25, 20, 14, 27, 29 };
+  HypernodeWeightVector hn_weights = HypernodeWeightVector { 80, 85, 30, 55, 42, 39, 90, 102 };
+  Hypergraph hypergraph(8, 9, HyperedgeIndexVector { 0, 5, 9, 13, 15, 17, 20, 23, 26, /*sentinel*/ 28 },
+                        HyperedgeVector { 7, 5, 2, 4, 1, 3, 4, 0, 6, 3, 1, 4, 6, 3, 6, 2, 4, 7, 1, 3, 5, 4, 1, 4, 6, 1, 7, 3 },
+                        2, &he_weights, &hn_weights);
+
+  std::unordered_map<HypernodeID, HypernodeID> mapping;
+  for (int i = 0; i < 8; ++i) {
+    mapping[i] = i;
+  }
+  writeHypergraphForPaToHPartitioning(hypergraph, "serialized_hypergraph.patoh", mapping);
+
+  std::ifstream file;
+  std::vector<std::string> original_lines;
+  std::vector<std::string> serialized_lines;
+  std::string tmp;
+
+  file.open("serialized_hypergraph.patoh", std::ifstream::in);
+  while (getline(file, tmp)) {
+    serialized_lines.push_back(std::move(tmp));
+  }
+  file.close();
+
+  LOG(serialized_lines.size());
+
+  file.open("test_instances/example_hypergraph.patoh", std::ifstream::in);
+  while (getline(file, tmp)) {
+    original_lines.push_back(std::move(tmp));
+  }
+  file.close();
+
+  ASSERT_THAT(serialized_lines, ::testing::ContainerEq(original_lines));
+}
 } // namespace io

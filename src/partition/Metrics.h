@@ -25,25 +25,43 @@ static const bool dbg_metrics_hyperedge_cut = false;
 inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID he : hg.edges()) {
-    IncidenceIterator begin = hg.pins(he).begin();
-    IncidenceIterator end = hg.pins(he).end();
-    if (begin == end) {
-      continue;
-    }
-    ASSERT(begin != end, "Accessing empty hyperedge");
-
-    PartitionID partition = hg.partID(*begin);
-    ++begin;
-
-    for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
-      if (partition != hg.partID(*pin_it)) {
-        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
-        cut += hg.edgeWeight(he);
-        break;
-      }
+    if (hg.connectivity(he) > 1) {
+      DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
+      cut += hg.edgeWeight(he);
     }
   }
   return cut;
+}
+
+inline HyperedgeWeight soed(const Hypergraph& hg) {
+  HyperedgeWeight soed = 0;
+  for (const HyperedgeID he : hg.edges()) {
+    if (hg.connectivity(he) > 1) {
+      soed += hg.connectivity(he) * hg.edgeWeight(he);
+    }
+  }
+  return soed;
+}
+
+inline HyperedgeWeight kMinus1(const Hypergraph& hg) {
+  HyperedgeWeight k_minus_1 = 0;
+  for (const HyperedgeID he : hg.edges()) {
+    k_minus_1 += (hg.connectivity(he) - 1) * hg.edgeWeight(he);
+  }
+  return k_minus_1;
+}
+
+inline double absorption(const Hypergraph& hg) {
+  double absorption_val = 0.0;
+  for (PartitionID part = 0; part < hg.k(); ++part) {
+    for (const HyperedgeID he : hg.edges()) {
+      if (hg.pinCountInPart(he, part) > 0 && hg.edgeSize(he) > 1) {
+        absorption_val += static_cast<double>((hg.pinCountInPart(he,part) - 1)) / (hg.edgeSize(he) - 1)
+                          * hg.edgeWeight(he);
+      }
+    }
+  }
+  return absorption_val;
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
@@ -80,7 +98,7 @@ inline double imbalance(const Hypergraph& hypergraph) {
     max_weight = std::max(max_weight, hypergraph.partWeight(i));
   }
   return static_cast<double>(max_weight) /
-      ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
@@ -99,7 +117,7 @@ inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMapping&
     max_weight = std::max(max_weight, part_weights[i]);
   }
   return static_cast<double>(max_weight) /
-      ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
 }
 
 inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {

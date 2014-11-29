@@ -18,6 +18,7 @@
 
 using defs::Hypergraph;
 using partition::Configuration;
+using partition::InitialPartitioner;
 using partition::IRefiner;
 using partition::ICoarsener;
 using partition::Partitioner;

@@ -143,11 +143,20 @@ class CoarsenerBase {
     _stats.add("HeReductionFactor", _config.partition.current_v_cycle,
                static_cast<double>(_hg.initialNumEdges()) / _hg.numEdges());
 #ifdef GATHER_STATS
-    std::map<HypernodeID, HypernodeID> weight_map;
+    std::map<HypernodeWeight, HypernodeID> node_weight_map;
+    std::map<HyperedgeWeight, HypernodeID> edge_weight_map;
     for (HypernodeID hn : _hg.nodes()) {
-      weight_map[_hg.nodeWeight(hn)] += 1;
+      node_weight_map[_hg.nodeWeight(hn)] += 1;
     }
-    for (auto& entry : weight_map) {
+    LOG("Hypernode weights:");
+    for (auto& entry : node_weight_map) {
+      LOG("w=" << entry.first << ": " << entry.second);
+    }
+    for (HyperedgeID he : _hg.edges()) {
+      edge_weight_map[_hg.edgeWeight(he)] += 1;
+    }
+    LOG("Hyperedge weights:");
+    for (auto& entry : edge_weight_map) {
       LOG("w=" << entry.first << ": " << entry.second);
     }
 #endif

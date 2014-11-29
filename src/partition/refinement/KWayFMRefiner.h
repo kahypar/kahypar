@@ -45,8 +45,8 @@ namespace partition {
 template <class StoppingPolicy = Mandatory>
 class KWayFMRefiner : public IRefiner,
                       private FMRefinerBase {
-  static const bool dbg_refinement_kway_fm_activation = true;
-  static const bool dbg_refinement_kway_fm_improvements_cut = true;
+  static const bool dbg_refinement_kway_fm_activation = false;
+  static const bool dbg_refinement_kway_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_fm_min_cut_idx = false;
@@ -67,11 +67,8 @@ class KWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
-  struct HashParts {
-    size_t operator () (const PartitionID part_id) const {
-      return part_id;
-    }
-  };
+  static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
+  static const PartitionID kFree = -1;
 
   public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
@@ -89,7 +86,7 @@ class KWayFMRefiner : public IRefiner,
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
     _infeasible_moves.reserve(_hg.initialNumNodes());
-    _locked_hes.resize(_hg.initialNumEdges(), -1);
+    _locked_hes.resize(_hg.initialNumEdges(), kFree);
   }
 
   private:
@@ -115,7 +112,7 @@ class KWayFMRefiner : public IRefiner,
     _active.reset();
 
     while (!_current_locked_hes.empty()) {
-      _locked_hes[_current_locked_hes.top()] = -1;
+      _locked_hes[_current_locked_hes.top()] = kFree;
       _current_locked_hes.pop();
     }
 
@@ -355,12 +352,12 @@ class KWayFMRefiner : public IRefiner,
     _just_updated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
-      if (_locked_hes[he] != std::numeric_limits<PartitionID>::max()) {
+      if (_locked_hes[he] != kLocked) {
         if (_locked_hes[he] == to_part) {
           // he is loose
           performUpdate(hn, he, from_part, to_part);
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: loose");
-        } else if (_locked_hes[he] == -1) {
+        } else if (_locked_hes[he] == kFree) {
           // he is free.
           // This means that we encounter the HE for the first time and therefore
           // have to call updatePin for all pins in order to activate new border nodes.
@@ -412,7 +409,7 @@ class KWayFMRefiner : public IRefiner,
           // he is loose and becomes locked after the move
           performUpdate(hn,he, from_part, to_part);
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
-          _locked_hes[he] = std::numeric_limits<PartitionID>::max();
+          _locked_hes[he] = kLocked;
         }
       }
       // he is locked
@@ -554,6 +551,10 @@ class KWayFMRefiner : public IRefiner,
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
+
+template <class T> constexpr PartitionID KWayFMRefiner<T>::kLocked;
+template <class T> const PartitionID KWayFMRefiner<T>::kFree;
+
 #pragma GCC diagnostic pop
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_

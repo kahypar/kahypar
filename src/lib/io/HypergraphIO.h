@@ -177,6 +177,31 @@ inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hypergraph,
   out_stream.close();
 }
 
+inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergraph,
+                                                const std::string& filename,
+                                                const Mapping& mapping) {
+  ASSERT(!filename.empty(), "No filename for PaToH initial partitioning file specified");
+  std::ofstream out_stream(filename.c_str());
+  out_stream << 1;                     // 1-based indexing
+  out_stream << " " << hypergraph.numNodes() << " " << hypergraph.numEdges() << " " << hypergraph.numPins();
+  out_stream << " " << 3 << std::endl; // weighting scheme: both edge and node weights
+
+  for (const HyperedgeID he : hypergraph.edges()) {
+    out_stream << hypergraph.edgeWeight(he) << " ";
+    for (const HypernodeID pin : hypergraph.pins(he)) {
+      ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
+      out_stream << mapping.find(pin)->second + 1 << " ";
+    }
+    out_stream << std::endl;
+  }
+
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    out_stream << hypergraph.nodeWeight(hn) << " ";
+  }
+  out_stream << std::endl;
+  out_stream.close();
+}
+
 inline void readPartitionFile(const std::string& filename, std::vector<PartitionID>& partition) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   ASSERT(partition.empty(), "Partition vector is not empty");

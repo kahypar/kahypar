@@ -8,6 +8,9 @@
 *.py~
 *.cfg~
 build/*
+rel2/*
+release127/*
+release128/*
 release/*
 release152/*
 debug/*
