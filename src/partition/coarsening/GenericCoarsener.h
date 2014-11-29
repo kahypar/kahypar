@@ -82,7 +82,7 @@ namespace partition
       _clusterer = std::unique_ptr<lpa_hypergraph::IClusterer>(new Coarsener(hg, convert_config(config)));
     }
 
-      void coarsenImpl(int limit) final
+      void coarsenImpl(HypernodeID limit) final
       {
         // set the max_cluster in the config TODO redesign?
         lpa_hypergraph::BasePolicy::config_ = convert_config(_config);

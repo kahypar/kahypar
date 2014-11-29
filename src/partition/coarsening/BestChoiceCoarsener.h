@@ -127,7 +127,7 @@ namespace partition
     {
     }
 
-      void coarsenImpl(int limit) final
+      void coarsenImpl(HypernodeID limit) final
       {
         // set the max_cluster in the config TODO redesign?
         auto best_choice_ratio = static_cast<float>(limit) / _hg.numNodes(); // ugly

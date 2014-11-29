@@ -70,7 +70,7 @@ namespace partition
       _levels.push(0);
     }
 
-      void coarsenImpl(int limit) final
+      void coarsenImpl(HypernodeID limit) final
       {
         // set the max_cluster in the config TODO redesign?
         lpa_hypergraph::BasePolicy::config_ = convert_config(_config);

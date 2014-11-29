@@ -92,7 +92,7 @@ end = time.time()
 max_part_size = max(part_sizes)
 total_weight = sum(part_sizes)
 
-print(result_string + " type=hMetis-kWay" +  " measuredTotalPartitionTime=" + str(end-start) + " imbalance=" + str(1.0*k*max_part_size / total_weight - 1.0))
+print(result_string + " type=hMetis-kWay" + " measuredTotalPartitionTime=" + str(end-start) + " imbalance=" + str(max_part_size / math.ceil(total_weight/k) - 1.0))
 
 def log2(n):
     return math.log(n)/math.log(2)
@@ -166,4 +166,4 @@ end = time.time()
 max_part_size = max(part_sizes)
 total_weight = sum(part_sizes)
 
-print(result_string + " type=hMetis-RB" + " measuredTotalPartitionTime=" + str(end-start) + " imbalance=" + str(1.0*k*max_part_size / total_weight - 1.0))
+print(result_string + " type=hMetis-RB" + " measuredTotalPartitionTime=" + str(end-start) + " imbalance=" + str(max_part_size / math.ceil(total_weight/k) - 1.0))
