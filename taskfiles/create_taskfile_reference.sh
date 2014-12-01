@@ -46,7 +46,7 @@ do
     for run in $(seq 1 $reps)
     do
       seed=`od -A n -t d -N 2 /dev/urandom | awk '{print $1}'`
-      echo "./start_hmetis.py $file $ufactor $k $seed > output" >> $taskfilename
+      echo "./start_patoh.py $file $ufactor $k $seed > output" >> $taskfilename
     done
   done
 done
