@@ -66,12 +66,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
-  struct HashParts {
-    size_t operator () (const PartitionID part_id) const {
-      return part_id;
-    }
-  };
-
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
