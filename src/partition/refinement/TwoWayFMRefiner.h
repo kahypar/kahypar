@@ -379,7 +379,7 @@ class TwoWayFMRefiner : public IRefiner,
 
   double calculateImbalance() const {
     double imbalance = (std::max(_hg.partWeight(0), _hg.partWeight(1)) /
-                        (ceil(_hg.partWeight(0) + _hg.partWeight(1) / 2.0))) - 1.0;
+                        (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
