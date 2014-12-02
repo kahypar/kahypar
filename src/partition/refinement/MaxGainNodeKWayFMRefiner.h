@@ -478,37 +478,37 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_connectivity_decrease[source_part] = 0;
 
     // validate the connectivity decrease
-    ASSERT([&] () {
-        for (PartitionID t_p = 0; t_p < _config.partition.k; ++t_p) {
-          if (_tmp_target_parts[t_p] == Hypergraph::kInvalidPartition){
-            continue;
-          }
+    ASSERT([&]() {
+             for (PartitionID t_p = 0; t_p < _config.partition.k; ++t_p) {
+               if (_tmp_target_parts[t_p] == Hypergraph::kInvalidPartition) {
+                 continue;
+               }
 
-          // the move to partition t_p should decrease the connectivity by
-          // tmp_connectivity_decrease_ - connectivity_increase
-          PartitionID dec = 0;
-          for (const auto &he : _hg.incidentEdges(hn)) {
-            const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-              bool partition_exists = false;
-              for (const auto & con : _hg.connectivitySet(he)) {
-                const auto& target_part = con.part;
-                if (_tmp_target_parts[t_p] == target_part) {
-                  partition_exists = true;
-                  if (pins_in_source_part == 1) {
-                    dec++;
-                  }
-                }
-              }
-              if (!partition_exists) {
-                dec--;
-              }
-          }
-          if (dec != _tmp_connectivity_decrease[_tmp_target_parts[t_p]] - connectivity_increase) {
-            return false;
-          }
-        }
-          return true;
-      }(), "connectivity decrease inconsistent!");
+               // the move to partition t_p should decrease the connectivity by
+               // tmp_connectivity_decrease_ - connectivity_increase
+               PartitionID dec = 0;
+               for (const auto& he : _hg.incidentEdges(hn)) {
+                 const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
+                 bool partition_exists = false;
+                 for (const auto& con : _hg.connectivitySet(he)) {
+                   const auto& target_part = con.part;
+                   if (_tmp_target_parts[t_p] == target_part) {
+                     partition_exists = true;
+                     if (pins_in_source_part == 1) {
+                       dec++;
+                     }
+                   }
+                 }
+                 if (!partition_exists) {
+                   dec--;
+                 }
+               }
+               if (dec != _tmp_connectivity_decrease[_tmp_target_parts[t_p]] - connectivity_increase) {
+                 return false;
+               }
+             }
+             return true;
+           } (), "connectivity decrease inconsistent!");
 
 
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
@@ -525,9 +525,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         if (target_part_gain > max_gain ||
             ((target_part_gain == max_gain) &&
              ((target_part_connectivity_decrease > max_connectivity_decrease) ||
-            (source_part_weight >= _config.partition.max_part_weight &&
-             target_part_weight + node_weight < _config.partition.max_part_weight &&
-             target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
+              (source_part_weight >= _config.partition.max_part_weight &&
+               target_part_weight + node_weight < _config.partition.max_part_weight &&
+               target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
           max_gain = target_part_gain;
           max_gain_part = target_part;
           max_connectivity_decrease = target_part_connectivity_decrease;
@@ -542,7 +542,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " part=" << max_gain_part);
 
-    ASSERT(max_gain_part != Hypergraph::kInvalidPartition &&  max_gain != kInvalidGain,
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain != kInvalidGain,
            "Invalid Gain calculation for HN " << hn << " gain="
            << max_gain << " to_part=" << max_gain_part);
     return GainPartitionPair(max_gain, max_gain_part);
