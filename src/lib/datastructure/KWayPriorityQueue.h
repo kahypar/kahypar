@@ -37,7 +37,8 @@ class KWayPriorityQueue {
   public:
   KWayPriorityQueue(IDType size, PartitionID k) :
       _heaps(k, Heap(size)),
-      _buf(k){ }
+      _buf(k),
+      _num_entries(0){ }
 
   size_t size(PartitionID part) const {
     ASSERT(part < _heaps.size(), "Invalid Part");
@@ -57,12 +58,7 @@ class KWayPriorityQueue {
   }
 
   bool empty() const {
-    for (size_t i = 0; i < _heaps.size(); ++i) {
-      if (_heaps[i].size() != 0) {
-        return false;
-      }
-    }
-    return true;
+    return _num_entries == 0;
   }
 
   void insert(IDType id, PartitionID part, KeyType key) {
@@ -72,7 +68,7 @@ class KWayPriorityQueue {
       _buf[part].id = id;
     }
     _heaps[part].push(id, -key);
-        ASSERT([&](){
+    ASSERT([&](){
         ASSERT(_buf[part].key == -_heaps[part].getMinKey(),
                "buf.key=" << _buf[part].key << "!=" << -_heaps[part].getMinKey());
         ASSERT(_buf[part].id == _heaps[part].getMin(),
@@ -80,6 +76,7 @@ class KWayPriorityQueue {
         return true;
       }(),
       "Error");
+    ++_num_entries;
   }
 
   void reInsert(IDType id,PartitionID part, KeyType key) {
@@ -97,9 +94,10 @@ class KWayPriorityQueue {
         return true;
       }(),
       "Error");
+    ++_num_entries;
   }
 
-  void deleteMax() {
+  void deleteMax(IDType& id, KeyType& key, PartitionID& part) {
     PartitionID max_part = -1;
     KeyType max_key = MetaKey::min();
     for (size_t i = 0; i < _buf.size(); ++i) {
@@ -108,6 +106,89 @@ class KWayPriorityQueue {
         max_key = _buf[i].key;
       }
     }
+
+    ASSERT(max_key != MetaKey::min(), "No max element found");
+    ASSERT(_heaps[max_part].size() != 0, "Trying to delete from empty heap");
+    ASSERT(_buf[max_part].key == -_heaps[max_part].getMinKey(), "p=" << max_part << "Wrong Key:"
+           << _buf[max_part].key << "!=" << -_heaps[max_part].getMinKey());
+    ASSERT(_buf[max_part].id == _heaps[max_part].getMin(), "p=" << max_part << " Wrong ID:" <<
+           _buf[max_part].id << "!=" << _heaps[max_part].getMin());
+
+    id = _buf[max_part].id;
+    key = _buf[max_part].key;
+    part = max_part;
+
+    _heaps[max_part].deleteMin();
+    if (!_heaps[max_part].empty()) {
+      _buf[max_part].key = -_heaps[max_part].getMinKey();
+      _buf[max_part].id = _heaps[max_part].getMin();
+    } else {
+      _buf[max_part].key = MetaKey::min();
+      _buf[max_part].id = -1;
+    }
+
+    --_num_entries;
+  }
+
+  KeyType key(IDType id, PartitionID part) const {
+    return -_heaps[part].getKey(id);
+  }
+
+  bool contains(IDType id, PartitionID part) const {
+    return _heaps[part].contains(id);
+  }
+
+  void updateKey(IDType id,PartitionID part, KeyType key) {
+    DBG(false, "Update: (" << id << "," << part << "," << key << ")");
+    DBG(false, "Buffer state: key=" <<  _buf[part].key << ", id=" << _buf[part].id);
+    if (key > _buf[part].key) {
+      _buf[part].key = key;
+      _buf[part].id = id;
+      _heaps[part].updateKey(id, -key);
+    } else {
+      if (id == _buf[part].id) {
+        _heaps[part].updateKey(id, -key);
+        _buf[part].key = -_heaps[part].getMinKey();
+        _buf[part].id = _heaps[part].getMin();
+      } else {
+        _heaps[part].updateKey(id, -key);
+      }
+    }
+    ASSERT([&](){
+        ASSERT(_buf[part].key == -_heaps[part].getMinKey(),
+               "buf.key=" << _buf[part].key << "!=" << -_heaps[part].getMinKey());
+        ASSERT(_buf[part].id == _heaps[part].getMin(),
+               "buf.id=" << _buf[part].id << "!=" << _heaps[part].getMin());
+        return true;
+      }(),
+      "Error");
+  }
+
+  void remove(IDType id, PartitionID part) {
+    _heaps[part].deleteNode(id);
+    if (_buf[part].id == id) {
+      if (!_heaps[part].empty()) {
+        _buf[part].key = -_heaps[part].getMinKey();
+        _buf[part].id = _heaps[part].getMin();
+      } else {
+        _buf[part].key = MetaKey::min();
+        _buf[part].id = -1;
+      }
+    }
+    --_num_entries;
+  }
+
+  void clear() {
+    for (size_t i = 0; i < _heaps.size(); ++i) {
+      _heaps[i].clear();
+      _buf[i].key = MetaKey::min();
+      _buf[i].id = -1;
+    }
+    _num_entries = 0;
+  }
+
+  private:
+  void deleteMax(PartitionID max_part) {
     ASSERT(_buf[max_part].key == -_heaps[max_part].getMinKey(), "p=" << max_part << "Wrong Key:"
            << _buf[max_part].key << "!=" << -_heaps[max_part].getMinKey());
     ASSERT(_buf[max_part].id == _heaps[max_part].getMin(), "p=" << max_part << " Wrong ID:" <<
@@ -120,6 +201,7 @@ class KWayPriorityQueue {
       _buf[max_part].key = MetaKey::min();
       _buf[max_part].id = -1;
     }
+    --_num_entries;
   }
 
   IDType max() const {
@@ -161,64 +243,9 @@ class KWayPriorityQueue {
     return max_part;
   }
 
-  KeyType key(IDType id, PartitionID part) const {
-    return -_heaps[part].getKey(id);
-  }
-
-  bool contains(IDType id, PartitionID part) const {
-    return _heaps[part].contains(id);
-  }
-
-  void updateKey(IDType id,PartitionID part, KeyType key) {
-    DBG(false, "Update: (" << id << "," << part << "," << key << ")");
-    DBG(false, "Buffer state: key=" <<  _buf[part].key << ", id=" << _buf[part].id);
-    if (key > _buf[part].key) {
-      _buf[part].key = key;
-      _buf[part].id = id;
-      _heaps[part].updateKey(id, -key);
-    } else {
-      if (id == _buf[part].id) {
-        _heaps[part].updateKey(id, -key);
-        _buf[part].key = -_heaps[part].getMinKey();
-        _buf[part].id = _heaps[part].getMin();
-      } else {
-        _heaps[part].updateKey(id, -key);
-      }
-    }
-    ASSERT([&](){
-        ASSERT(_buf[part].key == -_heaps[part].getMinKey(),
-               "buf.key=" << _buf[part].key << "!=" << -_heaps[part].getMinKey());
-        ASSERT(_buf[part].id == _heaps[part].getMin(),
-               "buf.id=" << _buf[part].id << "!=" << _heaps[part].getMin());
-        return true;
-      }(),
-      "Error");
-  }
-
-  void remove(IDType id, PartitionID part) {
-    _heaps[part].deleteNode(id);
-    if (_buf[part].id == id) {
-      if (!_heaps[part].empty()) {
-      _buf[part].key = -_heaps[part].getMinKey();
-      _buf[part].id = _heaps[part].getMin();
-    } else {
-      _buf[part].key = MetaKey::min();
-      _buf[part].id = -1;
-    }
-    }
-  }
-
-  void clear() {
-    for (size_t i = 0; i < _heaps.size(); ++i) {
-      _heaps[i].clear();
-      _buf[i].key = MetaKey::min();
-      _buf[i].id = -1;
-    }
-  }
-
-  private:
   std::vector<Heap> _heaps;
   std::vector<BufferElement> _buf;
+  size_t _num_entries;
   DISALLOW_COPY_AND_ASSIGN(KWayPriorityQueue);
 };
 } // namespace datastructure

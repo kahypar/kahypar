@@ -138,10 +138,12 @@ class KWayFMRefiner : public IRefiner,
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
       int free_index = -1;
-      Gain max_gain = _pq.maxKey();
-      HypernodeID max_gain_node = _pq.max();
-      PartitionID to_part = _pq.maxPart();
+      Gain max_gain = 0;
+      HypernodeID max_gain_node = 0;
+      PartitionID to_part = 0;
+      _pq.deleteMax(max_gain_node, max_gain, to_part);
       PartitionID from_part = _hg.partID(max_gain_node);
+      bool no_moves_left = false;
 
       // Search for feasible move with maximum gain!
       while (!moveIsFeasible(max_gain_node, from_part, to_part)) {
@@ -152,22 +154,18 @@ class KWayFMRefiner : public IRefiner,
             << " sourcePart=" << from_part
             << " targetPart= " << to_part);
         _infeasible_moves[free_index] = {max_gain_node,to_part,max_gain};
-        _pq.deleteMax();
         ++num_infeasible_deletes;
         if (_pq.empty()) {
+          no_moves_left = true;
           break;
         }
-        max_gain = _pq.maxKey();
-        max_gain_node = _pq.max();
-        to_part = _pq.maxPart();
+        _pq.deleteMax(max_gain_node, max_gain, to_part);
         from_part = _hg.partID(max_gain_node);
       }
 
-      if (_pq.empty()) {
+      if (no_moves_left) {
         break;
       }
-
-      _pq.deleteMax();
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
