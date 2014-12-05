@@ -122,9 +122,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
-    Rating rating;
     for (size_t i = 0; i < permutation.size(); ++i) {
-      rating = _rater.rate(permutation[i]);
+      const Rating rating = _rater.rate(permutation[i]);
       if (rating.valid) {
         _pq.insert(permutation[i], rating.value);
         target[permutation[i]] = rating.target;

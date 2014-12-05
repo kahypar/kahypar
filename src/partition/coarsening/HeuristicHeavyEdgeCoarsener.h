@@ -115,14 +115,13 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
-    Rating rating;
     _just_updated.reset();
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
       for (const HypernodeID pin : _hg.pins(removed_parallel_hyperedges[i].representative_id)) {
         if (!_just_updated[pin]) {
-          rating = _rater.rate(pin);
+          const Rating rating = _rater.rate(pin);
           updatePQandMappings(pin, rating);
           _just_updated[pin] = true;
         }
@@ -131,7 +130,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node) {
-    Rating rating;
     auto source_range = _sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
@@ -139,9 +137,9 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         _sources.erase(source_it++);
       } else {
         DBG(false, "rerating HN " << source_it->second << " which had " << hn << " as target");
-        rating = _rater.rate(source_it->second);
+        const Rating rating = _rater.rate(source_it->second);
         // updatePQandMappings might invalidate source_it.
-        HypernodeID source_hn = source_it->second;
+        const HypernodeID source_hn = source_it->second;
         ++source_it;
         updatePQandMappings(source_hn, rating);
       }
