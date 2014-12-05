@@ -66,6 +66,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
+  struct InfeasibleMove {
+    HypernodeID hn;
+    PartitionID target_part;
+    Gain gain;
+  };
+
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
@@ -154,7 +160,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             << " with gain " << max_gain
             << " sourcePart=" << from_part
             << " targetPart= " << to_part);
-        _infeasible_moves[free_index] = std::make_tuple(max_gain_node, to_part, max_gain);
+        _infeasible_moves[free_index] = {max_gain_node, to_part, max_gain};
         _pq.deleteMax();
         ++num_infeasible_deletes;
         if (_pq.empty()) {
@@ -179,6 +185,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
              "HN " << max_gain_node << "is marked and not eligable to be moved");
       ASSERT(max_gain == computeMaxGain(max_gain_node).first, "Inconsistent gain caculation");
       ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+      ASSERT(moveIsFeasible(max_gain_node, from_part, to_part), "Trying to make infeasible move");
       // to_part cannot be double-checked, since random tie-breaking might lead to a different to_part
 
       ASSERT([&]() {
@@ -194,13 +201,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
       while (free_index >= 0) {
         DBG(dbg_refinement_kway_infeasible_moves,
-            "inserting infeasible move of HN " << std::get<0>(_infeasible_moves[free_index])
-            << " with gain " << std::get<2>(_infeasible_moves[free_index])
-            << " sourcePart=" << _hg.partID(std::get<0>(_infeasible_moves[free_index]))
-            << " targetPart= " << std::get<1>(_infeasible_moves[free_index]));
-        _pq.reInsert(std::get<0>(_infeasible_moves[free_index]),
-                     std::get<2>(_infeasible_moves[free_index]),
-                     std::get<1>(_infeasible_moves[free_index]));
+            "inserting infeasible move of HN " << _infeasible_moves[free_index].hn
+            << " with gain " << _infeasible_moves[free_index].gain
+            << " sourcePart=" << _hg.partID(_infeasible_moves[free_index].hn)
+            << " targetPart= " << _infeasible_moves[free_index].target_part);
+        _pq.reInsert(_infeasible_moves[free_index].hn,
+                     _infeasible_moves[free_index].gain,
+                     _infeasible_moves[free_index].target_part);
         --free_index;
       }
 
@@ -566,7 +573,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<RollbackInfo> _performed_moves;
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;
-  std::vector<std::tuple<HypernodeID, PartitionID, Gain> > _infeasible_moves;
+  std::vector<InfeasibleMove> _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
