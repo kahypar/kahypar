@@ -122,6 +122,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       activate(refinement_nodes[i]);
+      // if (_pq.contains(refinement_nodes[i])) {
+      //   DBG(true, " initial HN " << refinement_nodes[i]
+      //     << " : from_part=" << _hg.partID(refinement_nodes[i])
+      //     << " to_part=" << _pq.data(refinement_nodes[i])
+      //     << " gain=" << _pq.key(refinement_nodes[i])
+      //     << " feasible=" << moveIsFeasible(refinement_nodes[i], _hg.partID(refinement_nodes[i]), _pq.data(refinement_nodes[i])));
+      // }
     }
 
     const HyperedgeWeight initial_cut = best_cut;
