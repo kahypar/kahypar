@@ -468,7 +468,7 @@ class KWayFMRefiner : public IRefiner,
           bool valid = true;
           for (const HypernodeID pin : _hg.pins(he)) {
             if (!isBorderNode(pin)) {
-              for (PartitionID part = 0; part < _hg.k(); ++part) {
+              for (PartitionID part = 0; part < _config.partition.k; ++part) {
                 valid = (_pq.contains(pin, part) == false);
                 if (!valid) {
                   LOG("HN " << pin << " should not be contained in PQ");
