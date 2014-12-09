@@ -184,6 +184,17 @@ class KWayFMRefiner : public IRefiner,
              } ()
              , "max_gain move does not correspond to expected cut!");
 
+      // Staleness assertion: The move should be to a part that is in the connectivity superset of
+      // the max_gain_node.
+      ALWAYS_ASSERT([&](){
+          for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
+            if (_hg.pinCountInPart(he, to_part) > 0) {
+              return true;
+            }
+          }
+          return false;
+        }());
+
       moveHypernode(max_gain_node, from_part, to_part);
 
       // TODO(schlag): Reevaluate! Currently it seems that reinsertion decreases quality!
@@ -205,6 +216,7 @@ class KWayFMRefiner : public IRefiner,
         --free_index;
       }
 
+      // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
         if (_pq.contains(max_gain_node, part)) {
           _pq.remove(max_gain_node,part);
@@ -463,11 +475,15 @@ class KWayFMRefiner : public IRefiner,
       }
     }
 
-    ASSERT([&]() {
+    ALWAYS_ASSERT([&]() {
+        // This lambda checks verifies the internal state of KFM for all pins that could
+        // have been touched during updateNeighbours.
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
           bool valid = true;
           for (const HypernodeID pin : _hg.pins(he)) {
             if (!isBorderNode(pin)) {
+              // If the pin is an internal HN, there should not be any move of this HN
+              // in the PQ.
               for (PartitionID part = 0; part < _config.partition.k; ++part) {
                 valid = (_pq.contains(pin, part) == false);
                 if (!valid) {
@@ -476,8 +492,10 @@ class KWayFMRefiner : public IRefiner,
                 }
               }
             } else {
+              // Pin is a border HN
               for (Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
                 if (_pq.contains(pin,target.part)) {
+                  // if the move to target.part is in the PQ, it has to have the correct gain
                   ASSERT(_active[pin], "Pin is not active");
                   ASSERT(isBorderNode(pin), "BorderFail");
                   const Gain expected_gain = gainInducedByHypergraph(pin,target.part);
@@ -492,6 +510,8 @@ class KWayFMRefiner : public IRefiner,
                     return false;
                   }
                 } else {
+                  // if it is not in the PQ then either the HN has already been marked as moved
+                  // or we currently look at the source partition of pin.
                   valid = (_marked[pin] == true) || (target.part == _hg.partID(pin));
                   if (!valid) {
                     LOG("HN " << pin << " not in PQ but also not marked");
@@ -502,13 +522,44 @@ class KWayFMRefiner : public IRefiner,
                     LOG("_locked_hes[" << he << "]=" <<  _locked_hes[he]);
                     return false;
                   }
+                  if (_marked[pin]) {
+                    // If the pin is already marked as moved, then all moves concerning this pin
+                    // should have been removed from the PQ.
+                    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                      if (_pq.contains(pin, part)) {
+                        LOG("HN " << pin << " should not be contained in PQ, because it is already marked");
+                        return false;
+                      }
+                    }
+                  }
                 }
+              }
+            }
+            // Staleness check. If the PQ contains a move of pin to part, there
+            // has to be at least one HE that connects to that part. Otherwise the
+            // move is stale and should have been removed from the PQ.
+            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              bool connected = false;
+              for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
+                if(_hg.pinCountInPart(incident_he, part) > 0) {
+                  connected = true;
+                  break;
+                }
+              }
+              if (!connected && _pq.contains(pin,part)) {
+                LOG("PQ contains stale move of HN " << pin << ":");
+                LOG("gain=" << gainInducedByHypergraph(pin,part));
+                LOG("from_part=" << _hg.partID(pin));
+                LOG("to_part=" << part);
+                LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
+                LOG("current HN " << hn << " was moved from " << from_part << " to " << to_part);
+                return false;
               }
             }
           }
         }
         return true;
-      } (), "Gain update failed");
+      } ()/*), "Gain update failed"*/);
   }
 
     void updatePin(HypernodeID pin, PartitionID part, HyperedgeID he, Gain delta) {
@@ -516,6 +567,16 @@ class KWayFMRefiner : public IRefiner,
         ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
         if (isBorderNode(pin)) {
           if (!_just_activated[pin] && _just_inserted[pin] != part) {
+            // Assert that we only perform delta-gain updates on moves that are not stale!
+            ALWAYS_ASSERT([&]() {
+              for (const HyperedgeID he : _hg.incidentEdges(pin)){
+                if (_hg.pinCountInPart(he, part) > 0) {
+                  return true;
+                }
+              }
+              return false;
+            }());
+
             const Gain old_gain = _pq.key(pin,part);
             DBG(dbg_refinement_kway_fm_gain_update,
                 "updating gain of HN " << pin
