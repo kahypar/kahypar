@@ -186,14 +186,14 @@ class KWayFMRefiner : public IRefiner,
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
       // the max_gain_node.
-      ALWAYS_ASSERT([&](){
+      ASSERT([&](){
           for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
             if (_hg.pinCountInPart(he, to_part) > 0) {
               return true;
             }
           }
           return false;
-        }());
+        }(), "Move is stale" <<  max_gain_node);
 
       moveHypernode(max_gain_node, from_part, to_part);
 
@@ -209,9 +209,9 @@ class KWayFMRefiner : public IRefiner,
                 << " with gain " << _infeasible_moves[free_index].gain
                 << " sourcePart=" << _hg.partID(_infeasible_moves[free_index].hn)
                 << " targetPart= " << _infeasible_moves[free_index].target_part);
-          _pq.reInsert(_infeasible_moves[free_index].hn,
-                       _infeasible_moves[free_index].target_part,
-                       _infeasible_moves[free_index].gain);
+          _pq.insert(_infeasible_moves[free_index].hn,
+                     _infeasible_moves[free_index].target_part,
+                     _infeasible_moves[free_index].gain);
         }
         --free_index;
       }
@@ -276,12 +276,13 @@ class KWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-  bool moveIsFeasible(HypernodeID max_gain_node, PartitionID from_part, PartitionID to_part) {
+  bool moveIsFeasible(const HypernodeID max_gain_node, const PartitionID from_part,
+                      const PartitionID to_part) {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
             <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
   }
 
-  void rollback(int last_index, int min_cut_index) {
+  void rollback(int last_index, const int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -293,75 +294,11 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void performUpdate (HypernodeID moved_node, HyperedgeID he, PartitionID from_part, PartitionID to_part) {
-    const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-    const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
-    const HypernodeID he_size = _hg.edgeSize(he);
-    const PartitionID he_connectivity = _hg.connectivity(he);
-    const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-    if (he_connectivity == 2 && pin_count_target_part_after_move == 1
-        && pin_count_source_part_before_move > 1) {
-      DBG(dbg_refinement_kway_fm_gain_update,"he " << he << " is not cut before applying move");
-      for (const HypernodeID pin : _hg.pins(he)) {
-        updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part,he);
-      }
-    }
-    if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
-      DBG(dbg_refinement_kway_fm_gain_update,"he " << he
-          << " is cut before applying move and uncut after");
-      for (const HypernodeID pin : _hg.pins(he)) {
-        updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part,he);
-      }
-    }
-    if (pin_count_target_part_after_move == he_size - 1) {
-       DBG(dbg_refinement_kway_fm_gain_update,he
-        << ": Only one vertex remains outside of to_part after applying the move");
-      for (const HypernodeID pin : _hg.pins(he)) {
-        if(_hg.partID(pin) != to_part) {
-          // in this case we can actually break here
-          updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part,he);
-          break;
-        }
-      }
-    }
-    if (pin_count_source_part_before_move == he_size - 1) {
-      DBG(dbg_refinement_kway_fm_gain_update, he
-          << ": Only one vertex outside from_part before applying move");
-      for (const HypernodeID pin : _hg.pins(he)) {
-        if (_hg.partID(pin) != from_part && pin != moved_node) {
-          // in this case we can actually break here
-          updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, he);
-          break;
-        }
-      }
-    }
-    if (_hg.pinCountInPart(he, to_part) - 1 == 0 && he_connectivity >= 2) {
-      for (const HypernodeID pin : _hg.pins(he)) {
-        if (pin != moved_node) {
-          insertMovePossibleThroughConnectivityIncrease(he, pin, to_part);
-        }
-      }
-    }
-  }
+  void updatePinOfHyperedgeNotCutBeforeAppylingMove(const HypernodeID pin,
+                                                    const HyperedgeWeight he_weight,
+                                                    const PartitionID from_part,
+                                                    const HyperedgeID he) {
 
-  void insertMovePossibleThroughConnectivityIncrease(HyperedgeID he, HypernodeID pin,
-                                                     PartitionID to_part) {
-    if (!_marked[pin] && !_pq.contains(pin,to_part) && isBorderNode(pin)
-        && _just_inserted[pin] == Hypergraph::kInvalidPartition) {
-      ASSERT(_active[pin], "HN " << pin << " is not active");
-      ASSERT(!_just_activated[pin], "HN " << pin << " was just updated");
-
-      DBG(dbg_refinement_kway_fm_gain_update, he
-          << ": Move increased connectivity: new to_part=" << to_part
-          << " with gain= " << gainInducedByHypergraph(pin, to_part));
-      _pq.reInsert(pin, to_part, gainInducedByHypergraph(pin, to_part));
-      _just_inserted[pin] = to_part;
-      _current_just_inserted.push(pin);
-    }
-  }
-
-  void updatePinOfHyperedgeNotCutBeforeAppylingMove(HypernodeID pin, HyperedgeWeight he_weight,
-                                                    PartitionID from_part, HyperedgeID he) {
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       if (part != from_part) {
         updatePin(pin, part, he, he_weight);
@@ -369,8 +306,8 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void updatePinOfHyperedgeRemovedFromCut(HypernodeID pin, HyperedgeWeight he_weight,
-                                           PartitionID to_part, HyperedgeID he) {
+  void updatePinOfHyperedgeRemovedFromCut(const HypernodeID pin, const HyperedgeWeight he_weight,
+                                          const PartitionID to_part, const HyperedgeID he) {
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       if (part != to_part) {
         updatePin(pin, part,he, -he_weight);
@@ -378,107 +315,118 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void updatePinRemainingOutsideOfTargetPartAfterApplyingMove(HypernodeID pin,
-                                                              HyperedgeWeight he_weight,
-                                                              PartitionID to_part, HyperedgeID he) {
+  void updatePinRemainingOutsideOfTargetPartAfterApplyingMove(const HypernodeID pin,
+                                                              const HyperedgeWeight he_weight,
+                                                              const PartitionID to_part,
+                                                              const HyperedgeID he) {
     updatePin(pin, to_part, he, he_weight);
   }
 
-  void updatePinOutsideFromPartBeforeApplyingMove(HypernodeID pin, HyperedgeWeight he_weight,
-                                                  PartitionID from_part, HyperedgeID he) {
+  void updatePinOutsideFromPartBeforeApplyingMove(const HypernodeID pin,
+                                                  const HyperedgeWeight he_weight,
+                                                  const PartitionID from_part,
+                                                  const HyperedgeID he) {
     updatePin(pin, from_part, he, -he_weight);
   }
 
-  void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
+  void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
+    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+      if (_pq.contains(hn, part)) {
+        _pq.remove(hn, part);
+      }
+    }
+  }
+
+  bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
+    for (const HyperedgeID he : _hg.incidentEdges(pin)) {
+      if (_hg.pinCountInPart(he, part) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void performDeltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
+                               const PartitionID to_part, const HyperedgeID he,
+                               const HypernodeID he_size, const HyperedgeWeight he_weight,
+                               const PartitionID he_connectivity,
+                               const HypernodeID pin_count_source_part_before_move,
+                               const HypernodeID pin_count_target_part_after_move) {
+    if (he_connectivity == 2 && pin_count_target_part_after_move == 1
+        && pin_count_source_part_before_move > 1) {
+      DBG(dbg_refinement_kway_fm_gain_update,
+          "he " << he << " is not cut before applying move");
+      updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part, he);
+    }
+    if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
+      DBG(dbg_refinement_kway_fm_gain_update,"he " << he
+          << " is cut before applying move and uncut after");
+      updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part,he);
+    }
+    if (pin_count_target_part_after_move == he_size - 1) {
+      DBG(dbg_refinement_kway_fm_gain_update,he
+          << ": Only one vertex remains outside of to_part after applying the move");
+      if(_hg.partID(pin) != to_part) {
+        updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part,he);
+      }
+    }
+    if (pin_count_source_part_before_move == he_size - 1) {
+      DBG(dbg_refinement_kway_fm_gain_update, he
+          << ": Only one vertex outside from_part before applying move");
+      if (_hg.partID(pin) != from_part) {
+        updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, he);
+      }
+    }
+  }
+
+  void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
+                        const PartitionID to_part) {
     _just_activated.reset();
     while (!_current_just_inserted.empty()) {
       _just_inserted[_current_just_inserted.top()] = Hypergraph::kInvalidPartition;
       _current_just_inserted.pop();
     }
+    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+      const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
+      const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
+      const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+      const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
+      const PartitionID he_connectivity = _hg.connectivity(he);
+      const HypernodeID he_size = _hg.edgeSize(he);
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-       DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
-      if (_locked_hes[he] != kLocked) {
-        if (_locked_hes[he] == to_part) {
-          // he is loose
-          performUpdate(hn, he, from_part, to_part);
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: loose");
-        } else if (_locked_hes[he] == kFree) {
-          // he is free.
-          // This means that we encounter the HE for the first time and therefore
-          // have to call updatePin for all pins in order to activate new border nodes.
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (!_marked[pin]) {
-              if (!_active[pin]) {
-                // border node check is performed in activate
-                activate(pin);
-              } else {
-                const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-                const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
-                const HypernodeID he_size = _hg.edgeSize(he);
-                const PartitionID he_connectivity = _hg.connectivity(he);
-                const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-
-                if (he_connectivity == 2 && pin_count_target_part_after_move == 1
-                    && pin_count_source_part_before_move > 1) {
-                  DBG(dbg_refinement_kway_fm_gain_update,
-                      "he " << he << " is not cut before applying move");
-                  updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part, he);
-                }
-                if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
-                  DBG(dbg_refinement_kway_fm_gain_update,"he " << he
-                      << " is cut before applying move and uncut after");
-                  updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part,he);
-                }
-                if (pin_count_target_part_after_move == he_size - 1) {
-                  DBG(dbg_refinement_kway_fm_gain_update,he
-                      << ": Only one vertex remains outside of to_part after applying the move");
-                  if(_hg.partID(pin) != to_part) {
-                    updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part,he);
-                  }
-                }
-                if (pin_count_source_part_before_move == he_size - 1) {
-                  DBG(dbg_refinement_kway_fm_gain_update, he
-                      << ": Only one vertex outside from_part before applying move");
-                  if (_hg.partID(pin) != from_part && pin != hn) {
-                    updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, he);
-                  }
-                }
-                if (_hg.pinCountInPart(he, to_part) - 1 == 0 && he_connectivity >= 2 && pin != hn) {
-                  insertMovePossibleThroughConnectivityIncrease(he, pin, to_part);
-                }
+      for (const HypernodeID pin : _hg.pins(he)) {
+        if (pin != moved_hn && !_marked[pin]) {
+          if (!_active[pin]) {
+            activate(pin);
+          } else {
+            if (!isBorderNode(pin)) {
+              removeHypernodeMovementsFromPQ(pin);
+            } else {
+              if (move_decreased_connectivity && _pq.contains(pin, from_part)
+                  && !hypernodeIsConnectedToPart(pin, from_part)){
+                _pq.remove(pin, from_part);
               }
-            }
-          }
-          _locked_hes[he] = to_part;
-          _current_locked_hes.push(he);
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
-        } else {
-          // he is loose and becomes locked after the move
-          performUpdate(hn,he, from_part, to_part);
-          DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
-          _locked_hes[he] = kLocked;
-        }
-      } else {
-        DBG(dbg_refinement_kway_fm_gain_update, he << " is locked");
-        // he is locked
-        // In classic FM we would not do anything. However in n-level FM the move might have
-        // increased the connectivity of the HE and thus we have to check whether we have to insert
-        // new potential moves for its pins.
-        if (_hg.pinCountInPart(he, to_part) - 1 == 0 && _hg.connectivity(he) >= 2) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (pin != hn) {
-              insertMovePossibleThroughConnectivityIncrease(he, pin, to_part);
+              if (move_increased_connectivity  && !_pq.contains(pin, to_part)) {
+                ASSERT(he_connectivity >=2 , V(he_connectivity));
+                ASSERT(_just_inserted[pin] == Hypergraph::kInvalidPartition, V(_just_inserted[pin]));
+                _pq.insert(pin,to_part,gainInducedByHypergraph(pin, to_part));
+                _just_inserted[pin] = to_part;
+                _current_just_inserted.push(pin);
+              }
+              performDeltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
+                                      he_connectivity, pin_count_source_part_before_move,
+                                      pin_count_target_part_after_move);
             }
           }
         }
       }
     }
 
-    ALWAYS_ASSERT([&]() {
+    ASSERT([&]() {
         // This lambda checks verifies the internal state of KFM for all pins that could
         // have been touched during updateNeighbours.
-        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           bool valid = true;
           for (const HypernodeID pin : _hg.pins(he)) {
             if (!isBorderNode(pin)) {
@@ -548,57 +496,218 @@ class KWayFMRefiner : public IRefiner,
               }
               if (!connected && _pq.contains(pin,part)) {
                 LOG("PQ contains stale move of HN " << pin << ":");
-                LOG("gain=" << gainInducedByHypergraph(pin,part));
+                LOG("calculated gain=" << gainInducedByHypergraph(pin,part));
+                LOG("gain in PQ=" << _pq.key(pin,part));
                 LOG("from_part=" << _hg.partID(pin));
                 LOG("to_part=" << part);
                 LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
-                LOG("current HN " << hn << " was moved from " << from_part << " to " << to_part);
+                LOG("current HN " << moved_hn << " was moved from " << from_part << " to " << to_part);
                 return false;
               }
             }
           }
         }
         return true;
-      } ()/*), "Gain update failed"*/);
+        } (), V(moved_hn));
   }
 
-    void updatePin(HypernodeID pin, PartitionID part, HyperedgeID he, Gain delta) {
-      if (_pq.contains(pin,part)) {
-        ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
-        if (isBorderNode(pin)) {
-          if (!_just_activated[pin] && _just_inserted[pin] != part) {
-            // Assert that we only perform delta-gain updates on moves that are not stale!
-            ALWAYS_ASSERT([&]() {
-              for (const HyperedgeID he : _hg.incidentEdges(pin)){
-                if (_hg.pinCountInPart(he, part) > 0) {
-                  return true;
-                }
-              }
-              return false;
-            }());
+  // void updateNeighbours(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
+  //   _just_activated.reset();
+  //   while (!_current_just_inserted.empty()) {
+  //     _just_inserted[_current_just_inserted.top()] = Hypergraph::kInvalidPartition;
+  //     _current_just_inserted.pop();
+  //   }
 
-            const Gain old_gain = _pq.key(pin,part);
-            DBG(dbg_refinement_kway_fm_gain_update,
-                "updating gain of HN " << pin
-                << " from gain " << old_gain << " to " << old_gain + delta << " (to_part="
-                << part << ")");
-            _pq.updateKey(pin, part, old_gain + delta);
-          }
-        } else {
-          DBG(dbg_refinement_kway_fm_gain_update, "deleting pin " << pin << " from PQ ");
-          _pq.remove(pin, part);
-        }
-      } else if (!_active[pin]) {
-        ASSERT(!_marked[pin], "HN " << pin << " is already marked");
-        // border node check in activate
-        activate(pin);
-      } else if (!_just_activated[pin]) {
-        ASSERT(_active[pin], "Trying to insert move for inactive pin " << pin);
-        if (_hg.pinCountInPart(he, part) > 0){
-          insertMovePossibleThroughConnectivityIncrease(he, pin, part);
-        }
-      }
-    }
+  //   for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+  //      DBG(dbg_refinement_kaway_locked_hes, "Gain update for pins incident to HE " << he);
+  //     if (_locked_hes[he] != kLocked) {
+  //       if (_locked_hes[he] == to_part) {
+  //         // he is loose
+  //         performUpdate(hn, he, from_part, to_part);
+  //         DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: loose");
+  //       } else if (_locked_hes[he] == kFree) {
+  //         // he is free.
+  //         // This means that we encounter the HE for the first time and therefore
+  //         // have to call updatePin for all pins in order to activate new border nodes.
+  //         for (const HypernodeID pin : _hg.pins(he)) {
+  //           if (!_marked[pin]) {
+  //             if (!_active[pin]) {
+  //               // border node check is performed in activate
+  //               activate(pin);
+  //             } else {
+  //               const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+  //               const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
+  //               const HypernodeID he_size = _hg.edgeSize(he);
+  //               const PartitionID he_connectivity = _hg.connectivity(he);
+  //               const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+  //               if (he_connectivity == 2 && pin_count_target_part_after_move == 1
+  //                   && pin_count_source_part_before_move > 1) {
+  //                 DBG(dbg_refinement_kway_fm_gain_update,
+  //                     "he " << he << " is not cut before applying move");
+  //                 updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part, he);
+  //               }
+  //               if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
+  //                 DBG(dbg_refinement_kway_fm_gain_update,"he " << he
+  //                     << " is cut before applying move and uncut after");
+  //                 updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part,he);
+  //               }
+  //               if (pin_count_target_part_after_move == he_size - 1) {
+  //                 DBG(dbg_refinement_kway_fm_gain_update,he
+  //                     << ": Only one vertex remains outside of to_part after applying the move");
+  //                 if(_hg.partID(pin) != to_part) {
+  //                   updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part,he);
+  //                 }
+  //               }
+  //               if (pin_count_source_part_before_move == he_size - 1) {
+  //                 DBG(dbg_refinement_kway_fm_gain_update, he
+  //                     << ": Only one vertex outside from_part before applying move");
+  //                 if (_hg.partID(pin) != from_part && pin != hn) {
+  //                   updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, he);
+  //                 }
+  //               }
+  //               if (_hg.pinCountInPart(he, to_part) - 1 == 0 && he_connectivity >= 2 && pin != hn) {
+  //                 insertMovePossibleThroughConnectivityIncrease(he, pin, to_part);
+  //               }
+  //             }
+  //           }
+  //         }
+  //         _locked_hes[he] = to_part;
+  //         _current_locked_hes.push(he);
+  //         DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
+  //       } else {
+  //         // he is loose and becomes locked after the move
+  //         performUpdate(hn,he, from_part, to_part);
+  //         DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
+  //         _locked_hes[he] = kLocked;
+  //       }
+  //     } else {
+  //       DBG(dbg_refinement_kway_fm_gain_update, he << " is locked");
+  //       // he is locked
+  //       // In classic FM we would not do anything. However in n-level FM the move might have
+  //       // increased the connectivity of the HE and thus we have to check whether we have to insert
+  //       // new potential moves for its pins.
+  //       if (_hg.pinCountInPart(he, to_part) - 1 == 0 && _hg.connectivity(he) >= 2) {
+  //         for (const HypernodeID pin : _hg.pins(he)) {
+  //           if (pin != hn) {
+  //             insertMovePossibleThroughConnectivityIncrease(he, pin, to_part);
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   ALWAYS_ASSERT([&]() {
+  //       // This lambda checks verifies the internal state of KFM for all pins that could
+  //       // have been touched during updateNeighbours.
+  //       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+  //         bool valid = true;
+  //         for (const HypernodeID pin : _hg.pins(he)) {
+  //           if (!isBorderNode(pin)) {
+  //             // If the pin is an internal HN, there should not be any move of this HN
+  //             // in the PQ.
+  //             for (PartitionID part = 0; part < _config.partition.k; ++part) {
+  //               valid = (_pq.contains(pin, part) == false);
+  //               if (!valid) {
+  //                 LOG("HN " << pin << " should not be contained in PQ");
+  //                 return false;
+  //               }
+  //             }
+  //           } else {
+  //             // Pin is a border HN
+  //             for (Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
+  //               if (_pq.contains(pin,target.part)) {
+  //                 // if the move to target.part is in the PQ, it has to have the correct gain
+  //                 ASSERT(_active[pin], "Pin is not active");
+  //                 ASSERT(isBorderNode(pin), "BorderFail");
+  //                 const Gain expected_gain = gainInducedByHypergraph(pin,target.part);
+  //                 valid = (_pq.key(pin,target.part) == expected_gain);
+  //                 if (!valid) {
+  //                   LOG("Incorrect maxGain for HN " << pin);
+  //                   LOG("expected key=" << expected_gain);
+  //                   LOG("actual key=" << _pq.key(pin,target.part));
+  //                   LOG("from_part=" << _hg.partID(pin));
+  //                   LOG("to part = " << target.part);
+  //                   LOG("_locked_hes[" << he << "]=" <<  _locked_hes[he]);
+  //                   return false;
+  //                 }
+  //               } else {
+  //                 // if it is not in the PQ then either the HN has already been marked as moved
+  //                 // or we currently look at the source partition of pin.
+  //                 valid = (_marked[pin] == true) || (target.part == _hg.partID(pin));
+  //                 if (!valid) {
+  //                   LOG("HN " << pin << " not in PQ but also not marked");
+  //                   LOG("gain=" << gainInducedByHypergraph(pin,target.part));
+  //                   LOG("from_part=" << _hg.partID(pin));
+  //                   LOG("to_part=" << target.part);
+  //                   LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target.part));
+  //                   LOG("_locked_hes[" << he << "]=" <<  _locked_hes[he]);
+  //                   return false;
+  //                 }
+  //                 if (_marked[pin]) {
+  //                   // If the pin is already marked as moved, then all moves concerning this pin
+  //                   // should have been removed from the PQ.
+  //                   for (PartitionID part = 0; part < _config.partition.k; ++part) {
+  //                     if (_pq.contains(pin, part)) {
+  //                       LOG("HN " << pin << " should not be contained in PQ, because it is already marked");
+  //                       return false;
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //           // Staleness check. If the PQ contains a move of pin to part, there
+  //           // has to be at least one HE that connects to that part. Otherwise the
+  //           // move is stale and should have been removed from the PQ.
+  //           for (PartitionID part = 0; part < _config.partition.k; ++part) {
+  //             bool connected = false;
+  //             for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
+  //               if(_hg.pinCountInPart(incident_he, part) > 0) {
+  //                 connected = true;
+  //                 break;
+  //               }
+  //             }
+  //             if (!connected && _pq.contains(pin,part)) {
+  //               LOG("PQ contains stale move of HN " << pin << ":");
+  //               LOG("calculated gain=" << gainInducedByHypergraph(pin,part));
+  //               LOG("gain in PQ=" << _pq.key(pin,part));
+  //               LOG("from_part=" << _hg.partID(pin));
+  //               LOG("to_part=" << part);
+  //               LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
+  //               LOG("current HN " << hn << " was moved from " << from_part << " to " << to_part);
+  //               return false;
+  //             }
+  //           }
+  //         }
+  //       }
+  //       return true;
+  //     } ()/*), "Gain update failed"*/);
+  // }
+
+   void updatePin(HypernodeID pin, PartitionID part, HyperedgeID he, Gain delta) {
+     if (_pq.contains(pin,part) && !_just_activated[pin] && _just_inserted[pin] != part) {
+       ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
+       ASSERT(_active[pin], "Trying to update inactive HN "<< pin << " part=" << part);
+       ASSERT(isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
+       // Assert that we only perform delta-gain updates on moves that are not stale!
+       ASSERT([&]() {
+           for (const HyperedgeID he : _hg.incidentEdges(pin)){
+             if (_hg.pinCountInPart(he, part) > 0) {
+               return true;
+             }
+           }
+           return false;
+         }(), V(pin));
+
+       const Gain old_gain = _pq.key(pin,part);
+       DBG(dbg_refinement_kway_fm_gain_update,
+           "updating gain of HN " << pin
+           << " from gain " << old_gain << " to " << old_gain + delta << " (to_part="
+           << part << ")");
+       _pq.updateKey(pin, part, old_gain + delta);
+     }
+   }
 
   void moveHypernode(HypernodeID hn, PartitionID from_part, PartitionID to_part) {
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
@@ -612,6 +721,7 @@ class KWayFMRefiner : public IRefiner,
 
   void activate(HypernodeID hn) {
     if (isBorderNode(hn)) {
+      ASSERT(!_active[hn], V(hn));
       ASSERT([&]() {
           for (PartitionID part = 0; part < _config.partition.k; ++part) {
             if (_pq.contains(hn,part)) {
@@ -630,7 +740,7 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  Gain gainInducedByHypergraph(HypernodeID hn, PartitionID target_part) const {
+  Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -648,7 +758,7 @@ class KWayFMRefiner : public IRefiner,
     return gain;
   }
 
-  void insertHNintoPQ(HypernodeID hn) {
+  void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(!_marked[hn], " Trying to insertHNintoPQ for  marked HN " << hn);
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
@@ -695,7 +805,7 @@ class KWayFMRefiner : public IRefiner,
       DBG(dbg_refinement_kway_fm_gain_comp, "inserting HN " << hn << " with gain "
           << (_tmp_gains[target_part] - internal_weight)  << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << target_part);
-      _pq.reInsert(hn, target_part, _tmp_gains[target_part] - internal_weight);
+      _pq.insert(hn, target_part, _tmp_gains[target_part] - internal_weight);
       _tmp_gains[target_part] = 0;
       _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
       }
