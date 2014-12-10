@@ -38,6 +38,8 @@
 #define LOG(X) DBG(true,X)
 #define LOGVAR(X) DBGVAR(true,X)
 
+#define V(X) #X << "=" << X << " "
+
 #ifdef USE_ASSERTIONS
   #define ASSERT(cond, msg)                            \
   do {                                                 \
@@ -54,10 +56,19 @@
 #endif
 
 // *** an always-on ASSERT
-#define ALWAYS_ASSERT(expr)  do { if (!(expr)) { fprintf(stderr, "%s:%u %s: Assertion '%s' failed!\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, #expr); abort(); } } while(0)
-
+#define ALWAYS_ASSERT(cond, msg)					\
+  do {									\
+    if ( !(cond) ) {							\
+      std::cerr << __FILE__ << ":" << __LINE__ << ": "			\
+		<< __PRETTY_FUNCTION__ << ": "				\
+		<< "Assertion `" #cond "` failed: "			\
+                << msg << std::endl;					\
+      std::abort();                  					\
+    }									\
+  } while(0)
 
 // http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
+#define ONLYDEBUG(x) ((void)x)
 #ifdef NDEBUG
 #ifdef __GNUC__
 #define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))

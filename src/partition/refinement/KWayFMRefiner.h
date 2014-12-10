@@ -346,6 +346,13 @@ class KWayFMRefiner : public IRefiner,
     return false;
   }
 
+  bool moveAffectsGainUpdate(HypernodeID pin_count_source_part_before_move,
+                             HypernodeID pin_count_dest_part_before_move,
+                             HypernodeID pin_count_source_part_after_move) const {
+    return (pin_count_dest_part_before_move == 0 || pin_count_dest_part_before_move == 1 ||
+            pin_count_source_part_before_move == 1 || pin_count_source_part_after_move == 1);
+  }
+
   void performDeltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                                const PartitionID to_part, const HyperedgeID he,
                                const HypernodeID he_size, const HyperedgeWeight he_weight,
@@ -380,7 +387,7 @@ class KWayFMRefiner : public IRefiner,
   }
 
   void performConnectivityUpdate(const HypernodeID pin, const PartitionID from_part,
-                                 const PartitionID to_part, const HyperedgeID he,
+                                 const PartitionID to_part,
                                  const bool move_decreased_connectivity,
                                  const bool move_increased_connectivity) {
     if (move_decreased_connectivity && _pq.contains(pin, from_part)
@@ -404,6 +411,8 @@ class KWayFMRefiner : public IRefiner,
       const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
       const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
       const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
+      const HypernodeID pin_count_target_part_before_move = pin_count_target_part_after_move - 1;
+      const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
       const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -417,14 +426,17 @@ class KWayFMRefiner : public IRefiner,
               removeHypernodeMovementsFromPQ(pin);
             } else {
               if (move_decreased_connectivity || move_increased_connectivity) {
-                performConnectivityUpdate(pin, from_part, to_part, he,
+                performConnectivityUpdate(pin, from_part, to_part,
                                           move_decreased_connectivity,
                                           move_increased_connectivity);
               }
-
-              performDeltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                                      he_connectivity, pin_count_source_part_before_move,
-                                      pin_count_target_part_after_move);
+              if (moveAffectsGainUpdate(pin_count_source_part_before_move,
+                                        pin_count_target_part_before_move,
+                                        pin_count_source_part_after_move)) {
+                performDeltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
+                                        he_connectivity, pin_count_source_part_before_move,
+                                        pin_count_target_part_after_move);
+              }
             }
           }
         }
@@ -441,7 +453,7 @@ class KWayFMRefiner : public IRefiner,
           if (pin != moved_hn && !_marked[pin]) {
             ASSERT(_active[pin], V(pin));
             ASSERT(isBorderNode(pin), V(pin));
-            performConnectivityUpdate(pin, from_part, to_part, he,
+            performConnectivityUpdate(pin, from_part, to_part,
                                       move_decreased_connectivity,
                                       move_increased_connectivity);
           }
@@ -676,6 +688,7 @@ class KWayFMRefiner : public IRefiner,
   }
 
    void updatePin(HypernodeID pin, PartitionID part, HyperedgeID he, Gain delta) {
+     ONLYDEBUG(he);
      if (_pq.contains(pin,part) && !_just_activated[pin] && _just_inserted[pin] != part) {
        ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
        ASSERT(_active[pin], "Trying to update inactive HN "<< pin << " part=" << part);
