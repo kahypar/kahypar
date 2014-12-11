@@ -346,19 +346,18 @@ class KWayFMRefiner : public IRefiner,
     return false;
   }
 
-  bool moveAffectsGainUpdate(HypernodeID pin_count_source_part_before_move,
-                             HypernodeID pin_count_dest_part_before_move,
-                             HypernodeID pin_count_source_part_after_move) const {
+  bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_source_part_before_move,
+                             const HypernodeID pin_count_dest_part_before_move,
+                             const HypernodeID pin_count_source_part_after_move) const {
     return (pin_count_dest_part_before_move == 0 || pin_count_dest_part_before_move == 1 ||
             pin_count_source_part_before_move == 1 || pin_count_source_part_after_move == 1);
   }
 
-  void performDeltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
-                               const PartitionID to_part, const HyperedgeID he,
-                               const HypernodeID he_size, const HyperedgeWeight he_weight,
-                               const PartitionID he_connectivity,
-                               const HypernodeID pin_count_source_part_before_move,
-                               const HypernodeID pin_count_target_part_after_move) {
+  void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
+                        const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
+                        const HyperedgeWeight he_weight, const PartitionID he_connectivity,
+                        const HypernodeID pin_count_source_part_before_move,
+                        const HypernodeID pin_count_target_part_after_move) {
     if (he_connectivity == 2 && pin_count_target_part_after_move == 1
         && pin_count_source_part_before_move > 1) {
       DBG(dbg_refinement_kway_fm_gain_update,
@@ -386,10 +385,11 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void performConnectivityUpdate(const HypernodeID pin, const PartitionID from_part,
-                                 const PartitionID to_part,
-                                 const bool move_decreased_connectivity,
-                                 const bool move_increased_connectivity) {
+  void connectivityUpdate(const HypernodeID pin, const PartitionID from_part,
+                          const PartitionID to_part, const HyperedgeID he,
+                          const bool move_decreased_connectivity,
+                          const bool move_increased_connectivity) {
+    ONLYDEBUG(he);
     if (move_decreased_connectivity && _pq.contains(pin, from_part)
         && !hypernodeIsConnectedToPart(pin, from_part)){
       _pq.remove(pin, from_part);
@@ -403,16 +403,21 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-   void performConnectivityAndDeltaGainUpdate(const HypernodeID moved_hn,
-                                              const PartitionID from_part,
-                                              const PartitionID to_part,
-                                              const HyperedgeID he) {
+  // Full update includes:
+  // 1.) Activation of new border HNs
+  // 2.) Removal of new non-border HNs
+  // 3.) Connectivity update
+  // 4.) Delta-Gain Update
+  // This is used for the state transitions: free -> loose and loose -> locked
+  void fullUpdate(const HypernodeID moved_hn, const PartitionID from_part,
+                  const PartitionID to_part, const HyperedgeID he) {
       const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
       const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
       const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
       const HypernodeID pin_count_target_part_after_move = _hg.pinCountInPart(he, to_part);
-      const HypernodeID pin_count_target_part_before_move = pin_count_target_part_after_move - 1;
-      const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+      // const HypernodeID pin_count_target_part_before_move = pin_count_target_part_after_move - 1;
+      //      const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+      // will be used if we can integrate the affect check
       const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -425,27 +430,58 @@ class KWayFMRefiner : public IRefiner,
             if (!isBorderNode(pin)) {
               removeHypernodeMovementsFromPQ(pin);
             } else {
-              if (move_decreased_connectivity || move_increased_connectivity) {
-                performConnectivityUpdate(pin, from_part, to_part,
-                                          move_decreased_connectivity,
-                                          move_increased_connectivity);
-              }
-              if (moveAffectsGainUpdate(pin_count_source_part_before_move,
-                                        pin_count_target_part_before_move,
-                                        pin_count_source_part_after_move)) {
-                performDeltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                                        he_connectivity, pin_count_source_part_before_move,
-                                        pin_count_target_part_after_move);
-              }
+              connectivityUpdate(pin, from_part, to_part, he,
+                                 move_decreased_connectivity,
+                                 move_increased_connectivity);
+              deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
+                               he_connectivity, pin_count_source_part_before_move,
+                               pin_count_target_part_after_move);
             }
           }
         }
       }
     }
 
+  // HEs remaining loose won't lead to new activations
+  void connectivityAndDeltaGainUpdateForHEsRemainingLoose(const HypernodeID moved_hn,
+                                                          const PartitionID from_part,
+                                                          const PartitionID to_part,
+                                                          const HyperedgeID he) {
 
-  void performConnectivityUpdate(const HypernodeID moved_hn, const PartitionID from_part,
-                                 const PartitionID to_part, const HyperedgeID he) {
+    const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+    const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+    const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+
+    if (moveAffectsGainOrConnectivityUpdate(pin_count_source_part_before_move,
+                                            pin_count_target_part_before_move,
+                                            pin_count_source_part_after_move)) {
+      const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
+      const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
+      const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
+      const PartitionID he_connectivity = _hg.connectivity(he);
+      const HypernodeID he_size = _hg.edgeSize(he);
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+      for (const HypernodeID pin : _hg.pins(he)) {
+        if (pin != moved_hn && !_marked[pin]) {
+          if (!isBorderNode(pin)) {
+            removeHypernodeMovementsFromPQ(pin);
+          } else {
+            connectivityUpdate(pin, from_part, to_part, he,
+                               move_decreased_connectivity,
+                               move_increased_connectivity);
+            deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
+                             he_connectivity, pin_count_source_part_before_move,
+                             pin_count_target_part_after_move);
+          }
+        }
+      }
+    }
+  }
+
+
+  void connectivityUpdate(const HypernodeID moved_hn, const PartitionID from_part,
+                          const PartitionID to_part, const HyperedgeID he) {
       const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
       const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
       if (move_decreased_connectivity || move_increased_connectivity) {
@@ -453,9 +489,9 @@ class KWayFMRefiner : public IRefiner,
           if (pin != moved_hn && !_marked[pin]) {
             ASSERT(_active[pin], V(pin));
             ASSERT(isBorderNode(pin), V(pin));
-            performConnectivityUpdate(pin, from_part, to_part,
-                                      move_decreased_connectivity,
-                                      move_increased_connectivity);
+            connectivityUpdate(pin, from_part, to_part, he,
+                               move_decreased_connectivity,
+                               move_increased_connectivity);
           }
         }
       }
@@ -463,9 +499,9 @@ class KWayFMRefiner : public IRefiner,
 
 
    void updatePinsOfFreeHyperedgeBecomingLoose(const HypernodeID moved_hn,
-                                              const PartitionID from_part,
-                                              const PartitionID to_part,
-                                              const HyperedgeID he) {
+                                               const PartitionID from_part,
+                                               const PartitionID to_part,
+                                               const HyperedgeID he) {
     ASSERT([&](){
         // Only the moved_node is marked
         for (const HypernodeID pin : _hg.pins(he)) {
@@ -476,7 +512,7 @@ class KWayFMRefiner : public IRefiner,
         return true;
       }(),"Encountered a free HE with more than one marked pins.");
 
-    performConnectivityAndDeltaGainUpdate(moved_hn, from_part, to_part, he);
+    fullUpdate(moved_hn, from_part, to_part, he);
 
     ASSERT([&](){
         // all border HNs are active
@@ -505,28 +541,40 @@ class KWayFMRefiner : public IRefiner,
          }
          return valid;
        }(),"");
-
-     performConnectivityAndDeltaGainUpdate(moved_hn, from_part, to_part, he);
-
      ASSERT([&](){
-         // all border HNs are active and
+         // Loose HEs remaining loose should have only active border HNs
          for (const HypernodeID pin : _hg.pins(he)) {
            if (isBorderNode(pin) && !_active[pin]) {
              return false;
            }
          }
          return true;
-       }(),"Pins of HE " << he << "are not activated correctly");
+       }(),"");
+
+     connectivityAndDeltaGainUpdateForHEsRemainingLoose(moved_hn, from_part, to_part, he);
+
      ASSERT([&](){
-         // At least two pins of the HE are marked
          HypernodeID count = 0;
          for (const HypernodeID pin : _hg.pins(he)) {
+           // - All border HNs are active
+           // - At least two pins of the HE are marked
+           // - No internal HNs have moves in PQ
+           if (isBorderNode(pin) && !_active[pin]) {
+             return false;
+           }
            if (_marked[pin]) {
              ++count;
            }
+           if (!isBorderNode(pin)) {
+             for (PartitionID part = 0; part < _config.partition.k; ++part) {
+               if (_pq.contains(pin, part)) {
+                 return false;
+               }
+             }
+           }
          }
          return count >= 2;
-       }(),"At least two pins have to be marked");
+       }()," ");
   }
 
 
@@ -535,7 +583,7 @@ class KWayFMRefiner : public IRefiner,
                                                 const PartitionID from_part,
                                                 const PartitionID to_part,
                                                 const HyperedgeID he) {
-    performConnectivityAndDeltaGainUpdate(moved_hn, from_part, to_part, he);
+    fullUpdate(moved_hn, from_part, to_part, he);
 
     ASSERT([&](){
         // If a HE becomes locked, the activation of its pins will definitely
@@ -550,10 +598,8 @@ class KWayFMRefiner : public IRefiner,
 
   }
 
-  void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn,
-                                            const PartitionID from_part,
-                                            const PartitionID to_part,
-                                            const HyperedgeID he) {
+  void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn, const PartitionID from_part,
+                                            const PartitionID to_part, const HyperedgeID he) {
     ASSERT([&](){
         // All pins of a locked HE have to be active.
         for (const HypernodeID pin : _hg.pins(he)) {
@@ -564,7 +610,7 @@ class KWayFMRefiner : public IRefiner,
         return true;
       }(),"Loose HE" << he << " remains locked, but not all pins are active" );
 
-    performConnectivityUpdate(moved_hn, from_part, to_part, he);
+    connectivityUpdate(moved_hn, from_part, to_part, he);
   }
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
@@ -574,6 +620,7 @@ class KWayFMRefiner : public IRefiner,
       _just_inserted[_current_just_inserted.top()] = Hypergraph::kInvalidPartition;
       _current_just_inserted.pop();
     }
+
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
        if (_locked_hes[he] != kLocked) {
            if (_locked_hes[he] == to_part) {
@@ -593,9 +640,9 @@ class KWayFMRefiner : public IRefiner,
              DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
            }
        } else {
+         // he is locked
          updatePinsOfHyperedgeRemainingLocked(moved_hn, from_part, to_part, he);
          DBG(dbg_refinement_kway_fm_gain_update, he << " is locked");
-         // he is locked
        }
     }
 
@@ -617,7 +664,7 @@ class KWayFMRefiner : public IRefiner,
               }
             } else {
               // Pin is a border HN
-              for (Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
+              for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
                 if (_pq.contains(pin,target.part)) {
                   // if the move to target.part is in the PQ, it has to have the correct gain
                   ASSERT(_active[pin], "Pin is not active");
@@ -782,7 +829,7 @@ class KWayFMRefiner : public IRefiner,
         internal_weight += _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
+        for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
           _tmp_target_parts[target.part] = target.part;
           if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
             _tmp_gains[target.part] += _hg.edgeWeight(he);
