@@ -498,7 +498,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         internal_weight += _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (const Hypergraph::ConnectivityEntry target : _hg.connectivitySet(he)) {
+        for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
           _tmp_target_parts[target.part] = target.part;
           if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
             _tmp_gains[target.part] += _hg.edgeWeight(he);
