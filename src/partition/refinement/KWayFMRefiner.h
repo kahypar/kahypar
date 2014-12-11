@@ -428,6 +428,7 @@ class KWayFMRefiner : public IRefiner,
         const HypernodeID he_size = _hg.edgeSize(he);
         const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
+        HypernodeID num_active_pins = 0;
         for (const HypernodeID pin : _hg.pins(he)) {
           if (pin != moved_hn && !_marked[pin]) {
             if (!_active[pin]) {
@@ -445,8 +446,9 @@ class KWayFMRefiner : public IRefiner,
             }
             }
           }
+          num_active_pins += _active[pin];
         }
-        _he_fully_active[he] = isCutHyperedge(he);
+        _he_fully_active[he] = num_active_pins == he_size;
       }
   }
 
