@@ -62,6 +62,7 @@ class KWayPriorityQueue {
   }
 
   void insert(IDType id, PartitionID part, KeyType key) {
+    ASSERT(part < _buf.size(),"");
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
     if (_buf[part].key < key) {
       _buf[part].key = key;
@@ -79,23 +80,23 @@ class KWayPriorityQueue {
     ++_num_entries;
   }
 
-  void reInsert(IDType id,PartitionID part, KeyType key) {
-    DBG(false,"reInsert: (" << id << "," << part << "," << key << ")");
-    if (_buf[part].key < key) {
-      _buf[part].key = key;
-      _buf[part].id = id;
-    }
-    _heaps[part].push(id, -key);
-    ASSERT([&](){
-        ASSERT(_buf[part].key == -_heaps[part].getMinKey(),
-               "buf.key=" << _buf[part].key << "!=" << -_heaps[part].getMinKey());
-        ASSERT(_buf[part].id == _heaps[part].getMin(),
-               "buf.id=" << _buf[part].id << "!=" << _heaps[part].getMin());
-        return true;
-      }(),
-      "Error");
-    ++_num_entries;
-  }
+  // void reInsert(IDType id,PartitionID part, KeyType key) {
+  //   DBG(false,"reInsert: (" << id << "," << part << "," << key << ")");
+  //   if (_buf[part].key < key) {
+  //     _buf[part].key = key;
+  //     _buf[part].id = id;
+  //   }
+  //   _heaps[part].update(id, -key);
+  //   ASSERT([&](){
+  //       ASSERT(_buf[part].key == -_heaps[part].getMinKey(),
+  //              "buf.key=" << _buf[part].key << "!=" << -_heaps[part].getMinKey());
+  //       ASSERT(_buf[part].id == _heaps[part].getMin(),
+  //              "buf.id=" << _buf[part].id << "!=" << _heaps[part].getMin());
+  //       return true;
+  //     }(),
+  //     "Error");
+  //   ++_num_entries;
+  // }
 
   void deleteMax(IDType& id, KeyType& key, PartitionID& part) {
     PartitionID max_part = -1;
