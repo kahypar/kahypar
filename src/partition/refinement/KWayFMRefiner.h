@@ -93,7 +93,7 @@ class KWayFMRefiner : public IRefiner,
     _infeasible_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
-    _infeasible_moves.reserve(_hg.initialNumNodes());
+    _infeasible_moves.reserve(_hg.initialNumNodes() * _config.partition.k);
     _locked_hes.resize(_hg.initialNumEdges(), kFree);
   }
 
