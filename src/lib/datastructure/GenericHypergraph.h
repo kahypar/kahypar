@@ -65,19 +65,6 @@ class GenericHypergraph {
   private:
   typedef unsigned int VertexID;
 
-  struct HashParts {
-    size_t operator() (const PartitionID part_id) const {
-      return part_id;
-    }
-  };
-
-  struct HashHyperedge {
-    size_t operator() (const HyperedgeID he) const {
-      return he;
-    }
-  };
-
-
   struct ConnectivityEntry {
     ConnectivityEntry() :
         part(0),
