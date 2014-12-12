@@ -335,6 +335,7 @@ class GenericHypergraph {
     _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
     _connectivity_sets(_num_hyperedges),
+    _connected_parts_of_he(_num_hyperedges),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
     _active_hyperedges_v(_num_hyperedges) {
@@ -364,6 +365,7 @@ class GenericHypergraph {
         _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
         hypernode(pin).increaseSize();
       }
+      _connected_parts_of_he[i].resize(_k);
     }
 
     bool has_hyperedge_weights = false;
@@ -884,10 +886,11 @@ class GenericHypergraph {
   HypernodeID pinCountInPart(HyperedgeID he, PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
-    const ConnectivitySet& connectivity_set = _connectivity_sets[he];
-    auto element_it = std::find(connectivity_set.begin(),connectivity_set.end(),
-                                ConnectivityEntry(id,0));
-    if (element_it != connectivity_set.end()) {
+    if (_connected_parts_of_he[he][id]) {
+      const ConnectivitySet& connectivity_set = _connectivity_sets[he];
+      auto element_it = std::find(connectivity_set.begin(),connectivity_set.end(),
+                                  ConnectivityEntry(id,0));
+      ASSERT(element_it != connectivity_set.end(), "ConnectivityEntry not found" << V(he) << V(id));
       return element_it->num_pins;
     } else {
       return 0;
@@ -967,12 +970,14 @@ class GenericHypergraph {
     ASSERT(std::find(_connectivity_sets[he].begin(),_connectivity_sets[he].end(), ConnectivityEntry(id,0))
            != _connectivity_sets[he].end(), "HE" << he << " does not connect part "
            << id);
+    ASSERT(_connected_parts_of_he[he][id], "ConnectedPart bit not set:" << V(he) << V(id));
     ConnectivitySet& connectivity_set = _connectivity_sets[he];
     auto it = std::find(connectivity_set.begin(), connectivity_set.end(), ConnectivityEntry(id,0));
     it->num_pins -= 1;
     if (it->num_pins == 0) {
       std::iter_swap(it, connectivity_set.end() -1);
       connectivity_set.pop_back();
+      _connected_parts_of_he[he][id] = 0;
     }
   }
 
@@ -983,11 +988,13 @@ class GenericHypergraph {
            << "edgesize=" << edgeSize(he));
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ConnectivitySet& connectivity_set = _connectivity_sets[he];
-    auto it = std::find(connectivity_set.begin(),connectivity_set.end(), ConnectivityEntry(id,0));
-    if (it == connectivity_set.end()) {
-      connectivity_set.push_back(ConnectivityEntry(id,1));
-    } else {
+    if (_connected_parts_of_he[he][id]) {
+      auto it = std::find(connectivity_set.begin(),connectivity_set.end(), ConnectivityEntry(id,0));
+      ASSERT(it != connectivity_set.end(), "ConnectivityEntry not found");
       it->num_pins += 1;
+    } else {
+      connectivity_set.push_back(ConnectivityEntry(id,1));
+      _connected_parts_of_he[he][id] = 1;
     }
   }
 
@@ -996,6 +1003,7 @@ class GenericHypergraph {
     ASSERT(hyperedge(he).isDisabled(),
            "Invalidation of pin counts only allowed for disabled hyperedges");
     _connectivity_sets[he].clear();
+    _connected_parts_of_he[he].reset();
   }
 
   void resetPartitionPinCounts(HyperedgeID he) {
@@ -1003,6 +1011,7 @@ class GenericHypergraph {
     ConnectivitySet& connectivity_set = _connectivity_sets[he];
     for (auto it = connectivity_set.begin(); it != connectivity_set.end(); ++it) {
       it->num_pins = 0;
+      _connected_parts_of_he[he][it->part] = 0;
     }
   }
 
@@ -1142,6 +1151,7 @@ class GenericHypergraph {
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
   std::vector<ConnectivitySet> _connectivity_sets;
+  std::vector<boost::dynamic_bitset<uint64_t>> _connected_parts_of_he;
 
   // Used during uncontraction to remember which hyperedges have already been processed
   boost::dynamic_bitset<uint64_t> _processed_hyperedges;
