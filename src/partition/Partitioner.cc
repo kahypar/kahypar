@@ -178,7 +178,7 @@ void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg) {
   // Second case: If the HE has a connectivity of 1, we try to internalize it
   // into that part.
   if (hg.connectivity(he) == 1) {
-    const PartitionID connected_part = hg.connectivitySet(he).begin()->part;
+    const PartitionID connected_part = *hg.connectivitySet(he).begin();
     if (hg.partWeight(connected_part) + unpartitioned_weight
         <= _config.partition.max_part_weight) {
       assignUnpartitionedPinsToPartition(he, connected_part, hg);

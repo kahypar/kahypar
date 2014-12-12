@@ -498,12 +498,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         internal_weight += _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
-          _tmp_target_parts[target.part] = target.part;
-          if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
-            _tmp_gains[target.part] += _hg.edgeWeight(he);
+        for (const PartitionID part : _hg.connectivitySet(he)) {
+          _tmp_target_parts[part] = part;
+          const HypernodeID num_pins = _hg.pinCountInPart(he, part);
+          if (pins_in_source_part == 1 && num_pins == _hg.edgeSize(he) - 1) {
+            _tmp_gains[part] += _hg.edgeWeight(he);
           }
-          _tmp_connectivity_decrease[target.part] += (pins_in_source_part == 1 ? 2 : 1);
+          _tmp_connectivity_decrease[part] += (pins_in_source_part == 1 ? 2 : 1);
         }
       }
     }
@@ -533,8 +534,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                for (const auto& he : _hg.incidentEdges(hn)) {
                  const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
                  bool partition_exists = false;
-                 for (const auto& con : _hg.connectivitySet(he)) {
-                   const auto& target_part = con.part;
+                 for (const PartitionID target_part : _hg.connectivitySet(he)) {
                    if (_tmp_target_parts[t_p] == target_part) {
                      partition_exists = true;
                      if (pins_in_source_part == 1) {

@@ -602,8 +602,8 @@ TEST_F(AHypergraph, AllowsIterationOverConnectivitySetOfAHyperege) {
   ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
 
   int part_id = 0;
-  for (auto && target : hypergraph.connectivitySet(0)) {
-    ASSERT_THAT(target.part, Eq(part_id));
+  for (const PartitionID part : hypergraph.connectivitySet(0)) {
+    ASSERT_THAT(part, Eq(part_id));
     ++part_id;
   }
 }
@@ -613,14 +613,14 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
                         HyperedgeVector { 0 });
   hypergraph.setNodePart(0, 0);
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
-  ASSERT_THAT(hypergraph.connectivitySet(0).begin()->part, Eq(0));
+  ASSERT_THAT(*hypergraph.connectivitySet(0).begin(), Eq(0));
 
   hypergraph.removeEdge(0, false);
   hypergraph.changeNodePart(0, 0, 1);
   hypergraph.restoreEdge(0);
 
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
-  ASSERT_THAT(hypergraph.connectivitySet(0).begin()->part, Eq(1));
+  ASSERT_THAT(*hypergraph.connectivitySet(0).begin(), Eq(1));
 }
 
 TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {

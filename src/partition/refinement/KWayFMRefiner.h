@@ -674,32 +674,33 @@ class KWayFMRefiner : public IRefiner,
               }
             } else {
               // Pin is a border HN
-              for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
-                if (_pq.contains(pin,target.part)) {
+              for (const PartitionID part : _hg.connectivitySet(he)) {
+                ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " not connected to " << V(part));
+                if (_pq.contains(pin,part)) {
                   // if the move to target.part is in the PQ, it has to have the correct gain
                   ASSERT(_active[pin], "Pin is not active");
                   ASSERT(isBorderNode(pin), "BorderFail");
-                  const Gain expected_gain = gainInducedByHypergraph(pin,target.part);
-                  valid = (_pq.key(pin,target.part) == expected_gain);
+                  const Gain expected_gain = gainInducedByHypergraph(pin,part);
+                  valid = (_pq.key(pin,part) == expected_gain);
                   if (!valid) {
                     LOG("Incorrect maxGain for HN " << pin);
                     LOG("expected key=" << expected_gain);
-                    LOG("actual key=" << _pq.key(pin,target.part));
+                    LOG("actual key=" << _pq.key(pin,part));
                     LOG("from_part=" << _hg.partID(pin));
-                    LOG("to part = " << target.part);
+                    LOG("to part = " << part);
                     LOG("_locked_hes[" << he << "]=" <<  _locked_hes[he]);
                     return false;
                   }
                 } else {
                   // if it is not in the PQ then either the HN has already been marked as moved
                   // or we currently look at the source partition of pin.
-                  valid = (_marked[pin] == true) || (target.part == _hg.partID(pin));
+                  valid = (_marked[pin] == true) || (part == _hg.partID(pin));
                   if (!valid) {
                     LOG("HN " << pin << " not in PQ but also not marked");
-                    LOG("gain=" << gainInducedByHypergraph(pin,target.part));
+                    LOG("gain=" << gainInducedByHypergraph(pin,part));
                     LOG("from_part=" << _hg.partID(pin));
-                    LOG("to_part=" << target.part);
-                    LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target.part));
+                    LOG("to_part=" << part);
+                    LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
                     LOG("_locked_hes[" << he << "]=" <<  _locked_hes[he]);
                     return false;
                   }
@@ -839,10 +840,12 @@ class KWayFMRefiner : public IRefiner,
         internal_weight += _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (const Hypergraph::ConnectivityEntry& target : _hg.connectivitySet(he)) {
-          _tmp_target_parts[target.part] = target.part;
-          if (pins_in_source_part == 1 && target.num_pins == _hg.edgeSize(he) - 1) {
-            _tmp_gains[target.part] += _hg.edgeWeight(he);
+        for (const PartitionID part : _hg.connectivitySet(he)) {
+          ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " is not conntected to " << V(part));
+          _tmp_target_parts[part] = part;
+          const HypernodeID num_pins = _hg.pinCountInPart(he, part);
+          if (pins_in_source_part == 1 && num_pins == _hg.edgeSize(he) - 1) {
+            _tmp_gains[part] += _hg.edgeWeight(he);
           }
         }
       }
