@@ -167,7 +167,7 @@ class GenericHypergraph {
     }
 
     bool operator == (const InternalVertex& rhs) const {
-      return _begin == rhs.firstEntry() && _size == rhs.size() && _weight == rhs.weight();
+      return _begin == rhs._begin && _size == rhs._size && _weight == rhs._weight;
     }
 
     bool operator != (const InternalVertex& rhs) const {
@@ -175,7 +175,7 @@ class GenericHypergraph {
     }
 
     bool operator < (const InternalVertex& rhs) const {
-      return _begin == rhs.firstEntry();
+      return _begin < rhs._begin;
     }
 
     bool operator > (const InternalVertex& rhs) const {
