@@ -160,7 +160,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             << " with gain " << max_gain
             << " sourcePart=" << from_part
             << " targetPart= " << to_part);
-        _infeasible_moves[free_index] = {max_gain_node, to_part, max_gain};
+        _infeasible_moves[free_index] = { max_gain_node, to_part, max_gain };
         _pq.deleteMax();
         ++num_infeasible_deletes;
         if (_pq.empty()) {
@@ -190,24 +190,24 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
       // the max_gain_node.
-      ASSERT([&](){
-          for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
-            if (_hg.pinCountInPart(he, to_part) > 0) {
-              return true;
-            }
-          }
-          return false;
-        }(),"Move of HN " << max_gain_node << " from " << from_part
-        << " to " << to_part << " is stale!");
+      ASSERT([&]() {
+               for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
+                 if (_hg.pinCountInPart(he, to_part) > 0) {
+                   return true;
+                 }
+               }
+               return false;
+             } (), "Move of HN " << max_gain_node << " from " << from_part
+             << " to " << to_part << " is stale!");
 
       ASSERT([&]() {
-          _hg.changeNodePart(max_gain_node, from_part, to_part);
-          ASSERT((cut - max_gain) == metrics::hyperedgeCut(_hg),
-                 "cut=" << cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
-          _hg.changeNodePart(max_gain_node, to_part, from_part);
-          return true;
-        } ()
-        , "max_gain move does not correspond to expected cut!");
+               _hg.changeNodePart(max_gain_node, from_part, to_part);
+               ASSERT((cut - max_gain) == metrics::hyperedgeCut(_hg),
+                      "cut=" << cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+               _hg.changeNodePart(max_gain_node, to_part, from_part);
+               return true;
+             } ()
+             , "max_gain move does not correspond to expected cut!");
 
       moveHypernode(max_gain_node, from_part, to_part);
 
@@ -358,66 +358,66 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (!isBorderNode(pin)) {
-              if (_pq.contains(pin)) {
-                LOG("HN " << pin << " should not be contained in PQ");
-                return false;
-              }
-            } else {
-              if (_pq.contains(pin)) {
-                ASSERT(isBorderNode(pin), "BorderFail");
-                const GainPartitionPair pair = computeMaxGain(pin);
-                // Currently the target part might be different because pins that are only
-                // contained in locked HEs (and therefore don't experience a gain update)
-                // might have a target part, which is not the best regarding connectivity
-                // decrease. Theses pins would have to be evaluated spearately in order to
-                // choose the "best possible" target_part (i.e. with most decrease).
-                if (_pq.key(pin) != pair.first /* || _pq.data(pin) != pair.second */) {
-                  LOG("Incorrect maxGain or target_part for HN " << pin);
-                  LOG("expected key=" << pair.first);
-                  LOG("actual key=" << _pq.key(pin));
-                  LOG("expected part=" << pair.second);
-                  LOG("actual part=" << _pq.data(pin));
-                  return false;
-                }
-                // Staleness check. If the PQ contains a move of pin to part, there
-                // has to be at least one HE that connects to that part. Otherwise the
-                // move is stale and should have been removed from the PQ.
-                const PartitionID target_part = _pq.data(pin);
-                bool connected = false;
-                for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
-                  if(_hg.pinCountInPart(incident_he, target_part) > 0) {
-                    connected = true;
-                    break;
-                  }
-                }
-                if (!connected) {
-                  LOG("PQ contains stale move of HN " << pin << ":");
-                  LOG("calculated gain=" << computeMaxGain(pin).first);
-                  LOG("gain in PQ=" << _pq.key(pin));
-                  LOG("from_part=" << _hg.partID(pin));
-                  LOG("to_part=" << target_part);
-                  LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target_part));
-                  LOG("current HN " << hn << " was moved from " << from_part << " to " << to_part);
-                  return false;
-                }
-              } else {
-                if (!_marked[pin]) {
-                  const GainPartitionPair pair = computeMaxGain(pin);
-                  LOG("HN " << pin << " not in PQ but also not marked");
-                  LOG("gain=" << pair.first);
-                  LOG("to_part=" << pair.second);
-                  LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), pair.second));
-                  return false;
-                }
-              }
-            }
-          }
-        }
-        return true;
-      } (), "Gain update failed");
+             for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+               for (const HypernodeID pin : _hg.pins(he)) {
+                 if (!isBorderNode(pin)) {
+                   if (_pq.contains(pin)) {
+                     LOG("HN " << pin << " should not be contained in PQ");
+                     return false;
+                   }
+                 } else {
+                   if (_pq.contains(pin)) {
+                     ASSERT(isBorderNode(pin), "BorderFail");
+                     const GainPartitionPair pair = computeMaxGain(pin);
+                     // Currently the target part might be different because pins that are only
+                     // contained in locked HEs (and therefore don't experience a gain update)
+                     // might have a target part, which is not the best regarding connectivity
+                     // decrease. Theses pins would have to be evaluated spearately in order to
+                     // choose the "best possible" target_part (i.e. with most decrease).
+                     if (_pq.key(pin) != pair.first /* || _pq.data(pin) != pair.second */) {
+                       LOG("Incorrect maxGain or target_part for HN " << pin);
+                       LOG("expected key=" << pair.first);
+                       LOG("actual key=" << _pq.key(pin));
+                       LOG("expected part=" << pair.second);
+                       LOG("actual part=" << _pq.data(pin));
+                       return false;
+                     }
+                     // Staleness check. If the PQ contains a move of pin to part, there
+                     // has to be at least one HE that connects to that part. Otherwise the
+                     // move is stale and should have been removed from the PQ.
+                     const PartitionID target_part = _pq.data(pin);
+                     bool connected = false;
+                     for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
+                       if (_hg.pinCountInPart(incident_he, target_part) > 0) {
+                         connected = true;
+                         break;
+                       }
+                     }
+                     if (!connected) {
+                       LOG("PQ contains stale move of HN " << pin << ":");
+                       LOG("calculated gain=" << computeMaxGain(pin).first);
+                       LOG("gain in PQ=" << _pq.key(pin));
+                       LOG("from_part=" << _hg.partID(pin));
+                       LOG("to_part=" << target_part);
+                       LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target_part));
+                       LOG("current HN " << hn << " was moved from " << from_part << " to " << to_part);
+                       return false;
+                     }
+                   } else {
+                     if (!_marked[pin]) {
+                       const GainPartitionPair pair = computeMaxGain(pin);
+                       LOG("HN " << pin << " not in PQ but also not marked");
+                       LOG("gain=" << pair.first);
+                       LOG("to_part=" << pair.second);
+                       LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), pair.second));
+                       return false;
+                     }
+                   }
+                 }
+               }
+             }
+             return true;
+           } (), "Gain update failed");
   }
 
   void updatePin(HypernodeID pin) {
