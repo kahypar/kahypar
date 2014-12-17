@@ -67,8 +67,8 @@ if(CMAKE_BUILD_TYPE MATCHES DEBUG)
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++11")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++11 -Weffc++ -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")
 
 if(ENABLE_PROFILE MATCHES ON)
   message(STATUS "Profiling activated")

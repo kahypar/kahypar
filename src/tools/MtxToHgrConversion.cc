@@ -21,8 +21,8 @@ MatrixInfo parseHeader(std::ifstream& file) {
   LOG("matrix_format=" << matrix_format);
   LOG("data_format=" << data_format);
   LOG("symmetry=" << symmetry);
-  ALWAYS_ASSERT(matrix_market == "%%MatrixMarket");
-  ALWAYS_ASSERT(object == "matrix");
+  ALWAYS_ASSERT(matrix_market == "%%MatrixMarket", "Invalid Header " << V(matrix_market));
+  ALWAYS_ASSERT(object == "matrix", "Invalid object type " << V(object));
 
   MatrixInfo info;
   if (matrix_format == "coordinate") {

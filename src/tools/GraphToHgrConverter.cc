@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
   int num_nodes = -1;
   int num_edges = -1;
   parseHeader(line, num_nodes, num_edges);
-  ALWAYS_ASSERT(num_nodes > 0 && num_edges > 0);
+  ALWAYS_ASSERT(num_nodes > 0 && num_edges > 0, V(num_nodes) << V(num_edges));
 
   std::ofstream out_stream(hgr_filename.c_str());
   out_stream << num_edges << " " << num_nodes << std::endl;
