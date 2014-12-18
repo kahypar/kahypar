@@ -65,7 +65,7 @@ class GenericHypergraph {
   private:
   typedef unsigned int VertexID;
 
-  static const int kInvalidCount = std::numeric_limits<int>::min();
+  static const HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
