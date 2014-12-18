@@ -742,6 +742,24 @@ class KWayFMRefiner : public IRefiner,
         }
         return true;
         } (), V(moved_hn));
+    ASSERT([&](){
+        for (const HypernodeID hn : _hg.nodes()) {
+          if (_active[hn]) {
+            bool valid = _marked[hn] || !isBorderNode(hn);
+            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              if (_pq.contains(hn, part)) {
+                valid = true;
+                break;
+              }
+            }
+            if (!valid) {
+              LOG(V(hn) << " is active but neither marked nor in one of the PQs");
+              return false;
+            }
+          }
+        }
+        return true;
+      }(),V(moved_hn));
   }
 
    void updatePin(HypernodeID pin, PartitionID part, HyperedgeID he, Gain delta) {
