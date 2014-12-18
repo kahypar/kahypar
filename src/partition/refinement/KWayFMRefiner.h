@@ -348,11 +348,10 @@ class KWayFMRefiner : public IRefiner,
     return false;
   }
 
-  bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_source_part_before_move,
-                                           const HypernodeID pin_count_dest_part_before_move,
+  bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
                                            const HypernodeID pin_count_source_part_after_move) const {
-    return (pin_count_dest_part_before_move == 0 || pin_count_dest_part_before_move == 1 ||
-            pin_count_source_part_before_move == 1 || pin_count_source_part_after_move == 1);
+    return (pin_count_target_part_before_move == 0 || pin_count_target_part_before_move == 1 ||
+            pin_count_source_part_after_move == 0 || pin_count_source_part_after_move == 1);
   }
 
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
@@ -418,12 +417,12 @@ class KWayFMRefiner : public IRefiner,
       const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
 
       if (!_he_fully_active[he]
-          || moveAffectsGainOrConnectivityUpdate(pin_count_source_part_before_move,
-                                                 pin_count_target_part_before_move,
+          || moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
                                                  pin_count_source_part_after_move)) {
-        const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
-        const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
         const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
+        const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
+        const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
+
         const PartitionID he_connectivity = _hg.connectivity(he);
         const HypernodeID he_size = _hg.edgeSize(he);
         const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -443,7 +442,7 @@ class KWayFMRefiner : public IRefiner,
                 deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
                                  he_connectivity, pin_count_source_part_before_move,
                                  pin_count_target_part_after_move);
-            }
+              }
             }
           }
           num_active_pins += _active[pin];
@@ -459,15 +458,15 @@ class KWayFMRefiner : public IRefiner,
                                                           const HyperedgeID he) {
 
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
-    const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
+    const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
 
-    if (moveAffectsGainOrConnectivityUpdate(pin_count_source_part_before_move,
-                                            pin_count_target_part_before_move,
+    if (moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
                                             pin_count_source_part_after_move)) {
-      const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
-      const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
       const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
+      const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
+      const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
+
       const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
