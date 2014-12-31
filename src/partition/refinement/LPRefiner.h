@@ -85,7 +85,7 @@ namespace partition
               ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
               if (hg_.connectivity(he) == 1)
               {
-                assert ((*hg_.connectivitySet(he).begin()).part == hg_.partID(hn));
+                assert ((*hg_.connectivitySet(he).begin())== hg_.partID(hn));
                 malus += hg_.edgeWeight(he);
 
                 for (const auto &val : incident_partitions_)
@@ -96,9 +96,9 @@ namespace partition
                 }
               } else if (hg_.connectivity(he) == 2)
               {
-                auto other_part = hg_.partID(hn) == (*hg_.connectivitySet(he).begin()).part ?
-                    (*(++hg_.connectivitySet(he).begin())).part :
-                    (*(hg_.connectivitySet(he).begin())).part;
+                auto other_part = hg_.partID(hn) == (*hg_.connectivitySet(he).begin())?
+                    (*(++hg_.connectivitySet(he).begin())):
+                    (*(hg_.connectivitySet(he).begin()));
 
                 assert (other_part != hg_.partID(hn));
                 //if (incident_partitions_.count(other_part) == 0)
@@ -117,11 +117,11 @@ namespace partition
                 for (const auto &val : hg_.connectivitySet(he))
                 {
                   //if (incident_partitions_.count(val) == 0)
-                  if (incident_partitions_[val.part] == false)
+                  if (incident_partitions_[val] == false)
                   {
-                    incident_partition_score_[val.part] -= malus;
+                    incident_partition_score_[val] -= malus;
                     //incident_partitions_.insert(val);
-                    incident_partitions_[val.part] = true;
+                    incident_partitions_[val] = true;
                   }
                 }
               }

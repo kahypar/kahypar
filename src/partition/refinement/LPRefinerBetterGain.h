@@ -178,13 +178,13 @@ namespace partition
           ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
           if (hg_.connectivity(he) == 1)
           {
-            assert((*hg_.connectivitySet(he).begin()).part == source_part);
+            assert((*hg_.connectivitySet(he).begin())== source_part);
             internal_weight += hg_.edgeWeight(he);
           } else {
             const HypernodeID pins_in_source_part = hg_.pinCountInPart(he, source_part);
             for (const auto & con : hg_.connectivitySet(he))
             {
-              const auto& target_part = con.part;
+              const auto& target_part = con;
               tmp_target_parts_[target_part] = target_part;
 
               const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
@@ -228,7 +228,7 @@ namespace partition
               bool partition_exists = false;
               for (const auto & con : hg_.connectivitySet(he))
               {
-                const auto& target_part = con.part;
+                const auto& target_part = con;
                 if (tmp_target_parts_[t_p] == target_part)
                 {
                   partition_exists = true;
