@@ -205,7 +205,8 @@ namespace partition
                                              config.lp.percent,
                                              config.lp.small_edge_threshold,
                                              0.1,
-                                             config.lp.max_size_constraint);
+                                             config.lp.max_size_constraint,
+                                             config.lp.max_edge_size);
       }
 
       std::unique_ptr<lpa_hypergraph::IClusterer> _clusterer;

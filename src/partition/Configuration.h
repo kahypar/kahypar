@@ -117,7 +117,8 @@ struct Configuration {
       small_edge_threshold(5),
       percent(5),
       max_refinement_iterations(20),
-      max_size_constraint(0) { }
+      max_size_constraint(0),
+      max_edge_size(50) { }
 
 
     long long max_iterations;
@@ -126,6 +127,7 @@ struct Configuration {
     int percent;
     unsigned int max_refinement_iterations;
     HypernodeWeight max_size_constraint;
+    unsigned int max_edge_size;
   };
 
   PartitioningParameters partition;
