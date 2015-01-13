@@ -79,7 +79,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   _timings[kInitialLargeHErestore] = end - start;
 
   if (_config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+    restoreParallelHyperedges(hypergraph_pruner, parallel_he_stack);
   }
 }
 
@@ -96,8 +96,7 @@ void Partitioner::removeParallelHyperedges(Hypergraph& hypergraph,
   LOG("Initially removed parallel HEs:" << _stats.toString());
 }
 
-void Partitioner::restoreParallelHyperedges(Hypergraph& hypergraph,
-                                            HypergraphPruner& hypergraph_pruner,
+void Partitioner::restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
                                             RemovedParallelHyperedgesStack& stack) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   while (!stack.empty()) {

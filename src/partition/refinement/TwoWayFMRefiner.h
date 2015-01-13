@@ -86,7 +86,7 @@ class TwoWayFMRefiner : public IRefiner,
     delete _pq[1];
   }
 
-  void activate(HypernodeID hn) {
+  void activate(const HypernodeID hn) {
     if (isBorderNode(hn)) {
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partID(hn)]->contains(hn),
@@ -97,7 +97,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  bool isInitialized() {
+  bool isInitialized() const {
     return _is_initialized;
   }
 
@@ -143,7 +143,7 @@ class TwoWayFMRefiner : public IRefiner,
     _is_initialized = true;
   }
 
-  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
@@ -215,9 +215,10 @@ class TwoWayFMRefiner : public IRefiner,
 
 
       DBG(false, "Move preserves balance="
-          << movePreservesBalanceConstraint(max_gain_node, from_partition, to_partition));
+          << moveIsFeasible(max_gain_node, from_partition, to_partition));
 
       moveHypernode(max_gain_node, from_partition, to_partition);
+      _marked[max_gain_node] = true;
 
       cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
@@ -270,7 +271,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   // Gain update as decribed in [ParMar06]
-  void updateNeighbours(HypernodeID moved_node, PartitionID source_part, PartitionID target_part) {
+  void updateNeighbours(const HypernodeID moved_node, const PartitionID source_part,
+                        const PartitionID target_part) {
     _just_activated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
       if (_hg.edgeSize(he) == 2) {
@@ -339,7 +341,7 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
 
-  bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
+  bool selectQueue(const bool pq0_eligible, const bool pq1_eligible) const {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     DBG(dbg_refinement_2way_fm_eligible, "PQ 0 is empty: " << _pq[0]->empty() << " ---> "
         << (!_pq[0]->empty() ? "HN " + std::to_string(_pq[0]->max()) + " is "
@@ -355,8 +357,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
-    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
-    pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+    pq0_eligible = !_pq[0]->empty() && moveIsFeasible(_pq[0]->max(), 0, 1);
+    pq1_eligible = !_pq[1]->empty() && moveIsFeasible(_pq[1]->max(), 1, 0);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
         "HN " << _pq[0]->max() << "w(hn)=" << _hg.nodeWeight(_pq[0]->max())
         << " clogs PQ 0: w(p1)=" << _hg.partWeight(1));
@@ -365,12 +367,6 @@ class TwoWayFMRefiner : public IRefiner,
         "HN " << _pq[1]->max() << "w(hn)=" << _hg.nodeWeight(_pq[1]->max())
         << " clogs PQ 1: w(p0)=" << _hg.partWeight(0));
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
-  }
-
-  bool movePreservesBalanceConstraint(HypernodeID hn, PartitionID UNUSED(from), PartitionID to) const {
-    ASSERT(_hg.partID(hn) == from, "HN " << hn << " is not in partition " << from);
-    return _hg.partWeight(to) + _hg.nodeWeight(hn)
-           <= _config.partition.max_part_weight;
   }
 
   bool queuesAreEmpty() const {
@@ -386,21 +382,13 @@ class TwoWayFMRefiner : public IRefiner,
     return imbalance;
   }
 
-  void moveHypernode(HypernodeID hn, PartitionID from, PartitionID to) {
-    ASSERT(_hg.partID(hn) == from, "HN " << hn
-           << " is already in partition " << _hg.partID(hn));
-    ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
-    _hg.changeNodePart(hn, from, to);
-    _marked[hn] = 1;
-  }
-
-  void updatePinsOfHyperedge(HyperedgeID he, Gain sign) {
+  void updatePinsOfHyperedge(const HyperedgeID he, const Gain sign) {
     for (const HypernodeID pin : _hg.pins(he)) {
       updatePin(he, pin, sign);
     }
   }
 
-  void updatePin(HyperedgeID he, HypernodeID pin, Gain sign) {
+  void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain sign) {
     if (_pq[_hg.partID(pin)]->contains(pin)) {
       ASSERT(!_marked[pin],
              " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
@@ -427,7 +415,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  void rollback(int last_index, int min_cut_index) {
+  void rollback(int last_index, const int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -437,7 +425,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  Gain computeGain(HypernodeID hn) const {
+  Gain computeGain(const HypernodeID hn) const {
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partID(hn) ^ 1;
