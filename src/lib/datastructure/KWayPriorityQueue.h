@@ -27,7 +27,7 @@ class KWayPriorityQueue {
   typedef NoDataBinaryHeap<PartitionID,KeyType,MetaKey,Storage> TopHeap;
 
   public:
-  KWayPriorityQueue(IDType size, PartitionID k) :
+  KWayPriorityQueue(const IDType size, const PartitionID k) :
       _buf(k),
       _heaps(k, Heap(size)),
       _num_entries(0){
@@ -38,7 +38,7 @@ class KWayPriorityQueue {
     }
   }
 
-  size_t size(PartitionID part) const {
+  size_t size(const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     return _heaps[part].size();
   }
@@ -51,7 +51,7 @@ class KWayPriorityQueue {
     return size;
   }
 
-  bool empty(PartitionID part) const {
+  bool empty(const PartitionID part) const {
     return _heaps[part].size() == 0;
   }
 
@@ -59,7 +59,7 @@ class KWayPriorityQueue {
     return _num_entries == 0;
   }
 
-  void insert(IDType id, PartitionID part, KeyType key) {
+  void insert(const IDType id, const PartitionID part, const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _buf.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
     if (-key < _buf.getKey(part)) {
@@ -91,17 +91,17 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  KeyType key(IDType id, PartitionID part) const {
+  KeyType key(const IDType id, const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     return -_heaps[part].getKey(id);
   }
 
-  bool contains(IDType id, PartitionID part) const {
+  bool contains(const IDType id, const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     return _heaps[part].contains(id);
   }
 
-  void updateKey(IDType id,PartitionID part, KeyType key) {
+  void updateKey(const IDType id, const PartitionID part, const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     DBG(false, "Update: (" << id << "," << part << "," << key << ")");
     DBG(false, "Buffer state: key=" <<  _buf.getKey(part));
@@ -112,7 +112,7 @@ class KWayPriorityQueue {
                "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMinKey());
   }
 
-  void remove(IDType id, PartitionID part) {
+  void remove(const IDType id, const PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     _heaps[part].deleteNode(id);
     if (!_heaps[part].empty()) {

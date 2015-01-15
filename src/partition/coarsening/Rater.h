@@ -60,7 +60,7 @@ class Rater {
     _used_entries(),
     _visited_hypernodes(_hg.initialNumNodes()) { }
 
-  HeavyEdgeRating rate(HypernodeID u) {
+  HeavyEdgeRating rate(const HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT(_visited_hypernodes.none(), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
@@ -119,11 +119,11 @@ class Rater {
   }
 
   private:
-  bool belowThresholdNodeWeight(HypernodeID u, HypernodeID v) const {
+  bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(RatingType tmp, RatingType max_rating) const {
+  bool acceptRating(const RatingType tmp, const RatingType max_rating) const {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 

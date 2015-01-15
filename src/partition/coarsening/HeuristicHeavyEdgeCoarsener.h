@@ -51,7 +51,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::removeParallelHyperedges;
   using Base::gatherCoarseningStats;
 
-  void coarsenImpl(HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
     _sources.clear();
 
@@ -103,7 +103,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void removeMappingEntryOfNode(HypernodeID hn, HypernodeID hn_target) {
+  void removeMappingEntryOfNode(const HypernodeID hn, const HypernodeID hn_target) {
     auto range = _sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
       if (iter->second == hn) {
@@ -129,7 +129,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void reRateHypernodesAffectedByContraction(HypernodeID hn, HypernodeID contraction_node) {
+  void reRateHypernodesAffectedByContraction(const HypernodeID hn,
+                                             const HypernodeID contraction_node) {
     auto source_range = _sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
@@ -146,7 +147,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updatePQandMappings(HypernodeID hn, const Rating& rating) {
+  void updatePQandMappings(const HypernodeID hn, const Rating& rating) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
@@ -163,7 +164,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updateMappings(HypernodeID hn, const Rating& rating) {
+  void updateMappings(const HypernodeID hn, const Rating& rating) {
     removeMappingEntryOfNode(hn, _target[hn]);
     _target[hn] = rating.target;
     _sources.insert({ rating.target, hn });

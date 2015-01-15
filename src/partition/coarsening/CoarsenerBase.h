@@ -61,13 +61,13 @@ class CoarsenerBase {
   virtual ~CoarsenerBase() { }
 
   protected:
-  void removeSingleNodeHyperedges(HypernodeID rep_node) {
+  void removeSingleNodeHyperedges(const HypernodeID rep_node) {
     _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
                                                   _history.top().one_pin_hes_begin,
                                                   _history.top().one_pin_hes_size);
   }
 
-  void removeParallelHyperedges(HypernodeID rep_node) {
+  void removeParallelHyperedges(const HypernodeID rep_node) {
     _hypergraph_pruner.removeParallelHyperedges(rep_node,
                                                 _history.top().parallel_hes_begin,
                                                 _history.top().parallel_hes_size);
@@ -115,7 +115,7 @@ class CoarsenerBase {
   }
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
-                          size_t num_refinement_nodes, double& current_imbalance,
+                          const size_t num_refinement_nodes, double& current_imbalance,
                           HyperedgeWeight& current_cut) {
     HyperedgeWeight old_cut = current_cut;
     int iteration = 0;
