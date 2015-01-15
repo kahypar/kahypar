@@ -294,7 +294,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
     std::string initial_partitioner_call;
     switch (_config.partition.initial_partitioner) {
       case InitialPartitioner::hMetis:
-        initial_partitioner_call = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
+        initial_partitioner_call = _config.partition.initial_partitioner_path + " "
                                    + _config.partition.coarse_graph_filename
                                    + " " + std::to_string(_config.partition.k)
                                    + " -seed=" + std::to_string(seed)
@@ -302,7 +302,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + (_config.partition.verbose_output ? "" : " > /dev/null");
         break;
       case InitialPartitioner::PaToH:
-        initial_partitioner_call = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh "
+        initial_partitioner_call = _config.partition.initial_partitioner_path + " "
                                    + _config.partition.coarse_graph_filename
                                    + " " + std::to_string(_config.partition.k)
                                    + " SD=" + std::to_string(seed)
