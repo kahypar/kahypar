@@ -31,11 +31,11 @@ if(Boost_FOUND)
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
 endif()
 
-find_package(SparseHash REQUIRED)
-if(SPARSEHASH_FOUND)
-  include_directories(${SPARSEHASH_INCLUDE_DIR})
-  message(STATUS "SparseHash Include: ${SPARSEHASH_INCLUDE_DIR}")
-endif(SPARSEHASH_FOUND)
+# find_package(SparseHash REQUIRED)
+# if(SPARSEHASH_FOUND)
+#   include_directories(${SPARSEHASH_INCLUDE_DIR})
+#   message(STATUS "SparseHash Include: ${SPARSEHASH_INCLUDE_DIR}")
+# endif(SPARSEHASH_FOUND)
 
 if(NOT CMAKE_BUILD_TYPE)
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
