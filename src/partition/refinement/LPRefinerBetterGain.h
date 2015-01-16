@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 
+#include <boost/dynamic_bitset.hpp>
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
 #include "partition/refinement/IRefiner.h"
@@ -32,6 +33,9 @@ namespace partition
       }
     };
 
+    static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+    static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
+
     public:
     LPRefinerBetterGain(Hypergraph& hg, const Configuration &configuration) :
       hg_(hg), config_(configuration),
@@ -39,13 +43,10 @@ namespace partition
       next_queue_(new std::vector<HypernodeID>()),
       contained_cur_queue_(new std::vector<bool>()),
       contained_next_queue_(new std::vector<bool>()),
-      tmp_gains_(configuration.partition.k, 0),
-      tmp_connectivity_decrease_(configuration.partition.k, 0),
+      tmp_gains_(configuration.partition.k, kInvalidGain),
+      tmp_connectivity_decrease_(configuration.partition.k, kInvalidDecrease),
       tmp_target_parts_(configuration.partition.k, Hypergraph::kInvalidPartition)
-    {
-      //tmp_target_parts_.set_empty_key(Hypergraph::kInvalidPartition);
-      //tmp_target_parts_.set_deleted_key(Hypergraph::kDeletedPartition);
-    }
+    { }
 
       bool refineImpl(std::vector<HypernodeID> &refinement_nodes, size_t num_refinement_nodes,
           HyperedgeWeight &best_cut, double &best_imbalance) final
@@ -84,7 +85,7 @@ namespace partition
           for (const auto &hn : *cur_queue_)
           {
 
-            const auto & gain_pair = computeMaxGain(hn);
+            const auto & gain_pair = computeMaxGainMove(hn);
 
             const bool move_successful = moveHypernode(hn, hg_.partID(hn), gain_pair.second);
             if (move_successful)
@@ -156,23 +157,28 @@ namespace partition
         contained_cur_queue_->resize(hg_.initialNumNodes());
         contained_next_queue_->clear();
         contained_next_queue_->resize(hg_.initialNumNodes());
-
-        //incident_partitions_.clear();
-        //incident_partitions_.reserve(config_.partition.k);
-        //incident_partitions_.init(config_.partition.k);
-
-        //incident_partition_score_.clear();
-        //incident_partition_score_.init(config_.partition.k);
       }
 
 
-      GainPartitionPair computeMaxGain(const HypernodeID& hn)
+      GainPartitionPair computeMaxGainMove(const HypernodeID& hn)
       {
+        ASSERT([&]() {
+          for (PartitionID part = 0; part < config_.partition.k; ++part) {
+            if (tmp_target_parts_[part] != Hypergraph::kInvalidPartition ||
+                tmp_gains_[part] != kInvalidGain ||
+                tmp_connectivity_decrease_[part] != kInvalidDecrease) {
+              return false;
+            }
+          }
+          return true;
+        } () == true, "Incorrect initialization of temporary datastructures");
+
         const PartitionID source_part = hg_.partID(hn);
         HyperedgeWeight internal_weight = 0;
 
         // assume each move will increase in each edge the connectivity
-        PartitionID connectivity_increase = hg_.nodeDegree(hn);
+        PartitionID connectivity_increase_upper_bound = hg_.nodeDegree(hn);
+        PartitionID num_hes_with_only_hn_in_source_part = 0;
         for (const auto & he : hg_.incidentEdges(hn))
         {
           ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
@@ -181,66 +187,115 @@ namespace partition
             assert((*hg_.connectivitySet(he).begin())== source_part);
             internal_weight += hg_.edgeWeight(he);
           } else {
+
             const HypernodeID pins_in_source_part = hg_.pinCountInPart(he, source_part);
+            const bool move_decreases_connectivity = pins_in_source_part == 1;
+
+            // Moving the HN to a different part will not __increase__ the connectivity of
+            // the HE, because hn is the only HN in source_part (However it might decrease it).
+            // Therefore we have to correct the connectivity-decrease for all other parts
+            // (exept source_part) by 1, because we assume initially that the move increases the
+            // connectivity for each HE by 1. Actually the implementation also corrects source_part,
+            // however we reset gain and connectivity-decrease values for source part before searching
+            // for the max-gain-move & thus never consider the source_part-related values.
+            if (move_decreases_connectivity)
+            {
+              ++num_hes_with_only_hn_in_source_part;
+            }
+
             for (const auto & con : hg_.connectivitySet(he))
             {
               const auto& target_part = con;
-              tmp_target_parts_[target_part] = target_part;
+              if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition)
+              {
+                // reset the values in the temporary data structure
+                assert(tmp_gains_[target_part] == kInvalidGain);
+                assert(tmp_connectivity_decrease_[target_part] == kInvalidDecrease);
+
+                tmp_target_parts_[target_part] = target_part;
+                tmp_gains_[target_part] = 0;
+                tmp_connectivity_decrease_[target_part] = -connectivity_increase_upper_bound;
+
+              }
 
               const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
+              const bool move_increases_connectivity = pins_in_target_part == 0;
+
               if (pins_in_source_part == 1 && pins_in_target_part == hg_.edgeSize(he) - 1)
               {
                 tmp_gains_[target_part] += hg_.edgeWeight(he);
               }
 
+              // Since we only count HEs where hn is the only HN that is in the source part globally
+              // and use this value as a correction term for all parts, we have to account for the fact
+              // that we this decrease is already accounted for in ++num_hes_with_only_hn_in_part and thus
+              // have to correct the decrease value for all parts.
+              if (move_decreases_connectivity) {
+                --tmp_connectivity_decrease_[target_part]; // add correction term
+              }
 
-              //++tmp_connectivity_decrease_[target_part];
-              tmp_connectivity_decrease_[target_part] += pins_in_source_part == 1 ? 2 : 1;
-              //if (pins_in_source_part == 1)
-              //{
-                //++tmp_connectivity_decrease_[target_part];
-              //}
+              if (move_decreases_connectivity && !move_increases_connectivity) {
+                // Real decrease in connectivity.
+                // Initially we bounded the decrease with the maximum possible increase. Therefore we
+                // have to correct this value. +1 since there won't be an increase and an additional +1
+                // since there actually will be a decrease;
+                tmp_connectivity_decrease_[target_part] += 2;
+              } else if ((move_decreases_connectivity && move_increases_connectivity) ||
+                  (!move_decreases_connectivity && !move_increases_connectivity)) {
+                // Connectivity doesn't change. This means that the assumed increase was wrong and needs
+                // to be corrected.
+                tmp_connectivity_decrease_[target_part] += 1;
+              }
             }
           }
         }
 
         tmp_target_parts_[source_part] = Hypergraph::kInvalidPartition;
-        tmp_gains_[source_part] = 0;
-        tmp_connectivity_decrease_[source_part] = 0;//connectivity_increase;
+        tmp_gains_[source_part] = kInvalidGain;
+        tmp_connectivity_decrease_[source_part] = kInvalidDecrease;
 
         PartitionID max_gain_part = source_part;
         Gain max_gain = 0;
         PartitionID max_connectivity_decrease = 0;
 
-
-        // validate the connectivity decrease
         ASSERT([&] () {
-          for (PartitionID t_p = 0; t_p < config_.partition.k; ++t_p)
-          {
-            if (tmp_target_parts_[t_p] == Hypergraph::kInvalidPartition) continue;
-
-            // the move to partition t_p should decrease the connectivity by
-            // tmp_connectivity_decrease_ - connectivity_increase
-            PartitionID dec = 0;
-            for (const auto &he : hg_.incidentEdges(hn))
-            {
-              const HypernodeID pins_in_source_part = hg_.pinCountInPart(he, source_part);
-              bool partition_exists = false;
-              for (const auto & con : hg_.connectivitySet(he))
-              {
-                const auto& target_part = con;
-                if (tmp_target_parts_[t_p] == target_part)
-                {
-                  partition_exists = true;
-                  if (pins_in_source_part == 1)
-                  {
-                    dec++;
-                  }
+          // validate the connectivity decrease
+          auto compute_connectivity = [&](){
+            boost::dynamic_bitset<uint64_t> connectivity_superset(config_.partition.k);
+            PartitionID connectivity = 0;
+            for (const HyperedgeID he : hg_.incidentEdges(hn)) {
+              connectivity_superset.reset();
+              for (const PartitionID part : hg_.connectivitySet(he)) {
+                if (!connectivity_superset[part]) {
+                  connectivity += 1;
+                  connectivity_superset[part] = true;
                 }
               }
-              if (!partition_exists) dec--;
             }
-            if (dec != tmp_connectivity_decrease_[tmp_target_parts_[t_p]] - connectivity_increase) return false;
+            return connectivity;
+          };
+
+          PartitionID old_connectivity = compute_connectivity();
+          // simulate the move
+
+          for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
+          {
+            if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
+
+            hg_.changeNodePart(hn, source_part, target_part);
+            PartitionID new_connectivity = compute_connectivity();
+            hg_.changeNodePart(hn, target_part, source_part);
+
+            // the move to partition target_part should decrease the connectivity by
+            // tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
+            if (old_connectivity-new_connectivity != tmp_connectivity_decrease_[tmp_target_parts_[target_part]] + num_hes_with_only_hn_in_source_part)
+            {
+              std::cout << "part: " << target_part << std::endl;
+              std::cout << "old_connectivity: " << old_connectivity << " new_connectivity: " << new_connectivity << std::endl;
+              std::cout << "real decrease: " << old_connectivity - new_connectivity << std::endl;
+              std::cout << "my decrease: " << tmp_connectivity_decrease_[tmp_target_parts_[target_part]] + num_hes_with_only_hn_in_source_part << std::endl;
+              return false;
+            }
           }
           return true;
         }(), "connectivity decrease was not coherent!");
@@ -253,7 +308,7 @@ namespace partition
           if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
 
           const Gain target_part_gain = tmp_gains_[target_part] - internal_weight;
-          const PartitionID target_part_connectivity_decrease = tmp_connectivity_decrease_[target_part] - connectivity_increase;
+          const PartitionID target_part_connectivity_decrease = tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
           const HypernodeWeight node_weight = hg_.nodeWeight(hn);
           const HypernodeWeight source_part_weight = hg_.partWeight(source_part);
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
@@ -276,8 +331,8 @@ namespace partition
             ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
                 "Hn can't be moved to invalid partition");
           }
-          tmp_gains_[target_part] = 0;
-          tmp_connectivity_decrease_[target_part] = 0;
+          tmp_gains_[target_part] = kInvalidGain;
+          tmp_connectivity_decrease_[target_part] = kInvalidDecrease;
           tmp_target_parts_[target_part] = Hypergraph::kInvalidPartition;
         }
 
