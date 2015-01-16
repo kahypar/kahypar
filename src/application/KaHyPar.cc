@@ -334,7 +334,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::string result_file("temp.txt");
+  std::string result_file;
   if (vm.count("file")) {
     result_file = vm["file"].as<std::string>();
   }

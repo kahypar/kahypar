@@ -20,10 +20,6 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
                                        const std::array<std::chrono::duration<double>, 7>& timings,
                                        const std::string& filename) {
   std::ostringstream oss;
-  std::ofstream out_stream(filename.c_str(), std::ofstream::app);
-  ip::file_lock f_lock(filename.c_str());
-  {
-    ip::scoped_lock<ip::file_lock> s_lock(f_lock);
     oss << "RESULT"
     << " graph=" << config.partition.graph_filename.substr(
       config.partition.graph_filename.find_last_of("/") + 1)
@@ -81,9 +77,17 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " initialLargeHErestoreTime=" << timings[6].count()
     << " git=" << STR(KaHyPar_BUILD_VERSION)
     << std::endl;
-    std::cout << oss.str() << std::endl;
-    out_stream << oss.str();
-    out_stream.flush();
-  }
+    if (!filename.empty()) {
+      std::ofstream out_stream(filename.c_str(), std::ofstream::app);
+      ip::file_lock f_lock(filename.c_str());
+      {
+        ip::scoped_lock<ip::file_lock> s_lock(f_lock);
+        out_stream << oss.str();
+        out_stream.flush();
+      }
+    } else {
+      std::cout << oss.str() << std::endl;
+    }
+
 }
 } // namespace serializer
