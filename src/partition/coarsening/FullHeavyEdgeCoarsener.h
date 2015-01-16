@@ -51,7 +51,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::performContraction;
   using Base::gatherCoarseningStats;
 
-  void coarsenImpl(HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
 
     NullMap null_map;
@@ -106,7 +106,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
 
-  void reRateAffectedHypernodes(HypernodeID rep_node,
+  void reRateAffectedHypernodes(const HypernodeID rep_node,
                                 boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
                                 boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
@@ -122,7 +122,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   }
 
 
-  void updatePQandContractionTarget(HypernodeID hn, const Rating& rating,
+  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
                                     boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),

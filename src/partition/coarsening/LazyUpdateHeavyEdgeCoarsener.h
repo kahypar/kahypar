@@ -54,7 +54,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Base::removeParallelHyperedges;
   using Base::gatherCoarseningStats;
 
-  void coarsenImpl(HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
 
     NullMap null_map;
@@ -109,7 +109,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void invalidateAffectedHypernodes(HypernodeID rep_node) {
+  void invalidateAffectedHypernodes(const HypernodeID rep_node) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         _outdated_rating[pin] = true;
@@ -117,7 +117,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updatePQandContractionTarget(HypernodeID hn, const Rating& rating) {
+  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) {
     _outdated_rating[hn] = false;
     if (rating.valid) {
       ASSERT(_pq.contains(hn),

@@ -77,7 +77,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::initializeRefiner;
   using Base::gatherCoarseningStats;
 
-  void coarsenImpl(HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
     rateAllHyperedges();
 
@@ -146,7 +146,7 @@ class HyperedgeCoarsener : public ICoarsener,
     return _stats;
   }
 
-  void removeHyperedgeFromPQ(HyperedgeID he) {
+  void removeHyperedgeFromPQ(const HyperedgeID he) {
     if (_pq.contains(he)) {
       _pq.remove(he);
     }
@@ -193,7 +193,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  void reRateHyperedgesAffectedByContraction(HypernodeID representative) {
+  void reRateHyperedgesAffectedByContraction(const HypernodeID representative) {
     Rating rating;
     for (const HyperedgeID he : _hg.incidentEdges(representative)) {
       DBG(false, "Looking at HE " << he);
@@ -209,7 +209,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  HypernodeID performContraction(HyperedgeID he) {
+  HypernodeID performContraction(const HyperedgeID he) {
     _history.emplace(HyperedgeCoarseningMemento());
     _history.top().mementos_begin = _contraction_mementos.size();
     IncidenceIterator pins_begin = _hg.pins(he).begin();

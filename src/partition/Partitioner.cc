@@ -81,7 +81,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   _timings[kInitialLargeHErestore] = end - start;
 
   if (_config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+    restoreParallelHyperedges(hypergraph_pruner, parallel_he_stack);
   }
 }
 
@@ -98,8 +98,7 @@ void Partitioner::removeParallelHyperedges(Hypergraph& hypergraph,
   LOG("Initially removed parallel HEs:" << _stats.toString());
 }
 
-void Partitioner::restoreParallelHyperedges(Hypergraph& hypergraph,
-                                            HypergraphPruner& hypergraph_pruner,
+void Partitioner::restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
                                             RemovedParallelHyperedgesStack& stack) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   while (!stack.empty()) {
@@ -297,7 +296,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
     std::string initial_partitioner_call;
     switch (_config.partition.initial_partitioner) {
       case InitialPartitioner::hMetis:
-        initial_partitioner_call = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
+        initial_partitioner_call = _config.partition.initial_partitioner_path + " "
                                    + _config.partition.coarse_graph_filename
                                    + " " + std::to_string(_config.partition.k)
                                    + " -seed=" + std::to_string(seed)
@@ -305,7 +304,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + (_config.partition.verbose_output ? "" : " > /dev/null");
         break;
       case InitialPartitioner::PaToH:
-        initial_partitioner_call = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh "
+        initial_partitioner_call = _config.partition.initial_partitioner_path + " "
                                    + _config.partition.coarse_graph_filename
                                    + " " + std::to_string(_config.partition.k)
                                    + " SD=" + std::to_string(seed)

@@ -101,7 +101,7 @@ class Partitioner {
   void performInitialPartitioning(Hypergraph& hg);
   void removeParallelHyperedges(Hypergraph& hypergraph, HypergraphPruner& hypergraph_pruner,
                                 RemovedParallelHyperedgesStack& stack);
-  void restoreParallelHyperedges(Hypergraph& hypergraph, HypergraphPruner& hypergraph_pruner,
+  void restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
                                  RemovedParallelHyperedgesStack& stack);
 
   Configuration& _config;

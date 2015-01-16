@@ -19,7 +19,7 @@ class IRefiner;
 
 class ICoarsener {
   public:
-  void coarsen(HypernodeID limit) {
+  void coarsen(const HypernodeID limit) {
     coarsenImpl(limit);
   }
 
@@ -41,7 +41,7 @@ class ICoarsener {
   ICoarsener() { }
 
   private:
-  virtual void coarsenImpl(HypernodeID limit) = 0;
+  virtual void coarsenImpl(const HypernodeID limit) = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;

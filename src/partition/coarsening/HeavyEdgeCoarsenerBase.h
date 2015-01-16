@@ -83,7 +83,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void performContraction(HypernodeID rep_node, HypernodeID contracted_node) {
+  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) {
     _history.emplace(_hg.contract(rep_node, contracted_node));
   }
 

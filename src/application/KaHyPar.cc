@@ -169,6 +169,18 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.partition.initial_partitioner = InitialPartitioner::PaToH;
       }
     }
+    if (vm.count("part-path")) {
+      config.partition.initial_partitioner_path = vm["part-path"].as<std::string>();
+    } else {
+        switch (config.partition.initial_partitioner) {
+          case InitialPartitioner::hMetis:
+            config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+            break;
+          case InitialPartitioner::PaToH:
+            config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+            break;
+        }
+    }
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
     }
@@ -1262,6 +1274,7 @@ int main(int argc, char* argv[]) {
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
     ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH")
+    ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge, two_phase_lp, two_phase_lp_cluster")

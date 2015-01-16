@@ -37,16 +37,16 @@ class PriorityQueue {
     return size() == 0;
   }
 
-  void insert(IDType id, KeyType key) {
+  void insert(const IDType id, const KeyType key) {
     _heap.push(id, -key);
   }
 
-  void reInsert(IDType id, KeyType key) {
+  void reInsert(const IDType id, const KeyType key) {
     _heap.reinsertingPush(id, -key);
   }
 
   template <typename T>
-  void reInsert(IDType id, KeyType key, T data,
+  void reInsert(const IDType id, const KeyType key, T data,
                 typename std::enable_if<std::is_same<T, DataType>::value>::type* = 0) {
     _heap.reinsertingPush(id, -key, data);
   }
@@ -63,31 +63,31 @@ class PriorityQueue {
     return -_heap.getMinKey();
   }
 
-  KeyType key(IDType id) const {
+  KeyType key(const IDType id) const {
     return -_heap.getKey(id);
   }
 
-  bool contains(IDType id) const {
+  bool contains(const IDType id) const {
     return _heap.contains(id);
   }
 
-  void update(IDType id, KeyType key) {
+  void update(const IDType id, const KeyType key) {
     _heap.update(id, -key);
   }
 
-  void updateKey(IDType id, KeyType key) {
+  void updateKey(const IDType id, const KeyType key) {
     _heap.updateKey(id, -key);
   }
 
-  void increaseKey(IDType id, KeyType key) {
+  void increaseKey(const IDType id, const KeyType key) {
     _heap.increaseKey(id, -key);
   }
 
-  void decreaseKey(IDType id, KeyType key) {
+  void decreaseKey(const IDType id, const KeyType key) {
     _heap.decreaseKey(id, -key);
   }
 
-  void remove(IDType id) {
+  void remove(const IDType id) {
     _heap.deleteNode(id);
   }
 

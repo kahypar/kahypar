@@ -59,7 +59,8 @@ struct Configuration {
       graph_filename(),
       graph_partition_filename(),
       coarse_graph_filename(),
-      coarse_graph_partition_filename() { }
+      coarse_graph_partition_filename(),
+      initial_partitioner_path(){ }
 
     PartitionID k;
     int seed;
@@ -78,6 +79,7 @@ struct Configuration {
     std::string graph_partition_filename;
     std::string coarse_graph_filename;
     std::string coarse_graph_partition_filename;
+    std::string initial_partitioner_path;
   };
 
   struct TwoWayFMParameters {
@@ -163,12 +165,14 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(35) << "  L_max: " << config.partition.max_part_weight
   << std::endl;
   oss << std::setw(35) << "  seed: " << config.partition.seed << std::endl;
-  oss << std::setw(35) << " hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
+  oss << std::setw(35) << "  hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
   oss << std::setw(35) << "  # initial partitionings: "
   << config.partition.initial_partitioning_attempts << std::endl;
-  oss << std::setw(35) << "  # initial partitioner: " <<
+  oss << std::setw(35) << "   initial partitioner: " <<
   (config.partition.initial_partitioner == InitialPartitioner::hMetis ? "hMetis" : "PaToH")
   << std::endl;
+  oss << std::setw(35) << "   initial partitioner path: " << config.partition.initial_partitioner_path
+      << std::endl;
   oss << std::setw(35) << "  # global search iterations: "
   << config.partition.global_search_iterations << std::endl;
   oss << std::setw(35) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold

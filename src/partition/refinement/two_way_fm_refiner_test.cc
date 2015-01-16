@@ -444,7 +444,7 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
-  ASSERT_THAT(refiner.movePreservesBalanceConstraint(1, 0, 1), Eq(true));
-  ASSERT_THAT(refiner.movePreservesBalanceConstraint(3, 1, 0), Eq(false));
+  ASSERT_THAT(refiner.moveIsFeasible(1, 0, 1), Eq(true));
+  ASSERT_THAT(refiner.moveIsFeasible(3, 1, 0), Eq(false));
 }
 } // namespace partition
