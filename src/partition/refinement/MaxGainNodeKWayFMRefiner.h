@@ -519,8 +519,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
 
     const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-    const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
-    const bool source_part_imbalanced = source_part_weight >= _config.partition.max_part_weight;
+    const bool source_part_imbalanced = _hg.partWeight(source_part) >= _config.partition.max_part_weight;
+
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = kInvalidGain;
     PartitionID max_connectivity_decrease = kInvalidDecrease;
