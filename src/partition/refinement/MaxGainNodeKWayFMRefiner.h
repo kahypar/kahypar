@@ -518,6 +518,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            (), "connectivity decrease inconsistent!");
 
 
+    const HypernodeWeight node_weight = _hg.nodeWeight(hn);
+    const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
+    const bool source_part_imbalanced = source_part_weight >= _config.partition.max_part_weight;
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = kInvalidGain;
     PartitionID max_connectivity_decrease = kInvalidDecrease;
@@ -526,13 +529,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
         const PartitionID target_part_connectivity_decrease =
           _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part;
-        const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-        const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
         const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
         if (target_part_gain > max_gain ||
             ((target_part_gain == max_gain) &&
              ((target_part_connectivity_decrease > max_connectivity_decrease) ||
-              (source_part_weight >= _config.partition.max_part_weight &&
+              (source_part_imbalanced &&
                target_part_weight + node_weight < _config.partition.max_part_weight &&
                target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
           max_gain = target_part_gain;
@@ -548,7 +549,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " connectivity_decrease=" << max_connectivity_decrease
         << " part=" << max_gain_part);
-
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain != kInvalidGain,
            V(hn) << V(max_gain) << V(max_gain_part));
     return GainPartitionPair(max_gain, max_gain_part);
