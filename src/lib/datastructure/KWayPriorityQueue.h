@@ -80,7 +80,7 @@ class KWayPriorityQueue {
 
     part = _buf.getMin();
     id = _heaps[part].getMin();
-    key = -_buf.getKey(part);
+    key = -_buf.getMinKey();
     _heaps[part].deleteMin();
 
     if (!_heaps[part].empty()) {
@@ -91,6 +91,14 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
+  IDType max() const {
+    return _heaps[_buf.getMin()].getMin();
+  }
+
+  KeyType maxKey() const {
+    return -_buf.getMinKey();
+  }
+
   KeyType key(const IDType id, const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     return -_heaps[part].getKey(id);
@@ -99,6 +107,16 @@ class KWayPriorityQueue {
   bool contains(const IDType id, const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     return _heaps[part].contains(id);
+  }
+
+  // Should be used only for assertions
+  bool contains(const IDType id) const {
+    for (size_t i = 0; i < _heaps.size(); ++i) {
+      if (_heaps[i].contains(id)) {
+        return true;
+      }
+    }
+      return false;
   }
 
   void updateKey(const IDType id, const PartitionID part, const KeyType key) {
