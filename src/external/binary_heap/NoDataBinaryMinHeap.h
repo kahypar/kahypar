@@ -1,16 +1,7 @@
-/*
- * BinaryHeap.hpp
- *
- *  Created on: Apr 26, 2011
- *      Author: kobitzsch
- *      Modified: schlag
- */
-
-#ifndef NO_DATA_BINARY_HEAP_HPP_
-#define NO_DATA_BINARY_HEAP_HPP_
+#ifndef NO_DATA_BINARY_MIN_HEAP_H_
+#define NO_DATA_BINARY_MIN_HEAP_H_
 
 #include "exception.h"
-#include "NullData.hpp"
 #include "QueueStorages.hpp"
 
 #include "lib/macros.h"
@@ -23,9 +14,6 @@
 #include <limits>
 #include <cstring>
 
-#include "HeapStatisticData.hpp"
-#include "DataElement.h"
-
 namespace external {
 
 #pragma GCC diagnostic push
@@ -34,9 +22,9 @@ namespace external {
 //key_slot: type of key_slot used
 //Meta key slot: min/max values for key_slot accessible via static functions ::max() / ::min()
 template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
-class NoDataBinaryHeap{
+class NoDataBinaryMinHeap{
  private:
-  void operator=( const NoDataBinaryHeap& ){}	//really, do not copy
+  void operator=( const NoDataBinaryMinHeap& ){}	//really, do not copy
   typedef storage_slot Storage;
  protected:
   struct HeapElement{
@@ -62,7 +50,7 @@ class NoDataBinaryHeap{
   typedef meta_key_slot meta_key_type;
   typedef void data_type;
 
-  NoDataBinaryHeap( const NoDataBinaryHeap & other) :
+  NoDataBinaryMinHeap( const NoDataBinaryMinHeap & other) :
       handles(other.max_size - 1 /* no storage for sentinel */),
       max_size(other.max_size) {
     next_slot = 0;
@@ -71,7 +59,7 @@ class NoDataBinaryHeap{
     ++next_slot;
   }
 
-  NoDataBinaryHeap( const id_slot & storage_initializer)
+  NoDataBinaryMinHeap( const id_slot & storage_initializer)
       : handles( storage_initializer ),
         max_size(storage_initializer + 1) {
     next_slot = 0;
@@ -80,7 +68,7 @@ class NoDataBinaryHeap{
     ++next_slot;
   }
 
-  ~NoDataBinaryHeap(){
+  ~NoDataBinaryMinHeap(){
   }
 
   size_t size() const{
@@ -324,4 +312,4 @@ class NoDataBinaryHeap{
 
 } // namespace external
 
-#endif /* NO_DATA_BINARY_HEAP_HPP_ */
+#endif /* NO_DATA_BINARY_MIN_HEAP_H_ */

@@ -8,21 +8,21 @@
 
 #include "lib/definitions.h"
 
-#include "external/binary_heap/BinaryHeap.hpp"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
 
 using::testing::Test;
 using::testing::Eq;
 
-using external::BinaryHeap;
+using external::NoDataBinaryMaxHeap;
 using defs::HypernodeID;
 using defs::HyperedgeWeight;
 using datastructure::BucketPQ;
 using datastructure::PriorityQueue;
 
-typedef PriorityQueue<BinaryHeap<HypernodeID, HyperedgeWeight,
-                                 std::numeric_limits<HyperedgeWeight> > > HeapBasedPQ;
+typedef PriorityQueue<NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
+                                          std::numeric_limits<HyperedgeWeight> > > HeapBasedPQ;
 typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> BucketBasedPQ;
 
 TEST(BothQueues, AlwaysReturnMax) {

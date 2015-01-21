@@ -5,15 +5,14 @@
 #ifndef SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_
 #define SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_
 
-#include "external/binary_heap/NoDataBinaryHeap.h"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
 using defs::PartitionID;
-using external::NoDataBinaryHeap;
-using external::NullData;
+using external::NoDataBinaryMaxHeap;
 using external::ArrayStorage;
 
 namespace datastructure {
@@ -23,8 +22,8 @@ template <typename IDType = Mandatory,
           typename MetaKey = Mandatory,
           typename Storage = ArrayStorage<IDType> >
 class KWayPriorityQueue {
-  typedef NoDataBinaryHeap<IDType, KeyType, MetaKey, Storage> Heap;
-  typedef NoDataBinaryHeap<PartitionID,KeyType,MetaKey,Storage> TopHeap;
+  typedef NoDataBinaryMaxHeap<IDType, KeyType, MetaKey, Storage> Heap;
+  typedef NoDataBinaryMaxHeap<PartitionID,KeyType,MetaKey,Storage> TopHeap;
 
   public:
   KWayPriorityQueue(const IDType size, const PartitionID k) :
@@ -34,7 +33,7 @@ class KWayPriorityQueue {
     // initialize top heap buffer with sentinel elements
     // that will be updated continuously
     for (PartitionID part = 0; part < k; ++part) {
-      _buf.push(part, MetaKey::max());
+      _buf.push(part, MetaKey::min());
     }
   }
 
@@ -62,46 +61,46 @@ class KWayPriorityQueue {
   void insert(const IDType id, const PartitionID part, const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _buf.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
-    if (-key < _buf.getKey(part)) {
-      _buf.decreaseKey(part, -key);
+    if (key > _buf.getKey(part)) {
+      _buf.increaseKey(part, key);
     }
-    _heaps[part].push(id, -key);
-    ASSERT(_buf.getKey(part) == _heaps[part].getMinKey(),
-           "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMinKey());
+    _heaps[part].push(id, key);
+    ASSERT(_buf.getKey(part) == _heaps[part].getMaxKey(),
+           "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMaxKey());
     ++_num_entries;
   }
 
   void deleteMax(IDType& id, KeyType& key, PartitionID& part) {
-    ASSERT(_buf.getKey(_buf.getMin()) != MetaKey::max(), "Invalid bufkey");
-    ASSERT(_heaps[_buf.getMin()].size() != 0, "Trying to delete from empty heap");
-    ASSERT(_buf.getKey(_buf.getMin()) == _heaps[_buf.getMin()].getMinKey(),
-           "p=" << _buf.getMin() << "Wrong Key:"<< _buf.getKey(_buf.getMin())
-           << "!=" << _heaps[_buf.getMin()].getMinKey());
+    ASSERT(_buf.getKey(_buf.getMax()) != MetaKey::min(), "Invalid bufkey");
+    ASSERT(_heaps[_buf.getMax()].size() != 0, "Trying to delete from empty heap");
+    ASSERT(_buf.getKey(_buf.getMax()) == _heaps[_buf.getMax()].getMaxKey(),
+           "p=" << _buf.getMax() << "Wrong Key:"<< _buf.getKey(_buf.getMax())
+           << "!=" << _heaps[_buf.getMax()].getMaxKey());
 
-    part = _buf.getMin();
-    id = _heaps[part].getMin();
-    key = -_buf.getMinKey();
-    _heaps[part].deleteMin();
+    part = _buf.getMax();
+    key = _buf.getMaxKey();
+    id = _heaps[part].getMax();
+    _heaps[part].deleteMax();
 
     if (!_heaps[part].empty()) {
-      _buf.increaseKey(part, _heaps[part].getMinKey());
+      _buf.decreaseKey(part, _heaps[part].getMaxKey());
     } else {
-      _buf.increaseKey(part, MetaKey::max());
+      _buf.decreaseKey(part, MetaKey::min());
     }
     --_num_entries;
   }
 
   IDType max() const {
-    return _heaps[_buf.getMin()].getMin();
+    return _heaps[_buf.getMax()].getMax();
   }
 
   KeyType maxKey() const {
-    return -_buf.getMinKey();
+    return _buf.getMaxKey();
   }
 
   KeyType key(const IDType id, const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
-    return -_heaps[part].getKey(id);
+    return _heaps[part].getKey(id);
   }
 
   bool contains(const IDType id, const PartitionID part) const {
@@ -123,20 +122,20 @@ class KWayPriorityQueue {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     DBG(false, "Update: (" << id << "," << part << "," << key << ")");
     DBG(false, "Buffer state: key=" <<  _buf.getKey(part));
-    DBG(false, "Heap state: key=" << _heaps[part].getMinKey() << " id=" << _heaps[part].getMin());
-    _heaps[part].updateKey(id, -key);
-    _buf.updateKey(part, _heaps[part].getMinKey());
-    ASSERT(_buf.getKey(part) == _heaps[part].getMinKey(),
-               "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMinKey());
+    DBG(false, "Heap state: key=" << _heaps[part].getMaxKey() << " id=" << _heaps[part].getMax());
+    _heaps[part].updateKey(id, key);
+    _buf.updateKey(part, _heaps[part].getMaxKey());
+    ASSERT(_buf.getKey(part) == _heaps[part].getMaxKey(),
+               "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMaxKey());
   }
 
   void remove(const IDType id, const PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _heaps.size(), "Invalid " << V(part));
     _heaps[part].deleteNode(id);
     if (!_heaps[part].empty()) {
-      _buf.updateKey(part, _heaps[part].getMinKey());
+      _buf.updateKey(part, _heaps[part].getMaxKey());
     } else {
-      _buf.increaseKey(part, MetaKey::max());
+      _buf.decreaseKey(part, MetaKey::min());
     }
     --_num_entries;
   }
@@ -144,7 +143,7 @@ class KWayPriorityQueue {
   void clear() {
     for (size_t i = 0; i < _heaps.size(); ++i) {
       _heaps[i].clear();
-      _buf.increaseKey(i, MetaKey::max());
+      _buf.decreaseKey(i, MetaKey::min());
     }
     _num_entries = 0;
   }

@@ -30,8 +30,6 @@
 
 using datastructure::KWayPriorityQueue;
 
-using external::NullData;
-
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;

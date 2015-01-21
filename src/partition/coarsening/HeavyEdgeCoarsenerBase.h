@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryHeap.h"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
@@ -20,7 +20,7 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
-using external::NoDataBinaryHeap;
+using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
@@ -50,9 +50,9 @@ struct CoarseningMemento {
 
 template <class Rater = Mandatory,
           class PrioQueue = PriorityQueue<
-            NoDataBinaryHeap<HypernodeID,
-                             typename Rater::RatingType,
-                             MetaKeyDouble> > >
+            NoDataBinaryMaxHeap<HypernodeID,
+                                typename Rater::RatingType,
+                                MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
   typedef typename Rater::Rating Rating;
