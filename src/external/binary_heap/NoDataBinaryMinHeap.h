@@ -38,8 +38,6 @@ class NoDataBinaryMinHeap{
 
   std::vector< HeapElement > heap;
   Storage handles;
-  //TODO make heap thread safe / data elements currently not safe
-  //std::vector< DataElement<id_slot, key_slot, data_slot> > data_elements;
 
   unsigned int next_slot;
   const size_t max_size;
