@@ -15,7 +15,7 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "external/binary_heap/BinaryHeap.hpp"
+#include "external/binary_heap/NoDataBinaryHeap.h"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
@@ -29,7 +29,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using external::BinaryHeap;
+using external::NoDataBinaryHeap;
 using datastructure::PriorityQueue;
 using datastructure::BucketPQ;
 using defs::Hypergraph;
@@ -61,8 +61,8 @@ class TwoWayFMRefiner : public IRefiner,
 #ifdef USE_BUCKET_PQ
   typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
 #else
-  typedef BinaryHeap<HypernodeID, HyperedgeWeight,
-                     std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
+  typedef NoDataBinaryHeap<HypernodeID, HyperedgeWeight,
+                           std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
   typedef PriorityQueue<TwoWayFMHeap> RefinementPQ;
 #endif
 

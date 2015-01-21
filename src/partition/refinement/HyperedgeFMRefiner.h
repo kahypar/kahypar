@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "external/binary_heap/BinaryHeap.hpp"
+#include "external/binary_heap/NoDataBinaryHeap.h"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
@@ -23,7 +23,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using external::BinaryHeap;
+using external::NoDataBinaryHeap;
 using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -54,7 +54,7 @@ class HyperedgeFMRefiner : public IRefiner,
                            private FMRefinerBase {
   private:
   typedef HyperedgeWeight Gain;
-  typedef BinaryHeap<HyperedgeID, HyperedgeWeight,
+  typedef NoDataBinaryHeap<HyperedgeID, HyperedgeWeight,
                      std::numeric_limits<HyperedgeWeight> > HyperedgeFMHeap;
   typedef PriorityQueue<HyperedgeFMHeap> HyperedgeFMPQ;
 
