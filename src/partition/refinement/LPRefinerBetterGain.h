@@ -71,7 +71,7 @@ namespace partition
           const auto& cur_node = refinement_nodes[i];
           if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
           {
-            assert (hg_.partWeight(hg_.partID(cur_node)) < config_.partition.max_part_weight);
+            assert (hg_.partWeight(hg_.partID(cur_node)) <= config_.partition.max_part_weight);
 
             cur_queue_->push_back(cur_node);
             (*contained_cur_queue_)[cur_node] = true;
@@ -92,7 +92,7 @@ namespace partition
             {
               best_cut -= gain_pair.first;
 
-              assert(hg_.partWeight(gain_pair.second) < config_.partition.max_part_weight);
+              assert(hg_.partWeight(gain_pair.second) <= config_.partition.max_part_weight);
               assert(best_cut <= in_cut);
               assert(gain_pair.first >= 0);
               assert(best_cut == metrics::hyperedgeCut(hg_));
@@ -318,11 +318,11 @@ namespace partition
                  target_part_connectivity_decrease > max_connectivity_decrease) ||
                 (target_part_gain == max_gain && Randomize::flipCoin()) ||
                 (target_part_gain == max_gain &&
-                 target_part_weight + node_weight < config_.partition.max_part_weight &&
-                 target_part_weight + node_weight < hg_.partWeight(max_gain_part) + node_weight))
+                 target_part_weight + node_weight <= config_.partition.max_part_weight &&
+                 target_part_weight + node_weight <= hg_.partWeight(max_gain_part) + node_weight))
               &&
-              ((target_part_weight + node_weight < config_.partition.max_part_weight) ||
-               (target_part == source_part && target_part_weight < config_.partition.max_part_weight)))
+              ((target_part_weight + node_weight <= config_.partition.max_part_weight) ||
+               (target_part == source_part && target_part_weight <= config_.partition.max_part_weight)))
           {
             max_gain = target_part_gain;
             max_gain_part = target_part;
@@ -350,7 +350,7 @@ namespace partition
           return false;
         }
 
-        if (hg_.partWeight(to_part) + hg_.nodeWeight(hn) >= config_.partition.max_part_weight)
+        if (hg_.partWeight(to_part) + hg_.nodeWeight(hn) > config_.partition.max_part_weight)
         {
           throw std::logic_error("moving a node to a full partition");
           return false;
