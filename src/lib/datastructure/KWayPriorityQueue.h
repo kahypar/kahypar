@@ -29,7 +29,7 @@ class KWayPriorityQueue {
   KWayPriorityQueue(const IDType size, const PartitionID k) :
       _buf(k),
       _heaps(k, Heap(size)),
-      _num_entries(0){
+      _num_entries(0) {
     // initialize top heap buffer with sentinel elements
     // that will be updated continuously
     for (PartitionID part = 0; part < k; ++part) {
@@ -52,19 +52,6 @@ class KWayPriorityQueue {
 
   bool empty() const {
     return _num_entries == 0;
-  }
-
-  void disable(const PartitionID part) {
-    ASSERT(_buf.getKey(part) != MetaKey::min(), V(part));
-    _buf.decreaseKey(part, MetaKey::min());
-    _num_entries -= _heaps[part].size();
-  }
-
-  void enable(const PartitionID part) {
-    ASSERT(_buf.getKey(part) == MetaKey::min(), V(part));
-    ASSERT(!empty(part), V(part));
-    _buf.increaseKey(part, _heaps[part].getMaxKey());
-    _num_entries += _heaps[part].size();
   }
 
   void insert(const IDType id, const PartitionID part, const KeyType key) {
@@ -134,7 +121,7 @@ class KWayPriorityQueue {
     DBG(false, "Heap state: key=" << _heaps[part].getMaxKey() << " id=" << _heaps[part].getMax());
     _heaps[part].updateKey(id, key);
     _buf.updateKey(part, _heaps[part].getMaxKey());
-    ASSERT(_buf.getKey(part) == _heaps[part].getMaxKey(),
+    ASSERT(!_enabled[part] || _buf.getKey(part) == _heaps[part].getMaxKey(),
                "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMaxKey());
   }
 
