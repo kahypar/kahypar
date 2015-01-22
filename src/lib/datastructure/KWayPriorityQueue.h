@@ -43,11 +43,7 @@ class KWayPriorityQueue {
   }
 
   size_t size() const {
-    size_t size = 0;
-    for (PartitionID i = 0; i < _heaps.size(); ++i) {
-      size += _heaps[i].size();
-    }
-    return size;
+    return _num_entries;
   }
 
   bool empty(const PartitionID part) const {
