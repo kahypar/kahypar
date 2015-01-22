@@ -54,6 +54,19 @@ class KWayPriorityQueue {
     return _num_entries == 0;
   }
 
+  void disable(const PartitionID part) {
+    ASSERT(_buf.getKey(part) != MetaKey::min(), V(part));
+    _buf.decreaseKey(part, MetaKey::min());
+    _num_entries -= _heaps[part].size();
+  }
+
+  void enable(const PartitionID part) {
+    ASSERT(_buf.getKey(part) == MetaKey::min(), V(part));
+    ASSERT(!empty(part), V(part));
+    _buf.increaseKey(part, _heaps[part].getMaxKey());
+    _num_entries += _heaps[part].size();
+  }
+
   void insert(const IDType id, const PartitionID part, const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _buf.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
