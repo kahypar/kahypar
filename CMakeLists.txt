@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-#set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
+set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -12,7 +12,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 #ensure that gmock is built before tests are executed
 #include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
 include(ExternalProject)
-include_directories(${PROJECT_SOURCE_DIR}/gmock)
+#include_directories(${PROJECT_SOURCE_DIR}/gmock)
+include(${PROJECT_SOURCE_DIR}/gmock/CMakeLists.txt)
 ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
   INSTALL_COMMAND "")
@@ -67,8 +68,8 @@ if(CMAKE_BUILD_TYPE MATCHES DEBUG)
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++11 -Weffc++ -DNDEBUG")
 
 if(ENABLE_PROFILE MATCHES ON)
   message(STATUS "Profiling activated")
