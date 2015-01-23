@@ -50,7 +50,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
-  typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                             std::numeric_limits<HyperedgeWeight> > KWayRefinementPQ;
@@ -65,10 +64,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     HypernodeID hn;
     Gain gain;
   };
-
-  static const HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
-  static const Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static const Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :

@@ -53,7 +53,6 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kaway_locked_hes = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
-  typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight>> KWayRefinementPQ;
@@ -137,9 +136,9 @@ class KWayFMRefiner : public IRefiner,
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
       int free_index = -1;
-      Gain max_gain = 0;
-      HypernodeID max_gain_node = 0;
-      PartitionID to_part = 0;
+      Gain max_gain = kInvalidGain;
+      HypernodeID max_gain_node =kInvalidHN;
+      PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
       PartitionID from_part = _hg.partID(max_gain_node);
       bool no_moves_left = false;
