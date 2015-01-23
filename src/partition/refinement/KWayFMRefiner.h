@@ -53,6 +53,7 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kaway_locked_hes = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
+  typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                         std::numeric_limits<HyperedgeWeight>> KWayRefinementPQ;
@@ -68,6 +69,10 @@ class KWayFMRefiner : public IRefiner,
     PartitionID target_part;
     Gain gain;
   };
+
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
@@ -765,7 +770,9 @@ class KWayFMRefiner : public IRefiner,
            "updating gain of HN " << pin
            << " from gain " << old_gain << " to " << old_gain + delta << " (to_part="
            << part << ")");
-       _pq.updateKey(pin, part, old_gain + delta);
+       // implicit LIFO!!!
+       _pq.remove(pin, part);
+       _pq.insert(pin, part, old_gain + delta);
      }
    }
 
@@ -883,8 +890,13 @@ class KWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
 
+template <class T> constexpr HypernodeID KWayFMRefiner<T>::kInvalidHN;
+template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidGain;
+template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidDecrease;
 template <class T> constexpr PartitionID KWayFMRefiner<T>::kLocked;
 template <class T> const PartitionID KWayFMRefiner<T>::kFree;
+
+
 
 #pragma GCC diagnostic pop
 } // namespace partition

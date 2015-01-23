@@ -50,9 +50,15 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
+  typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                             std::numeric_limits<HyperedgeWeight> > KWayRefinementPQ;
+
+
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   struct RollbackInfo {
     HypernodeID hn;
@@ -74,6 +80,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _pq(_hg.initialNumNodes(), _config.partition.k),
     _marked(_hg.initialNumNodes()),
+    _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
     _performed_moves(),
     _infeasible_moves(),
@@ -105,6 +112,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     _pq.clear();
     _marked.reset();
+    _active.reset();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -278,7 +286,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_marked[pin] && !_just_updated[pin]) {
-          if (_target_parts[pin] == Hypergraph::kInvalidPartition || !_pq.contains(pin, _target_parts[pin])) {
+          if (!_active[pin]) {
             activate(pin);
           } else {
             if (isBorderNode(pin)) {
@@ -286,6 +294,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             } else {
               ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
               _pq.remove(pin, _target_parts[pin]);
+              _active[pin] = false;
             }
           }
         }
@@ -364,6 +373,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
         << " from gain " << _pq.key(pin, _target_parts[pin]) << " to " << pair.first << " (old to_part="
         << _target_parts[pin] << ", to_part=" << pair.second << ")" << V(_hg.partID(pin)));
+
+    // implicit LIFO!
     _pq.remove(pin, _target_parts[pin]);
     _pq.insert(pin, pair.second, pair.first);
     _target_parts[pin] = pair.second;
@@ -380,6 +391,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       _pq.insert(hn, pair.second, pair.first);
       _target_parts[hn] = pair.second;
       _just_updated[hn] = true;
+      _active[hn] = true;
     }
   }
 
@@ -569,6 +581,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<PartitionID> _target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;
+  boost::dynamic_bitset<uint64_t> _active;
   boost::dynamic_bitset<uint64_t> _just_updated;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<InfeasibleMove> _infeasible_moves;
@@ -576,5 +589,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
 #pragma GCC diagnostic pop
+
+template <class T>
+constexpr HypernodeID MaxGainNodeKWayFMRefiner<T>::kInvalidHN;
+template <class T>
+constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidGain;
+template <class T>
+constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidDecrease;
 }             // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
