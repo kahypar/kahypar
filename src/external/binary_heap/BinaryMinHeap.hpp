@@ -1,12 +1,12 @@
 /*
- * BinaryHeap.hpp
+ * BinaryMinHeap.hpp
  *
  *  Created on: Apr 26, 2011
  *      Author: kobitzsch
  */
 
-#ifndef BINARY_HEAP_HPP_
-#define BINARY_HEAP_HPP_
+#ifndef BINARY_MIN_HEAP_HPP_
+#define BINARY_MIN_HEAP_HPP_
 
 #include "exception.h"
 #include "NullData.hpp"
@@ -31,9 +31,9 @@ namespace external {
 //key_slot: type of key_slot used
 //Meta key slot: min/max values for key_slot accessible via static functions ::max() / ::min()
 template< typename id_slot, typename key_slot, typename meta_key_slot, typename data_slot = NullData, typename storage_slot = ArrayStorage< id_slot > >
-class BinaryHeap{
+class BinaryMinHeap{
  private:
-  void operator=( const BinaryHeap& ){}	//really, do not copy
+  void operator=( const BinaryMinHeap& ){}	//really, do not copy
   typedef storage_slot Storage;
  protected:
   struct HeapElement{
@@ -61,7 +61,7 @@ class BinaryHeap{
   typedef meta_key_slot meta_key_type;
   typedef data_slot data_type;
 
-  BinaryHeap( const BinaryHeap & other) :
+  BinaryMinHeap( const BinaryHeap & other) :
       storage(other.max_size - 1 /* no storage for sentinel */),
       max_size(other.max_size),
       data_elements( new DataElement<id_slot, key_slot, data_slot>[
@@ -73,7 +73,7 @@ class BinaryHeap{
     ++next_slot;
   }
 
-  BinaryHeap( const id_slot & storage_initializer)
+  BinaryMinHeap( const id_slot & storage_initializer)
       : storage( storage_initializer ),
         max_size(storage_initializer + 1),
       data_elements( new DataElement<id_slot, key_slot, data_slot>[storage_initializer] ) {
@@ -84,7 +84,7 @@ class BinaryHeap{
     ++next_slot;
   }
 
-  ~BinaryHeap(){
+  ~BinaryMinHeap(){
     if( data_elements )
       delete[] data_elements;
   }
@@ -393,4 +393,4 @@ class BinaryHeap{
 #pragma GCC diagnostic pop
 } // namespace external
 
-#endif /* BINARY_HEAP_HPP_ */
+#endif /* BINARY_MIN_HEAP_HPP_ */

@@ -60,7 +60,7 @@ struct Configuration {
       graph_partition_filename(),
       coarse_graph_filename(),
       coarse_graph_partition_filename(),
-      initial_partitioner_path(){ }
+      initial_partitioner_path() { }
 
     PartitionID k;
     int seed;
@@ -172,7 +172,7 @@ inline std::string toString(const Configuration& config) {
   (config.partition.initial_partitioner == InitialPartitioner::hMetis ? "hMetis" : "PaToH")
   << std::endl;
   oss << std::setw(35) << "   initial partitioner path: " << config.partition.initial_partitioner_path
-      << std::endl;
+  << std::endl;
   oss << std::setw(35) << "  # global search iterations: "
   << config.partition.global_search_iterations << std::endl;
   oss << std::setw(35) << "  hyperedge size threshold: " << config.partition.hyperedge_size_threshold

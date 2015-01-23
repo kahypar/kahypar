@@ -15,10 +15,10 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "external/binary_heap/BinaryHeap.hpp"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -27,8 +27,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using datastructure::PriorityQueue;
-using external::BinaryHeap;
+using datastructure::KWayPriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -53,10 +52,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
-  typedef BinaryHeap<HypernodeID, HyperedgeWeight,
-                     std::numeric_limits<HyperedgeWeight>,
-                     PartitionID> MaxGainNodeKWayFMHeap;
-  typedef PriorityQueue<MaxGainNodeKWayFMHeap> KWayRefinementPQ;
+  typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                            std::numeric_limits<HyperedgeWeight> > KWayRefinementPQ;
+
+
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   struct RollbackInfo {
     HypernodeID hn;
@@ -66,12 +68,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   struct InfeasibleMove {
     HypernodeID hn;
-    PartitionID target_part;
     Gain gain;
   };
-
-  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
@@ -79,8 +77,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_gains(_config.partition.k, kInvalidGain),
     _tmp_connectivity_decrease(_config.partition.k, kInvalidDecrease),
     _tmp_target_parts(_config.partition.k, Hypergraph::kInvalidPartition),
-    _pq(_hg.initialNumNodes()),
+    _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
+    _pq(_hg.initialNumNodes(), _config.partition.k),
     _marked(_hg.initialNumNodes()),
+    _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
     _performed_moves(),
     _infeasible_moves(),
@@ -112,6 +112,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     _pq.clear();
     _marked.reset();
+    _active.reset();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -135,12 +136,16 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
       int free_index = -1;
-      Gain max_gain = _pq.maxKey();
-      HypernodeID max_gain_node = _pq.max();
-      PartitionID to_part = _pq.data(max_gain_node);
+      Gain max_gain = kInvalidGain;
+      HypernodeID max_gain_node = kInvalidHN;
+      PartitionID to_part = Hypergraph::kInvalidPartition;
+      _pq.deleteMax(max_gain_node, max_gain, to_part);
+      ASSERT(to_part == _target_parts[max_gain_node],
+             V(to_part) << V(_target_parts[max_gain_node]));
       PartitionID from_part = _hg.partID(max_gain_node);
 
       // Search for feasible move with maximum gain!
+      bool no_moves_left = false;
       while (!moveIsFeasible(max_gain_node, from_part, to_part)) {
         ++free_index;
         DBG(dbg_refinement_kway_infeasible_moves,
@@ -148,23 +153,25 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             << " with gain " << max_gain
             << " sourcePart=" << from_part
             << " targetPart= " << to_part);
-        _infeasible_moves[free_index] = { max_gain_node, to_part, max_gain };
-        _pq.deleteMax();
+        _infeasible_moves[free_index] = { max_gain_node, max_gain };
         ++num_infeasible_deletes;
         if (_pq.empty()) {
+          no_moves_left = true;
           break;
         }
-        max_gain = _pq.maxKey();
-        max_gain_node = _pq.max();
-        to_part = _pq.data(max_gain_node);
+        _pq.deleteMax(max_gain_node, max_gain, to_part);
+        ASSERT(to_part == _target_parts[max_gain_node],
+               V(to_part) << V(_target_parts[max_gain_node]));
         from_part = _hg.partID(max_gain_node);
       }
 
-      if (_pq.empty()) {
+      if (no_moves_left) {
+        // we cannot use _pq.empty() here, because deleteMax might
+        // have returned a feasible move and removing this move
+        // emptied the pq. If we would use _pq.empty() we would miss
+        // to make this move.
         break;
       }
-
-      _pq.deleteMax();
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << from_part << " target_part=" << to_part);
@@ -175,18 +182,16 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ASSERT(isBorderNode(max_gain_node), V(max_gain_node));
       ASSERT(moveIsFeasible(max_gain_node, from_part, to_part),
              V(max_gain_node) << V(from_part) << V(to_part));
-      // to_part cannot be double-checked, since random tie-breaking might lead to a different to_part
+      // to_part cannot be double-checked, since tie-breaking might lead to a different to_part
+      // current implementation breaks ties in favor of best connectivity decrease (this value
+      // remains the same) and in favor of best rebalancing if source_part is imbalanced (this
+      // value might have changed since calculated initially and therefore could lead to differen
+      // tie breaking)
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
       // the max_gain_node.
-      ASSERT([&]() {
-               for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
-                 if (_hg.pinCountInPart(he, to_part) > 0) {
-                   return true;
-                 }
-               }
-               return false;
-             } (), "Move of HN " << max_gain_node << " from " << from_part
+      ASSERT(hypernodeIsConnectedToPart(max_gain_node, to_part),
+             "Move of HN " << max_gain_node << " from " << from_part
              << " to " << to_part << " is stale!");
 
       ASSERT([&]() {
@@ -206,10 +211,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             "inserting infeasible move of HN " << _infeasible_moves[free_index].hn
             << " with gain " << _infeasible_moves[free_index].gain
             << " sourcePart=" << _hg.partID(_infeasible_moves[free_index].hn)
-            << " targetPart= " << _infeasible_moves[free_index].target_part);
-        _pq.reInsert(_infeasible_moves[free_index].hn,
-                     _infeasible_moves[free_index].gain,
-                     _infeasible_moves[free_index].target_part);
+            << " targetPart= " << _target_parts[_infeasible_moves[free_index].hn]);
+        _pq.insert(_infeasible_moves[free_index].hn,
+                   _target_parts[_infeasible_moves[free_index].hn],
+                   _infeasible_moves[free_index].gain);
         --free_index;
       }
 
@@ -234,6 +239,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         }
         min_cut_index = num_moves;
       }
+      // TODO(schlag): It should be unneccesarry to store to_part since this info is contained in
+      // _target_parts: Remove and use _target_parts for restore
       _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
       ++num_moves;
     }
@@ -279,13 +286,15 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_marked[pin] && !_just_updated[pin]) {
-          if (!_pq.contains(pin)) {
+          if (!_active[pin]) {
             activate(pin);
           } else {
             if (isBorderNode(pin)) {
               updatePin(pin);
             } else {
-              _pq.remove(pin);
+              ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
+              _pq.remove(pin, _target_parts[pin]);
+              _active[pin] = false;
             }
           }
         }
@@ -304,29 +313,34 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                    if (_pq.contains(pin)) {
                      ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
                      ASSERT(isBorderNode(pin), "BorderFail");
+                     const PartitionID target_part = _target_parts[pin];
                      const GainPartitionPair pair = computeMaxGainMove(pin);
-                     // Currently the target part might be different because pins that are only
-                     // contained in locked HEs (and therefore don't experience a gain update)
-                     // might have a target part, which is not the best regarding connectivity
-                     // decrease. Theses pins would have to be evaluated spearately in order to
-                     // choose the "best possible" target_part (i.e. with most decrease).
-                     if (_pq.key(pin) != pair.first /* || _pq.data(pin) != pair.second */) {
+                     if (_pq.key(pin, target_part) != pair.first || target_part != pair.second) {
                        LOG("Incorrect maxGain or target_part for HN " << pin);
                        LOG("expected key=" << pair.first);
-                       LOG("actual key=" << _pq.key(pin));
+                       LOG("actual key=" << _pq.key(pin, target_part));
                        LOG("expected part=" << pair.second);
-                       LOG("actual part=" << _pq.data(pin));
+                       LOG("actual part=" << target_part);
                        return false;
+                     }
+                     // We use a k-way PQ, but each HN should only be in at most one of the PQs
+                     ASSERT(_pq.contains(pin, pair.second), V(pair.second));
+                     for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                       if (part != pair.second && _pq.contains(pin, part)) {
+                         LOG("HN " << pin << " contained in more than one part:");
+                         LOG("expected part=" << pair.second);
+                         LOG("also contained in part " << part);
+                         return false;
+                       }
                      }
                      // Staleness check. If the PQ contains a move of pin to part, there
                      // has to be at least one HE that connects to that part. Otherwise the
                      // move is stale and should have been removed from the PQ.
-                     const PartitionID target_part = _pq.data(pin);
                      bool connected = hypernodeIsConnectedToPart(pin, target_part);
                      if (!connected) {
                        LOG("PQ contains stale move of HN " << pin << ":");
                        LOG("calculated gain=" << computeMaxGainMove(pin).first);
-                       LOG("gain in PQ=" << _pq.key(pin));
+                       LOG("gain in PQ=" << _pq.key(pin, target_part));
                        LOG("from_part=" << _hg.partID(pin));
                        LOG("to_part=" << target_part);
                        LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target_part));
@@ -350,30 +364,34 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin) {
-    ASSERT(_pq.contains(pin), V(pin));
+    ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
     ASSERT(!_just_updated[pin], V(pin));
     ASSERT(!_marked[pin], V(pin));
     ASSERT(isBorderNode(pin), V(pin));
 
     const GainPartitionPair pair = computeMaxGainMove(pin);
     DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
-        << " from gain " << _pq.key(pin) << " to " << pair.first << " (old to_part="
-        << _pq.data(pin) << ", to_part=" << pair.second << ")" << V(_hg.partID(pin)));
-    _pq.updateKey(pin, pair.first);
-    PartitionID& target_part = _pq.data(pin);
-    target_part = pair.second;
+        << " from gain " << _pq.key(pin, _target_parts[pin]) << " to " << pair.first << " (old to_part="
+        << _target_parts[pin] << ", to_part=" << pair.second << ")" << V(_hg.partID(pin)));
+
+    // implicit LIFO!
+    _pq.remove(pin, _target_parts[pin]);
+    _pq.insert(pin, pair.second, pair.first);
+    _target_parts[pin] = pair.second;
     _just_updated[pin] = true;
   }
 
   void activate(const HypernodeID hn) {
+    ASSERT(!_pq.contains(hn), V(hn) << V(_target_parts[hn]));
     if (isBorderNode(hn)) {
-      ASSERT(!_pq.contains(hn), V(hn));
       DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
           << computeMaxGainMove(hn).first << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << computeMaxGainMove(hn).second);
       const GainPartitionPair pair = computeMaxGainMove(hn);
-      _pq.reInsert(hn, pair.first, pair.second);
+      _pq.insert(hn, pair.second, pair.first);
+      _target_parts[hn] = pair.second;
       _just_updated[hn] = true;
+      _active[hn] = true;
     }
   }
 
@@ -518,6 +536,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            (), "connectivity decrease inconsistent!");
 
 
+    const HypernodeWeight node_weight = _hg.nodeWeight(hn);
+    const bool source_part_imbalanced = _hg.partWeight(source_part) >= _config.partition.max_part_weight;
+
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     Gain max_gain = kInvalidGain;
     PartitionID max_connectivity_decrease = kInvalidDecrease;
@@ -526,13 +547,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
         const PartitionID target_part_connectivity_decrease =
           _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part;
-        const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-        const HypernodeWeight source_part_weight = _hg.partWeight(source_part);
         const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
         if (target_part_gain > max_gain ||
             ((target_part_gain == max_gain) &&
              ((target_part_connectivity_decrease > max_connectivity_decrease) ||
-              (source_part_weight >= _config.partition.max_part_weight &&
+              (source_part_imbalanced &&
                target_part_weight + node_weight < _config.partition.max_part_weight &&
                target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
           max_gain = target_part_gain;
@@ -547,8 +566,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " connectivity_decrease=" << max_connectivity_decrease
-        << " part=" << max_gain_part);
-
+        << " part=" << max_gain_part << " feasible="
+        << moveIsFeasible(hn, _hg.partID(hn), max_gain_part));
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain != kInvalidGain,
            V(hn) << V(max_gain) << V(max_gain_part));
     return GainPartitionPair(max_gain, max_gain_part);
@@ -559,20 +578,23 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_connectivity_decrease;
   std::vector<PartitionID> _tmp_target_parts;
+  std::vector<PartitionID> _target_parts;
   KWayRefinementPQ _pq;
   boost::dynamic_bitset<uint64_t> _marked;
+  boost::dynamic_bitset<uint64_t> _active;
   boost::dynamic_bitset<uint64_t> _just_updated;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<InfeasibleMove> _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
+#pragma GCC diagnostic pop
 
+template <class T>
+constexpr HypernodeID MaxGainNodeKWayFMRefiner<T>::kInvalidHN;
 template <class T>
 constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidGain;
 template <class T>
 constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidDecrease;
-
-#pragma GCC diagnostic pop
 }             // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_

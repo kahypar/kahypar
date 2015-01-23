@@ -30,8 +30,6 @@
 
 using datastructure::KWayPriorityQueue;
 
-using external::NullData;
-
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -71,6 +69,10 @@ class KWayFMRefiner : public IRefiner,
     PartitionID target_part;
     Gain gain;
   };
+
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
@@ -139,9 +141,9 @@ class KWayFMRefiner : public IRefiner,
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
       int free_index = -1;
-      Gain max_gain = 0;
-      HypernodeID max_gain_node = 0;
-      PartitionID to_part = 0;
+      Gain max_gain = kInvalidGain;
+      HypernodeID max_gain_node =kInvalidHN;
+      PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
       PartitionID from_part = _hg.partID(max_gain_node);
       bool no_moves_left = false;
@@ -165,6 +167,10 @@ class KWayFMRefiner : public IRefiner,
       }
 
       if (no_moves_left) {
+        // we cannot use _pq.empty() here, because deleteMax might
+        // have returned a feasible move and removing this move
+        // emptied the pq. If we would use _pq.empty() we would miss
+        // to make this move.
         break;
       }
 
@@ -187,14 +193,9 @@ class KWayFMRefiner : public IRefiner,
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
       // the max_gain_node.
-      ASSERT([&](){
-          for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
-            if (_hg.pinCountInPart(he, to_part) > 0) {
-              return true;
-            }
-          }
-          return false;
-        }(), "Move is stale" <<  max_gain_node);
+      ASSERT(hypernodeIsConnectedToPart(max_gain_node, to_part),
+             "Move of HN " << max_gain_node << " from " << from_part
+             << " to " << to_part << " is stale!");
 
       moveHypernode(max_gain_node, from_part, to_part);
       _marked[max_gain_node] = true;
@@ -769,13 +770,14 @@ class KWayFMRefiner : public IRefiner,
            "updating gain of HN " << pin
            << " from gain " << old_gain << " to " << old_gain + delta << " (to_part="
            << part << ")");
-       _pq.updateKey(pin, part, old_gain + delta);
+       // implicit LIFO!!!
+       _pq.remove(pin, part);
+       _pq.insert(pin, part, old_gain + delta);
      }
    }
 
   void activate(const HypernodeID hn) {
-    if (isBorderNode(hn)) {
-      ASSERT(!_active[hn], V(hn));
+    ASSERT(!_active[hn], V(hn));
       ASSERT([&]() {
           for (PartitionID part = 0; part < _config.partition.k; ++part) {
             if (_pq.contains(hn,part)) {
@@ -785,6 +787,7 @@ class KWayFMRefiner : public IRefiner,
           return true;
         }(),
              "HN " << hn << " is already contained in PQ ");
+    if (isBorderNode(hn)) {
       insertHNintoPQ(hn);
       // mark HN as active for this round.
       _active[hn] = true;
@@ -887,8 +890,13 @@ class KWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
 
+template <class T> constexpr HypernodeID KWayFMRefiner<T>::kInvalidHN;
+template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidGain;
+template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidDecrease;
 template <class T> constexpr PartitionID KWayFMRefiner<T>::kLocked;
 template <class T> const PartitionID KWayFMRefiner<T>::kFree;
+
+
 
 #pragma GCC diagnostic pop
 } // namespace partition

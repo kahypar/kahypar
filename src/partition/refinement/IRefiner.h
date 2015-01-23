@@ -18,6 +18,12 @@ using utils::Stats;
 
 namespace partition {
 class IRefiner {
+ protected:
+  typedef HyperedgeWeight Gain;
+  static const HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static const Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static const Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
+
   public:
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
               HyperedgeWeight& best_cut, double& best_imbalance) {

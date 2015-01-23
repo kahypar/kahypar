@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "external/binary_heap/BinaryHeap.hpp"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -21,7 +21,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using external::BinaryHeap;
+using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
@@ -260,7 +260,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_history;
   using Base::_stats;
   using Base::_hypergraph_pruner;
-  PriorityQueue<BinaryHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
+  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
   DISALLOW_COPY_AND_ASSIGN(HyperedgeCoarsener);
 };

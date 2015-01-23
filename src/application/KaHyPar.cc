@@ -172,14 +172,14 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("part-path")) {
       config.partition.initial_partitioner_path = vm["part-path"].as<std::string>();
     } else {
-        switch (config.partition.initial_partitioner) {
-          case InitialPartitioner::hMetis:
-            config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
-            break;
-          case InitialPartitioner::PaToH:
-            config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
-            break;
-        }
+      switch (config.partition.initial_partitioner) {
+        case InitialPartitioner::hMetis:
+          config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+          break;
+        case InitialPartitioner::PaToH:
+          config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+          break;
+      }
     }
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
@@ -1301,7 +1301,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::string result_file("temp.txt");
+  std::string result_file;
   if (vm.count("file")) {
     result_file = vm["file"].as<std::string>();
   }
