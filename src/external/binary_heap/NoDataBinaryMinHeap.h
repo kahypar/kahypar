@@ -40,7 +40,7 @@ class NoDataBinaryMinHeap{
   Storage handles;
 
   unsigned int next_slot;
-  const size_t max_size;
+  size_t max_size;
 
  public:
   typedef id_slot value_type;
@@ -67,6 +67,14 @@ class NoDataBinaryMinHeap{
   }
 
   ~NoDataBinaryMinHeap(){
+  }
+
+  void swap(NoDataBinaryMinHeap& other) {
+    using std::swap;
+    swap(heap, other.heap);
+    swap(handles, other.handles);
+    swap(next_slot, other.next_slot);
+    swap(max_size, other.max_size);
   }
 
   size_t size() const{
@@ -307,6 +315,12 @@ class NoDataBinaryMinHeap{
   }
 };
 #pragma GCC diagnostic pop
+
+template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
+void swap(NoDataBinaryMinHeap<id_slot,key_slot,meta_key_slot,storage_slot>& a,
+          NoDataBinaryMinHeap<id_slot,key_slot,meta_key_slot,storage_slot>& b) {
+  a.swap(b);
+}
 
 } // namespace external
 
