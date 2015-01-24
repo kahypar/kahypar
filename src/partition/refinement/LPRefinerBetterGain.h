@@ -358,7 +358,7 @@ namespace partition
 
         if (hg_.partSize(from_part) == 1)
         {
-          std::cout << "PART SIZE 0!!! for " <<from_part << std::endl;
+          // this would result in an extermination of a block
           return false;
         }
 
