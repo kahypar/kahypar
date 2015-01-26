@@ -3083,8 +3083,7 @@ int main(int argc, char* argv[]) {
     ("max_iterations", po::value<long long>(), "label_propagation max_iterations")
     ("sample_size", po::value<int>(), "label_propagation sample_size")
     ("percent", po::value<int>(), "label_propagation percent")
-    ("max_refinement_iterations", po::value<unsigned int>(), "label_propagation max refinement iterations")
-    ("preprocess", "perform preprocessing step");
+    ("max_refinement_iterations", po::value<unsigned int>(), "label_propagation max refinement iterations");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);

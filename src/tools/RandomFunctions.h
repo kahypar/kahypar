@@ -36,11 +36,24 @@ class Randomize {
     return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low,high));
   }
 
+  static float getRandomFloat(float low, float high)
+  {
+    return _float_dist(_gen, std::uniform_real_distribution<float>::param_type(low,high));
+  }
+
+  static float getNormalDistributedFloat(float mean, float std_dev)
+  {
+    return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
+  }
+
+
   private:
   static int _seed;
   static std::mt19937 _gen;
   static std::uniform_int_distribution<int> _bool_dist;
   static std::uniform_int_distribution<int> _int_dist;
+  static std::uniform_real_distribution<float> _float_dist;
+  static std::normal_distribution<float> _norm_dist;
 };
 
 #endif  // SRC_TOOLS_RANDOMFUNCTIONS_H_

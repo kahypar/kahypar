@@ -6,3 +6,6 @@ target_link_libraries(KaHyPar ${Boost_LIBRARIES})
 if(ENABLE_PROFILE MATCHES ON)
   target_link_libraries(KaHyPar ${PROFILE_FLAGS})
 endif()
+
+add_executable(PlantedPartitions PlantedPartitions.cc $<TARGET_OBJECTS:RandomFunctions>)
+target_link_libraries(PlantedPartitions ${Boost_LIBRARIES})
