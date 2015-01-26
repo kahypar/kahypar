@@ -379,6 +379,1354 @@ int main(int argc, char* argv[]) {
     );
 
 
+  // no sampling class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+
+  // no sampling ib class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // no sampling class 1 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_max_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+
+  // no sampling ib class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling ib class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_no_sampling_ib_max_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::AllLabelsSampledMaxScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling DUMB class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling DUMB class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_default_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_connectivity_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // no sampling DUMB class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // no sampling DUMB class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_connectivity_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling DUMB class 1 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // no sampling DUMB class 2 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_connectivity_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // no sampling DUMB class 3 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // no sampling DUMB class 4 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_dumb_no_sampling_max_connectivity_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::NoEdgeInitialization,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::DontPermutateLabels,
+        lpa_hypergraph::AllLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::IgnoreGain,
+        lpa_hypergraph::DontUpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // sampled class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_sampled_default_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -396,26 +1744,6 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_default_score_nb_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_sampled_connectivity_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -434,6 +1762,202 @@ int main(int argc, char* argv[]) {
     }
     );
 
+
+  // sampled class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // sampled nb class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_nb_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_nb_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_sampled_connectivity_score_nb_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -452,8 +1976,10 @@ int main(int argc, char* argv[]) {
     }
     );
 
+
+  // sampled nb class 2
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_max_score_gain",
+    "two_phase_lp_sampled_max_dumb_score_nb_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -461,6 +1987,236 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_nb_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_nb_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled nb class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled nb class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_nb_size_constraint_penalty_gain",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled class 1 no
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // sampled class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
         lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
         lpa_hypergraph::DefaultNewLabelComputation,
@@ -469,19 +2225,197 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
-
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_default_score_gain",
+    "two_phase_lp_sampled_max_connectivity_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_size_constraint_penalty_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // sampled class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_default_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // sampled nb class 1
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_dumb_score_nb_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_nb_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_nb_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // sampled nb class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_dumb_score_nb_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
         lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
@@ -490,16 +2424,33 @@ int main(int argc, char* argv[]) {
     );
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_ib_default_score_gain",
+    "two_phase_lp_sampled_max_default_score_nb_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NodeOrderingInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_max_connectivity_score_nb_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
         lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
@@ -507,92 +2458,106 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
+  // sampled nb class 3
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_default_score_nb_gain",
+    "two_phase_lp_sampled_dumb_score_nb_size_constraint_penalty_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NodeOrderingInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_default_score_nb_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_sampled_connectivity_score_nb_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithUpdates,
+        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
+  // sampled nb class 4
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_connectivity_score_gain",
+    "two_phase_lp_sampled_max_dumb_score_nb_size_constraint_penalty_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NodeOrderingInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_ib_connectivity_score_gain",
+    "two_phase_lp_sampled_max_default_score_nb_size_constraint_penalty_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NodeOrderingInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
-
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_connectivity_score_nb_gain",
+    "two_phase_lp_sampled_max_connectivity_score_nb_size_constraint_penalty_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
+        lpa_hypergraph::NodeOrderingInitialization,
         lpa_hypergraph::InitializeSamplesWithUpdates,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
+        lpa_hypergraph::DontPermutateNodes,
         lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_max_score_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformation,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
@@ -600,23 +2565,25 @@ int main(int argc, char* argv[]) {
     );
 
 
+  // label sampled class 1
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_max_score_no_gain",
+    "two_phase_lp_label_samples_dumb_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DumbScore>,
         lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::IgnoreGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
+
 
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_label_samples_default_score_gain",
@@ -637,25 +2604,6 @@ int main(int argc, char* argv[]) {
     );
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_default_score_nb_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeLabelSamples,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithSampledLabels,
-        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformationSampledLabels,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_label_samples_connectivity_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
@@ -673,8 +2621,11 @@ int main(int argc, char* argv[]) {
     }
     );
 
+
+  // label samples
+  // class 2
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_connectivity_score_nb_gain",
+    "two_phase_lp_label_samples_max_dumb_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -683,7 +2634,7 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
         lpa_hypergraph::PermutateLabelsWithSampledLabels,
-        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
         lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformationSampledLabels,
@@ -691,8 +2642,9 @@ int main(int argc, char* argv[]) {
     }
     );
 
+
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_max_score_gain",
+    "two_phase_lp_label_samples_max_default_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -709,336 +2661,40 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_default_score_gain",
+    "two_phase_lp_label_samples_max_connectivity_score_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<>,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
         lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_default_score_nb_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
+  // label sampled class 3
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_connectivity_score_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_connectivity_score_nb_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_max_score_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_default_score_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_dumb_score_size_constraint_penalty_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DumbScore>,
         lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_default_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_connectivity_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_connectivity_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_sampled_max_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_default_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_ib_default_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_default_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_connectivity_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_ib_connectivity_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputationIgnoreBigEdges<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_connectivity_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_max_score_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_no_sampling_max_score_size_constraint_penalty_no_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::AllLabelsSampledMaxScoreComputation<lpa_hypergraph::DefaultScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::IgnoreGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
@@ -1062,27 +2718,6 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_default_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeLabelSamples,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithSampledLabels,
-        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformationSampledLabels,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-
-
   CoarsenerFactory::getInstance().registerObject(
     "two_phase_lp_label_samples_connectivity_score_size_constraint_penalty_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
@@ -1101,8 +2736,10 @@ int main(int argc, char* argv[]) {
     }
     );
 
+  // label samples
+  // class 4
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_connectivity_score_nb_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_max_dumb_score_size_constraint_penalty_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -1111,7 +2748,7 @@ int main(int argc, char* argv[]) {
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
         lpa_hypergraph::PermutateLabelsWithSampledLabels,
-        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
         lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
         lpa_hypergraph::UpdateInformationSampledLabels,
@@ -1120,9 +2757,8 @@ int main(int argc, char* argv[]) {
     );
 
 
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_label_samples_max_score_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_max_default_score_size_constraint_penalty_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
@@ -1139,101 +2775,251 @@ int main(int argc, char* argv[]) {
     }
     );
 
-
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_default_score_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_max_connectivity_score_size_constraint_penalty_gain",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
         lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
         lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<>,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
         lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
-    }
-    );
-
-  CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_default_score_nb_size_constraint_penalty_gain",
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::DefaultScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
 
-
-
+  // label sampled no class 1
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_connectivity_score_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_dumb_score_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_connectivity_score_nb_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_default_score_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<lpa_hypergraph::ConnectivityPenaltyScoreNonBiased>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_connectivity_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  // label samples no class 2
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_max_dumb_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
 
 
   CoarsenerFactory::getInstance().registerObject(
-    "two_phase_lp_multilevel_max_score_size_constraint_penalty_gain",
+    "two_phase_lp_label_samples_max_default_score_gain_no",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsenerMultilevel<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
         lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
         lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledMaxScoreComputation<>,
-        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
         lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
+        lpa_hypergraph::UpdateInformationSampledLabels,
         lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
     }
     );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_max_connectivity_score_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::DefaultNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // label sampled no class 3
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_dumb_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_default_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_connectivity_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  // label samples no class 4
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_max_dumb_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DumbScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_max_default_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::DefaultScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "two_phase_lp_label_samples_max_connectivity_score_size_constraint_penalty_gain_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
+        lpa_hypergraph::NodeOrderingInitialization,
+        lpa_hypergraph::InitializeLabelSamples,
+        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
+        lpa_hypergraph::DontCollectInformation,
+        lpa_hypergraph::DontPermutateNodes,
+        lpa_hypergraph::PermutateLabelsWithSampledLabels,
+        lpa_hypergraph::SampledLabelsMaxScoreComputation<lpa_hypergraph::ConnectivityPenaltyScore>,
+        lpa_hypergraph::SizeConstraintPenaltyNewLabelComputation,
+        lpa_hypergraph::DefaultGain,
+        lpa_hypergraph::UpdateInformationSampledLabels,
+        lpa_hypergraph::MaxIterationCondition>>(p.hypergraph, p.config);
+    }
+    );
+
+
+
 
   CoarsenerFactory::getInstance().registerObject(
     "first_choice",
@@ -1248,9 +3034,16 @@ int main(int argc, char* argv[]) {
     }
     );
   CoarsenerFactory::getInstance().registerObject(
-    "bipartite_lp",
+    "bipartite_lp_default_score",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::BipartiteLP>(p.hypergraph, p.config);
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DefaultScore>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_dumb_score",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DumbScore>>(p.hypergraph, p.config);
     }
     );
 
@@ -1324,73 +3117,9 @@ int main(int argc, char* argv[]) {
 
   io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector);
-  Hypergraph hypergraph_initial(num_hypernodes, num_hyperedges, index_vector, edge_vector,
-                        config.partition.k);
 
-  bool preprocess = vm.count("preprocess") > 0;
-  // TODO set config params???
-  config.lp.max_size_constraint = 9999;
-  std::unique_ptr<ICoarsener> preprocess_coarsener(new GenericCoarsener<lpa_hypergraph::TwoPhaseLPClusterer<
-        lpa_hypergraph::OnlyLabelsInitialization,
-        lpa_hypergraph::InitializeSamplesWithUpdates,
-        lpa_hypergraph::CollectInformationWithUpdatesWithCleanup,
-        lpa_hypergraph::DontCollectInformation,
-        lpa_hypergraph::PermutateNodes,
-        lpa_hypergraph::PermutateLabelsWithUpdates,
-        lpa_hypergraph::NonBiasedSampledScoreComputation<>,
-        lpa_hypergraph::DefaultNewLabelComputation,
-        lpa_hypergraph::DefaultGain,
-        lpa_hypergraph::UpdateInformation,
-        lpa_hypergraph::MaxIterationCondition>>(hypergraph_initial, config));
-  auto preprocess_refiner =
-    std::unique_ptr<IRefiner>(new LPRefiner(hypergraph_initial, config));
-  HighResClockTimepoint start_t;
-  HighResClockTimepoint end_t;
-
-  start_t = std::chrono::high_resolution_clock::now();
-  if (preprocess) preprocess_coarsener->coarsen(0);
-  end_t = std::chrono::high_resolution_clock::now();
-
-  HypernodeID num_coarsened_hypernodes = hypergraph_initial.numNodes();
-  HypernodeID num_coarsened_hyperedges = hypergraph_initial.numEdges();
-  HyperedgeIndexVector coarsened_index_vector;
-  HyperedgeVector coarsened_edge_vector;
-  HypernodeWeightVector coarsened_node_weight_vector;
-  HyperedgeWeightVector coarsened_edge_weight_vector;
-
-  coarsened_index_vector.reserve(num_coarsened_hyperedges + 1);
-  coarsened_index_vector.push_back(coarsened_edge_vector.size());
-
-  // TODO need to create the mapping
-  std::unordered_map<HypernodeID, HypernodeID> map_initial_coarsened;
-  std::unordered_map<HypernodeID, HypernodeID> map_coarsened_initial;
-
-  int i = 0;
-  for (const auto &hn : hypergraph_initial.nodes())
-  {
-    map_initial_coarsened[hn] = i;
-    map_coarsened_initial[i++] = hn;
-  }
-
-  for (const auto &he : hypergraph_initial.edges())
-  {
-    coarsened_edge_weight_vector.push_back(hypergraph_initial.edgeWeight(he));
-    for (const auto &pin : hypergraph_initial.pins(he))
-    {
-      coarsened_edge_vector.push_back(map_initial_coarsened[pin]);
-    }
-    coarsened_index_vector.push_back(coarsened_edge_vector.size());
-  }
-
-  for (const auto &hn : hypergraph_initial.nodes())
-  {
-    coarsened_node_weight_vector.push_back(hypergraph_initial.nodeWeight(hn));
-  }
-
-  std::cout  << "COARSENED: " << num_coarsened_hypernodes << ", " << num_coarsened_hyperedges << std::endl;
-  Hypergraph hypergraph(num_coarsened_hypernodes, num_coarsened_hyperedges, coarsened_index_vector,
-                        coarsened_edge_vector, config.partition.k, &coarsened_edge_weight_vector,
-                        &coarsened_node_weight_vector);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
+                        edge_vector, config.partition.k);
 
   HypernodeWeight hypergraph_weight = 0;
   for (const HypernodeID hn : hypergraph.nodes()) {
@@ -1480,11 +3209,6 @@ int main(int argc, char* argv[]) {
   if (vm.count("rtype") &&
       vm["rtype"].as<std::string>() == "lp_refiner")
   {
-    refiner.reset(new LPRefiner(hypergraph, config));
-  }
-  if (vm.count("rtype") &&
-      vm["rtype"].as<std::string>() == "lp_refiner_better_gain")
-  {
     refiner.reset(new LPRefinerBetterGain(hypergraph, config));
   }
 
@@ -1496,36 +3220,7 @@ int main(int argc, char* argv[]) {
   partitioner.partition(hypergraph, *coarsener, *refiner);
   end = std::chrono::high_resolution_clock::now();
 
-
-  // project the partition to the initial hypergraph
-  for (const auto &hn : hypergraph_initial.nodes())
-  {
-    hypergraph_initial.setNodePart(hn, hypergraph.partID(map_initial_coarsened[hn]));
-  }
-
-  // refine
-  std::chrono::duration<double> elapse_seconds_preprocess = end_t - start_t;
-  start_t = std::chrono::high_resolution_clock::now();
-  if (preprocess) preprocess_coarsener->uncoarsen(*preprocess_refiner);
-  end_t = std::chrono::high_resolution_clock::now();
-
-
-  elapse_seconds_preprocess += end_t - start_t;
-  std::cout << "PREPROCESS TOOK " << elapse_seconds_preprocess.count() << std::endl;
-#ifndef NDEBUG
-  for (auto && he : hypergraph_initial.edges()) {
-    ASSERT([&]() -> bool {
-             HypernodeID num_pins = 0;
-             for (PartitionID i = 0; i < config.partition.k; ++i) {
-               num_pins += hypergraph_initial.pinCountInPart(he, i);
-             }
-             return num_pins == hypergraph_initial.edgeSize(he);
-           } (),
-           "Incorrect calculation of pin counts");
-  }
-#endif
-
-  std::chrono::duration<double> elapsed_seconds = end - start + elapse_seconds_preprocess;
+  std::chrono::duration<double> elapsed_seconds = end - start;
 
   io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());

@@ -121,8 +121,8 @@ class KWayPriorityQueue {
     DBG(false, "Heap state: key=" << _heaps[part].getMaxKey() << " id=" << _heaps[part].getMax());
     _heaps[part].updateKey(id, key);
     _buf.updateKey(part, _heaps[part].getMaxKey());
-    ASSERT(!_enabled[part] || _buf.getKey(part) == _heaps[part].getMaxKey(),
-               "buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMaxKey());
+    //ASSERT(!_enabled[part] || _buf.getKey(part) == _heaps[part].getMaxKey(),
+               //"buf.key=" << _buf.getKey(part) << "!=" << _heaps[part].getMaxKey());
   }
 
   void remove(const IDType id, const PartitionID part) {
