@@ -58,20 +58,24 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
     _expected_gain = 0.0;
     _expected_variance = 0.0;
     _sum_gains = 0.0;
-    _sum_gains_squared = 0.0;
   }
 
   template <typename Gain>
   static void updateStatistics(Gain gain) {
     ++_num_steps;
     _sum_gains += gain;
-    _sum_gains_squared += gain * gain;
     _expected_gain = _sum_gains / _num_steps;
     // http://de.wikipedia.org/wiki/Standardabweichung#Berechnung_f.C3.BCr_auflaufende_Messwerte
     if (_num_steps > 1) {
-      _expected_variance = (_sum_gains_squared - ((_sum_gains * _sum_gains) / _num_steps)) / (_num_steps - 1);
+      _MkMinus1 = _Mk;
+      _Mk = _MkMinus1 + (gain - _MkMinus1) / _num_steps;
+      _SkMinus1 = _Sk;
+      _Sk = _SkMinus1 + (gain - _MkMinus1) * (gain - _Mk);
+      _expected_variance = _Sk / (_num_steps - 1);
     } else {
-      _expected_variance = 0.0;
+      // everything else is already reset in resetStatistics
+      _Mk = static_cast<double>(gain);
+      _Sk = 0.0;
     }
   }
 
@@ -80,7 +84,10 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
   static double _expected_gain;
   static double _expected_variance;
   static double _sum_gains;
-  static double _sum_gains_squared;
+  static double _Mk;
+  static double _MkMinus1;
+  static double _Sk;
+  static double _SkMinus1;
 
   protected:
   ~RandomWalkModelStopsSearch() { }
@@ -88,9 +95,12 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
 
 int RandomWalkModelStopsSearch::_num_steps = 0;
 double RandomWalkModelStopsSearch::_sum_gains = 0.0;
-double RandomWalkModelStopsSearch::_sum_gains_squared = 0.0;
 double RandomWalkModelStopsSearch::_expected_gain = 0.0;
 double RandomWalkModelStopsSearch::_expected_variance = 0.0;
+double RandomWalkModelStopsSearch::_Mk = 0.0;
+double RandomWalkModelStopsSearch::_MkMinus1 = 0.0;
+double RandomWalkModelStopsSearch::_Sk = 0.0;
+double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int, int step, const Configuration& config,
