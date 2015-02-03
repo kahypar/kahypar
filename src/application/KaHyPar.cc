@@ -3036,16 +3036,59 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject(
     "bipartite_lp_default_score",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DefaultScore>>(p.hypergraph, p.config);
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DefaultScore, false>>(p.hypergraph, p.config);
     }
     );
 
   CoarsenerFactory::getInstance().registerObject(
     "bipartite_lp_dumb_score",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DumbScore>>(p.hypergraph, p.config);
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DumbScore, false>>(p.hypergraph, p.config);
     }
     );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_default_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLPSizeConstraint<lpa_hypergraph::DefaultScore, false>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_dumb_score_size_constraint_penalty",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLPSizeConstraint<lpa_hypergraph::DumbScore, false>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_default_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DefaultScore, true>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_dumb_score_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLP<lpa_hypergraph::DumbScore, true>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_default_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLPSizeConstraint<lpa_hypergraph::DefaultScore, true>>(p.hypergraph, p.config);
+    }
+    );
+
+  CoarsenerFactory::getInstance().registerObject(
+    "bipartite_lp_dumb_score_size_constraint_penalty_no",
+    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<lpa_hypergraph::BipartiteLPSizeConstraint<lpa_hypergraph::DumbScore, true>>(p.hypergraph, p.config);
+    }
+    );
+
 
   CoarsenerFactory::getInstance().registerObject(
     "best_choice",

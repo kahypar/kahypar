@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
+#set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
