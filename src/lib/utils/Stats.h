@@ -25,7 +25,7 @@ class Stats{
       _stats() { }
 
   void add(const std::string& key, int vcycle, double value) {
-    _stats[key + std::to_string(vcycle)] += value;
+    _stats[key + "_v" + std::to_string(vcycle)] += value;
   }
 
   std::string toString() const {
