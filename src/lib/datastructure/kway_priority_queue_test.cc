@@ -189,14 +189,25 @@ TEST_F(AKWayPriorityQueue, ReturnsNumberOfEnabledParts) {
   ASSERT_THAT(prio_queue.numEnabledParts(), Eq(1));
 }
 
-TEST_F(AKWayPriorityQueueDeathTest, EnsuresThatEmptyPartsCannotBeEnabled) {
-  ASSERT_EXIT(prio_queue.enablePart(2), ::testing::KilledBySignal(SIGABRT),
-              ".*");
+TEST_F(AKWayPriorityQueue, EnsuresThatEmptyPartsCannotBeEnabled) {
+  prio_queue.enablePart(2);
+  ASSERT_THAT(prio_queue.numEnabledParts(), Eq(0));
 }
 
 TEST_F(AKWayPriorityQueue, ReturnsNumberOfNonEmptyParts) {
   ASSERT_THAT(prio_queue.numNonEmptyParts(), Eq(0));
   prio_queue.insert(1, 2, 25);
   ASSERT_THAT(prio_queue.numNonEmptyParts(), Eq(1));
+}
+
+TEST_F(AKWayPriorityQueue,
+       DoesNotDecreaseTheNumberOfEnabledHeapsIfTheLastElementOfADisabledHeapIsRemoved) {
+  prio_queue.insert(1, 2, 25);
+  prio_queue.insert(0, 3, 23);
+  prio_queue.enablePart(2);
+
+  prio_queue.remove(0, 3);
+
+  ASSERT_THAT(prio_queue.numEnabledParts(), Eq(1));
 }
 } // namespace datastructure

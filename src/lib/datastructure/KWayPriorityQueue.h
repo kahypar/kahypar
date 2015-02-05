@@ -67,8 +67,7 @@ class KWayPriorityQueue {
   }
 
   void enablePart(const PartitionID part) {
-    ASSERT(_index[part] < _num_nonempty_pqs, V(part));
-    if (!isEnabled(part)) {
+    if (!isUnused(part) && !isEnabled(part)) {
       swap(_index[part], _num_enabled_pqs);
       ++_num_enabled_pqs;
       ASSERT(_num_enabled_pqs <= _num_nonempty_pqs, V(_num_enabled_pqs));
@@ -76,9 +75,10 @@ class KWayPriorityQueue {
   }
 
   void disablePart(const PartitionID part) {
-    ASSERT(isEnabled(part), V(part));
-    --_num_enabled_pqs;
-    swap(_index[part], _num_enabled_pqs);
+    if (isEnabled(part)) {
+      --_num_enabled_pqs;
+      swap(_index[part], _num_enabled_pqs);
+    }
   }
 
   void insert(const IDType id, const PartitionID part, const KeyType key) {
@@ -110,6 +110,7 @@ class KWayPriorityQueue {
 
     _heaps[max_index].deleteMax();
     if (_heaps[max_index].empty()) {
+      ASSERT(isEnabled(max_part), V(max_part));
       --_num_enabled_pqs;  // now points to the last enabled pq
       --_num_nonempty_pqs; // now points to the last non-empty disbabled pq
       swap(_index[max_part], _num_enabled_pqs);
@@ -153,9 +154,11 @@ class KWayPriorityQueue {
     ASSERT(_heaps[_index[part]].contains(id), V(id) << V(part));
     _heaps[_index[part]].deleteNode(id);
     if (_heaps[_index[part]].empty()) {
-      --_num_enabled_pqs;  // now points to the last enabled pq
-      --_num_nonempty_pqs; // now points to the last non-empty disbabled pq
-      swap(_index[part], _num_enabled_pqs);
+      if (isEnabled(part)) {
+        --_num_enabled_pqs; // now points to the last enabled pq
+        swap(_index[part], _num_enabled_pqs);
+      }
+      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
       swap(_index[part], _num_nonempty_pqs);
       markUnused(part);
     }
