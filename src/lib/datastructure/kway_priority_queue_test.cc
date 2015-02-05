@@ -30,7 +30,7 @@ TEST_F(AKWayPriorityQueue, IsEmptyIfItContainsNoElements) {
   ASSERT_THAT(prio_queue.empty(), Eq(true));
 }
 
-TEST_F(AKWayPriorityQueue, DISABLED_IsEmptyIfNoInternalHeapsAreEnabled) {
+TEST_F(AKWayPriorityQueue, IsEmptyIfNoInternalHeapsAreEnabled) {
   prio_queue.insert(1, 2, 25);
   ASSERT_THAT(prio_queue.empty(), Eq(true));
 }
@@ -76,7 +76,7 @@ TEST_F(AKWayPriorityQueue, IsEmptyIfLastEnabledInternalHeapBecomesDisabled) {
   ASSERT_THAT(prio_queue.empty(), Eq(true));
 }
 
-TEST_F(AKWayPriorityQueue, DISABLED_ChoosesMaxKeyAmongAllEnabledInternalHeaps) {
+TEST_F(AKWayPriorityQueue, ChoosesMaxKeyAmongAllEnabledInternalHeaps) {
   prio_queue.insert(1, 2, 25);
   prio_queue.insert(4, 1, 6);
   prio_queue.insert(0, 3, 42);

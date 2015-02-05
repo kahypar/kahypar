@@ -66,6 +66,10 @@ class KWayPriorityQueue {
     return _num_nonempty_pqs;
   }
 
+  bool isEnabled(const PartitionID part) const {
+    return _index[part] < _num_enabled_pqs;
+  }
+
   void enablePart(const PartitionID part) {
     if (!isUnused(part) && !isEnabled(part)) {
       swap(_index[part], _num_enabled_pqs);
@@ -89,7 +93,6 @@ class KWayPriorityQueue {
       _part[_num_nonempty_pqs] = part;
       _heaps[_num_nonempty_pqs].clear(); // lazy clear
       _index[part] = _num_nonempty_pqs++;
-      ++_num_enabled_pqs;
     }
     _heaps[_index[part]].push(id, key);
     ++_num_entries;
@@ -187,10 +190,9 @@ class KWayPriorityQueue {
 
   private:
   FRIEND_TEST(AKWayPriorityQueue, DisablesInternalHeapIfItBecomesEmptyDueToRemoval);
-  FRIEND_TEST(AKWayPriorityQueue, DISABLED_ChoosesMaxKeyAmongAllEnabledInternalHeaps);
+  FRIEND_TEST(AKWayPriorityQueue, ChoosesMaxKeyAmongAllEnabledInternalHeaps);
   FRIEND_TEST(AKWayPriorityQueue, DoesNotConsiderDisabledHeapForChoosingMax);
   FRIEND_TEST(AKWayPriorityQueue, ReconsidersDisabledHeapAgainAfterEnabling);
-
 
   void swap(const size_t index_a, const size_t index_b) {
     using std::swap;
@@ -214,10 +216,6 @@ class KWayPriorityQueue {
     }
     ASSERT(max_index != kInvalidIndex, V(max_index));
     return max_index;
-  }
-
-  bool isEnabled(const PartitionID part) const {
-    return _index[part] < _num_enabled_pqs;
   }
 
   bool isUnused(const PartitionID part) const {
