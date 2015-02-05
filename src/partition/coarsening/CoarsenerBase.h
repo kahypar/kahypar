@@ -206,15 +206,15 @@ class CoarsenerBase {
     _stats.add("ExposedHEWeightToInitialExposedHEWeightRATIO", _config.partition.current_v_cycle,
                static_cast<double>(sum_exposed_he_weight) / _hg.initialNumEdges());
     _stats.add("HEsizeMIN", _config.partition.current_v_cycle,
-               edge_size_map.begin()->first);
+               (edge_size_map.size() > 0 ? edge_size_map.begin()->first : 0));
     _stats.add("HEsizeMAX", _config.partition.current_v_cycle,
-               edge_size_map.rbegin()->first);
+               (edge_size_map.size() > 0 ? edge_size_map.rbegin()->first : 0));
     _stats.add("HEsizeAVG", _config.partition.current_v_cycle,
-                metrics::avgHyperedgeDegree(_hg));
+               metrics::avgHyperedgeDegree(_hg));
     _stats.add("HNdegreeMIN", _config.partition.current_v_cycle,
-               node_degree_map.begin()->first);
+               (node_degree_map.size() > 0 ? node_degree_map.begin()->first : 0));
     _stats.add("HNdegreeMAX", _config.partition.current_v_cycle,
-               node_degree_map.rbegin()->first);
+               (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
     _stats.add("HNdegreeAVG", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
 #endif
