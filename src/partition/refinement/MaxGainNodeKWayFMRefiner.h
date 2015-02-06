@@ -412,17 +412,19 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            } () == true, "Incorrect initialization of temporary datastructures");
 
     const PartitionID source_part = _hg.partID(hn);
-    const PartitionID connectivity_increase_upper_bound = _hg.nodeDegree(hn);
+    // = connectivity_increase_upper_bound
+    const PartitionID worst_case_connectivity_decrease = - _hg.nodeDegree(hn);
 
     HyperedgeWeight internal_weight = 0;
     PartitionID num_hes_with_only_hn_in_part = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       if (_hg.connectivity(he) == 1) {
-        internal_weight += _hg.edgeWeight(he);
+        internal_weight += he_weight;
       } else {
         const bool move_decreases_connectivity = _hg.pinCountInPart(he, source_part) == 1;
-
+        const HypernodeID he_size = _hg.edgeSize(he);
         // Moving the HN to a different part will not __increase__ the connectivity of
         // the HE, because hn is the only HN in source_part (However it might decrease it).
         // Therefore we have to correct the connectivity-decrease for all other parts
@@ -430,9 +432,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         // connectivity for each HE by 1. Actually the implementation also corrects source_part,
         // however we reset gain and connectivity-decrease values for source part before searching
         // for the max-gain-move & thus never consider the source_part-related values.
-        if (move_decreases_connectivity) {
-          ++num_hes_with_only_hn_in_part;
-        }
+        num_hes_with_only_hn_in_part += move_decreases_connectivity;
 
         for (const PartitionID part : _hg.connectivitySet(he)) {
           if (_tmp_target_parts[part] == Hypergraph::kInvalidPartition) {
@@ -441,13 +441,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             ASSERT(_tmp_connectivity_decrease[part] == kInvalidDecrease,
                    V(_tmp_connectivity_decrease[part]));
             _tmp_gains[part] = 0;
-            _tmp_connectivity_decrease[part] = -connectivity_increase_upper_bound;
+            _tmp_connectivity_decrease[part] = worst_case_connectivity_decrease;
           }
           const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, part);
           const bool move_increases_connectivity = pins_in_target_part == 0;
 
-          if (move_decreases_connectivity && pins_in_target_part == _hg.edgeSize(he) - 1) {
-            _tmp_gains[part] += _hg.edgeWeight(he);
+          if (move_decreases_connectivity && pins_in_target_part == he_size - 1) {
+            _tmp_gains[part] += he_weight;
           }
 
           // Since we only count HEs where hn is the only HN that is in the source part globally
