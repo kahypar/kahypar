@@ -63,14 +63,14 @@ TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes) {
-  refiner->activate(1);
+  refiner->activate(1, 42);
 
   ASSERT_THAT(refiner->_pq.max(), Eq(1));
   ASSERT_THAT(refiner->_pq.maxKey(), Eq(0));
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
-  refiner->activate(7);
+  refiner->activate(7, 42);
 
   ASSERT_THAT(refiner->_pq.contains(7), Eq(false));
 }

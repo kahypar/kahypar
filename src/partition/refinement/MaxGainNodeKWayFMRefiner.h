@@ -216,7 +216,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         _pq.insert(_infeasible_moves[free_index].hn,
                    _target_parts[_infeasible_moves[free_index].hn],
                    _infeasible_moves[free_index].gain);
-        if(_hg.partWeight(_target_parts[_infeasible_moves[free_index].hn]) < max_allowed_weight) {
+        if (_hg.partWeight(_target_parts[_infeasible_moves[free_index].hn]) < max_allowed_weight) {
           _pq.enablePart(_target_parts[_infeasible_moves[free_index].hn]);
         }
         --free_index;
@@ -225,7 +225,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       if (_hg.partWeight(to_part) >= max_allowed_weight) {
         _pq.disablePart(to_part);
       }
-      if(_hg.partWeight(from_part) < max_allowed_weight) {
+      if (_hg.partWeight(from_part) < max_allowed_weight) {
         _pq.enablePart(from_part);
       }
 
@@ -313,80 +313,80 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (!isBorderNode(pin)) {
-              if (_pq.contains(pin)) {
-                LOG("HN " << pin << " should not be contained in PQ");
-                return false;
-              }
-            } else {
-              if (_pq.contains(pin)) {
-                ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
-                ASSERT(isBorderNode(pin), "BorderFail");
-                const PartitionID target_part = _target_parts[pin];
-                const GainPartitionPair pair = computeMaxGainMove(pin);
-                if (_pq.key(pin, target_part) != pair.first || target_part != pair.second) {
-                  LOG("Incorrect maxGain or target_part for HN " << pin);
-                  LOG("expected key=" << pair.first);
-                  LOG("actual key=" << _pq.key(pin, target_part));
-                  LOG("expected part=" << pair.second);
-                  LOG("actual part=" << target_part);
-                  return false;
-                }
-                if (_hg.partWeight(pair.second) < max_allowed_weight
-                    && !_pq.isEnabled(pair.second)) {
-                  LOGVAR(pin);
-                  LOG("key=" << pair.first);
-                  LOG("Part " << pair.second << " should be enabled as target part");
-                  return false;
-                }
-                if (_hg.partWeight(pair.second) >= max_allowed_weight
-                    && _pq.isEnabled(pair.second)) {
-                  LOGVAR(pin);
-                  LOG("key=" << pair.first);
-                  LOG("Part " << pair.second << " should NOT be enabled as target part");
-                  return false;
-                }
+             for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+               for (const HypernodeID pin : _hg.pins(he)) {
+                 if (!isBorderNode(pin)) {
+                   if (_pq.contains(pin)) {
+                     LOG("HN " << pin << " should not be contained in PQ");
+                     return false;
+                   }
+                 } else {
+                   if (_pq.contains(pin)) {
+                     ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
+                     ASSERT(isBorderNode(pin), "BorderFail");
+                     const PartitionID target_part = _target_parts[pin];
+                     const GainPartitionPair pair = computeMaxGainMove(pin);
+                     if (_pq.key(pin, target_part) != pair.first || target_part != pair.second) {
+                       LOG("Incorrect maxGain or target_part for HN " << pin);
+                       LOG("expected key=" << pair.first);
+                       LOG("actual key=" << _pq.key(pin, target_part));
+                       LOG("expected part=" << pair.second);
+                       LOG("actual part=" << target_part);
+                       return false;
+                     }
+                     if (_hg.partWeight(pair.second) < max_allowed_weight &&
+                         !_pq.isEnabled(pair.second)) {
+                       LOGVAR(pin);
+                       LOG("key=" << pair.first);
+                       LOG("Part " << pair.second << " should be enabled as target part");
+                       return false;
+                     }
+                     if (_hg.partWeight(pair.second) >= max_allowed_weight &&
+                         _pq.isEnabled(pair.second)) {
+                       LOGVAR(pin);
+                       LOG("key=" << pair.first);
+                       LOG("Part " << pair.second << " should NOT be enabled as target part");
+                       return false;
+                     }
 
-                // We use a k-way PQ, but each HN should only be in at most one of the PQs
-                ASSERT(_pq.contains(pin, pair.second), V(pair.second));
-                for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                  if (part != pair.second && _pq.contains(pin, part)) {
-                    LOG("HN " << pin << " contained in more than one part:");
-                    LOG("expected part=" << pair.second);
-                    LOG("also contained in part " << part);
-                    return false;
-                  }
-                }
-                // Staleness check. If the PQ contains a move of pin to part, there
-                // has to be at least one HE that connects to that part. Otherwise the
-                // move is stale and should have been removed from the PQ.
-                bool connected = hypernodeIsConnectedToPart(pin, target_part);
-                if (!connected) {
-                  LOG("PQ contains stale move of HN " << pin << ":");
-                  LOG("calculated gain=" << computeMaxGainMove(pin).first);
-                  LOG("gain in PQ=" << _pq.key(pin, target_part));
-                  LOG("from_part=" << _hg.partID(pin));
-                  LOG("to_part=" << target_part);
-                  LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target_part));
-                  return false;
-                }
-              } else {
-                if (!_marked[pin]) {
-                  const GainPartitionPair pair = computeMaxGainMove(pin);
-                  LOG("HN " << pin << " not in PQ but also not marked");
-                  LOG("gain=" << pair.first);
-                  LOG("to_part=" << pair.second);
-                  LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), pair.second));
-                  return false;
-                }
-              }
-            }
-          }
-        }
-        return true;
-      } (), "Gain update failed");
+                     // We use a k-way PQ, but each HN should only be in at most one of the PQs
+                     ASSERT(_pq.contains(pin, pair.second), V(pair.second));
+                     for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                       if (part != pair.second && _pq.contains(pin, part)) {
+                         LOG("HN " << pin << " contained in more than one part:");
+                         LOG("expected part=" << pair.second);
+                         LOG("also contained in part " << part);
+                         return false;
+                       }
+                     }
+                     // Staleness check. If the PQ contains a move of pin to part, there
+                     // has to be at least one HE that connects to that part. Otherwise the
+                     // move is stale and should have been removed from the PQ.
+                     bool connected = hypernodeIsConnectedToPart(pin, target_part);
+                     if (!connected) {
+                       LOG("PQ contains stale move of HN " << pin << ":");
+                       LOG("calculated gain=" << computeMaxGainMove(pin).first);
+                       LOG("gain in PQ=" << _pq.key(pin, target_part));
+                       LOG("from_part=" << _hg.partID(pin));
+                       LOG("to_part=" << target_part);
+                       LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), target_part));
+                       return false;
+                     }
+                   } else {
+                     if (!_marked[pin]) {
+                       const GainPartitionPair pair = computeMaxGainMove(pin);
+                       LOG("HN " << pin << " not in PQ but also not marked");
+                       LOG("gain=" << pair.first);
+                       LOG("to_part=" << pair.second);
+                       LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), pair.second));
+                       return false;
+                     }
+                   }
+                 }
+               }
+             }
+             return true;
+           } (), "Gain update failed");
   }
 
   void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_weight) {
@@ -403,8 +403,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     if (_target_parts[pin] == pair.second) {
       // no zero gain update
-      ASSERT((_hg.partWeight(pair.second) < max_allowed_weight
-              ? _pq.isEnabled(pair.second) : !_pq.isEnabled(pair.second)), V(pair.second));
+      ASSERT((_hg.partWeight(pair.second) < max_allowed_weight ?
+              _pq.isEnabled(pair.second) : !_pq.isEnabled(pair.second)), V(pair.second));
       if (_pq.key(pin, pair.second) != pair.first) {
         _pq.updateKey(pin, pair.second, pair.first);
       }
@@ -424,7 +424,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     ASSERT(!_active[hn], V(hn));
     if (isBorderNode(hn)) {
       const GainPartitionPair pair = computeMaxGainMove(hn);
-        DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
+      DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
           << pair.first << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << pair.second);
       _pq.insert(hn, pair.second, pair.first);
