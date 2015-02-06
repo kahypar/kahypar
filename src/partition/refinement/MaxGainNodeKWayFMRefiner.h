@@ -106,6 +106,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   void initializeImpl() final { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
+                  const HypernodeWeight max_allowed_part_weight,
                   HyperedgeWeight& best_cut, double&) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
 
@@ -113,11 +114,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _marked.reset();
     _active.reset();
 
-    const HypernodeWeight max_allowed_weight = _config.partition.max_part_weight;
-
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i], max_allowed_weight);
+      activate(refinement_nodes[i], max_allowed_part_weight);
       // if (_pq.contains(refinement_nodes[i])) {
       //   DBG(true, " initial HN " << refinement_nodes[i]
       //     << " : from_part=" << _hg.partID(refinement_nodes[i])
@@ -216,16 +215,16 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         _pq.insert(_infeasible_moves[free_index].hn,
                    _target_parts[_infeasible_moves[free_index].hn],
                    _infeasible_moves[free_index].gain);
-        if (_hg.partWeight(_target_parts[_infeasible_moves[free_index].hn]) < max_allowed_weight) {
+        if (_hg.partWeight(_target_parts[_infeasible_moves[free_index].hn]) < max_allowed_part_weight) {
           _pq.enablePart(_target_parts[_infeasible_moves[free_index].hn]);
         }
         --free_index;
       }
 
-      if (_hg.partWeight(to_part) >= max_allowed_weight) {
+      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
       }
-      if (_hg.partWeight(from_part) < max_allowed_weight) {
+      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
         _pq.enablePart(from_part);
       }
 
@@ -233,7 +232,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       StoppingPolicy::updateStatistics(max_gain);
       ASSERT(cut == metrics::hyperedgeCut(_hg), V(cut) << V(metrics::hyperedgeCut(_hg)));
 
-      updateNeighbours(max_gain_node, max_allowed_weight);
+      updateNeighbours(max_gain_node, max_allowed_part_weight);
 
       if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
@@ -292,16 +291,16 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
   }
 
-  void updateNeighbours(const HypernodeID moved_hn, const HypernodeWeight max_allowed_weight) {
+  void updateNeighbours(const HypernodeID moved_hn, const HypernodeWeight max_allowed_part_weight) {
     _just_updated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_marked[pin] && !_just_updated[pin]) {
           if (!_active[pin]) {
-            activate(pin, max_allowed_weight);
+            activate(pin, max_allowed_part_weight);
           } else {
             if (isBorderNode(pin)) {
-              updatePin(pin, max_allowed_weight);
+              updatePin(pin, max_allowed_part_weight);
             } else {
               ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
               _pq.remove(pin, _target_parts[pin]);
@@ -334,14 +333,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                        LOG("actual part=" << target_part);
                        return false;
                      }
-                     if (_hg.partWeight(pair.second) < max_allowed_weight &&
+                     if (_hg.partWeight(pair.second) < max_allowed_part_weight &&
                          !_pq.isEnabled(pair.second)) {
                        LOGVAR(pin);
                        LOG("key=" << pair.first);
                        LOG("Part " << pair.second << " should be enabled as target part");
                        return false;
                      }
-                     if (_hg.partWeight(pair.second) >= max_allowed_weight &&
+                     if (_hg.partWeight(pair.second) >= max_allowed_part_weight &&
                          _pq.isEnabled(pair.second)) {
                        LOGVAR(pin);
                        LOG("key=" << pair.first);
@@ -389,7 +388,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            } (), "Gain update failed");
   }
 
-  void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_weight) {
+  void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_part_weight) {
     ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
     ASSERT(!_just_updated[pin], V(pin));
     ASSERT(!_marked[pin], V(pin));
@@ -403,7 +402,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     if (_target_parts[pin] == pair.second) {
       // no zero gain update
-      ASSERT((_hg.partWeight(pair.second) < max_allowed_weight ?
+      ASSERT((_hg.partWeight(pair.second) < max_allowed_part_weight ?
               _pq.isEnabled(pair.second) : !_pq.isEnabled(pair.second)), V(pair.second));
       if (_pq.key(pin, pair.second) != pair.first) {
         _pq.updateKey(pin, pair.second, pair.first);
@@ -412,14 +411,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       _pq.remove(pin, _target_parts[pin]);
       _pq.insert(pin, pair.second, pair.first);
       _target_parts[pin] = pair.second;
-      if (_hg.partWeight(pair.second) < max_allowed_weight) {
+      if (_hg.partWeight(pair.second) < max_allowed_part_weight) {
         _pq.enablePart(pair.second);
       }
     }
     _just_updated[pin] = true;
   }
 
-  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_weight) {
+  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) {
     ASSERT(!_pq.contains(hn), V(hn) << V(_target_parts[hn]));
     ASSERT(!_active[hn], V(hn));
     if (isBorderNode(hn)) {
@@ -431,7 +430,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       _target_parts[hn] = pair.second;
       _just_updated[hn] = true;
       _active[hn] = true;
-      if (_hg.partWeight(pair.second) < max_allowed_weight) {
+      if (_hg.partWeight(pair.second) < max_allowed_part_weight) {
         _pq.enablePart(pair.second);
       }
     }

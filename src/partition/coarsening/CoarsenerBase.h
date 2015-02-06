@@ -132,9 +132,14 @@ class CoarsenerBase {
     HyperedgeWeight old_cut = current_cut;
     int iteration = 0;
     bool improvement_found = false;
+
+    const HypernodeWeight max_allowed_part_weight =
+        _config.partition.max_part_weight + _max_hn_weights.top().max_weight;
+
     do {
       old_cut = current_cut;
-      improvement_found = refiner.refine(refinement_nodes, num_refinement_nodes, current_cut,
+      improvement_found = refiner.refine(refinement_nodes, num_refinement_nodes,
+                                         max_allowed_part_weight, current_cut,
                                          current_imbalance);
 
       ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");

@@ -13,6 +13,7 @@
 
 using defs::Hypergraph;
 using defs::HypernodeID;
+using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using utils::Stats;
 
@@ -20,8 +21,10 @@ namespace partition {
 class IRefiner {
   public:
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-              HyperedgeWeight& best_cut, double& best_imbalance) {
-    return refineImpl(refinement_nodes, num_refinement_nodes, best_cut, best_imbalance);
+              const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
+              double& best_imbalance) {
+    return refineImpl(refinement_nodes, num_refinement_nodes, max_allowed_part_weight,
+                      best_cut, best_imbalance);
   }
 
   void initialize() {
@@ -51,7 +54,9 @@ class IRefiner {
 
   private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                          const size_t num_refinement_nodes, HyperedgeWeight& best_cut,
+                          const size_t num_refinement_nodes,
+                          const HypernodeWeight max_allowed_part_weight,
+                          HyperedgeWeight& best_cut,
                           double& best_imbalance) = 0;
   virtual void initializeImpl() { }
   virtual void initializeImpl(HyperedgeWeight) { }

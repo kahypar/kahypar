@@ -144,6 +144,7 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
+                  const HypernodeWeight UNUSED(max_allowed_part_weight),
                   HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
