@@ -24,6 +24,7 @@
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
 
 using datastructure::KWayPriorityQueue;
@@ -37,7 +38,8 @@ using defs::HypernodeWeight;
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-template <class StoppingPolicy = Mandatory>
+template <class StoppingPolicy = Mandatory,
+          class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class MaxGainNodeKWayFMRefiner : public IRefiner,
                                  private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
@@ -237,7 +239,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(best_cut <= initial_cut, V(best_cut) << V(initial_cut));
-    return best_cut < initial_cut;
+    return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
+                                                 initial_imbalance, _config.partition.epsilon);
   }
 
   int numRepetitionsImpl() const final {
@@ -603,11 +606,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 };
 #pragma GCC diagnostic pop
 
-template <class T>
-constexpr HypernodeID MaxGainNodeKWayFMRefiner<T>::kInvalidHN;
-template <class T>
-constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidGain;
-template <class T>
-constexpr typename MaxGainNodeKWayFMRefiner<T>::Gain MaxGainNodeKWayFMRefiner<T>::kInvalidDecrease;
+template <class T, class U>
+constexpr HypernodeID MaxGainNodeKWayFMRefiner<T, U>::kInvalidHN;
+template <class T, class U>
+constexpr typename MaxGainNodeKWayFMRefiner<T, U>::Gain MaxGainNodeKWayFMRefiner<T, U>::kInvalidGain;
+template <class T, class U>
+constexpr typename MaxGainNodeKWayFMRefiner<T, U>::Gain MaxGainNodeKWayFMRefiner<T, U>::kInvalidDecrease;
 }             // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_

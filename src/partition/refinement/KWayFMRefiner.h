@@ -26,6 +26,7 @@
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
 
 using datastructure::KWayPriorityQueue;
@@ -40,7 +41,8 @@ using defs::HypernodeWeight;
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-template <class StoppingPolicy = Mandatory>
+template <class StoppingPolicy = Mandatory,
+          class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayFMRefiner : public IRefiner,
                       private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
@@ -128,11 +130,12 @@ class KWayFMRefiner : public IRefiner,
     }
 
     const HyperedgeWeight initial_cut = best_cut;
+    const double initial_imbalance = best_imbalance;
     HyperedgeWeight current_cut = best_cut;
+    double current_imbalance = best_imbalance;
 
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
-    double current_imbalance = best_imbalance;
 
     int min_cut_index = -1;
     int num_moves = 0;
@@ -240,7 +243,8 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    return best_cut < initial_cut;
+    return FMImprovementPolicy::improvementFound(best_cut,initial_cut, best_imbalance,
+                                                 initial_imbalance, _config.partition.epsilon);
   }
 
   int numRepetitionsImpl() const final {
@@ -913,11 +917,11 @@ class KWayFMRefiner : public IRefiner,
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
 
-template <class T> constexpr HypernodeID KWayFMRefiner<T>::kInvalidHN;
-template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidGain;
-template <class T> constexpr typename KWayFMRefiner<T>::Gain KWayFMRefiner<T>::kInvalidDecrease;
-template <class T> constexpr PartitionID KWayFMRefiner<T>::kLocked;
-template <class T> const PartitionID KWayFMRefiner<T>::kFree;
+template <class T, class U> constexpr HypernodeID KWayFMRefiner<T,U>::kInvalidHN;
+template <class T, class U> constexpr typename KWayFMRefiner<T,U>::Gain KWayFMRefiner<T,U>::kInvalidGain;
+template <class T, class U> constexpr typename KWayFMRefiner<T,U>::Gain KWayFMRefiner<T,U>::kInvalidDecrease;
+template <class T, class U> constexpr PartitionID KWayFMRefiner<T,U>::kLocked;
+template <class T, class U> const PartitionID KWayFMRefiner<T,U>::kFree;
 
 
 
