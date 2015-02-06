@@ -123,11 +123,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
 
     const HyperedgeWeight initial_cut = best_cut;
-    HyperedgeWeight cut = best_cut;
+    const double initial_imbalance = best_imbalance;
+    HyperedgeWeight current_cut = best_cut;
+    double current_imbalance = best_imbalance;
 
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
-    double current_imbalance = best_imbalance;
 
     int min_cut_index = -1;
     int num_moves = 0;
@@ -135,7 +136,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     StoppingPolicy::resetStatistics();
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
-                                                             best_cut, cut)) {
+                                                             best_cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -144,7 +145,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
              V(to_part) << V(_target_parts[max_gain_node]));
       PartitionID from_part = _hg.partID(max_gain_node);
 
-      DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
+      DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << from_part << " target_part=" << to_part);
 
       ASSERT(!_marked[max_gain_node], V(max_gain_node));
@@ -167,8 +168,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
       ASSERT([&]() {
                _hg.changeNodePart(max_gain_node, from_part, to_part);
-               ASSERT((cut - max_gain) == metrics::hyperedgeCut(_hg),
-                      "cut=" << cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+               ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
+                      "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
                _hg.changeNodePart(max_gain_node, to_part, from_part);
                return true;
              } ()
@@ -195,26 +196,26 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       current_imbalance = static_cast<double>(heaviest_part_weight) /
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
-      cut -= max_gain;
+      current_cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
-      ASSERT(cut == metrics::hyperedgeCut(_hg), V(cut) << V(metrics::hyperedgeCut(_hg)));
+      ASSERT(current_cut == metrics::hyperedgeCut(_hg), V(current_cut) << V(metrics::hyperedgeCut(_hg)));
 
       updateNeighbours(max_gain_node, max_allowed_part_weight);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_imbalance < _config.partition.epsilon)
-                                               && (cut < best_cut);
+                                               && (current_cut < best_cut);
       const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance)
-                                                   && (cut <= best_cut);
+                                                   && (current_cut <= best_cut);
 
       if (improved_cut_within_balance || improved_balance_less_equal_cut) {
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
             "MaxGainNodeKWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
-        if (cut < best_cut) {
+        if (current_cut < best_cut) {
           DBG(dbg_refinement_kway_fm_improvements_cut,
-              "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << cut);
-          best_cut = cut;
+              "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << current_cut);
+          best_cut = current_cut;
           // Currently only a reduction in cut is considered an improvement!
           // To also consider a zero-gain rebalancing move as an improvement we
           // always have to reset the stats.
@@ -231,7 +232,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << ", "
         << num_infeasible_deletes << " moves marked infeasible): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, cut)
+        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, current_cut)
             == true ? "policy" : "empty queue"));
     DBG(dbg_refinement_kway_fm_min_cut_idx, "min_cut_index=" << min_cut_index);
 
