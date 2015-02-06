@@ -66,6 +66,16 @@ class FMRefinerBase {
     _hg.changeNodePart(hn, from_part, to_part);
   }
 
+  PartitionID heaviestPart() const {
+    PartitionID heaviest_part = 0;
+    for (PartitionID part = 1; part < _config.partition.k; ++part) {
+      if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
+        heaviest_part = part;
+      }
+    }
+    return heaviest_part;
+  }
+
   Hypergraph& _hg;
   const Configuration& _config;
 
