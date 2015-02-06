@@ -74,6 +74,19 @@ class FMRefinerBase {
     return heaviest_part;
   }
 
+  void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
+                                           HypernodeWeight& heaviest_part_weight,
+                                           const PartitionID from_part,
+                                           const PartitionID to_part) const {
+    if (heaviest_part == from_part) {
+      heaviest_part = heaviestPart();
+      heaviest_part_weight = _hg.partWeight(heaviest_part);
+    } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
+      heaviest_part = to_part;
+      heaviest_part_weight = _hg.partWeight(to_part);
+    }
+  }
+
   Hypergraph& _hg;
   const Configuration& _config;
 

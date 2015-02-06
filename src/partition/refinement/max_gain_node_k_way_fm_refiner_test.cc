@@ -38,6 +38,7 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     hypergraph->setNodePart(6, 3);
     hypergraph->setNodePart(7, 1);
     config.two_way_fm.max_number_of_fruitless_moves = 50;
+    config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
     refiner->initialize();
   }

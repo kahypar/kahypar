@@ -49,7 +49,6 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_improvements_cut = true;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
-  static const bool dbg_refinement_kway_fm_min_cut_idx = false;
   static const bool dbg_refinement_kway_fm_gain_update = false;
   static const bool dbg_refinement_kway_fm_gain_comp = false;
   static const bool dbg_refinement_kaway_locked_hes = false;
@@ -139,7 +138,6 @@ class KWayFMRefiner : public IRefiner,
 
     int min_cut_index = -1;
     int num_moves = 0;
-    int num_infeasible_deletes = 0;
     StoppingPolicy::resetStatistics();
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
@@ -183,20 +181,19 @@ class KWayFMRefiner : public IRefiner,
         _pq.enablePart(from_part);
       }
 
-      if (heaviest_part == from_part) {
-        heaviest_part = heaviestPart();
-        heaviest_part_weight = _hg.partWeight(heaviest_part);
-      } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
-        heaviest_part = to_part;
-        heaviest_part_weight = _hg.partWeight(to_part);
-      }
+      reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
+                                          from_part, to_part);
 
       current_imbalance = static_cast<double>(heaviest_part_weight) /
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
       current_cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
-      ASSERT(current_cut == metrics::hyperedgeCut(_hg), V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+
+      ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+             V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg),
+             V(current_imbalance) << V(metrics::imbalance(_hg)));
 
       // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
@@ -228,11 +225,9 @@ class KWayFMRefiner : public IRefiner,
       ++num_moves;
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
-        << " local search movements (" << num_infeasible_deletes
-        << " moves marked infeasible): stopped because of "
+        << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, current_cut)
             == true ? "policy" : "empty queue"));
-    DBG(dbg_refinement_kway_fm_min_cut_idx, "min_cut_index=" << min_cut_index);
 
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
