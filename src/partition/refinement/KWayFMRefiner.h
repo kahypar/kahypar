@@ -110,7 +110,7 @@ class KWayFMRefiner : public IRefiner,
      ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
         FloatingPoint<double>(metrics::imbalance(_hg))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << calculateImbalance());
+            << " by hypergraph " << metrics::imbalance(_hg));
 
     _pq.clear();
     _marked.reset();

@@ -94,7 +94,7 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
-  refiner->refine(refinement_nodes, 2, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(hypergraph),
                       old_imbalance);
@@ -119,7 +119,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
-  refiner->refine(refinement_nodes, 2, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
@@ -137,7 +137,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
-  refiner->refine(refinement_nodes, 2, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(hypergraph.partID(6), Eq(1));
   ASSERT_THAT(hypergraph.partID(2), Eq(1));
@@ -149,7 +149,7 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
-  refiner->refine(refinement_nodes, 2, cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 42, cut, old_imbalance);
 
   ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(hypergraph)));
   ASSERT_THAT(hypergraph.partID(1), Eq(0));

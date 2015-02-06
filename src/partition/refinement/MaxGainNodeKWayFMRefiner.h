@@ -99,12 +99,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
-                  HyperedgeWeight& best_cut, double&  best_imbalance) final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-        FloatingPoint<double>(metrics::imbalance(_hg))),
+             FloatingPoint<double>(metrics::imbalance(_hg))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << calculateImbalance());
+           << " by hypergraph " << metrics::imbalance(_hg));
 
     _pq.clear();
     _marked.reset();
@@ -152,8 +152,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ASSERT(max_gain == computeMaxGainMove(max_gain_node).first,
              V(max_gain) << V(computeMaxGainMove(max_gain_node).first));
       ASSERT(isBorderNode(max_gain_node), V(max_gain_node));
-      ASSERT(moveIsFeasible(max_gain_node, from_part, to_part),
-             V(max_gain_node) << V(from_part) << V(to_part));
       // to_part cannot be double-checked, since tie-breaking might lead to a different to_part
       // current implementation breaks ties in favor of best connectivity decrease (this value
       // remains the same) and in favor of best rebalancing if source_part is imbalanced (this
@@ -203,10 +201,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       updateNeighbours(max_gain_node, max_allowed_part_weight);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      const bool improved_cut_within_balance = (current_imbalance < _config.partition.epsilon)
-                                               && (current_cut < best_cut);
-      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance)
-                                                   && (current_cut <= best_cut);
+      const bool improved_cut_within_balance = (current_imbalance < _config.partition.epsilon) &&
+                                               (current_cut < best_cut);
+      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
+                                                   (current_cut <= best_cut);
 
       if (improved_cut_within_balance || improved_balance_less_equal_cut) {
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,

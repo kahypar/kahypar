@@ -48,8 +48,8 @@ class CoarsenerBase {
 
   struct CurrentMaxNodeWeight {
     CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
-        num_nodes(num_hns),
-        max_weight(weight) { }
+      num_nodes(num_hns),
+      max_weight(weight) { }
     HypernodeID num_nodes;
     HypernodeWeight max_weight;
   };
@@ -67,7 +67,7 @@ class CoarsenerBase {
 #endif
     _stats(),
     _hypergraph_pruner(_hg, _config, _stats) {
-    _max_hn_weights.emplace(CurrentMaxNodeWeight{_hg.numNodes(), 1});
+    _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), 1 });
   }
 
   virtual ~CoarsenerBase() { }
@@ -134,7 +134,7 @@ class CoarsenerBase {
     bool improvement_found = false;
 
     const HypernodeWeight max_allowed_part_weight =
-        _config.partition.max_part_weight + _max_hn_weights.top().max_weight;
+      _config.partition.max_part_weight + _max_hn_weights.top().max_weight;
 
     do {
       old_cut = current_cut;

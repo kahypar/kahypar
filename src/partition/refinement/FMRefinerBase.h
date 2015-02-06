@@ -59,8 +59,6 @@ class FMRefinerBase {
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) {
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
-    ASSERT((_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weight) &&
-           (_hg.partSize(from_part) - 1 != 0), "Trying to make infeasible move!");
     DBG(dbg_refinement_kway_fm_move, "moving HN" << hn << " from " << from_part
         << " to " << to_part << " (weight=" << _hg.nodeWeight(hn) << ")");
     _hg.changeNodePart(hn, from_part, to_part);

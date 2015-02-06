@@ -32,7 +32,7 @@ class DummyRefiner : public IRefiner {
   public:
   DummyRefiner() :
     _stats() { }
-  bool refineImpl(std::vector<HypernodeID>&, size_t,
+  bool refineImpl(std::vector<HypernodeID>&, size_t, const HypernodeWeight,
                   HyperedgeWeight&, double&) final { return true; }
   int numRepetitionsImpl() const final { return 1; }
   std::string policyStringImpl() const final { return std::string(""); }
