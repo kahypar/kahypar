@@ -64,12 +64,6 @@ class KWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
-  struct InfeasibleMove {
-    HypernodeID hn;
-    PartitionID target_part;
-    Gain gain;
-  };
-
   static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
   static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
@@ -91,10 +85,8 @@ class KWayFMRefiner : public IRefiner,
     _performed_moves(),
     _locked_hes(),
     _current_locked_hes(),
-    _infeasible_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
-    _infeasible_moves.reserve(_hg.initialNumNodes() * _config.partition.k);
     _locked_hes.resize(_hg.initialNumEdges(), kFree);
   }
 
@@ -111,11 +103,14 @@ class KWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
-                  HyperedgeWeight& best_cut, double&) final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
-    DBG(false,"-----------------------------------------------------------");
+     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
+        FloatingPoint<double>(metrics::imbalance(_hg))),
+           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
+           << " by hypergraph " << calculateImbalance());
 
     _pq.clear();
     _marked.reset();
@@ -134,6 +129,11 @@ class KWayFMRefiner : public IRefiner,
 
     const HyperedgeWeight initial_cut = best_cut;
     HyperedgeWeight cut = best_cut;
+
+    PartitionID heaviest_part = heaviestPart();
+    HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
+    double current_imbalance = best_imbalance;
+
     int min_cut_index = -1;
     int num_moves = 0;
     int num_infeasible_deletes = 0;
@@ -141,39 +141,11 @@ class KWayFMRefiner : public IRefiner,
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
-      int free_index = -1;
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node =kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
       PartitionID from_part = _hg.partID(max_gain_node);
-      bool no_moves_left = false;
-
-      // Search for feasible move with maximum gain!
-      while (!moveIsFeasible(max_gain_node, from_part, to_part)) {
-        ++free_index;
-        DBG(dbg_refinement_kway_infeasible_moves,
-            "removing infeasible move of HN " << max_gain_node
-            << " with gain " << max_gain
-            << " sourcePart=" << from_part
-            << " targetPart= " << to_part);
-        _infeasible_moves[free_index] = {max_gain_node,to_part,max_gain};
-        ++num_infeasible_deletes;
-        if (_pq.empty()) {
-          no_moves_left = true;
-          break;
-        }
-        _pq.deleteMax(max_gain_node, max_gain, to_part);
-        from_part = _hg.partID(max_gain_node);
-      }
-
-      if (no_moves_left) {
-        // we cannot use _pq.empty() here, because deleteMax might
-        // have returned a feasible move and removing this move
-        // emptied the pq. If we would use _pq.empty() we would miss
-        // to make this move.
-        break;
-      }
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
@@ -201,27 +173,27 @@ class KWayFMRefiner : public IRefiner,
       moveHypernode(max_gain_node, from_part, to_part);
       _marked[max_gain_node] = true;
 
-      // TODO(schlag): Reevaluate! Currently it seems that reinsertion decreases quality!
-      //               Actually not reinserting seems to be the same as taking the max gain move
-      //               and only perform updates after move was successful.
-      // max_gain_node was moved and is marked now. So we remove the remaining PQ entries
-      // that contain max_gain_node and reinsert previously infeasible moves.
-      while(free_index >= 0){
-        if(_infeasible_moves[free_index].hn != max_gain_node) {
-            DBG(dbg_refinement_kway_infeasible_moves,
-                "inserting infeasible move of HN " << _infeasible_moves[free_index].hn
-                << " with gain " << _infeasible_moves[free_index].gain
-                << " sourcePart=" << _hg.partID(_infeasible_moves[free_index].hn)
-                << " targetPart= " << _infeasible_moves[free_index].target_part);
-          _pq.insert(_infeasible_moves[free_index].hn,
-                     _infeasible_moves[free_index].target_part,
-                     _infeasible_moves[free_index].gain);
-          if(_hg.partWeight(_infeasible_moves[free_index].target_part) < max_allowed_part_weight) {
-            _pq.enablePart(_infeasible_moves[free_index].target_part);
-          }
-        }
-        --free_index;
+      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
+        _pq.disablePart(to_part);
       }
+      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
+        _pq.enablePart(from_part);
+      }
+
+      if (heaviest_part == from_part) {
+        heaviest_part = heaviestPart();
+        heaviest_part_weight = _hg.partWeight(heaviest_part);
+      } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
+        heaviest_part = to_part;
+        heaviest_part_weight = _hg.partWeight(to_part);
+      }
+
+      current_imbalance = static_cast<double>(heaviest_part_weight) /
+                          ceil(static_cast<double>(_config.partition.total_graph_weight) /
+                               _config.partition.k) - 1.0;
+      cut -= max_gain;
+      StoppingPolicy::updateStatistics(max_gain);
+      ASSERT(cut == metrics::hyperedgeCut(_hg), V(cut) << V(metrics::hyperedgeCut(_hg)));
 
       // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
@@ -230,23 +202,15 @@ class KWayFMRefiner : public IRefiner,
         }
       }
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
-        _pq.disablePart(to_part);
-      }
-      if(_hg.partWeight(from_part) < max_allowed_part_weight) {
-        _pq.enablePart(from_part);
-      }
-
-      cut -= max_gain;
-      StoppingPolicy::updateStatistics(max_gain);
-
-      ASSERT(cut == metrics::hyperedgeCut(_hg),
-             "Calculated cut (" << cut << ") and cut induced by hypergraph ("
-             << metrics::hyperedgeCut(_hg) << ") do not match");
-
       updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
 
-      if (cut < best_cut || (cut == best_cut && Randomize::flipCoin())) {
+      // right now, we do not allow a decrease in cut in favor of an increase in balance
+      const bool improved_cut_within_balance = (current_imbalance < _config.partition.epsilon)
+                                               && (cut < best_cut);
+      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance)
+                                                   && (cut <= best_cut);
+
+      if (improved_cut_within_balance || improved_balance_less_equal_cut) {
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
             "KWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
@@ -259,6 +223,7 @@ class KWayFMRefiner : public IRefiner,
           // always have to reset the stats.
           StoppingPolicy::resetStatistics();
         }
+        best_imbalance = current_imbalance;
         min_cut_index = num_moves;
       }
       _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
@@ -944,7 +909,6 @@ class KWayFMRefiner : public IRefiner,
   std::vector<RollbackInfo> _performed_moves;
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;
-  std::vector<InfeasibleMove> _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
