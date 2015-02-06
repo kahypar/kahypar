@@ -46,6 +46,14 @@ class CoarsenerBase {
     }
   };
 
+  struct CurrentMaxNodeWeight {
+    CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
+        num_nodes(num_hns),
+        max_weight(weight) { }
+    HypernodeID num_nodes;
+    HypernodeWeight max_weight;
+  };
+
   typedef std::unordered_map<HypernodeID, HyperedgeWeight, hash_nodes> SingleHEWeightsHashtable;
 
   public:
@@ -53,12 +61,14 @@ class CoarsenerBase {
     _hg(hypergraph),
     _config(config),
     _history(),
+    _max_hn_weights(),
 #ifdef USE_BUCKET_PQ
     _weights_table(),
 #endif
     _stats(),
-    _hypergraph_pruner(_hg, _config, _stats)
-  { }
+    _hypergraph_pruner(_hg, _config, _stats) {
+    _max_hn_weights.emplace(CurrentMaxNodeWeight{_hg.numNodes(), 1});
+  }
 
   virtual ~CoarsenerBase() { }
 
@@ -223,6 +233,7 @@ class CoarsenerBase {
   Hypergraph& _hg;
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;
+  std::stack<CurrentMaxNodeWeight> _max_hn_weights;
 #ifdef USE_BUCKET_PQ
   SingleHEWeightsHashtable _weights_table;
 #endif
