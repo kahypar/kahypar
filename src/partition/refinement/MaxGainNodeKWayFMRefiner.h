@@ -47,7 +47,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_min_cut_idx = false;
   static const bool dbg_refinement_kway_fm_gain_update = false;
   static const bool dbg_refinement_kway_fm_gain_comp = false;
-  static const bool dbg_refinement_kway_infeasible_moves = false;
 
   typedef HyperedgeWeight Gain;
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
@@ -65,11 +64,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
-  struct InfeasibleMove {
-    HypernodeID hn;
-    Gain gain;
-  };
-
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
@@ -82,10 +76,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
     _performed_moves(),
-    _infeasible_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
-    _infeasible_moves.reserve(_hg.initialNumNodes());
   }
 
   private:
@@ -144,7 +136,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
                                                              best_cut, cut)) {
-      int free_index = -1;
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -152,35 +143,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ASSERT(to_part == _target_parts[max_gain_node],
              V(to_part) << V(_target_parts[max_gain_node]));
       PartitionID from_part = _hg.partID(max_gain_node);
-
-      // // Search for feasible move with maximum gain!
-      // bool no_moves_left = false;
-      // while (!moveIsFeasible(max_gain_node, from_part, to_part)) {
-      //   ++free_index;
-      //   DBG(dbg_refinement_kway_infeasible_moves,
-      //       "removing infeasible move of HN " << max_gain_node
-      //       << " with gain " << max_gain
-      //       << " sourcePart=" << from_part
-      //       << " targetPart= " << to_part);
-      //   _infeasible_moves[free_index] = { max_gain_node, max_gain };
-      //   ++num_infeasible_deletes;
-      //   if (_pq.empty()) {
-      //     no_moves_left = true;
-      //     break;
-      //   }
-      //   _pq.deleteMax(max_gain_node, max_gain, to_part);
-      //   ASSERT(to_part == _target_parts[max_gain_node],
-      //          V(to_part) << V(_target_parts[max_gain_node]));
-      //   from_part = _hg.partID(max_gain_node);
-      // }
-
-      // if (no_moves_left) {
-      //   // we cannot use _pq.empty() here, because deleteMax might
-      //   // have returned a feasible move and removing this move
-      //   // emptied the pq. If we would use _pq.empty() we would miss
-      //   // to make this move.
-      //   break;
-      // }
 
       DBG(false, "cut=" << cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << from_part << " target_part=" << to_part);
@@ -215,21 +177,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       moveHypernode(max_gain_node, from_part, to_part);
       _marked[max_gain_node] = true;
 
-      // while (free_index >= 0) {
-      //   DBG(dbg_refinement_kway_infeasible_moves,
-      //       "inserting infeasible move of HN " << _infeasible_moves[free_index].hn
-      //       << " with gain " << _infeasible_moves[free_index].gain
-      //       << " sourcePart=" << _hg.partID(_infeasible_moves[free_index].hn)
-      //       << " targetPart= " << _target_parts[_infeasible_moves[free_index].hn]);
-      //   _pq.insert(_infeasible_moves[free_index].hn,
-      //              _target_parts[_infeasible_moves[free_index].hn],
-      //              _infeasible_moves[free_index].gain);
-      //   if (_hg.partWeight(_target_parts[_infeasible_moves[free_index].hn]) < max_allowed_part_weight) {
-      //     _pq.enablePart(_target_parts[_infeasible_moves[free_index].hn]);
-      //   }
-      //   --free_index;
-      // }
-
       if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
       }
@@ -244,10 +191,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         heaviest_part = to_part;
         heaviest_part_weight = _hg.partWeight(to_part);
       }
+
       current_imbalance = static_cast<double>(heaviest_part_weight) /
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
-
       cut -= max_gain;
       StoppingPolicy::updateStatistics(max_gain);
       ASSERT(cut == metrics::hyperedgeCut(_hg), V(cut) << V(metrics::hyperedgeCut(_hg)));
@@ -652,7 +599,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   boost::dynamic_bitset<uint64_t> _active;
   boost::dynamic_bitset<uint64_t> _just_updated;
   std::vector<RollbackInfo> _performed_moves;
-  std::vector<InfeasibleMove> _infeasible_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
