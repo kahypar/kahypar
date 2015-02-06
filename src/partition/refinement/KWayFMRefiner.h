@@ -217,16 +217,11 @@ class KWayFMRefiner : public IRefiner,
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
             "KWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
-        if (current_cut < best_cut) {
-          DBG(dbg_refinement_kway_fm_improvements_cut,
-              "KWayFM improved cut from " << best_cut << " to " << current_cut);
-          best_cut = current_cut;
-          // Currently only a reduction in cut is considered an improvement!
-          // To also consider a zero-gain rebalancing move as an improvement we
-          // always have to reset the stats.
-          StoppingPolicy::resetStatistics();
-        }
+        DBG(dbg_refinement_kway_fm_improvements_cut && current_cut < best_cut,
+            "KWayFM improved cut from " << best_cut << " to " << current_cut);
+        best_cut = current_cut;
         best_imbalance = current_imbalance;
+        StoppingPolicy::resetStatistics();
         min_cut_index = num_moves;
       }
       _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
