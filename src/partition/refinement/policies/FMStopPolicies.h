@@ -18,7 +18,7 @@ struct StoppingPolicy : PolicyBase {
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int, const int, const Configuration& config,
-                               const HyperedgeWeight, const HyperedgeWeight) {
+                               const double , const HyperedgeWeight, const HyperedgeWeight) {
     return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
   }
 
@@ -41,16 +41,16 @@ struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
 int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(const int, const int, const Configuration& config,
+  static bool searchShouldStop(const int, const int, const Configuration& config, const double beta,
                                const HyperedgeWeight, const HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
-    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
-        << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
+    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << beta << "="
+        << config.two_way_fm.alpha * _expected_variance + beta);
     DBG(false, "return=" << ((_num_steps * _expected_gain * _expected_gain >
-                              config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1)));
+                              config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1)));
     return (_num_steps * _expected_gain * _expected_gain >
-            config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1);
+            config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1);
   }
 
   static void resetStatistics() {

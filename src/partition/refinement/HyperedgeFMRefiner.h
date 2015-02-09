@@ -150,9 +150,10 @@ class HyperedgeFMRefiner : public IRefiner,
 
     int step = 0;
     StoppingPolicy::resetStatistics();
+    const double beta = log(_hg.numNodes());
     while (!queuesAreEmpty() && (best_cut == cut ||
                                  !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                                   best_cut, cut))) {
+                                                                   beta, best_cut, cut))) {
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");

@@ -140,8 +140,9 @@ class KWayFMRefiner : public IRefiner,
     int num_moves = 0;
     StoppingPolicy::resetStatistics();
 
+    const double beta = log(_hg.numNodes());
     while (!_pq.empty() && !StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config,
-                                                             best_cut, current_cut)) {
+                                                             beta, best_cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node =kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -226,7 +227,8 @@ class KWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, best_cut, current_cut)
+        << (StoppingPolicy::searchShouldStop(min_cut_index, num_moves, _config, beta, best_cut,
+                                             current_cut)
             == true ? "policy" : "empty queue"));
 
     rollback(num_moves - 1, min_cut_index);

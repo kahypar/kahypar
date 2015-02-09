@@ -178,9 +178,10 @@ class TwoWayFMRefiner : public IRefiner,
     bool pq1_eligible = false;
 
     // forward
+    const double beta = log(_hg.numNodes());
     for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
       if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                               best_cut, cut)) {
+                                                               beta, best_cut, cut)) {
         break;
       }
       DBG(false, "-------------------------------");
@@ -262,8 +263,9 @@ class TwoWayFMRefiner : public IRefiner,
 
     DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves - 1
         << " local search movements (" << step << " steps): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, best_cut, cut) == true ?
-            "policy" : "empty queue"));
+        << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, beta,
+                                             best_cut, cut)
+            == true ? "policy" : "empty queue"));
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
