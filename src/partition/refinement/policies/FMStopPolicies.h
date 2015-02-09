@@ -17,8 +17,8 @@ struct StoppingPolicy : PolicyBase {
 };
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(const int, const int, const Configuration& config,
-                               const double , const HyperedgeWeight, const HyperedgeWeight) {
+  static bool searchShouldStop(const int, const Configuration& config,
+                               const double, const HyperedgeWeight, const HyperedgeWeight) {
     return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
   }
 
@@ -41,7 +41,7 @@ struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
 int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(const int, const int, const Configuration& config, const double beta,
+  static bool searchShouldStop(const int, const Configuration& config, const double beta,
                                const HyperedgeWeight, const HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
@@ -103,11 +103,14 @@ double RandomWalkModelStopsSearch::_Sk = 0.0;
 double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(const int, const int step, const Configuration& config,
+  static bool searchShouldStop(const int num_moves_since_last_improvement,
+                               const Configuration& config, const double beta,
                                const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
-    return (best_cut-cut) && step >= config.two_way_fm.alpha*( (_sum_gains_squared*step)
-                                             /(2.0*(static_cast<double>(best_cut)-cut)*(static_cast<double>(best_cut)-cut) - 0.5)
-                                             + config.two_way_fm.beta);
+    return  num_moves_since_last_improvement
+        >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
+                                      / (2.0 * (static_cast<double>(best_cut) - cut)
+                                         * (static_cast<double>(best_cut) - cut) - 0.5)
+                                      + beta);
   }
 
   static void resetStatistics() {

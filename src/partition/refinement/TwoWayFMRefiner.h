@@ -171,6 +171,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     int step = 0;
     int num_moves = 0;
+    int num_moves_since_last_improvement = 0;
     int max_number_of_moves = _hg.numNodes();
     StoppingPolicy::resetStatistics();
 
@@ -180,8 +181,8 @@ class TwoWayFMRefiner : public IRefiner,
     // forward
     const double beta = log(_hg.numNodes());
     for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
-      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                               beta, best_cut, cut)) {
+      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
+                                                               _config, beta, best_cut, cut)) {
         break;
       }
       DBG(false, "-------------------------------");
@@ -241,6 +242,7 @@ class TwoWayFMRefiner : public IRefiner,
                                          (imbalance < _config.partition.epsilon);
       bool improved_balance_less_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
+      ++num_moves_since_last_improvement;
       if (improved_balance_less_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
         if (cut < best_cut) {
@@ -256,6 +258,7 @@ class TwoWayFMRefiner : public IRefiner,
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         min_cut_index = num_moves;
+        num_moves_since_last_improvement = 0;
       }
       _performed_moves[num_moves] = max_gain_node;
       ++num_moves;
@@ -263,7 +266,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves - 1
         << " local search movements (" << step << " steps): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, beta,
+        << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
                                              best_cut, cut)
             == true ? "policy" : "empty queue"));
     rollback(num_moves - 1, min_cut_index);

@@ -149,11 +149,12 @@ class HyperedgeFMRefiner : public IRefiner,
     double imbalance = best_imbalance;
 
     int step = 0;
+    int num_moves_since_last_improvement = 0;
     StoppingPolicy::resetStatistics();
     const double beta = log(_hg.numNodes());
     while (!queuesAreEmpty() && (best_cut == cut ||
-                                 !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                                   beta, best_cut, cut))) {
+                                 !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
+                                                                   _config, beta, best_cut, cut))) {
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
@@ -204,6 +205,7 @@ class HyperedgeFMRefiner : public IRefiner,
                                          (imbalance < _config.partition.epsilon);
       bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
+      ++num_moves_since_last_improvement;
       if (improved_balance_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a HE move which decreased cut");
         if (cut < best_cut) {
@@ -216,6 +218,7 @@ class HyperedgeFMRefiner : public IRefiner,
         best_cut = cut;
         min_cut_index = step;
         StoppingPolicy::resetStatistics();
+        num_moves_since_last_improvement = 0;
       }
       ++step;
     }
