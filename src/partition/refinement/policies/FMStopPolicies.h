@@ -105,9 +105,9 @@ double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(int, int step, const Configuration& config,
                                HyperedgeWeight best_cut, HyperedgeWeight cut) {
-    return step >= config.two_way_fm.alpha * (((_sum_gains_squared / (2.0 * static_cast<double>(best_cut) - cut))
-                                               * (1.0 * step / (static_cast<double>(best_cut) - cut) - 0.5)
-                                               + config.two_way_fm.beta));
+    return (best_cut-cut) && step >= config.two_way_fm.alpha*( (_sum_gains_squared*step)
+                                             /(2.0*(static_cast<double>(best_cut)-cut)*(static_cast<double>(best_cut)-cut) - 0.5)
+                                             + config.two_way_fm.beta);
   }
 
   static void resetStatistics() {
