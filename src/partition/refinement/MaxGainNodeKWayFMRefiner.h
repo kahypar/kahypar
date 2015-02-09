@@ -218,7 +218,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
       ++num_moves;
     }
-    DBG(dbg_refinement_kway_fm_stopping_crit == false, "MaxGainKWayFM performed " << num_moves
+    DBG(dbg_refinement_kway_fm_stopping_crit, "MaxGainKWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
                                              best_cut, current_cut)
