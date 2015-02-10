@@ -21,16 +21,31 @@ using partition::Partitioner;
 
 namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
+  std::vector<HypernodeID> he_sizes;
+  he_sizes.reserve(hypergraph.numEdges());
+  for (auto he : hypergraph.edges()) {
+    he_sizes.push_back(hypergraph.edgeSize(he));
+  }
+  std::sort(he_sizes.begin(), he_sizes.end());
+  std::vector<HyperedgeID> hn_degrees;
+  hn_degrees.reserve(hypergraph.numNodes());
+  for (auto hn : hypergraph.nodes()) {
+    hn_degrees.push_back(hypergraph.nodeDegree(hn));
+  }
+  std::sort(hn_degrees.begin(), hn_degrees.end());
+
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
-  std::cout << "# HEs: " << hypergraph.numEdges() << "\t [avg HE size: "
-            << metrics::avgHyperedgeDegree(hypergraph) << ", 90th percentile:"
-            << metrics::hyperedgeSizePercentile(hypergraph,90) << ", 95th percentile:"
-            << metrics::hyperedgeSizePercentile(hypergraph,95) << "]" << std::endl;
-  std::cout << "# HNs: " << hypergraph.numNodes() << "\t [avg HN degree: "
-            << metrics::avgHypernodeDegree(hypergraph) << ", 90th percentile:"
-            << metrics::hypernodeDegreePercentile(hypergraph,90) << ", 95th percentile:"
-            << metrics::hypernodeDegreePercentile(hypergraph,95) << "]" << std::endl;
+  std::cout << "# HEs: " << hypergraph.numEdges()
+            << "\t HE size:   [min:" << std::setw(10) << std::left << he_sizes[0]
+            << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
+            << "max:" << std::setw(10) << std::left << he_sizes[he_sizes.size() - 1]
+            << "]" << std::endl;
+  std::cout << "# HNs: " << hypergraph.numNodes()
+            << "\t HN degree: [min:" << std::setw(10) << std::left << hn_degrees[0]
+            << "avg:" << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
+            << "max:" << std::setw(10) << std::left << hn_degrees[hn_degrees.size() - 1]
+            << "]" << std::endl;
 }
 
 template <class Configuration>

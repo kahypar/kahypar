@@ -130,11 +130,17 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
       ASSERT(_pq.contains(hn),
              "Trying to remove rating of HN " << hn << " which is not in PQ");
       _pq.remove(hn);
+      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
+          << _hg.initialNumNodes() << "]:HN " << hn
+          << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
+          << ") did not find valid contraction partner.");
+      _stats.add("numHNsWithoutValidContractionPartner", _config.partition.current_v_cycle, 1);
     }
   }
 
   using Base::_pq;
   using Base::_hg;
+  using Base::_config;
   using Base::_rater;
   using Base::_history;
   using Base::_stats;
