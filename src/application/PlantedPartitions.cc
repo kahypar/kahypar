@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
   }
 
   // the header of the hgr file
-  ofs << n << " " << m << std::endl;
+  ofs << m << " " << n << std::endl;
   for (unsigned int i = 0; i < m; ++i)
   {
     std::vector<int> *current_hyperedge;

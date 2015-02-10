@@ -181,7 +181,7 @@ namespace partition
         PartitionID num_hes_with_only_hn_in_source_part = 0;
         for (const auto & he : hg_.incidentEdges(hn))
         {
-          ASSERT(hg_.edgeSize(he) > 1, "Computing gain for Single-Node HE");
+          if (hg_.edgeSize(he) == 1) continue;
           if (hg_.connectivity(he) == 1)
           {
             assert((*hg_.connectivitySet(he).begin())== source_part);
