@@ -239,7 +239,7 @@ class TwoWayFMRefiner : public IRefiner,
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       bool improved_cut_within_balance = (cut < best_cut) &&
-                                         (imbalance < _config.partition.epsilon);
+                                         (imbalance <= _config.partition.epsilon);
       bool improved_balance_less_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
       ++num_moves_since_last_improvement;

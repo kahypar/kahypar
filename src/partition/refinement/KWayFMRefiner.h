@@ -207,7 +207,7 @@ class KWayFMRefiner : public IRefiner,
       updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      const bool improved_cut_within_balance = (current_imbalance < _config.partition.epsilon)
+      const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon)
                                                && (current_cut < best_cut);
       const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance)
                                                    && (current_cut <= best_cut);
