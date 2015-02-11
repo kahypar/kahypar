@@ -5,12 +5,11 @@
 #ifndef SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
 #define SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <bitset>
 #include <iostream>
 #include <limits>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -545,12 +544,12 @@ class GenericHypergraph {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    _active_hyperedges_v.reset();
+    _active_hyperedges_v.assign(_active_hyperedges_v.size(), false);
     for (const HyperedgeID he : incidentEdges(memento.v)) {
       _active_hyperedges_v[he] = 1;
     }
 
-    _active_hyperedges_u.reset();
+    _active_hyperedges_u.assign(_active_hyperedges_u.size(), false);
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
       _active_hyperedges_u[_incidence_array[i]] = 1;
     }
@@ -598,7 +597,7 @@ class GenericHypergraph {
                << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
         ++_current_num_pins;
       }
-      _processed_hyperedges.reset(he);
+      _processed_hyperedges[he] = false;
     }
   }
 
@@ -1108,11 +1107,11 @@ class GenericHypergraph {
   std::vector<ConnectivitySet> _connectivity_sets;
 
   // Used during uncontraction to remember which hyperedges have already been processed
-  boost::dynamic_bitset<uint64_t> _processed_hyperedges;
+  std::vector<bool> _processed_hyperedges;
 
   // Used during uncontraction to decide how to perform the uncontraction operation
-  boost::dynamic_bitset<uint64_t> _active_hyperedges_u;
-  boost::dynamic_bitset<uint64_t> _active_hyperedges_v;
+  std::vector<bool> _active_hyperedges_u;
+  std::vector<bool> _active_hyperedges_v;
 
   template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
   friend bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,

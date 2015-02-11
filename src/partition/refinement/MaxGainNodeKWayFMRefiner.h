@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <limits>
 #include <stack>
 #include <string>
@@ -108,8 +106,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg));
 
     _pq.clear();
-    _marked.reset();
-    _active.reset();
+    _marked.assign(_marked.size(), false);
+    _active.assign(_active.size(), false);
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -256,7 +254,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   }
 
   void updateNeighbours(const HypernodeID moved_hn, const HypernodeWeight max_allowed_part_weight) {
-    _just_updated.reset();
+    _just_updated.assign(_just_updated.size(), false);
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_marked[pin] && !_just_updated[pin]) {
@@ -499,10 +497,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     // validate the connectivity decrease
     ASSERT([&]() {
-             boost::dynamic_bitset<uint64_t> connectivity_superset(_config.partition.k);
+             std::vector<bool> connectivity_superset(_config.partition.k);
              PartitionID old_connectivity = 0;
              for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-               connectivity_superset.reset();
+               connectivity_superset.assign(connectivity_superset.size(), false);
                for (const PartitionID part : _hg.connectivitySet(he)) {
                  if (!connectivity_superset[part]) {
                    old_connectivity += 1;
@@ -515,7 +513,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                  _hg.changeNodePart(hn, source_part, target_part);
                  PartitionID new_connectivity = 0;
                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-                   connectivity_superset.reset();
+                   connectivity_superset.assign(connectivity_superset.size(), false);
                    for (const PartitionID part : _hg.connectivitySet(he)) {
                      if (!connectivity_superset[part]) {
                        new_connectivity += 1;
@@ -585,9 +583,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<PartitionID> _tmp_target_parts;
   std::vector<PartitionID> _target_parts;
   KWayRefinementPQ _pq;
-  boost::dynamic_bitset<uint64_t> _marked;
-  boost::dynamic_bitset<uint64_t> _active;
-  boost::dynamic_bitset<uint64_t> _just_updated;
+  std::vector<bool> _marked;
+  std::vector<bool> _active;
+  std::vector<bool> _just_updated;
   std::vector<RollbackInfo> _performed_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);

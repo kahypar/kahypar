@@ -106,11 +106,11 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int num_moves_since_last_improvement,
                                const Configuration& config, const double beta,
                                const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
-    return  num_moves_since_last_improvement
-        >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
-                                      / (2.0 * (static_cast<double>(best_cut) - cut)
-                                         * (static_cast<double>(best_cut) - cut) - 0.5)
-                                      + beta);
+    return num_moves_since_last_improvement
+           >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
+                                         / (2.0 * (static_cast<double>(best_cut) - cut)
+                                            * (static_cast<double>(best_cut) - cut) - 0.5)
+                                         + beta);
   }
 
   static void resetStatistics() {

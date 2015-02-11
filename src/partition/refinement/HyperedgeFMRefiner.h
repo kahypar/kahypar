@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_HYPEREDGEFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_HYPEREDGEFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <limits>
 #include <string>
@@ -76,11 +74,11 @@ class HyperedgeFMRefiner : public IRefiner,
     }
 
     void reset() {
-      _bitvector.reset();
+      _bitvector.assign(_bitvector.size(), false);
     }
 
     private:
-    boost::dynamic_bitset<uint64_t> _bitvector;
+    std::vector<bool> _bitvector;
   };
 
   public:
@@ -510,7 +508,7 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void resetContainedHypernodes() {
-    _contained_hypernodes.reset();
+    _contained_hypernodes.assign(_contained_hypernodes.size(), false);
   }
 
   bool isMarkedAsMoved(HyperedgeID he) const {
@@ -522,16 +520,16 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void resetMarkedHyperedges() {
-    _marked_HEs.reset();
+    _marked_HEs.assign(_marked_HEs.size(), false);
   }
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::array<HyperedgeFMPQ*, K> _pq;
-  boost::dynamic_bitset<uint64_t> _marked_HEs;
+  std::vector<bool> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
-  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
+  std::vector<bool> _contained_hypernodes;
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;

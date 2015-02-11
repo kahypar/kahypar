@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <array>
 #include <limits>
@@ -157,7 +155,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     _pq[0]->clear();
     _pq[1]->clear();
-    _marked.reset();
+    _marked.assign(_marked.size(), false);
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -279,7 +277,7 @@ class TwoWayFMRefiner : public IRefiner,
   // Gain update as decribed in [ParMar06]
   void updateNeighbours(const HypernodeID moved_node, const PartitionID source_part,
                         const PartitionID target_part) {
-    _just_activated.reset();
+    _just_activated.assign(_just_activated.size(), false);
     for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
       if (_hg.edgeSize(he) == 2) {
         // moved_node is not updated here, since updatePin only updates HNs that
@@ -454,8 +452,8 @@ class TwoWayFMRefiner : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::array<RefinementPQ*, K> _pq;
-  boost::dynamic_bitset<uint64_t> _marked;
-  boost::dynamic_bitset<uint64_t> _just_activated;
+  std::vector<bool> _marked;
+  std::vector<bool> _just_activated;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   Stats _stats;

@@ -2,6 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
+#include <memory>
+
 #include "gmock/gmock.h"
 
 #include "lib/definitions.h"

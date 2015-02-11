@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <limits>
 #include <stack>
 #include <string>
@@ -114,9 +112,9 @@ class KWayFMRefiner : public IRefiner,
             << " by hypergraph " << metrics::imbalance(_hg));
 
     _pq.clear();
-    _marked.reset();
-    _active.reset();
-    _he_fully_active.reset();
+    _marked.assign(_marked.size(), false);
+    _active.assign(_active.size(), false);
+    _he_fully_active.assign(_he_fully_active.size(), false);
 
     while (!_current_locked_hes.empty()) {
       _locked_hes[_current_locked_hes.top()] = kFree;
@@ -609,7 +607,7 @@ class KWayFMRefiner : public IRefiner,
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part, const HypernodeWeight max_allowed_part_weight) {
-    _just_activated.reset();
+    _just_activated.assign(_just_activated.size(), false);
     while (!_current_just_inserted.empty()) {
       _just_inserted[_current_just_inserted.top()] = Hypergraph::kInvalidPartition;
       _current_just_inserted.pop();
@@ -898,12 +896,12 @@ class KWayFMRefiner : public IRefiner,
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_target_parts;
   KWayRefinementPQ _pq;
-  boost::dynamic_bitset<uint64_t> _marked;
-  boost::dynamic_bitset<uint64_t> _just_activated;
-  boost::dynamic_bitset<uint64_t> _he_fully_active;
+  std::vector<bool> _marked;
+  std::vector<bool> _just_activated;
+  std::vector<bool> _he_fully_active;
   std::vector<PartitionID> _just_inserted;
   std::stack<HypernodeID> _current_just_inserted;
-  boost::dynamic_bitset<uint64_t> _active;
+  std::vector<bool> _active;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;

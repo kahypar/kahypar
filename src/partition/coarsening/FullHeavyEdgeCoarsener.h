@@ -5,7 +5,6 @@
 #ifndef SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
 
-#include <boost/dynamic_bitset.hpp>
 #include <limits>
 #include <string>
 #include <utility>
@@ -57,10 +56,10 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     NullMap null_map;
     rateAllHypernodes(_target, null_map);
 
-    boost::dynamic_bitset<uint64_t> rerated_hypernodes(_hg.initialNumNodes());
+    std::vector<bool> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
-    boost::dynamic_bitset<uint64_t> invalid_hypernodes(_hg.initialNumNodes());
+    std::vector<bool> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
       const HypernodeID rep_node = _pq.max();
@@ -107,8 +106,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
-                                boost::dynamic_bitset<uint64_t>& rerated_hypernodes,
-                                boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
+                                std::vector<bool>& rerated_hypernodes,
+                                std::vector<bool>& invalid_hypernodes) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
@@ -118,12 +117,12 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
         }
       }
     }
-    rerated_hypernodes.reset();
+    rerated_hypernodes.assign(rerated_hypernodes.size(), false);
   }
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    boost::dynamic_bitset<uint64_t>& invalid_hypernodes) {
+                                    std::vector<bool>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

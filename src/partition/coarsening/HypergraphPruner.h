@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_
 #define SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -178,7 +176,7 @@ class HypergraphPruner {
   }
 
   void fillProbeBitset(const HyperedgeID he) {
-    _contained_hypernodes.reset();
+    _contained_hypernodes.assign(_contained_hypernodes.size(), false);
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
     for (const HypernodeID pin : _hg.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
@@ -224,7 +222,7 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
+  std::vector<bool> _contained_hypernodes;
   Stats& _stats;
   DISALLOW_COPY_AND_ASSIGN(HypergraphPruner);
 };
