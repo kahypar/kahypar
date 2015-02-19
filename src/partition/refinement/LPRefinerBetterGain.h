@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 #include <string>
 
 #include <boost/dynamic_bitset.hpp>
@@ -79,6 +80,7 @@ namespace partition
         }
 
         size_t i;
+        std::unordered_set<HyperedgeID> set_he;
         for (i = 0; !cur_queue_->empty() && i < config_.lp.max_refinement_iterations; ++i)
         {
           Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
@@ -100,6 +102,8 @@ namespace partition
 
               for (const auto &he : hg_.incidentEdges(hn))
               {
+                if (set_he.count(he) > 0) continue;
+                set_he.insert(he);
                 for (const auto &pin : hg_.pins(he))
                 {
                   if (!(*contained_next_queue_)[pin])
@@ -230,22 +234,28 @@ namespace partition
               // and use this value as a correction term for all parts, we have to account for the fact
               // that we this decrease is already accounted for in ++num_hes_with_only_hn_in_part and thus
               // have to correct the decrease value for all parts.
-              if (move_decreases_connectivity) {
-                --tmp_connectivity_decrease_[target_part]; // add correction term
-              }
+              //if (move_decreases_connectivity) {
+                //--tmp_connectivity_decrease_[target_part]; // add correction term
+              //}
 
-              if (move_decreases_connectivity && !move_increases_connectivity) {
-                // Real decrease in connectivity.
-                // Initially we bounded the decrease with the maximum possible increase. Therefore we
-                // have to correct this value. +1 since there won't be an increase and an additional +1
-                // since there actually will be a decrease;
-                tmp_connectivity_decrease_[target_part] += 2;
-              } else if ((move_decreases_connectivity && move_increases_connectivity) ||
-                  (!move_decreases_connectivity && !move_increases_connectivity)) {
-                // Connectivity doesn't change. This means that the assumed increase was wrong and needs
-                // to be corrected.
+              // optimized version....
+              if (!move_increases_connectivity)
+              {
                 tmp_connectivity_decrease_[target_part] += 1;
               }
+
+              //if (move_decreases_connectivity && !move_increases_connectivity) {
+                //// Real decrease in connectivity.
+                //// Initially we bounded the decrease with the maximum possible increase. Therefore we
+                //// have to correct this value. +1 since there won't be an increase and an additional +1
+                //// since there actually will be a decrease;
+                //tmp_connectivity_decrease_[target_part] += 2;
+              //} else if ((move_decreases_connectivity && move_increases_connectivity) ||
+                  //(!move_decreases_connectivity && !move_increases_connectivity)) {
+                //// Connectivity doesn't change. This means that the assumed increase was wrong and needs
+                //// to be corrected.
+                //tmp_connectivity_decrease_[target_part] += 1;
+              //}
             }
           }
         }
@@ -300,6 +310,10 @@ namespace partition
           return true;
         }(), "connectivity decrease was not coherent!");
 
+        // part
+        std::vector<PartitionID> max_score;
+        max_score.push_back(source_part);
+
         for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
         {
           assert(tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition ||
@@ -313,28 +327,57 @@ namespace partition
           const HypernodeWeight source_part_weight = hg_.partWeight(source_part);
           const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
 
-          if ((target_part_gain > max_gain ||
-                (target_part_gain == max_gain &&
-                 target_part_connectivity_decrease > max_connectivity_decrease) ||
-                (target_part_gain == max_gain && Randomize::flipCoin()) ||
-                (target_part_gain == max_gain &&
-                 target_part_weight + node_weight <= config_.partition.max_part_weight &&
-                 target_part_weight + node_weight <= hg_.partWeight(max_gain_part) + node_weight))
-              &&
-              ((target_part_weight + node_weight <= config_.partition.max_part_weight) ||
-               (target_part == source_part && target_part_weight <= config_.partition.max_part_weight)))
+          if ((target_part_weight + node_weight <= config_.partition.max_part_weight) ||
+               (target_part == source_part && target_part_weight <= config_.partition.max_part_weight))
           {
-            max_gain = target_part_gain;
-            max_gain_part = target_part;
-            max_connectivity_decrease = target_part_connectivity_decrease;
-            //std::cout << "con dec: " << max_connectivity_decrease << std::endl;
-            ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
-                "Hn can't be moved to invalid partition");
+            if (target_part_gain > max_gain)
+            {
+              max_score.clear();
+              max_gain = target_part_gain;
+              max_connectivity_decrease = target_part_connectivity_decrease;
+              max_score.push_back(target_part);
+            } else if (target_part_gain == max_gain)
+            {
+              if (target_part_connectivity_decrease > max_connectivity_decrease)
+              {
+                max_connectivity_decrease = target_part_connectivity_decrease;
+                max_score.clear();
+                max_score.push_back(target_part);
+              } else if (target_part_connectivity_decrease == max_connectivity_decrease){
+                max_score.push_back(target_part);
+              }
+            }
           }
+
+          //if ((target_part_gain > max_gain ||
+                //(target_part_gain == max_gain &&
+                 //target_part_connectivity_decrease > max_connectivity_decrease) ||
+                //(target_part_gain == max_gain &&
+                 //target_part_connectivity_decrease == max_connectivity_decrease &&
+                 //Randomize::getRandomInt(0, cnt)  == 0)
+                //(target_part_gain == max_gain &&
+                 //target_part_weight + node_weight <= config_.partition.max_part_weight &&
+                 //target_part_weight + node_weight <= hg_.partWeight(max_gain_part) + node_weight)
+              //)
+              //&&
+              //((target_part_weight + node_weight <= config_.partition.max_part_weight) ||
+               //(target_part == source_part && target_part_weight <= config_.partition.max_part_weight))
+              //)
+          //{
+
+
+            //max_gain = target_part_gain;
+            //max_gain_part = target_part;
+            //max_connectivity_decrease = target_part_connectivity_decrease;
+
+            //ASSERT(max_gain_part != Hypergraph::kInvalidPartition,
+                //"Hn can't be moved to invalid partition");
+          //}
           tmp_gains_[target_part] = kInvalidGain;
           tmp_connectivity_decrease_[target_part] = kInvalidDecrease;
           tmp_target_parts_[target_part] = Hypergraph::kInvalidPartition;
         }
+        max_gain_part = max_score[(Randomize::getRandomInt(0, max_score.size()-1))];
 
         //std::cout << "source part: " << source_part << " best part: " << max_gain_part << std::endl;
         ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
@@ -395,4 +438,4 @@ namespace partition
 
       Stats stats_;
   };
-};
+};;

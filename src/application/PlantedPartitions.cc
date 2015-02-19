@@ -17,6 +17,8 @@ int main(int argc, char* argv[])
     ("n", po::value<unsigned int>(), "number of hypernodes")
     ("m", po::value<unsigned int>(), "number of hyperedges")
     ("k", po::value<unsigned int>(), "number of planted partition blocks")
+    ("min_edge", po::value<unsigned int>(), "minimal edge size")
+    ("max_edge", po::value<unsigned int>(), "maximal edge size")
     ("p_inter", po::value<float>(), "probability for inter partition edges")
     ("deviation", po::value<float>(), "standart deviation fot the partition size")
     ("output", po::value<std::string>(), "output hypergraph path")
@@ -46,6 +48,9 @@ int main(int argc, char* argv[])
   unsigned int n = vm["n"].as<unsigned int>();
   unsigned int m = vm["m"].as<unsigned int>();
   unsigned int k = vm["k"].as<unsigned int>();
+  unsigned int min_edge = vm["min_edge"].as<unsigned int>();
+  unsigned int max_edge = vm["max_edge"].as<unsigned int>();
+
   float p_inter = vm["p_inter"].as<float>(); // inter partition egdes -> between partitions
   std::string result_file = vm["output"].as<std::string>();
 
@@ -99,8 +104,9 @@ int main(int argc, char* argv[])
   }
 
   std::ofstream ofs("temp.txt");
-  ofs << "% n = " << n << " m = " << m <<
-    " k = " << k << " p_inter = " << p_inter  <<  " standart_deviation_block_size = " << deviation<< std::endl;
+  ofs << "% seed = " << seed << " n = " << n << " m = " << m <<
+    " k = " << k << " p_inter = " << p_inter  <<  " standart_deviation_block_size = " << deviation <<
+    " min_edge = " << min_edge << " max_edge = " << max_edge << std::endl;
 
   std::vector<std::vector<int>> clean_blocks;
   int t = 1;
@@ -147,7 +153,13 @@ int main(int argc, char* argv[])
       current_hyperedge = &clean_blocks.at(block_id);
     }
 
-    int num_pins = Randomize::getRandomInt(2, current_hyperedge->size());
+    //int num_pins = Randomize::getRandomInt(2, current_hyperedge->size());
+    int num_pins = Randomize::getRandomInt(std::max<int>(2, min_edge),
+                                           std::min<int>(current_hyperedge->size(), max_edge));
+
+    // sanity check
+    if (num_pins < min_edge || num_pins > max_edge) continue;
+
     Randomize::shuffleVector(*current_hyperedge, current_hyperedge->size());
     for (int j = 0; j < num_pins; j++)
     {
