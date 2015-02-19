@@ -267,7 +267,6 @@ class GenericHypergraph {
   typedef typename std::vector<VertexID>::iterator PinHandleIterator;
 
   typedef std::vector<PartitionID> ConnectivitySet;
-  typedef std::vector<HypernodeID> PinCounts;
 
  public:
   typedef Memento ContractionMemento;
