@@ -301,7 +301,7 @@ class GenericHypergraph {
     _incidence_array(2 * _num_pins, 0),
     _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
-    _pins_in_part(_num_hyperedges),
+    _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges),
     _processed_hyperedges(_num_hyperedges),
     _active_hyperedges_u(_num_hyperedges),
@@ -316,7 +316,7 @@ class GenericHypergraph {
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
       }
-      _pins_in_part[i].resize(_k);
+      //_pins_in_part[i].resize(_k);
     }
 
     hypernode(0).setFirstEntry(_num_pins);
@@ -852,8 +852,8 @@ class GenericHypergraph {
   HypernodeID pinCountInPart(const HyperedgeID he,const PartitionID id) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
-    ASSERT(_pins_in_part[he][id] != kInvalidCount, V(he) << V(id));
-    return _pins_in_part[he][id];
+    ASSERT(_pins_in_part[he * _k + id] != kInvalidCount, V(he) << V(id));
+    return _pins_in_part[he * _k + id];
   }
 
   PartitionID connectivity(const HyperedgeID he) const {
@@ -926,9 +926,9 @@ class GenericHypergraph {
     ASSERT(pinCountInPart(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    ASSERT(_pins_in_part[he][id] > 0, "invalid decrease");
-    _pins_in_part[he][id] -= 1;
-    if (_pins_in_part[he][id] == 0) {
+    ASSERT(_pins_in_part[he * _k + id] > 0, "invalid decrease");
+    _pins_in_part[he * _k + id] -= 1;
+    if (_pins_in_part[he * _k + id] == 0) {
       auto it = std::find(_connectivity_sets[he].begin(), _connectivity_sets[he].end(), id);
       ASSERT(it != _connectivity_sets[he].end(), "Part not found:" << id);
       std::iter_swap(it, _connectivity_sets[he].end() -1);
@@ -942,8 +942,8 @@ class GenericHypergraph {
            "HE " << he << ": pin_count[" << id << "]=" << pinCountInPart(he, id)
            << "edgesize=" << edgeSize(he));
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    _pins_in_part[he][id] += 1;
-    if (_pins_in_part[he][id] == 1) {
+    _pins_in_part[he * _k + id] += 1;
+    if (_pins_in_part[he * _k + id] == 1) {
       ASSERT(std::find(_connectivity_sets[he].begin(), _connectivity_sets[he].end(), id)
              == _connectivity_sets[he].end(), "Part " << id << " already contained");
       _connectivity_sets[he].push_back(id);
@@ -955,7 +955,7 @@ class GenericHypergraph {
     ASSERT(hyperedge(he).isDisabled(),
            "Invalidation of pin counts only allowed for disabled hyperedges");
     for (PartitionID part = 0; part < _k; ++part) {
-      _pins_in_part[he][part] = kInvalidCount;
+      _pins_in_part[he * _k + part] = kInvalidCount;
     }
     _connectivity_sets[he].clear();
   }
@@ -963,7 +963,7 @@ class GenericHypergraph {
   void resetPartitionPinCounts(const HyperedgeID he) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     for (PartitionID part = 0; part < _k; ++part) {
-      _pins_in_part[he][part] = 0;
+      _pins_in_part[he * _k + part] = 0;
     }
   }
 
@@ -1103,7 +1103,7 @@ class GenericHypergraph {
   std::vector<PartInformation> _part_info;
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
-  std::vector<PinCounts> _pins_in_part;
+  std::vector<HypernodeID> _pins_in_part;
   std::vector<ConnectivitySet> _connectivity_sets;
 
   // Used during uncontraction to remember which hyperedges have already been processed
