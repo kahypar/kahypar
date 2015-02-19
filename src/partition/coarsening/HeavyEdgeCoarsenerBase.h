@@ -129,10 +129,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop();
     }
+    ASSERT(current_imbalance <= _config.partition.epsilon,
+           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+           << " > " << _config.partition.epsilon);
     return current_cut < initial_cut;
-    // ASSERT(current_imbalance <= _config.partition.epsilon,
-    //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-    //        << " > " << _config.partition.epsilon);
   }
 
   template <typename Map>
