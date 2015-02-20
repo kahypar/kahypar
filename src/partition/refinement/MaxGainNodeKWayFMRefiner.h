@@ -457,22 +457,28 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           // and use this value as a correction term for all parts, we have to account for the fact
           // that we this decrease is already accounted for in ++num_hes_with_only_hn_in_part and thus
           // have to correct the decrease value for all parts.
-          if (move_decreases_connectivity) {
-            --_tmp_connectivity_decrease[part]; // add correction term
-          }
+          // if (move_decreases_connectivity) {
+          //   --_tmp_connectivity_decrease[part]; // add correction term
+          // }
 
-          if (move_decreases_connectivity && !move_increases_connectivity) {
-            // Real decrease in connectivity.
-            // Initially we bounded the decrease with the maximum possible increase. Therefore we
-            // have to correct this value. +1 since there won't be an increase and an additional +1
-            // since there actually will be a decrease;
-            _tmp_connectivity_decrease[part] += 2;
-          } else if ((move_decreases_connectivity && move_increases_connectivity) ||
-                     (!move_decreases_connectivity && !move_increases_connectivity)) {
-            // Connectivity doesn't change. This means that the assumed increase was wrong and needs
-            // to be corrected.
+          // if (move_decreases_connectivity && !move_increases_connectivity) {
+          //   // Real decrease in connectivity.
+          //   // Initially we bounded the decrease with the maximum possible increase. Therefore we
+          //   // have to correct this value. +1 since there won't be an increase and an additional +1
+          //   // since there actually will be a decrease;
+          //   _tmp_connectivity_decrease[part] += 2;
+          // } else if ((move_decreases_connectivity && move_increases_connectivity) ||
+          //            (!move_decreases_connectivity && !move_increases_connectivity)) {
+          //   // Connectivity doesn't change. This means that the assumed increase was wrong and needs
+          //   // to be corrected.
+          //   _tmp_connectivity_decrease[part] += 1;
+          // }
+
+          // optimization
+          if (!move_increases_connectivity) {
             _tmp_connectivity_decrease[part] += 1;
           }
+
         }
       }
     }
