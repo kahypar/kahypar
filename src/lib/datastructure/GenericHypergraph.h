@@ -886,7 +886,7 @@ class GenericHypergraph {
 
   void sortConnectivitySets() {
     for (HyperedgeID he = 0; he < _num_hyperedges; ++he) {
-      std::sort(std::begin(_connectivity_sets[he]), std::end(_connectivity_sets[he]));
+      std::sort(_connectivity_sets[he].begin(), _connectivity_sets[he].end());
     }
   }
 
@@ -938,7 +938,7 @@ class GenericHypergraph {
       std::iter_swap(it, _connectivity_sets[he].end() -1);
       _connectivity_sets[he].pop_back();
       std::sort(it, _connectivity_sets[he].end());
-      ASSERT(std::is_sorted(std::begin(_connectivity_sets[he]), std::end(_connectivity_sets[he])),
+      ASSERT(std::is_sorted(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend()),
              V(he));
     }
   }
@@ -951,19 +951,19 @@ class GenericHypergraph {
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     _pins_in_part[he * _k + id] += 1;
     if (_pins_in_part[he * _k + id] == 1) {
-      ASSERT(std::find(_connectivity_sets[he].begin(), _connectivity_sets[he].end(), id)
+      ASSERT(std::find(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend(), id)
              == _connectivity_sets[he].end(), "Part " << id << " already contained");
-      _connectivity_sets[he].insert(std::find_if(std::begin(_connectivity_sets[he]),
-                                                 std::end(_connectivity_sets[he]),
+      _connectivity_sets[he].insert(std::find_if(_connectivity_sets[he].cbegin(),
+                                                 _connectivity_sets[he].cend(),
                                                  [&](const PartitionID i){return id < i;}),
                                     id);
     }
-    ASSERT(std::is_sorted(std::begin(_connectivity_sets[he]), std::end(_connectivity_sets[he])),
+    ASSERT(std::is_sorted(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend()),
            V(he));
     ASSERT([&](){
         for (PartitionID i =0; i < _k; ++i) {
-          if (std::count(std::begin(_connectivity_sets[he]),
-                         std::end(_connectivity_sets[he]), i) > 1) {
+          if (std::count(_connectivity_sets[he].cbegin(),
+                         _connectivity_sets[he].cend(), i) > 1) {
             return false;
           }
         }
@@ -1034,8 +1034,8 @@ class GenericHypergraph {
 
     HypernodeVertex& nodeU = hypernode(u);
     if (first_call) {
-      _incidence_array.insert(_incidence_array.end(), _incidence_array.begin() + nodeU.firstEntry(),
-                              _incidence_array.begin() + nodeU.firstInvalidEntry());
+      _incidence_array.insert(_incidence_array.cend(), _incidence_array.cbegin() + nodeU.firstEntry(),
+                              _incidence_array.cbegin() + nodeU.firstInvalidEntry());
       nodeU.setFirstEntry(_incidence_array.size() - nodeU.size());
       first_call = false;
     }
@@ -1080,8 +1080,8 @@ class GenericHypergraph {
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
   std::pair<PinHandleIterator, PinHandleIterator> pinHandles(const HyperedgeID he) {
-    return std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
-                          _incidence_array.begin() + hyperedge(he).firstInvalidEntry());
+    return std::make_pair(_incidence_array.cbegin() + hyperedge(he).firstEntry(),
+                          _incidence_array.cbegin() + hyperedge(he).firstInvalidEntry());
   }
 
   // Accessor for hypernode-related information

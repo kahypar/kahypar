@@ -13,8 +13,8 @@ class IteratorPair {
   Iterator end() const { return _l; }
 
   private:
-  Iterator _f;
-  Iterator _l;
+  const Iterator _f;
+  const Iterator _l;
 };
 
 template <typename Iterator>
