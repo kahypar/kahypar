@@ -48,13 +48,6 @@ class AMaxGainNodeKWayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
-TEST_F(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation) {
-  refiner->computeMaxGainMove(0);
-  for (const PartitionID tmp_value : refiner->_tmp_connectivity_decrease) {
-    ASSERT_THAT(tmp_value, Eq(KWayFMRefinerSimpleStopping::kInvalidDecrease));
-  }
-}
-
 TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
   ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
   ASSERT_THAT(refiner->isBorderNode(6), Eq(true));
