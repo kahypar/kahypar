@@ -4,6 +4,7 @@
 
 #ifndef SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
+#include <boost/dynamic_bitset.hpp>
 
 #include <limits>
 #include <stack>
@@ -33,6 +34,9 @@ using defs::PartitionID;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -41,13 +45,19 @@ template <class StoppingPolicy = Mandatory,
 class MaxGainNodeKWayFMRefiner : public IRefiner,
                                  private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
-  static const bool dbg_refinement_kway_fm_improvements_cut = false;
+  static const bool dbg_refinement_kway_fm_improvements_cut = true;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_fm_gain_update = false;
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
   typedef HyperedgeWeight Gain;
+
+  struct GainConnectivity {
+    Gain gain;
+    PartitionID connectivity_decrease;
+  };
+
   typedef std::pair<Gain, PartitionID> GainPartitionPair;
   typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                             std::numeric_limits<HyperedgeWeight> > KWayRefinementPQ;
@@ -66,17 +76,19 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   public:
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
-    _tmp_gains(_config.partition.k, kInvalidGain),
-    _tmp_connectivity_decrease(_config.partition.k, kInvalidDecrease),
-    _tmp_target_parts(_config.partition.k, Hypergraph::kInvalidPartition),
+    _tmp_gains(_config.partition.k, { kInvalidGain, 0 }),
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
+    _tmp_max_gain_target_parts(),
     _pq(_hg.initialNumNodes(), _config.partition.k),
     _marked(_hg.initialNumNodes()),
     _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
+    _seen_during_gain_comp(_config.partition.k, false),
+    _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
+    _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
 
   private:
@@ -287,12 +299,18 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                      ASSERT(isBorderNode(pin), "BorderFail");
                      const PartitionID target_part = _target_parts[pin];
                      const GainPartitionPair pair = computeMaxGainMove(pin);
-                     if (_pq.key(pin, target_part) != pair.first || target_part != pair.second) {
+                     // target_part currently cannot be validated that way, because of connectivity-
+                     // decrease assertion in computeMaxGainMove. This potentially leads to a different
+                     // order in which HEs are visited and therefore might change the max_target_part.
+                     // This might happen in case a part becomes empty, because in this case it is
+                     // deleted and then reinserted into the connectivity set of a HE during simulation.
+                     if (_pq.key(pin, target_part) != pair.first /*|| target_part != pair.second*/) {
                        LOG("Incorrect maxGain or target_part for HN " << pin);
                        LOG("expected key=" << pair.first);
                        LOG("actual key=" << _pq.key(pin, target_part));
                        LOG("expected part=" << pair.second);
                        LOG("actual part=" << target_part);
+                       LOG("source part=" << _hg.partID(pin));
                        return false;
                      }
                      if (_hg.partWeight(pair.second) < max_allowed_part_weight &&
@@ -400,110 +418,85 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   GainPartitionPair computeMaxGainMove(const HypernodeID hn) {
     ASSERT(isBorderNode(hn), V(hn));
-    ASSERT([&]() {
-             for (PartitionID part = 0; part < _config.partition.k; ++part) {
-               if (_tmp_target_parts[part] != Hypergraph::kInvalidPartition ||
-                   _tmp_gains[part] != kInvalidGain ||
-                   _tmp_connectivity_decrease[part] != kInvalidDecrease) {
-                 LOGVAR(_tmp_target_parts[part]);
-                 LOGVAR(_tmp_gains[part]);
-                 LOGVAR(_tmp_connectivity_decrease[part]);
-                 return false;
-               }
-             }
-             return true;
-           } () == true, "Incorrect initialization of temporary datastructures");
+    _seen_as_max_part.assign(_seen_as_max_part.size(), false);
+    _tmp_max_gain_target_parts.clear();
 
-    const PartitionID source_part = _hg.partID(hn);
-    // = connectivity_increase_upper_bound
-    const PartitionID worst_case_connectivity_decrease = -_hg.nodeDegree(hn);
+    // slightly faster than lazy reset in inner loop;
+    // connectivity_increase_upper_bound == worst_case_connectivity_decrease = -d(hn)
+    std::fill(std::begin(_tmp_gains), std::end(_tmp_gains),
+              GainConnectivity { 0, -static_cast<int>(_hg.nodeDegree(hn)) });
 
     HyperedgeWeight internal_weight = 0;
     PartitionID num_hes_with_only_hn_in_part = 0;
+    Gain max_gain = 0;
+
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-      if (_hg.connectivity(he) == 1) {
-        internal_weight += he_weight;
-      } else {
-        // Moving the HN to a different part will not __increase__ the connectivity of
-        // the HE, because hn is the only HN in source_part (However it might decrease it).
-        // Therefore we have to correct the connectivity-decrease for all other parts
-        // (exept source_part) by 1, because we assume initially that the move increases the
-        // connectivity for each HE by 1. Actually the implementation also corrects source_part,
-        // however we reset gain and connectivity-decrease values for source part before searching
-        // for the max-gain-move & thus never consider the source_part-related values.
-        if (_hg.pinCountInPart(he, source_part) == 1) {
-          ++num_hes_with_only_hn_in_part;
-        }
-
-        for (const PartitionID part : _hg.connectivitySet(he)) {
-          if (_tmp_target_parts[part] == Hypergraph::kInvalidPartition) {
-            _tmp_target_parts[part] = part;
-            ASSERT(_tmp_gains[part] == kInvalidGain, V(_tmp_gains[part]));
-            ASSERT(_tmp_connectivity_decrease[part] == kInvalidDecrease,
-                   V(_tmp_connectivity_decrease[part]));
-            _tmp_gains[part] = 0;
-            _tmp_connectivity_decrease[part] = worst_case_connectivity_decrease;
+      switch (_hg.connectivity(he)) {
+        case 1:
+          internal_weight += he_weight;
+          break;
+        case 2:
+          // Moving the HN to a different part will not __increase__ the connectivity of
+          // the HE, because hn is the only HN in source_part (However it might decrease it).
+          // Therefore we have to correct the connectivity-decrease for all other parts
+          // (exept source_part) by 1, because we assume initially that the move increases the
+          // connectivity for each HE by 1. Actually the implementation also corrects source_part,
+          // however we reset gain and connectivity-decrease values for source part before searching
+          // for the max-gain-move & thus never consider the source_part-related values.
+          if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+            ++num_hes_with_only_hn_in_part;
           }
-          const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, part);
-          const bool move_increases_connectivity = pins_in_target_part == 0;
+          for (const PartitionID part : _hg.connectivitySet(he)) {
+            if (part != _hg.partID(hn)) {
+              // Move can never increase connectivity in this case, because there is at
+              // least one pin in part - otherwise the HE would not be connected to that part
+              _tmp_gains[part].connectivity_decrease += 1;
 
-          if (pins_in_target_part == _hg.edgeSize(he) - 1) {
-            _tmp_gains[part] += he_weight;
+              if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
+                _tmp_gains[part].gain += he_weight;
+                if (_tmp_gains[part].gain > max_gain) {
+                  max_gain = _tmp_gains[part].gain;
+                  _seen_as_max_part.assign(_seen_as_max_part.size(), false);
+                  _seen_as_max_part[part] = true;
+                  _tmp_max_gain_target_parts.clear();
+                  _tmp_max_gain_target_parts.push_back(part);
+                }
+              } else if (_tmp_gains[part].gain == max_gain && !_seen_as_max_part[part]) {
+                _seen_as_max_part[part] = true;
+                _tmp_max_gain_target_parts.push_back(part);
+              }
+            }
+          }
+          break;
+        default:
+          // For the same reason as above
+          if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+            ++num_hes_with_only_hn_in_part;
           }
 
-          // optimization of code below
-          if (!move_increases_connectivity) {
-            _tmp_connectivity_decrease[part] += 1;
+          for (const PartitionID part : _hg.connectivitySet(he)) {
+            // in this case, the connectivity is > 2 and therefore it is more likely that
+            // the expression is true than that it is false.
+            if (part != _hg.partID(hn)) {
+              // HEs with connectivity > 2 cannot increase the gain
+              ASSERT(_hg.pinCountInPart(he, part) != _hg.edgeSize(he) - 1, V(part));
+
+              // Move can never increase connectivity in this case, because there is at
+              // least one pin in part - otherwise the HE would not be connected to that part
+              _tmp_gains[part].connectivity_decrease += 1;
+
+              if (!_seen_as_max_part[part] && _tmp_gains[part].gain == max_gain) {
+                _seen_as_max_part[part] = true;
+                _tmp_max_gain_target_parts.push_back(part);
+              }
+            }
           }
-
-          // Since we only count HEs where hn is the only HN that is in the source part globally
-          // and use this value as a correction term for all parts, we have to account for the fact
-          // that we this decrease is already accounted for in ++num_hes_with_only_hn_in_part and thus
-          // have to correct the decrease value for all parts.
-          // if (move_decreases_connectivity) {
-          //   --_tmp_connectivity_decrease[part]; // add correction term
-          // }
-
-          // if (move_decreases_connectivity && !move_increases_connectivity) {
-          //   // Real decrease in connectivity.
-          //   // Initially we bounded the decrease with the maximum possible increase. Therefore we
-          //   // have to correct this value. +1 since there won't be an increase and an additional +1
-          //   // since there actually will be a decrease;
-          //   _tmp_connectivity_decrease[part] += 2;
-          // } else if ((move_decreases_connectivity && move_increases_connectivity) ||
-          //            (!move_decreases_connectivity && !move_increases_connectivity)) {
-          //   // Connectivity doesn't change. This means that the assumed increase was wrong and needs
-          //   // to be corrected.
-          //   _tmp_connectivity_decrease[part] += 1;
-          // }
-
-
-
-        }
       }
     }
 
-    // own partition does not count
-    _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
-    _tmp_gains[source_part] = kInvalidGain;
-    _tmp_connectivity_decrease[source_part] = kInvalidDecrease;
-
-    DBG(dbg_refinement_kway_fm_gain_comp, [&]() {
-          for (PartitionID target_part : _tmp_target_parts) {
-            if (target_part != Hypergraph::kInvalidPartition) {
-              LOG("gain(" << target_part << ")=" << _tmp_gains[target_part] - internal_weight);
-              LOGVAR(_tmp_connectivity_decrease[target_part]);
-              LOGVAR(num_hes_with_only_hn_in_part);
-              LOG("connectivity_decrease(" << target_part << ")=" <<
-                  _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part);
-            }
-          }
-          return std::string("");
-        } ());
-
-    // validate the connectivity decrease
+    // Validate the connectivity decrease
     ASSERT([&]() {
              std::vector<bool> connectivity_superset(_config.partition.k);
              PartitionID old_connectivity = 0;
@@ -516,8 +509,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                  }
                }
              }
-             for (PartitionID target_part : _tmp_target_parts) {
-               if (target_part != Hypergraph::kInvalidPartition) {
+             for (PartitionID target_part = 0; target_part < _config.partition.epsilon; ++target_part) {
+               if (_seen_during_gain_comp[target_part] && target_part != source_part) {
                  _hg.changeNodePart(hn, source_part, target_part);
                  PartitionID new_connectivity = 0;
                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -531,13 +524,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                  }
                  _hg.changeNodePart(hn, target_part, source_part);
                  if (old_connectivity - new_connectivity !=
-                     _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part) {
+                     _tmp_gains[target_part].connectivity_decrease + num_hes_with_only_hn_in_part) {
                    LOG("Actual connectivity decrease for move to part " << target_part << ":");
                    LOGVAR(old_connectivity);
                    LOGVAR(new_connectivity);
                    LOG("actual decrease= " << old_connectivity - new_connectivity);
                    LOG("calculated decrease= " <<
-                       (_tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part));
+                       (_tmp_gains[target_part].connectivity_decrease + num_hes_with_only_hn_in_part));
                    return false;
                  }
                }
@@ -546,54 +539,54 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            }
            (), "connectivity decrease inconsistent!");
 
-
-    const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-    const bool source_part_imbalanced = _hg.partWeight(source_part) >= _config.partition.max_part_weight;
-
-    PartitionID max_gain_part = Hypergraph::kInvalidPartition;
-    Gain max_gain = kInvalidGain;
+    const bool source_part_imbalanced = _hg.partWeight(_hg.partID(hn)) >= _config.partition.max_part_weight;
     PartitionID max_connectivity_decrease = kInvalidDecrease;
-    for (PartitionID target_part : _tmp_target_parts) {
-      if (target_part != Hypergraph::kInvalidPartition) {
-        const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-        const PartitionID target_part_connectivity_decrease =
-          _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_part;
-        const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
-        if (target_part_gain > max_gain ||
-            ((target_part_gain == max_gain) &&
-             ((target_part_connectivity_decrease > max_connectivity_decrease) ||
-              (source_part_imbalanced &&
-               target_part_weight + node_weight < _config.partition.max_part_weight &&
-               target_part_weight + node_weight < _hg.partWeight(max_gain_part) + node_weight)))) {
-          max_gain = target_part_gain;
-          max_gain_part = target_part;
-          max_connectivity_decrease = target_part_connectivity_decrease;
-          ASSERT(max_gain_part != Hypergraph::kInvalidPartition, V(max_gain_part));
+    PartitionID max_gain_part = Hypergraph::kInvalidPartition;
+    if (_tmp_max_gain_target_parts.size() > 1) {
+      for (const PartitionID tmp_max_part : _tmp_max_gain_target_parts) {
+        ASSERT(tmp_max_part != source_part, V(hn) << V(source_part));
+        ASSERT(max_gain == _tmp_gains[tmp_max_part].gain, V(tmp_max_part));
+
+        // This is the true connectivity decrease. However we currently do not need the actual value
+        // since we only search for the maximum and do not include the actual value into the gain.
+        // const PartitionID target_part_connectivity_decrease =
+        //     _tmp_connectivity_decrease[tmp_max_part] + num_hes_with_only_hn_in_part;
+
+        if ((_tmp_gains[tmp_max_part].connectivity_decrease > max_connectivity_decrease) ||
+            (source_part_imbalanced
+             && (_hg.partWeight(tmp_max_part) < _hg.partWeight(max_gain_part)))) {
+          max_gain_part = tmp_max_part;
+          max_connectivity_decrease = _tmp_gains[tmp_max_part].connectivity_decrease; //target_part_connectivity_decrease;
         }
-        _tmp_gains[target_part] = kInvalidGain;
-        _tmp_connectivity_decrease[target_part] = kInvalidDecrease;
-        _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
       }
+    } else {
+      max_gain_part = _tmp_max_gain_target_parts.back();
     }
+
+    // up until now max_gain dismisses weight of internal hyperedges
+    max_gain = max_gain - internal_weight;
+
     DBG(dbg_refinement_kway_fm_gain_comp,
         "gain(" << hn << ")=" << max_gain << " connectivity_decrease=" << max_connectivity_decrease
         << " part=" << max_gain_part << " feasible="
-        << moveIsFeasible(hn, _hg.partID(hn), max_gain_part));
-    ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain != kInvalidGain,
-           V(hn) << V(max_gain) << V(max_gain_part));
+        << moveIsFeasible(hn, _hg.partID(hn), max_gain_part) << " internal_weight=" << internal_weight);
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain_part != source_part &&
+           max_gain != kInvalidGain, V(hn) << V(max_gain) << V(max_gain_part));
+
     return GainPartitionPair(max_gain, max_gain_part);
   }
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  std::vector<Gain> _tmp_gains;
-  std::vector<PartitionID> _tmp_connectivity_decrease;
-  std::vector<PartitionID> _tmp_target_parts;
+  std::vector<GainConnectivity> _tmp_gains;
   std::vector<PartitionID> _target_parts;
+  std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
   std::vector<bool> _marked;
   std::vector<bool> _active;
   std::vector<bool> _just_updated;
+  std::vector<bool> _seen_during_gain_comp;
+  std::vector<bool> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
