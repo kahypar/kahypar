@@ -510,8 +510,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                }
              }
              for (PartitionID target_part = 0; target_part < _config.partition.epsilon; ++target_part) {
-               if (_seen_during_gain_comp[target_part] && target_part != source_part) {
-                 _hg.changeNodePart(hn, source_part, target_part);
+               if (_seen_during_gain_comp[target_part] && target_part != _hg.partID(hn)) {
+                 _hg.changeNodePart(hn, _hg.partID(hn), target_part);
                  PartitionID new_connectivity = 0;
                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
                    connectivity_superset.assign(connectivity_superset.size(), false);
@@ -522,7 +522,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                      }
                    }
                  }
-                 _hg.changeNodePart(hn, target_part, source_part);
+                 _hg.changeNodePart(hn, target_part, _hg.partID(hn));
                  if (old_connectivity - new_connectivity !=
                      _tmp_gains[target_part].connectivity_decrease + num_hes_with_only_hn_in_part) {
                    LOG("Actual connectivity decrease for move to part " << target_part << ":");
@@ -544,7 +544,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     if (_tmp_max_gain_target_parts.size() > 1) {
       for (const PartitionID tmp_max_part : _tmp_max_gain_target_parts) {
-        ASSERT(tmp_max_part != source_part, V(hn) << V(source_part));
+        ASSERT(tmp_max_part != _hg.partID(hn), V(hn) << V(_hg.partID(hn)));
         ASSERT(max_gain == _tmp_gains[tmp_max_part].gain, V(tmp_max_part));
 
         // This is the true connectivity decrease. However we currently do not need the actual value
@@ -570,7 +570,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         "gain(" << hn << ")=" << max_gain << " connectivity_decrease=" << max_connectivity_decrease
         << " part=" << max_gain_part << " feasible="
         << moveIsFeasible(hn, _hg.partID(hn), max_gain_part) << " internal_weight=" << internal_weight);
-    ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain_part != source_part &&
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition && max_gain_part != _hg.partID(hn) &&
            max_gain != kInvalidGain, V(hn) << V(max_gain) << V(max_gain_part));
 
     return GainPartitionPair(max_gain, max_gain_part);
