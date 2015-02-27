@@ -75,7 +75,7 @@ class KWayFMRefiner : public IRefiner,
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k, Hypergraph::kInvalidPartition),
-    _pq(_hg.initialNumNodes(), _config.partition.k),
+    _pq(_config.partition.k),
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _he_fully_active(_hg.initialNumEdges()),
@@ -98,7 +98,19 @@ class KWayFMRefiner : public IRefiner,
   FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
   FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
 
-  void initializeImpl() final { }
+  void initializeImpl() final {
+    if (!_is_initialized) {
+      _pq.initialize(_hg.initialNumNodes());
+    }
+    _is_initialized = true;
+  }
+
+  void initializeImpl(const HyperedgeWeight max_gain) final {
+    if (!_is_initialized) {
+      _pq.initialize(max_gain);
+    }
+    _is_initialized = true;
+  }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
@@ -244,7 +256,14 @@ class KWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const final {
-    return std::string(" Refiner=KWayFM StoppingPolicy=" + templateToString<StoppingPolicy>());
+    return std::string(" Refiner=KWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " UsesBucketQueue=" +
+#ifdef USE_BUCKET_PQ
+                       "true"
+#else
+                       "false"
+#endif
+                       );
   }
 
   const Stats & statsImpl() const {

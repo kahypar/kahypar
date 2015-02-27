@@ -18,7 +18,10 @@ namespace datastructure {
 class AKWayPriorityQueue : public Test {
   public:
   AKWayPriorityQueue() :
-    prio_queue(5, 4) { }
+    prio_queue(4) {
+    //should be large enough to act as upper bound for both bucket- and heap-based PQ
+    prio_queue.initialize(100);
+  }
 
   KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                     std::numeric_limits<HyperedgeWeight> > prio_queue;

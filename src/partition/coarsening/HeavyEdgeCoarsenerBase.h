@@ -64,9 +64,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base::_history;
   using Base::_max_hn_weights;
   using Base::_stats;
-#ifdef USE_BUCKET_PQ
-  using Base::_weights_table;
-#endif
   using Base::CurrentMaxNodeWeight;
   using Base::restoreSingleNodeHyperedges;
   using Base::restoreParallelHyperedges;

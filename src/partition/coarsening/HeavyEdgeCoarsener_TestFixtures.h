@@ -34,6 +34,9 @@ class DummyRefiner : public IRefiner {
   public:
   DummyRefiner() :
     _stats() { }
+  void initializeImpl() {
+    _is_initialized = true;
+  }
   bool refineImpl(std::vector<HypernodeID>&, size_t, const HypernodeWeight,
                   HyperedgeWeight&, double&) final { return true; }
   int numRepetitionsImpl() const final { return 1; }
@@ -52,6 +55,7 @@ class ACoarsenerBase : public Test {
     config(),
     coarsener(*hypergraph, config),
     refiner(new DummyRefiner()) {
+    refiner->initialize();
     config.coarsening.max_allowed_node_weight = 5;
   }
 
@@ -169,6 +173,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+  refiner->initialize();
 
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
@@ -202,6 +207,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+  refiner->initialize();
 
   coarsener.coarsen(2);
 

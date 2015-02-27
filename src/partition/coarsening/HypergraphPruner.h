@@ -92,10 +92,6 @@ class HypergraphPruner {
     IncidenceIterator end_it = _hg.incidentEdges(u).end();
     for (IncidenceIterator he_it = begin_it; he_it != end_it; ++he_it) {
       if (_hg.edgeSize(*he_it) == 1) {
-#ifdef USE_BUCKET_PQ
-        // This needs to be addressed!
-        _weights_table[u] += _hg.edgeWeight(*he_it);
-#endif
         _removed_single_node_hyperedges.push_back(*he_it);
         _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
                    _hg.edgeWeight(*he_it));

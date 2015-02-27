@@ -62,9 +62,6 @@ class CoarsenerBase {
     _config(config),
     _history(),
     _max_hn_weights(),
-#ifdef USE_BUCKET_PQ
-    _weights_table(),
-#endif
     _stats(),
     _hypergraph_pruner(_hg, _config, _stats) {
     _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), 1 });
@@ -97,30 +94,17 @@ class CoarsenerBase {
 
   void initializeRefiner(IRefiner& refiner) {
   #ifdef USE_BUCKET_PQ
-    HyperedgeWeight max_single_he_induced_weight = 0;
-    for (auto && iter = _weights_table.begin(); iter != _weights_table.end(); ++iter) {
-      if (iter->second > max_single_he_induced_weight) {
-        max_single_he_induced_weight = iter->second;
-      }
-    }
-    HyperedgeWeight max_degree = 0;
-    HypernodeID max_node = 0;
+    HyperedgeID max_degree = 0;
     for (const HypernodeID hn : _hg.nodes()) {
-      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition,
-             "TwoWayFmRefiner cannot work with HNs in invalid partition");
-      HyperedgeWeight curr_degree = 0;
-      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-        curr_degree += _hg.edgeWeight(he);
-      }
-      if (curr_degree > max_degree) {
-        max_degree = curr_degree;
-        max_node = hn;
-      }
+      max_degree = std::max(max_degree, _hg.nodeDegree(hn));
     }
-
-    DBG(true, "max_single_he_induced_weight=" << max_single_he_induced_weight);
-    DBG(true, "max_degree=" << max_degree << ", HN=" << max_node);
-    refiner.initialize(max_degree + max_single_he_induced_weight);
+    HyperedgeWeight max_he_weight = 0;
+    for (const HyperedgeID he : _hg.edges()) {
+      max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
+    }
+    LOGVAR(max_degree);
+    LOGVAR(max_he_weight);
+    refiner.initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
 #else
     refiner.initialize();
 #endif
@@ -239,9 +223,6 @@ class CoarsenerBase {
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;
   std::stack<CurrentMaxNodeWeight> _max_hn_weights;
-#ifdef USE_BUCKET_PQ
-  SingleHEWeightsHashtable _weights_table;
-#endif
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
 

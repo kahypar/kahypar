@@ -29,7 +29,7 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::BucketPQ;
+using datastructure::BucketQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -56,13 +56,9 @@ class TwoWayFMRefiner : public IRefiner,
                         private FMRefinerBase {
   private:
   typedef HyperedgeWeight Gain;
-#ifdef USE_BUCKET_PQ
-  typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
-#else
   typedef NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
                               std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
   typedef PriorityQueue<TwoWayFMHeap> RefinementPQ;
-#endif
 
   static const int K = 2;
 
@@ -74,7 +70,6 @@ class TwoWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _performed_moves(),
-    _is_initialized(false),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
@@ -122,16 +117,9 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
 
-  #ifdef USE_BUCKET_PQ
-  void initializeImpl(HyperedgeWeight max_gain) final {
-    delete _pq[0];
-    delete _pq[1];
-    _pq[0] = new RefinementPQ(max_gain);
-    _pq[1] = new RefinementPQ(max_gain);
-
-    _is_initialized = true;
+  void initializeImpl(HyperedgeWeight) final {
+    initializeImpl();
   }
-#endif
 
   void initializeImpl() final {
     if (!_is_initialized) {
@@ -144,7 +132,6 @@ class TwoWayFMRefiner : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight UNUSED(max_allowed_part_weight),
                   HyperedgeWeight& best_cut, double& best_imbalance) final {
-    ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -331,12 +318,7 @@ class TwoWayFMRefiner : public IRefiner,
     return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()
-                       + " UsesBucketPQ="
-#ifdef USE_BUCKET_PQ
-                       + "true"
-#else
-                       + "false"
-#endif
+                       + " UsesBucketPQ=false"
                        );
   }
 
@@ -455,7 +437,6 @@ class TwoWayFMRefiner : public IRefiner,
   std::vector<bool> _marked;
   std::vector<bool> _just_activated;
   std::vector<HypernodeID> _performed_moves;
-  bool _is_initialized;
   Stats _stats;
   DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };

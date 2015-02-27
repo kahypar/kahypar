@@ -103,6 +103,10 @@ class HyperedgeFMRefiner : public IRefiner,
     delete _pq[1];
   }
 
+  void initializeImpl(HyperedgeWeight) final {
+    _is_initialized = true;
+  }
+
   void initializeImpl() final {
     _is_initialized = true;
   }

@@ -40,7 +40,8 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     config.two_way_fm.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-    refiner->initialize();
+    //should be large enough to act as upper bound for both bucket- and heap-based PQ
+    refiner->initialize(100);
   }
 
   Configuration config;
@@ -148,6 +149,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  //should be large enough to act as upper bound for both bucket- and heap-based PQ
+  refiner->initialize(100);
 
   double old_imbalance = metrics::imbalance(*hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);

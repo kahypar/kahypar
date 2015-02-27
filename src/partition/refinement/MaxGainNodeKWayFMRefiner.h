@@ -79,7 +79,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_gains(_config.partition.k, { kInvalidGain, 0 }),
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _tmp_max_gain_target_parts(),
-    _pq(_hg.initialNumNodes(), _config.partition.k),
+    _pq(_config.partition.k),
     _marked(_hg.initialNumNodes()),
     _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
@@ -106,7 +106,19 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               AccountsForInternalHEsDuringConnectivityDecreaseCalculation);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecrease);
 
-  void initializeImpl() final { }
+  void initializeImpl() final {
+    if (!_is_initialized) {
+      _pq.initialize(_hg.initialNumNodes());
+    }
+    _is_initialized = true;
+  }
+
+  void initializeImpl(const HyperedgeWeight max_gain) final {
+    if (!_is_initialized) {
+      _pq.initialize(max_gain);
+    }
+    _is_initialized = true;
+  }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
@@ -246,7 +258,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const final {
-    return std::string(" Refiner=MaxGainNodeKWayFM StoppingPolicy=" + templateToString<StoppingPolicy>());
+    return std::string(" Refiner=MaxGainNodeKWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " UsesBucketQueue=" +
+#ifdef USE_BUCKET_PQ
+                       "true"
+#else
+                       "false"
+#endif
+                       );
   }
 
   const Stats & statsImpl() const {
@@ -553,8 +572,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         //     _tmp_connectivity_decrease[tmp_max_part] + num_hes_with_only_hn_in_part;
 
         if ((_tmp_gains[tmp_max_part].connectivity_decrease > max_connectivity_decrease) ||
-            (source_part_imbalanced
-             && (_hg.partWeight(tmp_max_part) < _hg.partWeight(max_gain_part)))) {
+            (source_part_imbalanced &&
+             (_hg.partWeight(tmp_max_part) < _hg.partWeight(max_gain_part)))) {
           max_gain_part = tmp_max_part;
           max_connectivity_decrease = _tmp_gains[tmp_max_part].connectivity_decrease; //target_part_connectivity_decrease;
         }
