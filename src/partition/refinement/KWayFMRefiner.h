@@ -849,18 +849,23 @@ class KWayFMRefiner : public IRefiner,
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
-      if (_hg.connectivity(he) == 1) {
-        internal_weight += _hg.edgeWeight(he);
-      } else {
-        const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
-        for (const PartitionID part : _hg.connectivitySet(he)) {
-          ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " is not conntected to " << V(part));
-          _tmp_target_parts[part] = part;
-          const HypernodeID num_pins = _hg.pinCountInPart(he, part);
-          if (pins_in_source_part == 1 && num_pins == _hg.edgeSize(he) - 1) {
-            _tmp_gains[part] += _hg.edgeWeight(he);
+      switch(_hg.connectivity(he)) {
+        case 1:
+          internal_weight += _hg.edgeWeight(he);
+          break;
+        case 2:
+          for (const PartitionID part : _hg.connectivitySet(he)) {
+            _tmp_target_parts[part] = part;
+            if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
+              _tmp_gains[part] += _hg.edgeWeight(he);
+            }
           }
-        }
+          break;
+        default:
+           for (const PartitionID part : _hg.connectivitySet(he)) {
+             _tmp_target_parts[part] = part;
+           }
+          break;
       }
     }
 
