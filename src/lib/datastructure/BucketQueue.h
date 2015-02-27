@@ -1,31 +1,12 @@
-/******************************************************************************
- * bucket_pq.h 
- *
- * Source of KaHIP -- Karlsruhe High Quality Partitioning.
- *
- * Modified to suite KaHyPar 
- *
- ******************************************************************************
- * Copyright (C) 2013 Christian Schulz <christian.schulz@kit.edu>
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************/
+/***************************************************************************
+ *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
 
-#ifndef BUCKET_PQ_EM8YJPA9
-#define BUCKET_PQ_EM8YJPA9
+#ifndef SRC_LIB_DATASTRUCTURE_BUCKET_QUEUE_H_
+#define SRC_LIB_DATASTRUCTURE_BUCKET_QUEUE_H_
 
 #include <limits>
+#include <memory>
 #include <unordered_map>
 
 #include "lib/macros.h"
@@ -33,152 +14,163 @@
 
 namespace datastructure {
 
-template <typename NodeID = Mandatory,
-          typename Gain = Mandatory,
-          typename EdgeWeight = Mandatory
-          >
-class BucketPQ {
+template <typename id_slot = Mandatory,
+          typename key_slot = Mandatory >
+class BucketQueue {
  public:
-  BucketPQ( const EdgeWeight & gain_span ) :
-      m_elements(0),
-      m_gain_span(gain_span),
-      m_max_idx(0),
-      m_queue_index(),
-      m_buckets() {
-    m_buckets.resize(2*m_gain_span+1);
+  BucketQueue( const key_slot& key_span ) :
+      _elements(0),
+      _key_span(key_span),
+      _max_idx(0),
+      _queue_index(),
+      _buckets(std::make_unique<std::vector<id_slot>[]>(2*_key_span+1)) { }
+
+  BucketQueue( const BucketQueue& other) :
+      _elements(other._elements),
+      _key_span(other._key_span),
+      _max_idx(other._max_idx),
+      _queue_index(),
+      _buckets(std::make_unique<std::vector<id_slot>[]>(2*_key_span+1)) {
   }
 
-  virtual ~BucketPQ() {};
+  ~BucketQueue() {};
 
-  NodeID size() {
-    return m_elements;  
+  id_slot size() const {
+    return _elements;
   }
 
-  Gain key(NodeID element) {
-    ASSERT(m_queue_index.find(element) != m_queue_index.end(),
+  bool empty() const {
+    return _elements == 0;
+  }
+
+  void swap(BucketQueue& other) {
+    using std::swap;
+    swap(_elements, other._elements);
+    swap(_key_span, other._key_span);
+    swap(_max_idx, other._max_idx);
+    swap(_queue_index, other._queue_index);
+    swap(_buckets, other._buckets);
+  }
+
+  key_slot getKey(const id_slot element) const  {
+    ASSERT(_queue_index.find(element) != _queue_index.end(),
            " Element " << element << " not contained in PQ");
-    return m_queue_index[element].second;        
+    return _queue_index.find(element)->second.second;
   }
 
-  void insert(NodeID node, Gain gain) {
-    reInsert(node,gain);
+  void push(const id_slot id, const key_slot key) {
+     const key_slot address = key + _key_span;
+     if(address > _max_idx) {
+       _max_idx = address;
+     }
+
+    _buckets[address].push_back( id );
+    _queue_index[id].first  = _buckets[address].size() - 1; //store position
+    _queue_index[id].second = key;
+
+    _elements++;
+  }
+
+  //  only to temporarily satisfy PQ interface
+  void reinsertingPush(const id_slot id, const key_slot key) {
+      push(id, key);
   }
   
-  void reInsert(NodeID node, Gain gain) {
-    unsigned address = gain + m_gain_span;
-    if(address > m_max_idx) {
-      m_max_idx = address; 
+  void clear()  {
+    for (key_slot i = 0; i < 2 * _key_span + 1; ++i) {
+      _buckets[i].clear();
     }
-    
-    m_buckets[address].push_back( node ); 
-    m_queue_index[node].first  = m_buckets[address].size() - 1; //store position
-    m_queue_index[node].second = gain;
+    _elements  = 0;
+    _max_idx   = 0;
+    _queue_index.clear();
+  }
 
-    m_elements++;
-
+  key_slot getMaxKey() const {
+    ASSERT(!empty(), "BucketQueue is empty");
+    //   DBG(true, "---->" << _queue_index[_buckets[_max_idx].back()].second);
+    return _max_idx - _key_span;
   }
   
-  bool empty() {
-    return m_elements == 0;
-  }
-
-  void clear() {
-    for (auto& bucket : m_buckets) {
-      bucket.clear();
-    }
-    m_elements  = 0;
-    m_max_idx   = 0;
-    m_queue_index.clear();
-  }
-
-  Gain maxKey() {
-    ASSERT(!empty(), "BucketPQ is empty");
-    //   DBG(true, "---->" << m_queue_index[m_buckets[m_max_idx].back()].second);
-    return m_max_idx - m_gain_span;        
+  id_slot getMax() const {
+    ASSERT(!_buckets[_max_idx].empty(),
+           "max-Bucket " << _max_idx << " is empty");
+    return _buckets[_max_idx].back();
   }
   
-  NodeID max() {
-    ASSERT(!m_buckets[m_max_idx].empty(),
-           "max-Bucket " << m_max_idx << " is empty");
-    return m_buckets[m_max_idx].back();        
-  }
-  
-  NodeID deleteMax() {
-    ASSERT(!m_buckets[m_max_idx].empty(),
-           "max-Bucket " << m_max_idx << " is empty");
-    NodeID node = m_buckets[m_max_idx].back();
-    m_buckets[m_max_idx].pop_back();
-    m_queue_index.erase(node);
-    
-    if( m_buckets[m_max_idx].size() == 0 ) {
-      //update max_idx
-      while( m_max_idx != 0 )  {
-        m_max_idx--;
-        if(m_buckets[m_max_idx].size() > 0) {
-          break;
-        }
-      }
+  void deleteMax() {
+    ASSERT(!_buckets[_max_idx].empty(),
+           "max-Bucket " << _max_idx << " is empty");
+    _queue_index.erase(_buckets[_max_idx].back());
+    _buckets[_max_idx].pop_back();
+
+    if( _buckets[_max_idx].size() == 0 ) {
+      searchNewMax();
     }
 
-    m_elements--;
-    return node;        
+    --_elements;
   }
 
-  void decreaseKey(NodeID node, Gain newGain) {
-    updateKey( node, newGain );
+  void decreaseKey(const id_slot id, const key_slot newkey_slot) {
+    updateKey( id, newkey_slot );
   }
-  void increaseKey(NodeID node, Gain newGain) {
-    updateKey( node, newGain );
-  }
-
-  void updateKey(NodeID node, Gain new_gain) {
-    remove(node);
-    reInsert(node, new_gain);
+  void increaseKey(const id_slot id, const key_slot newkey_slot) {
+    updateKey( id, newkey_slot );
   }
 
-  void remove(NodeID node) {
-    ASSERT(m_queue_index.find(node) != m_queue_index.end(),
-           "Hypernode " << node << " not in PQ");
-    unsigned int in_bucket_idx = m_queue_index[node].first;
-    Gain  old_gain      = m_queue_index[node].second;
-    unsigned address    = old_gain + m_gain_span;
+  void updateKey(const id_slot id, const key_slot new_key) {
+    deleteNode(id);
+    push(id, new_key);
+  }
 
-    if( m_buckets[address].size() > 1 ) {
+  void deleteNode(const id_slot id) {
+    ASSERT(_queue_index.find(id) != _queue_index.end(),
+           "Hyperid " << id << " not in PQ");
+    size_t in_bucket_idx, old_key;
+    std::tie(in_bucket_idx, old_key) = _queue_index[id];
+    const key_slot address  = old_key + _key_span;
+
+    if( _buckets[address].size() > 1 ) {
       //swap current element with last element and pop_back
-      m_queue_index[m_buckets[address].back()].first = in_bucket_idx; // update helper structure
-      std::swap(m_buckets[address][in_bucket_idx], m_buckets[address].back());
-      m_buckets[address].pop_back();
+      _queue_index[_buckets[address].back()].first = in_bucket_idx; // update helper structure
+      std::swap(_buckets[address][in_bucket_idx], _buckets[address].back());
+      _buckets[address].pop_back();
     } else {
       //size is 1
-      m_buckets[address].pop_back();
-      if( address == m_max_idx ) {
-        //update max_idx
-        while( m_max_idx != 0 )  {
-          m_max_idx--;
-          if(m_buckets[m_max_idx].size() > 0) {
-            break;
-          }
-        }
-
+      _buckets[address].pop_back();
+      if( address == _max_idx ) {
+        searchNewMax();
       }
     }
 
-    m_elements--;
-    m_queue_index.erase(node);
+    --_elements;
+    _queue_index.erase(id);
   }
 
-  bool contains(NodeID node) {
-    return m_queue_index.find(node) != m_queue_index.end(); 
+  bool contains(const id_slot id) const {
+    return _queue_index.find(id) != _queue_index.end();
   }
  private:
-  NodeID     m_elements;
-  EdgeWeight m_gain_span;
-  unsigned   m_max_idx; //points to the non-empty bucket with the largest gain
+
+  void searchNewMax() {
+    while(_max_idx != 0 && _buckets[_max_idx].empty())  {
+      --_max_idx;
+    }
+  }
+
+
+  id_slot  _elements;
+  key_slot _key_span;
+  key_slot _max_idx; //points to the non-empty bucket with the largest key
                 
-  std::unordered_map<NodeID, std::pair<unsigned int, Gain> > m_queue_index;
-  std::vector< std::vector<NodeID> >  m_buckets;
+  std::unordered_map<id_slot, std::pair<size_t, key_slot> > _queue_index;
+  std::unique_ptr<std::vector<id_slot>[]>  _buckets;
 };
 
+template< typename id_slot, typename key_slot>
+void swap(BucketQueue<id_slot,key_slot>& a,
+          BucketQueue<id_slot,key_slot>& b) {
+  a.swap(b);
+}
 
 } // namespace datastructure
-#endif /* end of include guard: BUCKET_PQ_EM8YJPA9 */
+#endif // SRC_LIB_DATASTRUCTURE_BUCKET_QUEUE_H_
