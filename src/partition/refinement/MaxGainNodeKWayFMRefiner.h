@@ -83,7 +83,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes()),
     _active(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()),
-    _seen_during_gain_comp(_config.partition.k, false),
     _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
     _stats() {
@@ -529,8 +528,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                }
              }
              for (PartitionID target_part = 0; target_part < _config.partition.epsilon; ++target_part) {
-               if (_seen_during_gain_comp[target_part] && target_part != _hg.partID(hn)) {
-                 _hg.changeNodePart(hn, _hg.partID(hn), target_part);
+               if (_seen_as_max_part[target_part] && target_part != _hg.partID(hn)) {
+                 PartitionID source_part = _hg.partID(hn);
+                 _hg.changeNodePart(hn, source_part, target_part);
                  PartitionID new_connectivity = 0;
                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
                    connectivity_superset.assign(connectivity_superset.size(), false);
@@ -541,7 +541,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                      }
                    }
                  }
-                 _hg.changeNodePart(hn, target_part, _hg.partID(hn));
+                 _hg.changeNodePart(hn, target_part, source_part);
                  if (old_connectivity - new_connectivity !=
                      _tmp_gains[target_part].connectivity_decrease + num_hes_with_only_hn_in_part) {
                    LOG("Actual connectivity decrease for move to part " << target_part << ":");
@@ -604,7 +604,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<bool> _marked;
   std::vector<bool> _active;
   std::vector<bool> _just_updated;
-  std::vector<bool> _seen_during_gain_comp;
   std::vector<bool> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
   Stats _stats;
