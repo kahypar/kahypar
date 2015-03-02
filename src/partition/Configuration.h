@@ -112,38 +112,44 @@ struct Configuration {
     bool active;
   };
 
-  struct LPParameters {
-    LPParameters() :
-      max_iterations(20),
+  struct LPClusteringParameters
+  {
+    LPClusteringParameters() :
+      max_number_iterations(20),
       sample_size(5),
       small_edge_threshold(5),
-      percent(5),
-      max_refinement_iterations(20),
-      max_size_constraint(0),
+      percent_of_nodes_for_adaptive_stopping(5),
       max_edge_size(50) { }
 
+    size_t max_number_iterations;
+    size_t sample_size;
+    size_t small_edge_threshold;
+    size_t percent_of_nodes_for_adaptive_stopping;
+    size_t max_edge_size;
+  };
 
-    long long max_iterations;
-    int sample_size;
-    int small_edge_threshold;
-    int percent;
-    unsigned int max_refinement_iterations;
-    HypernodeWeight max_size_constraint;
-    unsigned int max_edge_size;
+  struct LPRefinementParameters
+  {
+    LPRefinementParameters() :
+      max_number_iterations(4) {};
+
+    int max_number_iterations;
   };
 
   PartitioningParameters partition;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
   HERFMParameters her_fm;
-  LPParameters lp;
+  LPClusteringParameters lp_clustering_params;
+  LPRefinementParameters lp_refiner_params;
 
   Configuration() :
     partition(),
     coarsening(),
     two_way_fm(),
     her_fm(),
-    lp() { }
+    lp_clustering_params(),
+    lp_refiner_params() { }
 };
 
 inline std::string toString(const Configuration& config) {

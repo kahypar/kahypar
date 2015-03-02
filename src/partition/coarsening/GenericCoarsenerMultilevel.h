@@ -15,9 +15,7 @@
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 
-#include "clusterer/two_phase_lp.hpp"
-#include "clusterer/policies.hpp"
-
+#include "partition/coarsening/clusterer/IClusterer.h"
 
 namespace partition
 {
@@ -65,20 +63,16 @@ namespace partition
       GenericCoarsenerMultilevel(Hypergraph& hg, const Configuration &config) : Base(hg, config),
       _contraction_mementos()
     {
-      lpa_hypergraph::BasePolicy::config_ = convert_config(config);
-      _clusterer = std::unique_ptr<lpa_hypergraph::IClusterer>(new Coarsener(hg, convert_config(config)));
+      _clusterer = std::unique_ptr<partition::IClusterer>(new Coarsener(hg, config));
       _levels.push(0);
     }
 
       void coarsenImpl(HypernodeID limit) final
       {
-        // set the max_cluster in the config TODO redesign?
-        lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
-
         int count_contr = 0;
         do
         {
-          _clusterer->cluster(limit);
+          _clusterer->cluster();
           // get the clustering
           auto clustering = _clusterer->get_clustering();
 
@@ -127,7 +121,6 @@ namespace partition
 
         while (!_levels.empty())
         {
-          //std::cout << "LEVEL " << _levels.size() << std::endl;
           num_refinement_nodes = 0;
           while (_history.size() > _levels.top())
           {
@@ -156,10 +149,8 @@ namespace partition
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
           _contraction_mementos.push_back(_hg.contract(nodes[0], nodes[i]));
-          assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          assert(_hg.nodeWeight(nodes[0]) <= _config.coarsening.max_allowed_node_weight);
         }
-          //assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
-          //std::cout << "nodeweight: " << _hg.nodeWeight(nodes[0]) <<" < " <<_config.lp.max_size_constraint<< std::endl;
         return nodes[0];
       }
 
@@ -188,37 +179,16 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return " coarsener=GenericCoarsenerMultilevel max_iterations=" + std::to_string(_config.lp.max_iterations) +
-                           " sample_size=" + std::to_string(_config.lp.sample_size) +
-                           _clusterer->clusterer_string();
+        return " coarsener=GenericCoarsenerMultilevel max_iterations=" + _clusterer->clusterer_string();
 
       }
 
     private:
-
-      lpa_hypergraph::Configuration convert_config(const partition::Configuration &config)
-      {
-        return lpa_hypergraph::Configuration(config.lp.max_iterations,
-                                             config.partition.seed,
-                                             config.lp.sample_size,
-                                             config.partition.graph_filename,
-                                             "lp_temp",
-                                             -1,
-                                             0,
-                                             config.lp.percent,
-                                             config.lp.small_edge_threshold,
-                                             0.1,
-                                             config.lp.max_size_constraint);
-      }
-
-
-      std::unique_ptr<lpa_hypergraph::IClusterer> _clusterer;
-
+      std::unique_ptr<partition::IClusterer> _clusterer;
 
       std::stack<size_t> _levels;
 
       std::vector<ContractionMemento> _contraction_mementos;
-      std::unordered_map<lpa_hypergraph::Label, std::vector<HypernodeID>> _clustering_map;
-
+      std::unordered_map<partition::Label, std::vector<HypernodeID>> _clustering_map;
   };
 }

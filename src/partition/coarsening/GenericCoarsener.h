@@ -16,10 +16,7 @@
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 
-#include "clusterer/IClusterer.hpp"
-#include "clusterer/policies.hpp"
-
-
+#include "partition/coarsening/clusterer/IClusterer.h"
 
 namespace partition
 {
@@ -40,19 +37,6 @@ namespace partition
       parallel_hes_size(0),
       contraction_memento(contr_memento){ }
   };
-
-
-  //template<typename K, typename V>
-  //std::ostream& operator<<(std::ostream &ost, std::map<K,V> &m)
-  //{
-    //ost << "{" << std::endl;
-    //for (const auto &val : m)
-    //{
-      //ost << val.first << " => " << val.second << std::endl;
-    //}
-
-    //ost << "}" << std::endl;
-  //}
 
   template<typename Coarsener>
   class GenericCoarsener: public ICoarsener,
@@ -76,21 +60,18 @@ namespace partition
       using Base::performLocalSearch;
       using Base::initializeRefiner;
       using Base::gatherCoarseningStats;
-      GenericCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config)
+      GenericCoarsener(Hypergraph& hg, const Configuration &config) : Base(hg, config),
+        _clusterer(nullptr), _clustering_map()
     {
-      lpa_hypergraph::BasePolicy::config_ = convert_config(config);
-      _clusterer = std::unique_ptr<lpa_hypergraph::IClusterer>(new Coarsener(hg, convert_config(config)));
+      _clusterer = std::unique_ptr<partition::IClusterer>(new Coarsener(hg, config));
     }
 
       void coarsenImpl(HypernodeID limit) final
       {
-        // set the max_cluster in the config TODO redesign?
-        lpa_hypergraph::BasePolicy::config_ = convert_config(_config);
-
         int count_contr = 0;
         do
         {
-          int iter = _clusterer->cluster(limit);
+          _clusterer->cluster();
           // get the clustering
           auto clustering = _clusterer->get_clustering();
 
@@ -172,7 +153,7 @@ namespace partition
           removeSingleNodeHyperedges(nodes[0]);
           removeParallelHyperedges(nodes[0]);
 
-          assert(_hg.nodeWeight(nodes[0]) <= _config.lp.max_size_constraint);
+          assert(_hg.nodeWeight(nodes[0]) <= _config.coarsening.max_allowed_node_weight);
         }
         return nodes[0];
       }
@@ -183,32 +164,13 @@ namespace partition
       }
 
       std::string policyStringImpl() const final {
-        return " coarsener=GenericCoarsener max_iterations=" + std::to_string(_config.lp.max_iterations) +
-                           " sample_size=" + std::to_string(_config.lp.sample_size) +
-                           _clusterer->clusterer_string();
+        return " coarsener=GenericCoarsener " + _clusterer->clusterer_string();
       }
 
     private:
 
-      lpa_hypergraph::Configuration convert_config(const partition::Configuration &config)
-      {
-        return lpa_hypergraph::Configuration(config.lp.max_iterations,
-                                             config.partition.seed,
-                                             config.lp.sample_size,
-                                             config.partition.graph_filename,
-                                             "lp_temp",
-                                             -1,
-                                             0,
-                                             config.lp.percent,
-                                             config.lp.small_edge_threshold,
-                                             0.1,
-                                             config.lp.max_size_constraint,
-                                             config.lp.max_edge_size);
-      }
-
-      std::unique_ptr<lpa_hypergraph::IClusterer> _clusterer;
-
-      std::unordered_map<lpa_hypergraph::Label, std::vector<HypernodeID>> _clustering_map;
+      std::unique_ptr<partition::IClusterer> _clusterer;
+      std::unordered_map<partition::Label, std::vector<HypernodeID>> _clustering_map;
 
   };
 }

@@ -93,9 +93,3 @@ include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)
-
-add_library(Clusterer OBJECT ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/best_choice.cpp
-                             ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/heavy_connectivity.cpp
-                             ${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/src/clusterer/first_choice.cpp)
-
-
