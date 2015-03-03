@@ -193,9 +193,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
   }
-  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
-  config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
-                                                / config.coarsening.contraction_limit;
 }
 
 void setDefaults(Configuration& config) {
@@ -363,6 +360,12 @@ int main(int argc, char* argv[]) {
   for (const HypernodeID hn : hypergraph.nodes()) {
     hypergraph_weight += hypergraph.nodeWeight(hn);
   }
+
+  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier
+                                        * config.partition.k;
+
+  config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
+                                                / config.coarsening.contraction_limit;
 
   config.partition.max_part_weight = (1 + config.partition.epsilon)
                                      * ceil(hypergraph_weight /
