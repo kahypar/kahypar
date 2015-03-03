@@ -38,21 +38,52 @@ template <typename HypernodeType_ = Mandatory,
           class HyperedgeData_ = Empty
           >
 class GenericHypergraph {
-  public:
-  typedef HypernodeType_ HypernodeID;
-  typedef HyperedgeType_ HyperedgeID;
-  typedef PartitionIDType_ PartitionID;
-  typedef HypernodeWeightType_ HypernodeWeight;
-  typedef HyperedgeWeightType_ HyperedgeWeight;
-  typedef std::vector<size_t> HyperedgeIndexVector;
-  typedef std::vector<HypernodeID> HyperedgeVector;
-  typedef std::vector<HypernodeWeight> HypernodeWeightVector;
-  typedef std::vector<HyperedgeWeight> HyperedgeWeightVector;
-  typedef HypernodeData_ HypernodeData;
-  typedef HyperedgeData_ HyperedgeData;
+  //export template parameters
+ public:
+  using HypernodeID = HypernodeType_;
+  using HyperedgeID = HyperedgeType_;
+  using PartitionID = PartitionIDType_;
+  using HypernodeWeight = HypernodeWeightType_;
+  using HyperedgeWeight = HyperedgeWeightType_;
+  using HypernodeData = HypernodeData_;
+  using HyperedgeData = HyperedgeData_;
 
-  enum { kInvalidPartition = -1 };
-  enum { kDeletedPartition = -2 };
+ private:
+  // forward delarations
+  class Memento;
+  struct PartInfo;
+  template <typename T, class D>
+  class InternalVertex;
+  template <typename T>
+  class VertexIterator;
+  struct HypernodeTraits;
+  struct HyperedgeTraits;
+
+  // internal
+  using VertexID = unsigned int;
+  using ConnectivitySet = std::vector<PartitionID>;
+  using HypernodeVertex = InternalVertex<HypernodeTraits, HypernodeData>;
+  using HyperedgeVertex = InternalVertex<HyperedgeTraits, HyperedgeData>;
+  using PinHandleIterator = typename std::vector<VertexID>::iterator;
+
+ public:
+
+  using HyperedgeIndexVector = std::vector<size_t>;
+  using HyperedgeVector = std::vector<HypernodeID>;
+  using HypernodeWeightVector = std::vector<HypernodeWeight>;
+  using HyperedgeWeightVector = std::vector<HyperedgeWeight>;
+  using IncidenceIterator =  typename std::vector<VertexID>::const_iterator;
+  using ContractionMemento = Memento;
+  using HypernodeIterator = VertexIterator<const std::vector<HypernodeVertex>>;
+  using HyperedgeIterator = VertexIterator<const std::vector<HyperedgeVertex>>;
+  using IncidenceIteratorPair = IteratorPair<IncidenceIterator>;
+  using HypernodeIteratorPair = IteratorPair<HypernodeIterator>;
+  using HyperedgeIteratorPair = IteratorPair<HyperedgeIterator>;
+  using ConnectivitySetIteratorPair = IteratorPair<typename ConnectivitySet::const_iterator>;
+  using PartInfoIteratorPair = IteratorPair<typename std::vector<PartInfo>::const_iterator>;
+
+  enum { kInvalidPartition = -1,
+         kDeletedPartition = -2 };
 
   enum class Type : int8_t {
     Unweighted = 0,
@@ -62,8 +93,6 @@ class GenericHypergraph {
   };
 
   private:
-  typedef unsigned int VertexID;
-
   static const HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
 
 #pragma GCC diagnostic push
@@ -71,8 +100,8 @@ class GenericHypergraph {
   template <typename VertexTypeTraits, class InternalVertexData>
   class InternalVertex : public InternalVertexData {
     public:
-    typedef typename VertexTypeTraits::WeightType WeightType;
-    typedef typename VertexTypeTraits::IDType IDType;
+    using WeightType = typename VertexTypeTraits::WeightType;
+    using IDType = typename VertexTypeTraits::IDType;
 
     InternalVertex(IDType begin, IDType size,
                    WeightType weight) :
@@ -177,7 +206,7 @@ class GenericHypergraph {
   
   template <typename ContainerType>
   class VertexIterator {
-    typedef typename ContainerType::value_type::IDType IDType;
+    using IDType = typename ContainerType::value_type::IDType;
 
     public:
     VertexIterator() :
@@ -261,25 +290,7 @@ class GenericHypergraph {
     typedef HyperedgeID IDType;
   };
 
-  typedef InternalVertex<HypernodeTraits, HypernodeData> HypernodeVertex;
-  typedef InternalVertex<HyperedgeTraits, HyperedgeData> HyperedgeVertex;
-
-  typedef typename std::vector<VertexID>::iterator PinHandleIterator;
-
-  typedef std::vector<PartitionID> ConnectivitySet;
-
  public:
-  typedef Memento ContractionMemento;
-  typedef PartInfo PartInformation;
-  typedef typename std::vector<VertexID>::const_iterator IncidenceIterator;
-  typedef VertexIterator<const std::vector<HypernodeVertex>> HypernodeIterator;
-  typedef VertexIterator<const std::vector<HyperedgeVertex>> HyperedgeIterator;
-  typedef IteratorPair<IncidenceIterator> IncidenceIteratorPair;
-  typedef IteratorPair<HypernodeIterator> HypernodeIteratorPair;
-  typedef IteratorPair<HyperedgeIterator> HyperedgeIteratorPair;
-  typedef IteratorPair<typename ConnectivitySet::const_iterator> ConnectivitySetIteratorPair;
-  typedef IteratorPair<typename std::vector<PartInformation>::const_iterator> PartInfoIteratorPair;
-
   GenericHypergraph(const GenericHypergraph &) = delete;
   GenericHypergraph(GenericHypergraph &&) = delete;
   GenericHypergraph& operator= (const GenericHypergraph&) = delete;
@@ -1124,7 +1135,7 @@ class GenericHypergraph {
   std::vector<VertexID> _incidence_array;
 
   std::vector<PartitionID> _part_ids;
-  std::vector<PartInformation> _part_info;
+  std::vector<PartInfo> _part_info;
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
   std::vector<HypernodeID> _pins_in_part;

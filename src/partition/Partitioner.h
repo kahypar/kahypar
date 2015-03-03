@@ -45,17 +45,19 @@ static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
 class Partitioner {
-  typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
-  typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
-  typedef std::vector<HypernodeWeight> PartitionWeights;
+  using CoarsenedToHmetisMapping = std::unordered_map<HypernodeID, HypernodeID>;
+  using HmetisToCoarsenedMapping = std::vector<HypernodeID>;
+  using PartitionWeights = std::vector<HypernodeWeight>;
 
-  enum { kInitialParallelHEremoval = 0 };
-  enum { kInitialLargeHEremoval = 1 };
-  enum { kCoarsening = 2 };
-  enum { kInitialPartitioning = 3 };
-  enum { kUncoarseningRefinement = 4 };
-  enum { kInitialLargeHErestore = 5 };
-  enum { kInitialParallelHErestore = 6 };
+  enum {
+    kInitialParallelHEremoval = 0,
+    kInitialLargeHEremoval = 1,
+    kCoarsening = 2,
+    kInitialPartitioning = 3,
+    kUncoarseningRefinement = 4,
+    kInitialLargeHErestore = 5,
+    kInitialParallelHErestore = 6
+  };
 
   public:
   Partitioner(const Partitioner&) = delete;

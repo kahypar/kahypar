@@ -220,8 +220,7 @@ void Partitioner::assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hyper
 void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg) {
   DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
 
-  static auto comparePartWeights = [](const Hypergraph::PartInformation& a,
-                                      const Hypergraph::PartInformation& b) {
+  static auto comparePartWeights = [](const auto& a, const auto& b) {
                                      return a.weight < b.weight;
                                    };
 
