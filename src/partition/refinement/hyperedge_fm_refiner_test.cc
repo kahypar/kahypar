@@ -92,7 +92,6 @@ class RollBackInformation : public AHyperedgeFMRefiner {
     hypergraph->setNodePart(8, 1);
     config.partition.epsilon = 1;
     hyperedge_fm_refiner.reset(new HyperedgeFMRefinerSimpleStopping(*hypergraph, config));
-    hyperedge_fm_refiner->initialize();
     hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(8);

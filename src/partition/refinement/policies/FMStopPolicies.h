@@ -17,8 +17,8 @@ struct StoppingPolicy : PolicyBase {
 };
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(int, int, const Configuration& config,
-                               HyperedgeWeight, HyperedgeWeight) {
+  static bool searchShouldStop(const int, const Configuration& config,
+                               const double, const HyperedgeWeight, const HyperedgeWeight) {
     return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
   }
 
@@ -27,7 +27,7 @@ struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   }
 
   template <typename Gain>
-  static void updateStatistics(Gain) {
+  static void updateStatistics(const Gain) {
     ++_num_moves;
   }
 
@@ -41,16 +41,16 @@ struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
 int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(int, int, const Configuration& config,
-                               HyperedgeWeight, HyperedgeWeight) {
+  static bool searchShouldStop(const int, const Configuration& config, const double beta,
+                               const HyperedgeWeight, const HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
-    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << config.two_way_fm.beta << "="
-        << config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta);
+    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << beta << "="
+        << config.two_way_fm.alpha * _expected_variance + beta);
     DBG(false, "return=" << ((_num_steps * _expected_gain * _expected_gain >
-                              config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1)));
+                              config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1)));
     return (_num_steps * _expected_gain * _expected_gain >
-            config.two_way_fm.alpha * _expected_variance + config.two_way_fm.beta) && (_num_steps != 1);
+            config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1);
   }
 
   static void resetStatistics() {
@@ -61,7 +61,7 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
   }
 
   template <typename Gain>
-  static void updateStatistics(Gain gain) {
+  static void updateStatistics(const Gain gain) {
     ++_num_steps;
     _sum_gains += gain;
     _expected_gain = _sum_gains / _num_steps;
@@ -103,11 +103,14 @@ double RandomWalkModelStopsSearch::_Sk = 0.0;
 double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
-  static bool searchShouldStop(int, int step, const Configuration& config,
-                               HyperedgeWeight best_cut, HyperedgeWeight cut) {
-    return step >= config.two_way_fm.alpha * (((_sum_gains_squared / (2.0 * static_cast<double>(best_cut) - cut))
-                                               * (1.0 * step / (static_cast<double>(best_cut) - cut) - 0.5)
-                                               + config.two_way_fm.beta));
+  static bool searchShouldStop(const int num_moves_since_last_improvement,
+                               const Configuration& config, const double beta,
+                               const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
+    return num_moves_since_last_improvement
+           >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
+                                         / (2.0 * (static_cast<double>(best_cut) - cut)
+                                            * (static_cast<double>(best_cut) - cut) - 0.5)
+                                         + beta);
   }
 
   static void resetStatistics() {
@@ -115,7 +118,7 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   }
 
   template <typename Gain>
-  static void updateStatistics(Gain gain) {
+  static void updateStatistics(const Gain gain) {
     _sum_gains_squared += gain * gain;
   }
 

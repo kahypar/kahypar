@@ -13,6 +13,7 @@
 
 using defs::Hypergraph;
 using defs::HypernodeID;
+using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using utils::Stats;
 
@@ -20,15 +21,18 @@ namespace partition {
 class IRefiner {
   public:
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-              HyperedgeWeight& best_cut, double& best_imbalance) {
-    return refineImpl(refinement_nodes, num_refinement_nodes, best_cut, best_imbalance);
+              const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
+              double& best_imbalance) {
+    ASSERT(_is_initialized, "initialize() has to be called before refine");
+    return refineImpl(refinement_nodes, num_refinement_nodes, max_allowed_part_weight,
+                      best_cut, best_imbalance);
   }
 
   void initialize() {
     initializeImpl();
   }
 
-  void initialize(HyperedgeWeight max_gain) {
+  void initialize(const HyperedgeWeight max_gain) {
     initializeImpl(max_gain);
   }
 
@@ -48,16 +52,21 @@ class IRefiner {
 
   protected:
   IRefiner() { }
+  bool _is_initialized = false;
 
   private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                          const size_t num_refinement_nodes, HyperedgeWeight& best_cut,
+                          const size_t num_refinement_nodes,
+                          const HypernodeWeight max_allowed_part_weight,
+                          HyperedgeWeight& best_cut,
                           double& best_imbalance) = 0;
   virtual void initializeImpl() { }
-  virtual void initializeImpl(HyperedgeWeight) { }
+  virtual void initializeImpl(const HyperedgeWeight) { }
   virtual int numRepetitionsImpl() const = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;
+
+
   DISALLOW_COPY_AND_ASSIGN(IRefiner);
 };
 } //namespace partition

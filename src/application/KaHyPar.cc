@@ -229,46 +229,50 @@ struct CoarsenerFactoryParameters {
 };
 
 int main(int argc, char* argv[]) {
-  typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
-  typedef HeuristicHeavyEdgeCoarsener<RandomWinsRater> RandomWinsHeuristicCoarsener;
-  typedef FullHeavyEdgeCoarsener<RandomWinsRater> RandomWinsFullCoarsener;
-  typedef LazyUpdateHeavyEdgeCoarsener<RandomWinsRater> RandomWinsLazyUpdateCoarsener;
-  typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsener;
-  typedef FMFactoryExecutor<TwoWayFMRefiner> TwoWayFMFactoryExecutor;
-  typedef FMFactoryExecutor<HyperedgeFMRefiner> HyperedgeFMFactoryExecutor;
-  typedef KFMFactoryExecutor<KWayFMRefiner> KWayFMFactoryExecutor;
-  typedef KFMFactoryExecutor<MaxGainNodeKWayFMRefiner> MaxGainNodeKWayFMFactoryExecutor;
-  typedef StaticDispatcher<TwoWayFMFactoryExecutor,
-                           PolicyBase,
-                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
-                                      nGPRandomWalkStopsSearch),
-                           PolicyBase,
-                           TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
-                           IRefiner*> TwoWayFMFactoryDispatcher;
-  typedef StaticDispatcher<HyperedgeFMFactoryExecutor,
-                           PolicyBase,
-                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
-                                      nGPRandomWalkStopsSearch),
-                           PolicyBase,
-                           TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
-                           IRefiner*> HyperedgeFMFactoryDispatcher;
-  typedef StaticDispatcher<KWayFMFactoryExecutor,
-                           PolicyBase,
-                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
-                                      nGPRandomWalkStopsSearch),
-                           PolicyBase,
-                           TYPELIST_1(NullPolicy),
-                           IRefiner*> KWayFMFactoryDispatcher;
-  typedef StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
-                           PolicyBase,
-                           TYPELIST_3(NumberOfFruitlessMovesStopsSearch, RandomWalkModelStopsSearch,
-                                      nGPRandomWalkStopsSearch),
-                           PolicyBase,
-                           TYPELIST_1(NullPolicy),
-                           IRefiner*> MaxGainNodeKWayFMFactoryDispatcher;
-  typedef Factory<ICoarsener, std::string,
-                  ICoarsener* (*)(CoarsenerFactoryParameters&),
-                  CoarsenerFactoryParameters> CoarsenerFactory;
+  using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
+  using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
+  using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
+  using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
+  using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
+  using TwoWayFMFactoryExecutor = FMFactoryExecutor<TwoWayFMRefiner>;
+  using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
+  using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
+  using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
+  using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
+                                                     PolicyBase,
+                                                     TYPELIST_3(NumberOfFruitlessMovesStopsSearch,
+                                                                RandomWalkModelStopsSearch,
+                                                                nGPRandomWalkStopsSearch),
+                                                     PolicyBase,
+                                                     TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
+                                                     IRefiner*>;
+  using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
+                                                        PolicyBase,
+                                                        TYPELIST_3(NumberOfFruitlessMovesStopsSearch,
+                                                                   RandomWalkModelStopsSearch,
+                                                                   nGPRandomWalkStopsSearch),
+                                                        PolicyBase,
+                                                        TYPELIST_1(OnlyRemoveIfBothQueuesClogged),
+                                                        IRefiner*>;
+  using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
+                                                   PolicyBase,
+                                                   TYPELIST_3(NumberOfFruitlessMovesStopsSearch,
+                                                              RandomWalkModelStopsSearch,
+                                                              nGPRandomWalkStopsSearch),
+                                                   PolicyBase,
+                                                   TYPELIST_1(NullPolicy),
+                                                   IRefiner*>;
+  using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
+                                                              PolicyBase,
+                                                              TYPELIST_3(NumberOfFruitlessMovesStopsSearch,
+                                                                         RandomWalkModelStopsSearch,
+                                                                         nGPRandomWalkStopsSearch),
+                                                              PolicyBase,
+                                                              TYPELIST_1(NullPolicy),
+                                                              IRefiner*>;
+  using CoarsenerFactory = Factory<ICoarsener, std::string,
+                                   ICoarsener* (*)(CoarsenerFactoryParameters&),
+                                   CoarsenerFactoryParameters>;
 
   PolicyRegistry::getInstance().registerPolicy("simple", new NumberOfFruitlessMovesStopsSearch());
   PolicyRegistry::getInstance().registerPolicy("adaptive1", new RandomWalkModelStopsSearch());

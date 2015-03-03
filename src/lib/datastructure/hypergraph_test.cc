@@ -482,7 +482,7 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.removeEdge(1, false);
 
   for (PartitionID part = 0; part < hypergraph._k; ++part) {
-    const HypernodeID num_pins = hypergraph._pins_in_part[1][part];
+    const HypernodeID num_pins = hypergraph._pins_in_part[1 * hypergraph._k + part];
     ASSERT_THAT(num_pins, Eq(hypergraph.kInvalidCount));
   }
 }

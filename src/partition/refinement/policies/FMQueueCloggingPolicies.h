@@ -5,6 +5,8 @@
 #ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
 #define SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_
 
+#include <vector>
+
 #include "lib/core/PolicyRegistry.h"
 
 using core::PolicyBase;
@@ -20,7 +22,7 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
-                                         boost::dynamic_bitset<uint64_t>& indicator) {
+                                         std::vector<bool>& indicator) {
     if (!pq0_eligible && !pq1_eligible) {
       if (!pq0->empty()) {
         DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
@@ -62,7 +64,7 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
-                                         boost::dynamic_bitset<uint64_t>& indicator) {
+                                         std::vector<bool>& indicator) {
     bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");

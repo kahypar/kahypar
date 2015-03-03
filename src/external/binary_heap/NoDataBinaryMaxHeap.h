@@ -24,7 +24,6 @@ namespace external {
 template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
 class NoDataBinaryMaxHeap{
  private:
-  void operator=( const NoDataBinaryMaxHeap& ){}	//really, do not copy
   typedef storage_slot Storage;
  protected:
   struct HeapElement{
