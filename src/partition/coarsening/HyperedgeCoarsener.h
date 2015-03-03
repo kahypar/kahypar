@@ -55,6 +55,11 @@ class HyperedgeCoarsener : public ICoarsener,
   typedef CoarsenerBase<HyperedgeCoarseningMemento> Base;
 
   public:
+  HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
+  HyperedgeCoarsener& operator = (const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener& operator = (HyperedgeCoarsener&&) = delete;
+
   HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _pq(_hg.initialNumEdges()),
@@ -262,7 +267,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_hypergraph_pruner;
   PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
-  DISALLOW_COPY_AND_ASSIGN(HyperedgeCoarsener);
 };
 } // namespace partition
 

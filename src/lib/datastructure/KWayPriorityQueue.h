@@ -36,6 +36,11 @@ class KWayPriorityQueue {
   static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
 
   public:
+  KWayPriorityQueue(const KWayPriorityQueue&) = delete;
+  KWayPriorityQueue(KWayPriorityQueue&&) = delete;
+  KWayPriorityQueue& operator = (const KWayPriorityQueue&) = delete;
+  KWayPriorityQueue& operator = (KWayPriorityQueue&&) = delete;
+
   explicit KWayPriorityQueue(const PartitionID k) :
     _queues(),
     _index(k, kInvalidIndex),
@@ -253,7 +258,6 @@ class KWayPriorityQueue {
   size_t _num_entries;
   size_t _num_nonempty_pqs;
   size_t _num_enabled_pqs;
-  DISALLOW_COPY_AND_ASSIGN(KWayPriorityQueue);
 };
 
 template <typename IDType,

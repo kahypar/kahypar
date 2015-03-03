@@ -52,7 +52,6 @@ class ATwoWayFMRefiner : public Test {
   TwoWayFMRefinerSimpleStopping* refiner;
 
   private:
-  DISALLOW_COPY_AND_ASSIGN(ATwoWayFMRefiner);
 };
 
 class AGainUpdateMethod : public Test {

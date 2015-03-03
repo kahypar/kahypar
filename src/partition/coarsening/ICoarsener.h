@@ -19,6 +19,11 @@ class IRefiner;
 
 class ICoarsener {
   public:
+  ICoarsener(const ICoarsener&) = delete;
+  ICoarsener(ICoarsener&&) = delete;
+  ICoarsener& operator = (const ICoarsener&) = delete;
+  ICoarsener& operator = (ICoarsener&&) = delete;
+
   void coarsen(const HypernodeID limit) {
     coarsenImpl(limit);
   }
@@ -45,7 +50,6 @@ class ICoarsener {
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;
-  DISALLOW_COPY_AND_ASSIGN(ICoarsener);
 };
 } // namespace partition
 

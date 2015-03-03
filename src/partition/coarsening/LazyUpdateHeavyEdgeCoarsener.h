@@ -37,6 +37,11 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   };
 
   public:
+  LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator = (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator = (LazyUpdateHeavyEdgeCoarsener&&) = delete;
+
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _outdated_rating(hypergraph.initialNumNodes(), false),
@@ -146,7 +151,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Base::_stats;
   std::vector<bool> _outdated_rating;
   std::vector<HypernodeID> _target;
-  DISALLOW_COPY_AND_ASSIGN(LazyUpdateHeavyEdgeCoarsener);
 };
 }              // namespace partition
 

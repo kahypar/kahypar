@@ -71,6 +71,11 @@ class KWayFMRefiner : public IRefiner,
   static const PartitionID kFree = -1;
 
   public:
+  KWayFMRefiner(const KWayFMRefiner &) = delete;
+  KWayFMRefiner(KWayFMRefiner &&) = delete;
+  KWayFMRefiner& operator= (const KWayFMRefiner&) = delete;
+  KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
+
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
@@ -930,7 +935,6 @@ class KWayFMRefiner : public IRefiner,
   std::vector<PartitionID> _locked_hes;
   std::stack<HyperedgeID> _current_locked_hes;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(KWayFMRefiner);
 };
 
 template <class T, class U> constexpr HypernodeID KWayFMRefiner<T,U>::kInvalidHN;

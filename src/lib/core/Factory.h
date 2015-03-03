@@ -19,6 +19,11 @@ class Factory {
   typedef std::unique_ptr<Factory> FactoryType;
   
  public:
+  Factory(const Factory &) = delete;
+  Factory(Factory &&) = delete;
+  Factory& operator= (const Factory&) = delete;
+  Factory& operator= (Factory&&) = delete;
+
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
     return _callbacks.insert({id,creator}).second;
   }
@@ -47,7 +52,6 @@ private:
       _callbacks() { }
   CallbackMap _callbacks;
   static FactoryType _factory_instance;
-  DISALLOW_COPY_AND_ASSIGN(Factory);
 };
 
 

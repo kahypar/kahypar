@@ -26,6 +26,11 @@ class PriorityQueue {
   typedef typename BinaryHeap::data_type DataType;
 
   public:
+  PriorityQueue(const PriorityQueue&) = delete;
+  PriorityQueue(PriorityQueue&&) = delete;
+  PriorityQueue& operator = (const PriorityQueue&) = delete;
+  PriorityQueue& operator = (PriorityQueue&&) = delete;
+
   explicit PriorityQueue(IDType size) :
     _heap(size) { }
 
@@ -102,7 +107,6 @@ class PriorityQueue {
 
   private:
   BinaryHeap _heap;
-  DISALLOW_COPY_AND_ASSIGN(PriorityQueue);
 };
 } // namespace datastructure
 

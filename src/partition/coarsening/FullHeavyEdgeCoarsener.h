@@ -35,6 +35,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   };
 
   public:
+  FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
+  FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
+  FullHeavyEdgeCoarsener& operator = (const FullHeavyEdgeCoarsener&) = delete;
+  FullHeavyEdgeCoarsener& operator = (FullHeavyEdgeCoarsener&&) = delete;
+
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()) { }
@@ -153,9 +158,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::_stats;
   using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(FullHeavyEdgeCoarsener);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

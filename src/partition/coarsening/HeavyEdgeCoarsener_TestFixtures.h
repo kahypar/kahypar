@@ -63,9 +63,6 @@ class ACoarsenerBase : public Test {
   Configuration config;
   CoarsenerType coarsener;
   std::unique_ptr<IRefiner> refiner;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(ACoarsenerBase);
 };
 
 template <class Coarsener, class Hypergraph>

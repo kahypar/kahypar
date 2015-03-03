@@ -17,6 +17,12 @@ static const bool dbg_refinement_fm_border_node_check = false;
 static const bool dbg_refinement_kway_fm_move = false;
 
 class FMRefinerBase {
+  public:
+  FMRefinerBase(const FMRefinerBase&) = delete;
+  FMRefinerBase(FMRefinerBase&&) = delete;
+  FMRefinerBase& operator = (const FMRefinerBase&) = delete;
+  FMRefinerBase& operator = (FMRefinerBase&&) = delete;
+
   protected:
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
@@ -89,9 +95,6 @@ class FMRefinerBase {
 
   Hypergraph& _hg;
   const Configuration& _config;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(FMRefinerBase);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_

@@ -82,6 +82,11 @@ class HyperedgeFMRefiner : public IRefiner,
   };
 
   public:
+  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
+  HyperedgeFMRefiner& operator = (const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner& operator = (HyperedgeFMRefiner&&) = delete;
+
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
@@ -538,7 +543,6 @@ class HyperedgeFMRefiner : public IRefiner,
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
 #pragma GCC diagnostic pop
 }   // namespace partition

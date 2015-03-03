@@ -280,6 +280,10 @@ class GenericHypergraph {
   typedef IteratorPair<typename ConnectivitySet::const_iterator> ConnectivitySetIteratorPair;
   typedef IteratorPair<typename std::vector<PartInformation>::const_iterator> PartInfoIteratorPair;
 
+  GenericHypergraph(const GenericHypergraph &) = delete;
+  GenericHypergraph(GenericHypergraph &&) = delete;
+  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
+  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
 
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
              const HyperedgeIndexVector& index_vector,
@@ -1136,8 +1140,6 @@ class GenericHypergraph {
   template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
   friend bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
                                 const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
-
-  DISALLOW_COPY_AND_ASSIGN(GenericHypergraph);
 };
 
 template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>

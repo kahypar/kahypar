@@ -74,6 +74,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   };
 
   public:
+  MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
+  MaxGainNodeKWayFMRefiner(MaxGainNodeKWayFMRefiner&&) = delete;
+  MaxGainNodeKWayFMRefiner& operator = (const MaxGainNodeKWayFMRefiner&) = delete;
+  MaxGainNodeKWayFMRefiner& operator = (MaxGainNodeKWayFMRefiner&&) = delete;
+
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, { kInvalidGain, 0 }),
@@ -607,7 +612,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<bool> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(MaxGainNodeKWayFMRefiner);
 };
 #pragma GCC diagnostic pop
 

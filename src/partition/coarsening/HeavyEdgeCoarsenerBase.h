@@ -71,6 +71,11 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base::initializeRefiner;
 
   public:
+  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator = (HeavyEdgeCoarsenerBase&&) = delete;
+
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _rater(_hg, _config),
@@ -156,9 +161,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   Rater _rater;
   PrioQueue _pq;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(HeavyEdgeCoarsenerBase);
 };
 } // namespace partition
 

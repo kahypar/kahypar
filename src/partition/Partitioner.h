@@ -58,6 +58,11 @@ class Partitioner {
   enum { kInitialParallelHErestore = 6 };
 
   public:
+  Partitioner(const Partitioner&) = delete;
+  Partitioner(Partitioner&&) = delete;
+  Partitioner& operator = (const Partitioner&) = delete;
+  Partitioner& operator = (Partitioner&&) = delete;
+
   explicit Partitioner(Configuration& config) :
     _config(config),
     _stats(),

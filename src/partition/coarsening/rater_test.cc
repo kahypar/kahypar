@@ -37,9 +37,6 @@ class ARater : public Test {
 
   std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(ARater);
 };
 
 class AFirstWinsRater : public ARater {

@@ -20,6 +20,11 @@ using utils::Stats;
 namespace partition {
 class IRefiner {
   public:
+  IRefiner(const IRefiner&) = delete;
+  IRefiner(IRefiner&&) = delete;
+  IRefiner& operator = (const IRefiner&) = delete;
+  IRefiner& operator = (IRefiner&&) = delete;
+
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
               const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
               double& best_imbalance) {
@@ -65,9 +70,6 @@ class IRefiner {
   virtual int numRepetitionsImpl() const = 0;
   virtual std::string policyStringImpl() const = 0;
   virtual const Stats & statsImpl() const = 0;
-
-
-  DISALLOW_COPY_AND_ASSIGN(IRefiner);
 };
 } //namespace partition
 

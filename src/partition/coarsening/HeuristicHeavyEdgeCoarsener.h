@@ -32,6 +32,11 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
 
   public:
+  HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator = (const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator = (HeuristicHeavyEdgeCoarsener&&) = delete;
+
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()),

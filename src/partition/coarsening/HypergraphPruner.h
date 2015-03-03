@@ -47,6 +47,11 @@ class HypergraphPruner {
   };
 
   public:
+  HypergraphPruner(const HypergraphPruner&) = delete;
+  HypergraphPruner(HypergraphPruner&&) = delete;
+  HypergraphPruner& operator = (const HypergraphPruner&) = delete;
+  HypergraphPruner& operator = (HypergraphPruner&&) = delete;
+
   HypergraphPruner(Hypergraph& hypergraph, const Configuration& config, Stats& stats) :
     _hg(hypergraph),
     _config(config),
@@ -220,7 +225,6 @@ class HypergraphPruner {
   std::vector<Fingerprint> _fingerprints;
   std::vector<bool> _contained_hypernodes;
   Stats& _stats;
-  DISALLOW_COPY_AND_ASSIGN(HypergraphPruner);
 };
 } // namespace partition
 

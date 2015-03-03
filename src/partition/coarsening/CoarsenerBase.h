@@ -57,6 +57,11 @@ class CoarsenerBase {
   typedef std::unordered_map<HypernodeID, HyperedgeWeight, hash_nodes> SingleHEWeightsHashtable;
 
   public:
+  CoarsenerBase(const CoarsenerBase&) = delete;
+  CoarsenerBase(CoarsenerBase&&) = delete;
+  CoarsenerBase& operator = (const CoarsenerBase&) = delete;
+  CoarsenerBase& operator = (CoarsenerBase&&) = delete;
+
   CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
@@ -225,9 +230,6 @@ class CoarsenerBase {
   std::stack<CurrentMaxNodeWeight> _max_hn_weights;
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(CoarsenerBase);
 };
 } // namespace partition
 

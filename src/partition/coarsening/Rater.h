@@ -50,6 +50,11 @@ class Rater {
   };
 
   public:
+  Rater(const Rater&) = delete;
+  Rater(Rater&&) = delete;
+  Rater& operator = (const Rater&) = delete;
+  Rater& operator = (Rater&&) = delete;
+
   typedef HeavyEdgeRating Rating;
   Rater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),

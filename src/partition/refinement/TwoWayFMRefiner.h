@@ -63,6 +63,11 @@ class TwoWayFMRefiner : public IRefiner,
   static const int K = 2;
 
   public:
+  TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
+  TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner& operator = (TwoWayFMRefiner&&) = delete;
+
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     // ToDo: We could also use different storage to avoid initialization like this
@@ -438,7 +443,6 @@ class TwoWayFMRefiner : public IRefiner,
   std::vector<bool> _just_activated;
   std::vector<HypernodeID> _performed_moves;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
 #pragma GCC diagnostic pop
 }                                   // namespace partition
