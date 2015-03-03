@@ -34,9 +34,6 @@ using defs::PartitionID;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 
-#define likely(x)      __builtin_expect(!!(x), 1)
-#define unlikely(x)    __builtin_expect(!!(x), 0)
-
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

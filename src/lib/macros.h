@@ -6,6 +6,10 @@
 #include <cstdlib>
 #endif
 
+// branch prediction
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 #ifdef ENABLE_PROFILE
 #include <gperftools/profiler.h>
 #define GPERF_START_PROFILER(FILE) ProfilerStart(FILE)
