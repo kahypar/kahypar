@@ -50,9 +50,16 @@ template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
                            public CoarsenerBase<HyperedgeCoarseningMemento>{
   private:
-  typedef HyperedgeRating Rating;
-  typedef typename Hypergraph::ContractionMemento ContractionMemento;
-  typedef CoarsenerBase<HyperedgeCoarseningMemento> Base;
+  using Base = CoarsenerBase<HyperedgeCoarseningMemento>;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::restoreParallelHyperedges;
+  using Base::restoreSingleNodeHyperedges;
+  using Base::performLocalSearch;
+  using Base::initializeRefiner;
+  using Base::gatherCoarseningStats;
+  using Rating = HyperedgeRating;
+  using ContractionMemento = typename Hypergraph::ContractionMemento;
 
   public:
   HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
@@ -73,14 +80,6 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
   FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
   FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
-
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::restoreParallelHyperedges;
-  using Base::restoreSingleNodeHyperedges;
-  using Base::performLocalSearch;
-  using Base::initializeRefiner;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();

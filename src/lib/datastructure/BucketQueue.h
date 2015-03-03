@@ -173,4 +173,4 @@ void swap(BucketQueue<id_slot, key_slot>& a,
   a.swap(b);
 }
 } // namespace datastructure
-#endif // SRC_LIB_DATASTRUCTURE_BUCKETQUEUE_H_
+#endif  // SRC_LIB_DATASTRUCTURE_BUCKETQUEUE_H_

@@ -20,7 +20,7 @@ struct MatrixInfo {
   int num_entries;
 };
 
-typedef std::vector<std::vector<int> > MatrixData;
+using MatrixData = std::vector<std::vector<int> >;
 
 MatrixInfo parseHeader(std::ifstream& file);
 void parseDimensionInformation(std::ifstream& file, MatrixInfo& info);

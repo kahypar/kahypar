@@ -27,9 +27,9 @@ template <typename IDType = Mandatory,
           typename Storage = ArrayStorage<IDType> >
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
-  typedef BucketQueue<IDType, KeyType> Queue;
+  using Queue = BucketQueue<IDType, KeyType>;
 #else
-  typedef NoDataBinaryMaxHeap<IDType, KeyType, MetaKey, Storage> Queue;
+  using Queue = NoDataBinaryMaxHeap<IDType, KeyType, MetaKey, Storage>;
 #endif
 
   static const size_t kInvalidIndex = std::numeric_limits<size_t>::max();

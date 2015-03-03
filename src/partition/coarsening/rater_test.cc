@@ -23,9 +23,9 @@ using defs::HypernodeID;
 using defs::PartitionID;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Rater<defs::RatingType, LastRatingWins> LastWinsRater;
-typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using LastWinsRater = Rater<defs::RatingType, LastRatingWins>;
+using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 
 class ARater : public Test {
   public:

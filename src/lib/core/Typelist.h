@@ -7,8 +7,8 @@ class NullType {};
 
 template <class T, class U>
 struct Typelist {
-  typedef T Head;
-  typedef U Tail;
+  using Head = T;
+  using Tail = U;
 };
 
 #define TYPELIST_1(T1) Typelist<T1, NullType>

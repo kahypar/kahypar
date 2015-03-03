@@ -22,9 +22,9 @@ using defs::HyperedgeWeight;
 using defs::HyperedgeID;
 
 namespace partition {
-typedef HyperedgeFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                           EligibleTopGain,
-                           OnlyRemoveIfBothQueuesClogged> HyperedgeFMRefinerSimpleStopping;
+using HyperedgeFMRefinerSimpleStopping = HyperedgeFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                                            EligibleTopGain,
+                                                            OnlyRemoveIfBothQueuesClogged>;
 
 class AHyperedgeFMRefiner : public Test {
   public:

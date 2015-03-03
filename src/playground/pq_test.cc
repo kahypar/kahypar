@@ -21,9 +21,9 @@ using defs::HyperedgeWeight;
 using datastructure::BucketQueue;
 using datastructure::PriorityQueue;
 
-typedef PriorityQueue<NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
-                                          std::numeric_limits<HyperedgeWeight> > > HeapBasedPQ;
-typedef BucketQueue<HypernodeID, HyperedgeWeight> BucketBasedPQ;
+using HeapBasedPQ = PriorityQueue<NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
+                                                      std::numeric_limits<HyperedgeWeight> > >;
+using BucketBasedPQ = BucketQueue<HypernodeID, HyperedgeWeight>;
 
 TEST(BothQueues, AlwaysReturnMax) {
   HypernodeID num_nodes = 5;

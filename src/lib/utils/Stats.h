@@ -16,8 +16,7 @@ namespace utils {
 
 class Stats{
  private:
-  
-  typedef std::map<std::string, double> StatsMap;
+  using StatsMap = std::map<std::string, double>;
   
  public:
   Stats(const Stats &) = delete;

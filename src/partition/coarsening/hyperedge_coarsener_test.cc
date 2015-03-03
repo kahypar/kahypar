@@ -18,7 +18,7 @@ using datastructure::verifyEquivalence;
 using defs::Hypergraph;
 
 namespace partition {
-typedef HyperedgeCoarsener<EdgeWeightDivMultPinWeight> HyperedgeCoarsenerType;
+using HyperedgeCoarsenerType = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
 
 class AHyperedgeCoarsener : public Test {
   public:

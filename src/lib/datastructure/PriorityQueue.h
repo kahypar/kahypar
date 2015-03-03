@@ -21,9 +21,10 @@ struct MetaKeyDouble {
 
 template <class BinaryHeap>
 class PriorityQueue {
-  typedef typename BinaryHeap::value_type IDType;
-  typedef typename BinaryHeap::key_type KeyType;
-  typedef typename BinaryHeap::data_type DataType;
+  private:
+  using IDType = typename BinaryHeap::value_type;
+  using KeyType = typename BinaryHeap::key_type;
+  using DataType = typename BinaryHeap::data_type;
 
   public:
   PriorityQueue(const PriorityQueue&) = delete;

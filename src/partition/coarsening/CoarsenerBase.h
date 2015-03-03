@@ -54,8 +54,6 @@ class CoarsenerBase {
     HypernodeWeight max_weight;
   };
 
-  typedef std::unordered_map<HypernodeID, HyperedgeWeight, hash_nodes> SingleHEWeightsHashtable;
-
   public:
   CoarsenerBase(const CoarsenerBase&) = delete;
   CoarsenerBase(CoarsenerBase&&) = delete;

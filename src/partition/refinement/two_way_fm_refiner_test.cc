@@ -24,9 +24,9 @@ using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
 
 namespace partition {
-typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                        EligibleTopGain,
-                        RemoveOnlyTheCloggingEntry> TwoWayFMRefinerSimpleStopping;
+using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                                      EligibleTopGain,
+                                                      RemoveOnlyTheCloggingEntry>;
 
 class ATwoWayFMRefiner : public Test {
   public:

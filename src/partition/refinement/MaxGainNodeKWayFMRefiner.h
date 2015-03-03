@@ -51,27 +51,25 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_update = false;
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
-  typedef HyperedgeWeight Gain;
+  using Gain = HyperedgeWeight;
+  using GainPartitionPair = std::pair<Gain, PartitionID>;
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                             std::numeric_limits<HyperedgeWeight> >;
 
   struct GainConnectivity {
     Gain gain;
     PartitionID connectivity_decrease;
   };
 
-  typedef std::pair<Gain, PartitionID> GainPartitionPair;
-  typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                            std::numeric_limits<HyperedgeWeight> > KWayRefinementPQ;
-
-
-  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
-  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
-
   struct RollbackInfo {
     HypernodeID hn;
     PartitionID from_part;
     PartitionID to_part;
   };
+
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   public:
   MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;

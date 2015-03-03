@@ -26,8 +26,13 @@ template <class Rater = Mandatory>
 class FullHeavyEdgeCoarsener : public ICoarsener,
                                private HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating Rating;
+  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base::removeParallelHyperedges;
+  using Base::removeSingleNodeHyperedges;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::gatherCoarseningStats;
+  using Rating = typename Rater::Rating;
 
   class NullMap {
     public:
@@ -48,12 +53,6 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
-
-  using Base::removeParallelHyperedges;
-  using Base::removeSingleNodeHyperedges;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();

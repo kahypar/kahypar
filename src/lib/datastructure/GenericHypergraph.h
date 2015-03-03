@@ -281,13 +281,13 @@ class GenericHypergraph {
   };
 
   struct HypernodeTraits {
-    typedef HypernodeWeight WeightType;
-    typedef HypernodeID IDType;
+    using WeightType = HypernodeWeight;
+    using IDType = HypernodeID;
   };
 
   struct HyperedgeTraits {
-    typedef HyperedgeWeight WeightType;
-    typedef HyperedgeID IDType;
+    using WeightType = HyperedgeWeight;
+    using IDType = HyperedgeID;
   };
 
  public:
@@ -1079,12 +1079,11 @@ class GenericHypergraph {
   void removeInternalEdge(const Handle1 u, const Handle2 v, Container& container) {
     using std::swap;
     typename Container::reference vertex = container[u];
-    typedef typename std::vector<VertexID>::iterator EdgeIterator;
     ASSERT(!vertex.isDisabled(), "InternalVertex " << u << " is disabled");
 
-    EdgeIterator begin = _incidence_array.begin() + vertex.firstEntry();
+    auto begin = _incidence_array.begin() + vertex.firstEntry();
     ASSERT(vertex.size() > 0, "InternalVertex is empty!");
-    EdgeIterator last_entry = _incidence_array.begin() + vertex.firstInvalidEntry() - 1;
+    auto last_entry = _incidence_array.begin() + vertex.firstInvalidEntry() - 1;
     while (*begin != v) {
       ++begin;
     }

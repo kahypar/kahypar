@@ -15,8 +15,8 @@ template < class AbstractProduct = Mandatory,
            class Parameters = NullParameters>
 class Factory {
  private:
-  typedef std::unordered_map<IdentifierType, ProductCreator> CallbackMap;
-  typedef std::unique_ptr<Factory> FactoryType;
+  using CallbackMap = std::unordered_map<IdentifierType, ProductCreator>;
+  using FactoryPtr =  std::unique_ptr<Factory>;
   
  public:
   Factory(const Factory &) = delete;
@@ -51,7 +51,7 @@ private:
   Factory() :
       _callbacks() { }
   CallbackMap _callbacks;
-  static FactoryType _factory_instance;
+  static FactoryPtr _factory_instance;
 };
 
 

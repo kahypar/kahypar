@@ -12,8 +12,8 @@
 using defs::Hypergraph;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef FullHeavyEdgeCoarsener<FirstWinsRater> CoarsenerType;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using CoarsenerType = FullHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
   public:

@@ -191,10 +191,10 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   HypernodeWeightVector _written_hypernode_weights;
 };
 
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
-typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                        EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
 
 class APartitionOfAHypergraph : public Test {
   public:

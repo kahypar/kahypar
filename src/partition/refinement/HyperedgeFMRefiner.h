@@ -51,10 +51,10 @@ template <class StoppingPolicy = Mandatory,
 class HyperedgeFMRefiner : public IRefiner,
                            private FMRefinerBase {
   private:
-  typedef HyperedgeWeight Gain;
-  typedef NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
-                              std::numeric_limits<HyperedgeWeight> > HyperedgeFMHeap;
-  typedef PriorityQueue<HyperedgeFMHeap> HyperedgeFMPQ;
+  using Gain = HyperedgeWeight;
+  using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
+                                              std::numeric_limits<HyperedgeWeight> >;
+  using HyperedgeFMPQ = PriorityQueue<HyperedgeFMHeap>;
 
   static const int K = 2;
 

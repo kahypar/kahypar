@@ -18,7 +18,7 @@ using defs::HyperedgeWeight;
 using defs::HypernodeID;
 
 namespace partition {
-typedef MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch> KWayFMRefinerSimpleStopping;
+using KWayFMRefinerSimpleStopping = MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AMaxGainNodeKWayFMRefiner : public Test {
   public:

@@ -33,14 +33,12 @@ using defs::HypernodeIterator;
 
 namespace partition {
 struct CoarseningMemento {
-  typedef typename Hypergraph::ContractionMemento Memento;
-
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
-  Memento contraction_memento;
-  explicit CoarseningMemento(Memento contraction_memento_) :
+  Hypergraph::ContractionMemento contraction_memento;
+  explicit CoarseningMemento(Hypergraph::ContractionMemento contraction_memento_) :
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
@@ -55,10 +53,7 @@ template <class Rater = Mandatory,
                                 MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
-  typedef typename Rater::Rating Rating;
-  typedef typename Rater::RatingType RatingType;
-  typedef CoarsenerBase<CoarseningMemento> Base;
-
+  using Base = CoarsenerBase<CoarseningMemento>;
   using Base::_hg;
   using Base::_config;
   using Base::_history;
@@ -69,6 +64,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base::restoreParallelHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
+  using Rating = typename Rater::Rating;
+  using RatingType = typename Rater::RatingType;
 
   public:
   HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;

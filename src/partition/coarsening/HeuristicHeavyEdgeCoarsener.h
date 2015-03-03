@@ -27,9 +27,14 @@ template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating Rating;
-  typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
+  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
+  using Rating = typename Rater::Rating;
+  using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
   public:
   HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
@@ -47,12 +52,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
-
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();

@@ -18,7 +18,7 @@ using defs::PartitionID;
 using defs::IncidenceIterator;
 
 namespace datastructure {
-typedef Hypergraph::ContractionMemento Memento;
+using Memento = Hypergraph::ContractionMemento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));

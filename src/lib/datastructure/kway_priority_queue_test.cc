@@ -27,7 +27,7 @@ class AKWayPriorityQueue : public Test {
                     std::numeric_limits<HyperedgeWeight> > prio_queue;
 };
 
-typedef AKWayPriorityQueue AKWayPriorityQueueDeathTest;
+using AKWayPriorityQueueDeathTest = AKWayPriorityQueue;
 
 TEST_F(AKWayPriorityQueue, IsEmptyIfItContainsNoElements) {
   ASSERT_THAT(prio_queue.empty(), Eq(true));

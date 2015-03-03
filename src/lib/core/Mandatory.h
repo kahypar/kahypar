@@ -20,7 +20,7 @@ namespace core {
 
 } // namespace core
  
-typedef core::MandatoryTemplateArgument<core::unspecified_type> Mandatory;
+using Mandatory = core::MandatoryTemplateArgument<core::unspecified_type>;
 
 template <typename T>
 using MandatoryTemplate = core::MandatoryTemplateArgument<T>;

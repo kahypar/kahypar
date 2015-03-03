@@ -27,10 +27,10 @@ using partition::EligibleTopGain;
 using partition::RemoveOnlyTheCloggingEntry;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
-typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                        EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
 
 class APartitioner : public Test {
   public:

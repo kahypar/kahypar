@@ -17,8 +17,8 @@ struct NullPolicy : PolicyBase {
 
 class PolicyRegistry{
  private:
-  typedef std::unique_ptr<PolicyBase> PolicyBasePtr;
-  typedef std::unordered_map<std::string, PolicyBasePtr> Policies;
+  using PolicyBasePtr = std::unique_ptr<PolicyBase>;
+  using PolicyMap = std::unordered_map<std::string, PolicyBasePtr>;
 
   PolicyRegistry() : _policies() { }
   
@@ -40,7 +40,7 @@ class PolicyRegistry{
   }
   
 private:
-  Policies _policies;
+  PolicyMap _policies;
 };
 
 

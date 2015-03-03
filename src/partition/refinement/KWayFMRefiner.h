@@ -52,10 +52,10 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kaway_locked_hes = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
-  typedef HyperedgeWeight Gain;
-  typedef std::pair<Gain, PartitionID> GainPartitionPair;
-  typedef KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                        std::numeric_limits<HyperedgeWeight>> KWayRefinementPQ;
+  using Gain = HyperedgeWeight;
+  using GainPartitionPair = std::pair<Gain, PartitionID>;
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                             std::numeric_limits<HyperedgeWeight>>;
 
   struct RollbackInfo {
     HypernodeID hn;

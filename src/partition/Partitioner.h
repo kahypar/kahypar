@@ -48,7 +48,7 @@ class Partitioner {
   using CoarsenedToHmetisMapping = std::unordered_map<HypernodeID, HypernodeID>;
   using HmetisToCoarsenedMapping = std::vector<HypernodeID>;
   using PartitionWeights = std::vector<HypernodeWeight>;
-
+  using RemovedParallelHyperedgesStack = std::stack<std::pair<int, int> >;
   enum {
     kInitialParallelHEremoval = 0,
     kInitialLargeHEremoval = 1,
@@ -93,8 +93,6 @@ class Partitioner {
               TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
-
-  typedef  std::stack<std::pair<int, int> > RemovedParallelHyperedgesStack;
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
   void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);

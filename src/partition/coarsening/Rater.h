@@ -30,10 +30,10 @@ static const bool dbg_partition_rating = false;
 template <typename _RatingType, class _TieBreakingPolicy>
 class Rater {
   public:
-  typedef _RatingType RatingType;
+  using RatingType = _RatingType;
 
   private:
-  typedef _TieBreakingPolicy TieBreakingPolicy;
+  using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
     HypernodeID target;
@@ -55,7 +55,7 @@ class Rater {
   Rater& operator = (const Rater&) = delete;
   Rater& operator = (Rater&&) = delete;
 
-  typedef HeavyEdgeRating Rating;
+  using Rating = HeavyEdgeRating;
   Rater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
