@@ -18,8 +18,6 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HypernodeWeight;
-using defs::HypernodeIterator;
-using defs::IncidenceIterator;
 
 namespace partition {
 static const bool dbg_partition_rating = false;

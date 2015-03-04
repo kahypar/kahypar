@@ -69,8 +69,8 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
                                            hg_to_hmetis, const Partition& partitioning) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID he : hg.edges()) {
-    IncidenceIterator begin = hg.pins(he).begin();
-    IncidenceIterator end = hg.pins(he).end();
+    auto begin = hg.pins(he).first;
+    auto end = hg.pins(he).second;
     if (begin == end) {
       continue;
     }

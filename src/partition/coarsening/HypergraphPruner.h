@@ -17,8 +17,6 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
-using defs::IncidenceIterator;
-using defs::HypernodeIterator;
 using utils::Stats;
 
 namespace partition {
@@ -93,9 +91,9 @@ class HypergraphPruner {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
     begin = _removed_single_node_hyperedges.size();
-    IncidenceIterator begin_it = _hg.incidentEdges(u).begin();
-    IncidenceIterator end_it = _hg.incidentEdges(u).end();
-    for (IncidenceIterator he_it = begin_it; he_it != end_it; ++he_it) {
+    auto begin_it = _hg.incidentEdges(u).first;
+    auto end_it = _hg.incidentEdges(u).second;
+    for (auto he_it = begin_it; he_it != end_it; ++he_it) {
       if (_hg.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
         _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,

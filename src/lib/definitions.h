@@ -29,20 +29,23 @@ using PartitionID = Hypergraph::PartitionID;
 using HypernodeWeight = Hypergraph::HypernodeWeight;
 using HyperedgeWeight = Hypergraph::HyperedgeWeight;
 using HypergraphType = Hypergraph::Type ;
-using HypernodeIterator = Hypergraph::HypernodeIterator;
-using HyperedgeIterator = Hypergraph::HyperedgeIterator;
-using IncidenceIterator = Hypergraph::IncidenceIterator;
 using HyperedgeIndexVector = Hypergraph::HyperedgeIndexVector;
 using HyperedgeVector = Hypergraph::HyperedgeVector;
 using HyperedgeWeightVector = Hypergraph::HyperedgeWeightVector;
 using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
-using HypernodeIteratorPair = Hypergraph::HypernodeIteratorPair;
-using HyperedgeIteratorPair = Hypergraph::HyperedgeIteratorPair;
-using IncidenceIteratorPair = Hypergraph::IncidenceIteratorPair;
-using ConnectivitySetIteratorPair = Hypergraph::ConnectivitySetIteratorPair;
-using PartInfoIteratorPair = Hypergraph::PartInfoIteratorPair;
+using IncidenceIterator = Hypergraph::IncidenceIterator;
 
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
-
 } // namespace defs
+
+// this is nasty and needs to be fixed
+namespace std {
+static defs::IncidenceIterator  begin(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
+  return x.first;
+}
+
+static defs::IncidenceIterator  end(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
+  return x.second;
+}
+}
 #endif  // LIB_DEFINITIONS_H_

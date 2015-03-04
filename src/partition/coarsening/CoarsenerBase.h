@@ -26,8 +26,6 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
-using defs::IncidenceIterator;
-using defs::HypernodeIterator;
 using utils::Stats;
 
 namespace partition {

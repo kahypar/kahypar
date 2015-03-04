@@ -216,8 +216,8 @@ class HyperedgeCoarsener : public ICoarsener,
   HypernodeID performContraction(const HyperedgeID he) {
     _history.emplace(HyperedgeCoarseningMemento());
     _history.top().mementos_begin = _contraction_mementos.size();
-    IncidenceIterator pins_begin = _hg.pins(he).begin();
-    IncidenceIterator pins_end = _hg.pins(he).end();
+    auto pins_begin = _hg.pins(he).first;
+    auto pins_end = _hg.pins(he).second;
     HypernodeID representative = *pins_begin;
     ++pins_begin;
     //TODO(schlag): modify hypergraph DS such that we can do index-based iteration over incidence array

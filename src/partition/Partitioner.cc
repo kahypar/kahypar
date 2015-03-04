@@ -16,7 +16,6 @@
 #endif
 
 using defs::HighResClockTimepoint;
-using defs::PartInfoIteratorPair;
 
 namespace partition {
 void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
@@ -225,12 +224,12 @@ void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg)
                                    };
 
   PartitionID min_partition = 0;
-  PartInfoIteratorPair part_info_iters = hg.partInfos();
+
   for (const HypernodeID pin : hg.pins(he)) {
     if (hg.partID(pin) == Hypergraph::kInvalidPartition) {
-      min_partition = std::min_element(part_info_iters.begin(), part_info_iters.end(),
+      min_partition = std::min_element(hg.partInfos().begin(), hg.partInfos().end(),
                                        comparePartWeights)
-                      - part_info_iters.begin();
+                      - hg.partInfos().begin();
       hg.setNodePart(pin, min_partition);
     }
   }
