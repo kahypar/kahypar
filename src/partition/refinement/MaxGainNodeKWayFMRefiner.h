@@ -527,7 +527,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                  }
                }
              }
-             for (PartitionID target_part = 0; target_part < _config.partition.epsilon; ++target_part) {
+             for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
                if (_seen_as_max_part[target_part] && target_part != _hg.partID(hn)) {
                  PartitionID source_part = _hg.partID(hn);
                  _hg.changeNodePart(hn, source_part, target_part);
