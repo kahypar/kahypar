@@ -8,7 +8,10 @@ namespace core {
 template <typename Iterator>
 class IteratorPair {
   public:
-  IteratorPair(Iterator first, Iterator last) : _f(first), _l(last) { }
+  IteratorPair(Iterator first, Iterator last) noexcept : _f(first), _l(last) { }
+  IteratorPair(IteratorPair&& other) :
+      _f(std::move(other._f)),
+      _l(std::move(other._l)) { }
   Iterator begin() const { return _f; }
   Iterator end() const { return _l; }
 
@@ -18,10 +21,8 @@ class IteratorPair {
 };
 
 template <typename Iterator>
-IteratorPair<Iterator> makeIteratorPair(Iterator f, Iterator l) {
-  // copy elision
-  // see http://stackoverflow.com/questions/18849958/why-is-this-move-constructor-not-working
-  return IteratorPair<Iterator>(f, l);
+IteratorPair<Iterator> makeIteratorPair(Iterator f, Iterator l) noexcept {
+  return std::move(IteratorPair<Iterator>(f, l));
 }
 
 } // namespace core
