@@ -44,6 +44,24 @@ namespace partition
   };
 
 
+  struct SizeConstr5
+  {
+    inline static double op(const double &orig_score, const HypernodeWeight &weight_node, const HypernodeWeight &weight_cluster)
+    {
+      return orig_score / static_cast<double>(std::min(weight_node, weight_cluster));
+    }
+  };
+
+
+  struct SizeConstr6
+  {
+    inline static double op(const double &orig_score, const HypernodeWeight &weight_node, const HypernodeWeight &weight_cluster)
+    {
+      return orig_score / static_cast<double>(std::max(weight_node, weight_cluster));
+    }
+  };
+
+
   template<typename OP=SizeConstr0>
   struct SizeConstraintPenaltyNewLabelComputation
   {

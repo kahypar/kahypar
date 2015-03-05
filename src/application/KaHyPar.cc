@@ -392,6 +392,20 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score18", [](CoarsenerFactoryParameters& p) ->
       ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
 
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score19", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score20", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score21", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score22", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score23", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score24", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+
 
   // bipartite
   // class 1
@@ -409,15 +423,25 @@ int main(int argc, char* argv[]) {
       return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
   CoarsenerFactory::getInstance().registerObject("bipartite_lp_score6",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
-
   CoarsenerFactory::getInstance().registerObject("bipartite_lp_score7",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr1> >(p.hypergraph, p.config);});
+      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
   CoarsenerFactory::getInstance().registerObject("bipartite_lp_score8",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr2> >(p.hypergraph, p.config);});
+      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+
+
   CoarsenerFactory::getInstance().registerObject("bipartite_lp_score9",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr3> >(p.hypergraph, p.config);});
+      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr1> >(p.hypergraph, p.config);});
   CoarsenerFactory::getInstance().registerObject("bipartite_lp_score10",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr2> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score11",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr3> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score12",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
       return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr4> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score13",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr5> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score14",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
+      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr6> >(p.hypergraph, p.config);});
+
 
 
   // lp clique sampled
@@ -466,6 +490,20 @@ int main(int argc, char* argv[]) {
       ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);});
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score18", [](CoarsenerFactoryParameters& p) ->
       ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);});
+
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score19", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score20", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score21", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score22", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score23", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_score24", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
 
 
   po::options_description desc("Allowed options");
