@@ -38,11 +38,6 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 template <class CoarseningMemento = Mandatory>
 class CoarsenerBase {
   protected:
-  struct hash_nodes {
-    size_t operator () (HypernodeID index) const {
-      return index;
-    }
-  };
 
   struct CurrentMaxNodeWeight {
     CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
