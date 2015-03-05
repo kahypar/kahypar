@@ -23,11 +23,11 @@ namespace partition
     size_t count_labels; // how many different labels does this Hyperedge have (connectivity)
 
     EdgeData() :
-      incident_labels(),
-      location(),
-      small_edge(false),
       sampled(nullptr),
+      location(),
+      incident_labels(),
       sample_size(0),
+      small_edge(false),
       label_count_map(),
       count_labels(0) // ugly hack!
     {

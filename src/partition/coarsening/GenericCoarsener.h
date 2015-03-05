@@ -70,6 +70,7 @@ namespace partition
       void coarsenImpl(HypernodeID limit) final
       {
         int count_contr = 0;
+        int level = 1;
         do
         {
           _clusterer->cluster();
@@ -110,6 +111,8 @@ namespace partition
 
           _clustering_map.clear();
 
+          _stats.add("GenericCoarsenerLevel_"+std::to_string(level) + "_numContractions",_config.partition.current_v_cycle, count_contr);
+          ++level;
         } while (count_contr > 0 && _hg.numNodes() > limit);
 
         gatherCoarseningStats();

@@ -43,8 +43,9 @@ namespace partition
       stats_()
     { }
 
-      bool refineImpl(std::vector<HypernodeID> &refinement_nodes, size_t num_refinement_nodes,
-          HyperedgeWeight &best_cut, double &best_imbalance) final
+      bool refineImpl(std::vector<HypernodeID> &refinement_nodes, const size_t num_refinement_nodes,
+          const HypernodeWeight max_allowed_part_weight,
+          HyperedgeWeight &best_cut, double __attribute__((unused)) &best_imbalance) final
       {
         assert (metrics::imbalance(hg_) < config_.partition.epsilon);
         ASSERT(best_cut == metrics::hyperedgeCut(hg_),
