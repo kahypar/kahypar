@@ -119,8 +119,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() noexcept {
     _just_updated.assign(_just_updated.size(), false);
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
-    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
-         _history.top().parallel_hes_size; ++i) {
+    for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
+         _history.back().parallel_hes_size; ++i) {
       for (const HypernodeID pin : _hg.pins(removed_parallel_hyperedges[i].representative_id)) {
         if (!_just_updated[pin]) {
           const Rating rating = _rater.rate(pin);

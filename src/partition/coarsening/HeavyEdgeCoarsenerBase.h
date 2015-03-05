@@ -41,7 +41,7 @@ struct CoarseningMemento {
     one_pin_hes_size(0),
     parallel_hes_begin(0),
     parallel_hes_size(0),
-    contraction_memento(std::move(contraction_memento_)) {}
+    contraction_memento(std::move(contraction_memento_)) { }
 };
 
 template <class Rater = Mandatory,
@@ -82,9 +82,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
-    _history.emplace(_hg.contract(rep_node, contracted_node));
-    if (_hg.nodeWeight(rep_node) > _max_hn_weights.top().max_weight) {
-      _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), _hg.nodeWeight(rep_node) });
+    _history.emplace_back(_hg.contract(rep_node, contracted_node));
+    if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
+      _max_hn_weights.emplace_back(CurrentMaxNodeWeight { _hg.numNodes(), _hg.nodeWeight(rep_node) });
     }
   }
 
@@ -105,26 +105,26 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       restoreParallelHyperedges();
       restoreSingleNodeHyperedges();
 
-      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.top().contraction_memento.u << ","
-          << _history.top().contraction_memento.v << ")");
-      _hg.uncontract(_history.top().contraction_memento);
-      refinement_nodes[0] = _history.top().contraction_memento.u;
-      refinement_nodes[1] = _history.top().contraction_memento.v;
+      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.back().contraction_memento.u << ","
+          << _history.back().contraction_memento.v << ")");
+      _hg.uncontract(_history.back().contraction_memento);
+      refinement_nodes[0] = _history.back().contraction_memento.u;
+      refinement_nodes[1] = _history.back().contraction_memento.v;
 
-      if (_hg.numNodes() > _max_hn_weights.top().num_nodes) {
-        _max_hn_weights.pop();
+      if (_hg.numNodes() > _max_hn_weights.back().num_nodes) {
+        _max_hn_weights.pop_back();
       }
       ASSERT([&]() {
                for (const HypernodeID hn : _hg.nodes()) {
-                 if (_hg.nodeWeight(hn) == _max_hn_weights.top().max_weight) {
+                 if (_hg.nodeWeight(hn) == _max_hn_weights.back().max_weight) {
                    return true;
                  }
                }
                return false;
-             } (), "No HN of weight " << _max_hn_weights.top().max_weight << " found");
+             } (), "No HN of weight " << _max_hn_weights.back().max_weight << " found");
 
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
-      _history.pop();
+      _history.pop_back();
     }
     ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)

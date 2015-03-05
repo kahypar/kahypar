@@ -68,8 +68,8 @@ TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
 TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   coarsener.coarsen(6);
   ASSERT_THAT(hypergraph->nodeIsEnabled(2), Eq(false));
-  ASSERT_THAT(coarsener._history.top().contraction_memento.u, Eq(0));
-  ASSERT_THAT(coarsener._history.top().contraction_memento.v, Eq(2));
+  ASSERT_THAT(coarsener._history.back().contraction_memento.u, Eq(0));
+  ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
 }
 
 TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {

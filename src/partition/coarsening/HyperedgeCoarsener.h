@@ -135,10 +135,10 @@ class HyperedgeCoarsener : public ICoarsener,
       num_refinement_nodes = 0;
       restoreParallelHyperedges();
       restoreSingleNodeHyperedges();
-      performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
+      performUncontraction(_history.back(), refinement_nodes, num_refinement_nodes);
       performLocalSearch(refiner, refinement_nodes, num_refinement_nodes,
                          current_imbalance, current_cut);
-      _history.pop();
+      _history.pop_back();
     }
     return current_cut < initial_cut;
     // ASSERT(current_imbalance <= _config.partition.epsilon,
@@ -162,16 +162,16 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void deleteRemovedSingleNodeHyperedgesFromPQ() noexcept {
     const auto& removed_single_node_hyperedges = _hypergraph_pruner.removedSingleNodeHyperedges();
-    for (int i = _history.top().one_pin_hes_begin; i != _history.top().one_pin_hes_begin +
-         _history.top().one_pin_hes_size; ++i) {
+    for (int i = _history.back().one_pin_hes_begin; i != _history.back().one_pin_hes_begin +
+         _history.back().one_pin_hes_size; ++i) {
       removeHyperedgeFromPQ(removed_single_node_hyperedges[i]);
     }
   }
 
   void deleteRemovedParallelHyperedgesFromPQ() noexcept {
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
-    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
-         _history.top().parallel_hes_size; ++i) {
+    for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
+         _history.back().parallel_hes_size; ++i) {
       removeHyperedgeFromPQ(removed_parallel_hyperedges[i].removed_id);
     }
   }
@@ -214,8 +214,8 @@ class HyperedgeCoarsener : public ICoarsener,
   }
 
   HypernodeID performContraction(const HyperedgeID he) noexcept {
-    _history.emplace(HyperedgeCoarseningMemento());
-    _history.top().mementos_begin = _contraction_mementos.size();
+    _history.emplace_back(HyperedgeCoarseningMemento());
+    _history.back().mementos_begin = _contraction_mementos.size();
     auto pins_begin = _hg.pins(he).first;
     auto pins_end = _hg.pins(he).second;
     HypernodeID representative = *pins_begin;
@@ -231,7 +231,7 @@ class HyperedgeCoarsener : public ICoarsener,
       DBG(dbg_coarsening_coarsen, "Contracting (" << representative << "," << hn_to_contract
           << ") from HE " << he);
       _contraction_mementos.push_back(_hg.contract(representative, hn_to_contract));
-      ++_history.top().mementos_size;
+      ++_history.back().mementos_size;
     }
     return representative;
   }

@@ -35,8 +35,8 @@ class Rater {
 
   struct HeavyEdgeRating {
     HeavyEdgeRating(const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator=(const HeavyEdgeRating&) =delete;
-    HeavyEdgeRating& operator=(HeavyEdgeRating&&) =delete;
+    HeavyEdgeRating& operator = (const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator = (HeavyEdgeRating&&) = delete;
 
     HeavyEdgeRating(HeavyEdgeRating&& other) noexcept :
       target(std::move(other.target)),
