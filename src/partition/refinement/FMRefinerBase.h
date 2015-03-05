@@ -17,6 +17,12 @@ static const bool dbg_refinement_fm_border_node_check = false;
 static const bool dbg_refinement_kway_fm_move = false;
 
 class FMRefinerBase {
+  public:
+  FMRefinerBase(const FMRefinerBase&) = delete;
+  FMRefinerBase(FMRefinerBase&&) = delete;
+  FMRefinerBase& operator = (const FMRefinerBase&) = delete;
+  FMRefinerBase& operator = (FMRefinerBase&&) = delete;
+
   protected:
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
@@ -59,18 +65,36 @@ class FMRefinerBase {
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) {
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
-    ASSERT((_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weight) &&
-           (_hg.partSize(from_part) - 1 != 0), "Trying to make infeasible move!");
     DBG(dbg_refinement_kway_fm_move, "moving HN" << hn << " from " << from_part
         << " to " << to_part << " (weight=" << _hg.nodeWeight(hn) << ")");
     _hg.changeNodePart(hn, from_part, to_part);
   }
 
+  PartitionID heaviestPart() const {
+    PartitionID heaviest_part = 0;
+    for (PartitionID part = 1; part < _config.partition.k; ++part) {
+      if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
+        heaviest_part = part;
+      }
+    }
+    return heaviest_part;
+  }
+
+  void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
+                                           HypernodeWeight& heaviest_part_weight,
+                                           const PartitionID from_part,
+                                           const PartitionID to_part) const {
+    if (heaviest_part == from_part) {
+      heaviest_part = heaviestPart();
+      heaviest_part_weight = _hg.partWeight(heaviest_part);
+    } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
+      heaviest_part = to_part;
+      heaviest_part_weight = _hg.partWeight(to_part);
+    }
+  }
+
   Hypergraph& _hg;
   const Configuration& _config;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(FMRefinerBase);
 };
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_

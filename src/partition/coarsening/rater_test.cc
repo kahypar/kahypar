@@ -2,6 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
+#include <memory>
+
 #include "gmock/gmock.h"
 
 #include "lib/definitions.h"
@@ -21,9 +23,9 @@ using defs::HypernodeID;
 using defs::PartitionID;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef Rater<defs::RatingType, LastRatingWins> LastWinsRater;
-typedef Rater<defs::RatingType, RandomRatingWins> RandomWinsRater;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using LastWinsRater = Rater<defs::RatingType, LastRatingWins>;
+using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 
 class ARater : public Test {
   public:
@@ -35,9 +37,6 @@ class ARater : public Test {
 
   std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(ARater);
 };
 
 class AFirstWinsRater : public ARater {

@@ -69,8 +69,8 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
                                            hg_to_hmetis, const Partition& partitioning) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID he : hg.edges()) {
-    IncidenceIterator begin = hg.pins(he).begin();
-    IncidenceIterator end = hg.pins(he).end();
+    auto begin = hg.pins(he).first;
+    auto end = hg.pins(he).second;
     if (begin == end) {
       continue;
     }
@@ -128,14 +128,6 @@ static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
 }
 
-static inline HypernodeID rank(const Hypergraph& hypergraph) {
-  HypernodeID rank = 0;
-  for (const HyperedgeID he : hypergraph.edges()) {
-    rank = std::max(rank, hypergraph.edgeSize(he));
-  }
-  return rank;
-}
-
 static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HypernodeID> he_sizes;
   he_sizes.reserve(hypergraph.numEdges());
@@ -144,7 +136,7 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
   }
   std::sort(he_sizes.begin(), he_sizes.end());
 
-  size_t rank = ceil(static_cast<double>(percentile) / 100 * he_sizes.size());
+  size_t rank = ceil(static_cast<double>(percentile) / 100 * (he_sizes.size() - 1));
   return he_sizes[rank];
 }
 
@@ -157,7 +149,7 @@ static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph
   }
   std::sort(hn_degrees.begin(), hn_degrees.end());
 
-  size_t rank = ceil(static_cast<double>(percentile) / 100 * hn_degrees.size());
+  size_t rank = ceil(static_cast<double>(percentile) / 100 * (hn_degrees.size() - 1));
   return hn_degrees[rank];
 }
 

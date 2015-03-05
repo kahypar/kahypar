@@ -12,8 +12,8 @@
 using defs::Hypergraph;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> CoarsenerType;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using CoarsenerType = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
   public:
@@ -88,14 +88,14 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   hypergraph.printGraphState();
   ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
   ASSERT_THAT(hypergraph.nodeWeight(2), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(1));
+  ASSERT_THAT(hypergraph.nodeWeight(3), Eq(1));
   ASSERT_THAT(hypergraph.nodeWeight(5), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(3));
+  ASSERT_THAT(hypergraph.nodeWeight(7), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(1), Eq(1));
+  ASSERT_THAT(hypergraph.edgeWeight(1), Eq(2));
   ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(4), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(4), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(8), Eq(4));
+  ASSERT_THAT(hypergraph.edgeWeight(10), Eq(4));
 }
 } // namespace partition

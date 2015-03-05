@@ -15,8 +15,8 @@ template<
   typename ResultType = void
   >
 class StaticDispatcher {
-  typedef typename TypesLhs::Head Head;
-  typedef typename TypesLhs::Tail Tail;
+  using Head = typename TypesLhs::Head;
+  using Tail = typename TypesLhs::Tail;
 
  public:
   static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
@@ -33,8 +33,8 @@ class StaticDispatcher {
   template<class SomeLhs>
   static ResultType dispatchRhs(SomeLhs& lhs, BaseRhs& rhs, Executor exec,
                                 const Parameters& parameters) {
-    typedef typename TypesRhs::Head Head;
-    typedef typename TypesRhs::Tail Tail;
+    using Head =  typename TypesRhs::Head;
+    using Tail =  typename TypesRhs::Tail;
     if (Head* p2 = dynamic_cast<Head*>(&rhs)) {
       return exec.fire(lhs, *p2, parameters);
     } else {

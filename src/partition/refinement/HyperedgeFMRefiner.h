@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_HYPEREDGEFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_HYPEREDGEFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <limits>
 #include <string>
@@ -53,10 +51,10 @@ template <class StoppingPolicy = Mandatory,
 class HyperedgeFMRefiner : public IRefiner,
                            private FMRefinerBase {
   private:
-  typedef HyperedgeWeight Gain;
-  typedef NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
-                              std::numeric_limits<HyperedgeWeight> > HyperedgeFMHeap;
-  typedef PriorityQueue<HyperedgeFMHeap> HyperedgeFMPQ;
+  using Gain = HyperedgeWeight;
+  using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
+                                              std::numeric_limits<HyperedgeWeight> >;
+  using HyperedgeFMPQ = PriorityQueue<HyperedgeFMHeap>;
 
   static const int K = 2;
 
@@ -76,14 +74,19 @@ class HyperedgeFMRefiner : public IRefiner,
     }
 
     void reset() {
-      _bitvector.reset();
+      _bitvector.assign(_bitvector.size(), false);
     }
 
     private:
-    boost::dynamic_bitset<uint64_t> _bitvector;
+    std::vector<bool> _bitvector;
   };
 
   public:
+  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
+  HyperedgeFMRefiner& operator = (const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner& operator = (HyperedgeFMRefiner&&) = delete;
+
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
@@ -105,6 +108,10 @@ class HyperedgeFMRefiner : public IRefiner,
     delete _pq[1];
   }
 
+  void initializeImpl(HyperedgeWeight) final {
+    _is_initialized = true;
+  }
+
   void initializeImpl() final {
     _is_initialized = true;
   }
@@ -119,6 +126,7 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+                  const HypernodeWeight UNUSED(max_allowed_part_weight),
                   HyperedgeWeight& best_cut, double& best_imbalance) final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
@@ -148,10 +156,12 @@ class HyperedgeFMRefiner : public IRefiner,
     double imbalance = best_imbalance;
 
     int step = 0;
+    int num_moves_since_last_improvement = 0;
     StoppingPolicy::resetStatistics();
+    const double beta = log(_hg.numNodes());
     while (!queuesAreEmpty() && (best_cut == cut ||
-                                 !StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                                   best_cut, cut))) {
+                                 !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
+                                                                   _config, beta, best_cut, cut))) {
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
@@ -202,6 +212,7 @@ class HyperedgeFMRefiner : public IRefiner,
                                          (imbalance < _config.partition.epsilon);
       bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
+      ++num_moves_since_last_improvement;
       if (improved_balance_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a HE move which decreased cut");
         if (cut < best_cut) {
@@ -214,6 +225,7 @@ class HyperedgeFMRefiner : public IRefiner,
         best_cut = cut;
         min_cut_index = step;
         StoppingPolicy::resetStatistics();
+        num_moves_since_last_improvement = 0;
       }
       ++step;
     }
@@ -505,7 +517,7 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void resetContainedHypernodes() {
-    _contained_hypernodes.reset();
+    _contained_hypernodes.assign(_contained_hypernodes.size(), false);
   }
 
   bool isMarkedAsMoved(HyperedgeID he) const {
@@ -517,21 +529,20 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void resetMarkedHyperedges() {
-    _marked_HEs.reset();
+    _marked_HEs.assign(_marked_HEs.size(), false);
   }
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::array<HyperedgeFMPQ*, K> _pq;
-  boost::dynamic_bitset<uint64_t> _marked_HEs;
+  std::vector<bool> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
-  boost::dynamic_bitset<uint64_t> _contained_hypernodes;
+  std::vector<bool> _contained_hypernodes;
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(HyperedgeFMRefiner);
 };
 #pragma GCC diagnostic pop
 }   // namespace partition

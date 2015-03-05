@@ -12,6 +12,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/Configuration.h"
 
 using core::Parameters;
@@ -47,7 +48,9 @@ template < class sP, class cP>
   
 };
 
-template <template <class > class  Refiner>
+template <
+  template <class,
+            class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased> class  Refiner>
 class KFMFactoryExecutor {
  public:
   template <typename StoppingPolicy, typename Dummy>

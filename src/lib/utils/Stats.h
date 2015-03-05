@@ -16,11 +16,14 @@ namespace utils {
 
 class Stats{
  private:
-  
-  typedef std::map<std::string, double> StatsMap;
+  using StatsMap = std::map<std::string, double>;
   
  public:
-  
+  Stats(const Stats &) = delete;
+  Stats(Stats &&) = delete;
+  Stats& operator= (const Stats&) = delete;
+  Stats& operator= (Stats&&) = delete;
+
   Stats() :
       _stats() { }
 
@@ -46,7 +49,6 @@ class Stats{
   
  private:
   StatsMap _stats;
-  DISALLOW_COPY_AND_ASSIGN(Stats);
 };
 
 #else

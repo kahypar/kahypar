@@ -18,7 +18,7 @@ using defs::HyperedgeWeight;
 using defs::HypernodeID;
 
 namespace partition {
-typedef MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch> KWayFMRefinerSimpleStopping;
+using KWayFMRefinerSimpleStopping = MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AMaxGainNodeKWayFMRefiner : public Test {
   public:
@@ -38,23 +38,16 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     hypergraph->setNodePart(6, 3);
     hypergraph->setNodePart(7, 1);
     config.two_way_fm.max_number_of_fruitless_moves = 50;
+    config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-    refiner->initialize();
+    //should be large enough to act as upper bound for both bucket- and heap-based PQ
+    refiner->initialize(100);
   }
 
   Configuration config;
   std::unique_ptr<Hypergraph> hypergraph;
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
-
-typedef AMaxGainNodeKWayFMRefiner AMaxGainNodeKWayFMRefinerDeathTest;
-
-TEST_F(AMaxGainNodeKWayFMRefiner, ResetsTmpConnectivityDecreaseVectorAfterGainComputation) {
-  refiner->computeMaxGainMove(0);
-  for (const PartitionID tmp_value : refiner->_tmp_connectivity_decrease) {
-    ASSERT_THAT(tmp_value, Eq(KWayFMRefinerSimpleStopping::kInvalidDecrease));
-  }
-}
 
 TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
   ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
@@ -63,14 +56,14 @@ TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes) {
-  refiner->activate(1);
+  refiner->activate(1, 42);
 
   ASSERT_THAT(refiner->_pq.max(), Eq(1));
   ASSERT_THAT(refiner->_pq.maxKey(), Eq(0));
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
-  refiner->activate(7);
+  refiner->activate(7, 42);
 
   ASSERT_THAT(refiner->_pq.contains(7), Eq(false));
 }
@@ -101,29 +94,6 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   // negative gain
   ASSERT_THAT(refiner->computeMaxGainMove(6).first, Eq(-1));
   ASSERT_THAT(refiner->computeMaxGainMove(6).second, Eq(1));
-}
-
-TEST_F(AMaxGainNodeKWayFMRefinerDeathTest, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions) {
-  hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7, /*sentinel*/ 9 },
-                                  HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 5, 6 }, 4));
-  hypergraph->setNodePart(0, 0);
-  hypergraph->setNodePart(1, 0);
-  hypergraph->setNodePart(2, 1);
-  hypergraph->setNodePart(3, 1);
-  hypergraph->setNodePart(4, 2);
-  hypergraph->setNodePart(5, 2);
-  hypergraph->setNodePart(6, 3);
-  hypergraph->setNodePart(7, 3);
-  config.partition.k = 4;
-  config.partition.epsilon = 0.02;
-  config.partition.max_part_weight = (1 + config.partition.epsilon)
-                                     * ceil(hypergraph->numNodes() /
-                                            static_cast<double>(config.partition.k));
-
-  refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-
-  ASSERT_EXIT(refiner->moveHypernode(7, 3, 2), ::testing::KilledBySignal(SIGABRT),
-              ".*");
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
@@ -179,12 +149,14 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  //should be large enough to act as upper bound for both bucket- and heap-based PQ
+  refiner->initialize(100);
 
   double old_imbalance = metrics::imbalance(*hypergraph);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 
-  refiner->refine(refinement_nodes, 2, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(verifyEquivalence(orig_hgr, *hypergraph), Eq(true));
 }

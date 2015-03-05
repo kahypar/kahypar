@@ -6,6 +6,10 @@
 #include <cstdlib>
 #endif
 
+// branch prediction
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 #ifdef ENABLE_PROFILE
 #include <gperftools/profiler.h>
 #define GPERF_START_PROFILER(FILE) ProfilerStart(FILE)
@@ -20,15 +24,6 @@
 // http://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value#196093
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
-
-// http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(ClassName)              \
-  ClassName(const ClassName &) = delete;                 \
-  ClassName(ClassName &&) = delete;                      \
-  ClassName& operator= (const ClassName&) = delete;      \
-  ClassName& operator= (ClassName&&) = delete
 
 // Idea taken from https://github.com/bingmann/parallel-string-sorting/blob/master/src/tools/debug.h
 #define DBGX(dbg,X)   do { if (dbg) { std::cout << X; } } while(0)

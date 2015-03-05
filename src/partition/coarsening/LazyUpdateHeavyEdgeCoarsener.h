@@ -28,8 +28,13 @@ template <class Rater = Mandatory>
 class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
                                      private HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating Rating;
+  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
+  using Rating = typename Rater::Rating;
 
   class NullMap {
     public:
@@ -37,6 +42,11 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   };
 
   public:
+  LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator = (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator = (LazyUpdateHeavyEdgeCoarsener&&) = delete;
+
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _outdated_rating(hypergraph.initialNumNodes(), false),
@@ -47,12 +57,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
-
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
@@ -146,7 +150,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Base::_stats;
   std::vector<bool> _outdated_rating;
   std::vector<HypernodeID> _target;
-  DISALLOW_COPY_AND_ASSIGN(LazyUpdateHeavyEdgeCoarsener);
 };
 }              // namespace partition
 

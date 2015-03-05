@@ -15,10 +15,9 @@ using::testing::Test;
 
 using defs::HypernodeID;
 using defs::PartitionID;
-using defs::IncidenceIterator;
 
 namespace datastructure {
-typedef Hypergraph::ContractionMemento Memento;
+using Memento = Hypergraph::ContractionMemento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.numNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
@@ -177,24 +176,24 @@ TEST_F(AHypergraph, DoesNotRemoveHyperedgesOfSizeOneOnContraction) {
 }
 
 TEST_F(AHypernodeIterator, StartsWithFirstHypernode) {
-  ASSERT_THAT(*(hypergraph.nodes().begin()), Eq(0));
+  ASSERT_THAT(*(hypergraph.nodes().first), Eq(0));
 }
 
 TEST_F(AHypernodeIterator, BeginsWithTheFirstValidWhenIterating) {
   hypergraph.removeNode(0);
-  ASSERT_THAT(*(hypergraph.nodes().begin()), Eq(1));
+  ASSERT_THAT(*(hypergraph.nodes().first), Eq(1));
 }
 
 TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenForwardIterating) {
   hypergraph.removeNode(1);
   hypergraph.removeNode(2);
-  auto begin = hypergraph.nodes().begin();
+  auto begin = hypergraph.nodes().first;
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
 }
 
 TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenBackwardIterating) {
-  auto begin = hypergraph.nodes().begin();
+  auto begin = hypergraph.nodes().first;
   ++begin;
   ++begin;
   ++begin;
@@ -206,24 +205,24 @@ TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenBackwardIterating) {
 }
 
 TEST_F(AHyperedgeIterator, StartsWithFirstHyperedge) {
-  ASSERT_THAT(*(hypergraph.edges().begin()), Eq(0));
+  ASSERT_THAT(*(hypergraph.edges().first), Eq(0));
 }
 
 TEST_F(AHyperedgeIterator, StartsWithTheFirstValidHyperedge) {
   hypergraph.removeEdge(0, false);
-  ASSERT_THAT(*(hypergraph.edges().begin()), Eq(1));
+  ASSERT_THAT(*(hypergraph.edges().first), Eq(1));
 }
 
 TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenForwardIterating) {
   hypergraph.removeEdge(1, false);
   hypergraph.removeEdge(2, false);
-  auto begin = hypergraph.edges().begin();
+  auto begin = hypergraph.edges().first;
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
 }
 
 TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
-  auto begin = hypergraph.edges().begin();
+  auto begin = hypergraph.edges().first;
   ++begin;
   ++begin;
   ++begin;
@@ -327,31 +326,29 @@ TEST_F(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction) {
 }
 
 TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAddedToRepresentative) {
-  ASSERT_THAT(std::count(hypergraph.pins(3).begin(), hypergraph.pins(3).end(), 6), Eq(1));
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 6), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(3).first, hypergraph.pins(3).second, 6), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 6), Eq(1));
   Memento memento = hypergraph.contract(4, 6);
-  ASSERT_THAT(std::count(hypergraph.pins(3).begin(), hypergraph.pins(3).end(), 6), Eq(0));
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 6), Eq(0));
+  ASSERT_THAT(std::count(hypergraph.pins(3).first, hypergraph.pins(3).second, 6), Eq(0));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 6), Eq(0));
 
   hypergraph.uncontract(memento);
 
-  ASSERT_THAT(std::count(hypergraph.pins(3).begin(), hypergraph.pins(3).end(), 6), Eq(1));
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 6), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(3).first, hypergraph.pins(3).second, 6), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 6), Eq(1));
 }
 
 TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistingAtRepresentative) {
-  IncidenceIterator begin, end;
-
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 4), Eq(1));
-  ASSERT_THAT(std::count(hypergraph.pins(1).begin(), hypergraph.pins(1).end(), 4), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 4), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(1).first, hypergraph.pins(1).second, 4), Eq(1));
   Memento memento = hypergraph.contract(3, 4);
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 4), Eq(0));
-  ASSERT_THAT(std::count(hypergraph.pins(1).begin(), hypergraph.pins(1).end(), 4), Eq(0));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 4), Eq(0));
+  ASSERT_THAT(std::count(hypergraph.pins(1).first, hypergraph.pins(1).second, 4), Eq(0));
 
   hypergraph.uncontract(memento);
 
-  ASSERT_THAT(std::count(hypergraph.pins(2).begin(), hypergraph.pins(2).end(), 4), Eq(1));
-  ASSERT_THAT(std::count(hypergraph.pins(1).begin(), hypergraph.pins(1).end(), 4), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(2).first, hypergraph.pins(2).second, 4), Eq(1));
+  ASSERT_THAT(std::count(hypergraph.pins(1).first, hypergraph.pins(1).second, 4), Eq(1));
 }
 
 TEST_F(AnUncontractionOperation, RestoresNumberOfPinsOnUncontraction) {
@@ -482,7 +479,7 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.removeEdge(1, false);
 
   for (PartitionID part = 0; part < hypergraph._k; ++part) {
-    const HypernodeID num_pins = hypergraph._pins_in_part[1][part];
+    const HypernodeID num_pins = hypergraph._pins_in_part[1 * hypergraph._k + part];
     ASSERT_THAT(num_pins, Eq(hypergraph.kInvalidCount));
   }
 }

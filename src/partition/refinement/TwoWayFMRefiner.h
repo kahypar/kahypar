@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
 #define SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <algorithm>
 #include <array>
 #include <limits>
@@ -31,7 +29,7 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::BucketPQ;
+using datastructure::BucketQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -57,18 +55,19 @@ template <class StoppingPolicy = Mandatory,
 class TwoWayFMRefiner : public IRefiner,
                         private FMRefinerBase {
   private:
-  typedef HyperedgeWeight Gain;
-#ifdef USE_BUCKET_PQ
-  typedef BucketPQ<HypernodeID, HyperedgeWeight, HyperedgeWeight> RefinementPQ;
-#else
-  typedef NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
-                              std::numeric_limits<HyperedgeWeight> > TwoWayFMHeap;
-  typedef PriorityQueue<TwoWayFMHeap> RefinementPQ;
-#endif
+  using Gain = HyperedgeWeight;
+  using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
+                                           std::numeric_limits<HyperedgeWeight> >;
+  using RefinementPQ = PriorityQueue<TwoWayFMHeap>;
 
   static const int K = 2;
 
   public:
+  TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
+  TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner& operator = (TwoWayFMRefiner&&) = delete;
+
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     // ToDo: We could also use different storage to avoid initialization like this
@@ -76,7 +75,6 @@ class TwoWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _performed_moves(),
-    _is_initialized(false),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
@@ -124,16 +122,9 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
 
-  #ifdef USE_BUCKET_PQ
-  void initializeImpl(HyperedgeWeight max_gain) final {
-    delete _pq[0];
-    delete _pq[1];
-    _pq[0] = new RefinementPQ(max_gain);
-    _pq[1] = new RefinementPQ(max_gain);
-
-    _is_initialized = true;
+  void initializeImpl(HyperedgeWeight) final {
+    initializeImpl();
   }
-#endif
 
   void initializeImpl() final {
     if (!_is_initialized) {
@@ -144,8 +135,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
+                  const HypernodeWeight UNUSED(max_allowed_part_weight),
                   HyperedgeWeight& best_cut, double& best_imbalance) final {
-    ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -156,7 +147,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     _pq[0]->clear();
     _pq[1]->clear();
-    _marked.reset();
+    _marked.assign(_marked.size(), false);
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -170,6 +161,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     int step = 0;
     int num_moves = 0;
+    int num_moves_since_last_improvement = 0;
     int max_number_of_moves = _hg.numNodes();
     StoppingPolicy::resetStatistics();
 
@@ -177,9 +169,10 @@ class TwoWayFMRefiner : public IRefiner,
     bool pq1_eligible = false;
 
     // forward
+    const double beta = log(_hg.numNodes());
     for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
-      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(min_cut_index, step, _config,
-                                                               best_cut, cut)) {
+      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
+                                                               _config, beta, best_cut, cut)) {
         break;
       }
       DBG(false, "-------------------------------");
@@ -236,9 +229,10 @@ class TwoWayFMRefiner : public IRefiner,
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       bool improved_cut_within_balance = (cut < best_cut) &&
-                                         (imbalance < _config.partition.epsilon);
+                                         (imbalance <= _config.partition.epsilon);
       bool improved_balance_less_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
 
+      ++num_moves_since_last_improvement;
       if (improved_balance_less_equal_cut || improved_cut_within_balance) {
         ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
         if (cut < best_cut) {
@@ -254,6 +248,7 @@ class TwoWayFMRefiner : public IRefiner,
             "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
         best_imbalance = imbalance;
         min_cut_index = num_moves;
+        num_moves_since_last_improvement = 0;
       }
       _performed_moves[num_moves] = max_gain_node;
       ++num_moves;
@@ -261,8 +256,9 @@ class TwoWayFMRefiner : public IRefiner,
 
     DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves - 1
         << " local search movements (" << step << " steps): stopped because of "
-        << (StoppingPolicy::searchShouldStop(min_cut_index, step, _config, best_cut, cut) == true ?
-            "policy" : "empty queue"));
+        << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
+                                             best_cut, cut)
+            == true ? "policy" : "empty queue"));
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
@@ -273,7 +269,7 @@ class TwoWayFMRefiner : public IRefiner,
   // Gain update as decribed in [ParMar06]
   void updateNeighbours(const HypernodeID moved_node, const PartitionID source_part,
                         const PartitionID target_part) {
-    _just_activated.reset();
+    _just_activated.assign(_just_activated.size(), false);
     for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
       if (_hg.edgeSize(he) == 2) {
         // moved_node is not updated here, since updatePin only updates HNs that
@@ -327,12 +323,7 @@ class TwoWayFMRefiner : public IRefiner,
     return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()
-                       + " UsesBucketPQ="
-#ifdef USE_BUCKET_PQ
-                       + "true"
-#else
-                       + "false"
-#endif
+                       + " UsesBucketPQ=false"
                        );
   }
 
@@ -448,12 +439,10 @@ class TwoWayFMRefiner : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::array<RefinementPQ*, K> _pq;
-  boost::dynamic_bitset<uint64_t> _marked;
-  boost::dynamic_bitset<uint64_t> _just_activated;
+  std::vector<bool> _marked;
+  std::vector<bool> _just_activated;
   std::vector<HypernodeID> _performed_moves;
-  bool _is_initialized;
   Stats _stats;
-  DISALLOW_COPY_AND_ASSIGN(TwoWayFMRefiner);
 };
 #pragma GCC diagnostic pop
 }                                   // namespace partition

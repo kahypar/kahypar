@@ -24,8 +24,8 @@ namespace external {
 template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
 class NoDataBinaryMaxHeap{
  private:
-  void operator=( const NoDataBinaryMaxHeap& ){}	//really, do not copy
-  typedef storage_slot Storage;
+  using Storage = storage_slot;
+
  protected:
   struct HeapElement{
     HeapElement( const key_slot & key_ = meta_key_slot::max(), const id_slot & id_ = 0 )
@@ -43,10 +43,10 @@ class NoDataBinaryMaxHeap{
   size_t max_size;
 
  public:
-  typedef id_slot value_type;
-  typedef key_slot key_type;
-  typedef meta_key_slot meta_key_type;
-  typedef void data_type;
+  using value_type = id_slot;
+  using key_type = key_slot;
+  using meta_key_type = meta_key_slot;
+  using data_type = void;
 
   NoDataBinaryMaxHeap( const NoDataBinaryMaxHeap & other) :
       handles(other.max_size - 1 /* no storage for sentinel */),

@@ -28,19 +28,15 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
-using defs::IncidenceIterator;
-using defs::HypernodeIterator;
 
 namespace partition {
 struct CoarseningMemento {
-  typedef typename Hypergraph::ContractionMemento Memento;
-
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
-  Memento contraction_memento;
-  explicit CoarseningMemento(Memento contraction_memento_) :
+  Hypergraph::ContractionMemento contraction_memento;
+  explicit CoarseningMemento(Hypergraph::ContractionMemento contraction_memento_) :
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
@@ -55,28 +51,30 @@ template <class Rater = Mandatory,
                                 MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
-  typedef typename Rater::Rating Rating;
-  typedef typename Rater::RatingType RatingType;
-  typedef CoarsenerBase<CoarseningMemento> Base;
-
+  using Base = CoarsenerBase<CoarseningMemento>;
   using Base::_hg;
   using Base::_config;
   using Base::_history;
+  using Base::_max_hn_weights;
   using Base::_stats;
-#ifdef USE_BUCKET_PQ
-  using Base::_weights_table;
-#endif
+  using Base::CurrentMaxNodeWeight;
   using Base::restoreSingleNodeHyperedges;
   using Base::restoreParallelHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
+  using Rating = typename Rater::Rating;
+  using RatingType = typename Rater::RatingType;
 
   public:
+  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator = (HeavyEdgeCoarsenerBase&&) = delete;
+
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _rater(_hg, _config),
-    _pq(_hg.initialNumNodes())
-  { }
+    _pq(_hg.initialNumNodes()) { }
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
@@ -85,6 +83,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) {
     _history.emplace(_hg.contract(rep_node, contracted_node));
+    if (_hg.nodeWeight(rep_node) > _max_hn_weights.top().max_weight) {
+      _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), _hg.nodeWeight(rep_node) });
+    }
   }
 
   bool doUncoarsen(IRefiner& refiner) {
@@ -109,13 +110,26 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       _hg.uncontract(_history.top().contraction_memento);
       refinement_nodes[0] = _history.top().contraction_memento.u;
       refinement_nodes[1] = _history.top().contraction_memento.v;
+
+      if (_hg.numNodes() > _max_hn_weights.top().num_nodes) {
+        _max_hn_weights.pop();
+      }
+      ASSERT([&]() {
+               for (const HypernodeID hn : _hg.nodes()) {
+                 if (_hg.nodeWeight(hn) == _max_hn_weights.top().max_weight) {
+                   return true;
+                 }
+               }
+               return false;
+             } (), "No HN of weight " << _max_hn_weights.top().max_weight << " found");
+
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop();
     }
+    ASSERT(current_imbalance <= _config.partition.epsilon,
+           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+           << " > " << _config.partition.epsilon);
     return current_cut < initial_cut;
-    // ASSERT(current_imbalance <= _config.partition.epsilon,
-    //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
-    //        << " > " << _config.partition.epsilon);
   }
 
   template <typename Map>
@@ -142,9 +156,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   Rater _rater;
   PrioQueue _pq;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(HeavyEdgeCoarsenerBase);
 };
 } // namespace partition
 

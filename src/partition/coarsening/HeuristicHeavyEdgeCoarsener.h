@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 #define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -29,11 +27,21 @@ template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
   private:
-  typedef HeavyEdgeCoarsenerBase<Rater> Base;
-  typedef typename Rater::Rating Rating;
-  typedef std::unordered_multimap<HypernodeID, HypernodeID> TargetToSourcesMap;
+  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base::rateAllHypernodes;
+  using Base::performContraction;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::gatherCoarseningStats;
+  using Rating = typename Rater::Rating;
+  using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
   public:
+  HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator = (const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator = (HeuristicHeavyEdgeCoarsener&&) = delete;
+
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()),
@@ -44,12 +52,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
-
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
@@ -115,7 +117,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
-    _just_updated.reset();
+    _just_updated.assign(_just_updated.size(), false);
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
@@ -184,7 +186,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
-  boost::dynamic_bitset<uint64_t> _just_updated;
+  std::vector<bool> _just_updated;
 };
 } // namespace partition
 

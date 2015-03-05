@@ -14,36 +14,40 @@
 #define GATHER_STATS
 
 namespace defs {
-typedef unsigned int hypernode_id_t;
-typedef unsigned int hyperedge_id_t;
-typedef unsigned int hypernode_weight_t;
-typedef int hyperedge_weight_t;
-typedef int partition_id_t;
+using hypernode_id_t =unsigned int;
+using hyperedge_id_t =unsigned int;
+using hypernode_weight_t =unsigned int;
+using hyperedge_weight_t = int;
+using partition_id_t = int;
 
-typedef datastructure::GenericHypergraph<hypernode_id_t, hyperedge_id_t, hypernode_weight_t,
-                                         hyperedge_weight_t, partition_id_t> Hypergraph;
+using Hypergraph =  datastructure::GenericHypergraph<hypernode_id_t,
+                                                     hyperedge_id_t, hypernode_weight_t,
+                                                     hyperedge_weight_t, partition_id_t>;
 
-typedef double RatingType;
-typedef Hypergraph::HypernodeID HypernodeID;
-typedef Hypergraph::HyperedgeID HyperedgeID;
-typedef Hypergraph::PartitionID PartitionID;
-typedef Hypergraph::HypernodeWeight HypernodeWeight;
-typedef Hypergraph::HyperedgeWeight HyperedgeWeight;
-typedef Hypergraph::Type HypergraphType;
-typedef Hypergraph::HypernodeIterator HypernodeIterator;
-typedef Hypergraph::HyperedgeIterator HyperedgeIterator;
-typedef Hypergraph::IncidenceIterator IncidenceIterator;
-typedef Hypergraph::HyperedgeIndexVector HyperedgeIndexVector;
-typedef Hypergraph::HyperedgeVector HyperedgeVector;
-typedef Hypergraph::HyperedgeWeightVector HyperedgeWeightVector;
-typedef Hypergraph::HypernodeWeightVector HypernodeWeightVector;
-typedef Hypergraph::HypernodeIteratorPair HypernodeIteratorPair;
-typedef Hypergraph::HyperedgeIteratorPair HyperedgeIteratorPair;
-typedef Hypergraph::IncidenceIteratorPair IncidenceIteratorPair;
-typedef Hypergraph::ConnectivitySetIteratorPair ConnectivitySetIteratorPair;
-typedef Hypergraph::PartInfoIteratorPair  PartInfoIteratorPair;
+using RatingType = double;
+using HypernodeID = Hypergraph::HypernodeID;
+using HyperedgeID = Hypergraph::HyperedgeID;
+using PartitionID = Hypergraph::PartitionID;
+using HypernodeWeight = Hypergraph::HypernodeWeight;
+using HyperedgeWeight = Hypergraph::HyperedgeWeight;
+using HypergraphType = Hypergraph::Type ;
+using HyperedgeIndexVector = Hypergraph::HyperedgeIndexVector;
+using HyperedgeVector = Hypergraph::HyperedgeVector;
+using HyperedgeWeightVector = Hypergraph::HyperedgeWeightVector;
+using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
+using IncidenceIterator = Hypergraph::IncidenceIterator;
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> HighResClockTimepoint;
-
+using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 } // namespace defs
+
+// this is nasty and needs to be fixed
+namespace std {
+static defs::IncidenceIterator  begin(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
+  return x.first;
+}
+
+static defs::IncidenceIterator  end(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
+  return x.second;
+}
+}
 #endif  // LIB_DEFINITIONS_H_

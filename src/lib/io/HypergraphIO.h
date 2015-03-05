@@ -27,7 +27,7 @@ using defs::HypernodeWeightVector;
 using defs::HypergraphType;
 
 namespace io {
-typedef std::unordered_map<HypernodeID, HypernodeID> Mapping;
+using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
 
 inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
                           HypernodeID& num_hypernodes, HypergraphType& hypergraph_type) {

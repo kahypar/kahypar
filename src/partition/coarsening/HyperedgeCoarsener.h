@@ -50,11 +50,23 @@ template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
                            public CoarsenerBase<HyperedgeCoarseningMemento>{
   private:
-  typedef HyperedgeRating Rating;
-  typedef typename Hypergraph::ContractionMemento ContractionMemento;
-  typedef CoarsenerBase<HyperedgeCoarseningMemento> Base;
+  using Base = CoarsenerBase<HyperedgeCoarseningMemento>;
+  using Base::removeSingleNodeHyperedges;
+  using Base::removeParallelHyperedges;
+  using Base::restoreParallelHyperedges;
+  using Base::restoreSingleNodeHyperedges;
+  using Base::performLocalSearch;
+  using Base::initializeRefiner;
+  using Base::gatherCoarseningStats;
+  using Rating = HyperedgeRating;
+  using ContractionMemento = typename Hypergraph::ContractionMemento;
 
   public:
+  HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
+  HyperedgeCoarsener& operator = (const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener& operator = (HyperedgeCoarsener&&) = delete;
+
   HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
     Base(hypergraph, config),
     _pq(_hg.initialNumEdges()),
@@ -68,14 +80,6 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAfterContraction);
   FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
   FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
-
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
-  using Base::restoreParallelHyperedges;
-  using Base::restoreSingleNodeHyperedges;
-  using Base::performLocalSearch;
-  using Base::initializeRefiner;
-  using Base::gatherCoarseningStats;
 
   void coarsenImpl(const HypernodeID limit) final {
     _pq.clear();
@@ -212,8 +216,8 @@ class HyperedgeCoarsener : public ICoarsener,
   HypernodeID performContraction(const HyperedgeID he) {
     _history.emplace(HyperedgeCoarseningMemento());
     _history.top().mementos_begin = _contraction_mementos.size();
-    IncidenceIterator pins_begin = _hg.pins(he).begin();
-    IncidenceIterator pins_end = _hg.pins(he).end();
+    auto pins_begin = _hg.pins(he).first;
+    auto pins_end = _hg.pins(he).second;
     HypernodeID representative = *pins_begin;
     ++pins_begin;
     //TODO(schlag): modify hypergraph DS such that we can do index-based iteration over incidence array
@@ -262,7 +266,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_hypergraph_pruner;
   PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
-  DISALLOW_COPY_AND_ASSIGN(HyperedgeCoarsener);
 };
 } // namespace partition
 

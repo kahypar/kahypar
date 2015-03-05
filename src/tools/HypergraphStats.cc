@@ -2,6 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -39,40 +40,53 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   HyperedgeID max_hn_degree = 0;
+  HyperedgeID min_hn_degree = std::numeric_limits<HyperedgeID>::max();
+  double avg_hn_degree = metrics::avgHypernodeDegree(hypergraph);
+  double sd_hn_degree = 0.0;
   for (auto hn : hypergraph.nodes()) {
     max_hn_degree = std::max(max_hn_degree, hypergraph.nodeDegree(hn));
+    min_hn_degree = std::min(min_hn_degree, hypergraph.nodeDegree(hn));
+    sd_hn_degree += std::pow(hypergraph.nodeDegree(hn), 2);
   }
 
+  sd_hn_degree = std::sqrt((sd_hn_degree / num_hypernodes) - std::pow(avg_hn_degree, 2));
 
   std::string graph_name = graph_filename.substr(graph_filename.find_last_of("/") + 1);
   std::ofstream out_stream(stats_filename.c_str(), std::ofstream::app);
 
-  bool contains_single_node_hes = false;
-  HyperedgeID single_node_he = -1;
+  HyperedgeID num_single_node_hes = 0;
+  HypernodeID max_he_size = 0;
+  HypernodeID min_he_size = std::numeric_limits<HypernodeID>::max();
+  double avg_he_size = metrics::avgHyperedgeDegree(hypergraph);
+  double sd_he_size = 0.0;
   for (auto he : hypergraph.edges()) {
     if (hypergraph.edgeSize(he) == 1) {
-      contains_single_node_hes = true;
-      single_node_he = he;
-      break;
+      ++num_single_node_hes;
     }
+    max_he_size = std::max(max_he_size, hypergraph.edgeSize(he));
+    min_he_size = std::min(min_he_size, hypergraph.edgeSize(he));
+    sd_he_size += std::pow(hypergraph.edgeSize(he), 2);
   }
 
+  sd_he_size = std::sqrt((sd_he_size / num_hyperedges) - std::pow(avg_he_size, 2));
+
   out_stream << "RESULT graph=" << graph_name
-             << " containsSingleNodeHEs=" << contains_single_node_hes
-             << " HE=" << single_node_he
-             << " HNs=" << num_hypernodes
-             << " HEs=" << num_hyperedges
-             << " pins=" << edge_vector.size()
-             << " avgHEsize=" << metrics::avgHyperedgeDegree(hypergraph)
-             << " heSize90thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 90)
-             << " heSize95thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 95)
-             << " rank=" << metrics::rank(hypergraph)
-             << " avgHNdegree=" << metrics::avgHypernodeDegree(hypergraph)
-             << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
-             << " hnDegree95thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 95)
-             << " maxHnDegree=" << max_hn_degree
-             << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
-             << std::endl;
+  << " HNs=" << num_hypernodes
+  << " HEs=" << num_hyperedges
+  << " pins=" << edge_vector.size()
+  << " numSingleNodeHEs=" << num_single_node_hes
+  << " avgHEsize=" << avg_he_size
+  << " sdHEsize=" << sd_he_size
+  << " minHEsize=" << min_he_size
+  << " heSize90thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 90)
+  << " maxHEsize=" << max_he_size
+  << " avgHNdegree=" << avg_hn_degree
+  << " sdHNdegree=" << sd_hn_degree
+  << " minHnDegree=" << min_hn_degree
+  << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
+  << " maxHnDegree=" << max_hn_degree
+  << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
+  << std::endl;
   out_stream.flush();
 
   return 0;

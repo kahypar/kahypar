@@ -13,8 +13,8 @@
 using defs::Hypergraph;
 
 namespace partition {
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef LazyUpdateHeavyEdgeCoarsener<FirstWinsRater> CoarsenerType;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using CoarsenerType = LazyUpdateHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
   public:

@@ -5,8 +5,6 @@
 #ifndef SRC_PARTITION_COARSENING_RATER_H_
 #define SRC_PARTITION_COARSENING_RATER_H_
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <limits>
 #include <stack>
 #include <vector>
@@ -20,8 +18,6 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HypernodeWeight;
-using defs::HypernodeIterator;
-using defs::IncidenceIterator;
 
 namespace partition {
 static const bool dbg_partition_rating = false;
@@ -32,10 +28,10 @@ static const bool dbg_partition_rating = false;
 template <typename _RatingType, class _TieBreakingPolicy>
 class Rater {
   public:
-  typedef _RatingType RatingType;
+  using RatingType = _RatingType;
 
   private:
-  typedef _TieBreakingPolicy TieBreakingPolicy;
+  using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
     HypernodeID target;
@@ -52,7 +48,12 @@ class Rater {
   };
 
   public:
-  typedef HeavyEdgeRating Rating;
+  Rater(const Rater&) = delete;
+  Rater(Rater&&) = delete;
+  Rater& operator = (const Rater&) = delete;
+  Rater& operator = (Rater&&) = delete;
+
+  using Rating = HeavyEdgeRating;
   Rater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
@@ -62,7 +63,14 @@ class Rater {
 
   HeavyEdgeRating rate(const HypernodeID u) {
     ASSERT(_used_entries.empty(), "Stack is not empty");
-    ASSERT(_visited_hypernodes.none(), "Bitset not empty");
+    ASSERT([&]() {
+             for (const auto& bit : _visited_hypernodes) {
+               if (bit) {
+                 return false;
+               }
+             }
+             return true;
+           } (), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
@@ -131,7 +139,7 @@ class Rater {
   const Configuration& _config;
   std::vector<RatingType> _tmp_ratings;
   std::stack<HypernodeID> _used_entries;
-  boost::dynamic_bitset<uint64_t> _visited_hypernodes;
+  std::vector<bool> _visited_hypernodes;
 };
 #pragma GCC diagnostic pop
 } // namespace partition

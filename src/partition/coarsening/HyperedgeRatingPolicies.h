@@ -34,8 +34,8 @@ struct HyperedgeRating {
 struct EdgeWeightDivMultPinWeight {
   static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
                               HypernodeWeight max_allowed_node_weight) {
-    IncidenceIterator pins_begin = hypergraph.pins(he).begin();
-    IncidenceIterator pins_end = hypergraph.pins(he).end();
+    auto pins_begin = hypergraph.pins(he).first;
+    auto pins_end = hypergraph.pins(he).second;
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");
 
     PartitionID partition = hypergraph.partID(*pins_begin);

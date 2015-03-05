@@ -18,7 +18,6 @@
 #endif
 
 using defs::HighResClockTimepoint;
-using defs::PartInfoIteratorPair;
 
 namespace partition {
 void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
@@ -222,18 +221,17 @@ void Partitioner::assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hyper
 void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg) {
   DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
 
-  static auto comparePartWeights = [](const Hypergraph::PartInformation& a,
-                                      const Hypergraph::PartInformation& b) {
+  static auto comparePartWeights = [](const auto& a, const auto& b) {
                                      return a.weight < b.weight;
                                    };
 
   PartitionID min_partition = 0;
-  PartInfoIteratorPair part_info_iters = hg.partInfos();
+
   for (const HypernodeID pin : hg.pins(he)) {
     if (hg.partID(pin) == Hypergraph::kInvalidPartition) {
-      min_partition = std::min_element(part_info_iters.begin(), part_info_iters.end(),
+      min_partition = std::min_element(hg.partInfos().begin(), hg.partInfos().end(),
                                        comparePartWeights)
-                      - part_info_iters.begin();
+                      - hg.partInfos().begin();
       hg.setNodePart(pin, min_partition);
     }
   }
@@ -341,6 +339,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   for (size_t i = 0; i < best_partitioning.size(); ++i) {
     hg.setNodePart(hmetis_to_hg[i], best_partitioning[i]);
   }
+  hg.sortConnectivitySets();
   ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
          << "best initial cut");
 }

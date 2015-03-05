@@ -134,9 +134,6 @@ class AnUnweightedHypergraph : public Test {
   HyperedgeVector _written_edge_vector;
   std::ifstream _written_file;
   Hypergraph* _hypergraph;
-
-  private:
-  DISALLOW_COPY_AND_ASSIGN(AnUnweightedHypergraph);
 };
 
 class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
@@ -194,10 +191,10 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   HypernodeWeightVector _written_hypernode_weights;
 };
 
-typedef Rater<defs::RatingType, FirstRatingWins> FirstWinsRater;
-typedef HeuristicHeavyEdgeCoarsener<FirstWinsRater> FirstWinsCoarsener;
-typedef TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                        EligibleTopGain, RemoveOnlyTheCloggingEntry> Refiner;
+using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
 
 class APartitionOfAHypergraph : public Test {
   public:

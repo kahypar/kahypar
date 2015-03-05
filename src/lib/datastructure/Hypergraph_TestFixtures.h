@@ -13,8 +13,6 @@ using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 using defs::HyperedgeID;
-using defs::HypernodeIterator;
-using defs::HyperedgeIterator;
 
 namespace datastructure {
 class AHypergraph : public Test {
@@ -25,27 +23,8 @@ class AHypergraph : public Test {
   Hypergraph hypergraph;
 };
 
-class AHypernodeIterator : public AHypergraph {
-  public:
-  AHypernodeIterator() :
-    AHypergraph(),
-    begin(),
-    end() { }
-
-  HypernodeIterator begin;
-  HypernodeIterator end;
-};
-
-class AHyperedgeIterator : public AHypergraph {
-  public:
-  AHyperedgeIterator() :
-    AHypergraph(),
-    begin(),
-    end() { }
-
-  HyperedgeIterator begin;
-  HyperedgeIterator end;
-};
+using AHypernodeIterator = AHypergraph;
+using AHyperedgeIterator = AHypergraph;
 
 class AHypergraphMacro : public AHypergraph {
   public:

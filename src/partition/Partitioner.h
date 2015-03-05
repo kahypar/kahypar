@@ -45,19 +45,26 @@ static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
 class Partitioner {
-  typedef std::unordered_map<HypernodeID, HypernodeID> CoarsenedToHmetisMapping;
-  typedef std::vector<HypernodeID> HmetisToCoarsenedMapping;
-  typedef std::vector<HypernodeWeight> PartitionWeights;
-
-  enum { kInitialParallelHEremoval = 0 };
-  enum { kInitialLargeHEremoval = 1 };
-  enum { kCoarsening = 2 };
-  enum { kInitialPartitioning = 3 };
-  enum { kUncoarseningRefinement = 4 };
-  enum { kInitialLargeHErestore = 5 };
-  enum { kInitialParallelHErestore = 6 };
+  using CoarsenedToHmetisMapping = std::unordered_map<HypernodeID, HypernodeID>;
+  using HmetisToCoarsenedMapping = std::vector<HypernodeID>;
+  using PartitionWeights = std::vector<HypernodeWeight>;
+  using RemovedParallelHyperedgesStack = std::stack<std::pair<int, int> >;
+  enum {
+    kInitialParallelHEremoval = 0,
+    kInitialLargeHEremoval = 1,
+    kCoarsening = 2,
+    kInitialPartitioning = 3,
+    kUncoarseningRefinement = 4,
+    kInitialLargeHErestore = 5,
+    kInitialParallelHErestore = 6
+  };
 
   public:
+  Partitioner(const Partitioner&) = delete;
+  Partitioner(Partitioner&&) = delete;
+  Partitioner& operator = (const Partitioner&) = delete;
+  Partitioner& operator = (Partitioner&&) = delete;
+
   explicit Partitioner(Configuration& config) :
     _config(config),
     _stats(),
@@ -86,8 +93,6 @@ class Partitioner {
               TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
-
-  typedef  std::stack<std::pair<int, int> > RemovedParallelHyperedgesStack;
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
   void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
