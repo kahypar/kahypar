@@ -311,6 +311,14 @@ class GenericHypergraph {
     Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
             HypernodeID v_) noexcept :
       u(u_), u_first_entry(u_first_entry_), u_size(u_size_), v(v_) { }
+
+    Memento(const Memento& other) = delete;
+    Memento(Memento&& other) noexcept :
+                              u(std::move(other.u)),
+                              u_first_entry(std::move(other.u_first_entry)),
+                              u_size(std::move(other.u_size)),
+                              v(std::move(other.v)){}
+
     const HypernodeID u;
     const HypernodeID u_first_entry;
     const HypernodeID u_size;
