@@ -21,7 +21,8 @@ namespace partition
           nodes_(hg.initialNumNodes()+hg.initialNumEdges()),
           labels_(hg.initialNumNodes()+hg.initialNumEdges()),
           cluster_weight_(hg.initialNumNodes() + hg.initialNumEdges()),
-          order_(hg.initialNumNodes() + hg.initialNumEdges())
+          order_(hg.initialNumNodes() + hg.initialNumEdges()),
+          labels_score_()
       {
         labels_score_.init(hg.initialNumNodes()+hg.initialNumEdges());
       }

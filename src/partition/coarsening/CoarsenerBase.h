@@ -65,24 +65,32 @@ class CoarsenerBase {
   protected:
   void removeSingleNodeHyperedges(const HypernodeID rep_node) {
     _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
-                                                  _history.top().one_pin_hes_begin,
-                                                  _history.top().one_pin_hes_size);
+                                                  _history_mine.back().one_pin_hes_begin,
+                                                  _history_mine.back().one_pin_hes_size);
+                                                  //_history.top().one_pin_hes_begin,
+                                                  //_history.top().one_pin_hes_size);
   }
 
   void removeParallelHyperedges(const HypernodeID rep_node) {
     _hypergraph_pruner.removeParallelHyperedges(rep_node,
-                                                _history.top().parallel_hes_begin,
-                                                _history.top().parallel_hes_size);
+                                                _history_mine.back().parallel_hes_begin,
+                                                _history_mine.back().parallel_hes_size);
+                                                //_history.top().parallel_hes_begin,
+                                                //_history.top().parallel_hes_size);
   }
 
   void restoreParallelHyperedges() {
-    _hypergraph_pruner.restoreParallelHyperedges(_history.top().parallel_hes_begin,
-                                                 _history.top().parallel_hes_size);
+    _hypergraph_pruner.restoreParallelHyperedges(_history_mine.back().parallel_hes_begin,
+                                                 _history_mine.back().parallel_hes_size);
+    //_hypergraph_pruner.restoreParallelHyperedges(_history.top().parallel_hes_begin,
+                                                 //_history.top().parallel_hes_size);
   }
 
   void restoreSingleNodeHyperedges() {
-    _hypergraph_pruner.restoreSingleNodeHyperedges(_history.top().one_pin_hes_begin,
-                                                   _history.top().one_pin_hes_size);
+    _hypergraph_pruner.restoreSingleNodeHyperedges(_history_mine.back().one_pin_hes_begin,
+                                                   _history_mine.back().one_pin_hes_size);
+    //_hypergraph_pruner.restoreSingleNodeHyperedges(_history.top().one_pin_hes_begin,
+                                                   //_history.top().one_pin_hes_size);
   }
 
   void initializeRefiner(IRefiner& refiner) {
@@ -223,6 +231,7 @@ class CoarsenerBase {
   Hypergraph& _hg;
   const Configuration& _config;
   std::stack<CoarseningMemento> _history;
+  std::vector<CoarseningMemento> _history_mine;
 #ifdef USE_BUCKET_PQ
   SingleHEWeightsHashtable _weights_table;
 #endif

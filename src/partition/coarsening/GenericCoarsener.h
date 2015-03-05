@@ -51,7 +51,7 @@ namespace partition
     public:
       using Base::_hg;
       using Base::_config;
-      using Base::_history;
+      //using Base::_history;
       using Base::_stats;
       using Base::removeSingleNodeHyperedges;
       using Base::removeParallelHyperedges;
@@ -64,6 +64,7 @@ namespace partition
         _clusterer(nullptr), _clustering_map()
     {
       _clusterer = std::unique_ptr<partition::IClusterer>(new Coarsener(hg, config));
+      _history_mine.reserve(hg.initialNumNodes());
     }
 
       void coarsenImpl(HypernodeID limit) final
@@ -128,16 +129,21 @@ namespace partition
         std::vector<HypernodeID> refinement_nodes(2,0);
 
 
-        while (!_history.empty()) {
+        //while (!_history.empty()) {
+        while (!_history_mine.empty()) {
           restoreParallelHyperedges();
           restoreSingleNodeHyperedges();
 
-          _hg.uncontract(_history.top().contraction_memento);
-          refinement_nodes[0] = _history.top().contraction_memento.u;
-          refinement_nodes[1] = _history.top().contraction_memento.v;
+          //_hg.uncontract(_history.top().contraction_memento);
+          _hg.uncontract(_history_mine.back().contraction_memento);
+          //refinement_nodes[0] = _history.top().contraction_memento.u;
+          //refinement_nodes[1] = _history.top().contraction_memento.v;
+          refinement_nodes[0] = _history_mine.back().contraction_memento.u;
+          refinement_nodes[1] = _history_mine.back().contraction_memento.v;
 
           performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
-          _history.pop();
+          //_history.pop();
+          _history_mine.pop_back();
         }
         return current_cut < initial_cut;
       }
@@ -149,7 +155,8 @@ namespace partition
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
 
-          _history.emplace(_hg.contract(nodes[0], nodes[i]));
+          //_history.emplace(_hg.contract(nodes[0], nodes[i]));
+          _history_mine.emplace_back(_hg.contract(nodes[0], nodes[i]));
           removeSingleNodeHyperedges(nodes[0]);
           removeParallelHyperedges(nodes[0]);
 
@@ -171,6 +178,5 @@ namespace partition
 
       std::unique_ptr<partition::IClusterer> _clusterer;
       std::unordered_map<partition::Label, std::vector<HypernodeID>> _clustering_map;
-
   };
 }

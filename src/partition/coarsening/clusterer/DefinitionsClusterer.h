@@ -12,17 +12,12 @@ namespace partition
 
   struct EdgeData
   {
-    //Label label;
-    std::vector<std::pair<Label, defs::PartitionID> > incident_labels;
-    std::vector<int> location; // location of the incident_labels in the sample
-
-    bool small_edge;
-
     std::pair<Label, defs::PartitionID> *sampled;
-    uint32_t sample_size;
+    std::vector<int> location; // location of the incident_labels in the sample
+    std::vector<std::pair<Label, defs::PartitionID> > incident_labels;
 
-    //std::vector<bool> sampled_labels;
-    //size_t sampled_labels_count; // how many labels were sampled
+    uint32_t sample_size;
+    bool small_edge;
 
     std::unordered_map<Label, uint32_t> label_count_map; // map of Labels -> number of this labels in this edge
     size_t count_labels; // how many different labels does this Hyperedge have (connectivity)
@@ -34,7 +29,7 @@ namespace partition
       sampled(nullptr),
       sample_size(0),
       label_count_map(),
-      count_labels(1) // ugly hack!
+      count_labels(0) // ugly hack!
     {
     }
 
