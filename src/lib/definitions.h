@@ -41,11 +41,11 @@ using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resoluti
 // this is nasty and needs to be fixed
 namespace std {
 static defs::IncidenceIterator  begin(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
-  return x.first;
+  return std::move(x.first);
 }
 
 static defs::IncidenceIterator  end(std::pair<defs::IncidenceIterator,  defs::IncidenceIterator>& x) {
-  return x.second;
+  return std::move(x.second);
 }
 }
 #endif  // LIB_DEFINITIONS_H_

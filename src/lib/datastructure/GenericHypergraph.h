@@ -24,12 +24,12 @@ using core::Empty;
 namespace datastructure {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator,Iterator>& x) {
-  return x.first;
+  return std::move(x.first);
 }
 
 template <typename Iterator>
  Iterator end(std::pair<Iterator,Iterator>& x) {
-  return x.second;
+  return std::move(x.second);
 }
 
 static const bool dbg_hypergraph_uncontraction = false;
@@ -242,14 +242,7 @@ class GenericHypergraph {
       // LOG("VertexIteratorConstructor");
     }
 
-    VertexIterator(const VertexIterator& other) noexcept :
-      _id(other._id),
-      _max_id(other._max_id),
-      _container(other._container) {
-      // LOG("VertexIteratorCopy");
-      // LOGVAR(_id);
-      // LOGVAR(_max_id);c
-    }
+    VertexIterator(const VertexIterator& other) = delete;
 
     VertexIterator(VertexIterator&& other) noexcept :
       _id(std::move(other._id)),
