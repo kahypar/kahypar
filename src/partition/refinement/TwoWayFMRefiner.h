@@ -68,7 +68,7 @@ class TwoWayFMRefiner : public IRefiner,
   TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner& operator = (TwoWayFMRefiner&&) = delete;
 
-  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
+  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     // ToDo: We could also use different storage to avoid initialization like this
     _pq{nullptr, nullptr},
@@ -84,7 +84,7 @@ class TwoWayFMRefiner : public IRefiner,
     delete _pq[1];
   }
 
-  void activate(const HypernodeID hn) {
+  void activate(const HypernodeID hn) noexcept {
     if (isBorderNode(hn)) {
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq[_hg.partID(hn)]->contains(hn),
@@ -95,7 +95,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  bool isInitialized() const {
+  bool isInitialized() const noexcept {
     return _is_initialized;
   }
 
@@ -122,11 +122,11 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
 
-  void initializeImpl(HyperedgeWeight) final {
+  void initializeImpl(HyperedgeWeight) noexcept final {
     initializeImpl();
   }
 
-  void initializeImpl() final {
+  void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq[0] = new RefinementPQ(_hg.initialNumNodes());
       _pq[1] = new RefinementPQ(_hg.initialNumNodes());
@@ -136,7 +136,7 @@ class TwoWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight UNUSED(max_allowed_part_weight),
-                  HyperedgeWeight& best_cut, double& best_imbalance) final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -268,7 +268,7 @@ class TwoWayFMRefiner : public IRefiner,
 
   // Gain update as decribed in [ParMar06]
   void updateNeighbours(const HypernodeID moved_node, const PartitionID source_part,
-                        const PartitionID target_part) {
+                        const PartitionID target_part) noexcept {
     _just_activated.assign(_just_activated.size(), false);
     for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
       if (_hg.edgeSize(he) == 2) {
@@ -315,11 +315,11 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  int numRepetitionsImpl() const final {
+  int numRepetitionsImpl() const noexcept final {
     return _config.two_way_fm.num_repetitions;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
                        + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
                        + " StoppingPolicy=" + templateToString<StoppingPolicy>()
@@ -327,12 +327,12 @@ class TwoWayFMRefiner : public IRefiner,
                        );
   }
 
-  const Stats & statsImpl() const final {
+  const Stats & statsImpl() const noexcept final {
     return _stats;
   }
 
 
-  bool selectQueue(const bool pq0_eligible, const bool pq1_eligible) const {
+  bool selectQueue(const bool pq0_eligible, const bool pq1_eligible) const noexcept {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     DBG(dbg_refinement_2way_fm_eligible, "PQ 0 is empty: " << _pq[0]->empty() << " ---> "
         << (!_pq[0]->empty() ? "HN " + std::to_string(_pq[0]->max()) + " is "
@@ -347,7 +347,7 @@ class TwoWayFMRefiner : public IRefiner,
     return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
-  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
+  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const noexcept {
     pq0_eligible = !_pq[0]->empty() && moveIsFeasible(_pq[0]->max(), 0, 1);
     pq1_eligible = !_pq[1]->empty() && moveIsFeasible(_pq[1]->max(), 1, 0);
     DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
@@ -360,11 +360,11 @@ class TwoWayFMRefiner : public IRefiner,
     DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
   }
 
-  bool queuesAreEmpty() const {
+  bool queuesAreEmpty() const noexcept {
     return _pq[0]->empty() && _pq[1]->empty();
   }
 
-  double calculateImbalance() const {
+  double calculateImbalance() const noexcept {
     double imbalance = (std::max(_hg.partWeight(0), _hg.partWeight(1)) /
                         (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
@@ -373,13 +373,13 @@ class TwoWayFMRefiner : public IRefiner,
     return imbalance;
   }
 
-  void updatePinsOfHyperedge(const HyperedgeID he, const Gain sign) {
+  void updatePinsOfHyperedge(const HyperedgeID he, const Gain sign) noexcept {
     for (const HypernodeID pin : _hg.pins(he)) {
       updatePin(he, pin, sign);
     }
   }
 
-  void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain sign) {
+  void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain sign) noexcept {
     if (_pq[_hg.partID(pin)]->contains(pin)) {
       ASSERT(!_marked[pin],
              " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
@@ -406,7 +406,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  void rollback(int last_index, const int min_cut_index) {
+  void rollback(int last_index, const int min_cut_index) noexcept {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -416,7 +416,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
   }
 
-  Gain computeGain(const HypernodeID hn) const {
+  Gain computeGain(const HypernodeID hn) const noexcept {
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
     PartitionID target_partition = _hg.partID(hn) ^ 1;

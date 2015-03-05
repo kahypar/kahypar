@@ -48,18 +48,18 @@ class NoDataBinaryMinHeap{
   using meta_key_type = meta_key_slot;
   using data_type = void;
 
-  NoDataBinaryMinHeap( const NoDataBinaryMinHeap & other) :
-      handles(other.max_size - 1 /* no storage for sentinel */),
-      max_size(other.max_size) {
+  NoDataBinaryMinHeap( const NoDataBinaryMinHeap & other) noexcept :
+    handles(other.max_size - 1 /* no storage for sentinel */),
+    max_size(other.max_size) {
     next_slot = 0;
     heap.reserve(max_size);
     heap[next_slot] = HeapElement( meta_key_slot::min() ); //insert the sentinel element
     ++next_slot;
   }
 
-  NoDataBinaryMinHeap( const id_slot & storage_initializer)
-      : handles( storage_initializer ),
-        max_size(storage_initializer + 1) {
+  NoDataBinaryMinHeap( const id_slot & storage_initializer) noexcept :
+    handles( storage_initializer ),
+    max_size(storage_initializer + 1) {
     next_slot = 0;
     heap.reserve(max_size);
     heap[next_slot] = HeapElement( meta_key_slot::min() ); //insert the sentinel element
@@ -69,7 +69,7 @@ class NoDataBinaryMinHeap{
   ~NoDataBinaryMinHeap(){
   }
 
-  void swap(NoDataBinaryMinHeap& other) {
+  void swap(NoDataBinaryMinHeap& other) noexcept {
     using std::swap;
     swap(heap, other.heap);
     swap(handles, other.handles);
@@ -77,16 +77,16 @@ class NoDataBinaryMinHeap{
     swap(max_size, other.max_size);
   }
 
-  size_t size() const{
+  size_t size() const noexcept {
     return next_slot - 1;
   }
 
-  bool empty() const {
+  bool empty() const noexcept {
     return size() == 0;
   }
 
   //push an element onto the heap
-  inline void push( const id_slot & id, const key_slot & key ){
+  inline void push( const id_slot & id, const key_slot & key ) noexcept {
     GUARANTEE( !contains( id ), std::runtime_error,
                "[error] BinaryHeap::push - pushing already contained element" )
     GUARANTEE( next_slot + 1 <= max_size,
@@ -102,12 +102,12 @@ class NoDataBinaryMinHeap{
   }
 
   //  only to temporarily satisfy PQ interface
-  inline void reinsertingPush( const id_slot & id, const key_slot & key ){
+  inline void reinsertingPush( const id_slot & id, const key_slot & key ) noexcept {
     push(id, key);
   }
 
   //reinserts an element into the queue or updates the key if the element has been reached
-  inline void update( const id_slot & id, const key_slot & key ){
+  inline void update( const id_slot & id, const key_slot & key ) noexcept {
     GUARANTEE( isReached(id), std::runtime_error,
                "[error] BinaryHeap::update - trying to update an element not reached yet")
     if (contains(id)) {
@@ -117,7 +117,7 @@ class NoDataBinaryMinHeap{
     }
   }
 
-  inline void deleteMin(){
+  inline void deleteMin() noexcept {
     GUARANTEE( !empty(), std::runtime_error,
                "[error] BinaryHeap::deleteMin - Deleting from empty heap" )
     const size_t min_handle = handles[heap[1].id];
@@ -133,7 +133,7 @@ class NoDataBinaryMinHeap{
                 "[error] BinaryHeap::deleteMin - Heap property not fulfilled after deleteMin()" )
   }
 
-  inline void deleteNode( const id_slot & id ){
+  inline void deleteNode( const id_slot & id ) noexcept {
     GUARANTEE( contains(id), std::runtime_error, "[error] trying to delete element not in heap." )
     const size_t node_handle = handles[id];
     const size_t swap_handle = next_slot - 1;
@@ -154,41 +154,41 @@ class NoDataBinaryMinHeap{
     }
   }
 
-  inline const id_slot & getMin() const{
+  inline const id_slot & getMin() const noexcept {
     GUARANTEE( !empty(), std::runtime_error,
                "[error] BinaryHeap::getMin() - Requesting minimum of empty heap" )
     return heap[1].id;
   }
 
-  inline const key_slot & getMinKey() const {
+  inline const key_slot & getMinKey() const noexcept {
     GUARANTEE( !empty(), std::runtime_error,
                "[error] BinaryHeap::getMinKey() - Requesting minimum key of empty heap" )
     return heap[1].key;
   }
 
-  inline const key_slot & getCurrentKey( const id_slot & id ) const {
+  inline const key_slot & getCurrentKey( const id_slot & id ) const noexcept {
     GUARANTEE( isReached(id), std::runtime_error,
                "[error] BinaryHeap::getCurrentKey - Accessing invalid element" )
     return heap[handles[id]].key;
   }
 
-  inline const key_slot & getKey( const id_slot & id ) const {
+  inline const key_slot & getKey( const id_slot & id ) const noexcept {
     GUARANTEE( isReached(id), std::runtime_error,
                "[error] BinaryHeap::getCurrentKey - Accessing invalid element" )
     return heap[handles[id]].key;
   }
 
-  inline bool isReached( const id_slot & id ) const {
+  inline bool isReached( const id_slot & id ) const noexcept {
     const size_t handle = handles[id];
     return handle < next_slot && id == heap[handle].id;
   }
 
-  inline bool contains( const id_slot & id ) const {
+  inline bool contains( const id_slot & id ) const noexcept {
     const size_t handle = handles[id];
     return isReachedIndexed(id, handle) && handle != 0;
   }
 
-  inline void decreaseKey( const id_slot & id, const key_slot & new_key ){
+  inline void decreaseKey( const id_slot & id, const key_slot & new_key ) noexcept {
     GUARANTEE( contains(id), std::runtime_error,
                "[error] BinaryHeap::decreaseKey - Calling decreaseKey for element not contained in Queue. Check with \"contains(id)\"" )
     const size_t handle = handles[id];
@@ -200,7 +200,7 @@ class NoDataBinaryMinHeap{
            heap[handles[id]].id << "!=" << id);
   }
 
-  inline void increaseKey( const id_slot & id, const key_slot & new_key ){
+  inline void increaseKey( const id_slot & id, const key_slot & new_key ) noexcept {
     GUARANTEE( contains(id), std::runtime_error,
                "[error] BinaryHeap::increaseKey - Calling increaseKey for element not contained in Queue. Check with \"contains(id)\"" )
     const size_t handle = handles[id];
@@ -212,7 +212,7 @@ class NoDataBinaryMinHeap{
            heap[handles[id]].id << "!=" << id);
   }
 
-  inline void updateKey( const id_slot & id, const key_slot & new_key ){
+  inline void updateKey( const id_slot & id, const key_slot & new_key ) noexcept {
     GUARANTEE( contains(id), std::runtime_error,
                "[error] BinaryHeap::updateKey - Calling updateKey for element not contained in Queue. Check with \"contains(id)\"" )
    const size_t handle = handles[id];
@@ -229,23 +229,23 @@ class NoDataBinaryMinHeap{
            heap[handles[id]].id << "!=" << id);
   }
 
-  inline void clear(){
+  inline void clear() noexcept {
     handles.clear();
     next_slot = 1; //remove anything but the sentinel
     GUARANTEE( heap[0].key == meta_key_slot::min(),
                std::runtime_error, "[error] BinaryHeap::clear missing sentinel" )
   }
 
-  inline void clearHeap(){
+  inline void clearHeap() noexcept {
     clear();
   }
 
  protected:
-  inline bool isReachedIndexed( const id_slot & id, const size_t & handle ) const {
+  inline bool isReachedIndexed( const id_slot & id, const size_t & handle ) const noexcept {
    return handle < next_slot && id == heap[handle].id;
   }
 
-  inline void upHeap( size_t heap_position ){
+  inline void upHeap( size_t heap_position ) noexcept {
     GUARANTEE( 0 != heap_position, std::runtime_error,
                "[error] BinaryHeap::upHeap - calling upHeap for the sentinel" )
     GUARANTEE( next_slot > heap_position, std::runtime_error,
@@ -269,7 +269,7 @@ class NoDataBinaryMinHeap{
                 "[error] BinaryHeap::upHeap - Heap property not fulfilled after upHeap()" )
   }
 
-  inline void downHeap( size_t heap_position ){
+  inline void downHeap( size_t heap_position ) noexcept {
     GUARANTEE( 0 != heap_position, std::runtime_error,
                "[error] BinaryHeap::downHeap - calling downHeap for the sentinel" )
     GUARANTEE( next_slot > heap_position, std::runtime_error,
@@ -306,7 +306,7 @@ class NoDataBinaryMinHeap{
    * check whether the heap property is fulfilled.
    * This is the case if every parent of a node is at least as small as the current element
    */
-  bool checkHeapProperty(){
+  bool checkHeapProperty() noexcept {
     for( size_t i = 1; i < next_slot; ++i ){
       if( heap[i/2].key > heap[i].key )
         return false;
@@ -318,7 +318,7 @@ class NoDataBinaryMinHeap{
 
 template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
 void swap(NoDataBinaryMinHeap<id_slot,key_slot,meta_key_slot,storage_slot>& a,
-          NoDataBinaryMinHeap<id_slot,key_slot,meta_key_slot,storage_slot>& b) {
+          NoDataBinaryMinHeap<id_slot,key_slot,meta_key_slot,storage_slot>& b) noexcept {
   a.swap(b);
 }
 

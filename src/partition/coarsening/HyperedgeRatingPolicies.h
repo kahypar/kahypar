@@ -21,11 +21,11 @@ struct HyperedgeRating {
   HypernodeWeight total_node_weight;
   RatingType value;
   bool valid;
-  HyperedgeRating(RatingType val, bool is_valid) :
+  HyperedgeRating(RatingType val, bool is_valid) noexcept :
     total_node_weight(std::numeric_limits<HypernodeWeight>::max()),
     value(val),
     valid(is_valid) { }
-  HyperedgeRating() :
+  HyperedgeRating() noexcept :
     total_node_weight(std::numeric_limits<HypernodeWeight>::max()),
     value(std::numeric_limits<RatingType>::min()),
     valid(false) { }
@@ -33,7 +33,7 @@ struct HyperedgeRating {
 
 struct EdgeWeightDivMultPinWeight {
   static HyperedgeRating rate(HyperedgeID he, const Hypergraph& hypergraph,
-                              HypernodeWeight max_allowed_node_weight) {
+                              HypernodeWeight max_allowed_node_weight) noexcept {
     auto pins_begin = hypergraph.pins(he).first;
     auto pins_end = hypergraph.pins(he).second;
     ASSERT(pins_begin != pins_end, "Hyperedge does not contain any pins");

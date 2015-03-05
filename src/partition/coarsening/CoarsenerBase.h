@@ -53,7 +53,7 @@ class CoarsenerBase {
   CoarsenerBase& operator = (const CoarsenerBase&) = delete;
   CoarsenerBase& operator = (CoarsenerBase&&) = delete;
 
-  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
+  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
     _history(),
@@ -66,29 +66,29 @@ class CoarsenerBase {
   virtual ~CoarsenerBase() { }
 
   protected:
-  void removeSingleNodeHyperedges(const HypernodeID rep_node) {
+  void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
     _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
                                                   _history.top().one_pin_hes_begin,
                                                   _history.top().one_pin_hes_size);
   }
 
-  void removeParallelHyperedges(const HypernodeID rep_node) {
+  void removeParallelHyperedges(const HypernodeID rep_node) noexcept {
     _hypergraph_pruner.removeParallelHyperedges(rep_node,
                                                 _history.top().parallel_hes_begin,
                                                 _history.top().parallel_hes_size);
   }
 
-  void restoreParallelHyperedges() {
+  void restoreParallelHyperedges() noexcept {
     _hypergraph_pruner.restoreParallelHyperedges(_history.top().parallel_hes_begin,
                                                  _history.top().parallel_hes_size);
   }
 
-  void restoreSingleNodeHyperedges() {
+  void restoreSingleNodeHyperedges() noexcept {
     _hypergraph_pruner.restoreSingleNodeHyperedges(_history.top().one_pin_hes_begin,
                                                    _history.top().one_pin_hes_size);
   }
 
-  void initializeRefiner(IRefiner& refiner) {
+  void initializeRefiner(IRefiner& refiner) noexcept {
   #ifdef USE_BUCKET_PQ
     HyperedgeID max_degree = 0;
     for (const HypernodeID hn : _hg.nodes()) {
@@ -108,7 +108,7 @@ class CoarsenerBase {
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           const size_t num_refinement_nodes, double& current_imbalance,
-                          HyperedgeWeight& current_cut) {
+                          HyperedgeWeight& current_cut) noexcept {
     HyperedgeWeight old_cut = current_cut;
     int iteration = 0;
     bool improvement_found = false;
@@ -130,7 +130,7 @@ class CoarsenerBase {
     } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }
 
-  void gatherCoarseningStats() {
+  void gatherCoarseningStats() noexcept {
 #ifdef GATHER_STATS
     std::map<HyperedgeID, HypernodeID> node_degree_map;
     std::multimap<HypernodeWeight, HypernodeID> node_weight_map;

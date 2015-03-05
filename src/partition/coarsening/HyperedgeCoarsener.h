@@ -67,7 +67,7 @@ class HyperedgeCoarsener : public ICoarsener,
   HyperedgeCoarsener& operator = (const HyperedgeCoarsener&) = delete;
   HyperedgeCoarsener& operator = (HyperedgeCoarsener&&) = delete;
 
-  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
+  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
@@ -81,7 +81,7 @@ class HyperedgeCoarsener : public ICoarsener,
   FRIEND_TEST(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeightFromPQonUpdate);
   FRIEND_TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes);
 
-  void coarsenImpl(const HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) noexcept final {
     _pq.clear();
     rateAllHyperedges();
 
@@ -122,7 +122,7 @@ class HyperedgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) final {
+  bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
@@ -146,21 +146,21 @@ class HyperedgeCoarsener : public ICoarsener,
     //        << " > " << _config.partition.epsilon);
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const noexcept {
     return _stats;
   }
 
-  void removeHyperedgeFromPQ(const HyperedgeID he) {
+  void removeHyperedgeFromPQ(const HyperedgeID he) noexcept {
     if (_pq.contains(he)) {
       _pq.remove(he);
     }
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" ratingFunction=" + templateToString<RatingPolicy>());
   }
 
-  void deleteRemovedSingleNodeHyperedgesFromPQ() {
+  void deleteRemovedSingleNodeHyperedgesFromPQ() noexcept {
     const auto& removed_single_node_hyperedges = _hypergraph_pruner.removedSingleNodeHyperedges();
     for (int i = _history.top().one_pin_hes_begin; i != _history.top().one_pin_hes_begin +
          _history.top().one_pin_hes_size; ++i) {
@@ -168,7 +168,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  void deleteRemovedParallelHyperedgesFromPQ() {
+  void deleteRemovedParallelHyperedgesFromPQ() noexcept {
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
          _history.top().parallel_hes_size; ++i) {
@@ -177,7 +177,7 @@ class HyperedgeCoarsener : public ICoarsener,
   }
 
 
-  void rateAllHyperedges() {
+  void rateAllHyperedges() noexcept {
     std::vector<HyperedgeID> permutation;
     permutation.reserve(_hg.initialNumNodes());
     for (const HyperedgeID he : _hg.edges()) {
@@ -197,7 +197,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  void reRateHyperedgesAffectedByContraction(const HypernodeID representative) {
+  void reRateHyperedgesAffectedByContraction(const HypernodeID representative) noexcept {
     Rating rating;
     for (const HyperedgeID he : _hg.incidentEdges(representative)) {
       DBG(false, "Looking at HE " << he);
@@ -213,7 +213,7 @@ class HyperedgeCoarsener : public ICoarsener,
     }
   }
 
-  HypernodeID performContraction(const HyperedgeID he) {
+  HypernodeID performContraction(const HyperedgeID he) noexcept {
     _history.emplace(HyperedgeCoarseningMemento());
     _history.top().mementos_begin = _contraction_mementos.size();
     auto pins_begin = _hg.pins(he).first;
@@ -238,7 +238,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void performUncontraction(const HyperedgeCoarseningMemento& memento,
                             std::vector<HypernodeID>& refinement_nodes,
-                            size_t& num_refinement_nodes) {
+                            size_t& num_refinement_nodes) noexcept {
     // Hypergraphs can contain hyperedges of size 1. These HEs will get contracted without
     // a contraction memento. Thus the HyperedgeCoarseningMemento will only contain information
     // about removed single-node hyperedges and nothing should be done here.

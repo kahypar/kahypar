@@ -19,7 +19,7 @@ struct CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
                                       const HyperedgeWeight initial_cut,
                                       const double best_imbalance,
                                       const double initial_imbalance,
-                                      const double max_imbalance) {
+                                      const double max_imbalance) noexcept {
     return best_cut < initial_cut ||
            ((initial_imbalance > max_imbalance) && (best_imbalance < initial_imbalance));
   }

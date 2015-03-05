@@ -36,7 +36,7 @@ struct CoarseningMemento {
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
   Hypergraph::ContractionMemento contraction_memento;
-  explicit CoarseningMemento(Hypergraph::ContractionMemento&& contraction_memento_) :
+  explicit CoarseningMemento(Hypergraph::ContractionMemento&& contraction_memento_) noexcept :
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
@@ -71,7 +71,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase& operator = (HeavyEdgeCoarsenerBase&&) = delete;
 
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
+  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
@@ -81,14 +81,14 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) {
+  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
     _history.emplace(_hg.contract(rep_node, contracted_node));
     if (_hg.nodeWeight(rep_node) > _max_hn_weights.top().max_weight) {
       _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), _hg.nodeWeight(rep_node) });
     }
   }
 
-  bool doUncoarsen(IRefiner& refiner) {
+  bool doUncoarsen(IRefiner& refiner) noexcept {
     double current_imbalance = metrics::imbalance(_hg);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
@@ -133,7 +133,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   }
 
   template <typename Map>
-  void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) {
+  void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) noexcept {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     for (size_t i = 0; i < permutation.size(); ++i) {
@@ -146,7 +146,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     }
   }
 
-  void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
+  void createHypernodePermutation(std::vector<HypernodeID>& permutation) noexcept {
     permutation.reserve(_hg.initialNumNodes());
     for (HypernodeID hn : _hg.nodes()) {
       permutation.push_back(hn);

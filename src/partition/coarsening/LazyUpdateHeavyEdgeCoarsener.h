@@ -47,7 +47,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   LazyUpdateHeavyEdgeCoarsener& operator = (const LazyUpdateHeavyEdgeCoarsener&) = delete;
   LazyUpdateHeavyEdgeCoarsener& operator = (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
-  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
+  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
     _outdated_rating(hypergraph.initialNumNodes(), false),
     _target(_hg.initialNumNodes())
@@ -58,7 +58,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
 
-  void coarsenImpl(const HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) noexcept final {
     _pq.clear();
 
     NullMap null_map;
@@ -101,19 +101,19 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) final {
+  bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     return Base::doUncoarsen(refiner);
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const noexcept {
     return _stats;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void invalidateAffectedHypernodes(const HypernodeID rep_node) {
+  void invalidateAffectedHypernodes(const HypernodeID rep_node) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         _outdated_rating[pin] = true;
@@ -121,7 +121,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) {
+  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) noexcept {
     _outdated_rating[hn] = false;
     if (rating.valid) {
       ASSERT(_pq.contains(hn),

@@ -60,10 +60,10 @@ class HyperedgeFMRefiner : public IRefiner,
 
   class HyperedgeEvalIndicator {
     public:
-    explicit HyperedgeEvalIndicator(HyperedgeID size) :
+    explicit HyperedgeEvalIndicator(HyperedgeID size) noexcept :
       _bitvector(size) { }
 
-    void markAsEvaluated(HyperedgeID id) {
+    void markAsEvaluated(HyperedgeID id) noexcept {
       ASSERT(!_bitvector[id], "HE " << id << " is already marked as evaluated");
       DBG(false, "Marking HE " << id << " as evaluated");
       _bitvector[id] = 1;
@@ -73,7 +73,7 @@ class HyperedgeFMRefiner : public IRefiner,
       return _bitvector[id];
     }
 
-    void reset() {
+    void reset() noexcept {
       _bitvector.assign(_bitvector.size(), false);
     }
 
@@ -87,7 +87,7 @@ class HyperedgeFMRefiner : public IRefiner,
   HyperedgeFMRefiner& operator = (const HyperedgeFMRefiner&) = delete;
   HyperedgeFMRefiner& operator = (HyperedgeFMRefiner&&) = delete;
 
-  HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
+  HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
     _marked_HEs(_hg.initialNumEdges()),
@@ -108,15 +108,15 @@ class HyperedgeFMRefiner : public IRefiner,
     delete _pq[1];
   }
 
-  void initializeImpl(HyperedgeWeight) final {
+  void initializeImpl(HyperedgeWeight) noexcept final {
     _is_initialized = true;
   }
 
-  void initializeImpl() final {
+  void initializeImpl() noexcept final {
     _is_initialized = true;
   }
 
-  void activateIncidentCutHyperedges(HypernodeID hn) {
+  void activateIncidentCutHyperedges(HypernodeID hn) noexcept {
     DBG(false, "activating cut hyperedges of hypernode " << hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (isCutHyperedge(he) && !isMarkedAsMoved(he)) {
@@ -127,7 +127,7 @@ class HyperedgeFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
                   const HypernodeWeight UNUSED(max_allowed_part_weight),
-                  HyperedgeWeight& best_cut, double& best_imbalance) final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -241,7 +241,7 @@ class HyperedgeFMRefiner : public IRefiner,
     return false;
   }
 
-  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) {
+  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) noexcept {
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != Hypergraph::kInvalidPartition) && (to != Hypergraph::kInvalidPartition),
            "Trying to compute gain for invalid partition");
@@ -276,7 +276,7 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   bool isNestedIntoInPartition(HyperedgeID inner_he, HyperedgeID outer_he,
-                               PartitionID relevant_partition) {
+                               PartitionID relevant_partition) noexcept {
     if (_hg.pinCountInPart(inner_he, relevant_partition) >
         _hg.pinCountInPart(outer_he, relevant_partition)) {
       return false;
@@ -295,17 +295,17 @@ class HyperedgeFMRefiner : public IRefiner,
     return true;
   }
 
-  int numRepetitionsImpl() const final {
+  int numRepetitionsImpl() const noexcept final {
     return _config.her_fm.num_repetitions;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(templateToString<QueueSelectionPolicy<Gain> >()
                        + templateToString<QueueCloggingPolicy>()
                        + templateToString<StoppingPolicy>());
   }
 
-  const Stats & statsImpl() const final {
+  const Stats & statsImpl() const noexcept final {
     return _stats;
   }
 
@@ -329,7 +329,7 @@ class HyperedgeFMRefiner : public IRefiner,
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex);
   FRIEND_TEST(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound);
 
-  void rollback(int last_index, int min_cut_index, Hypergraph& hg) {
+  void rollback(int last_index, int min_cut_index, Hypergraph& hg) noexcept {
     ASSERT(min_cut_index <= last_index, "Min-Cut index " << min_cut_index << " out of bounds");
     DBG(dbg_refinement_he_fm_rollback, "min_cut_index = " << min_cut_index);
     HypernodeID hn_to_move;
@@ -346,7 +346,7 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  double calculateImbalance() const {
+  double calculateImbalance() const noexcept {
     double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
                        (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
@@ -355,12 +355,12 @@ class HyperedgeFMRefiner : public IRefiner,
     return imbalance;
   }
 
-  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const {
+  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const noexcept {
     pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
     pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
   }
 
-  bool selectQueue(bool pq0_eligible, bool pq1_eligible) {
+  bool selectQueue(bool pq0_eligible, bool pq1_eligible) noexcept {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
     DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[0]->max() << " is "
@@ -370,7 +370,8 @@ class HyperedgeFMRefiner : public IRefiner,
     return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
-  bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from, PartitionID to) const {
+  bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from,
+                                      PartitionID to) const noexcept {
     HypernodeWeight pins_to_move_weight = 0;
     for (const HypernodeID pin : _hg.pins(he)) {
       if (_hg.partID(pin) == from) {
@@ -380,15 +381,15 @@ class HyperedgeFMRefiner : public IRefiner,
     return _hg.partWeight(to) + pins_to_move_weight <= _config.partition.max_part_weight;
   }
 
-  bool queuesAreEmpty() const {
+  bool queuesAreEmpty() const noexcept {
     return _pq[0]->empty() && _pq[1]->empty();
   }
 
-  bool isCutHyperedge(HyperedgeID he) const {
+  bool isCutHyperedge(HyperedgeID he) const noexcept {
     return _hg.pinCountInPart(he, 0) * _hg.pinCountInPart(he, 1) > 0;
   }
 
-  void activateHyperedge(HyperedgeID he) {
+  void activateHyperedge(HyperedgeID he) noexcept {
     ASSERT(!isMarkedAsMoved(he),
            "HE " << he << " has already been moved and cannot be activated again");
     // we have to use reInsert because PQs will be reused during each uncontraction
@@ -404,7 +405,7 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) {
+  void moveHyperedge(HyperedgeID he, PartitionID from, PartitionID to, int step) noexcept {
     int curr_index = _movement_indices[step];
     for (const HypernodeID pin : _hg.pins(he)) {
       if (_hg.partID(pin) == from) {
@@ -420,7 +421,7 @@ class HyperedgeFMRefiner : public IRefiner,
     _movement_indices[step + 1] = curr_index;
   }
 
-  void updateNeighbours(HyperedgeID moved_he) {
+  void updateNeighbours(HyperedgeID moved_he) noexcept {
     _update_indicator.reset();
     for (const HypernodeID pin : _hg.pins(moved_he)) {
       DBG(dbg_refinement_he_fm_update_level, "--->Considering PIN " << pin);
@@ -438,7 +439,7 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) {
+  void recomputeGainsForIncidentCutHyperedges(HypernodeID hn) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (_update_indicator.isAlreadyEvaluated(he)) {
         DBG(dbg_refinement_he_fm_update_evaluated,
@@ -469,7 +470,7 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  void removeNonCutHyperedgeFromQueues(HyperedgeID he) {
+  void removeNonCutHyperedgeFromQueues(HyperedgeID he) noexcept {
     ASSERT(!isMarkedAsMoved(he), "Trying to recompute gains for already moved HE " << he);
     ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
            "Trying to remove a HE (" << he << ") which is not active");
@@ -485,11 +486,11 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  bool wasCutHyperedgeBeforeMove(HyperedgeID he) const {
+  bool wasCutHyperedgeBeforeMove(HyperedgeID he) const noexcept {
     return _pq[0]->contains(he) || _pq[1]->contains(he);
   }
 
-  void recomputeGainsForCutHyperedge(HyperedgeID he) {
+  void recomputeGainsForCutHyperedge(HyperedgeID he) noexcept {
     ASSERT(!isMarkedAsMoved(he), "Trying to recompute gains for already moved HE " << he);
     ASSERT(_pq[0]->contains(he) || _pq[1]->contains(he),
            "Trying to remove a HE (" << he << ") which is not active");
@@ -507,28 +508,28 @@ class HyperedgeFMRefiner : public IRefiner,
     }
   }
 
-  void markAsContained(HypernodeID hn) {
+  void markAsContained(HypernodeID hn) noexcept {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
     _contained_hypernodes[hn] = 1;
   }
 
-  bool isContained(HypernodeID hn) const {
+  bool isContained(HypernodeID hn) const noexcept {
     return _contained_hypernodes[hn];
   }
 
-  void resetContainedHypernodes() {
+  void resetContainedHypernodes() noexcept {
     _contained_hypernodes.assign(_contained_hypernodes.size(), false);
   }
 
-  bool isMarkedAsMoved(HyperedgeID he) const {
+  bool isMarkedAsMoved(HyperedgeID he) const noexcept {
     return _marked_HEs[he];
   }
 
-  void markAsMoved(HyperedgeID he) {
+  void markAsMoved(HyperedgeID he) noexcept {
     _marked_HEs[he] = 1;
   }
 
-  void resetMarkedHyperedges() {
+  void resetMarkedHyperedges() noexcept {
     _marked_HEs.assign(_marked_HEs.size(), false);
   }
 
