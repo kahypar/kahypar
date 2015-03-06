@@ -38,12 +38,6 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 template <class CoarseningMemento = Mandatory>
 class CoarsenerBase {
   protected:
-  struct hash_nodes {
-    size_t operator () (HypernodeID index) const {
-      return index;
-    }
-  };
-
   struct CurrentMaxNodeWeight {
     CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
       num_nodes(num_hns),
@@ -58,50 +52,44 @@ class CoarsenerBase {
   CoarsenerBase& operator = (const CoarsenerBase&) = delete;
   CoarsenerBase& operator = (CoarsenerBase&&) = delete;
 
-  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) :
+  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
     _history(),
     _max_hn_weights(),
     _stats(),
     _hypergraph_pruner(_hg, _config, _stats) {
-    _max_hn_weights.emplace(CurrentMaxNodeWeight { _hg.numNodes(), 1 });
+    _history.reserve(_hg.initialNumNodes());
+    _max_hn_weights.reserve(_hg.initialNumNodes());
+    _max_hn_weights.emplace_back(CurrentMaxNodeWeight { _hg.numNodes(), 1 });
   }
 
   virtual ~CoarsenerBase() { }
 
   protected:
-  void removeSingleNodeHyperedges(const HypernodeID rep_node) {
+  void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
     _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
-                                                  _history_mine.back().one_pin_hes_begin,
-                                                  _history_mine.back().one_pin_hes_size);
-                                                  //_history.top().one_pin_hes_begin,
-                                                  //_history.top().one_pin_hes_size);
+                                                  _history.back().one_pin_hes_begin,
+                                                  _history.back().one_pin_hes_size);
   }
 
-  void removeParallelHyperedges(const HypernodeID rep_node) {
+  void removeParallelHyperedges(const HypernodeID rep_node) noexcept {
     _hypergraph_pruner.removeParallelHyperedges(rep_node,
-                                                _history_mine.back().parallel_hes_begin,
-                                                _history_mine.back().parallel_hes_size);
-                                                //_history.top().parallel_hes_begin,
-                                                //_history.top().parallel_hes_size);
+                                                _history.back().parallel_hes_begin,
+                                                _history.back().parallel_hes_size);
   }
 
-  void restoreParallelHyperedges() {
-    _hypergraph_pruner.restoreParallelHyperedges(_history_mine.back().parallel_hes_begin,
-                                                 _history_mine.back().parallel_hes_size);
-    //_hypergraph_pruner.restoreParallelHyperedges(_history.top().parallel_hes_begin,
-                                                 //_history.top().parallel_hes_size);
+  void restoreParallelHyperedges() noexcept {
+    _hypergraph_pruner.restoreParallelHyperedges(_history.back().parallel_hes_begin,
+                                                 _history.back().parallel_hes_size);
   }
 
-  void restoreSingleNodeHyperedges() {
-    _hypergraph_pruner.restoreSingleNodeHyperedges(_history_mine.back().one_pin_hes_begin,
-                                                   _history_mine.back().one_pin_hes_size);
-    //_hypergraph_pruner.restoreSingleNodeHyperedges(_history.top().one_pin_hes_begin,
-                                                   //_history.top().one_pin_hes_size);
+  void restoreSingleNodeHyperedges() noexcept {
+    _hypergraph_pruner.restoreSingleNodeHyperedges(_history.back().one_pin_hes_begin,
+                                                   _history.back().one_pin_hes_size);
   }
 
-  void initializeRefiner(IRefiner& refiner) {
+  void initializeRefiner(IRefiner& refiner) noexcept {
   #ifdef USE_BUCKET_PQ
     HyperedgeID max_degree = 0;
     for (const HypernodeID hn : _hg.nodes()) {
@@ -121,13 +109,13 @@ class CoarsenerBase {
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           const size_t num_refinement_nodes, double& current_imbalance,
-                          HyperedgeWeight& current_cut) {
+                          HyperedgeWeight& current_cut) noexcept {
     HyperedgeWeight old_cut = current_cut;
     int iteration = 0;
     bool improvement_found = false;
 
     const HypernodeWeight max_allowed_part_weight =
-      _config.partition.max_part_weight + _max_hn_weights.top().max_weight;
+      _config.partition.max_part_weight + _max_hn_weights.back().max_weight;
 
     do {
       old_cut = current_cut;
@@ -143,7 +131,7 @@ class CoarsenerBase {
     } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }
 
-  void gatherCoarseningStats() {
+  void gatherCoarseningStats() noexcept {
 #ifdef GATHER_STATS
     std::map<HyperedgeID, HypernodeID> node_degree_map;
     std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
@@ -230,9 +218,8 @@ class CoarsenerBase {
 
   Hypergraph& _hg;
   const Configuration& _config;
-  std::stack<CoarseningMemento> _history;
-  std::vector<CoarseningMemento> _history_mine;
-  std::stack<CurrentMaxNodeWeight> _max_hn_weights;
+  std::vector<CoarseningMemento> _history;
+  std::vector<CurrentMaxNodeWeight> _max_hn_weights;
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
 };

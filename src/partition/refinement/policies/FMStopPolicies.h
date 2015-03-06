@@ -18,21 +18,21 @@ struct StoppingPolicy : PolicyBase {
 
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int, const Configuration& config,
-                               const double, const HyperedgeWeight, const HyperedgeWeight) {
+                               const double, const HyperedgeWeight, const HyperedgeWeight) noexcept {
     return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
   }
 
-  static void resetStatistics() {
+  static void resetStatistics() noexcept {
     _num_moves = 0;
   }
 
   template <typename Gain>
-  static void updateStatistics(const Gain) {
+  static void updateStatistics(const Gain) noexcept {
     ++_num_moves;
   }
 
   protected:
-  ~NumberOfFruitlessMovesStopsSearch() { }
+  ~NumberOfFruitlessMovesStopsSearch() noexcept { }
 
   private:
   static int _num_moves;
@@ -42,7 +42,7 @@ int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int, const Configuration& config, const double beta,
-                               const HyperedgeWeight, const HyperedgeWeight) {
+                               const HyperedgeWeight, const HyperedgeWeight) noexcept {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
     DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << beta << "="
@@ -53,7 +53,7 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
             config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1);
   }
 
-  static void resetStatistics() {
+  static void resetStatistics() noexcept {
     _num_steps = 0;
     _expected_gain = 0.0;
     _expected_variance = 0.0;
@@ -61,7 +61,7 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
   }
 
   template <typename Gain>
-  static void updateStatistics(const Gain gain) {
+  static void updateStatistics(const Gain gain) noexcept {
     ++_num_steps;
     _sum_gains += gain;
     _expected_gain = _sum_gains / _num_steps;
@@ -105,7 +105,7 @@ double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int num_moves_since_last_improvement,
                                const Configuration& config, const double beta,
-                               const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
+                               const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
     return num_moves_since_last_improvement
            >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
                                          / (2.0 * (static_cast<double>(best_cut) - cut)
@@ -113,12 +113,12 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
                                          + beta);
   }
 
-  static void resetStatistics() {
+  static void resetStatistics() noexcept {
     _sum_gains_squared = 0.0;
   }
 
   template <typename Gain>
-  static void updateStatistics(const Gain gain) {
+  static void updateStatistics(const Gain gain) noexcept {
     _sum_gains_squared += gain * gain;
   }
 

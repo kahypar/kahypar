@@ -9,7 +9,7 @@
 
 namespace partition {
 struct LastRatingWins {
-  static bool acceptEqual() {
+  static bool acceptEqual() noexcept {
     return true;
   }
 
@@ -18,7 +18,7 @@ struct LastRatingWins {
 };
 
 struct FirstRatingWins {
-  static bool acceptEqual() {
+  static bool acceptEqual() noexcept {
     return false;
   }
 
@@ -28,7 +28,7 @@ struct FirstRatingWins {
 
 struct RandomRatingWins {
   public:
-  static bool acceptEqual() {
+  static bool acceptEqual() noexcept {
     return Randomize::flipCoin();
   }
 

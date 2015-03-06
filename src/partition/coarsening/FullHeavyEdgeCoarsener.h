@@ -45,7 +45,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   FullHeavyEdgeCoarsener& operator = (const FullHeavyEdgeCoarsener&) = delete;
   FullHeavyEdgeCoarsener& operator = (FullHeavyEdgeCoarsener&&) = delete;
 
-  FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
+  FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()) { }
 
@@ -54,7 +54,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void coarsenImpl(const HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) noexcept final {
     _pq.clear();
 
     NullMap null_map;
@@ -96,22 +96,22 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) final {
+  bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     return Base::doUncoarsen(refiner);
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const noexcept {
     return _stats;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
                                 std::vector<bool>& rerated_hypernodes,
-                                std::vector<bool>& invalid_hypernodes) {
+                                std::vector<bool>& invalid_hypernodes) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
@@ -126,7 +126,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    std::vector<bool>& invalid_hypernodes) {
+                                    std::vector<bool>& invalid_hypernodes) noexcept {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

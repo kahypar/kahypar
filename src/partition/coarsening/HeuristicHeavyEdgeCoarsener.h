@@ -42,7 +42,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   HeuristicHeavyEdgeCoarsener& operator = (const HeuristicHeavyEdgeCoarsener&) = delete;
   HeuristicHeavyEdgeCoarsener& operator = (HeuristicHeavyEdgeCoarsener&&) = delete;
 
-  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) :
+  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
@@ -53,7 +53,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void coarsenImpl(const HypernodeID limit) final {
+  void coarsenImpl(const HypernodeID limit) noexcept final {
     _pq.clear();
     _sources.clear();
 
@@ -93,19 +93,19 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     gatherCoarseningStats();
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) final {
+  bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     return Base::doUncoarsen(refiner);
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const noexcept {
     return _stats;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void removeMappingEntryOfNode(const HypernodeID hn, const HypernodeID hn_target) {
+  void removeMappingEntryOfNode(const HypernodeID hn, const HypernodeID hn_target) noexcept {
     auto range = _sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
       if (iter->second == hn) {
@@ -116,11 +116,11 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
+  void reRateHypernodesAffectedByParallelHyperedgeRemoval() noexcept {
     _just_updated.assign(_just_updated.size(), false);
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
-    for (int i = _history.top().parallel_hes_begin; i != _history.top().parallel_hes_begin +
-         _history.top().parallel_hes_size; ++i) {
+    for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
+         _history.back().parallel_hes_size; ++i) {
       for (const HypernodeID pin : _hg.pins(removed_parallel_hyperedges[i].representative_id)) {
         if (!_just_updated[pin]) {
           const Rating rating = _rater.rate(pin);
@@ -132,7 +132,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByContraction(const HypernodeID hn,
-                                             const HypernodeID contraction_node) {
+                                             const HypernodeID contraction_node) noexcept {
     auto source_range = _sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
@@ -149,7 +149,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updatePQandMappings(const HypernodeID hn, const Rating& rating) {
+  void updatePQandMappings(const HypernodeID hn, const Rating& rating) noexcept {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
@@ -171,7 +171,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  void updateMappings(const HypernodeID hn, const Rating& rating) {
+  void updateMappings(const HypernodeID hn, const Rating& rating) noexcept {
     removeMappingEntryOfNode(hn, _target[hn]);
     _target[hn] = rating.target;
     _sources.insert({ rating.target, hn });

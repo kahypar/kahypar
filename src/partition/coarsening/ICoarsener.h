@@ -24,19 +24,19 @@ class ICoarsener {
   ICoarsener& operator = (const ICoarsener&) = delete;
   ICoarsener& operator = (ICoarsener&&) = delete;
 
-  void coarsen(const HypernodeID limit) {
+  void coarsen(const HypernodeID limit) noexcept {
     coarsenImpl(limit);
   }
 
-  bool uncoarsen(IRefiner& refiner) {
+  bool uncoarsen(IRefiner& refiner) noexcept {
     return uncoarsenImpl(refiner);
   }
 
-  std::string policyString() const {
+  std::string policyString() const noexcept {
     return policyStringImpl();
   }
 
-  const Stats & stats() const {
+  const Stats & stats() const noexcept {
     return statsImpl();
   }
 
@@ -46,10 +46,10 @@ class ICoarsener {
   ICoarsener() { }
 
   private:
-  virtual void coarsenImpl(const HypernodeID limit) = 0;
-  virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
-  virtual std::string policyStringImpl() const = 0;
-  virtual const Stats & statsImpl() const = 0;
+  virtual void coarsenImpl(const HypernodeID limit) noexcept = 0;
+  virtual bool uncoarsenImpl(IRefiner& refiner) noexcept = 0;
+  virtual std::string policyStringImpl() const noexcept = 0;
+  virtual const Stats & statsImpl() const noexcept = 0;
 };
 } // namespace partition
 

@@ -74,7 +74,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   MaxGainNodeKWayFMRefiner& operator = (const MaxGainNodeKWayFMRefiner&) = delete;
   MaxGainNodeKWayFMRefiner& operator = (MaxGainNodeKWayFMRefiner&&) = delete;
 
-  MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
+  MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, { kInvalidGain, 0 }),
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
@@ -105,14 +105,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               AccountsForInternalHEsDuringConnectivityDecreaseCalculation);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecrease);
 
-  void initializeImpl() final {
+  void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
     }
     _is_initialized = true;
   }
 
-  void initializeImpl(const HyperedgeWeight max_gain) final {
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
     if (!_is_initialized) {
       _pq.initialize(max_gain);
     }
@@ -121,7 +121,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
-                  HyperedgeWeight& best_cut, double& best_imbalance) final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg))),
@@ -252,11 +252,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  int numRepetitionsImpl() const final {
+  int numRepetitionsImpl() const noexcept final {
     return _config.two_way_fm.num_repetitions;
   }
 
-  std::string policyStringImpl() const final {
+  std::string policyStringImpl() const noexcept final {
     return std::string(" Refiner=MaxGainNodeKWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " UsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
@@ -267,11 +267,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                        );
   }
 
-  const Stats & statsImpl() const {
+  const Stats & statsImpl() const noexcept {
     return _stats;
   }
 
-  void rollback(int last_index, const int min_cut_index) {
+  void rollback(int last_index, const int min_cut_index) noexcept {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -283,7 +283,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
   }
 
-  void updateNeighbours(const HypernodeID moved_hn, const HypernodeWeight max_allowed_part_weight) {
+  void updateNeighbours(const HypernodeID moved_hn,
+                        const HypernodeWeight max_allowed_part_weight) noexcept {
     _just_updated.assign(_just_updated.size(), false);
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -386,7 +387,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            } (), "Gain update failed");
   }
 
-  void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_part_weight) {
+  void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
     ASSERT(!_just_updated[pin], V(pin));
     ASSERT(!_marked[pin], V(pin));
@@ -416,7 +417,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated[pin] = true;
   }
 
-  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) {
+  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(!_pq.contains(hn), V(hn) << V(_target_parts[hn]));
     ASSERT(!_active[hn], V(hn));
     if (isBorderNode(hn)) {
@@ -434,7 +435,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
   }
 
-  GainPartitionPair computeMaxGainMove(const HypernodeID hn) {
+  GainPartitionPair computeMaxGainMove(const HypernodeID hn) noexcept {
     ASSERT(isBorderNode(hn), V(hn));
     _seen_as_max_part.assign(_seen_as_max_part.size(), false);
     _tmp_max_gain_target_parts.clear();

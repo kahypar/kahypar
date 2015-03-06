@@ -41,7 +41,7 @@ class KWayPriorityQueue {
   KWayPriorityQueue& operator = (const KWayPriorityQueue&) = delete;
   KWayPriorityQueue& operator = (KWayPriorityQueue&&) = delete;
 
-  explicit KWayPriorityQueue(const PartitionID k) :
+  explicit KWayPriorityQueue(const PartitionID k) noexcept :
     _queues(),
     _index(k, kInvalidIndex),
     _part(k, kInvalidPart),
@@ -50,51 +50,51 @@ class KWayPriorityQueue {
     _num_enabled_pqs(0) { }
 
   // Used to initialize binary heaps
-  void initialize(const IDType heap_size) {
+  void initialize(const IDType heap_size) noexcept {
     for (size_t i = 0; i < _part.size(); ++i) {
       _queues.emplace_back(Queue(heap_size));
     }
   }
 
   // Used to initialize bucket_pqs
-  void initialize(const KeyType gain_span) {
+  void initialize(const KeyType gain_span) noexcept {
     for (size_t i = 0; i < _part.size(); ++i) {
       _queues.emplace_back(Queue(gain_span));
     }
   }
 
-  size_t size(const PartitionID part) const {
+  size_t size(const PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return (_index[part] < _num_nonempty_pqs ? _queues[_index[part]].size() : 0);
   }
 
   // Counts all elements in all non-empty heaps and therefore includes
   // the elements in disabled heaps as well
-  size_t size() const {
+  size_t size() const noexcept {
     return _num_entries;
   }
 
-  bool empty(const PartitionID part) const {
+  bool empty(const PartitionID part) const noexcept {
     return isUnused(part);
   }
 
-  bool empty() const {
+  bool empty() const noexcept {
     return _num_enabled_pqs == 0 || _num_entries == 0;
   }
 
-  PartitionID numEnabledParts() const {
+  PartitionID numEnabledParts() const noexcept {
     return _num_enabled_pqs;
   }
 
-  PartitionID numNonEmptyParts() const {
+  PartitionID numNonEmptyParts() const noexcept {
     return _num_nonempty_pqs;
   }
 
-  bool isEnabled(const PartitionID part) const {
+  bool isEnabled(const PartitionID part) const noexcept {
     return _index[part] < _num_enabled_pqs;
   }
 
-  void enablePart(const PartitionID part) {
+  void enablePart(const PartitionID part) noexcept {
     if (!isUnused(part) && !isEnabled(part)) {
       swap(_index[part], _num_enabled_pqs);
       ++_num_enabled_pqs;
@@ -102,14 +102,14 @@ class KWayPriorityQueue {
     }
   }
 
-  void disablePart(const PartitionID part) {
+  void disablePart(const PartitionID part) noexcept {
     if (isEnabled(part)) {
       --_num_enabled_pqs;
       swap(_index[part], _num_enabled_pqs);
     }
   }
 
-  void insert(const IDType id, const PartitionID part, const KeyType key) {
+  void insert(const IDType id, const PartitionID part, const KeyType key) noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
     if (isUnused(part)) {
@@ -122,7 +122,7 @@ class KWayPriorityQueue {
     ++_num_entries;
   }
 
-  void deleteMax(IDType& max_id, KeyType& max_key, PartitionID& max_part) {
+  void deleteMax(IDType& max_id, KeyType& max_key, PartitionID& max_part) noexcept {
     size_t max_index = maxIndex();
     ASSERT(max_index < _num_enabled_pqs, V(max_index));
 
@@ -147,20 +147,20 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  KeyType key(const IDType id, const PartitionID part) const {
+  KeyType key(const IDType id, const PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_index[part]].contains(id), V(id));
     return _queues[_index[part]].getKey(id);
   }
 
-  bool contains(const IDType id, const PartitionID part) const {
+  bool contains(const IDType id, const PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return _index[part] < _num_nonempty_pqs && _queues[_index[part]].contains(id);
   }
 
   // Should be used only for assertions
-  bool contains(const IDType id) const {
+  bool contains(const IDType id) const noexcept {
     for (size_t i = 0; i < _num_nonempty_pqs; ++i) {
       if (_queues[i].contains(id)) {
         return true;
@@ -169,13 +169,13 @@ class KWayPriorityQueue {
     return false;
   }
 
-  void updateKey(const IDType id, const PartitionID part, const KeyType key) {
+  void updateKey(const IDType id, const PartitionID part, const KeyType key) noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     _queues[_index[part]].updateKey(id, key);
   }
 
-  void remove(const IDType id, const PartitionID part) {
+  void remove(const IDType id, const PartitionID part) noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_index[part]].contains(id), V(id) << V(part));
@@ -192,7 +192,7 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  void clear() {
+  void clear() noexcept {
     for (size_t i = 0; i < _queues.size(); ++i) {
       _index[i] = kInvalidIndex;
       _part[i] = kInvalidPart;
@@ -202,12 +202,12 @@ class KWayPriorityQueue {
     _num_enabled_pqs = 0;
   }
 
-  IDType max() const {
+  IDType max() const noexcept {
     //Should only be used for testing
     return _queues[maxIndex()].getMax();
   }
 
-  KeyType maxKey() const {
+  KeyType maxKey() const noexcept {
     //Should only be used for testing
     return _queues[maxIndex()].getMaxKey();
   }
@@ -218,7 +218,7 @@ class KWayPriorityQueue {
   FRIEND_TEST(AKWayPriorityQueue, DoesNotConsiderDisabledHeapForChoosingMax);
   FRIEND_TEST(AKWayPriorityQueue, ReconsidersDisabledHeapAgainAfterEnabling);
 
-  void swap(const size_t index_a, const size_t index_b) {
+  void swap(const size_t index_a, const size_t index_b) noexcept {
     using std::swap;
     swap(_queues[index_a], _queues[index_b]);
     swap(_part[index_a], _part[index_b]);
@@ -227,7 +227,7 @@ class KWayPriorityQueue {
            _index[_part[index_b]] == index_b, "Swap failed");
   }
 
-  size_t maxIndex() const {
+  size_t maxIndex() const noexcept {
     size_t max_index = kInvalidIndex;
     KeyType max_key = std::numeric_limits<KeyType>::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
@@ -242,12 +242,12 @@ class KWayPriorityQueue {
     return max_index;
   }
 
-  bool isUnused(const PartitionID part) const {
+  bool isUnused(const PartitionID part) const noexcept {
     ASSERT((_index[part] != kInvalidIndex ? _part[_index[part]] != kInvalidPart : true), V(part));
     return _index[part] == kInvalidIndex;
   }
 
-  void markUnused(const PartitionID part) {
+  void markUnused(const PartitionID part) noexcept {
     _part[_index[part]] = kInvalidPart;
     _index[part] = kInvalidIndex;
   }

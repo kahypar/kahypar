@@ -34,14 +34,14 @@ class DummyRefiner : public IRefiner {
   public:
   DummyRefiner() :
     _stats() { }
-  void initializeImpl() {
+  void initializeImpl() noexcept {
     _is_initialized = true;
   }
   bool refineImpl(std::vector<HypernodeID>&, size_t, const HypernodeWeight,
-                  HyperedgeWeight&, double&) final { return true; }
-  int numRepetitionsImpl() const final { return 1; }
-  std::string policyStringImpl() const final { return std::string(""); }
-  const Stats & statsImpl() const final { return _stats; }
+                  HyperedgeWeight&, double&) noexcept final { return true; }
+  int numRepetitionsImpl() const noexcept final { return 1; }
+  std::string policyStringImpl() const noexcept final { return std::string(""); }
+  const Stats & statsImpl() const noexcept final { return _stats; }
   Stats _stats;
 };
 

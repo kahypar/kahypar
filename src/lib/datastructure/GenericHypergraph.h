@@ -24,12 +24,12 @@ using core::Empty;
 namespace datastructure {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator,Iterator>& x) {
-  return x.first;
+  return std::move(x.first);
 }
 
 template <typename Iterator>
  Iterator end(std::pair<Iterator,Iterator>& x) {
-  return x.second;
+  return std::move(x.second);
 }
 
 static const bool dbg_hypergraph_uncontraction = false;
@@ -227,6 +227,10 @@ class GenericHypergraph {
     using IDType = typename ContainerType::value_type::IDType;
 
     public:
+    VertexIterator(const VertexIterator& other) = delete;
+    VertexIterator& operator=(const VertexIterator& other) = delete;
+    VertexIterator& operator=(VertexIterator&& other) = default;
+
     VertexIterator() noexcept :
       _id(0),
       _max_id(0),
@@ -239,28 +243,12 @@ class GenericHypergraph {
       if (_id != _max_id && (*_container)[_id].isDisabled()) {
         operator ++ ();
       }
-      // LOG("VertexIteratorConstructor");
-    }
-
-    VertexIterator(const VertexIterator& other) noexcept :
-      _id(other._id),
-      _max_id(other._max_id),
-      _container(other._container) {
-      // LOG("VertexIteratorCopy");
-      // LOGVAR(_id);
-      // LOGVAR(_max_id);c
     }
 
     VertexIterator(VertexIterator&& other) noexcept :
       _id(std::move(other._id)),
       _max_id(std::move(other._max_id)),
-      _container(std::move(other._container)) {
-      // LOG("VertrexIteratorMove");
-      // LOGVAR(_id);
-      // LOGVAR(_max_id);
-    }
-
-    VertexIterator& operator=(VertexIterator&& other) = default;
+      _container(std::move(other._container)) { }
 
     IDType operator * () const noexcept {
       return _id;
@@ -308,9 +296,23 @@ class GenericHypergraph {
   };
 
   struct Memento {
+    Memento(const Memento& other) = delete;
+    Memento& operator=(const Memento& other) = delete;
+    Memento& operator=(Memento&& other) = default;
+
     Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
             HypernodeID v_) noexcept :
-      u(u_), u_first_entry(u_first_entry_), u_size(u_size_), v(v_) { }
+      u(u_),
+      u_first_entry(u_first_entry_),
+      u_size(u_size_),
+      v(v_) { }
+
+    Memento(Memento&& other) noexcept :
+     u(std::move(other.u)),
+     u_first_entry(std::move(other.u_first_entry)),
+     u_size(std::move(other.u_size)),
+     v(std::move(other.v)){}
+
     const HypernodeID u;
     const HypernodeID u_first_entry;
     const HypernodeID u_size;

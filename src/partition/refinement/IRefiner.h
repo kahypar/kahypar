@@ -27,36 +27,36 @@ class IRefiner {
 
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
               const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
-              double& best_imbalance) {
+              double& best_imbalance) noexcept {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     return refineImpl(refinement_nodes, num_refinement_nodes, max_allowed_part_weight,
                       best_cut, best_imbalance);
   }
 
-  void initialize() {
+  void initialize() noexcept {
     initializeImpl();
   }
 
-  void initialize(const HyperedgeWeight max_gain) {
+  void initialize(const HyperedgeWeight max_gain) noexcept {
     initializeImpl(max_gain);
   }
 
-  int numRepetitions() const {
+  int numRepetitions() const noexcept {
     return numRepetitionsImpl();
   }
 
-  std::string policyString() const {
+  std::string policyString() const noexcept {
     return policyStringImpl();
   }
 
-  const Stats & stats() const {
+  const Stats & stats() const noexcept {
     return statsImpl();
   }
 
   virtual ~IRefiner() { }
 
   protected:
-  IRefiner() { }
+  IRefiner() noexcept { }
   bool _is_initialized = false;
 
   private:
@@ -64,12 +64,12 @@ class IRefiner {
                           const size_t num_refinement_nodes,
                           const HypernodeWeight max_allowed_part_weight,
                           HyperedgeWeight& best_cut,
-                          double& best_imbalance) = 0;
-  virtual void initializeImpl() { }
-  virtual void initializeImpl(const HyperedgeWeight) { }
-  virtual int numRepetitionsImpl() const = 0;
-  virtual std::string policyStringImpl() const = 0;
-  virtual const Stats & statsImpl() const = 0;
+                          double& best_imbalance) noexcept = 0;
+  virtual void initializeImpl() noexcept { }
+  virtual void initializeImpl(const HyperedgeWeight) noexcept { }
+  virtual int numRepetitionsImpl() const noexcept = 0;
+  virtual std::string policyStringImpl() const noexcept = 0;
+  virtual const Stats & statsImpl() const noexcept = 0;
 };
 } //namespace partition
 

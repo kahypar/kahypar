@@ -20,14 +20,14 @@ template <typename id_slot = Mandatory,
           typename key_slot = Mandatory>
 class BucketQueue {
   public:
-  explicit BucketQueue(const key_slot& key_span) :
+  explicit BucketQueue(const key_slot& key_span) noexcept :
     _elements(0),
     _key_span(key_span),
     _max_idx(0),
     _queue_index(),
     _buckets(std::make_unique<std::vector<id_slot>[]>(2 * _key_span + 1)) { }
 
-  explicit BucketQueue(const BucketQueue& other) :
+  explicit BucketQueue(const BucketQueue& other) noexcept :
     _elements(other._elements),
     _key_span(other._key_span),
     _max_idx(other._max_idx),
@@ -36,15 +36,15 @@ class BucketQueue {
 
   ~BucketQueue() { }
 
-  id_slot size() const {
+  id_slot size() const noexcept {
     return _elements;
   }
 
-  bool empty() const {
+  bool empty() const noexcept {
     return _elements == 0;
   }
 
-  void swap(BucketQueue& other) {
+  void swap(BucketQueue& other) noexcept {
     using std::swap;
     swap(_elements, other._elements);
     swap(_key_span, other._key_span);
@@ -53,13 +53,13 @@ class BucketQueue {
     swap(_buckets, other._buckets);
   }
 
-  key_slot getKey(const id_slot element) const {
+  key_slot getKey(const id_slot element) const noexcept {
     ASSERT(_queue_index.find(element) != _queue_index.end(),
            " Element " << element << " not contained in PQ");
     return _queue_index.find(element)->second.second;
   }
 
-  void push(const id_slot id, const key_slot key) {
+  void push(const id_slot id, const key_slot key) noexcept {
     const key_slot address = key + _key_span;
     if (address > _max_idx) {
       _max_idx = address;
@@ -73,11 +73,11 @@ class BucketQueue {
   }
 
   //  only to temporarily satisfy PQ interface
-  void reinsertingPush(const id_slot id, const key_slot key) {
+  void reinsertingPush(const id_slot id, const key_slot key) noexcept  {
     push(id, key);
   }
 
-  void clear() {
+  void clear() noexcept {
     for (key_slot i = 0; i < 2 * _key_span + 1; ++i) {
       _buckets[i].clear();
     }
@@ -86,19 +86,19 @@ class BucketQueue {
     _queue_index.clear();
   }
 
-  key_slot getMaxKey() const {
+  key_slot getMaxKey() const noexcept {
     ASSERT(!empty(), "BucketQueue is empty");
     //   DBG(true, "---->" << _queue_index[_buckets[_max_idx].back()].second);
     return _max_idx - _key_span;
   }
 
-  id_slot getMax() const {
+  id_slot getMax() const noexcept {
     ASSERT(!_buckets[_max_idx].empty(),
            "max-Bucket " << _max_idx << " is empty");
     return _buckets[_max_idx].back();
   }
 
-  void deleteMax() {
+  void deleteMax() noexcept {
     ASSERT(!_buckets[_max_idx].empty(),
            "max-Bucket " << _max_idx << " is empty");
     _queue_index.erase(_buckets[_max_idx].back());
@@ -111,19 +111,19 @@ class BucketQueue {
     --_elements;
   }
 
-  void decreaseKey(const id_slot id, const key_slot newkey_slot) {
+  void decreaseKey(const id_slot id, const key_slot newkey_slot) noexcept {
     updateKey(id, newkey_slot);
   }
-  void increaseKey(const id_slot id, const key_slot newkey_slot) {
+  void increaseKey(const id_slot id, const key_slot newkey_slot) noexcept {
     updateKey(id, newkey_slot);
   }
 
-  void updateKey(const id_slot id, const key_slot new_key) {
+  void updateKey(const id_slot id, const key_slot new_key) noexcept {
     deleteNode(id);
     push(id, new_key);
   }
 
-  void deleteNode(const id_slot id) {
+  void deleteNode(const id_slot id) noexcept {
     ASSERT(_queue_index.find(id) != _queue_index.end(),
            "Hyperid " << id << " not in PQ");
     size_t in_bucket_idx, old_key;
@@ -147,12 +147,12 @@ class BucketQueue {
     _queue_index.erase(id);
   }
 
-  bool contains(const id_slot id) const {
+  bool contains(const id_slot id) const noexcept {
     return _queue_index.find(id) != _queue_index.end();
   }
 
   private:
-  void searchNewMax() {
+  void searchNewMax() noexcept {
     while (_max_idx != 0 && _buckets[_max_idx].empty()) {
       --_max_idx;
     }
@@ -169,7 +169,7 @@ class BucketQueue {
 
 template <typename id_slot, typename key_slot>
 void swap(BucketQueue<id_slot, key_slot>& a,
-          BucketQueue<id_slot, key_slot>& b) {
+          BucketQueue<id_slot, key_slot>& b) noexcept {
   a.swap(b);
 }
 } // namespace datastructure

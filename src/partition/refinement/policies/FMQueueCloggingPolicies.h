@@ -22,7 +22,7 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
-                                         std::vector<bool>& indicator) {
+                                         std::vector<bool>& indicator) noexcept {
     if (!pq0_eligible && !pq1_eligible) {
       if (!pq0->empty()) {
         DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
@@ -41,7 +41,7 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
 
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
-                                         Queue& pq0, Queue& pq1) {
+                                         Queue& pq0, Queue& pq1) noexcept {
     if (!pq0_eligible && !pq1_eligible) {
       if (!pq0->empty()) {
         DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
@@ -64,7 +64,7 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
                                          Queue& pq0, Queue& pq1,
-                                         std::vector<bool>& indicator) {
+                                         std::vector<bool>& indicator) noexcept {
     bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
@@ -82,7 +82,7 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
   }
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool pq0_eligible, bool pq1_eligible,
-                                         Queue& pq0, Queue& pq1) {
+                                         Queue& pq0, Queue& pq1) noexcept {
     bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
       DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
@@ -104,7 +104,7 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
 struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity : public CloggingPolicy {
   template <typename Queue>
   static bool removeCloggingQueueEntries(bool& pq0_eligible, bool& pq1_eligible,
-                                         Queue& pq0, Queue& pq1) {
+                                         Queue& pq0, Queue& pq1) noexcept {
     pq0_eligible = (!pq0->empty() ? true : false);
     pq1_eligible = (!pq1->empty() ? true : false);
     return false;

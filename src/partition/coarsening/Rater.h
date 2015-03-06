@@ -34,17 +34,27 @@ class Rater {
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
-    HypernodeID target;
-    RatingType value;
-    bool valid;
-    HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) :
+    HeavyEdgeRating(const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator = (const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator = (HeavyEdgeRating&&) = delete;
+
+    HeavyEdgeRating(HeavyEdgeRating&& other) noexcept :
+      target(std::move(other.target)),
+      value(std::move(other.value)),
+      valid(std::move(other.valid)) { }
+
+    HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) noexcept :
       target(trgt),
       value(val),
       valid(is_valid) { }
+
     HeavyEdgeRating() :
       target(std::numeric_limits<HypernodeID>::max()),
       value(std::numeric_limits<RatingType>::min()),
       valid(false) { }
+    HypernodeID target;
+    RatingType value;
+    bool valid;
   };
 
   public:
@@ -54,14 +64,14 @@ class Rater {
   Rater& operator = (Rater&&) = delete;
 
   using Rating = HeavyEdgeRating;
-  Rater(Hypergraph& hypergraph, const Configuration& config) :
+  Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()),
     _used_entries(),
     _visited_hypernodes(_hg.initialNumNodes()) { }
 
-  HeavyEdgeRating rate(const HypernodeID u) {
+  HeavyEdgeRating rate(const HypernodeID u) noexcept {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT([&]() {
              for (const auto& bit : _visited_hypernodes) {
@@ -122,16 +132,16 @@ class Rater {
     return ret;
   }
 
-  HypernodeWeight thresholdNodeWeight() const {
+  HypernodeWeight thresholdNodeWeight() const noexcept {
     return _config.coarsening.max_allowed_node_weight;
   }
 
   private:
-  bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const {
+  bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const noexcept {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(const RatingType tmp, const RatingType max_rating) const {
+  bool acceptRating(const RatingType tmp, const RatingType max_rating) const noexcept {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 

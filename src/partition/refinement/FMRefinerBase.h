@@ -24,13 +24,13 @@ class FMRefinerBase {
   FMRefinerBase& operator = (FMRefinerBase&&) = delete;
 
   protected:
-  FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :
+  FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config) { }
 
   ~FMRefinerBase() { }
 
-  bool isBorderNode(const HypernodeID hn) const {
+  bool isBorderNode(const HypernodeID hn) const noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (isCutHyperedge(he)) {
         DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is a border node");
@@ -41,14 +41,14 @@ class FMRefinerBase {
     return false;
   }
 
-  bool isCutHyperedge(const HyperedgeID he) const {
+  bool isCutHyperedge(const HyperedgeID he) const noexcept {
     if (_hg.connectivity(he) > 1) {
       return true;
     }
     return false;
   }
 
-  bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
+  bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(pin)) {
       if (_hg.pinCountInPart(he, part) > 0) {
         return true;
@@ -58,19 +58,20 @@ class FMRefinerBase {
   }
 
   bool moveIsFeasible(const HypernodeID max_gain_node, const PartitionID from_part,
-                      const PartitionID to_part) const {
+                      const PartitionID to_part) const noexcept {
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
             <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
   }
 
-  void moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) {
+  void moveHypernode(const HypernodeID hn, const PartitionID from_part,
+                     const PartitionID to_part) noexcept {
     ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     DBG(dbg_refinement_kway_fm_move, "moving HN" << hn << " from " << from_part
         << " to " << to_part << " (weight=" << _hg.nodeWeight(hn) << ")");
     _hg.changeNodePart(hn, from_part, to_part);
   }
 
-  PartitionID heaviestPart() const {
+  PartitionID heaviestPart() const noexcept {
     PartitionID heaviest_part = 0;
     for (PartitionID part = 1; part < _config.partition.k; ++part) {
       if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
@@ -83,7 +84,7 @@ class FMRefinerBase {
   void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
                                            HypernodeWeight& heaviest_part_weight,
                                            const PartitionID from_part,
-                                           const PartitionID to_part) const {
+                                           const PartitionID to_part) const noexcept {
     if (heaviest_part == from_part) {
       heaviest_part = heaviestPart();
       heaviest_part_weight = _hg.partWeight(heaviest_part);

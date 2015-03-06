@@ -41,8 +41,8 @@ class AHyperedgeCoarsener : public Test {
 TEST_F(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep) {
   coarsener.coarsen(5);
   ASSERT_THAT(coarsener._contraction_mementos.size(), Eq(2));
-  ASSERT_THAT(coarsener._history.top().mementos_begin, Eq(0));
-  ASSERT_THAT(coarsener._history.top().mementos_size, Eq(2));
+  ASSERT_THAT(coarsener._history.back().mementos_begin, Eq(0));
+  ASSERT_THAT(coarsener._history.back().mementos_size, Eq(2));
 }
 
 TEST_F(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight) {
@@ -172,7 +172,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
   hypergraph.setNodePart(0, 0);
   coarsener.restoreSingleNodeHyperedges();
 
-  coarsener.performUncontraction(coarsener._history.top(), refinement_nodes,
+  coarsener.performUncontraction(coarsener._history.back(), refinement_nodes,
                                  num_refinement_nodes);
 
   ASSERT_THAT(num_refinement_nodes, Eq(3));

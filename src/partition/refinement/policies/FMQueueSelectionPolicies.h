@@ -16,7 +16,7 @@ template <typename Gain = Mandatory>
 struct EligibleTopGain {
   template <typename PrioQueue>
   static bool selectQueue(bool pq0_eligible, bool pq1_eligible,
-                          const PrioQueue& pq0, const PrioQueue& pq1) {
+                          const PrioQueue& pq0, const PrioQueue& pq1) noexcept {
     Gain gain_pq0 = std::numeric_limits<Gain>::min();
     if (pq0_eligible) {
       gain_pq0 = pq0->maxKey();
