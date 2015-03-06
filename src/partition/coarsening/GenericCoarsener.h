@@ -30,12 +30,12 @@ namespace partition
     int parallel_hes_size;        // # removed parallel hyperedges
 
     Memento contraction_memento;
-    explicit GenericCoarseningMemento(Memento contr_memento) :
+    explicit GenericCoarseningMemento(Memento&& contr_memento) noexcept :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
       parallel_hes_size(0),
-      contraction_memento(contr_memento){ }
+      contraction_memento(std::move(contr_memento)){ }
   };
 
   template<typename Coarsener>
@@ -51,7 +51,7 @@ namespace partition
     public:
       using Base::_hg;
       using Base::_config;
-      //using Base::_history;
+      using Base::_history;
       using Base::_stats;
       using Base::removeSingleNodeHyperedges;
       using Base::removeParallelHyperedges;
@@ -64,10 +64,10 @@ namespace partition
         _clusterer(nullptr), _clustering_map()
     {
       _clusterer = std::unique_ptr<partition::IClusterer>(new Coarsener(hg, config));
-      _history_mine.reserve(hg.initialNumNodes());
+      _history.reserve(hg.initialNumNodes());
     }
 
-      void coarsenImpl(HypernodeID limit) final
+      void coarsenImpl(HypernodeID limit) noexcept final
       {
         int count_contr = 0;
         int level = 1;
@@ -118,7 +118,7 @@ namespace partition
         gatherCoarseningStats();
       };
 
-      bool uncoarsenImpl(IRefiner &refiner) final
+      bool uncoarsenImpl(IRefiner &refiner) noexcept final
       {
         // copied from HeavyEdgeCoarsenerBase.h
         double current_imbalance = metrics::imbalance(_hg);
@@ -133,20 +133,16 @@ namespace partition
 
 
         //while (!_history.empty()) {
-        while (!_history_mine.empty()) {
+        while (!_history.empty()) {
           restoreParallelHyperedges();
           restoreSingleNodeHyperedges();
 
-          //_hg.uncontract(_history.top().contraction_memento);
-          _hg.uncontract(_history_mine.back().contraction_memento);
-          //refinement_nodes[0] = _history.top().contraction_memento.u;
-          //refinement_nodes[1] = _history.top().contraction_memento.v;
-          refinement_nodes[0] = _history_mine.back().contraction_memento.u;
-          refinement_nodes[1] = _history_mine.back().contraction_memento.v;
+          _hg.uncontract(_history.back().contraction_memento);
+          refinement_nodes[0] = _history.back().contraction_memento.u;
+          refinement_nodes[1] = _history.back().contraction_memento.v;
 
           performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
-          //_history.pop();
-          _history_mine.pop_back();
+          _history.pop_back();
         }
         return current_cut < initial_cut;
       }
@@ -158,8 +154,7 @@ namespace partition
         {
           DBG(dbg_coarsening_coarsen, "Contracting (" <<nodes[0] << ", " << nodes[i] << ")");
 
-          //_history.emplace(_hg.contract(nodes[0], nodes[i]));
-          _history_mine.emplace_back(_hg.contract(nodes[0], nodes[i]));
+          _history.emplace_back(_hg.contract(nodes[0], nodes[i]));
           removeSingleNodeHyperedges(nodes[0]);
           removeParallelHyperedges(nodes[0]);
 
@@ -168,12 +163,12 @@ namespace partition
         return nodes[0];
       }
 
-      const Stats& statsImpl() const final
+      const Stats& statsImpl() const noexcept final
       {
         return _stats;
       }
 
-      std::string policyStringImpl() const final {
+      std::string policyStringImpl() const noexcept final {
         return " coarsener=GenericCoarsener " + _clusterer->clusterer_string();
       }
 

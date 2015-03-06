@@ -27,7 +27,7 @@ namespace partition
 
     int mementos_begin;           // start of mementos corresponding to HE contraction
     int mementos_size;            // # mementos
-    explicit GenericClusterCoarseningMultilevelMemento() :
+    explicit GenericClusterCoarseningMultilevelMemento() noexcept :
       one_pin_hes_begin(0),
       one_pin_hes_size(0),
       parallel_hes_begin(0),
@@ -67,7 +67,7 @@ namespace partition
       _levels.push(0);
     }
 
-      void coarsenImpl(HypernodeID limit) final
+      void coarsenImpl(HypernodeID limit) noexcept final
       {
         int count_contr = 0;
         do
@@ -104,7 +104,7 @@ namespace partition
         gatherCoarseningStats();
       };
 
-      bool uncoarsenImpl(IRefiner &refiner) final
+      bool uncoarsenImpl(IRefiner &refiner) noexcept final
       {
         // copied from HeavyEdgeCoarsenerBase.h
         double current_imbalance = metrics::imbalance(_hg);
@@ -126,9 +126,9 @@ namespace partition
           {
             restoreParallelHyperedges();
             restoreSingleNodeHyperedges();
-            performUncontraction(_history.top(), refinement_nodes, num_refinement_nodes);
+            performUncontraction(_history.back(), refinement_nodes, num_refinement_nodes);
 
-            _history.pop();
+            _history.pop_back();
           }
           performLocalSearch(refiner, refinement_nodes, num_refinement_nodes, current_imbalance, current_cut);
           _levels.pop();
@@ -138,11 +138,11 @@ namespace partition
         return current_cut < initial_cut;
       }
 
-      HypernodeID performContraction(const std::vector<HypernodeID> &nodes)
+      HypernodeID performContraction(const std::vector<HypernodeID> &nodes) noexcept
       {
-        _history.emplace(GenericClusterCoarseningMultilevelMemento());
-        _history.top().mementos_begin = _contraction_mementos.size();
-        _history.top().mementos_size = nodes.size()-1;
+        _history.emplace_back(GenericClusterCoarseningMultilevelMemento());
+        _history.back().mementos_begin = _contraction_mementos.size();
+        _history.back().mementos_size = nodes.size()-1;
 
         // the first node is representative
         for (int i = 1; i< nodes.size(); i++)
@@ -156,7 +156,7 @@ namespace partition
 
       void performUncontraction(const GenericClusterCoarseningMultilevelMemento &memento,
           std::vector<HypernodeID> &refinement_nodes,
-          size_t &num_refinement_nodes)
+          size_t &num_refinement_nodes) noexcept
       {
         refinement_nodes[num_refinement_nodes++] = _contraction_mementos[memento.mementos_begin
           + memento.mementos_size - 1].u;
@@ -173,12 +173,12 @@ namespace partition
         }
       }
 
-      const Stats& statsImpl() const final
+      const Stats& statsImpl() const noexcept final
       {
         return _stats;
       }
 
-      std::string policyStringImpl() const final {
+      std::string policyStringImpl() const noexcept final {
         return " coarsener=GenericCoarsenerMultilevel max_iterations=" + _clusterer->clusterer_string();
 
       }
