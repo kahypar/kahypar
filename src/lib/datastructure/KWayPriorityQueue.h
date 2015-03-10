@@ -52,14 +52,14 @@ class KWayPriorityQueue {
   // Used to initialize binary heaps
   void initialize(const IDType heap_size) noexcept {
     for (size_t i = 0; i < _part.size(); ++i) {
-      _queues.emplace_back(Queue(heap_size));
+      _queues.emplace_back(heap_size);
     }
   }
 
   // Used to initialize bucket_pqs
   void initialize(const KeyType gain_span) noexcept {
     for (size_t i = 0; i < _part.size(); ++i) {
-      _queues.emplace_back(Queue(gain_span));
+      _queues.emplace_back(gain_span);
     }
   }
 

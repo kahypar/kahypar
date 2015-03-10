@@ -61,7 +61,7 @@ class CoarsenerBase {
     _hypergraph_pruner(_hg, _config, _stats) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
-    _max_hn_weights.emplace_back(CurrentMaxNodeWeight { _hg.numNodes(), 1 });
+    _max_hn_weights.emplace_back(_hg.numNodes(), 1);
   }
 
   virtual ~CoarsenerBase() { }
