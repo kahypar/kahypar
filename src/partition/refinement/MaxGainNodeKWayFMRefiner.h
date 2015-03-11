@@ -464,9 +464,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           // connectivity for each HE by 1. Actually the implementation also corrects source_part,
           // however we reset gain and connectivity-decrease values for source part before searching
           // for the max-gain-move & thus never consider the source_part-related values.
-          if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
-            ++num_hes_with_only_hn_in_part;
-          }
+          num_hes_with_only_hn_in_part += _hg.pinCountInPart(he, _hg.partID(hn)) == 1;
+
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (part != _hg.partID(hn)) {
               // Move can never increase connectivity in this case, because there is at
@@ -491,9 +490,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           break;
         default:
           // For the same reason as above
-          if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
-            ++num_hes_with_only_hn_in_part;
-          }
+          num_hes_with_only_hn_in_part += _hg.pinCountInPart(he, _hg.partID(hn)) == 1;
 
           for (const PartitionID part : _hg.connectivitySet(he)) {
             // in this case, the connectivity is > 2 and therefore it is more likely that

@@ -230,7 +230,7 @@ class HyperedgeCoarsener : public ICoarsener,
     for (const HypernodeID hn_to_contract : hns_to_contract) {
       DBG(dbg_coarsening_coarsen, "Contracting (" << representative << "," << hn_to_contract
           << ") from HE " << he);
-      _contraction_mementos.push_back(_hg.contract(representative, hn_to_contract));
+      _contraction_mementos.emplace_back(_hg.contract(representative, hn_to_contract));
       ++_history.back().mementos_size;
     }
     return representative;
