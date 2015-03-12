@@ -902,14 +902,6 @@ class KWayFMRefiner : public IRefiner,
       }
     }
 
-    // DBG(dbg_refinement_kway_fm_gain_comp, [&]() {
-    //     LOG("internal_weight=" << internal_weight);
-    //     for (PartitionID target_part : _tmp_target_parts) {
-    //       LOG("gain(" << target_part << ")=" << _tmp_gains[target_part]);
-    //     }
-    //     return std::string("");
-    //   } ());
-
     // own partition does not count
     _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
     _tmp_gains[source_part] = 0;
