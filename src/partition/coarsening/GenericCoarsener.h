@@ -111,9 +111,10 @@ namespace partition
 
           _clustering_map.clear();
 
-          _stats.add("GenericCoarsenerLevel_"+std::to_string(level) + "_numContractions",_config.partition.current_v_cycle, count_contr);
+          //_stats.add("GenericCoarsenerLevel_"+std::to_string(level) + "_numContractions",_config.partition.current_v_cycle, count_contr);
           ++level;
         } while (count_contr > 0 && _hg.numNodes() > limit);
+        _stats.add("GenericCoarsenerLevels",_config.partition.current_v_cycle, level);
 
         gatherCoarseningStats();
       };
@@ -169,7 +170,7 @@ namespace partition
       }
 
       std::string policyStringImpl() const noexcept final {
-        return " coarsener=GenericCoarsener " + _clusterer->clusterer_string();
+        return " coarsener=GenericCoarsener ";// + _clusterer->clusterer_string();
       }
 
     private:
