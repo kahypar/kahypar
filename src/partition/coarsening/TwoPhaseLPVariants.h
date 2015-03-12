@@ -50,10 +50,6 @@ using two_phase_lp_clique_sampled_max_score = partition::TwoPhaseLPClusterer<
 
 
 
-
-
-
-
 // bipartite
 template<typename SCORE, typename SIZE_CONSTR>
 using bipartite_lp = partition::BipartiteLPClusterer<

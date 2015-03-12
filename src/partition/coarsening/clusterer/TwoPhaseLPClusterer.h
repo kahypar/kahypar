@@ -109,9 +109,9 @@ namespace partition
               assert(size_constraint_[new_label] <= config_.coarsening.max_allowed_node_weight);
             }
 
-//#ifndef NDEBUG
-            //validate();
-//#endif
+#ifndef NDEBUG
+            validate();
+#endif
             //std::cout << labels_changed << " changed their label" << std::endl;
             finished |= check_finished_condition_(nodes_.size(), iter, labels_changed, config_);
             ++iter;
