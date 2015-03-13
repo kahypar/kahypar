@@ -69,8 +69,7 @@ namespace partition
                                 const NodeData __attribute__((unused)) &node_data,
                                 const EdgeData &edge_data)
     {
-      if (hg.edgeSize(he) ==1) return hg.edgeWeight(he);
-      return hg.edgeWeight(he)/((static_cast<double>(hg.edgeSize(he)) - 1.) * edge_data.count_labels);
+      return hg.edgeWeight(he) / static_cast<double>(edge_data.count_labels);
     }
   };
 
@@ -80,9 +79,7 @@ namespace partition
                                 const NodeData __attribute__((unused)) &node_data,
                                 const EdgeData &edge_data)
     {
-      if (hg.edgeSize(he) ==1) return hg.edgeWeight(he);
-      return (hg.edgeSize(he) * hg.edgeWeight(he)) /
-             (static_cast<double>(edge_data.sample_size) * static_cast<double>(hg.edgeSize(he)-1.) * edge_data.count_labels);
+      return (hg.edgeSize(he) * hg.edgeWeight(he)) / (static_cast<double>(edge_data.sample_size) * static_cast<double>(edge_data.count_labels));
     }
   };
 
