@@ -335,6 +335,7 @@ class KWayFMRefiner : public IRefiner,
         _pq.remove(hn, part);
       }
     }
+    _active[hn] = false;
   }
 
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
@@ -682,8 +683,22 @@ class KWayFMRefiner : public IRefiner,
           bool valid = true;
           for (const HypernodeID pin : _hg.pins(he)) {
             if (!isBorderNode(pin)) {
-              // If the pin is an internal HN, there should not be any move of this HN
-              // in the PQ.
+              // The pin is an internal HN
+
+              // If the pin is active, but not marked as moved, we forgot to reset
+              // the active flag for that pin, because an internal HN should not
+              // be contained in any PQ and therefore should not be marked as active.
+              // If the pin is not active, but marked as moved, we forgot to mark the
+              // pin as active when we inserted its moves into the PQ.
+              // We check both error conditions via XOR
+              if (!_active[pin] != !_marked[pin]) {
+                LOG("HN " << pin << " has inconsistent bool flag state");
+                LOGVAR(_active[pin]);
+                LOGVAR(_marked[pin]);
+                return false;
+              }
+
+              //there should not be any move of this HN in the PQ.
               for (PartitionID part = 0; part < _config.partition.k; ++part) {
                 valid = (_pq.contains(pin, part) == false);
                 if (!valid) {
