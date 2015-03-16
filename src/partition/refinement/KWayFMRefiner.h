@@ -355,8 +355,15 @@ class KWayFMRefiner : public IRefiner,
                           const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _pq.contains(pin, from_part)
-        && !hypernodeIsConnectedToPart(pin, from_part)){
+        && !hypernodeIsConnectedToPart(pin, from_part)) {
       _pq.remove(pin, from_part);
+      // Now pq might actually not contain any moves for HN pin.
+      // We do not need to set _active to false however, because in this case
+      // the move not only decreased but also increased the connectivity and we
+      // therefore add a new move to to_part in the next if-condition.
+      // This resembled the case in which all but one incident HEs of HN pin are
+      // internal and the "other" pin of the border HE (which has size 2) is
+      // moved from one part to another.
     }
     if (move_increased_connectivity  && !_pq.contains(pin, to_part)) {
       ASSERT(_hg.connectivity(he) >=2 , V(_hg.connectivity(he)));
@@ -368,6 +375,7 @@ class KWayFMRefiner : public IRefiner,
         _pq.enablePart(to_part);
       }
     }
+    ASSERT(_pq.contains(pin) && _active[pin], V(pin));
   }
 
   // Full update includes:
