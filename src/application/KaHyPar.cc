@@ -444,6 +444,8 @@ int main(int argc, char* argv[]) {
 
 
 
+    CoarsenerFactory::getInstance().registerObject("two_phase_lp_no", [](CoarsenerFactoryParameters& p) ->
+      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
   // lp clique sampled
   // class 1
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score1", [](CoarsenerFactoryParameters& p) ->

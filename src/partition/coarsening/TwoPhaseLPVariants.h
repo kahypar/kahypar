@@ -62,6 +62,21 @@ using bipartite_lp = partition::BipartiteLPClusterer<
 
 
 
+// TODO
+template<typename SCORE, typename SIZE_CONSTR, typename ORDERING>
+using two_phase_lp_node_ordering = partition::TwoPhaseLPClusterer<
+                                                  partition::NodeOrderingInitialization<ORDERING>,
+                                                  partition::InitializeSamplesWithUpdates,
+                                                  partition::CollectInformationWithUpdates,
+                                                  partition::DontCollectInformation,
+                                                  partition::DontPermutateNodes,
+                                                  partition::PermutateLabels,
+                                                  partition::SampledLabelsScoreComputation<SCORE>,
+                                                  partition::SizeConstraintPenaltyNewLabelComputation<SIZE_CONSTR>,
+                                                  partition::DefaultGain,
+                                                  partition::UpdateInformation,
+                                                  partition::MaxIterationCondition>;
+
 
 
 

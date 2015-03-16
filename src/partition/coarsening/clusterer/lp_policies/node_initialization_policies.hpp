@@ -27,6 +27,106 @@ namespace partition
     };
   };
 
+  struct Ordering1
+  {
+    static std::pair<HypernodeID, long long> go(Hypergraph &hg, const HypernodeID &hn)
+    {
+      return std::make_pair(hn, hg.nodeDegree(hn));
+    }
+
+    static std::pair<HypernodeID, long long> go2(Hypergraph &hg, const HypernodeID &he)
+    {
+      return std::make_pair(hg.initialNumNodes() + he, hg.edgeSize(he));
+    }
+  };
+
+  struct Ordering2
+  {
+    static std::pair<HypernodeID, long long> go(Hypergraph &hg, const HypernodeID &hn)
+    {
+      long long res = 0;
+      for (auto inc_edge : hg.incidentEdges(hn))
+        res += hg.edgeSize(inc_edge);
+
+      return std::make_pair(hn, res + hg.nodeDegree(hn));
+    }
+
+    static std::pair<HypernodeID, long long> go2(Hypergraph &hg, const HypernodeID &he)
+    {
+      long long res = 0;
+      for (auto pin: hg.pins(he))
+        res += hg.nodeDegree(pin);
+
+      return std::make_pair(hg.initialNumNodes() + he, res + hg.edgeSize(he));
+    }
+  };
+
+  struct Ordering3
+  {
+    static std::pair<HypernodeID, long long> go(Hypergraph &hg, const HypernodeID &hn)
+    {
+      long long res = 0;
+      for (auto inc_edge : hg.incidentEdges(hn))
+        res += hg.edgeSize(inc_edge);
+
+      return std::make_pair(hn, res * hg.nodeDegree(hn));
+    }
+
+    static std::pair<HypernodeID, long long> go2(Hypergraph &hg, const HypernodeID &he)
+    {
+      long long res = 0;
+      for (auto pin: hg.pins(he))
+        res += hg.nodeDegree(pin);
+
+      return std::make_pair(hg.initialNumNodes() + he, res * hg.edgeSize(he));
+    }
+  };
+
+  struct Ordering4
+  {
+    static std::pair<HypernodeID, long long> go(Hypergraph &hg, const HypernodeID &hn)
+    {
+      long long res = 0;
+      for (auto inc_edge : hg.incidentEdges(hn))
+        res += hg.edgeSize(inc_edge);
+
+      return std::make_pair(hn, res * hg.nodeDegree(hn) * hg.nodeDegree(hn));
+    }
+
+    static std::pair<HypernodeID, long long> go2(Hypergraph &hg, const HypernodeID &he)
+    {
+      long long res = 0;
+      for (auto pin: hg.pins(he))
+        res += hg.nodeDegree(pin);
+
+      return std::make_pair(hg.initialNumNodes() + he, res * hg.edgeSize(he) *  hg.edgeSize(he));
+    }
+  };
+
+  struct Ordering5
+  {
+    static std::pair<HypernodeID, long long> go(Hypergraph &hg, const HypernodeID &hn)
+    {
+      long long res = 0;
+      for (auto inc_edge : hg.incidentEdges(hn))
+        res += hg.edgeSize(inc_edge);
+
+      return std::make_pair(hn, hg.nodeDegree(hn)* log(static_cast<double>(res)));
+    }
+
+
+    static std::pair<HypernodeID, long long> go2(Hypergraph &hg, const HypernodeID &he)
+    {
+      long long res = 0;
+      for (auto pin: hg.pins(he))
+        res += hg.nodeDegree(pin);
+
+      return std::make_pair(hg.initialNumNodes() + he, hg.edgeSize(he) * log(static_cast<double>(res)));
+    }
+  };
+
+
+  template<typename Ordering=Ordering1>
   struct NodeOrderingInitialization
   {
     static void initialize(std::vector<HypernodeID> &nodes, std::vector<HypernodeWeight> &size_constraint,
@@ -46,7 +146,7 @@ namespace partition
         size_constraint[label] = hg.nodeWeight(hn);
         nodeData[hn].label = label;
         labels_count[label++] = 1;
-        temp.emplace_back(std::make_pair(hn, hg.nodeDegree(hn)));
+        temp.emplace_back(Ordering::go(hg,hn));
       }
 
       // sort the nodes in increasing order, depending on their degree
@@ -97,7 +197,7 @@ namespace partition
   };
 
 
-  // todo more orderings!
+  template<typename Ordering = Ordering1>
   struct NodeOrderingInitializationBipartite
   {
     static inline void initialize(Hypergraph &hg, std::vector<Label> &labels,
@@ -118,7 +218,7 @@ namespace partition
         nodes[hn] = hn;
         label++;
         order.push_back(hn);
-        tmp.emplace_back(std::make_pair(hn, hg.nodeDegree(hn)));
+        tmp.emplace_back(Ordering::go(hg,hn));
       }
 
       for (const auto& he : hg.edges())
@@ -128,7 +228,7 @@ namespace partition
         nodes[hg.initialNumNodes() + he] = he;
         label++;
         order.push_back(hg.initialNumNodes() + he);
-        tmp.emplace_back(std::make_pair(hg.initialNumNodes() + he, hg.edgeSize(he)));
+        tmp.emplace_back(Ordering::go2(hg,he));
       }
 
       // sort the nodes in increasing order, depending on their degree
