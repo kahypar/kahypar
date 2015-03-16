@@ -1,12 +1,20 @@
+
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
+#set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
+
+# vitali: hacky...
+include_directories(${PROJECT_SOURCE_DIR}/src/external/lpa_hypergraph/include)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 #ensure that gmock is built before tests are executed
-include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
+#include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
+include(ExternalProject)
+include_directories(${PROJECT_SOURCE_DIR}/gmock)
+#include(${PROJECT_SOURCE_DIR}/gmock/CMakeLists.txt)
 ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
   INSTALL_COMMAND "")
@@ -25,7 +33,7 @@ endif(${HOSTNAME} MATCHES "i10pc1.*")
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
 if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS}) 
+  include_directories(${Boost_INCLUDE_DIRS})
   message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
   message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
@@ -61,7 +69,7 @@ if(CMAKE_BUILD_TYPE MATCHES DEBUG)
 include(codestyle/CMakeLists.txt)
 endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")
 
 if(ENABLE_PROFILE MATCHES ON)
@@ -86,5 +94,4 @@ include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)
-
 
