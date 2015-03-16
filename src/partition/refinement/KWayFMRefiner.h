@@ -83,14 +83,16 @@ class KWayFMRefiner : public IRefiner,
     _active(_hg.initialNumNodes()),
     _just_activated(_hg.initialNumNodes()),
     _marked(_hg.initialNumNodes()),
+    _seen(_config.partition.k, false),
     _he_fully_active(_hg.initialNumEdges()),
     _tmp_gains(_config.partition.k, 0),
-    _tmp_target_parts(_config.partition.k, Hypergraph::kInvalidPartition),
+    _tmp_target_parts(),
     _performed_moves(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
     _stats() {
+    _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
   }
 
@@ -863,43 +865,50 @@ class KWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
 
+    _tmp_target_parts.clear();
+    _seen.assign(_seen.size(), false);
+
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch(_hg.connectivity(he)) {
         case 1:
-          internal_weight += _hg.edgeWeight(he);
+          internal_weight += he_weight;
           break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
-            _tmp_target_parts[part] = part;
+            if (!_seen[part]) {
+              _seen[part] = true;
+              _tmp_target_parts.push_back(part);
+            }
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
-              _tmp_gains[part] += _hg.edgeWeight(he);
+              _tmp_gains[part] += he_weight;
             }
           }
           break;
         default:
            for (const PartitionID part : _hg.connectivitySet(he)) {
-             _tmp_target_parts[part] = part;
+             if (likely(!_seen[part])) {
+              _seen[part] = true;
+              _tmp_target_parts.push_back(part);
+            }
            }
           break;
       }
     }
 
-    // own partition does not count
-    _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
-    _tmp_gains[source_part] = 0;
-
-    for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
-      if (_tmp_target_parts[target_part] != Hypergraph::kInvalidPartition) {
+    for (const PartitionID target_part : _tmp_target_parts) {
+      if (target_part == source_part) {
+        _tmp_gains[source_part] = 0;
+        continue;
+      }
       DBG(dbg_refinement_kway_fm_gain_comp, "inserting HN " << hn << " with gain "
           << (_tmp_gains[target_part] - internal_weight)  << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << target_part);
       _pq.insert(hn, target_part, _tmp_gains[target_part] - internal_weight);
+      _tmp_gains[target_part] = 0;
       if (_hg.partWeight(target_part) < max_allowed_part_weight) {
         _pq.enablePart(target_part);
-      }
-      _tmp_gains[target_part] = 0;
-      _tmp_target_parts[target_part] = Hypergraph::kInvalidPartition;
       }
     }
   }
@@ -909,6 +918,7 @@ class KWayFMRefiner : public IRefiner,
   std::vector<bool> _active;
   std::vector<bool> _just_activated;
   std::vector<bool> _marked;
+  std::vector<bool> _seen;
 
   std::vector<bool> _he_fully_active;
   std::vector<Gain> _tmp_gains;
