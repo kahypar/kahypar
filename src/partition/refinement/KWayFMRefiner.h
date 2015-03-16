@@ -287,48 +287,6 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 
-  void updatePinOfHyperedgeNotCutBeforeAppylingMove(const HypernodeID pin,
-                                                    const HyperedgeWeight he_weight,
-                                                    const PartitionID from_part,
-                                                    const HyperedgeID he,
-                                                    const HypernodeWeight max_allowed_part_weight)
-      noexcept {
-
-    for (PartitionID part = 0; part < _config.partition.k; ++part) {
-      if (part != from_part) {
-        updatePin(pin, part, he, he_weight, max_allowed_part_weight);
-      }
-    }
-  }
-
-  void updatePinOfHyperedgeRemovedFromCut(const HypernodeID pin, const HyperedgeWeight he_weight,
-                                          const PartitionID to_part, const HyperedgeID he,
-                                          const HypernodeWeight max_allowed_part_weight) noexcept {
-    for (PartitionID part = 0; part < _config.partition.k; ++part) {
-      if (part != to_part) {
-        updatePin(pin, part,he, -he_weight, max_allowed_part_weight);
-      }
-    }
-  }
-
-  void updatePinRemainingOutsideOfTargetPartAfterApplyingMove(const HypernodeID pin,
-                                                              const HyperedgeWeight he_weight,
-                                                              const PartitionID to_part,
-                                                              const HyperedgeID he,
-                                                              const HypernodeWeight max_allowed_part_weight)
-  noexcept {
-    updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
-  }
-
-  void updatePinOutsideFromPartBeforeApplyingMove(const HypernodeID pin,
-                                                  const HyperedgeWeight he_weight,
-                                                  const PartitionID from_part,
-                                                  const HyperedgeID he,
-                                                  const HypernodeWeight max_allowed_part_weight)
-      noexcept {
-    updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
-  }
-
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) noexcept {
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       if (_pq.contains(hn, part)) {
@@ -355,28 +313,37 @@ class KWayFMRefiner : public IRefiner,
         && pin_count_source_part_before_move > 1) {
       DBG(dbg_refinement_kway_fm_gain_update,
           "he " << he << " is not cut before applying move");
-      updatePinOfHyperedgeNotCutBeforeAppylingMove(pin, he_weight, from_part, he,
-                                                   max_allowed_part_weight);
+      // Update pin of a HE that is not cut before applying the move.
+      for (PartitionID part = 0; part < _config.partition.k; ++part) {
+        if (part != from_part) {
+          updatePin(pin, part, he, he_weight, max_allowed_part_weight);
+        }
+      }
     }
     if (he_connectivity == 1 && pin_count_source_part_before_move == 1) {
       DBG(dbg_refinement_kway_fm_gain_update,"he " << he
           << " is cut before applying move and uncut after");
-      updatePinOfHyperedgeRemovedFromCut(pin, he_weight, to_part,he, max_allowed_part_weight);
+      // Update pin of a HE that is removed from the cut.
+      for (PartitionID part = 0; part < _config.partition.k; ++part) {
+        if (part != to_part) {
+          updatePin(pin, part,he, -he_weight, max_allowed_part_weight);
+        }
+      }
     }
     if (pin_count_target_part_after_move == he_size - 1) {
       DBG(dbg_refinement_kway_fm_gain_update,he
           << ": Only one vertex remains outside of to_part after applying the move");
       if(_hg.partID(pin) != to_part) {
-        updatePinRemainingOutsideOfTargetPartAfterApplyingMove(pin,he_weight, to_part,he,
-                                                               max_allowed_part_weight);
+        // Update single pin that remains outside of to_part after applying the move
+        updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
       }
     }
     if (pin_count_source_part_before_move == he_size - 1) {
       DBG(dbg_refinement_kway_fm_gain_update, he
           << ": Only one vertex outside from_part before applying move");
       if (_hg.partID(pin) != from_part) {
-        updatePinOutsideFromPartBeforeApplyingMove(pin, he_weight, from_part, he,
-                                                   max_allowed_part_weight);
+        // Update single pin that was outside from_part before applying the move.
+        updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
       }
     }
   }
