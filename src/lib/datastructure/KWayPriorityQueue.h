@@ -229,7 +229,7 @@ class KWayPriorityQueue {
 
   size_t maxIndex() const noexcept {
     size_t max_index = kInvalidIndex;
-    KeyType max_key = std::numeric_limits<KeyType>::min();
+    KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
       ASSERT(!_queues[index].empty(), V(index));
       const KeyType key = _queues[index].getMaxKey();
