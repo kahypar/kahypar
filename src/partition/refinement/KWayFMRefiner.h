@@ -55,7 +55,6 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_infeasible_moves = false;
 
   using Gain = HyperedgeWeight;
-  using GainPartitionPair = std::pair<Gain, PartitionID>;
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight>>;
 
