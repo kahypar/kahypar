@@ -32,22 +32,18 @@ class Randomize {
   }
 
   // returns uniformly random int from the interval [low, high]
-  static int getRandomInt(int low, int high)
-  {
-    return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low,high));
+  static int getRandomInt(int low, int high) {
+    return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low, high));
   }
 
   // returns uniformly random float from the interval [low, high)
-  static float getRandomFloat(float low, float high)
-  {
-    return _float_dist(_gen, std::uniform_real_distribution<float>::param_type(low,high));
+  static float getRandomFloat(float low, float high) {
+    return _float_dist(_gen, std::uniform_real_distribution<float>::param_type(low, high));
   }
 
-  static float getNormalDistributedFloat(float mean, float std_dev)
-  {
+  static float getNormalDistributedFloat(float mean, float std_dev) {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
-
 
   private:
   static int _seed;
