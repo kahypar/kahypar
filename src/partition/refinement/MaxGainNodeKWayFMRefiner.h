@@ -467,6 +467,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           num_hes_with_only_hn_in_part += _hg.pinCountInPart(he, _hg.partID(hn)) == 1;
 
           for (const PartitionID part : _hg.connectivitySet(he)) {
+            // TODO(schlag): DIESES IF BEKOMMT MAN WEG, INDEM MAN ES HIER EINFACH LOESCHT
+            //              UND UNTEN EINFACH EIN CONTINUE MACHT, WENN DER SOURCE PART KOMMT!
             if (part != _hg.partID(hn)) {
               // Move can never increase connectivity in this case, because there is at
               // least one pin in part - otherwise the HE would not be connected to that part
@@ -495,6 +497,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           for (const PartitionID part : _hg.connectivitySet(he)) {
             // in this case, the connectivity is > 2 and therefore it is more likely that
             // the expression is true than that it is false.
+            // TODO(schlag): DIESES IF BEKOMMT MAN WEG, INDEM MAN ES HIER EINFACH LOESCHT
+            //              UND UNTEN EINFACH EIN CONTINUE MACHT, WENN DER SOURCE PART KOMMT!
             if (part != _hg.partID(hn)) {
               // HEs with connectivity > 2 cannot increase the gain
               ASSERT(_hg.pinCountInPart(he, part) != _hg.edgeSize(he) - 1, V(part));
