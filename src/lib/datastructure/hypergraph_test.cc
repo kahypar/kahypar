@@ -495,6 +495,21 @@ TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
   ASSERT_THAT(hypergraph.pinCountInPart(1, 1), Eq(4));
 }
 
+
+TEST_F(AHypergraph, MaintainsPartitionPinCountsForRestoredSingleNodeOrParallelHEs) {
+  hypergraph.removeEdge(1, false);
+
+  // pseudo initial partitioning
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(3, 1);
+  hypergraph.setNodePart(4, 1);
+
+  hypergraph.restoreEdge(1);
+  ASSERT_THAT(hypergraph.pinCountInPart(1, 1), Eq(3));
+  ASSERT_THAT(hypergraph.pinCountInPart(1, 0), Eq(1));
+}
+
 TEST_F(AHypergraph, DecrementsPartitionPinCountOnHypernodeRemoval) {
   hypergraph.setNodePart(0, 1);
   hypergraph.setNodePart(1, 1);
