@@ -45,7 +45,6 @@ class Randomize {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
 
->>>>>>> master
   private:
   static int _seed;
   static std::mt19937 _gen;
