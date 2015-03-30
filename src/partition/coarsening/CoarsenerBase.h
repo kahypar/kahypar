@@ -31,7 +31,7 @@ using utils::Stats;
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_rating = false;
-static const bool dbg_coarsening_no_valid_contraction = true;
+static const bool dbg_coarsening_no_valid_contraction = false;
 static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
 
