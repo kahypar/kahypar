@@ -213,6 +213,10 @@ class CoarsenerBase {
                (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
     _stats.add("HNdegreeAVG", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
+    _stats.add("HNweightMIN", _config.partition.current_v_cycle,
+               (node_weight_map.size() > 0 ? node_weight_map.begin()->first : 0));
+    _stats.add("HNweightMAX", _config.partition.current_v_cycle,
+               (node_weight_map.size() > 0 ? node_weight_map.rbegin()->first : 0));
 #endif
   }
 
