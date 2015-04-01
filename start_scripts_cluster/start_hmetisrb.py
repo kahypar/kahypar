@@ -13,6 +13,8 @@ import os
 hMetis = str('/home/kit/iti/mp6747/experiments/esa15/binaries/hmetis2.0pre1')
 ###################################
 
+my_env = os.environ.copy()
+
 parser = argparse.ArgumentParser()
 parser.add_argument("graph", type=str)
 parser.add_argument("k", type=int)
@@ -47,7 +49,7 @@ for line in hg:
     numNodes= hg_param[1]
     break;
 hg.close()
-    
+
 #We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
 #with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
 #In order to provide a balanced initial partitioning, we determine the UBfactor such that
@@ -66,12 +68,12 @@ p = Popen([hMetis,
            '-ufactor='+str(rbufactor),
            '-seed='+str(seed),
            '-nruns='+str(nruns),
-           '-nvcycles='+str(nvcycles)], stdout=PIPE, bufsize=1)
+           '-nvcycles='+str(nvcycles)], stdout=PIPE, bufsize=1, env=my_env)
 
 result_string = ("RESULT graph="+ntpath.basename(graph) +
         " k=" + str(k) +
         " epsilon=" + str(ufactor) +
-        " rbUfactor=" +str(rbufactor) +         
+        " rbUfactor=" +str(rbufactor) +
         " seed=" + str(seed) )
 
 i = 0

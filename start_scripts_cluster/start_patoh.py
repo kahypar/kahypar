@@ -18,6 +18,8 @@ PaToH = str('/home/kit/iti/mp6747/experiments/esa15/binaries/patoh')
 PATOH_TMP = str('/work/workspace/scratch/mp6747-esa15-0/patoh_instances')
 ###################################
 
+my_env = os.environ.copy()
+
 parser = argparse.ArgumentParser()
 parser.add_argument("graph", type=str)
 parser.add_argument("k", type=int)
@@ -52,13 +54,13 @@ if (not os.path.isfile(modified_hg_path)):
 
     count_nets = 0
     count_pins = 0
-    
+
     node_weights = ""
     for line in hg:
     # ignore comment lines
         if line.startswith('%'):
             continue
-        
+
         if not header_parsed:
             hg_param = line.split()
             if (len(hg_param) < 3):
@@ -94,8 +96,8 @@ if (not os.path.isfile(modified_hg_path)):
             # patoh wants all node weights in a single line!
                 assert(len(line.split()) == 1)
                 node_weights += line.split()[0] + " "
-                        
-                    
+
+
     #print('number pins: ' + str(count_pins))
     #print(hg_param)
 
@@ -103,7 +105,7 @@ if (not os.path.isfile(modified_hg_path)):
     modified_hg.write(str(1) + " " + str(hg_param[1]) + " " + str(hg_param[0]) + " " + str(count_pins) + " " + str(hg_param[2]) + '\n')
     for line in modified_hg_list:
         modified_hg.write(line)
-        
+
     modified_hg.write(node_weights+ '\n')
     modified_hg.close()
     hg.close()
@@ -121,7 +123,7 @@ p = Popen([PaToH,
            'PQ=Q', # quality preset
            'WI=0', # dont write the partitioning info to disk
            'BO=C' # balance on cell
-       ], stdout=PIPE, bufsize=1)
+       ], stdout=PIPE, bufsize=1, env=my_env)
 
 result_string = ("RESULT graph="+ntpath.basename(graph) +
         " k=" + str(k) +

@@ -13,6 +13,8 @@ import os
 hMetis = str('/home/kit/iti/mp6747/experiments/esa15/binaries/hmetis2.0pre1')
 ###################################
 
+my_env = os.environ.copy()
+
 parser = argparse.ArgumentParser()
 parser.add_argument("graph", type=str)
 parser.add_argument("k", type=int)
@@ -46,7 +48,7 @@ p = Popen([hMetis,
            '-ufactor='+str(int(ufactor*100)),
            '-seed='+str(seed),
            '-nruns='+str(nruns),
-           '-nvcycles='+str(nvcycles)], stdout=PIPE, bufsize=1)
+           '-nvcycles='+str(nvcycles)], stdout=PIPE, bufsize=1, env=my_env)
 
 result_string = ("RESULT graph="+ntpath.basename(graph) +
         " k=" + str(k) +

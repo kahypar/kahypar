@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts 't:s:i:k:r:' OPTION ; do
+while getopts 's:i:k:b:e:' OPTION ; do
     case "$OPTION" in
 	s)
 	    printf "Script:\t $OPTARG \n"
@@ -11,9 +11,12 @@ while getopts 't:s:i:k:r:' OPTION ; do
 	k)
 	    printf "k:\t $OPTARG \n"
 	    K=$OPTARG;;
-	r)
-	    printf "seed:\t $OPTARG \n"
-	    SEED=$OPTARG
+	b)
+	    printf "b:\t $OPTARG \n"
+	    B=$OPTARG;;
+	e)
+	    printf "e:\t $OPTARG \n"
+	    E=$OPTARG
     esac
 done
 
@@ -32,20 +35,30 @@ if [ "x" == "x$K" ]; then
   exit
 fi
 
-if [ "x" == "x$SEED" ]; then
-  echo "-i [option] is required: seed"
+if [ "x" == "x$B" ]; then
+  echo "-i [option] is required: B seed"
+  exit
+fi
+
+if [ "x" == "x$E" ]; then
+  echo "-i [option] is required: E seed"
   exit
 fi
 
 source common_setup.sh
 
 k=$K
-seed=$SEED
+#seed=$SEED
+
+module load lib/boost/1.55.0
+module load compiler/gnu/4.9
 
 ###########################
 # Experimental Setup
 ###########################
 epsilon=0.03
 ###########################
-
-$START_SCRIPT $INSTANCE $k $epsilon $seed >> "$GRAPH_NAME.$k.$epsilon.results"
+for seed in `seq $B $E`
+do
+   $START_SCRIPT $INSTANCE $k $epsilon $seed >> "$GRAPH_NAME.$k.$epsilon.results"
+done

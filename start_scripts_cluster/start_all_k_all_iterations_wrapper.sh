@@ -30,11 +30,13 @@ declare -a kValues=("2" "4" "8" "16" "32" "64" "128")
 epsilon=0.03
 ###########################
 
+module load lib/boost/1.55.0
+module load compiler/gnu/4.9
+
 for k in "${kValues[@]}"
 do
-    for reps in `seq 1 10`
+    for seed in `seq 1 10`
     do
-        seed=`od -A n -t d -N 4 /dev/urandom | awk '{print $1}'`
 	$START_SCRIPT $INSTANCE $k $epsilon $seed >> "$GRAPH_NAME.$k.$epsilon.results"
     done
 done

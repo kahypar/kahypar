@@ -14,6 +14,8 @@ KaHyPar = str('/home/kurayami/code/source/hypergraph/build/src/application/KaHyP
 #hMetis = str('/home/kit/iti/mp6747/experiments/esa15/binaries/hmetis2.0pre1')
 ###################################
 
+my_env = os.environ.copy()
+
 parser = argparse.ArgumentParser()
 parser.add_argument("graph", type=str)
 parser.add_argument("k", type=int)
@@ -41,7 +43,7 @@ max_iterations = 3
 max_refinement_iterations = 5
 nruns = 1
 nvcycles = 5
-init_part = 'hMetis'
+part_path = 'hMetis'
 
 p = Popen([KaHyPar,
            '--init-remove-hes=1',
@@ -58,8 +60,8 @@ p = Popen([KaHyPar,
            '--nruns='+str(nruns),
            '--vcycles='+str(nvcycles),
            '--ctype='+ctype,
-           '--part='+init_part,
-           ], stdout=PIPE, bufsize=1)
+           '--part-path='+part_path,
+           ], stdout=PIPE, bufsize=1, env=my_env)
 
 result_string = ''
 for line in iter(p.stdout.readline, b''):
