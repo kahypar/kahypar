@@ -41,6 +41,25 @@ struct Configuration {
     std::string scheme;
   };
 
+  struct InitialPartitioningParameters {
+	  InitialPartitioningParameters() :
+		  coarse_graph_filename(),
+		  k(2),
+		  epsilon(0.05),
+	  	  mode(),
+		  upper_allowed_partition_weight(),
+		  lower_allowed_partition_weight(),
+		  seed(-1) { }
+
+	  std::string coarse_graph_filename;
+	  PartitionID k;
+	  double epsilon;
+	  std::string mode;
+	  HypernodeWeight upper_allowed_partition_weight;
+	  HypernodeWeight lower_allowed_partition_weight;
+	  int seed;
+  };
+
   struct PartitioningParameters {
     PartitioningParameters() :
       k(2),
@@ -114,6 +133,7 @@ struct Configuration {
 
   PartitioningParameters partition;
   CoarseningParameters coarsening;
+  InitialPartitioningParameters initial_partitioning;
   TwoWayFMParameters two_way_fm;
   HERFMParameters her_fm;
 
