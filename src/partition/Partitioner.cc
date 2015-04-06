@@ -274,6 +274,10 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
       io::writeHypergraphForPaToHPartitioning(hg, _config.partition.coarse_graph_filename,
                                               hg_to_hmetis);
       break;
+    case InitialPartitioner::KaHyPar:
+      io::writeHypergraphForhMetisPartitioning(hg, _config.partition.coarse_graph_filename,
+                                               hg_to_hmetis);
+      break;
   }
 
   std::vector<PartitionID> partitioning;
@@ -310,6 +314,15 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + " WI=1" // write partition info
                                    + " BO=C" // balance on cell weights
                                    + (_config.partition.verbose_output ? " OD=2" : " > /dev/null");
+        break;
+      case InitialPartitioner::KaHyPar:
+        initial_partitioner_call = _config.partition.initial_partitioner_path + " --hgr="
+                                   + _config.partition.coarse_graph_filename
+                                   + " --k=" + std::to_string(_config.partition.k)
+                                   + " --seed=" + std::to_string(seed)
+                                   + " --epsilon=" + std::to_string(_config.partition.epsilon)
+                                   + " --mode=random"
+                                   + " --output=" + _config.partition.coarse_graph_partition_filename;
         break;
     }
 

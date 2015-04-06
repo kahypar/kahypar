@@ -115,6 +115,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.partition.initial_partitioner = InitialPartitioner::hMetis;
       } else if (vm["part"].as<std::string>() == "PaToH") {
         config.partition.initial_partitioner = InitialPartitioner::PaToH;
+      } else if (vm["part"].as<std::string>() == "KaHyPar") {
+          config.partition.initial_partitioner = InitialPartitioner::KaHyPar;
       }
     }
     if (vm.count("part-path")) {
@@ -126,6 +128,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
           break;
         case InitialPartitioner::PaToH:
           config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+          break;
+        case InitialPartitioner::KaHyPar:
+          config.partition.initial_partitioner_path = "/home/theuer/Documents/hypergraph/debug/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
           break;
       }
     }
@@ -466,6 +471,7 @@ int main(int argc, char* argv[]) {
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
+  std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
   SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner, *coarsener, *refiner,

@@ -15,6 +15,7 @@
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
+#include "lib/core/Factory.h"
 namespace po = boost::program_options;
 
 using defs::Hypergraph;
@@ -22,7 +23,21 @@ using defs::HypernodeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeID;
 using partition::Configuration;
+using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
+using core::Factory;
+
+struct InitialPartitioningFactoryParameters {
+	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
+    hypergraph(hgr),
+    config(conf) { }
+  Hypergraph& hypergraph;
+  Configuration& config;
+};
+
+using InitialPartitioningFactory = Factory<IInitialPartitioner, std::string,
+									IInitialPartitioner* (*)(InitialPartitioningFactoryParameters&),
+									InitialPartitioningFactoryParameters>;
 
 void configurePartitionerFromCommandLineInput(Configuration& config,
 		const po::variables_map& vm) {
@@ -30,6 +45,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		config.initial_partitioning.coarse_graph_filename = vm["hgr"].as<
 				std::string>();
 		config.initial_partitioning.k = vm["k"].as<PartitionID>();
+		if(vm.count("output"))
+			config.initial_partitioning.coarse_graph_partition_filename = vm["output"].as<
+					std::string>();
 		if (vm.count("epsilon"))
 			config.initial_partitioning.epsilon = vm["epsilon"].as<double>();
 		if (vm.count("mode"))
@@ -48,6 +66,15 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.mode = "random";
 	config.initial_partitioning.seed = -1;
+}
+
+void createInitialPartitioningFactory() {
+	  InitialPartitioningFactory::getInstance().registerObject(
+	    "random",
+	    [](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+	      return new RandomInitialPartitioner(p.hypergraph, p.config);
+	    }
+	    );
 }
 
 void printStats(Hypergraph& hypergraph, Configuration& config) {
@@ -73,13 +100,13 @@ int main(int argc, char* argv[]) {
 
 	//Reading command line input
 	po::options_description desc("Allowed options");
-	desc.add_options()("help", "show help message")("hgr",
-			po::value<std::string>(),
-			"Filename of the hypergraph to be partitioned")("k",
-			po::value<PartitionID>(), "Number of partitions")("epsilon",
-			po::value<double>(), "Imbalance ratio")("mode",
-			po::value<std::string>(), "Initial partitioning variant")("seed",
-					po::value<int>(), "Seed for randomization");
+	desc.add_options()("help", "show help message")
+			("hgr",po::value<std::string>(),"Filename of the hypergraph to be partitioned")
+			("output",po::value<std::string>(),"Output partition file")
+			("k",po::value<PartitionID>(), "Number of partitions")
+			("epsilon",po::value<double>(), "Imbalance ratio")
+			("mode",po::value<std::string>(), "Initial partitioning variant")
+			("seed",po::value<int>(), "Seed for randomization");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -96,6 +123,8 @@ int main(int argc, char* argv[]) {
 	configurePartitionerFromCommandLineInput(config, vm);
 
 	Randomize::setSeed(config.initial_partitioning.seed);
+
+
 
 	//Read Hypergraph-File
 	HypernodeID num_hypernodes;
@@ -123,10 +152,20 @@ int main(int argc, char* argv[]) {
 					/ static_cast<double>(config.initial_partitioning.k))
 			* (1.0 - config.initial_partitioning.epsilon);
 
-	RandomInitialPartitioner partitioner(hypergraph, config);
-	partitioner.partition();
+
+	//Initialize the InitialPartitioner
+	InitialPartitioningFactoryParameters initial_partitioning_parameters(hypergraph,config);
+	createInitialPartitioningFactory();
+	  std::unique_ptr<IInitialPartitioner> partitioner(
+	    InitialPartitioningFactory::getInstance().createObject(config.initial_partitioning.mode, initial_partitioning_parameters)
+	    );
+
+	(*partitioner).partition();
 
 	printStats(hypergraph, config);
+
+	if(vm.count("output"))
+		io::writePartitionFile(hypergraph, config.initial_partitioning.coarse_graph_partition_filename);
 
 
 

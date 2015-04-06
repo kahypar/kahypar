@@ -20,7 +20,8 @@ using defs::PartitionID;
 namespace partition {
 enum class InitialPartitioner {
   hMetis,
-  PaToH
+  PaToH,
+  KaHyPar
 };
 
 struct Configuration {
@@ -44,6 +45,7 @@ struct Configuration {
   struct InitialPartitioningParameters {
 	  InitialPartitioningParameters() :
 		  coarse_graph_filename(),
+		  coarse_graph_partition_filename(),
 		  k(2),
 		  epsilon(0.05),
 	  	  mode(),
@@ -52,6 +54,7 @@ struct Configuration {
 		  seed(-1) { }
 
 	  std::string coarse_graph_filename;
+	  std::string coarse_graph_partition_filename;
 	  PartitionID k;
 	  double epsilon;
 	  std::string mode;
