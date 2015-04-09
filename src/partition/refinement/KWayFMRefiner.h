@@ -295,10 +295,13 @@ class KWayFMRefiner : public IRefiner,
   }
 
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
-                                           const HypernodeID pin_count_source_part_after_move)
+                                           const HypernodeID pin_count_source_part_after_move,
+                                           const HypernodeID he_size)
       const noexcept {
-    return (pin_count_target_part_before_move == 0 || pin_count_target_part_before_move == 1 ||
-            pin_count_source_part_after_move == 0 || pin_count_source_part_after_move == 1);
+    return (pin_count_source_part_after_move == 0
+            || pin_count_target_part_before_move == 0
+            || pin_count_target_part_before_move + 1 == he_size - 1
+            || pin_count_source_part_after_move + 1 == he_size - 1 );
   }
 
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
@@ -391,7 +394,8 @@ class KWayFMRefiner : public IRefiner,
 
       if (!_he_fully_active[he]
           || moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
-                                                 pin_count_source_part_after_move)) {
+                                                 pin_count_source_part_after_move,
+                                                 _hg.edgeSize(he))) {
         const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
         const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
         const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
@@ -439,7 +443,8 @@ class KWayFMRefiner : public IRefiner,
     const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
 
     if (moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
-                                            pin_count_source_part_after_move)) {
+                                            pin_count_source_part_after_move,
+                                            _hg.edgeSize(he))) {
       const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
