@@ -13,6 +13,8 @@
 #include "partition/Configuration.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
+#include "partition/initial_partitioning/BFSInitialPartitioner.h"
+#include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
 #include "lib/core/Factory.h"
@@ -25,6 +27,8 @@ using defs::HyperedgeID;
 using partition::Configuration;
 using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
+using partition::BFSInitialPartitioner;
+using partition::RecursiveBisection;
 using core::Factory;
 
 struct InitialPartitioningFactoryParameters {
@@ -72,18 +76,37 @@ void createInitialPartitioningFactory() {
 	  InitialPartitioningFactory::getInstance().registerObject(
 	    "random",
 	    [](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-	      return new RandomInitialPartitioner(p.hypergraph, p.config);
+	      return new RandomInitialPartitioner(p.hypergraph,p.config);
+	    }
+	    );
+	  InitialPartitioningFactory::getInstance().registerObject(
+	    "recursive",
+	    [](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+	      return new RecursiveBisection<RandomInitialPartitioner>(p.hypergraph,p.config);
+	    }
+	    );
+	  InitialPartitioningFactory::getInstance().registerObject(
+	    "recursive-random",
+	    [](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+	      return new RecursiveBisection<RandomInitialPartitioner>(p.hypergraph,p.config);
+	    }
+	    );
+	  InitialPartitioningFactory::getInstance().registerObject(
+	    "recursive-bfs",
+	    [](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+	      return new RecursiveBisection<BFSInitialPartitioner>(p.hypergraph,p.config);
 	    }
 	    );
 }
 
 void printStats(Hypergraph& hypergraph, Configuration& config) {
-
+	LOG("**********************************");
+	LOG("******** HypergraphInfo **********");
+	LOG("**********************************");
+	std::cout << "Nodes: " << hypergraph.numNodes() << ", Edges: " << hypergraph.numEdges() << std::endl;
 	LOG("**********************************");
 	LOG("*** Initial Partitioning Stats ***");
 	LOG("**********************************");
-	  std::cout << "Upper allowed partition weight = " << config.initial_partitioning.upper_allowed_partition_weight << std::endl;
-	  std::cout << "Lower allowed partition weight = " << config.initial_partitioning.lower_allowed_partition_weight << std::endl;
 	  std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
 	  std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
 	  std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
@@ -142,15 +165,12 @@ int main(int argc, char* argv[]) {
 		hypergraph_weight += hypergraph.nodeWeight(hn);
 	}
 
-	config.initial_partitioning.upper_allowed_partition_weight = ceil(
-			hypergraph_weight
-					/ static_cast<double>(config.initial_partitioning.k))
-			* (1.0 + config.initial_partitioning.epsilon);
+	for(int i = 0; i < config.initial_partitioning.k; i++)
+		config.initial_partitioning.upper_allowed_partition_weight.push_back(ceil(
+				hypergraph_weight
+						/ static_cast<double>(config.initial_partitioning.k))
+				* (1.0 + config.initial_partitioning.epsilon));
 
-	config.initial_partitioning.lower_allowed_partition_weight = ceil(
-			hypergraph_weight
-					/ static_cast<double>(config.initial_partitioning.k))
-			* (1.0 - config.initial_partitioning.epsilon);
 
 
 	//Initialize the InitialPartitioner
@@ -160,7 +180,7 @@ int main(int argc, char* argv[]) {
 	    InitialPartitioningFactory::getInstance().createObject(config.initial_partitioning.mode, initial_partitioning_parameters)
 	    );
 
-	(*partitioner).partition();
+	(*partitioner).partition(config.initial_partitioning.k);
 
 	printStats(hypergraph, config);
 

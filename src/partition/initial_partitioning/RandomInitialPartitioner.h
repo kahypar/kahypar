@@ -24,7 +24,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 
 	public:
 		RandomInitialPartitioner(Hypergraph& hypergraph,
-				const Configuration& config) :
+				Configuration& config) :
 				InitialPartitionerBase(hypergraph, config) {
 		}
 
@@ -33,45 +33,24 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 
 	private:
 
-		bool assignHypernodeToPartition(HypernodeID hn, PartitionID p) {
-			HypernodeWeight assign_partition_weight = _hg.partWeight(p)
-					+ _hg.nodeWeight(hn);
-			if (assign_partition_weight
-					< _config.initial_partitioning.upper_allowed_partition_weight) {
-				_hg.setNodePart(hn, p);
-				return true;
-			} else {
-				return false;
-			}
-		}
 
-		void balancePartition(PartitionID k) {
-			for (const HypernodeID hn : _hg.nodes()) {
-				PartitionID nodePart = _hg.partID(hn);
-				if(nodePart != k && _hg.partWeight(nodePart) - _hg.nodeWeight(hn) >= _config.initial_partitioning.lower_allowed_partition_weight)
-					_hg.changeNodePart(hn,nodePart,k);
-				if(_hg.partWeight(k) >= _config.initial_partitioning.lower_allowed_partition_weight)
-					break;
-			}
-		}
 
-		void balancePartitions() {
-			for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
-				if (_hg.partWeight(k)
-						< _config.initial_partitioning.lower_allowed_partition_weight) {
-					balancePartition(k);
-				}
-			}
-		}
-
-		void partitionImpl() final {
+		void kwayPartitionImpl() final {
 			for (const HypernodeID hn : _hg.nodes()) {
 				PartitionID p = Randomize::getRandomInt(0,
 						_config.initial_partitioning.k - 1);
 				while (!assignHypernodeToPartition(hn, p))
 					p = (p + 1) % _config.initial_partitioning.k;
 			}
-			balancePartitions();
+		}
+
+		void bisectionPartitionImpl() final {
+			for (const HypernodeID hn : _hg.nodes()) {
+				PartitionID p = Randomize::getRandomInt(0,
+						1);
+				while (!assignHypernodeToPartition(hn, p))
+					p = (p + 1) % 2;
+			}
 		}
 
 		using InitialPartitionerBase::_hg;

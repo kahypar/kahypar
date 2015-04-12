@@ -15,9 +15,19 @@ class IInitialPartitioner {
 
 
 	public:
-	void partition() {
-		partitionImpl();
+	  IInitialPartitioner(const IInitialPartitioner&) = delete;
+	  IInitialPartitioner(IInitialPartitioner&&) = delete;
+	  IInitialPartitioner& operator = (const IInitialPartitioner&) = delete;
+	  IInitialPartitioner& operator = (IInitialPartitioner&&) = delete;
+
+
+	void partition(int k) {
+		if(k == 2)
+			bisectionPartitionImpl();
+		else
+			kwayPartitionImpl();
 	}
+
 
 	virtual ~IInitialPartitioner() {}
 
@@ -26,7 +36,9 @@ class IInitialPartitioner {
 
 	private:
 
-	virtual void partitionImpl() = 0;
+	virtual void kwayPartitionImpl() = 0;
+
+	virtual void bisectionPartitionImpl() = 0;
 
 
 };

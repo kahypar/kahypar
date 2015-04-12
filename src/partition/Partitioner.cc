@@ -321,7 +321,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + " --k=" + std::to_string(_config.partition.k)
                                    + " --seed=" + std::to_string(seed)
                                    + " --epsilon=" + std::to_string(_config.partition.epsilon)
-                                   + " --mode=random"
+                                   + " --mode=recursive-bfs"
                                    + " --output=" + _config.partition.coarse_graph_partition_filename;
         break;
     }

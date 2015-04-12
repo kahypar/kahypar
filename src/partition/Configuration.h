@@ -16,6 +16,7 @@ using defs::HypernodeWeight;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
+using defs::HypernodeWeightVector;
 
 namespace partition {
 enum class InitialPartitioner {
@@ -50,7 +51,6 @@ struct Configuration {
 		  epsilon(0.05),
 	  	  mode(),
 		  upper_allowed_partition_weight(),
-		  lower_allowed_partition_weight(),
 		  seed(-1) { }
 
 	  std::string coarse_graph_filename;
@@ -58,8 +58,7 @@ struct Configuration {
 	  PartitionID k;
 	  double epsilon;
 	  std::string mode;
-	  HypernodeWeight upper_allowed_partition_weight;
-	  HypernodeWeight lower_allowed_partition_weight;
+	  HypernodeWeightVector upper_allowed_partition_weight;
 	  int seed;
   };
 
