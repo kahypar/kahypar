@@ -9,6 +9,7 @@
 #define SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_
 
 #include <vector>
+#include <stack>
 #include <map>
 
 #include "lib/definitions.h"
@@ -35,19 +36,154 @@ class InitialPartitionerBase {
 
 	InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config)  noexcept :
 		_hg(hypergraph),
-		_config(config) {  }
+		_config(config),
+		cutEdges(),
+		cutStack() {
+
+		best_cut = _hg.numEdges();
+		cutEdges.assign(_hg.numEdges(),false);
+
+	}
 
 	virtual ~InitialPartitionerBase() { }
 
-	bool assignHypernodeToPartition(HypernodeID hn, PartitionID p) {
+	void rollbackToBestBisectionCut() {
+		int currentSize = -1;
+		HypernodeID currentHypernode = 0;
+		while(currentSize != bestPartSize && !cutStack.empty()) {
+			if(currentSize != -1) {
+				if(!assignHypernodeToPartition(currentHypernode,1))
+					break;
+			}
+			std::pair<int,HypernodeID> cutPair = cutStack.top(); cutStack.pop();
+			currentSize = cutPair.first;
+			currentHypernode = cutPair.second;
+		}
+	}
+
+	void calculateBisectionCutAfterAssignment(HypernodeID hn) {
+		partSize += _hg.nodeWeight(hn);
+		for(HyperedgeID he : _hg.incidentEdges(hn)) {
+			bool isCutEdge = false;
+			for(HypernodeID hnodes : _hg.pins(he)) {
+				if(_hg.partID(hnodes) == -1) {
+					if(!cutEdges[he]) {
+						cutEdges[he] = true;
+						cut += _hg.edgeWeight(he);
+						isCutEdge = true;
+					}
+				}
+			}
+			if(!isCutEdge && cutEdges[he]) {
+				cutEdges[he] = false;
+				cut -= _hg.edgeWeight(he);
+			}
+		}
+		if(_config.initial_partitioning.lower_allowed_partition_weight[0] <= partSize && _config.initial_partitioning.upper_allowed_partition_weight[0] >= partSize) {
+			cutStack.push(std::make_pair(partSize,hn));
+			if(cut < best_cut) {
+				best_cut = cut;
+				bestPartSize = partSize;
+			}
+		}
+	}
+
+	bool assignHypernodeToPartition(HypernodeID hn, PartitionID p, bool preparingForRollback = false) {
 		HypernodeWeight assign_partition_weight = _hg.partWeight(p)
 				+ _hg.nodeWeight(hn);
 		if (assign_partition_weight
 				<= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
-			_hg.setNodePart(hn, p);
+			if(_hg.partID(hn) == -1) {
+				_hg.setNodePart(hn, p);
+				if(preparingForRollback)
+					calculateBisectionCutAfterAssignment(hn);
+			}
+			else {
+				assign_partition_weight = _hg.partWeight(_hg.partID(hn))
+						- _hg.nodeWeight(hn);
+				if(assign_partition_weight >= _config.initial_partitioning.lower_allowed_partition_weight[0])
+					_hg.changeNodePart(hn,_hg.partID(hn),p);
+				else
+					return false;
+			}
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+
+	void balancePartitions() {
+		HypernodeWeight hypergraph_weight = 0;
+		for (const HypernodeID hn : _hg.nodes()) {
+			hypergraph_weight += _hg.nodeWeight(hn);
+		}
+		for (int i = 0; i < _config.initial_partitioning.k; i++) {
+			_config.initial_partitioning.lower_allowed_partition_weight[i] =
+					ceil(
+							hypergraph_weight
+									/ static_cast<double>(_config.initial_partitioning.k))
+							* (1.0 - _config.initial_partitioning.epsilon);
+			_config.initial_partitioning.upper_allowed_partition_weight[i] =
+					ceil(
+							hypergraph_weight
+									/ static_cast<double>(_config.initial_partitioning.k))
+							* (1.0 + _config.initial_partitioning.epsilon);
+		}
+		for(PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			if(_config.initial_partitioning.lower_allowed_partition_weight[i] >= _hg.partSize(i)) {
+				for(HyperedgeID he : _hg.edges()) {
+					bool isBalanced = false;
+					if(_hg.connectivity(he) > 1) {
+						std::vector<HypernodeID> balanceNodes;
+						bool isBalanceEdge = false;
+						for(HypernodeID hn : _hg.pins(he)) {
+							if(_hg.partID(hn) == i)
+								isBalanceEdge = true;
+							else
+								balanceNodes.push_back(hn);
+						}
+						if(isBalanceEdge) {
+							for(int j = 0; j < balanceNodes.size(); j++) {
+								if(assignHypernodeToPartition(balanceNodes[j],i))
+									isBalanced = _config.initial_partitioning.lower_allowed_partition_weight[i] <= _hg.partSize(i);
+							}
+						}
+					}
+					if(isBalanced)
+						break;
+				}
+			}
+			if(_config.initial_partitioning.upper_allowed_partition_weight[i] <= _hg.partSize(i)) {
+				for(HyperedgeID he : _hg.edges()) {
+					bool isBalanced = false;
+					if(_hg.connectivity(he) > 1) {
+						std::vector<HypernodeID> balanceNodes;
+						std::vector<PartitionID> partitionsInEdge;
+						bool isBalanceEdge = false;
+						for(HypernodeID hn : _hg.pins(he)) {
+							if(_hg.partID(hn) == i) {
+								isBalanceEdge = true;
+								balanceNodes.push_back(hn);
+							}
+							else
+								partitionsInEdge.push_back(_hg.partID(hn));
+						}
+						if(isBalanceEdge) {
+							for(int j = 0; j < balanceNodes.size(); j++) {
+								for(int k = 0; k < partitionsInEdge.size(); k++) {
+									if(assignHypernodeToPartition(balanceNodes[j],partitionsInEdge[k])) {
+										isBalanced = _config.initial_partitioning.upper_allowed_partition_weight[i] >= _hg.partSize(i);
+										break;
+									}
+								}
+							}
+						}
+					}
+					if(isBalanced)
+						break;
+				}
+			}
 		}
 	}
 
@@ -93,6 +229,12 @@ class InitialPartitionerBase {
 	Configuration& _config;
 
 	private:
+	HyperedgeWeight best_cut = 0;
+	HyperedgeWeight cut = 0;
+	HypernodeWeight partSize = 0;
+	HypernodeWeight bestPartSize = 0;
+	std::vector<bool> cutEdges;
+	std::stack<std::pair<HypernodeWeight,HyperedgeWeight>> cutStack;
 
 
 };

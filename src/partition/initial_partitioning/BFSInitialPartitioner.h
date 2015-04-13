@@ -34,37 +34,115 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 	private:
 
 
+		void findStartNodes(std::vector<HypernodeID>& currentStartNodes, PartitionID& k) {
+			if(k == 2 ) {
+				currentStartNodes.push_back(Randomize::getRandomInt(0,_hg.numNodes()-1));
+				return;
+			} else if(currentStartNodes.size() == k) {
+				return;
+			} else if(currentStartNodes.size() == 0) {
+				currentStartNodes.push_back(Randomize::getRandomInt(0,_hg.numNodes()-1));
+				findStartNodes(currentStartNodes,k);
+				return;
+			}
+
+			std::vector<bool> visited(_hg.numNodes(),false);
+			std::queue<HypernodeID> bfs;
+			HypernodeID lastHypernode = -1;
+			for(int i = 0; i < currentStartNodes.size(); i++)
+				bfs.push(currentStartNodes[i]);
+			while(!bfs.empty()) {
+				HypernodeID hn = bfs.front(); bfs.pop();
+				if(visited[hn])
+					continue;
+				lastHypernode = hn; visited[hn] = true;
+				for(HyperedgeID he : _hg.incidentEdges(lastHypernode)) {
+					for(HypernodeID hnodes : _hg.pins(he)) {
+						if(!visited[hnodes])
+							bfs.push(hnodes);
+					}
+				}
+			}
+			currentStartNodes.push_back(lastHypernode);
+			findStartNodes(currentStartNodes,k);
+		}
 
 		void kwayPartitionImpl() final {
-
+			std::vector<std::queue<HypernodeID>> bfs(_config.initial_partitioning.k, std::queue<HypernodeID>());
+			std::vector<bool> partEnable(_config.initial_partitioning.k, true);
+			std::vector<HypernodeID> startNodes;
+			findStartNodes(startNodes,_config.initial_partitioning.k);
+			for(int i = 0; i < startNodes.size(); i++) {
+				bfs[i].push(startNodes[i]);
+			}
+			int assignedNodes = 0;
+			while(true) {
+				for(int i = 0; i < startNodes.size(); i++) {
+					if(partEnable[i] && !bfs[i].empty()) {
+						HypernodeID hn = bfs[i].front(); bfs[i].pop();
+						if(_hg.partID(hn) != -1)
+							continue;
+						if(!assignHypernodeToPartition(hn,i))
+							partEnable[i] = false;
+						else
+							assignedNodes++;
+						for(HyperedgeID he : _hg.incidentEdges(hn)) {
+							for(HypernodeID hnodes : _hg.pins(he))
+								if(_hg.partID(hnodes) == -1)
+									bfs[i].push(hnodes);
+						}
+					}
+					if(partEnable[i] && bfs[i].empty() && assignedNodes != _hg.numNodes()) {
+						HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
+						while(_hg.partID(newStartNode) != -1) {
+							newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
+						}
+						bfs[i].push(newStartNode);
+					}
+				}
+				if(assignedNodes == _hg.numNodes())
+					break;
+			}
+			InitialPartitionerBase::balancePartitions();
 		}
 
 		void bisectionPartitionImpl() final {
+			std::stack<std::pair<int,HypernodeID>> cutStack;
 			std::queue<HypernodeID> bfs;
-			HypernodeID startNode = Randomize::getRandomInt(1,_hg.numNodes());
-			bfs.push(startNode);
+			std::vector<HypernodeID> startNode;
+			findStartNodes(startNode,_config.initial_partitioning.k);
+			bfs.push(startNode[0]);
 			while(true) {
-				HypernodeID hn = bfs.front(); bfs.pop();
-				if(_hg.partID(hn) != -1)
-					continue;
-				if(!assignHypernodeToPartition(hn,0))
-					break;
-				for(HyperedgeID he : _hg.incidentEdges(hn)) {
-					for(HypernodeID hnodes : _hg.pins(he))
-						bfs.push(hnodes);
+				if(!bfs.empty()) {
+					HypernodeID hn = bfs.front(); bfs.pop();
+					if(_hg.partID(hn) != -1)
+						continue;
+					if(!assignHypernodeToPartition(hn,0,true))
+						break;
+					for(HyperedgeID he : _hg.incidentEdges(hn)) {
+						bool isCutEdge = false;
+						for(HypernodeID hnodes : _hg.pins(he)) {
+							if(_hg.partID(hnodes) == -1) {
+								bfs.push(hnodes);
+							}
+						}
+					}
 				}
-				if(bfs.empty()) {
-					HypernodeID newStartNode = Randomize::getRandomInt(1,_hg.numNodes());
+				else {
+					HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
 					while(_hg.partID(newStartNode) != -1)
-						newStartNode = Randomize::getRandomInt(0,_hg.numNodes());
-					bfs.push(startNode);
+						newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
+					bfs.push(newStartNode);
 				}
+
 			}
 			for(HypernodeID hn : _hg.nodes()) {
 				if(_hg.partID(hn) != 0)
 					assignHypernodeToPartition(hn,1);
 			}
+			InitialPartitionerBase::rollbackToBestBisectionCut();
 		}
+
 
 		using InitialPartitionerBase::_hg;
 		using InitialPartitionerBase::_config;

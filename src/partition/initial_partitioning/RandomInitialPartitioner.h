@@ -45,12 +45,20 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 		}
 
 		void bisectionPartitionImpl() final {
-			for (const HypernodeID hn : _hg.nodes()) {
-				PartitionID p = Randomize::getRandomInt(0,
-						1);
-				while (!assignHypernodeToPartition(hn, p))
-					p = (p + 1) % 2;
+			HypernodeID hn = Randomize::getRandomInt(0,
+					_hg.numNodes()-1);
+			while(assignHypernodeToPartition(hn,0,true)) {
+				hn = Randomize::getRandomInt(0,
+									_hg.numNodes()-1);
+				while(_hg.partID(hn) != -1)
+					hn = Randomize::getRandomInt(0,
+										_hg.numNodes()-1);
 			}
+			for (const HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1)
+					assignHypernodeToPartition(hn,1);
+			}
+			InitialPartitionerBase::rollbackToBestBisectionCut();
 		}
 
 		using InitialPartitionerBase::_hg;

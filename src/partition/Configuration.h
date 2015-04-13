@@ -51,6 +51,7 @@ struct Configuration {
 		  epsilon(0.05),
 	  	  mode(),
 		  upper_allowed_partition_weight(),
+		  lower_allowed_partition_weight(),
 		  seed(-1) { }
 
 	  std::string coarse_graph_filename;
@@ -59,6 +60,7 @@ struct Configuration {
 	  double epsilon;
 	  std::string mode;
 	  HypernodeWeightVector upper_allowed_partition_weight;
+	  HypernodeWeightVector lower_allowed_partition_weight;
 	  int seed;
   };
 

@@ -134,6 +134,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
           break;
       }
     }
+    if(vm.count("mode")) {
+    	config.initial_partitioning.mode = vm["mode"].as<std::string>();
+    }
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
     }
@@ -207,6 +210,7 @@ void setDefaults(Configuration& config) {
   config.partition.initial_partitioning_attempts = 10;
   config.partition.global_search_iterations = 10;
   config.partition.hyperedge_size_threshold = -1;
+  config.initial_partitioning.mode="bfs";
   config.coarsening.scheme = "heavy_full";
   config.coarsening.contraction_limit_multiplier = 160;
   config.coarsening.max_allowed_weight_multiplier = 3.5;
@@ -330,7 +334,8 @@ int main(int argc, char* argv[]) {
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
-    ("file", po::value<std::string>(), "filename of result file");
+    ("file", po::value<std::string>(), "filename of result file")
+    ("mode", po::value<std::string>(), "Initial partitioning mode");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);

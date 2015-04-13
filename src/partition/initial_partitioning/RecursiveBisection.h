@@ -40,11 +40,13 @@ private:
 
 	void kwayPartitionImpl() final {
 		recursiveBisection(_hg, 0, _config.initial_partitioning.k-1);
+		InitialPartitionerBase::balancePartitions();
 	}
 
 	void bisectionPartitionImpl() final {
 		InitialPartitioner partitioner(_hg, _config);
 		partitioner.partition(2);
+		InitialPartitionerBase::balancePartitions();
 	}
 
 	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2) {
@@ -67,9 +69,15 @@ private:
 		//Calculate balance constraints for partition 0 and 1
 		PartitionID k = (k2 - k1 + 1);
 		PartitionID km = floor(((double)k)/2.0);
+		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1
+				- _config.initial_partitioning.epsilon)
+				* km * ceil(hypergraph_weight / ((double) k));
 		_config.initial_partitioning.upper_allowed_partition_weight[0] = (1
 				+ _config.initial_partitioning.epsilon)
 				* km * ceil(hypergraph_weight / ((double) k));
+		_config.initial_partitioning.lower_allowed_partition_weight[1] = (1
+				- _config.initial_partitioning.epsilon)
+				* (k-km) * ceil(hypergraph_weight / ((double) k));
 		_config.initial_partitioning.upper_allowed_partition_weight[1] = (1
 				+ _config.initial_partitioning.epsilon)
 				* (k-km) * ceil(hypergraph_weight / ((double) k));

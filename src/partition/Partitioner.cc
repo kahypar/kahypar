@@ -321,7 +321,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + " --k=" + std::to_string(_config.partition.k)
                                    + " --seed=" + std::to_string(seed)
                                    + " --epsilon=" + std::to_string(_config.partition.epsilon)
-                                   + " --mode=recursive-bfs"
+                                   + " --mode=" + _config.initial_partitioning.mode
                                    + " --output=" + _config.partition.coarse_graph_partition_filename;
         break;
     }
@@ -345,6 +345,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
     }
     partitioning.clear();
   }
+
 
   ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max(), "No min cut calculated");
   for (size_t i = 0; i < best_partitioning.size(); ++i) {
