@@ -11,8 +11,8 @@
 #include <queue>
 
 #include "lib/definitions.h"
-#include "partition/initial_partitioning/IInitialPartitioner.h";
-#include "partition/initial_partitioning/InitialPartitionerBase.h";
+#include "partition/initial_partitioning/IInitialPartitioner.h"
+#include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
@@ -49,7 +49,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 			std::vector<bool> visited(_hg.numNodes(),false);
 			std::queue<HypernodeID> bfs;
 			HypernodeID lastHypernode = -1;
-			for(int i = 0; i < currentStartNodes.size(); i++)
+			for(unsigned int i = 0; i < currentStartNodes.size(); i++)
 				bfs.push(currentStartNodes[i]);
 			while(!bfs.empty()) {
 				HypernodeID hn = bfs.front(); bfs.pop();
@@ -72,12 +72,12 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 			std::vector<bool> partEnable(_config.initial_partitioning.k, true);
 			std::vector<HypernodeID> startNodes;
 			findStartNodes(startNodes,_config.initial_partitioning.k);
-			for(int i = 0; i < startNodes.size(); i++) {
+			for(unsigned int i = 0; i < startNodes.size(); i++) {
 				bfs[i].push(startNodes[i]);
 			}
-			int assignedNodes = 0;
+			unsigned int assignedNodes = 0;
 			while(true) {
-				for(int i = 0; i < startNodes.size(); i++) {
+				for(unsigned int i = 0; i < startNodes.size(); i++) {
 					if(partEnable[i] && !bfs[i].empty()) {
 						HypernodeID hn = bfs[i].front(); bfs[i].pop();
 						if(_hg.partID(hn) != -1)
@@ -120,7 +120,6 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 					if(!assignHypernodeToPartition(hn,0,true))
 						break;
 					for(HyperedgeID he : _hg.incidentEdges(hn)) {
-						bool isCutEdge = false;
 						for(HypernodeID hnodes : _hg.pins(he)) {
 							if(_hg.partID(hnodes) == -1) {
 								bfs.push(hnodes);
