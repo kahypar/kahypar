@@ -97,6 +97,8 @@ static inline double imbalance(const Hypergraph& hypergraph) {
     total_weight += hypergraph.partWeight(i);
     max_weight = std::max(max_weight, hypergraph.partWeight(i));
   }
+
+
   return static_cast<double>(max_weight) /
          ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
 }

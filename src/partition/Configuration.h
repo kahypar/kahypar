@@ -52,7 +52,9 @@ struct Configuration {
 	  	  mode(),
 		  upper_allowed_partition_weight(),
 		  lower_allowed_partition_weight(),
-		  seed(-1) { }
+		  seed(-1),
+		  balancing(),
+		  rollback() { }
 
 	  std::string coarse_graph_filename;
 	  std::string coarse_graph_partition_filename;
@@ -62,6 +64,8 @@ struct Configuration {
 	  HypernodeWeightVector upper_allowed_partition_weight;
 	  HypernodeWeightVector lower_allowed_partition_weight;
 	  int seed;
+	  bool balancing;
+	  bool rollback;
   };
 
   struct PartitioningParameters {

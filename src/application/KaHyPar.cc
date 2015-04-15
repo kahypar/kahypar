@@ -130,7 +130,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
           config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
           break;
         case InitialPartitioner::KaHyPar:
-          config.partition.initial_partitioner_path = "/home/theuer/Documents/hypergraph/release/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
+          config.partition.initial_partitioner_path = "../partition/initial_partitioning/application/InitialPartitioningKaHyPar";
           break;
       }
     }

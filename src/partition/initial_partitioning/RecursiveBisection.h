@@ -40,13 +40,14 @@ private:
 
 	void kwayPartitionImpl() final {
 		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1);
-		InitialPartitionerBase::balancePartitions();
+		InitialPartitionerBase::recalculatePartitionBounds();
+		InitialPartitionerBase::performFMRefinement();
 	}
 
 	void bisectionPartitionImpl() final {
 		InitialPartitioner partitioner(_hg, _config);
 		partitioner.partition(2);
-		InitialPartitionerBase::balancePartitions();
+		InitialPartitionerBase::performFMRefinement();
 	}
 
 	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2) {
@@ -126,16 +127,20 @@ private:
 
 		//Assign partition id from partition 0 to the current hypergraph
 		for (HypernodeID hn : partition_0.nodes()) {
-			hyper.changeNodePart(hgToExtractedHypergraphMapper_0[hn],
-					hyper.partID(hgToExtractedHypergraphMapper_0[hn]),
-					partition_0.partID(hn));
+			if (hyper.partID(hgToExtractedHypergraphMapper_0[hn])
+					!= partition_0.partID(hn))
+				hyper.changeNodePart(hgToExtractedHypergraphMapper_0[hn],
+						hyper.partID(hgToExtractedHypergraphMapper_0[hn]),
+						partition_0.partID(hn));
 		}
 
 		//Assign partition id from partition 1 to the current hypergraph
 		for (HypernodeID hn : partition_1.nodes()) {
-			hyper.changeNodePart(hgToExtractedHypergraphMapper_1[hn],
-					hyper.partID(hgToExtractedHypergraphMapper_1[hn]),
-					partition_1.partID(hn));
+			if (hyper.partID(hgToExtractedHypergraphMapper_1[hn])
+					!= partition_1.partID(hn))
+				hyper.changeNodePart(hgToExtractedHypergraphMapper_1[hn],
+						hyper.partID(hgToExtractedHypergraphMapper_1[hn]),
+						partition_1.partID(hn));
 		}
 
 	}

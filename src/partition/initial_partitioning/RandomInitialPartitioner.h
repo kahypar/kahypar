@@ -42,6 +42,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 				while (!assignHypernodeToPartition(hn, p))
 					p = (p + 1) % _config.initial_partitioning.k;
 			}
+			InitialPartitionerBase::performFMRefinement();
 		}
 
 		void bisectionPartitionImpl() final {
@@ -59,6 +60,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 					assignHypernodeToPartition(hn,1);
 			}
 			InitialPartitionerBase::rollbackToBestBisectionCut();
+			InitialPartitionerBase::performFMRefinement();
 		}
 
 		using InitialPartitionerBase::_hg;

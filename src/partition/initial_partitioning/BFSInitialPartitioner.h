@@ -103,7 +103,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 				if(assignedNodes == _hg.numNodes())
 					break;
 			}
-			InitialPartitionerBase::balancePartitions();
+			InitialPartitionerBase::performFMRefinement();
 		}
 
 		void bisectionPartitionImpl() final {
@@ -140,6 +140,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 					assignHypernodeToPartition(hn,1);
 			}
 			InitialPartitionerBase::rollbackToBestBisectionCut();
+			InitialPartitionerBase::performFMRefinement();
 		}
 
 

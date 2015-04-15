@@ -49,16 +49,22 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		config.initial_partitioning.coarse_graph_filename = vm["hgr"].as<
 				std::string>();
 		config.initial_partitioning.k = vm["k"].as<PartitionID>();
+		config.partition.k = vm["k"].as<PartitionID>();
 		if (vm.count("output"))
 			config.initial_partitioning.coarse_graph_partition_filename =
 					vm["output"].as<std::string>();
-		if (vm.count("epsilon"))
-			config.initial_partitioning.epsilon = vm["epsilon"].as<double>();
+		if (vm.count("epsilon")) {
+			config.initial_partitioning.epsilon = vm["epsilon"].as<double>() - vm["epsilon"].as<double>()/4;
+			config.partition.epsilon = vm["epsilon"].as<double>();
+		}
 		if (vm.count("mode"))
 			config.initial_partitioning.mode = vm["mode"].as<std::string>();
-		if (vm.count("seed")) {
+		if (vm.count("seed"))
 			config.initial_partitioning.seed = vm["seed"].as<int>();
-		}
+		if(vm.count("balancing"))
+			config.initial_partitioning.balancing = vm["balancing"].as<bool>();
+		if(vm.count("rollback"))
+			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);
@@ -67,9 +73,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 
 void setDefaults(Configuration& config) {
 	config.initial_partitioning.k = 2;
+	config.partition.k = 2;
+	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.mode = "random";
 	config.initial_partitioning.seed = -1;
+	config.initial_partitioning.balancing = true;
+	config.initial_partitioning.rollback = true;
 }
 
 void createInitialPartitioningFactory() {
@@ -131,14 +141,15 @@ int main(int argc, char* argv[]) {
 
 	//Reading command line input
 	po::options_description desc("Allowed options");
-	desc.add_options()("help", "show help message")("hgr",
-			po::value<std::string>(),
-			"Filename of the hypergraph to be partitioned")("output",
-			po::value<std::string>(), "Output partition file")("k",
-			po::value<PartitionID>(), "Number of partitions")("epsilon",
-			po::value<double>(), "Imbalance ratio")("mode",
-			po::value<std::string>(), "Initial partitioning variant")("seed",
-			po::value<int>(), "Seed for randomization");
+	desc.add_options()("help", "show help message")
+			("hgr", po::value<std::string>(),"Filename of the hypergraph to be partitioned")
+			("output",po::value<std::string>(), "Output partition file")
+			("k",po::value<PartitionID>(), "Number of partitions")
+			("epsilon", po::value<double>(), "Imbalance ratio")
+			("mode", po::value<std::string>(), "Initial partitioning variant")
+			("seed",po::value<int>(), "Seed for randomization")
+			("balancing", po::value<bool>(), "Balance partition, if they don't satisfy balance constraints")
+			("rollback", po::value<bool>(), "Rollback to best cut, if you bipartition a hypergraph");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
