@@ -14,6 +14,7 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
@@ -28,6 +29,7 @@ using partition::Configuration;
 using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
 using partition::BFSInitialPartitioner;
+using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::RecursiveBisection;
 using core::Factory;
 
@@ -54,16 +56,17 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			config.initial_partitioning.coarse_graph_partition_filename =
 					vm["output"].as<std::string>();
 		if (vm.count("epsilon")) {
-			config.initial_partitioning.epsilon = vm["epsilon"].as<double>() - vm["epsilon"].as<double>()/4;
+			config.initial_partitioning.epsilon = vm["epsilon"].as<double>()
+					- vm["epsilon"].as<double>() / 4;
 			config.partition.epsilon = vm["epsilon"].as<double>();
 		}
 		if (vm.count("mode"))
 			config.initial_partitioning.mode = vm["mode"].as<std::string>();
 		if (vm.count("seed"))
 			config.initial_partitioning.seed = vm["seed"].as<int>();
-		if(vm.count("balancing"))
+		if (vm.count("balancing"))
 			config.initial_partitioning.balancing = vm["balancing"].as<bool>();
-		if(vm.count("rollback"))
+		if (vm.count("rollback"))
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
@@ -80,6 +83,14 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.seed = -1;
 	config.initial_partitioning.balancing = true;
 	config.initial_partitioning.rollback = true;
+
+	config.two_way_fm.stopping_rule = "simple";
+	config.two_way_fm.num_repetitions = -1;
+	config.two_way_fm.max_number_of_fruitless_moves = 1000;
+	config.two_way_fm.alpha = 8;
+	config.her_fm.stopping_rule = "simple";
+	config.her_fm.num_repetitions = -1;
+	config.her_fm.max_number_of_fruitless_moves = 1000;
 }
 
 void createInitialPartitioningFactory() {
@@ -90,6 +101,10 @@ void createInitialPartitioningFactory() {
 	InitialPartitioningFactory::getInstance().registerObject("bfs",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new BFSInitialPartitioner(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("greedy",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new GreedyHypergraphGrowingInitialPartitioner(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -102,6 +117,10 @@ void createInitialPartitioningFactory() {
 	InitialPartitioningFactory::getInstance().registerObject("recursive-bfs",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new RecursiveBisection<BFSInitialPartitioner>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner>(p.hypergraph,p.config);
 			});
 }
 
@@ -141,15 +160,18 @@ int main(int argc, char* argv[]) {
 
 	//Reading command line input
 	po::options_description desc("Allowed options");
-	desc.add_options()("help", "show help message")
-			("hgr", po::value<std::string>(),"Filename of the hypergraph to be partitioned")
-			("output",po::value<std::string>(), "Output partition file")
-			("k",po::value<PartitionID>(), "Number of partitions")
-			("epsilon", po::value<double>(), "Imbalance ratio")
-			("mode", po::value<std::string>(), "Initial partitioning variant")
-			("seed",po::value<int>(), "Seed for randomization")
-			("balancing", po::value<bool>(), "Balance partition, if they don't satisfy balance constraints")
-			("rollback", po::value<bool>(), "Rollback to best cut, if you bipartition a hypergraph");
+	desc.add_options()("help", "show help message")("hgr",
+			po::value<std::string>(),
+			"Filename of the hypergraph to be partitioned")("output",
+			po::value<std::string>(), "Output partition file")("k",
+			po::value<PartitionID>(), "Number of partitions")("epsilon",
+			po::value<double>(), "Imbalance ratio")("mode",
+			po::value<std::string>(), "Initial partitioning variant")("seed",
+			po::value<int>(), "Seed for randomization")("balancing",
+			po::value<bool>(),
+			"Balance partition, if they don't satisfy balance constraints")(
+			"rollback", po::value<bool>(),
+			"Rollback to best cut, if you bipartition a hypergraph");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -175,9 +197,11 @@ int main(int argc, char* argv[]) {
 	HypernodeWeightVector hypernode_weights;
 
 	io::readHypergraphFile(config.initial_partitioning.coarse_graph_filename,
-			num_hypernodes, num_hyperedges, index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
+			num_hypernodes, num_hyperedges, index_vector, edge_vector,
+			&hyperedge_weights, &hypernode_weights);
 	Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
-			edge_vector, config.initial_partitioning.k, &hyperedge_weights, &hypernode_weights);
+			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
+			&hypernode_weights);
 
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {

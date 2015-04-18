@@ -8,6 +8,8 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_HYPERGRAPHPARTITIONBALANCER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_HYPERGRAPHPARTITIONBALANCER_H_
 
+#include <climits>
+
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -51,8 +53,8 @@ public:
 		int bestIndex = 0;
 		std::vector<HypernodeID> partNodes = getHypernodesOfPartition(p);
 		std::vector<bool> invalidNodes(partNodes.size(),false);
-		while(_hg.partWeight(p) > _config.initial_partitioning.upper_allowed_partition_weight[0]) {
-			bestGain = -1000; bestNode = -1; toPart = -1; bestIndex = -1;
+		while(_hg.partWeight(p) >= _config.initial_partitioning.upper_allowed_partition_weight[0]) {
+			bestGain = INT_MIN; bestNode = -1; toPart = -1; bestIndex = -1;
 			for(int j = 0; j < partNodes.size(); j++) {
 				if(!invalidNodes[j]) {
 					for(int k = 0; k < balance.size(); k++) {
@@ -68,9 +70,16 @@ public:
 				}
 			}
 			std::cout << bestNode << " from " << p << " to " << toPart << " with gain " << bestGain << std::endl;
+			HyperedgeWeight cut = metrics::hyperedgeCut(_hg);
+
+			ASSERT(_hg.partID(bestNode) == p, "Hypernode " << bestNode << " should be in partition " << p << ", but is currently in partition " << _hg.partID(bestNode) );
 			_hg.changeNodePart(bestNode,_hg.partID(bestNode),toPart);
+
+			ASSERT((cut - bestGain) == metrics::hyperedgeCut(_hg), "Gain calculation of hypernode " << bestNode << " failed!");
 			invalidNodes[bestIndex] = true;
 		}
+
+		ASSERT(_hg.partWeight(p) <= _config.initial_partitioning.upper_allowed_partition_weight[p],"Partition "<< p << " is not balanced after rebalancing.");
 	}
 
 private:

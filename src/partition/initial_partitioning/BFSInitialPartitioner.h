@@ -9,6 +9,7 @@
 #define SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
 
 #include <queue>
+#include <algorithm>
 
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
@@ -67,6 +68,23 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 			findStartNodes(currentStartNodes,k);
 		}
 
+		void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q, HypernodeID hn, int max_incident_edge_count) {
+			std::vector<std::pair<int,HyperedgeID>> hyperedge_size;
+			for(HyperedgeID he : _hg.incidentEdges(hn)) {
+				hyperedge_size.push_back(std::make_pair(_hg.edgeSize(he),he));
+			}
+			std::sort(hyperedge_size.begin(), hyperedge_size.end());
+			for(int i = 0; i < hyperedge_size.size(); i++) {
+				for(HypernodeID hnodes : _hg.pins(hyperedge_size[i].second)) {
+					int count = 0;
+					for(HyperedgeID he : _hg.incidentEdges(hnodes))
+						count++;
+					if(_hg.partID(hnodes) == -1 && count < max_incident_edge_count)
+						q.push(hnodes);
+				}
+			}
+		}
+
 		void kwayPartitionImpl() final {
 			std::vector<std::queue<HypernodeID>> bfs(_config.initial_partitioning.k, std::queue<HypernodeID>());
 			std::vector<bool> partEnable(_config.initial_partitioning.k, true);
@@ -76,6 +94,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 				bfs[i].push(startNodes[i]);
 			}
 			unsigned int assignedNodes = 0;
+			int max_incident_edge_count = 10;
 			while(true) {
 				for(unsigned int i = 0; i < startNodes.size(); i++) {
 					if(partEnable[i] && !bfs[i].empty()) {
@@ -86,11 +105,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 							partEnable[i] = false;
 						else
 							assignedNodes++;
-						for(HyperedgeID he : _hg.incidentEdges(hn)) {
-							for(HypernodeID hnodes : _hg.pins(he))
-								if(_hg.partID(hnodes) == -1)
-									bfs[i].push(hnodes);
-						}
+						pushIncidentHyperedgesIntoQueue(bfs[i],hn,max_incident_edge_count);
 					}
 					if(partEnable[i] && bfs[i].empty() && assignedNodes != _hg.numNodes()) {
 						HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
@@ -98,10 +113,12 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 							newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
 						}
 						bfs[i].push(newStartNode);
+						max_incident_edge_count += 2;
 					}
 				}
 				if(assignedNodes == _hg.numNodes())
 					break;
+				max_incident_edge_count++;
 			}
 			InitialPartitionerBase::performFMRefinement();
 		}
@@ -110,8 +127,10 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 			std::stack<std::pair<int,HypernodeID>> cutStack;
 			std::queue<HypernodeID> bfs;
 			std::vector<HypernodeID> startNode;
-			findStartNodes(startNode,_config.initial_partitioning.k);
+			PartitionID k = 2;
+			findStartNodes(startNode,k);
 			bfs.push(startNode[0]);
+			int max_incident_edge_count = 2;
 			while(true) {
 				if(!bfs.empty()) {
 					HypernodeID hn = bfs.front(); bfs.pop();
@@ -119,21 +138,16 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 						continue;
 					if(!assignHypernodeToPartition(hn,0,true))
 						break;
-					for(HyperedgeID he : _hg.incidentEdges(hn)) {
-						for(HypernodeID hnodes : _hg.pins(he)) {
-							if(_hg.partID(hnodes) == -1) {
-								bfs.push(hnodes);
-							}
-						}
-					}
+					pushIncidentHyperedgesIntoQueue(bfs,hn,max_incident_edge_count);
 				}
 				else {
 					HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
 					while(_hg.partID(newStartNode) != -1)
 						newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
 					bfs.push(newStartNode);
+					max_incident_edge_count += 10;
 				}
-
+					max_incident_edge_count++;
 			}
 			for(HypernodeID hn : _hg.nodes()) {
 				if(_hg.partID(hn) != 0)
