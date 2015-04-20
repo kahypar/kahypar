@@ -15,6 +15,7 @@
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
+#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
@@ -31,6 +32,9 @@ using partition::RandomInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::RecursiveBisection;
+using partition::BFSStartNodeSelectionPolicy;
+using partition::RandomStartNodeSelectionPolicy;
+using partition::BFSSparseRegionStartNodeSelectionPolicy;
 using core::Factory;
 
 struct InitialPartitioningFactoryParameters {
@@ -100,11 +104,11 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("bfs",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new BFSInitialPartitioner(p.hypergraph,p.config);
+				return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -116,11 +120,11 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-bfs",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<BFSInitialPartitioner>(p.hypergraph,p.config);
+				return new RecursiveBisection<BFSInitialPartitioner<BFSStartNodeSelectionPolicy>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner>(p.hypergraph,p.config);
+				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy>>(p.hypergraph,p.config);
 			});
 }
 

@@ -40,6 +40,7 @@ using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
 using partition::KWayFMRefiner;
 
+
 namespace partition {
 
 class InitialPartitionerBase {

@@ -22,14 +22,17 @@
 #include "lib/datastructure/BucketQueue.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
+#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
+using partition::StartNodeSelectionPolicy;
 
 using Gain = HyperedgeWeight;
 
 namespace partition {
 
+template<class StartNodeSelection = StartNodeSelectionPolicy>
 class GreedyHypergraphGrowingInitialPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
@@ -44,43 +47,7 @@ public:
 
 private:
 
-	void findStartNodes(std::vector<HypernodeID>& currentStartNodes,
-			PartitionID& k) {
-		if (k == 2) {
-			currentStartNodes.push_back(
-					Randomize::getRandomInt(0, _hg.numNodes() - 1));
-			return;
-		} else if (currentStartNodes.size() == k) {
-			return;
-		} else if (currentStartNodes.size() == 0) {
-			currentStartNodes.push_back(
-					Randomize::getRandomInt(0, _hg.numNodes() - 1));
-			findStartNodes(currentStartNodes, k);
-			return;
-		}
 
-		std::vector<bool> visited(_hg.numNodes(), false);
-		std::queue<HypernodeID> bfs;
-		HypernodeID lastHypernode = -1;
-		for (unsigned int i = 0; i < currentStartNodes.size(); i++)
-			bfs.push(currentStartNodes[i]);
-		while (!bfs.empty()) {
-			HypernodeID hn = bfs.front();
-			bfs.pop();
-			if (visited[hn])
-				continue;
-			lastHypernode = hn;
-			visited[hn] = true;
-			for (HyperedgeID he : _hg.incidentEdges(lastHypernode)) {
-				for (HypernodeID hnodes : _hg.pins(he)) {
-					if (!visited[hnodes])
-						bfs.push(hnodes);
-				}
-			}
-		}
-		currentStartNodes.push_back(lastHypernode);
-		findStartNodes(currentStartNodes, k);
-	}
 
 	void kwayPartitionImpl() final {
 
@@ -91,7 +58,7 @@ private:
 
 		std::vector<HypernodeID> startNode;
 		PartitionID k = 2;
-		findStartNodes(startNode, k);
+		StartNodeSelection::calculateStartNodes(startNode,_hg,k);
 		for (HypernodeID hn : _hg.nodes())
 			_hg.setNodePart(hn, 1);
 		processNodeForBucketPQ(bq, startNode[0], 0);
