@@ -67,7 +67,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 			unsigned int assignedNodes = 0;
 			int max_incident_edge_count = 10;
 			while(true) {
-				for(unsigned int i = 0; i < startNodes.size(); i++) {
+				for(unsigned int i = 0; i < _config.initial_partitioning.k; i++) {
 					if(partEnable[i] && !bfs[i].empty()) {
 						HypernodeID hn = bfs[i].front(); bfs[i].pop();
 						if(_hg.partID(hn) != -1)

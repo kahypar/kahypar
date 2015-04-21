@@ -20,7 +20,6 @@
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
 
 using partition::Configuration;
@@ -95,7 +94,7 @@ public:
 		//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
 		if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
 			HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-			refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+				refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
 		}
 	}
 

@@ -4,6 +4,7 @@
 
 #include <boost/program_options.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,8 +15,13 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
+#include "partition/initial_partitioning/MultilevelInitialPartitioner.h"
+#include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
+#include "partition/initial_partitioning/policies/CoarseningNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
@@ -31,11 +37,18 @@ using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::GreedyHypergraphGrowingInitialPartitioner;
+using partition::IterativeLocalSearchPartitioner;
 using partition::RecursiveBisection;
+using partition::MultilevelInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
-using partition::BFSSparseRegionStartNodeSelectionPolicy;
+using partition::FMGainComputationPolicy;
+using partition::MaxPinGainComputationPolicy;
+using partition::MaxNetGainComputationPolicy;
+using partition::CoarseningMaximumNodeSelectionPolicy;
+using partition::LooseStableNetRemoval;
 using core::Factory;
+using defs::HighResClockTimepoint;
 
 struct InitialPartitioningFactoryParameters {
 	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
@@ -64,12 +77,16 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					- vm["epsilon"].as<double>() / 4;
 			config.partition.epsilon = vm["epsilon"].as<double>();
 		}
-		if (vm.count("mode"))
+		if (vm.count("mode")) {
 			config.initial_partitioning.mode = vm["mode"].as<std::string>();
+			if (config.initial_partitioning.mode.compare("ils") == 0) {
+				if (vm.count("ils_iterations"))
+					config.initial_partitioning.ils_iterations =
+							vm["ils_iterations"].as<int>();
+			}
+		}
 		if (vm.count("seed"))
 			config.initial_partitioning.seed = vm["seed"].as<int>();
-		if (vm.count("balancing"))
-			config.initial_partitioning.balancing = vm["balancing"].as<bool>();
 		if (vm.count("rollback"))
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 	} else {
@@ -85,7 +102,7 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.mode = "random";
 	config.initial_partitioning.seed = -1;
-	config.initial_partitioning.balancing = true;
+	config.initial_partitioning.ils_iterations = 30;
 	config.initial_partitioning.rollback = true;
 
 	config.two_way_fm.stopping_rule = "simple";
@@ -108,7 +125,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -124,7 +141,15 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("multilevel",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("ils",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 }
 
@@ -144,14 +169,7 @@ void printStats(Hypergraph& hypergraph, Configuration& config) {
 	LOG("**********************************");
 	std::cout << "Hyperedge Cut  (minimize) = "
 			<< metrics::hyperedgeCut(hypergraph) << std::endl;
-	std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph)
-			<< std::endl;
-	std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph)
-			<< std::endl;
-	std::cout << "Absorption     (maximize) = "
-			<< metrics::absorption(hypergraph) << std::endl;
-	std::cout << "Imbalance       = " << metrics::imbalance(hypergraph)
-			<< std::endl;
+	LOG("**********************************");
 	for (PartitionID i = 0; i != hypergraph.k(); ++i) {
 		std::cout << "| part" << i << " | = " << hypergraph.partWeight(i)
 				<< std::endl;
@@ -171,10 +189,10 @@ int main(int argc, char* argv[]) {
 			po::value<PartitionID>(), "Number of partitions")("epsilon",
 			po::value<double>(), "Imbalance ratio")("mode",
 			po::value<std::string>(), "Initial partitioning variant")("seed",
-			po::value<int>(), "Seed for randomization")("balancing",
+			po::value<int>(), "Seed for randomization")("ils_iterations",
+			po::value<int>(),
+			"Iterations of the iterative local search partitioner")("rollback",
 			po::value<bool>(),
-			"Balance partition, if they don't satisfy balance constraints")(
-			"rollback", po::value<bool>(),
 			"Rollback to best cut, if you bipartition a hypergraph");
 
 	po::variables_map vm;
@@ -234,7 +252,18 @@ int main(int argc, char* argv[]) {
 					config.initial_partitioning.mode,
 					initial_partitioning_parameters));
 
+	HighResClockTimepoint start;
+	HighResClockTimepoint end;
+
+	start = std::chrono::high_resolution_clock::now();
 	(*partitioner).partition(config.initial_partitioning.k);
+	end = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end - start;
+
+	LOG("**********************************");
+	std::cout << "Initial Partitioner Time: " << elapsed_seconds.count() << " s" << std::endl;
+	LOG("**********************************");
 
 	printStats(hypergraph, config);
 
