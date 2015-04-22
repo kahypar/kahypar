@@ -476,7 +476,6 @@ int main(int argc, char* argv[]) {
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
-  std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
   SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner, *coarsener, *refiner,

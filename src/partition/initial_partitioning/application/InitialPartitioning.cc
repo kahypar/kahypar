@@ -169,6 +169,8 @@ void printStats(Hypergraph& hypergraph, Configuration& config) {
 	LOG("**********************************");
 	std::cout << "Hyperedge Cut  (minimize) = "
 			<< metrics::hyperedgeCut(hypergraph) << std::endl;
+	std::cout << "Imbalance = "
+			<< metrics::imbalance(hypergraph) << std::endl;
 	LOG("**********************************");
 	for (PartitionID i = 0; i != hypergraph.k(); ++i) {
 		std::cout << "| part" << i << " | = " << hypergraph.partWeight(i)

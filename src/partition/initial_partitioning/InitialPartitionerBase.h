@@ -127,7 +127,7 @@ public:
 		HypernodeWeight assign_partition_weight = _hg.partWeight(p)
 		+ _hg.nodeWeight(hn);
 		if (assign_partition_weight
-				<= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
+				<= _config.initial_partitioning.upper_allowed_partition_weight[p] && hn < _hg.numNodes()) {
 			if (_hg.partID(hn) == -1) {
 				_hg.setNodePart(hn, p);
 			} else {
@@ -264,6 +264,8 @@ private:
 				current_cut -= _hg.edgeWeight(he);
 			}
 		}
+		if(other_part != -1)
+			ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Current calculated cut is not equal to current cut");
 		if(_config.initial_partitioning.lower_allowed_partition_weight[0] <= part_weight && _config.initial_partitioning.upper_allowed_partition_weight[0] >= part_weight ) {
 			bisection_assignment_history.push(std::make_pair(part_weight,hn));
 			if(current_cut <= best_cut) {
