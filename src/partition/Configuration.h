@@ -131,17 +131,21 @@ struct Configuration {
   struct LPRefinementParameters
   {
     LPRefinementParameters() :
-      max_number_iterations(4) {};
+      max_number_iterations(3),
+      active(false) { };
 
     int max_number_iterations;
+    bool active;
   };
+
+
 
   PartitioningParameters partition;
   CoarseningParameters coarsening;
   TwoWayFMParameters two_way_fm;
   HERFMParameters her_fm;
   LPClusteringParameters lp_clustering_params;
-  LPRefinementParameters lp_refiner_params;
+  LPRefinementParameters lp_refiner;
 
   Configuration() :
     partition(),
@@ -149,7 +153,7 @@ struct Configuration {
     two_way_fm(),
     her_fm(),
     lp_clustering_params(),
-    lp_refiner_params() { }
+    lp_refiner() { }
 };
 
 inline std::string toString(const Configuration& config) {
@@ -214,6 +218,10 @@ inline std::string toString(const Configuration& config) {
     oss << std::setw(35) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
     oss << std::setw(35) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
+  }
+  if (config.lp_refiner.active) {
+    oss << "LP Refinement Parameters:" << std::endl;
+    oss << std::setw(35) << "  max. # iterations: " << config.lp_refiner.max_number_iterations << std::endl;
   }
   return oss.str();
 }

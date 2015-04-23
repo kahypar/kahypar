@@ -33,7 +33,6 @@
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/LPRefiner.h"
-#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -82,6 +81,7 @@ using partition::LPRefiner;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::MaxGainNodeKWayFMRefiner;
+using partition::LPRefiner;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
@@ -200,10 +200,20 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
           vm["rtype"].as<std::string>() == "kfm") {
         config.two_way_fm.active = true;
         config.her_fm.active = false;
+        config.lp_refiner.active = false;
       } else if (vm["rtype"].as<std::string>() == "her_fm") {
         config.two_way_fm.active = false;
         config.her_fm.active = true;
+        config.lp_refiner.active = false;
       } else if (vm["rtype"].as<std::string>() == "lp_refiner") {
+        config.two_way_fm.active = false;
+        config.her_fm.active = false;
+        config.lp_refiner.active = true;
+
+        // parse the lp_refiner param .. TODO think about better organization of this part
+        if (vm.count("lp_refiner_max_iterations")) {
+          config.lp_refiner.max_number_iterations = vm["lp_refiner_max_iterations"].as<int>();
+        }
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
         //exit(0);
@@ -222,11 +232,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("percent")) {
       config.lp_clustering_params.percent_of_nodes_for_adaptive_stopping = vm["percent"].as<size_t>();
     }
-
-    if (vm.count("max_refinement_iterations")) {
-      config.lp_refiner_params.max_number_iterations = vm["max_refinement_iterations"].as<size_t>();
-    }
-
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
     exit(0);
@@ -261,7 +266,7 @@ void setDefaults(Configuration& config) {
   config.lp_clustering_params.percent_of_nodes_for_adaptive_stopping = 5;
 
   // lp refinement defaults
-  config.lp_refiner_params.max_number_iterations=3;
+  config.lp_refiner.max_number_iterations = 3;
 }
 
 struct CoarsenerFactoryParameters {
@@ -730,6 +735,7 @@ int main(int argc, char* argv[]) {
     "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
+    ("lp_refiner_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -858,6 +864,8 @@ int main(int argc, char* argv[]) {
                         exec, refiner_parameters));
       }
     }
+  } else if (config.lp_refiner.active) {
+    refiner.reset(new LPRefiner(hypergraph, config));
   } else {
     HyperedgeFMFactoryExecutor exec;
     refiner.reset(HyperedgeFMFactoryDispatcher::go(
@@ -865,11 +873,6 @@ int main(int argc, char* argv[]) {
           *(clogging_policy.get()),
           exec, refiner_parameters));
   }
-
-  if (vm.count("rtype") && vm["rtype"].as<std::string>() == "lp_refiner") {
-    refiner.reset(new LPRefiner(hypergraph, config));
-  }
-
 
 
   HighResClockTimepoint start;

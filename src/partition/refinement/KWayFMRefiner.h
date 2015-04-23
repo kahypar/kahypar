@@ -46,7 +46,7 @@ template <class StoppingPolicy = Mandatory,
 class KWayFMRefiner : public IRefiner,
                       private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
-  static const bool dbg_refinement_kway_fm_improvements_cut = true;
+  static const bool dbg_refinement_kway_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
   static const bool dbg_refinement_kway_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_fm_gain_update = false;
@@ -295,10 +295,13 @@ class KWayFMRefiner : public IRefiner,
   }
 
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
-                                           const HypernodeID pin_count_source_part_after_move)
+                                           const HypernodeID pin_count_source_part_after_move,
+                                           const HypernodeID he_size)
       const noexcept {
-    return (pin_count_target_part_before_move == 0 || pin_count_target_part_before_move == 1 ||
-            pin_count_source_part_after_move == 0 || pin_count_source_part_after_move == 1);
+    return (pin_count_source_part_after_move == 0
+            || pin_count_target_part_before_move == 0
+            || pin_count_target_part_before_move + 1 == he_size - 1
+            || pin_count_source_part_after_move + 1 == he_size - 1 );
   }
 
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
@@ -309,6 +312,13 @@ class KWayFMRefiner : public IRefiner,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
     if (he_connectivity == 2 && pin_count_target_part_after_move == 1
         && pin_count_source_part_before_move > 1) {
+        // pin_count_source_part_before_move > 1 == pin_count_source_part_after_move > 0
+        // This check is necessary to validate that the net is not a cut net before applying the move.
+        // Imagine a HE, with several pins in one part (say 0) and only the moved pin outside (say in part 1).
+        // If this pin is moved to, say, part 2. the first and the second condition are true. However
+        // the HE has been a cut HE already before the move. The third contition ensures that this cannot be 
+        // the case. However this could be expressed in a more transparent way by verifying for exmaple,
+        // that pin_count_source_part_before_move == |he_size|.
       DBG(dbg_refinement_kway_fm_gain_update,
           "he " << he << " is not cut before applying move");
       // Update pin of a HE that is not cut before applying the move.
@@ -391,7 +401,8 @@ class KWayFMRefiner : public IRefiner,
 
       if (!_he_fully_active[he]
           || moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
-                                                 pin_count_source_part_after_move)) {
+                                                 pin_count_source_part_after_move,
+                                                 _hg.edgeSize(he))) {
         const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
         const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
         const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
@@ -439,7 +450,8 @@ class KWayFMRefiner : public IRefiner,
     const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
 
     if (moveAffectsGainOrConnectivityUpdate(pin_count_target_part_before_move,
-                                            pin_count_source_part_after_move)) {
+                                            pin_count_source_part_after_move,
+                                            _hg.edgeSize(he))) {
       const HypernodeID pin_count_target_part_after_move = pin_count_target_part_before_move + 1;
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;

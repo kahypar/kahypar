@@ -68,7 +68,7 @@ namespace partition
         }
       }
 
-      for (int i = 0; !_cur_queue.empty() && i < _config.lp_refiner_params.max_number_iterations; ++i)
+      for (int i = 0; !_cur_queue.empty() && i < _config.lp_refiner.max_number_iterations; ++i)
       {
         Randomize::shuffleVector(_cur_queue, _cur_queue.size());
         for (const auto &hn : _cur_queue)
@@ -124,8 +124,8 @@ namespace partition
 
     std::string policyStringImpl() const noexcept final
     {
-      return " refiner=LabelPropagationRefiner refiner_max_iterations=" + std::to_string(_config.lp_refiner_params.max_number_iterations);
-    }
+      return " refiner=LabelPropagationRefiner lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
+      }
 
     const Stats &statsImpl() const noexcept final
     {

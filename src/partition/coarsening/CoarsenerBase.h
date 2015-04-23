@@ -31,7 +31,7 @@ using utils::Stats;
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_rating = false;
-static const bool dbg_coarsening_no_valid_contraction = true;
+static const bool dbg_coarsening_no_valid_contraction = false;
 static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
 
@@ -213,6 +213,10 @@ class CoarsenerBase {
                (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
     _stats.add("HNdegreeAVG", _config.partition.current_v_cycle,
                metrics::avgHypernodeDegree(_hg));
+    _stats.add("HNweightMIN", _config.partition.current_v_cycle,
+               (node_weight_map.size() > 0 ? node_weight_map.begin()->first : 0));
+    _stats.add("HNweightMAX", _config.partition.current_v_cycle,
+               (node_weight_map.size() > 0 ? node_weight_map.rbegin()->first : 0));
 #endif
   }
 

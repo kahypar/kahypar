@@ -11,7 +11,7 @@
 //#define USE_BUCKET_PQ
 
 // Gather advanced statistics
-#define GATHER_STATS
+//#define GATHER_STATS
 
 namespace defs {
 using hypernode_id_t =unsigned int;
