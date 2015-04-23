@@ -4,7 +4,6 @@
 #include <unordered_set>
 #include <string>
 
-#include <boost/dynamic_bitset.hpp>
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
 #include "partition/refinement/IRefiner.h"
@@ -29,16 +28,16 @@ namespace partition
 
     public:
     LPRefiner(Hypergraph& hg, const Configuration &configuration) noexcept :
-      hg_(hg), config_(configuration),
-      cur_queue_(new std::vector<HypernodeID>()),
-      next_queue_(new std::vector<HypernodeID>()),
-      contained_cur_queue_(new boost::dynamic_bitset<uint64_t>(hg.initialNumNodes())),
-      contained_next_queue_(new boost::dynamic_bitset<uint64_t>(hg.initialNumNodes())),
-      tmp_gains_(configuration.partition.k, std::numeric_limits<Gain>::min()),
-      tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
-      tmp_target_parts_(configuration.partition.k, Hypergraph::kInvalidPartition),
-      bitset_he_(hg.initialNumEdges()),
-      stats_()
+      _hg(hg), _config(configuration),
+      _cur_queue(),
+      _next_queue(),
+      _contained_cur_queue(hg.initialNumNodes(), false),
+      _contained_next_queue(hg.initialNumNodes(), false),
+      _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
+      _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
+      _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
+      _bitset_he(hg.initialNumEdges(), false),
+      _stats()
     { }
 
     bool refineImpl(std::vector<HypernodeID> &refinement_nodes,
@@ -47,73 +46,72 @@ namespace partition
                     HyperedgeWeight &best_cut,
                     double __attribute__((unused)) &best_imbalance) noexcept final
     {
-      assert (metrics::imbalance(hg_) < config_.partition.epsilon);
-      ASSERT(best_cut == metrics::hyperedgeCut(hg_),
+      assert (metrics::imbalance(_hg) < _config.partition.epsilon);
+      ASSERT(best_cut == metrics::hyperedgeCut(_hg),
           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
-          << metrics::hyperedgeCut(hg_));
+          << metrics::hyperedgeCut(_hg));
 
       auto in_cut = best_cut;
 
-      // cleanup
-      cur_queue_->clear();
-      next_queue_->clear();
-      contained_cur_queue_->reset();
-      contained_next_queue_->reset();
-      bitset_he_.reset();
+      // Each hyperedge with only be considered once in a refinement run
+      std::fill(std::begin(_bitset_he), std::end(_bitset_he), false);
 
       for (size_t i = 0; i < num_refinement_nodes; ++i)
       {
         const auto& cur_node = refinement_nodes[i];
-        if (!(*contained_cur_queue_)[cur_node] && isBorderNode(cur_node))
+        if (!_contained_cur_queue[cur_node] && isBorderNode(cur_node))
         {
-          assert (hg_.partWeight(hg_.partID(cur_node)) <= config_.partition.max_part_weight);
+          assert (_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weight);
 
-          cur_queue_->push_back(cur_node);
-          (*contained_cur_queue_)[cur_node] = true;
+          _cur_queue.push_back(cur_node);
+          _contained_cur_queue[cur_node] = true;
         }
       }
 
-      for (int i = 0; !cur_queue_->empty() && i < config_.lp_refiner_params.max_number_iterations; ++i)
+      for (int i = 0; !_cur_queue.empty() && i < _config.lp_refiner_params.max_number_iterations; ++i)
       {
-        Randomize::shuffleVector(*cur_queue_, cur_queue_->size());
-        for (const auto &hn : *cur_queue_)
+        Randomize::shuffleVector(_cur_queue, _cur_queue.size());
+        for (const auto &hn : _cur_queue)
         {
 
           const auto & gain_pair = computeMaxGainMove(hn);
 
-          const bool move_successful = moveHypernode(hn, hg_.partID(hn), gain_pair.second);
+          const bool move_successful = moveHypernode(hn, _hg.partID(hn), gain_pair.second);
           if (move_successful)
           {
             best_cut -= gain_pair.first;
 
-            assert(hg_.partWeight(gain_pair.second) <= config_.partition.max_part_weight);
+            assert(_hg.partWeight(gain_pair.second) <= _config.partition.max_part_weight);
             assert(best_cut <= in_cut);
             assert(gain_pair.first >= 0);
-            assert(best_cut == metrics::hyperedgeCut(hg_));
-            assert(metrics::imbalance(hg_) <= config_.partition.epsilon);
+            assert(best_cut == metrics::hyperedgeCut(_hg));
+            assert(metrics::imbalance(_hg) <= _config.partition.epsilon);
 
             // add adjacent pins to next iteration
-            for (const auto &he : hg_.incidentEdges(hn))
+            for (const auto &he : _hg.incidentEdges(hn))
             {
-              if (bitset_he_[he] || hg_.connectivity(he) == 1) continue;
-              bitset_he_[he] = true;
-              for (const auto &pin : hg_.pins(he))
+              if (_bitset_he[he] || _hg.connectivity(he) == 1) continue;
+              _bitset_he[he] = true;
+              for (const auto &pin : _hg.pins(he))
               {
-                if (!(*contained_next_queue_)[pin])
+                if (!_contained_next_queue[pin])
                 {
-                  (*contained_next_queue_)[pin] = true;
-                  next_queue_->push_back(pin);
+                  _contained_next_queue[pin] = true;
+                  _next_queue.push_back(pin);
                 }
               }
             }
           }
         }
 
-        contained_cur_queue_->reset();
-        cur_queue_->clear();
+        // clear the current queue data structures
+        std::fill(std::begin(_contained_cur_queue),
+                  std::end(_contained_cur_queue),
+                  false);
+        _cur_queue.clear();
 
-        std::swap(cur_queue_, next_queue_);
-        std::swap(contained_cur_queue_, contained_next_queue_);
+        _cur_queue.swap(_next_queue);
+        _contained_cur_queue.swap(_contained_next_queue);
       }
       //std::cout << " " << i;
       return best_cut < in_cut;
@@ -126,53 +124,55 @@ namespace partition
 
     std::string policyStringImpl() const noexcept final
     {
-      return " refiner=LabelPropagationRefine refiner_max_iterations=" + std::to_string(config_.lp_refiner_params.max_number_iterations);
+      return " refiner=LabelPropagationRefiner refiner_max_iterations=" + std::to_string(_config.lp_refiner_params.max_number_iterations);
     }
 
     const Stats &statsImpl() const noexcept final
     {
-      return stats_;
+      return _stats;
     }
 
 
     private:
     inline bool isCutHyperedge(HyperedgeID he) const noexcept {
-      return hg_.connectivity(he) > 1;
+      return _hg.connectivity(he) > 1;
     }
 
     void initializeImpl() noexcept final
     {
       _is_initialized = true;
-      cur_queue_->clear();
-      cur_queue_->reserve(hg_.initialNumNodes());
-      next_queue_->clear();
-      next_queue_->reserve(hg_.initialNumNodes());
-      contained_cur_queue_->reset();
-      contained_next_queue_->reset();
+      _cur_queue.clear();
+      _cur_queue.reserve(_hg.initialNumNodes());
+      _next_queue.clear();
+      _next_queue.reserve(_hg.initialNumNodes());
+      _contained_cur_queue.clear();
+      _contained_cur_queue.reserve(_hg.initialNumNodes());
+      _contained_next_queue.clear();
+      _contained_next_queue.reserve(_hg.initialNumNodes());
     }
 
 
     GainPartitionPair computeMaxGainMove(const HypernodeID& hn) noexcept
     {
       // assume each move is a 0 gain move
-      std::fill(std::begin(tmp_gains_), std::end(tmp_gains_), 0);
+      std::fill(std::begin(_tmp_gains), std::end(_tmp_gains), 0);
       // assume each move will increase in each edge the connectivity
-      std::fill(std::begin(tmp_connectivity_decrease_), std::end(tmp_connectivity_decrease_), -hg_.nodeDegree(hn));
-      std::fill(std::begin(tmp_target_parts_), std::end(tmp_target_parts_), Hypergraph::kInvalidPartition);
+      std::fill(std::begin(_tmp_connectivity_decrease_), std::end(_tmp_connectivity_decrease_), -_hg.nodeDegree(hn));
+      std::fill(std::begin(_tmp_target_parts), std::end(_tmp_target_parts), Hypergraph::kInvalidPartition);
 
-      const PartitionID source_part = hg_.partID(hn);
+      const PartitionID source_part = _hg.partID(hn);
       HyperedgeWeight internal_weight = 0;
 
       PartitionID num_hes_with_only_hn_in_source_part = 0;
-      for (const auto & he : hg_.incidentEdges(hn))
+      for (const auto & he : _hg.incidentEdges(hn))
       {
-        if (hg_.connectivity(he) == 1 && hg_.edgeSize(he) > 1)
+        if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1)
         {
-          assert((*hg_.connectivitySet(he).begin())== source_part);
-          internal_weight += hg_.edgeWeight(he);
+          assert((*_hg.connectivitySet(he).begin())== source_part);
+          internal_weight += _hg.edgeWeight(he);
         } else {
 
-          const bool move_decreases_connectivity = hg_.pinCountInPart(he, source_part) == 1;
+          const bool move_decreases_connectivity = _hg.pinCountInPart(he, source_part) == 1;
 
           // Moving the HN to a different part will not __increase__ the connectivity of
           // the HE, because hn is the only HN in source_part (However it might decrease it).
@@ -183,39 +183,38 @@ namespace partition
           // for the max-gain-move & thus never consider the source_part-related values.
           num_hes_with_only_hn_in_source_part += move_decreases_connectivity;
 
-          for (const auto & con : hg_.connectivitySet(he))
+          for (const auto & con : _hg.connectivitySet(he))
           {
             const auto& target_part = con;
-            tmp_target_parts_[target_part] = target_part;
+            _tmp_target_parts[target_part] = target_part;
 
-            const HypernodeID pins_in_target_part = hg_.pinCountInPart(he, target_part);
+            const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
 
-            if (pins_in_target_part == hg_.edgeSize(he) - 1)
+            if (pins_in_target_part == _hg.edgeSize(he) - 1)
             {
-              tmp_gains_[target_part] += hg_.edgeWeight(he);
+              _tmp_gains[target_part] += _hg.edgeWeight(he);
             }
 
             // optimized version of the code below
             // the connectivity for target_part for this he can not increase, since target_part is
             // in the connectivity set of he!
             ASSERT(pins_in_target_part != 0, "part is in connectivity set of he, but he has 0 pins in part!");
-            ++tmp_connectivity_decrease_[target_part];
+            ++_tmp_connectivity_decrease_[target_part];
           }
         }
       }
 
-      tmp_target_parts_[source_part] = Hypergraph::kInvalidPartition;
-      tmp_gains_[source_part] = std::numeric_limits<Gain>::min();
-      tmp_connectivity_decrease_[source_part] = std::numeric_limits<PartitionID>::min();
+      _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
+      _tmp_gains[source_part] = std::numeric_limits<Gain>::min();
+      _tmp_connectivity_decrease_[source_part] = std::numeric_limits<PartitionID>::min();
 
       // validate the connectivity decrease
       ASSERT([&] () {
           auto compute_connectivity = [&](){
-          boost::dynamic_bitset<uint64_t> connectivity_superset(config_.partition.k);
           PartitionID connectivity = 0;
-          for (const HyperedgeID he : hg_.incidentEdges(hn)) {
-          connectivity_superset.reset();
-          for (const PartitionID part : hg_.connectivitySet(he)) {
+          for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+          std::vector<bool> connectivity_superset(_config.partition.k);
+          for (const PartitionID part : _hg.connectivitySet(he)) {
           if (!connectivity_superset[part]) {
           connectivity += 1;
           connectivity_superset[part] = true;
@@ -227,22 +226,22 @@ namespace partition
 
           PartitionID old_connectivity = compute_connectivity();
           // simulate the move
-          for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
+          for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part)
           {
-          if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
+          if (_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition) continue;
 
-          hg_.changeNodePart(hn, source_part, target_part);
+          _hg.changeNodePart(hn, source_part, target_part);
           PartitionID new_connectivity = compute_connectivity();
-          hg_.changeNodePart(hn, target_part, source_part);
+          _hg.changeNodePart(hn, target_part, source_part);
 
           // the move to partition target_part should decrease the connectivity by
-          // tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
-          if (old_connectivity-new_connectivity != tmp_connectivity_decrease_[tmp_target_parts_[target_part]] + num_hes_with_only_hn_in_source_part)
+          // _tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
+          if (old_connectivity-new_connectivity != _tmp_connectivity_decrease_[_tmp_target_parts[target_part]] + num_hes_with_only_hn_in_source_part)
           {
             std::cout << "part: " << target_part << std::endl;
             std::cout << "old_connectivity: " << old_connectivity << " new_connectivity: " << new_connectivity << std::endl;
             std::cout << "real decrease: " << old_connectivity - new_connectivity << std::endl;
-            std::cout << "my decrease: " << tmp_connectivity_decrease_[tmp_target_parts_[target_part]] + num_hes_with_only_hn_in_source_part << std::endl;
+            std::cout << "my decrease: " << _tmp_connectivity_decrease_[_tmp_target_parts[target_part]] + num_hes_with_only_hn_in_source_part << std::endl;
             return false;
           }
           }
@@ -252,25 +251,25 @@ namespace partition
       PartitionID max_gain_part = source_part;
       Gain max_gain = 0;
       PartitionID max_connectivity_decrease = 0;
-      const HypernodeWeight node_weight = hg_.nodeWeight(hn);
-      const bool source_part_imbalanced = hg_.partWeight(source_part) > config_.partition.max_part_weight;
+      const HypernodeWeight node_weight = _hg.nodeWeight(hn);
+      const bool source_part_imbalanced = _hg.partWeight(source_part) > _config.partition.max_part_weight;
 
       std::vector<PartitionID> max_score;
       max_score.push_back(source_part);
 
-      for (PartitionID target_part = 0; target_part < config_.partition.k; ++target_part)
+      for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part)
       {
-        assert(tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition ||
-            tmp_target_parts_[target_part] == target_part);
+        assert(_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition ||
+            _tmp_target_parts[target_part] == target_part);
 
         // assure that target_part is incident to us
-        if (tmp_target_parts_[target_part] == Hypergraph::kInvalidPartition) continue;
+        if (_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition) continue;
 
-        const Gain target_part_gain = tmp_gains_[target_part] - internal_weight;
-        const PartitionID target_part_connectivity_decrease = tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
-        const HypernodeWeight target_part_weight = hg_.partWeight(target_part);
+        const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
+        const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
+        const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
-        if (target_part_weight + node_weight <= config_.partition.max_part_weight)
+        if (target_part_weight + node_weight <= _config.partition.max_part_weight)
         {
           if (target_part_gain > max_gain)
           {
@@ -289,7 +288,7 @@ namespace partition
               max_score.push_back(target_part);
             }
           }
-          else if (source_part_imbalanced && target_part_weight < hg_.partWeight(max_gain_part))
+          else if (source_part_imbalanced && target_part_weight < _hg.partWeight(max_gain_part))
           {
             max_score.clear();
             max_gain = target_part_gain;
@@ -300,7 +299,7 @@ namespace partition
       }
       max_gain_part = max_score[(Randomize::getRandomInt(0, max_score.size()-1))];
 
-      ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "");
+      ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
 
       return GainPartitionPair(max_gain, max_gain_part);
     }
@@ -313,25 +312,21 @@ namespace partition
         return false;
       }
 
-      if (hg_.partWeight(to_part) + hg_.nodeWeight(hn) > config_.partition.max_part_weight)
-      {
-        throw std::logic_error("moving a node to a full partition");
-        return false;
-      }
+      ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weight, "a move in refinement produced imbalanced parts");
 
-      if (hg_.partSize(from_part) == 1)
+      if (_hg.partSize(from_part) == 1)
       {
         // this would result in an extermination of a block
         return false;
       }
 
-      hg_.changeNodePart(hn, from_part, to_part);
+      _hg.changeNodePart(hn, from_part, to_part);
       return true;
     }
 
 
     bool isBorderNode(HypernodeID hn) const  noexcept {
-      for (auto && he : hg_.incidentEdges(hn)) {
+      for (auto && he : _hg.incidentEdges(hn)) {
         if (isCutHyperedge(he)) {
           return true;
         }
@@ -339,19 +334,19 @@ namespace partition
       return false;
     }
 
-    Hypergraph &hg_;
-    const Configuration &config_;
-    std::unique_ptr<std::vector<HypernodeID> > cur_queue_;
-    std::unique_ptr<std::vector<HypernodeID> > next_queue_;
-    std::unique_ptr<boost::dynamic_bitset<uint64_t> > contained_cur_queue_;
-    std::unique_ptr<boost::dynamic_bitset<uint64_t> > contained_next_queue_;
+    Hypergraph &_hg;
+    const Configuration &_config;
+    std::vector<HypernodeID> _cur_queue;
+    std::vector<HypernodeID> _next_queue;
+    std::vector<bool> _contained_cur_queue;
+    std::vector<bool> _contained_next_queue;
 
-    std::vector<Gain> tmp_gains_;
-    std::vector<PartitionID> tmp_connectivity_decrease_;
-    std::vector<PartitionID> tmp_target_parts_;
+    std::vector<Gain> _tmp_gains;
+    std::vector<PartitionID> _tmp_connectivity_decrease_;
+    std::vector<PartitionID> _tmp_target_parts;
 
-    boost::dynamic_bitset<uint64_t> bitset_he_;
+    std::vector<bool> _bitset_he;
 
-    Stats stats_;
+    Stats _stats;
   };
 };
