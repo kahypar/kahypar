@@ -41,6 +41,7 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 		}
 
 		std::vector<bool> visited(hg.numNodes(), false);
+		std::vector<bool> in_queue(hg.numNodes(), false);
 		std::queue<HypernodeID> bfs;
 		HypernodeID lastHypernode = -1;
 		for (unsigned int i = 0; i < startNodes.size(); i++)
@@ -54,8 +55,10 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 			visited[hn] = true;
 			for (HyperedgeID he : hg.incidentEdges(lastHypernode)) {
 				for (HypernodeID hnodes : hg.pins(he)) {
-					if (!visited[hnodes])
+					if (!visited[hnodes] && !in_queue[hnodes]) {
 						bfs.push(hnodes);
+						in_queue[hnodes] = true;
+					}
 				}
 			}
 		}
@@ -76,14 +79,8 @@ struct RandomStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 			HypernodeID hn;
 			while (true) {
 				hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
-				bool foundNode = false;
-				for (int i = 0; i < startNodes.size(); i++) {
-					if (startNodes[i] == hn) {
-						foundNode = true;
-						break;
-					}
-				}
-				if (!foundNode) {
+				auto node = std::find(startNodes.begin(),startNodes.end(),hn);
+				if(node == startNodes.end()) {
 					startNodes.push_back(hn);
 					break;
 				}

@@ -58,7 +58,6 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 				if(i != 0)
  					Perturbation::perturbation(_hg,_config,last_partition);
 
-				std::cout << i << std::endl;
 				InitialPartitionerBase::performFMRefinement();
 
 				int cut = metrics::hyperedgeCut(_hg);

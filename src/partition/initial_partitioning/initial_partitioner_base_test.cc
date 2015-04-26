@@ -60,8 +60,6 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(5,1));
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(6,1));
 
-	//Assign hypernode, which is not existing
-	ASSERT_FALSE(partitioner->assignHypernodeToPartition(7,1));
 
 	//Check, if all hypernodes are assigned correctly
 	ASSERT_EQ(hypergraph.partID(0),0);

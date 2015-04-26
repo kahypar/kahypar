@@ -66,12 +66,11 @@ private:
 		std::vector<HypernodeID> startNodes;
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
+		for (HypernodeID hn : _hg.nodes())
+			_hg.setNodePart(hn, 0);
 		for (PartitionID i = 1; i < startNodes.size(); i++) {
 			processNodeForBucketPQ(bq[i], startNodes[i], i);
 		}
-		for (HypernodeID hn : _hg.nodes())
-			_hg.setNodePart(hn, 0);
-
 
 		while (true) {
 			Gain best_gain = INT_MIN;
@@ -102,13 +101,18 @@ private:
 					processNodeForBucketPQ(bq[i], newStartNode, i);
 				}
 			}
-			if (!assignHypernodeToPartition(best_node, best_part))
-				partEnable[best_part] = false;
-			else
-				bq[best_part].deleteMax();
-			for (HyperedgeID he : _hg.incidentEdges(best_node)) {
-				for (HypernodeID hnode : _hg.pins(he))
-					processNodeForBucketPQ(bq[best_part], hnode, best_part);
+			if (best_part != 0) {
+				if (!assignHypernodeToPartition(best_node, best_part))
+					partEnable[best_part] = false;
+				else
+					bq[best_part].deleteMax();
+				for (HyperedgeID he : _hg.incidentEdges(best_node)) {
+					for (HypernodeID hnode : _hg.pins(he)) {
+						if (_hg.partID(hnode) == 0)
+							processNodeForBucketPQ(bq[best_part], hnode,
+									best_part);
+					}
+				}
 			}
 			if (_hg.partWeight(0)
 					<= _config.initial_partitioning.lower_allowed_partition_weight[0])
@@ -129,19 +133,20 @@ private:
 			if (!bq.empty()) {
 				HypernodeID hn = bq.getMax();
 				bq.deleteMax();
-				if (!assignHypernodeToPartition(hn, 0, 1, true))
+				if (!assignHypernodeToPartition(hn, 0, 1, true)) {
 					break;
+				}
 				/*std::map<HypernodeID, Gain> gain_increase;
-				 for (HyperedgeID he : _hg.incidentEdges(hn)) {
-				 Gain gain = calculateHperedgeGainIncrease(he);
-				 for (HypernodeID hnode : _hg.pins(he)) {
-				 if(_hg.partID(hnode) == 1)
-				 gain_increase[hnode] += gain;
-				 }
-				 }*/
 				for (HyperedgeID he : _hg.incidentEdges(hn)) {
-					for (HypernodeID hnode : _hg.pins(he))
+					for (HypernodeID hnode : _hg.pins(he)) {
+						if (_hg.partID(hnode) == 1)
+							gain_increase[hnode]++;
+					}
+				}*/
+				for (HyperedgeID he : _hg.incidentEdges(hn)) {
+					for (HypernodeID hnode : _hg.pins(he)) {
 						processNodeForBucketPQ(bq, hnode, 0);
+					}
 				}
 			} else {
 				HypernodeID newStartNode = Randomize::getRandomInt(0,
@@ -161,18 +166,31 @@ private:
 			const HypernodeID hn, const PartitionID target_part,
 			Gain gain_increase = 0) {
 		if (_hg.partID(hn) != target_part) {
+			Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
 			if (bq.contains(hn)) {
-				Gain gain = GainComputation::calculateGain(_hg, hn,
-						target_part);
 				bq.updateKey(hn, gain + gain_increase);
 			} else {
-				Gain gain = GainComputation::calculateGain(_hg, hn,
-						target_part);
 				bq.push(hn, gain + gain_increase);
 			}
 		}
 	}
 
+	void processNodeForBucketPQ(std::vector<BucketQueue<HypernodeID, Gain>>& bq,
+			const HypernodeID hn, const PartitionID target_part,
+			Gain gain_increase = 0) {
+		for (int i = 0; i < bq.size(); i++) {
+			if (_hg.partID(hn) != target_part) {
+				if (bq[i].contains(hn)) {
+					Gain gain = GainComputation::calculateGain(_hg, hn, i);
+					bq[i].updateKey(hn, gain + gain_increase);
+				} else if (i == target_part) {
+					Gain gain = GainComputation::calculateGain(_hg, hn,
+							target_part);
+					bq[target_part].push(hn, gain + gain_increase);
+				}
+			}
+		}
+	}
 
 	/*Gain calculateHperedgeGainIncrease(HyperedgeID& he) {
 	 Gain gain = 0;

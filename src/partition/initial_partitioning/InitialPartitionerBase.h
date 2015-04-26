@@ -247,7 +247,7 @@ private:
 
 	void calculateBisectionCutAfterAssignment(HypernodeID hn, PartitionID other_part) {
 		part_weight += _hg.nodeWeight(hn);
-		ASSERT(part_weight == _hg.partWeight(0), "Calculation of weight for partition 0 failed.");
+		ASSERT(part_weight == _hg.partWeight(0), "Calculation of weight for partition 0 failed. Should be " << _hg.partWeight(0) << " but is " << part_weight);
 		for(HyperedgeID he : _hg.incidentEdges(hn)) {
 			bool isCutEdge = false;
 			for(HypernodeID hnodes : _hg.pins(he)) {
@@ -264,8 +264,7 @@ private:
 				current_cut -= _hg.edgeWeight(he);
 			}
 		}
-		if(other_part != -1)
-			ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Current calculated cut is not equal to current cut");
+
 		if(_config.initial_partitioning.lower_allowed_partition_weight[0] <= part_weight && _config.initial_partitioning.upper_allowed_partition_weight[0] >= part_weight ) {
 			bisection_assignment_history.push(std::make_pair(part_weight,hn));
 			if(current_cut <= best_cut) {

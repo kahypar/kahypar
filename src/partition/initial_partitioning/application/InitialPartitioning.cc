@@ -14,14 +14,17 @@
 #include "partition/Configuration.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
+#include "partition/initial_partitioning/TestInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/MultilevelInitialPartitioner.h"
 #include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
+#include "partition/initial_partitioning/SimulatedAnnealingPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
 #include "partition/initial_partitioning/policies/CoarseningNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/PartitionNeighborPolicy.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
@@ -35,17 +38,21 @@ using defs::HyperedgeID;
 using partition::Configuration;
 using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
+using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
+using partition::SimulatedAnnealingPartitioner;
 using partition::RecursiveBisection;
 using partition::MultilevelInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
 using partition::FMGainComputationPolicy;
+using partition::FMLocalyGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
 using partition::MaxNetGainComputationPolicy;
 using partition::CoarseningMaximumNodeSelectionPolicy;
+using partition::CutHyperedgeRemovalNeighborPolicy;
 using partition::LooseStableNetRemoval;
 using core::Factory;
 using defs::HighResClockTimepoint;
@@ -102,16 +109,16 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.mode = "random";
 	config.initial_partitioning.seed = -1;
-	config.initial_partitioning.ils_iterations = 30;
+	config.initial_partitioning.ils_iterations = 50;
 	config.initial_partitioning.rollback = true;
 
 	config.two_way_fm.stopping_rule = "simple";
 	config.two_way_fm.num_repetitions = -1;
-	config.two_way_fm.max_number_of_fruitless_moves = 1000;
+	config.two_way_fm.max_number_of_fruitless_moves = 300;
 	config.two_way_fm.alpha = 8;
 	config.her_fm.stopping_rule = "simple";
 	config.her_fm.num_repetitions = -1;
-	config.her_fm.max_number_of_fruitless_moves = 1000;
+	config.her_fm.max_number_of_fruitless_moves = 300;
 }
 
 void createInitialPartitioningFactory() {
@@ -125,7 +132,15 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("greedy-maxpin",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("greedy-maxnet",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -141,15 +156,28 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new RecursiveBisection<TestInitialPartitioner>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("multilevel",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("sa",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("ils-greedy"
+			"",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 }
 
@@ -181,7 +209,6 @@ void printStats(Hypergraph& hypergraph, Configuration& config) {
 }
 
 int main(int argc, char* argv[]) {
-
 	//Reading command line input
 	po::options_description desc("Allowed options");
 	desc.add_options()("help", "show help message")("hgr",
@@ -227,6 +254,8 @@ int main(int argc, char* argv[]) {
 			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
 			&hypernode_weights);
 
+
+
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {
 		hypergraph_weight += hypergraph.nodeWeight(hn);
@@ -260,6 +289,7 @@ int main(int argc, char* argv[]) {
 	start = std::chrono::high_resolution_clock::now();
 	(*partitioner).partition(config.initial_partitioning.k);
 	end = std::chrono::high_resolution_clock::now();
+
 
 	std::chrono::duration<double> elapsed_seconds = end - start;
 

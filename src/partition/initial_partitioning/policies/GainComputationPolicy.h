@@ -30,6 +30,8 @@ struct GainComputationPolicy {
 };
 
 struct FMGainComputationPolicy: public GainComputationPolicy {
+
+
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
@@ -47,6 +49,34 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 						&& pins_in_target_part == hg.edgeSize(he) - 1) {
 					gain += hg.edgeWeight(he);
 				}
+			}
+		}
+		return gain;
+	}
+};
+
+struct FMLocalyGainComputationPolicy: public GainComputationPolicy {
+
+	static const int gain_factor = 5;
+
+	static inline Gain calculateGain(const Hypergraph& hg,
+			const HypernodeID& hn, const PartitionID& target_part) noexcept {
+		const PartitionID source_part = hg.partID(hn);
+		Gain gain = 0;
+		for (const HyperedgeID he : hg.incidentEdges(hn)) {
+			ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
+			if (hg.connectivity(he) == 1) {
+				gain -= hg.edgeWeight(he);
+			} else {
+				const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
+						source_part);
+				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
+						target_part);
+				if (pins_in_source_part == 1
+						&& pins_in_target_part == hg.edgeSize(he) - 1) {
+					gain += hg.edgeWeight(he);
+				}
+				gain += (gain_factor*hg.edgeWeight(he))/pins_in_source_part;
 			}
 		}
 		return gain;
