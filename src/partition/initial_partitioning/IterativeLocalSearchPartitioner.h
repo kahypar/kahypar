@@ -55,8 +55,9 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 			savePartition(best_partition);
 
 			for(int i = 0; i < _config.initial_partitioning.ils_iterations; i++) {
-				if(i != 0)
+				if(i != 0) {
  					Perturbation::perturbation(_hg,_config,last_partition);
+				}
 
 				InitialPartitionerBase::performFMRefinement();
 
@@ -71,8 +72,9 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 			}
 
 			for(HypernodeID hn : _hg.nodes()) {
-				if(best_partition[hn] != _hg.partID(hn))
+				if(best_partition[hn] != _hg.partID(hn)) {
 					_hg.changeNodePart(hn,_hg.partID(hn), best_partition[hn]);
+				}
 			}
 
 			_balancer.balancePartitions();

@@ -8,7 +8,7 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_HYPERGRAPHPARTITIONBALANCER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_HYPERGRAPHPARTITIONBALANCER_H_
 
-#include <climits>
+#include <limits>
 
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -47,14 +47,14 @@ public:
 	}
 
 	void balancePartition(PartitionID p, std::vector<PartitionID>& balance) {
-		Gain bestGain = -1000;
+		Gain bestGain = initial_gain;
 		HypernodeID bestNode = 0;
 		PartitionID toPart = 0;
 		int bestIndex = 0;
 		std::vector<HypernodeID> partNodes = getHypernodesOfPartition(p);
 		std::vector<bool> invalidNodes(partNodes.size(),false);
 		while(_hg.partWeight(p) >= _config.initial_partitioning.upper_allowed_partition_weight[0]) {
-			bestGain = INT_MIN; bestNode = -1; toPart = -1; bestIndex = -1;
+			bestGain = initial_gain; bestNode = -1; toPart = -1; bestIndex = -1;
 			for(int j = 0; j < partNodes.size(); j++) {
 				if(!invalidNodes[j]) {
 					for(int k = 0; k < balance.size(); k++) {
@@ -82,13 +82,16 @@ public:
 		ASSERT(_hg.partWeight(p) <= _config.initial_partitioning.upper_allowed_partition_weight[p],"Partition "<< p << " is not balanced after rebalancing.");
 	}
 
+	static const Gain initial_gain = std::numeric_limits<Gain>::min();
+
 private:
 
 	std::vector<PartitionID> getHeaviestPartitions() {
 		std::vector<PartitionID> heaviest_partition;
 		for(PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-			if(_hg.partWeight(i) > _config.initial_partitioning.upper_allowed_partition_weight[0])
-			heaviest_partition.push_back(i);
+			if(_hg.partWeight(i) > _config.initial_partitioning.upper_allowed_partition_weight[0]) {
+				heaviest_partition.push_back(i);
+			}
 		}
 		return heaviest_partition;
 	}
@@ -96,8 +99,9 @@ private:
 	std::vector<PartitionID> getBalancedPartitions() {
 		std::vector<PartitionID> lightest_partition;
 		for(PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-			if(_hg.partWeight(i) <= _config.initial_partitioning.upper_allowed_partition_weight[0])
-			lightest_partition.push_back(i);
+			if(_hg.partWeight(i) <= _config.initial_partitioning.upper_allowed_partition_weight[0]) {
+				lightest_partition.push_back(i);
+			}
 		}
 		return lightest_partition;
 	}
@@ -105,8 +109,9 @@ private:
 	std::vector<HypernodeID> getHypernodesOfPartition(PartitionID p) {
 		std::vector<HypernodeID> partNodes;
 		for(HypernodeID hn : _hg.nodes()) {
-			if(_hg.partID(hn) == p)
-			partNodes.push_back(hn);
+			if(_hg.partID(hn) == p) {
+				partNodes.push_back(hn);
+			}
 		}
 		return partNodes;
 	}

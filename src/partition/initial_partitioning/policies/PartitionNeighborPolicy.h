@@ -97,8 +97,9 @@ struct CutHyperedgeRemovalNeighborPolicy: public PartitionNeighborPolicy {
 		for (int i = 0; i < target_parts.size(); i++) {
 			HypernodeWeight partWeight = hg.partWeight(target_parts[i]);
 			for (HypernodeID hn : hg.pins(he)) {
-				if (hg.partID(hn) != target_parts[i])
+				if (hg.partID(hn) != target_parts[i]) {
 					partWeight += hg.nodeWeight(hn);
+				}
 			}
 			if (partWeight
 					< config.initial_partitioning.upper_allowed_partition_weight[target_parts[i]]) {

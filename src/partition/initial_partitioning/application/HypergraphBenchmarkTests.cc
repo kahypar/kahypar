@@ -119,7 +119,7 @@ void printTable(std::ofstream& latexStream,
 	}
 	latexStream << "\\textbf{Result}";
 	latexStream << " & " << sum.cut << " & " << time << " s & "
-			<< (sum.imbalance / ((double) benchmarks.size()));
+			<< (sum.imbalance / static_cast<double>(benchmarks.size()));
 	latexStream << "\\\\ \\hline \n";
 	latexStream << "\\end{tabular}\n";
 }
@@ -387,6 +387,8 @@ int main(int argc, char* argv[]) {
 
 			for (std::string seed : config.seed) {
 
+				std::cout << benchmark << ", " << mode << ", "<< seed <<  std::endl;
+
 				//Read Hypergraph-File
 				HypernodeID num_hypernodes;
 				HyperedgeID num_hyperedges;
@@ -439,7 +441,7 @@ int main(int argc, char* argv[]) {
 						partitioning);
 				statistic.cut += current_cut;
 				statistic.imbalance += imbalance;
-				statistic.time += ((double) elapsed_seconds.count());
+				statistic.time += static_cast<double>( elapsed_seconds.count());
 
 			}
 

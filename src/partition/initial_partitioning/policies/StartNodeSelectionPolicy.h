@@ -44,8 +44,9 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 		std::vector<bool> in_queue(hg.numNodes(), false);
 		std::queue<HypernodeID> bfs;
 		HypernodeID lastHypernode = -1;
-		for (unsigned int i = 0; i < startNodes.size(); i++)
+		for (unsigned int i = 0; i < startNodes.size(); i++) {
 			bfs.push(startNodes[i]);
+		}
 		while (!bfs.empty()) {
 			HypernodeID hn = bfs.front();
 			bfs.pop();
@@ -79,8 +80,8 @@ struct RandomStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 			HypernodeID hn;
 			while (true) {
 				hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
-				auto node = std::find(startNodes.begin(),startNodes.end(),hn);
-				if(node == startNodes.end()) {
+				auto node = std::find(startNodes.begin(), startNodes.end(), hn);
+				if (node == startNodes.end()) {
 					startNodes.push_back(hn);
 					break;
 				}
@@ -88,10 +89,7 @@ struct RandomStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 		}
 	}
 
-
 };
-
-
 
 } // namespace partition
 

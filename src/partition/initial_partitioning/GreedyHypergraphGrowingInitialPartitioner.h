@@ -17,7 +17,7 @@
  */
 
 #include <queue>
-#include <climits>
+#include <limits>
 #include <algorithm>
 
 #include "lib/definitions.h"
@@ -49,12 +49,13 @@ public:
 		/*max_net_size = 0.0;
 		 for(HyperedgeID he : hypergraph.edges()) {
 		 if(hypergraph.edgeSize(he) > max_net_size)
-		 max_net_size = ((double)hypergraph.edgeSize(he));
+		 max_net_size = static_cast<double>(hypergraph.edgeSize(he));
 		 }*/
 	}
 
 	~GreedyHypergraphGrowingInitialPartitioner() {
 	}
+
 
 private:
 
@@ -66,14 +67,15 @@ private:
 		std::vector<HypernodeID> startNodes;
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
-		for (HypernodeID hn : _hg.nodes())
+		for (HypernodeID hn : _hg.nodes()) {
 			_hg.setNodePart(hn, 0);
+		}
 		for (PartitionID i = 1; i < startNodes.size(); i++) {
 			processNodeForBucketPQ(bq[i], startNodes[i], i);
 		}
 
 		while (true) {
-			Gain best_gain = INT_MIN;
+			Gain best_gain = initial_gain;
 			PartitionID best_part = 0;
 			HypernodeID best_node = 0;
 			for (PartitionID i = 1; i < _config.initial_partitioning.k; i++) {
@@ -101,22 +103,26 @@ private:
 					processNodeForBucketPQ(bq[i], newStartNode, i);
 				}
 			}
-			if (best_part != 0) {
-				if (!assignHypernodeToPartition(best_node, best_part))
+			if (best_part != initial_gain) {
+				if (!assignHypernodeToPartition(best_node, best_part)) {
 					partEnable[best_part] = false;
-				else
+				}
+				else {
 					bq[best_part].deleteMax();
+				}
 				for (HyperedgeID he : _hg.incidentEdges(best_node)) {
 					for (HypernodeID hnode : _hg.pins(he)) {
-						if (_hg.partID(hnode) == 0)
+						if (_hg.partID(hnode) == 0) {
 							processNodeForBucketPQ(bq[best_part], hnode,
 									best_part);
+						}
 					}
 				}
 			}
 			if (_hg.partWeight(0)
-					<= _config.initial_partitioning.lower_allowed_partition_weight[0])
+					<= _config.initial_partitioning.lower_allowed_partition_weight[0]) {
 				break;
+			}
 		}
 		InitialPartitionerBase::performFMRefinement();
 	}
@@ -126,8 +132,9 @@ private:
 		std::vector<HypernodeID> startNode;
 		PartitionID k = 2;
 		StartNodeSelection::calculateStartNodes(startNode, _hg, k);
-		for (HypernodeID hn : _hg.nodes())
+		for (HypernodeID hn : _hg.nodes()) {
 			_hg.setNodePart(hn, 1);
+		}
 		processNodeForBucketPQ(bq, startNode[0], 0);
 		while (true) {
 			if (!bq.empty()) {
@@ -151,9 +158,10 @@ private:
 			} else {
 				HypernodeID newStartNode = Randomize::getRandomInt(0,
 						_hg.numNodes() - 1);
-				while (_hg.partID(newStartNode) != 1)
+				while (_hg.partID(newStartNode) != 1) {
 					newStartNode = Randomize::getRandomInt(0,
 							_hg.numNodes() - 1);
+				}
 				processNodeForBucketPQ(bq, newStartNode, 0);
 			}
 		}
@@ -195,7 +203,7 @@ private:
 	/*Gain calculateHperedgeGainIncrease(HyperedgeID& he) {
 	 Gain gain = 0;
 
-	 double incr = (max_net_size)/((double) _hg.edgeSize(he));
+	 double incr = (max_net_size)/static_cast<double>( _hg.edgeSize(he));
 	 double locked_node = 0.0;
 	 double free_node = 0.0;
 	 for(HypernodeID hn : _hg.pins(he)) {
@@ -214,6 +222,8 @@ private:
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
+
+	static const Gain initial_gain = std::numeric_limits<Gain>::min();
 
 };
 

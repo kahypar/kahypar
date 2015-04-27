@@ -15,7 +15,7 @@
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
 #include <algorithm>
-#include <climits>
+#include <limits>
 
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -33,6 +33,9 @@ struct CoarseningNodeSelectionPolicy {
 };
 
 struct CoarseningMaximumNodeSelectionPolicy : public CoarseningNodeSelectionPolicy {
+
+	static const int initial_rate = std::numeric_limits<int>::min();
+
 	static inline std::pair<HypernodeID,HypernodeID> coarseningNodeSelection(const Hypergraph& hg) noexcept {
 		std::pair<HypernodeID, HypernodeID> contractionNodes;
 		int bestRating = INT_MIN;
@@ -42,12 +45,13 @@ struct CoarseningMaximumNodeSelectionPolicy : public CoarseningNodeSelectionPoli
 			std::map<HypernodeID,int> nodeCount;
 			for(HyperedgeID he : hg.incidentEdges(hn)) {
 				for(HypernodeID node : hg.pins(he)) {
-					if(hn != node)
+					if(hn != node) {
 						nodeCount[node]++;
+					}
 				}
 			}
 			HypernodeID bestNode = 0;
-			int rate = INT_MIN;
+			int rate = initial_rate;
 			for(auto kv : nodeCount) {
 				if(kv.second > rate) {
 					rate = kv.second;

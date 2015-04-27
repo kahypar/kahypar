@@ -22,10 +22,12 @@ class IInitialPartitioner {
 
 
 	void partition(int k) {
-		if(k == 2)
+		if(k == 2) {
 			bisectionPartitionImpl();
-		else
+		}
+		else {
 			kwayPartitionImpl();
+		}
 	}
 
 

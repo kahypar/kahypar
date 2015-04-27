@@ -197,6 +197,14 @@ inline std::string toString(const Configuration& config) {
   << std::endl;
   oss << std::setw(35) << "  contraction limit: " << config.coarsening.contraction_limit
   << std::endl;
+  oss << std::setw(35) << "  initial partitioning k: " << config.initial_partitioning.k << std::endl;
+  oss << std::setw(35) << "  initial partitioning epsilon: " << config.initial_partitioning.epsilon << std::endl;
+  oss << std::setw(35) << "  initial partitioning upper_allowed_part_weight: " << config.initial_partitioning.upper_allowed_partition_weight[0] << std::endl;
+  oss << std::setw(35) << "  initial partitioning mode: " << config.initial_partitioning.mode << std::endl;
+  oss << std::setw(35) << "  initial partitioning seed: " << config.initial_partitioning.seed << std::endl;
+  oss << std::setw(35) << "  initial partitioning rollback: " << config.initial_partitioning.rollback << std::endl;
+  oss << std::setw(35) << "  initial partitioning ils-iterations: " << config.initial_partitioning.ils_iterations << std::endl;
+  oss << std::setw(35) << "  initial partitioning partition output file: " << config.initial_partitioning.coarse_graph_partition_filename << std::endl;
   if (config.two_way_fm.active) {
     oss << "2-Way-FM Refinement Parameters:" << std::endl;
     oss << std::setw(35) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;

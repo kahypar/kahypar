@@ -76,9 +76,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 				std::string>();
 		config.initial_partitioning.k = vm["k"].as<PartitionID>();
 		config.partition.k = vm["k"].as<PartitionID>();
-		if (vm.count("output"))
+		if (vm.count("output")) {
 			config.initial_partitioning.coarse_graph_partition_filename =
 					vm["output"].as<std::string>();
+		}
 		if (vm.count("epsilon")) {
 			config.initial_partitioning.epsilon = vm["epsilon"].as<double>()
 					- vm["epsilon"].as<double>() / 4;
@@ -87,15 +88,18 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("mode")) {
 			config.initial_partitioning.mode = vm["mode"].as<std::string>();
 			if (config.initial_partitioning.mode.compare("ils") == 0) {
-				if (vm.count("ils_iterations"))
+				if (vm.count("ils_iterations")) {
 					config.initial_partitioning.ils_iterations =
 							vm["ils_iterations"].as<int>();
+				}
 			}
 		}
-		if (vm.count("seed"))
+		if (vm.count("seed")) {
 			config.initial_partitioning.seed = vm["seed"].as<int>();
-		if (vm.count("rollback"))
+		}
+		if (vm.count("rollback")) {
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
+		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);

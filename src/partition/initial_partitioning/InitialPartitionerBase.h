@@ -12,7 +12,7 @@
 #include <stack>
 #include <map>
 #include <algorithm>
-#include <climits>
+#include <limits>
 
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
@@ -39,7 +39,6 @@ using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
 using partition::KWayFMRefiner;
 
-
 namespace partition {
 
 class InitialPartitionerBase {
@@ -57,6 +56,9 @@ public:
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			hypergraph_weight += _hg.nodeWeight(hn);
+			if(_hg.nodeWeight(hn) > heaviest_node) {
+				heaviest_node = _hg.nodeWeight(hn);
+			}
 		}
 
 		_config.partition.total_graph_weight = hypergraph_weight;
@@ -94,19 +96,19 @@ public:
 		//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
 		if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
 			HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-				refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+			refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
 		}
 	}
 
 	void rollbackToBestBisectionCut() {
 		if (_config.initial_partitioning.rollback) {
-			ASSERT(best_cut != INT_MAX && best_partition_size != INT_MAX,
+			ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max() && best_partition_size != std::numeric_limits<HypernodeWeight>::max(),
 					"There are no precalculations for a rollback to the best bisection cut!");
-			HypernodeWeight currentSize = INT_MAX;
+			HypernodeWeight currentSize = std::numeric_limits<HypernodeWeight>::max();
 			HypernodeID currentHypernode = 0;
 			while (currentSize > best_partition_size
 					&& !bisection_assignment_history.empty()) {
-				if (currentSize != INT_MAX) {
+				if (currentSize != std::numeric_limits<HypernodeWeight>::max()) {
 					ASSERT(_hg.partID(currentHypernode) == 0,
 							"The hypernode " << currentHypernode << " isn't assigned to partition 0.");
 					_hg.changeNodePart(currentHypernode, 0, 1);
@@ -138,8 +140,9 @@ public:
 					return false;
 				}
 			}
-			if (p == 0 && preparingForRollback && _config.initial_partitioning.rollback)
-			calculateBisectionCutAfterAssignment(hn, other_part);
+			if (p == 0 && preparingForRollback && _config.initial_partitioning.rollback) {
+				calculateBisectionCutAfterAssignment(hn, other_part);
+			}
 			ASSERT(_hg.partID(hn) == p,
 					"Assigned partition of Hypernode "<< hn<< " should be " << p << ", but currently is " << _hg.partID(hn));
 			return true;
@@ -186,18 +189,20 @@ public:
 		index_vector.push_back(edge_vector.size());
 		std::vector<HyperedgeID> hyperedgeMapper;
 		for (HyperedgeID he : hyper.edges()) {
-			if (hyper.connectivity(he) > 1)
-			continue;
-			bool edge_add = true;
+			if (hyper.connectivity(he) > 1) {
+				continue;
+			}
+			bool is_part_edge = true;
 			for (HypernodeID hn : hyper.pins(he)) {
 				if (hyper.partID(hn) != part) {
-					edge_add = false;
-					break;
+					is_part_edge = false;
 				}
+				break;
 			}
-			if (edge_add) {
-				for (HypernodeID hn : hyper.pins(he))
-				edge_vector.push_back(hypernodeMapper[hn]);
+			if (is_part_edge) {
+				for (HypernodeID hn : hyper.pins(he)) {
+					edge_vector.push_back(hypernodeMapper[hn]);
+				}
 				index_vector.push_back(edge_vector.size());
 				hyperedgeMapper.push_back(he);
 				hyperedge_weights.push_back(hyper.edgeWeight(he));
@@ -249,17 +254,12 @@ private:
 		part_weight += _hg.nodeWeight(hn);
 		ASSERT(part_weight == _hg.partWeight(0), "Calculation of weight for partition 0 failed. Should be " << _hg.partWeight(0) << " but is " << part_weight);
 		for(HyperedgeID he : _hg.incidentEdges(hn)) {
-			bool isCutEdge = false;
-			for(HypernodeID hnodes : _hg.pins(he)) {
-				if(_hg.partID(hnodes) == other_part) {
-					if(!cut_edges_during_bisection[he]) {
-						cut_edges_during_bisection[he] = true;
-						current_cut += _hg.edgeWeight(he);
-					}
-					isCutEdge = true;
+			if(_hg.connectivity(he) > 1) {
+				if(!cut_edges_during_bisection[he]) {
+					cut_edges_during_bisection[he] = true;
+					current_cut += _hg.edgeWeight(he);
 				}
-			}
-			if(!isCutEdge && cut_edges_during_bisection[he]) {
+			} else if(cut_edges_during_bisection[he]) {
 				cut_edges_during_bisection[he] = false;
 				current_cut -= _hg.edgeWeight(he);
 			}
@@ -274,11 +274,12 @@ private:
 		}
 	}
 
-	HyperedgeWeight best_cut = INT_MAX;
+	HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 	HyperedgeWeight current_cut = 0;
 	HypernodeWeight part_weight = 0;
-	HypernodeWeight best_partition_size = INT_MAX;
+	HypernodeWeight best_partition_size = std::numeric_limits<HypernodeWeight>::max();
 	HypernodeWeight hypergraph_weight = 0;
+	HypernodeWeight heaviest_node = 0;
 	std::vector<bool> cut_edges_during_bisection;
 	std::stack<std::pair<HypernodeWeight, HyperedgeWeight>> bisection_assignment_history;
 

@@ -41,6 +41,12 @@ class TestInitialPartitioner: public IInitialPartitioner,
 
 		void bisectionPartitionImpl() final {
 
+			PartitionID unassigned_part = 1;
+
+			for (const HypernodeID hn : _hg.nodes()) {
+					_hg.setNodePart(hn,1);
+			}
+
 			std::vector<std::vector<int>> hyperedge_count(_hg.numNodes(),std::vector<int>(_hg.numNodes(),0));
 			HypernodeID bi = 0; HypernodeID bj = 0;
 
@@ -59,13 +65,13 @@ class TestInitialPartitioner: public IInitialPartitioner,
 				}
 			}
 
-			assignHypernodeToPartition(bi,0,-1,true);
+			assignHypernodeToPartition(bi,0,unassigned_part,true);
 			HypernodeID current_node = bj;
 			while(assignHypernodeToPartition(current_node,0,-1,true)) {
 				HypernodeID best_node = -1;
 				int best_count = -1;
 				for(HypernodeID hn : _hg.nodes()) {
-					if(_hg.partID(hn) == -1 && best_count < hyperedge_count[current_node][hn]) {
+					if(_hg.partID(hn) == unassigned_part && best_count < hyperedge_count[current_node][hn]) {
 						best_count = hyperedge_count[current_node][hn];
 						best_node = hn;
 					}
@@ -74,10 +80,6 @@ class TestInitialPartitioner: public IInitialPartitioner,
 			}
 
 
-			for (const HypernodeID hn : _hg.nodes()) {
-				if(_hg.partID(hn) == -1)
-					_hg.setNodePart(hn,1);
-			}
 
 
 			InitialPartitionerBase::rollbackToBestBisectionCut();

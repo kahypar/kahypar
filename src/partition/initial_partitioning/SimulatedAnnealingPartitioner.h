@@ -52,7 +52,6 @@ private:
 		double t = 1000.0;
 		int moves_without_improvement = 0;
 
-		int improvement = 0;
 		while (moves_without_improvement < allowed_move_without_improvement) {
 
 			int cut_before = metrics::hyperedgeCut(_hg);
@@ -81,10 +80,10 @@ private:
 
 
 			int cut_after = metrics::hyperedgeCut(_hg);
-			if(cut_before <= cut_after)
+			if(cut_before <= cut_after) {
 				moves_without_improvement++;
+			}
 			else {
-				improvement++;
 				moves_without_improvement = 0;
 			}
 
@@ -95,7 +94,6 @@ private:
 
 		}
 
-		std::cout << "Improvements: " << improvement << std::endl;
 
 		for (HypernodeID hn : _hg.nodes()) {
 			if (best_partition[hn] != _hg.partID(hn))
@@ -114,7 +112,7 @@ private:
 		bool accept = true;
 
 		if(old_cut < new_cut) {
-			double exponent = ((double) (old_cut - new_cut))/t;
+			double exponent = (static_cast<double>(old_cut - new_cut))/t;
 			double p = std::exp(exponent);
 			int z = Randomize::getRandomInt(0,1000);
 			if(z > p*1000)

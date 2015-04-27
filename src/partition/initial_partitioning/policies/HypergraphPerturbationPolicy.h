@@ -48,8 +48,9 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 
 		std::vector<HyperedgeID> cut_edges;
 		for (HyperedgeID he : hg.edges()) {
-			if (hg.connectivity(he) > 1)
+			if (hg.connectivity(he) > 1) {
 				cut_edges.push_back(he);
+			}
 		}
 		Randomize::shuffleVector(cut_edges, cut_edges.size());
 
@@ -72,8 +73,9 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 							new_partition, locked))
 						count++;
 				}
-				if (count == max_stable_net_removals)
+				if (count == max_stable_net_removals) {
 					break;
+				}
 			}
 		}
 

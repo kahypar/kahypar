@@ -30,8 +30,7 @@ class RecursiveBisection: public IInitialPartitioner,
 
 public:
 	RecursiveBisection(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config),
-			balancer(_hg, _config) {
+			InitialPartitionerBase(hypergraph, config), balancer(_hg, _config) {
 	}
 
 	~RecursiveBisection() {
@@ -72,20 +71,23 @@ private:
 
 		//Calculate balance constraints for partition 0 and 1
 		PartitionID k = (k2 - k1 + 1);
-		PartitionID km = floor(((double) k) / 2.0);
+		PartitionID km = floor(static_cast<double>(k) / 2.0);
 		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
-				- _config.initial_partitioning.epsilon) * ((double) km)
-				* ceil(hypergraph_weight / ((double) k));
+				- _config.initial_partitioning.epsilon)
+				* static_cast<double>(km)
+				* ceil(hypergraph_weight / static_cast<double>(k));
 		_config.initial_partitioning.upper_allowed_partition_weight[0] = (1.0
-				+ _config.initial_partitioning.epsilon) * ((double) km)
-				* ceil(hypergraph_weight / ((double) k));
+				+ _config.initial_partitioning.epsilon)
+				* static_cast<double>(km)
+				* ceil(hypergraph_weight / static_cast<double>(k));
 		_config.initial_partitioning.lower_allowed_partition_weight[1] = (1.0
-				- _config.initial_partitioning.epsilon) * ((double) (k - km))
-				* ceil(hypergraph_weight / ((double) k));
+				- _config.initial_partitioning.epsilon)
+				* static_cast<double>(k - km)
+				* ceil(hypergraph_weight / static_cast<double>(k));
 		_config.initial_partitioning.upper_allowed_partition_weight[1] = (1.0
-				+ _config.initial_partitioning.epsilon) * ((double) (k - km))
-				* ceil(hypergraph_weight / ((double) k));
-
+				+ _config.initial_partitioning.epsilon)
+				* static_cast<double>(k - km)
+				* ceil(hypergraph_weight / static_cast<double>(k));
 
 		//Performing bisection
 		InitialPartitioner partitioner(hyper, _config);
@@ -132,19 +134,21 @@ private:
 		//Assign partition id from partition 0 to the current hypergraph
 		for (HypernodeID hn : partition_0.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_0[hn])
-					!= partition_0.partID(hn))
+					!= partition_0.partID(hn)) {
 				hyper.changeNodePart(hgToExtractedHypergraphMapper_0[hn],
 						hyper.partID(hgToExtractedHypergraphMapper_0[hn]),
 						partition_0.partID(hn));
+			}
 		}
 
 		//Assign partition id from partition 1 to the current hypergraph
 		for (HypernodeID hn : partition_1.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_1[hn])
-					!= partition_1.partID(hn))
+					!= partition_1.partID(hn)) {
 				hyper.changeNodePart(hgToExtractedHypergraphMapper_1[hn],
 						hyper.partID(hgToExtractedHypergraphMapper_1[hn]),
 						partition_1.partID(hn));
+			}
 		}
 
 	}
