@@ -82,7 +82,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		}
 		if (vm.count("epsilon")) {
 			config.initial_partitioning.epsilon = vm["epsilon"].as<double>()
-					- vm["epsilon"].as<double>() / 4;
+					/*- vm["epsilon"].as<double>() / 4*/;
 			config.partition.epsilon = vm["epsilon"].as<double>();
 		}
 		if (vm.count("mode")) {
@@ -100,6 +100,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("rollback")) {
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 		}
+		if (vm.count("refinement")) {
+			config.initial_partitioning.refinement = vm["refinement"].as<bool>();
+		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);
@@ -115,6 +118,7 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.seed = -1;
 	config.initial_partitioning.ils_iterations = 50;
 	config.initial_partitioning.rollback = true;
+	config.initial_partitioning.refinement = true;
 
 	config.two_way_fm.stopping_rule = "simple";
 	config.two_way_fm.num_repetitions = -1;
@@ -136,7 +140,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy-maxpin",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -160,7 +164,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -168,11 +172,11 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("multilevel",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("sa",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -181,7 +185,7 @@ void createInitialPartitioningFactory() {
 	InitialPartitioningFactory::getInstance().registerObject("ils-greedy"
 			"",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>(p.hypergraph,p.config);
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 }
 
@@ -226,7 +230,10 @@ int main(int argc, char* argv[]) {
 			po::value<int>(),
 			"Iterations of the iterative local search partitioner")("rollback",
 			po::value<bool>(),
-			"Rollback to best cut, if you bipartition a hypergraph");
+			"Rollback to best cut, if you bipartition a hypergraph")
+			("refinement",
+						po::value<bool>(),
+						"Enables/Disable refinement after initial partitioning calculation");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);

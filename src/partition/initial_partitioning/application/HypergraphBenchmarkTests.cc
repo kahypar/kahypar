@@ -31,18 +31,21 @@ struct partitioning_config {
 	int part = 32;
 	std::string k;
 	std::vector<std::string> seed;
-	double eps;
-	std::string epsilon;
+	std::vector<double> eps;
 };
 
 struct partitioning_stats {
 	std::string benchmark;
 	std::string mode;
-	HyperedgeWeight cut;
-	double imbalance;
-	double time;
+	std::vector<HyperedgeWeight> cut;
+	std::vector<double> imbalance;
+	std::vector<double> time;
 	int status;
 };
+
+bool exception = false;
+
+partitioning_config config;
 
 void rounded(double& x, int nks) {
 	int z = 0;
@@ -57,7 +60,7 @@ void rounded(double& x, int nks) {
 	x /= z;
 }
 
-void printResults(std::vector<std::vector<partitioning_stats>>& stats,
+/*void printResults(std::vector<std::vector<partitioning_stats>>& stats,
 		std::vector<std::string>& benchmarks) {
 	for (int i = 0; i < stats.size(); i++) {
 		std::cout << "************ " << benchmarks[i] << " ************"
@@ -72,13 +75,17 @@ void printResults(std::vector<std::vector<partitioning_stats>>& stats,
 		}
 
 	}
-}
+}*/
 
-void printConfig(std::ofstream& latexStream, partitioning_config& config) {
+void printConfig(std::ofstream& latexStream) {
 	latexStream << "\\subsection{Configuration}\n";
 	latexStream << "\\begin{itemize}\n";
 	latexStream << "\\item k = " << config.k << "\n";
-	latexStream << "\\item epsilon = " << config.epsilon << "\n";
+	latexStream << "\\item epsilon = ";
+	for (int i = 0; i < config.eps.size() - 1; i++) {
+		latexStream << config.eps[i] << ", ";
+	}
+	latexStream << config.eps[config.eps.size() - 1] << "\n";
 	latexStream << "\\item Seeds = ";
 	for (int i = 0; i < config.seed.size() - 1; i++)
 		latexStream << config.seed[i] << ", ";
@@ -92,25 +99,35 @@ void printTable(std::ofstream& latexStream,
 		std::vector<std::string>& benchmarks, std::vector<std::string>& modes,
 		int j) {
 	latexStream << "\\begin{tabular}[t]{";
-	latexStream << "|c|c|c|c|} \\hline \n";
-	latexStream << " & \\textbf{Cut} & \\textbf{Time} & \\textbf{Imbalance} ";
+	for (int i = 0; i < config.eps.size(); i++) {
+		latexStream << "|c|c|c";
+	}
+	latexStream << "|c|} \\hline \n";
+	for (int i = 0; i < config.eps.size(); i++) {
+		latexStream
+				<< "& \\textbf{Cut} & \\textbf{Time} & \\textbf{Imbalance} ";
+	}
 	latexStream << "\\\\ \\hline \\hline \n";
 
 	partitioning_stats sum;
-	sum.cut = 0;
-	sum.imbalance = 0;
-	double time = 0.0;
+	sum.imbalance.assign(config.eps.size(), 0);
+	sum.cut.assign(config.eps.size(), 0);
+	sum.time.assign(config.eps.size(), 0);
 	for (int i = 0; i < stats.size(); i++) {
 		if (stats[i][j].status == 0)
 			latexStream << "\\textbf{" << benchmarks[i] << "}";
 		else
 			latexStream << "\\textcolor{red}{\\textbf{" << benchmarks[i]
 					<< "}}";
-		sum.cut += stats[i][j].cut;
-		time += stats[i][j].time;
-		sum.imbalance += stats[i][j].imbalance;
-		latexStream << " & " << stats[i][j].cut << " & " << stats[i][j].time
-				<< " s & " << stats[i][j].imbalance;
+		for (int k = 0; k < config.eps.size(); k++) {
+			rounded(stats[i][j].time[k], 3);
+			rounded(stats[i][j].imbalance[k], 3);
+			sum.cut[k] += stats[i][j].cut[k];
+			sum.time[k] += stats[i][j].time[k];
+			sum.imbalance[k] += stats[i][j].imbalance[k];
+			latexStream << " & " << stats[i][j].cut[k] << " & " << stats[i][j].time[k]
+					<< " s & " << stats[i][j].imbalance[k];
+		}
 		if (i != stats.size() - 1)
 			latexStream << "\\\\ \\hline \n";
 		else
@@ -118,150 +135,206 @@ void printTable(std::ofstream& latexStream,
 
 	}
 	latexStream << "\\textbf{Result}";
-	latexStream << " & " << sum.cut << " & " << time << " s & "
-			<< (sum.imbalance / static_cast<double>(benchmarks.size()));
-	latexStream << "\\\\ \\hline \n";
-	latexStream << "\\end{tabular}\n";
-}
-
-void printCutTable(std::ofstream& latexStream,
-		std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
-
-	latexStream << "\\begin{tabular}[t]{|c|";
-	for (int i = 0; i < modes.size(); i++)
-		latexStream << "c|";
-	latexStream << "} \\hline \n";
-
-	for (int i = 0; i < modes.size(); i++) {
-		latexStream << " & \\textbf{" << modes[i] << "}";
-	}
-	latexStream << "\\\\ \\hline \\hline \n";
-
-	std::vector<HyperedgeWeight> result(modes.size(), 0);
-	for (int i = 0; i < benchmarks.size(); i++) {
-
-		latexStream << "\\textbf{" << benchmarks[i] << "}";
-
-		for (int j = 0; j < modes.size(); j++) {
-			latexStream << " & " << stats[i][j].cut;
-			result[j] += stats[i][j].cut;
-		}
-		if (i != stats.size() - 1)
-			latexStream << "\\\\ \\hline \n";
-		else
-			latexStream << "\\\\ \\hline \\hline \n";
-	}
-
-	latexStream << "\\textbf{Result}";
-	for (int i = 0; i < result.size(); i++) {
-		latexStream << " & " << result[i];
+	for (int k = 0; k < config.eps.size(); k++) {
+		latexStream << " & " << sum.cut[k] << " & " << sum.time[k] << " s & "
+				<< (sum.imbalance[k] / static_cast<double>(benchmarks.size()));
 	}
 	latexStream << "\\\\ \\hline \n";
 	latexStream << "\\end{tabular}\n";
-
 }
 
-void printTimeTable(std::ofstream& latexStream,
-		std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
+/*void printCutTable(std::ofstream& latexStream,
+ std::vector<std::vector<partitioning_stats>>& stats,
+ std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
-	latexStream << "\\begin{tabular}[t]{|c|";
-	for (int i = 0; i < modes.size(); i++)
-		latexStream << "c|";
-	latexStream << "} \\hline \n";
+ latexStream << "\\begin{tabular}[t]{|c|";
+ for (int i = 0; i < modes.size(); i++)
+ latexStream << "c|";
+ latexStream << "} \\hline \n";
 
-	for (int i = 0; i < modes.size(); i++) {
-		latexStream << " & \\textbf{" << modes[i] << "}";
-	}
-	latexStream << "\\\\ \\hline \\hline \n";
+ for (int i = 0; i < modes.size(); i++) {
+ latexStream << " & \\textbf{" << modes[i] << "}";
+ }
+ latexStream << "\\\\ \\hline \\hline \n";
 
-	std::vector<double> result(modes.size(), 0);
-	for (int i = 0; i < benchmarks.size(); i++) {
+ std::vector<HyperedgeWeight> result(modes.size(), 0);
+ for (int i = 0; i < benchmarks.size(); i++) {
 
-		latexStream << "\\textbf{" << benchmarks[i] << "}";
+ latexStream << "\\textbf{" << benchmarks[i] << "}";
 
-		for (int j = 0; j < modes.size(); j++) {
-			rounded(stats[i][j].time, 2);
-			latexStream << " & " << stats[i][j].time << " s";
-			result[j] += stats[i][j].time;
-		}
-		if (i != stats.size() - 1)
-			latexStream << "\\\\ \\hline \n";
-		else
-			latexStream << "\\\\ \\hline \\hline \n";
-	}
+ for (int j = 0; j < modes.size(); j++) {
+ latexStream << " & " << stats[i][j].cut;
+ result[j] += stats[i][j].cut;
+ }
+ if (i != stats.size() - 1)
+ latexStream << "\\\\ \\hline \n";
+ else
+ latexStream << "\\\\ \\hline \\hline \n";
+ }
 
-	latexStream << "\\textbf{Result}";
-	for (int i = 0; i < result.size(); i++) {
-		latexStream << " & " << result[i] << " s";
-	}
-	latexStream << "\\\\ \\hline \n";
-	latexStream << "\\end{tabular}\n";
+ latexStream << "\\textbf{Result}";
+ for (int i = 0; i < result.size(); i++) {
+ latexStream << " & " << result[i];
+ }
+ latexStream << "\\\\ \\hline \n";
+ latexStream << "\\end{tabular}\n";
 
-}
+ }
 
-void printImbalanceTable(std::ofstream& latexStream,
-		std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
+ void printTimeTable(std::ofstream& latexStream,
+ std::vector<std::vector<partitioning_stats>>& stats,
+ std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
-	latexStream << "\\begin{tabular}[t]{|c|";
-	for (int i = 0; i < modes.size(); i++)
-		latexStream << "c|";
-	latexStream << "} \\hline \n";
+ latexStream << "\\begin{tabular}[t]{|c|";
+ for (int i = 0; i < modes.size(); i++)
+ latexStream << "c|";
+ latexStream << "} \\hline \n";
 
-	for (int i = 0; i < modes.size(); i++) {
-		latexStream << " & \\textbf{" << modes[i] << "}";
-	}
-	latexStream << "\\\\ \\hline \\hline \n";
+ for (int i = 0; i < modes.size(); i++) {
+ latexStream << " & \\textbf{" << modes[i] << "}";
+ }
+ latexStream << "\\\\ \\hline \\hline \n";
 
-	std::vector<double> result(modes.size(), 0);
-	for (int i = 0; i < benchmarks.size(); i++) {
+ std::vector<double> result(modes.size(), 0);
+ for (int i = 0; i < benchmarks.size(); i++) {
 
-		latexStream << "\\textbf{" << benchmarks[i] << "}";
+ latexStream << "\\textbf{" << benchmarks[i] << "}";
 
-		for (int j = 0; j < modes.size(); j++) {
-			rounded(stats[i][j].imbalance, 3);
-			latexStream << " & " << stats[i][j].imbalance;
-			result[j] += stats[i][j].imbalance;
-		}
-		if (i != stats.size() - 1)
-			latexStream << "\\\\ \\hline \n";
-		else
-			latexStream << "\\\\ \\hline \\hline \n";
-	}
+ for (int j = 0; j < modes.size(); j++) {
+ rounded(stats[i][j].time, 2);
+ latexStream << " & " << stats[i][j].time << " s";
+ result[j] += stats[i][j].time;
+ }
+ if (i != stats.size() - 1)
+ latexStream << "\\\\ \\hline \n";
+ else
+ latexStream << "\\\\ \\hline \\hline \n";
+ }
 
-	latexStream << "\\textbf{Result}";
-	for (int i = 0; i < result.size(); i++) {
-		result[i] /= benchmarks.size();
-		rounded(result[i], 3);
-		latexStream << " & " << (result[i]);
-	}
-	latexStream << "\\\\ \\hline \n";
-	latexStream << "\\end{tabular}\n";
+ latexStream << "\\textbf{Result}";
+ for (int i = 0; i < result.size(); i++) {
+ latexStream << " & " << result[i] << " s";
+ }
+ latexStream << "\\\\ \\hline \n";
+ latexStream << "\\end{tabular}\n";
 
-}
+ }
 
-void printExceptions(std::ofstream& latexStream,
-		std::vector<std::vector<partitioning_stats>>& stats) {
+ void printImbalanceTable(std::ofstream& latexStream,
+ std::vector<std::vector<partitioning_stats>>& stats,
+ std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
-	latexStream << "\\begin{itemize} \n";
-	for (int i = 0; i < stats.size(); i++) {
+ latexStream << "\\begin{tabular}[t]{|c|";
+ for (int i = 0; i < modes.size(); i++)
+ latexStream << "c|";
+ latexStream << "} \\hline \n";
 
-		for (int j = 0; j < stats[i].size(); j++) {
-			if (stats[i][j].status != 0) {
-				latexStream << "\\item " << stats[i][j].benchmark << ", "
-						<< stats[i][j].mode << " \n";
-			}
-		}
+ for (int i = 0; i < modes.size(); i++) {
+ latexStream << " & \\textbf{" << modes[i] << "}";
+ }
+ latexStream << "\\\\ \\hline \\hline \n";
 
-	}
+ std::vector<double> result(modes.size(), 0);
+ for (int i = 0; i < benchmarks.size(); i++) {
 
-	latexStream << "\\end{itemize} \n";
+ latexStream << "\\textbf{" << benchmarks[i] << "}";
 
-}
+ for (int j = 0; j < modes.size(); j++) {
+ rounded(stats[i][j].imbalance, 3);
+ latexStream << " & " << stats[i][j].imbalance;
+ result[j] += stats[i][j].imbalance;
+ }
+ if (i != stats.size() - 1)
+ latexStream << "\\\\ \\hline \n";
+ else
+ latexStream << "\\\\ \\hline \\hline \n";
+ }
 
-void printLatexFile(std::vector<std::vector<partitioning_stats>>& stats,
+ latexStream << "\\textbf{Result}";
+ for (int i = 0; i < result.size(); i++) {
+ result[i] /= benchmarks.size();
+ rounded(result[i], 3);
+ latexStream << " & " << (result[i]);
+ }
+ latexStream << "\\\\ \\hline \n";
+ latexStream << "\\end{tabular}\n";
+
+ }
+
+ void printExceptions(std::ofstream& latexStream,
+ std::vector<std::vector<partitioning_stats>>& stats) {
+
+ latexStream << "\\begin{itemize} \n";
+ for (int i = 0; i < stats.size(); i++) {
+
+ for (int j = 0; j < stats[i].size(); j++) {
+ if (stats[i][j].status != 0) {
+ latexStream << "\\item " << stats[i][j].benchmark << ", "
+ << stats[i][j].mode << " \n";
+ }
+ }
+
+ }
+
+ latexStream << "\\end{itemize} \n";
+
+ }
+
+ void printLatexFile(std::vector<std::vector<partitioning_stats>>& stats,
+ partitioning_config& config, std::vector<std::string>& benchmarks,
+ std::vector<std::string>& modes) {
+ std::ofstream latexStream;
+ latexStream.open("result.tex");
+ latexStream << "\\documentclass[landscape]{article}\n";
+ latexStream << "\\usepackage{colortab}\n";
+ latexStream << "\\usepackage{color}\n";
+ latexStream << "\\usepackage{pifont}\n";
+ latexStream
+ << "\\usepackage[a4paper,left=0.5cm,right=0.5cm,top=1.5cm,bottom=1.5cm,bindingoffset=5mm]{geometry}\n";
+ latexStream << "\\begin{document}\n";
+
+ latexStream << "\\section{Hypergraph-Benchmark-Results}\n";
+
+ printConfig(latexStream, config);
+
+ latexStream << "\\subsection{Hyperedge-Cut} \n";
+ latexStream << "\\begin{center}\n";
+ printCutTable(latexStream, stats, benchmarks, modes);
+ latexStream << "\\end{center}\n";
+ latexStream << "\n";
+
+ latexStream << "\\subsection{Time} \n";
+ latexStream << "\\begin{center}\n";
+ printTimeTable(latexStream, stats, benchmarks, modes);
+ latexStream << "\\end{center}\n";
+ latexStream << "\n";
+
+ latexStream << "\\subsection{Imbalance} \n";
+ latexStream << "\\begin{center}\n";
+ printImbalanceTable(latexStream, stats, benchmarks, modes);
+ latexStream << "\\end{center}\n";
+ latexStream << "\n";
+
+ if (exception) {
+ latexStream << "\\subsection{Exceptions} \n";
+ latexStream << "\\begin{center}\n";
+ printExceptions(latexStream, stats);
+ latexStream << "\\end{center}\n";
+ latexStream << "\n";
+ }
+
+ latexStream << "\\end{document}\n";
+ latexStream.close();
+
+ std::string pdflatex = "pdflatex result.tex";
+ std::system(pdflatex.c_str());
+
+ std::string clean = "rm -f *.aux *.log";
+ std::system(clean.c_str());
+
+ }*/
+
+void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 		partitioning_config& config, std::vector<std::string>& benchmarks,
 		std::vector<std::string>& modes) {
 	std::ofstream latexStream;
@@ -276,26 +349,15 @@ void printLatexFile(std::vector<std::vector<partitioning_stats>>& stats,
 
 	latexStream << "\\section{Hypergraph-Benchmark-Results}\n";
 
-	printConfig(latexStream, config);
+	printConfig(latexStream);
 
-	latexStream << "\\subsection{Hyperedge-Cut} \n";
-	latexStream << "\\begin{center}\n";
-	printCutTable(latexStream, stats, benchmarks, modes);
-	latexStream << "\\end{center}\n";
-	latexStream << "\n";
-
-	latexStream << "\\subsection{Time} \n";
-	latexStream << "\\begin{center}\n";
-	printTimeTable(latexStream, stats, benchmarks, modes);
-	latexStream << "\\end{center}\n";
-	latexStream << "\n";
-
-	latexStream << "\\subsection{Imbalance} \n";
-	latexStream << "\\begin{center}\n";
-	printImbalanceTable(latexStream, stats, benchmarks, modes);
-	latexStream << "\\end{center}\n";
-	latexStream << "\n";
-
+	for (int i = 0; i < modes.size(); i++) {
+		latexStream << "\\subsection{" << modes[i] << "} \n";
+		latexStream << "\\begin{center}\n";
+		printTable(latexStream, stats, benchmarks, modes, i);
+		latexStream << "\\end{center}\n";
+		latexStream << "\n";
+	}
 
 	latexStream << "\\end{document}\n";
 	latexStream.close();
@@ -308,7 +370,7 @@ void printLatexFile(std::vector<std::vector<partitioning_stats>>& stats,
 
 }
 
-void readHmetisResultFile(std::vector<std::vector<partitioning_stats>>& stats,
+/*void readHmetisResultFile(std::vector<std::vector<partitioning_stats>>& stats,
 		std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
 	modes.push_back("hMetis");
@@ -339,17 +401,15 @@ void readHmetisResultFile(std::vector<std::vector<partitioning_stats>>& stats,
 
 	}
 
-}
+}*/
 
 int main(int argc, char* argv[]) {
 
 	std::vector<std::string> benchmarks { "ibm01", "ibm02", "ibm03", "ibm04",
-			"ibm05", "ibm06", "ibm07", "vibrobox","avqsmall",
-			"avqlarge", "bcsstk29", "bcsstk31", "bcsstk32", "s3rmq4m1",
-			"s15850", "s35932", "s38584" };
-	std::vector<std::string> modes { "random", "recursive-random", "bfs",
-			"recursive-bfs", "greedy-maxpin", "greedy-maxnet", "greedy",
-			"recursive-greedy", "sa", "ils" };
+			"ibm05", "ibm06", "ibm07", "vibrobox", "avqsmall", "avqlarge",
+			"bcsstk29", "bcsstk31", "bcsstk32", "s3rmq4m1", "s15850", "s35932",
+			"s38584" };
+	std::vector<std::string> modes { "greedy" };
 
 	/*std::vector<std::string> benchmarks {
 	 "ibm03", "ibm04", "ibm05"};
@@ -357,17 +417,16 @@ int main(int argc, char* argv[]) {
 	 "recursive-bfs", "greedy-maxpin", "greedy-maxnet", "greedy",
 	 "recursive-greedy", "ils"};*/
 
-	partitioning_config config;
-
-	config.part = 32;
-	config.k = "32";
+	config.part = 2;
+	config.k = "2";
 	config.seed.resize(4);
 	config.seed[0] = "1";
 	config.seed[1] = "42";
 	config.seed[2] = "143";
 	config.seed[3] = "201";
-	config.eps = 0.05;
-	config.epsilon = "0.05";
+	config.eps.resize(2);
+	config.eps[0] = 0.05;
+	config.eps[1] = 0.1;
 
 	std::vector<std::vector<partitioning_stats>> stats(benchmarks.size());
 
@@ -381,73 +440,83 @@ int main(int argc, char* argv[]) {
 			partitioning_stats statistic;
 			statistic.benchmark = benchmark;
 			statistic.mode = mode;
-			statistic.imbalance = 0;
-			statistic.cut = 0;
+			statistic.imbalance.assign(config.eps.size(), 0);
+			statistic.cut.assign(config.eps.size(), 0);
+			statistic.time.assign(config.eps.size(), 0);
 			statistic.status = 0;
 
-			for (std::string seed : config.seed) {
+			for (int j = 0; j < config.eps.size(); j++) {
 
-				std::cout << benchmark << ", " << mode << ", "<< seed <<  std::endl;
+				for (std::string seed : config.seed) {
 
-				//Read Hypergraph-File
-				HypernodeID num_hypernodes;
-				HyperedgeID num_hyperedges;
-				HyperedgeIndexVector index_vector;
-				HyperedgeVector edge_vector;
-				HyperedgeWeightVector hyperedge_weights;
-				HypernodeWeightVector hypernode_weights;
+					std::cout << benchmark << ", " << mode << ", " << seed
+							<< std::endl;
 
-				io::readHypergraphFile(hgr, num_hypernodes, num_hyperedges,
-						index_vector, edge_vector, &hyperedge_weights,
-						&hypernode_weights);
-				Hypergraph hypergraph(num_hypernodes, num_hyperedges,
-						index_vector, edge_vector, config.part,
-						&hyperedge_weights, &hypernode_weights);
+					//Read Hypergraph-File
+					HypernodeID num_hypernodes;
+					HyperedgeID num_hyperedges;
+					HyperedgeIndexVector index_vector;
+					HyperedgeVector edge_vector;
+					HyperedgeWeightVector hyperedge_weights;
+					HypernodeWeightVector hypernode_weights;
 
-				HypernodeWeight total_graph_weight = 0;
-				for (HypernodeID hn : hypergraph.nodes())
-					total_graph_weight += hypergraph.nodeWeight(hn);
+					io::readHypergraphFile(hgr, num_hypernodes, num_hyperedges,
+							index_vector, edge_vector, &hyperedge_weights,
+							&hypernode_weights);
+					Hypergraph hypergraph(num_hypernodes, num_hyperedges,
+							index_vector, edge_vector, config.part,
+							&hyperedge_weights, &hypernode_weights);
 
-				std::string initial_partitioner_call =
-						"./InitialPartitioningKaHyPar --hgr=" + hgr + " --k="
-								+ config.k + " --seed=" + seed + " --epsilon="
-								+ config.epsilon + " --mode=" + mode
-								+ " --output=output/" + benchmark + ".part."
-								+ config.k;
+					HypernodeWeight total_graph_weight = 0;
+					for (HypernodeID hn : hypergraph.nodes())
+						total_graph_weight += hypergraph.nodeWeight(hn);
 
-				HighResClockTimepoint start;
-				HighResClockTimepoint end;
 
-				if (statistic.status == 0) {
-					start = std::chrono::high_resolution_clock::now();
-					statistic.status = std::system(
-							initial_partitioner_call.c_str());
-					end = std::chrono::high_resolution_clock::now();
+					std::string initial_partitioner_call =
+							"./InitialPartitioningKaHyPar --hgr=" + hgr
+									+ " --k=" + config.k + " --seed=" + seed
+									+ " --epsilon=" + std::to_string(config.eps[j])
+									+ " --mode=" + mode
+									+ " --refinement=true --rollback=true --output=output/"
+									+ benchmark + ".part." + config.k;
+
+					HighResClockTimepoint start;
+					HighResClockTimepoint end;
+
+					if (statistic.status == 0) {
+						start = std::chrono::high_resolution_clock::now();
+						statistic.status = std::system(
+								initial_partitioner_call.c_str());
+						end = std::chrono::high_resolution_clock::now();
+					} else {
+						exception = true;
+					}
+
+					std::chrono::duration<double> elapsed_seconds = end - start;
+
+					std::vector<HypernodeID> mapping(hypergraph.numNodes(), 0);
+					for (HypernodeID hn : hypergraph.nodes())
+						mapping[hn] = hn;
+
+					std::vector<PartitionID> partitioning;
+					io::readPartitionFile(
+							"output/" + benchmark + ".part." + config.k,
+							partitioning);
+					HyperedgeWeight current_cut = metrics::hyperedgeCut(
+							hypergraph, mapping, partitioning);
+					double imbalance = metrics::imbalance(hypergraph, mapping,
+							partitioning);
+					statistic.cut[j] += current_cut;
+					statistic.imbalance[j] += imbalance;
+					statistic.time[j] +=
+							static_cast<double>(elapsed_seconds.count());
+
 				}
 
-				std::chrono::duration<double> elapsed_seconds = end - start;
-
-				std::vector<HypernodeID> mapping(hypergraph.numNodes(), 0);
-				for (HypernodeID hn : hypergraph.nodes())
-					mapping[hn] = hn;
-
-				std::vector<PartitionID> partitioning;
-				io::readPartitionFile(
-						"output/" + benchmark + ".part." + config.k,
-						partitioning);
-				HyperedgeWeight current_cut = metrics::hyperedgeCut(hypergraph,
-						mapping, partitioning);
-				double imbalance = metrics::imbalance(hypergraph, mapping,
-						partitioning);
-				statistic.cut += current_cut;
-				statistic.imbalance += imbalance;
-				statistic.time += static_cast<double>( elapsed_seconds.count());
-
+				statistic.cut[j] /= config.seed.size();
+				statistic.imbalance[j] /= config.seed.size();
+				statistic.time[j] /= config.seed.size();
 			}
-
-			statistic.cut /= config.seed.size();
-			statistic.imbalance /= config.seed.size();
-			statistic.time /= config.seed.size();
 
 			stats[i].push_back(statistic);
 		}
@@ -455,9 +524,9 @@ int main(int argc, char* argv[]) {
 
 	}
 
-	readHmetisResultFile(stats, benchmarks, modes);
+	//readHmetisResultFile(stats, benchmarks, modes);
 
-	printResults(stats, benchmarks);
-	printLatexFile(stats, config, benchmarks, modes);
+	//printResults(stats, benchmarks);
+	printLatexFile2(stats, config, benchmarks, modes);
 }
 

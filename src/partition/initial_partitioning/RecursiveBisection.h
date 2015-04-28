@@ -39,7 +39,7 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1);
+		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1, _config.initial_partitioning.upper_allowed_partition_weight[0]);
 		InitialPartitionerBase::recalculateBalanceConstraints();
 		balancer.balancePartitions();
 		InitialPartitionerBase::performFMRefinement();
@@ -52,7 +52,7 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2) {
+	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2, HyperedgeWeight max_allowed_partition_weight) {
 
 		//Assign partition id
 		if (k2 - k1 == 0) {
@@ -72,6 +72,7 @@ private:
 		//Calculate balance constraints for partition 0 and 1
 		PartitionID k = (k2 - k1 + 1);
 		PartitionID km = floor(static_cast<double>(k) / 2.0);
+
 		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
 				- _config.initial_partitioning.epsilon)
 				* static_cast<double>(km)
@@ -89,9 +90,15 @@ private:
 				* static_cast<double>(k - km)
 				* ceil(hypergraph_weight / static_cast<double>(k));
 
+		_config.initial_partitioning.upper_allowed_partition_weight[0] = std::min(static_cast<HypernodeWeight>(km*max_allowed_partition_weight),_config.initial_partitioning.upper_allowed_partition_weight[0]);
+		_config.initial_partitioning.upper_allowed_partition_weight[1] = std::min(static_cast<HypernodeWeight>((k-km)*max_allowed_partition_weight),_config.initial_partitioning.upper_allowed_partition_weight[1]);
+
+		std::cout << k1 << " - " << k2 << ", Num Hyperedges: " << hyper.numEdges() << std::endl;
+
 		//Performing bisection
 		InitialPartitioner partitioner(hyper, _config);
 		partitioner.partition(2);
+
 
 		//Extract Hypergraph with partition 0
 		HypernodeID num_hypernodes_0;
@@ -110,7 +117,7 @@ private:
 				&hyperedge_weights_0, &hypernode_weights_0);
 
 		//Recursive bisection on partition 0
-		recursiveBisection(partition_0, k1, k1 + km - 1);
+		recursiveBisection(partition_0, k1, k1 + km - 1, max_allowed_partition_weight);
 
 		//Extract Hypergraph with partition 1
 		HypernodeID num_hypernodes_1;
@@ -129,7 +136,7 @@ private:
 				&hyperedge_weights_1, &hypernode_weights_1);
 
 		//Recursive bisection on partition 1
-		recursiveBisection(partition_1, k1 + km, k2);
+		recursiveBisection(partition_1, k1 + km, k2, max_allowed_partition_weight);
 
 		//Assign partition id from partition 0 to the current hypergraph
 		for (HypernodeID hn : partition_0.nodes()) {

@@ -83,20 +83,22 @@ public:
 	}
 
 	void performFMRefinement() {
-		_config.partition.total_graph_weight = hypergraph_weight;
-		refiner.initialize();
+		if(_config.initial_partitioning.refinement) {
+			_config.partition.total_graph_weight = hypergraph_weight;
+			refiner.initialize();
 
-		std::vector<HypernodeID> refinement_nodes;
-		for(HypernodeID hn : _hg.nodes()) {
-			refinement_nodes.push_back(hn);
-		}
-		HyperedgeWeight cut = metrics::hyperedgeCut(_hg);
-		double imbalance = metrics::imbalance(_hg);
+			std::vector<HypernodeID> refinement_nodes;
+			for(HypernodeID hn : _hg.nodes()) {
+				refinement_nodes.push_back(hn);
+			}
+			HyperedgeWeight cut = metrics::hyperedgeCut(_hg);
+			double imbalance = metrics::imbalance(_hg);
 
-		//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
-		if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
-			HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-			refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+			//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
+			if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
+				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
+				refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+			}
 		}
 	}
 
@@ -149,6 +151,16 @@ public:
 		} else {
 			return false;
 		}
+	}
+
+	HypernodeID getNewStartnode(PartitionID start_node_part = -1) {
+		HypernodeID newStartNode = Randomize::getRandomInt(0,
+				_hg.numNodes() - 1);
+		while (_hg.partID(newStartNode) != start_node_part) {
+			newStartNode = Randomize::getRandomInt(0,
+					_hg.numNodes() - 1);
+		}
+		return newStartNode;
 	}
 
 	void extractPartitionAsHypergraph(Hypergraph& hyper, PartitionID part,

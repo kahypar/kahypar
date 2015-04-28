@@ -77,6 +77,7 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 				}
 			}
 
+			InitialPartitionerBase::recalculateBalanceConstraints();
 			_balancer.balancePartitions();
 
 		}

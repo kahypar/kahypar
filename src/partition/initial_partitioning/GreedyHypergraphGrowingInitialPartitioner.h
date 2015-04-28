@@ -124,61 +124,52 @@ private:
 				break;
 			}
 		}
+		InitialPartitionerBase::recalculateBalanceConstraints();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
 	void bisectionPartitionImpl() final {
 		BucketQueue<HypernodeID, Gain> bq(2 * _hg.numNodes());
 		std::vector<HypernodeID> startNode;
-		PartitionID k = 2;
-		StartNodeSelection::calculateStartNodes(startNode, _hg, k);
+		StartNodeSelection::calculateStartNodes(startNode, _hg, static_cast<PartitionID>(2));
 		for (HypernodeID hn : _hg.nodes()) {
 			_hg.setNodePart(hn, 1);
 		}
 		processNodeForBucketPQ(bq, startNode[0], 0);
-		while (true) {
+		HypernodeID hn;
+		do {
 			if (!bq.empty()) {
-				HypernodeID hn = bq.getMax();
-				bq.deleteMax();
-				if (!assignHypernodeToPartition(hn, 0, 1, true)) {
-					break;
+				hn = bq.getMax(); bq.deleteMax();
+				while(_hg.partID(hn) != 1 && !bq.empty()) {
+					hn = bq.getMax(); bq.deleteMax();
 				}
-				/*std::map<HypernodeID, Gain> gain_increase;
-				for (HyperedgeID he : _hg.incidentEdges(hn)) {
-					for (HypernodeID hnode : _hg.pins(he)) {
-						if (_hg.partID(hnode) == 1)
-							gain_increase[hnode]++;
-					}
-				}*/
-				for (HyperedgeID he : _hg.incidentEdges(hn)) {
-					for (HypernodeID hnode : _hg.pins(he)) {
-						processNodeForBucketPQ(bq, hnode, 0);
-					}
-				}
-			} else {
-				HypernodeID newStartNode = Randomize::getRandomInt(0,
-						_hg.numNodes() - 1);
-				while (_hg.partID(newStartNode) != 1) {
-					newStartNode = Randomize::getRandomInt(0,
-							_hg.numNodes() - 1);
-				}
-				processNodeForBucketPQ(bq, newStartNode, 0);
 			}
-		}
+
+			if(bq.empty() && _hg.partID(hn) != 1){
+				hn = InitialPartitionerBase::getNewStartnode(1);
+			}
+
+			for (HyperedgeID he : _hg.incidentEdges(hn)) {
+				for (HypernodeID hnode : _hg.pins(he)) {
+					processNodeForBucketPQ(bq, hnode, 0);
+				}
+			}
+
+		} while(assignHypernodeToPartition(hn, 0, 1, true));
+
 		InitialPartitionerBase::rollbackToBestBisectionCut();
 		InitialPartitionerBase::performFMRefinement();
 
 	}
 
 	void processNodeForBucketPQ(BucketQueue<HypernodeID, Gain>& bq,
-			const HypernodeID hn, const PartitionID target_part,
-			Gain gain_increase = 0) {
+			const HypernodeID hn, const PartitionID target_part) {
 		if (_hg.partID(hn) != target_part) {
 			Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
 			if (bq.contains(hn)) {
-				bq.updateKey(hn, gain + gain_increase);
+				bq.updateKey(hn, gain);
 			} else {
-				bq.push(hn, gain + gain_increase);
+				bq.push(hn, gain);
 			}
 		}
 	}
@@ -200,24 +191,7 @@ private:
 		}
 	}
 
-	/*Gain calculateHperedgeGainIncrease(HyperedgeID& he) {
-	 Gain gain = 0;
 
-	 double incr = (max_net_size)/static_cast<double>( _hg.edgeSize(he));
-	 double locked_node = 0.0;
-	 double free_node = 0.0;
-	 for(HypernodeID hn : _hg.pins(he)) {
-	 if(_hg.partID(hn) == 0)
-	 locked_node += ((double) _hg.nodeDegree(hn));
-	 else
-	 free_node += ((double) _hg.nodeDegree(hn));
-	 }
-
-	 if(free_node != 0.0)
-	 gain = ((Gain) (incr*(locked_node/free_node)));
-
-	 return gain;
-	 }*/
 
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;

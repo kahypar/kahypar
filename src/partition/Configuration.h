@@ -54,7 +54,8 @@ struct Configuration {
 		  lower_allowed_partition_weight(),
 		  seed(-1),
 		  ils_iterations(),
-		  rollback() { }
+		  rollback(),
+		  refinement() { }
 
 	  std::string coarse_graph_filename;
 	  std::string coarse_graph_partition_filename;
@@ -66,6 +67,7 @@ struct Configuration {
 	  int seed;
 	  int ils_iterations;
 	  bool rollback;
+	  bool refinement;
   };
 
   struct PartitioningParameters {
