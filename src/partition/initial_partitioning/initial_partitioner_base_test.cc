@@ -37,6 +37,7 @@ public:
 		config.initial_partitioning.k = 2;
 		config.partition.k = 2;
 		config.initial_partitioning.epsilon = 0.05;
+		config.partition.epsilon = 0.05;
 		config.initial_partitioning.seed = 1;
 		config.initial_partitioning.ils_iterations = 30;
 		config.initial_partitioning.rollback = true;

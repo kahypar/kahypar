@@ -48,15 +48,9 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 		void bisectionPartitionImpl() final {
 			for (HypernodeID hn : _hg.nodes())
 				_hg.setNodePart(hn, 1);
-			HypernodeID hn = Randomize::getRandomInt(0,
-					_hg.numNodes()-1);
+			HypernodeID hn = InitialPartitionerBase::getUnassignedNode(1);
 			while(assignHypernodeToPartition(hn,0,1,true)) {
-				hn = Randomize::getRandomInt(0,
-									_hg.numNodes()-1);
-				while(_hg.partID(hn) != 1) {
-					hn = Randomize::getRandomInt(0,
-										_hg.numNodes()-1);
-				}
+				hn = InitialPartitionerBase::getUnassignedNode(1);
 			}
 			InitialPartitionerBase::rollbackToBestBisectionCut();
 			InitialPartitionerBase::performFMRefinement();

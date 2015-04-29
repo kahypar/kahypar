@@ -146,7 +146,7 @@ private:
 			}
 
 			if(bq.empty() && _hg.partID(hn) != 1){
-				hn = InitialPartitionerBase::getNewStartnode(1);
+				hn = InitialPartitionerBase::getUnassignedNode(1);
 			}
 
 			for (HyperedgeID he : _hg.incidentEdges(hn)) {

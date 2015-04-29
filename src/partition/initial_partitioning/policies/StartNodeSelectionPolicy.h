@@ -91,6 +91,21 @@ struct RandomStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 
 };
 
+struct TestStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
+	static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
+			const Hypergraph& hg, const PartitionID k) noexcept {
+		if (k == 2) {
+			startNodes.push_back(0);
+			return;
+		}
+
+		for (PartitionID i = 0; i < k; i++) {
+			startNodes.push_back(static_cast<HypernodeID>(i));
+		}
+	}
+
+};
+
 } // namespace partition
 
 #endif /* SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_ */

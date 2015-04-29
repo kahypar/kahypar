@@ -61,21 +61,21 @@ void rounded(double& x, int nks) {
 }
 
 /*void printResults(std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks) {
-	for (int i = 0; i < stats.size(); i++) {
-		std::cout << "************ " << benchmarks[i] << " ************"
-				<< std::endl;
-		for (int j = 0; j < stats[i].size(); j++) {
-			std::cout << "Mode: " << stats[i][j].mode << std::endl;
-			std::cout << "Cut: " << stats[i][j].cut << std::endl;
-			std::cout << "Imbalance: " << stats[i][j].imbalance << std::endl;
-			std::cout << "Time: " << stats[i][j].time << " s" << std::endl;
-			std::cout << "Process Status: " << stats[i][j].status << std::endl;
-			std::cout << "--------------------------------" << std::endl;
-		}
+ std::vector<std::string>& benchmarks) {
+ for (int i = 0; i < stats.size(); i++) {
+ std::cout << "************ " << benchmarks[i] << " ************"
+ << std::endl;
+ for (int j = 0; j < stats[i].size(); j++) {
+ std::cout << "Mode: " << stats[i][j].mode << std::endl;
+ std::cout << "Cut: " << stats[i][j].cut << std::endl;
+ std::cout << "Imbalance: " << stats[i][j].imbalance << std::endl;
+ std::cout << "Time: " << stats[i][j].time << " s" << std::endl;
+ std::cout << "Process Status: " << stats[i][j].status << std::endl;
+ std::cout << "--------------------------------" << std::endl;
+ }
 
-	}
-}*/
+ }
+ }*/
 
 void printConfig(std::ofstream& latexStream) {
 	latexStream << "\\subsection{Configuration}\n";
@@ -125,8 +125,9 @@ void printTable(std::ofstream& latexStream,
 			sum.cut[k] += stats[i][j].cut[k];
 			sum.time[k] += stats[i][j].time[k];
 			sum.imbalance[k] += stats[i][j].imbalance[k];
-			latexStream << " & " << stats[i][j].cut[k] << " & " << stats[i][j].time[k]
-					<< " s & " << stats[i][j].imbalance[k];
+			latexStream << " & " << stats[i][j].cut[k] << " & "
+					<< stats[i][j].time[k] << " s & "
+					<< stats[i][j].imbalance[k];
 		}
 		if (i != stats.size() - 1)
 			latexStream << "\\\\ \\hline \n";
@@ -143,45 +144,45 @@ void printTable(std::ofstream& latexStream,
 	latexStream << "\\end{tabular}\n";
 }
 
-/*void printCutTable(std::ofstream& latexStream,
- std::vector<std::vector<partitioning_stats>>& stats,
- std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
+void printCutTable(std::ofstream& latexStream,
+		std::vector<std::vector<partitioning_stats>>& stats,
+		std::vector<std::string>& benchmarks, std::vector<std::string>& modes, int k) {
 
- latexStream << "\\begin{tabular}[t]{|c|";
- for (int i = 0; i < modes.size(); i++)
- latexStream << "c|";
- latexStream << "} \\hline \n";
+	latexStream << "\\begin{tabular}[t]{|c|";
+	for (int i = 0; i < modes.size(); i++)
+		latexStream << "c|";
+	latexStream << "} \\hline \n";
 
- for (int i = 0; i < modes.size(); i++) {
- latexStream << " & \\textbf{" << modes[i] << "}";
- }
- latexStream << "\\\\ \\hline \\hline \n";
+	for (int i = 0; i < modes.size(); i++) {
+		latexStream << " & \\textbf{" << modes[i] << "}";
+	}
+	latexStream << "\\\\ \\hline \\hline \n";
 
- std::vector<HyperedgeWeight> result(modes.size(), 0);
- for (int i = 0; i < benchmarks.size(); i++) {
+	std::vector<HyperedgeWeight> result(modes.size(), 0);
+	for (int i = 0; i < benchmarks.size(); i++) {
 
- latexStream << "\\textbf{" << benchmarks[i] << "}";
+		latexStream << "\\textbf{" << benchmarks[i] << "}";
 
- for (int j = 0; j < modes.size(); j++) {
- latexStream << " & " << stats[i][j].cut;
- result[j] += stats[i][j].cut;
- }
- if (i != stats.size() - 1)
- latexStream << "\\\\ \\hline \n";
- else
- latexStream << "\\\\ \\hline \\hline \n";
- }
+		for (int j = 0; j < modes.size(); j++) {
+			latexStream << " & " << stats[i][j].cut[k];
+			result[j] += stats[i][j].cut[k];
+		}
+		if (i != stats.size() - 1)
+			latexStream << "\\\\ \\hline \n";
+		else
+			latexStream << "\\\\ \\hline \\hline \n";
+	}
 
- latexStream << "\\textbf{Result}";
- for (int i = 0; i < result.size(); i++) {
- latexStream << " & " << result[i];
- }
- latexStream << "\\\\ \\hline \n";
- latexStream << "\\end{tabular}\n";
+	latexStream << "\\textbf{Result}";
+	for (int i = 0; i < result.size(); i++) {
+		latexStream << " & " << result[i];
+	}
+	latexStream << "\\\\ \\hline \n";
+	latexStream << "\\end{tabular}\n";
 
- }
+}
 
- void printTimeTable(std::ofstream& latexStream,
+/*void printTimeTable(std::ofstream& latexStream,
  std::vector<std::vector<partitioning_stats>>& stats,
  std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
@@ -359,6 +360,14 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 		latexStream << "\n";
 	}
 
+	for(int i = 0; i < config.eps.size(); i++) {
+		latexStream << "\\subsection{$\\epsilon = " << config.eps[i] << "$} \n";
+		latexStream << "\\begin{center}\n";
+		printCutTable(latexStream, stats, benchmarks, modes, i);
+		latexStream << "\\end{center}\n";
+		latexStream << "\n";
+	}
+
 	latexStream << "\\end{document}\n";
 	latexStream.close();
 
@@ -371,37 +380,37 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 }
 
 /*void readHmetisResultFile(std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
+ std::vector<std::string>& benchmarks, std::vector<std::string>& modes) {
 
-	modes.push_back("hMetis");
+ modes.push_back("hMetis");
 
-	std::string benchmark;
-	HyperedgeWeight cut;
-	double time;
-	double imbalance;
-	while (std::cin >> benchmark >> cut >> time >> imbalance) {
-		int pos = -1;
-		for (int i = 0; i < benchmarks.size(); i++) {
-			if (benchmarks[i].compare(benchmark) == 0) {
-				pos = i;
-				break;
-			}
-		}
+ std::string benchmark;
+ HyperedgeWeight cut;
+ double time;
+ double imbalance;
+ while (std::cin >> benchmark >> cut >> time >> imbalance) {
+ int pos = -1;
+ for (int i = 0; i < benchmarks.size(); i++) {
+ if (benchmarks[i].compare(benchmark) == 0) {
+ pos = i;
+ break;
+ }
+ }
 
-		if (pos != -1) {
-			partitioning_stats stat;
-			stat.benchmark = benchmark;
-			stat.mode = "hMetis";
-			stat.cut = cut;
-			stat.time = time;
-			stat.imbalance = imbalance;
-			stat.status = 0;
-			stats[pos].push_back(stat);
-		}
+ if (pos != -1) {
+ partitioning_stats stat;
+ stat.benchmark = benchmark;
+ stat.mode = "hMetis";
+ stat.cut = cut;
+ stat.time = time;
+ stat.imbalance = imbalance;
+ stat.status = 0;
+ stats[pos].push_back(stat);
+ }
 
-	}
+ }
 
-}*/
+ }*/
 
 int main(int argc, char* argv[]) {
 
@@ -409,7 +418,7 @@ int main(int argc, char* argv[]) {
 			"ibm05", "ibm06", "ibm07", "vibrobox", "avqsmall", "avqlarge",
 			"bcsstk29", "bcsstk31", "bcsstk32", "s3rmq4m1", "s15850", "s35932",
 			"s38584" };
-	std::vector<std::string> modes { "greedy" };
+	std::vector<std::string> modes { "greedy --refinement=false --rollback=false", "greedy --refinement=false --rollback=true", "greedy --refinement=true --rollback=false", "greedy --refinement=true --rollback=true" };
 
 	/*std::vector<std::string> benchmarks {
 	 "ibm03", "ibm04", "ibm05"};
@@ -424,9 +433,11 @@ int main(int argc, char* argv[]) {
 	config.seed[1] = "42";
 	config.seed[2] = "143";
 	config.seed[3] = "201";
-	config.eps.resize(2);
-	config.eps[0] = 0.05;
-	config.eps[1] = 0.1;
+	config.eps.resize(4);
+	config.eps[0] = 0.01;
+	config.eps[1] = 0.03;
+	config.eps[2] = 0.05;
+	config.eps[3] = 0.1;
 
 	std::vector<std::vector<partitioning_stats>> stats(benchmarks.size());
 
@@ -471,13 +482,13 @@ int main(int argc, char* argv[]) {
 					for (HypernodeID hn : hypergraph.nodes())
 						total_graph_weight += hypergraph.nodeWeight(hn);
 
-
 					std::string initial_partitioner_call =
 							"./InitialPartitioningKaHyPar --hgr=" + hgr
 									+ " --k=" + config.k + " --seed=" + seed
-									+ " --epsilon=" + std::to_string(config.eps[j])
-									+ " --mode=" + mode
-									+ " --refinement=true --rollback=true --output=output/"
+									+ " --epsilon="
+									+ std::to_string(config.eps[j]) + " --mode="
+									+ mode
+									+ " --output=output/"
 									+ benchmark + ".part." + config.k;
 
 					HighResClockTimepoint start;

@@ -9,6 +9,7 @@
 #define SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
 
 #include <queue>
+#include <unordered_map>
 #include <algorithm>
 
 #include "lib/definitions.h"
@@ -26,119 +27,140 @@ template<class StartNodeSelection = StartNodeSelectionPolicy>
 class BFSInitialPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
-	public:
-		BFSInitialPartitioner(Hypergraph& hypergraph,
-				Configuration& config) :
-				InitialPartitionerBase(hypergraph, config) {
-		}
+public:
+	BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
+			InitialPartitionerBase(hypergraph, config) {
+	}
 
-		~BFSInitialPartitioner() {
-		}
+	~BFSInitialPartitioner() {
+	}
 
-	private:
+private:
+	FRIEND_TEST(ABFSInitialPartionerTest, APushHyperedgesIntoQueueTest);
 
-
-
-		void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q, HypernodeID hn, std::vector<bool>& in_queue, PartitionID& unassigned_part) {
-			std::vector<std::pair<int,HyperedgeID>> hyperedge_size;
-			for(HyperedgeID he : _hg.incidentEdges(hn)) {
-				hyperedge_size.push_back(std::make_pair(_hg.edgeSize(he),he));
-			}
-			std::sort(hyperedge_size.begin(), hyperedge_size.end());
-			for(int i = 0; i < hyperedge_size.size(); i++) {
-				for(HypernodeID hnodes : _hg.pins(hyperedge_size[i].second)) {
-					if(_hg.partID(hnodes) == unassigned_part && !in_queue[hnodes]) {
-						q.push(hnodes);
-						in_queue[hnodes] = true;
-					}
+	void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q,
+			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
+			PartitionID& unassigned_part) {
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+			for (HypernodeID hnodes : _hg.pins(he)) {
+				if (_hg.partID(hnodes) == unassigned_part
+						&& !in_queue[hnodes]) {
+					q.push(hnodes);
+					in_queue[hnodes] = true;
 				}
 			}
 		}
+	}
 
-		void kwayPartitionImpl() final {
-			PartitionID unassigned_part = -1;
-			std::vector<std::queue<HypernodeID>> bfs(_config.initial_partitioning.k, std::queue<HypernodeID>());
-			std::vector<bool> partEnable(_config.initial_partitioning.k, true);
-			std::vector<HypernodeID> startNodes;
-			StartNodeSelection::calculateStartNodes(startNodes,_hg,_config.initial_partitioning.k);
-			for(unsigned int i = 0; i < startNodes.size(); i++) {
-				bfs[i].push(startNodes[i]);
-			}
-			unsigned int assignedNodes = 0;
-			std::vector<bool> in_queue(_hg.numNodes(),false);
-			while(true) {
-				for(unsigned int i = 0; i < _config.initial_partitioning.k; i++) {
-					if(partEnable[i] && !bfs[i].empty()) {
-						HypernodeID hn = bfs[i].front(); bfs[i].pop();
-						if(_hg.partID(hn) != unassigned_part) {
-							continue;
-						}
-						if(!assignHypernodeToPartition(hn,i)) {
-							partEnable[i] = false;
-						}
-						else {
-							assignedNodes++;
-						}
-						pushIncidentHyperedgesIntoQueue(bfs[i],hn,in_queue,unassigned_part);
-					}
-					if(partEnable[i] && bfs[i].empty() && assignedNodes != _hg.numNodes()) {
-						HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
-						while(_hg.partID(newStartNode) != -1) {
-							newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
-						}
-						bfs[i].push(newStartNode);
-					}
-				}
-				if(assignedNodes == _hg.numNodes()) {
-					break;
-				}
-			}
-			InitialPartitionerBase::performFMRefinement();
+	void kwayPartitionImpl() final {
+		PartitionID unassigned_part = -1;
+
+		//Initialize a vector of queues for each partition
+		std::vector<std::queue<HypernodeID>> q(_config.initial_partitioning.k,
+				std::queue<HypernodeID>());
+
+		//Initialize a vector for each partition, which indicate if a partition is ready to receive further hypernodes.
+		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
+
+		//Initialize a vector for each partition, which indicates the hypernodes which are and were already in the queue.
+		std::vector<std::unordered_map<HypernodeID,bool>> in_queue(_hg.k());
+
+		//Calculate Startnodes and push them into the queues.
+		std::vector<HypernodeID> startNodes;
+		StartNodeSelection::calculateStartNodes(startNodes, _hg,
+				_config.initial_partitioning.k);
+		for (unsigned int i = 0; i < startNodes.size(); i++) {
+			q[i].push(startNodes[i]);
+			in_queue[i][startNodes[i]] = true;
 		}
+		unsigned int assignedNodes = 0;
+		while (assignedNodes != _hg.numNodes()) {
+			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+				if (partEnable[i]) {
+					HypernodeID hn = 0;
 
-		void bisectionPartitionImpl() final {
-			PartitionID unassigned_part = 1;
-			std::stack<std::pair<int,HypernodeID>> cutStack;
-			std::queue<HypernodeID> bfs;
-			std::vector<HypernodeID> startNode;
-			PartitionID k = 2;
-			StartNodeSelection::calculateStartNodes(startNode,_hg,k);
-			bfs.push(startNode[0]);
-			for (HypernodeID hn : _hg.nodes()) {
-				_hg.setNodePart(hn, 1);
-			}
-			std::vector<bool> in_queue(_hg.numNodes(),false);
-			while(true) {
-				if(!bfs.empty()) {
-					HypernodeID hn = bfs.front(); bfs.pop();
-					if(_hg.partID(hn) != unassigned_part) {
-						continue;
+					//Searching for an unassigned hypernode in queue for Partition i
+					if (!q[i].empty()) {
+						hn = q[i].front();
+						q[i].pop();
+						while (_hg.partID(hn) != unassigned_part
+								&& !q[i].empty()) {
+							hn = q[i].front();
+							q[i].pop();
+						}
 					}
-					if(!assignHypernodeToPartition(hn,0,1,true)) {
+
+					//If no unassigned hypernode was found we have to select a new startnode.
+					if (_hg.partID(hn) != unassigned_part && q[i].empty()) {
+						hn = InitialPartitionerBase::getUnassignedNode(
+								unassigned_part);
+						in_queue[i][hn] = true;
+					}
+
+					pushIncidentHyperedgesIntoQueue(q[i], hn, in_queue[i],
+							unassigned_part);
+
+					if (assignHypernodeToPartition(hn, i)) {
+						assignedNodes++;
+					} else {
+						partEnable[i] = false;
+					}
+
+					if(assignedNodes == _hg.numNodes()) {
 						break;
 					}
-					pushIncidentHyperedgesIntoQueue(bfs,hn,in_queue,unassigned_part);
 				}
-				else {
-					HypernodeID newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
-					while(_hg.partID(newStartNode) != 1) {
-						newStartNode = Randomize::getRandomInt(0,_hg.numNodes()-1);
-					}
-					bfs.push(newStartNode);
+			}
+		}
+		InitialPartitionerBase::performFMRefinement();
+	}
+
+	void bisectionPartitionImpl() final {
+		PartitionID unassigned_part = 1;
+		std::queue<HypernodeID> bfs;
+		std::unordered_map<HypernodeID,bool> in_queue;
+
+		//Calculate Startnode and push them into the queues.
+		std::vector<HypernodeID> startNode;
+		StartNodeSelection::calculateStartNodes(startNode, _hg,
+				static_cast<PartitionID>(2));
+		bfs.push(startNode[0]);
+		for (HypernodeID hn : _hg.nodes()) {
+			_hg.setNodePart(hn, 1);
+		}
+		in_queue[startNode[0]] = true;
+
+		HypernodeID hn;
+		do {
+
+			//Searching for an unassigned hypernode in the queue.
+			if (!bfs.empty()) {
+				hn = bfs.front();
+				bfs.pop();
+				while (_hg.partID(hn) != unassigned_part && !bfs.empty()) {
+					hn = bfs.front();
+					bfs.pop();
 				}
 			}
 
-			InitialPartitionerBase::rollbackToBestBisectionCut();
-			InitialPartitionerBase::performFMRefinement();
-		}
+			//If no unassigned hypernode was found we have to select a new startnode.
+			if (_hg.partID(hn) != unassigned_part && bfs.empty()) {
+				hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
+				in_queue[hn] = true;
+			}
 
+			pushIncidentHyperedgesIntoQueue(bfs, hn, in_queue, unassigned_part);
+		} while (assignHypernodeToPartition(hn, 0, 1, true));
 
-		using InitialPartitionerBase::_hg;
-		using InitialPartitionerBase::_config;
+		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::performFMRefinement();
+	}
 
-	};
+	using InitialPartitionerBase::_hg;
+	using InitialPartitionerBase::_config;
+
+};
 
 }
-
 
 #endif /* SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_ */

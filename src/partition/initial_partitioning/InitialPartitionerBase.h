@@ -153,14 +153,14 @@ public:
 		}
 	}
 
-	HypernodeID getNewStartnode(PartitionID start_node_part = -1) {
-		HypernodeID newStartNode = Randomize::getRandomInt(0,
+	HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
+		HypernodeID unassigned_node = Randomize::getRandomInt(0,
 				_hg.numNodes() - 1);
-		while (_hg.partID(newStartNode) != start_node_part) {
-			newStartNode = Randomize::getRandomInt(0,
+		while (_hg.partID(unassigned_node) != unassigned_part) {
+			unassigned_node = Randomize::getRandomInt(0,
 					_hg.numNodes() - 1);
 		}
-		return newStartNode;
+		return unassigned_node;
 	}
 
 	void extractPartitionAsHypergraph(Hypergraph& hyper, PartitionID part,
