@@ -13,9 +13,12 @@
 #include <unordered_map>
 #include <queue>
 
+#include "lib/io/HypergraphIO.h"
+#include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/initial_partitioner_test_TestFixtures.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -26,56 +29,13 @@ using defs::HyperedgeVector;
 using defs::HyperedgeID;
 using defs::PartitionID;
 
-using partition::BFSInitialPartitioner;
-using partition::TestStartNodeSelectionPolicy;
+
 
 namespace partition {
 
-void initializeConfiguration(Configuration& config, HypernodeWeight hypergraph_weight) {
-	config.initial_partitioning.k = 2;
-	config.partition.k = 2;
-	config.initial_partitioning.epsilon = 0.05;
-	config.partition.epsilon = 0.05;
-	config.initial_partitioning.seed = 1;
-	config.initial_partitioning.ils_iterations = 30;
-	config.initial_partitioning.rollback = false;
-	config.initial_partitioning.refinement = false;
-	config.initial_partitioning.upper_allowed_partition_weight.resize(config.initial_partitioning.k);
-	config.initial_partitioning.lower_allowed_partition_weight.resize(config.initial_partitioning.k);
-	for (int i = 0; i < config.initial_partitioning.k; i++) {
-		config.initial_partitioning.lower_allowed_partition_weight[i] =
-		ceil(
-				hypergraph_weight
-				/ static_cast<double>(config.initial_partitioning.k))
-		* (1.0 - config.partition.epsilon);
-		config.initial_partitioning.upper_allowed_partition_weight[i] =
-		ceil(
-				hypergraph_weight
-				/ static_cast<double>(config.initial_partitioning.k))
-		* (1.0 + config.partition.epsilon);
-	}
-}
-
-class ABFSInitialPartionerTest: public Test {
-public:
-	ABFSInitialPartionerTest() :
-			hypergraph(7, 4,
-					HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/12 },
-					HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), partitioner(
-					nullptr) {
 
 
-		initializeConfiguration(config, 7);
-		partitioner = new BFSInitialPartitioner<TestStartNodeSelectionPolicy>(hypergraph, config);
-	}
-
-	BFSInitialPartitioner<TestStartNodeSelectionPolicy>* partitioner;
-	Hypergraph hypergraph;
-	Configuration config;
-
-};
-
-TEST_F(ABFSInitialPartionerTest, AInitialPartionerBaseTest) {
+TEST_F(ABFSInitialPartionerTest, BisectionBFSInitialPartionerTest) {
 
 	partitioner->partition(2);
 	std::vector<HypernodeID> partition_zero {0,1,2,3};
@@ -92,7 +52,30 @@ TEST_F(ABFSInitialPartionerTest, AInitialPartionerBaseTest) {
 
 }
 
-TEST_F(ABFSInitialPartionerTest, APushHyperedgesIntoQueueTest) {
+TEST_F(ABFSInitialPartionerInstanceTest, KWayBFSInitialPartitionerTest) {
+
+	partitioner->partition(config.initial_partitioning.k);
+
+	ASSERT_LE(metrics::imbalance(*hypergraph),config.partition.epsilon);
+
+	//Upper bounds of maximum partition weight should not be exceeded.
+	HypernodeWeight heaviest_part = 0;
+	for(PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+		ASSERT_LE(hypergraph->partWeight(k),config.initial_partitioning.upper_allowed_partition_weight[k]);
+		if(heaviest_part < hypergraph->partWeight(k)) {
+			heaviest_part = hypergraph->partWeight(k);
+		}
+	}
+
+	//No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+	double lower_bound_factor = 50.0;
+	for(PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+		ASSERT_GE(hypergraph->partWeight(k),(lower_bound_factor/100.0)*heaviest_part);
+	}
+
+}
+
+TEST_F(ABFSInitialPartionerTest, ABFSInitialPartionerPushesHypernodesIntoPriorityQueueTest) {
 
 	std::queue<HypernodeID> q;
 	std::unordered_map<HypernodeID,bool> in_queue;
@@ -113,7 +96,45 @@ TEST_F(ABFSInitialPartionerTest, APushHyperedgesIntoQueueTest) {
 	}
 
 	ASSERT_TRUE(q.empty());
+}
 
+TEST_F(ARandomInitialPartionerInstanceTest, BisectionRandomInitialPartitionerTest) {
+
+	PartitionID k = 2;
+	initializePartitioning(k);
+	partitioner->partition(config.initial_partitioning.k);
+
+	ASSERT_LE(metrics::imbalance(*hypergraph),config.partition.epsilon);
+
+	//Upper bounds of maximum partition weight should not be exceeded.
+	ASSERT_LE(hypergraph->partWeight(0),config.initial_partitioning.upper_allowed_partition_weight[0]);
+	ASSERT_LE(hypergraph->partWeight(1),config.initial_partitioning.upper_allowed_partition_weight[1]);
+
+}
+
+
+TEST_F(ARandomInitialPartionerInstanceTest, KWayRandomInitialPartitionerTest) {
+
+	PartitionID k = 32;
+	initializePartitioning(k);
+	partitioner->partition(config.initial_partitioning.k);
+
+	ASSERT_LE(metrics::imbalance(*hypergraph),config.partition.epsilon);
+
+	//Upper bounds of maximum partition weight should not be exceeded.
+	HypernodeWeight heaviest_part = 0;
+	for(PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+		ASSERT_LE(hypergraph->partWeight(k),config.initial_partitioning.upper_allowed_partition_weight[k]);
+		if(heaviest_part < hypergraph->partWeight(k)) {
+			heaviest_part = hypergraph->partWeight(k);
+		}
+	}
+
+	//No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+	double lower_bound_factor = 50.0;
+	for(PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+		ASSERT_GE(hypergraph->partWeight(k),(lower_bound_factor/100.0)*heaviest_part);
+	}
 
 }
 

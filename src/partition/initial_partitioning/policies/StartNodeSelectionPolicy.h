@@ -97,11 +97,39 @@ struct TestStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 		if (k == 2) {
 			startNodes.push_back(0);
 			return;
+		} else if (startNodes.size() == k) {
+			return;
+		} else if (startNodes.size() == 0) {
+			startNodes.push_back(0);
+			calculateStartNodes(startNodes, hg, k);
+			return;
 		}
 
-		for (PartitionID i = 0; i < k; i++) {
-			startNodes.push_back(static_cast<HypernodeID>(i));
+		std::vector<bool> visited(hg.numNodes(), false);
+		std::vector<bool> in_queue(hg.numNodes(), false);
+		std::queue<HypernodeID> bfs;
+		HypernodeID lastHypernode = -1;
+		for (unsigned int i = 0; i < startNodes.size(); i++) {
+			bfs.push(startNodes[i]);
 		}
+		while (!bfs.empty()) {
+			HypernodeID hn = bfs.front();
+			bfs.pop();
+			if (visited[hn])
+				continue;
+			lastHypernode = hn;
+			visited[hn] = true;
+			for (HyperedgeID he : hg.incidentEdges(lastHypernode)) {
+				for (HypernodeID hnodes : hg.pins(he)) {
+					if (!visited[hnodes] && !in_queue[hnodes]) {
+						bfs.push(hnodes);
+						in_queue[hnodes] = true;
+					}
+				}
+			}
+		}
+		startNodes.push_back(lastHypernode);
+		calculateStartNodes(startNodes, hg, k);
 	}
 
 };

@@ -36,7 +36,7 @@ public:
 	}
 
 private:
-	FRIEND_TEST(ABFSInitialPartionerTest, APushHyperedgesIntoQueueTest);
+	FRIEND_TEST(ABFSInitialPartionerTest, ABFSInitialPartionerPushesHypernodesIntoPriorityQueueTest);
 
 	void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q,
 			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
@@ -73,6 +73,7 @@ private:
 			q[i].push(startNodes[i]);
 			in_queue[i][startNodes[i]] = true;
 		}
+
 		unsigned int assignedNodes = 0;
 		while (assignedNodes != _hg.numNodes()) {
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
@@ -97,13 +98,16 @@ private:
 						in_queue[i][hn] = true;
 					}
 
+					ASSERT(_hg.partID(hn) == unassigned_part, "Hypernode " << hn << " isn't a node from an unassigned part.");
+
 					pushIncidentHyperedgesIntoQueue(q[i], hn, in_queue[i],
 							unassigned_part);
 
 					if (assignHypernodeToPartition(hn, i)) {
 						assignedNodes++;
 					} else {
-						partEnable[i] = false;
+						if(q[i].empty())
+							partEnable[i] = false;
 					}
 
 					if(assignedNodes == _hg.numNodes()) {
@@ -148,6 +152,8 @@ private:
 				hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
 				in_queue[hn] = true;
 			}
+
+			ASSERT(_hg.partID(hn) == unassigned_part, "Hypernode " << hn << " isn't a node from an unassigned part.");
 
 			pushIncidentHyperedgesIntoQueue(bfs, hn, in_queue, unassigned_part);
 		} while (assignHypernodeToPartition(hn, 0, 1, true));
