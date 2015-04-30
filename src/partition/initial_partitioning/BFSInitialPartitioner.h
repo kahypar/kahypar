@@ -103,11 +103,24 @@ private:
 					pushIncidentHyperedgesIntoQueue(q[i], hn, in_queue[i],
 							unassigned_part);
 
+					ASSERT([&]() {
+						for (HyperedgeID he : _hg.incidentEdges(hn)) {
+							for (HypernodeID hnodes : _hg.pins(he)) {
+								if (!in_queue[hnodes]) {
+									return false;
+								}
+							}
+						}
+						return true;
+					}(),
+							"Some hypernodes are missing into the queue!");
+
 					if (assignHypernodeToPartition(hn, i)) {
 						assignedNodes++;
 					} else {
-						if(q[i].empty())
+						if(q[i].empty()) {
 							partEnable[i] = false;
+						}
 					}
 
 					if(assignedNodes == _hg.numNodes()) {

@@ -1,13 +1,12 @@
 /*
-
- * GreedyHypergraphGrowingInitialPartitioner.h
+ * GreedyHypergraphGrowingGlobalInitialPartitioner.h
  *
- *  Created on: Apr 18, 2015
- *      Author: theuer
+ *  Created on: 30.04.2015
+ *      Author: heuer
  */
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_
+#ifndef SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGGLOBALINITIALPARTITIONER_H_
+#define SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGGLOBALINITIALPARTITIONER_H_
 
 #include <queue>
 #include <limits>
@@ -31,14 +30,13 @@ namespace partition {
 
 template<class StartNodeSelection = StartNodeSelectionPolicy,
 		class GainComputation = GainComputationPolicy>
-class GreedyHypergraphGrowingInitialPartitioner: public IInitialPartitioner,
+class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
 public:
-	GreedyHypergraphGrowingInitialPartitioner(Hypergraph& hypergraph,
+	GreedyHypergraphGrowingGlobalInitialPartitioner(Hypergraph& hypergraph,
 			Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), _balancer(hypergraph,
-					config) {
+			InitialPartitionerBase(hypergraph, config) {
 
 		/*max_net_size = 0.0;
 		 for(HyperedgeID he : hypergraph.edges()) {
@@ -47,7 +45,7 @@ public:
 		 }*/
 	}
 
-	~GreedyHypergraphGrowingInitialPartitioner() {
+	~GreedyHypergraphGrowingGlobalInitialPartitioner() {
 	}
 
 private:
@@ -62,70 +60,111 @@ private:
 				_config.initial_partitioning.k,
 				BucketQueue<HypernodeID, Gain>(2 * _hg.numNodes()));
 
+		//Enable parts are allowed to receive further hypernodes.
+		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
+		partEnable[unassigned_part] = false;
+
 		//Calculate Startnodes and push them into the queues.
 		std::vector<HypernodeID> startNodes;
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
-
 		for (PartitionID i = 0; i < startNodes.size(); i++) {
 			processNodeForBucketPQ(bq[i], startNodes[i], i);
 		}
 
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
 		double epsilon = _config.partition.epsilon;
-		_config.partition.epsilon = 0.0;
+		_config.partition.epsilon = -_config.partition.epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints();
+		bool release_upper_partition_bound = false;
 
-		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-			if (i != unassigned_part) {
+		int count = 0;
+		while (_hg.partWeight(unassigned_part)
+				> _config.initial_partitioning.lower_allowed_partition_weight[unassigned_part]) {
 
-				processNodeForBucketPQ(bq[i], bq[i].getMax(), i);
-				HypernodeID hn = bq[i].getMax();
-				while (assignHypernodeToPartition(hn, i)) {
-
-					ASSERT([&]() {
-						Gain gain = bq[i].getMaxKey();
-						_hg.changeNodePart(hn,i,unassigned_part);
-						HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-						_hg.changeNodePart(hn,unassigned_part,i);
-						return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-					}(),
-							"Gain calculation of hypernode " << hn << " failed!");
-
-					bq[i].deleteMax();
-
-					//Pushing incident hypernode into bucket queue or update gain value
-					for (HyperedgeID he : _hg.incidentEdges(hn)) {
-						for (HypernodeID hnode : _hg.pins(he)) {
-							if (_hg.partID(hnode) == unassigned_part) {
-								auto startNode = std::find(startNodes.begin(),
-										startNodes.end(), hnode);
-								if (startNode == startNodes.end()) {
-									processNodeForBucketPQ(bq[i], hnode, i);
-								}
-							}
-						}
-					}
-
+			//Searching for the highest gain value
+			Gain best_gain = initial_gain;
+			PartitionID best_part = 0;
+			HypernodeID best_node = 0;
+			bool every_part_is_disable = true;
+			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+				every_part_is_disable = every_part_is_disable && !partEnable[i];
+				if (partEnable[i]) {
+					HypernodeID hn;
 					if (bq[i].empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
 						processNodeForBucketPQ(bq[i], newStartNode, i);
 					}
-
-					ASSERT(!bq[i].empty(),
-							"Bucket queue of partition " << i << " shouldn't be empty!");
 					hn = bq[i].getMax();
+
+					//If the current maximum gain hypernode isn't an unassigned hypernode, we search until we found one.
+					while (_hg.partID(hn) != unassigned_part && !bq[i].empty()) {
+						count++;
+						bq[i].deleteMax();
+						if (bq[i].empty()) {
+							HypernodeID newStartNode =
+									InitialPartitionerBase::getUnassignedNode(
+											unassigned_part);
+							processNodeForBucketPQ(bq[i], newStartNode, i);
+						}
+						hn = bq[i].getMax();
+					}
+					ASSERT(_hg.partID(hn) == unassigned_part,
+							"Hypernode " << hn << "should be unassigned!");
+					ASSERT(!bq[i].empty(),
+							"Bucket Queue of partition " << i << " should not be empty!");
+					if (best_gain < bq[i].getMaxKey()) {
+						best_gain = bq[i].getMaxKey();
+						best_node = hn;
+						best_part = i;
+					}
+				}
+			}
+
+			//Release upper partition weight bound
+			if (every_part_is_disable && !release_upper_partition_bound) {
+				_config.partition.epsilon = epsilon;
+				InitialPartitionerBase::recalculateBalanceConstraints();
+				release_upper_partition_bound = true;
+				for (PartitionID i = 0; i < _config.initial_partitioning.k;
+						i++) {
+					if (i != unassigned_part) {
+						partEnable[i] = true;
+					}
+				}
+			} else {
+				ASSERT(best_gain != initial_gain,
+						"No hypernode found to assign!");
+				if (!assignHypernodeToPartition(best_node, best_part)) {
+					partEnable[best_part] = false;
+				} else {
+					ASSERT(!bq[best_part].empty(),
+							"Bucket queue of partition " << best_part << " shouldn't be empty!");
+
+					ASSERT(
+							[&]() {
+								_hg.changeNodePart(best_node,best_part,unassigned_part);
+								HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+								_hg.changeNodePart(best_node,unassigned_part,best_part);
+								return metrics::hyperedgeCut(_hg) == (cut_before-best_gain);
+							}(), "Gain calculation failed!");
+
+					bq[best_part].deleteMax();
+				}
+				//Pushing incident hypernode into bucket queue or update gain value
+				for (HyperedgeID he : _hg.incidentEdges(best_node)) {
+					for (HypernodeID hnode : _hg.pins(he)) {
+						if (_hg.partID(hnode) == unassigned_part) {
+							processNodeForBucketPQ(bq, hnode, best_part);
+						}
+					}
 				}
 			}
 		}
-
-		_config.partition.epsilon = epsilon;
+		std::cout << count << std::endl;
 		InitialPartitionerBase::recalculateBalanceConstraints();
-
-		_balancer.balancePartitions();
-
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -197,7 +236,6 @@ private:
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
-	HypergraphPartitionBalancer _balancer;
 
 	static const Gain initial_gain = std::numeric_limits<Gain>::min();
 
@@ -205,4 +243,4 @@ private:
 
 }
 
-#endif /* SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_ */
+#endif /* SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGGLOBALINITIALPARTITIONER_H_ */
