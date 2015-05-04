@@ -14,11 +14,21 @@
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
+#include "partition/initial_partitioning/RecursiveBisection.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 
 using partition::BFSInitialPartitioner;
 using partition::RandomInitialPartitioner;
+using partition::RecursiveBisection;
+using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
+using partition::GreedyHypergraphGrowingInitialPartitioner;
+using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
 using partition::TestStartNodeSelectionPolicy;
+using partition::FMGainComputationPolicy;
 
 using ::testing::Test;
 
@@ -144,6 +154,187 @@ public:
 	}
 
 	RandomInitialPartitioner* partitioner;
+	Hypergraph* hypergraph;
+	Configuration config;
+
+};
+
+class AGreedyInitialPartionerTest: public Test {
+public:
+	AGreedyInitialPartionerTest() :
+			hypergraph(7, 4,
+					HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/12 },
+					HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), partitioner(
+					nullptr) {
+
+		PartitionID k = 2;
+		initializeConfiguration(config, k, 7);
+
+		partitioner = new GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>(
+				hypergraph, config);
+	}
+
+	GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>* partitioner;
+	Hypergraph hypergraph;
+	Configuration config;
+
+};
+
+class AGreedyInitialPartionerInstanceTest: public Test {
+public:
+	AGreedyInitialPartionerInstanceTest() :
+			config(), partitioner(nullptr), hypergraph(nullptr) {
+	}
+
+	void initializePartitioning(PartitionID k) {
+		config.initial_partitioning.coarse_graph_filename =
+				"test_instances/ibm01.hgr";
+
+		HypernodeID num_hypernodes;
+		HyperedgeID num_hyperedges;
+		HyperedgeIndexVector index_vector;
+		HyperedgeVector edge_vector;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
+
+		io::readHypergraphFile(
+				config.initial_partitioning.coarse_graph_filename,
+				num_hypernodes, num_hyperedges, index_vector, edge_vector,
+				&hyperedge_weights, &hypernode_weights);
+		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
+
+		HypernodeWeight hypergraph_weight = 0;
+		for (HypernodeID hn : hypergraph->nodes()) {
+			hypergraph_weight += hypergraph->nodeWeight(hn);
+		}
+		initializeConfiguration(config, k, hypergraph_weight);
+
+		partitioner = new GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>(*hypergraph, config);
+	}
+
+	GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>* partitioner;
+	Hypergraph* hypergraph;
+	Configuration config;
+
+};
+
+class AGreedyGlobalInitialPartionerInstanceTest: public Test {
+public:
+	AGreedyGlobalInitialPartionerInstanceTest() :
+			config(), partitioner(nullptr), hypergraph(nullptr) {
+	}
+
+	void initializePartitioning(PartitionID k) {
+		config.initial_partitioning.coarse_graph_filename =
+				"test_instances/ibm01.hgr";
+
+		HypernodeID num_hypernodes;
+		HyperedgeID num_hyperedges;
+		HyperedgeIndexVector index_vector;
+		HyperedgeVector edge_vector;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
+
+		io::readHypergraphFile(
+				config.initial_partitioning.coarse_graph_filename,
+				num_hypernodes, num_hyperedges, index_vector, edge_vector,
+				&hyperedge_weights, &hypernode_weights);
+		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
+
+		HypernodeWeight hypergraph_weight = 0;
+		for (HypernodeID hn : hypergraph->nodes()) {
+			hypergraph_weight += hypergraph->nodeWeight(hn);
+		}
+		initializeConfiguration(config, k, hypergraph_weight);
+
+		partitioner = new GreedyHypergraphGrowingGlobalInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>(*hypergraph, config);
+	}
+
+	GreedyHypergraphGrowingGlobalInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>* partitioner;
+	Hypergraph* hypergraph;
+	Configuration config;
+
+};
+
+class AGreedyRoundRobinInitialPartionerInstanceTest: public Test {
+public:
+	AGreedyRoundRobinInitialPartionerInstanceTest() :
+			config(), partitioner(nullptr), hypergraph(nullptr) {
+	}
+
+	void initializePartitioning(PartitionID k) {
+		config.initial_partitioning.coarse_graph_filename =
+				"test_instances/ibm01.hgr";
+
+		HypernodeID num_hypernodes;
+		HyperedgeID num_hyperedges;
+		HyperedgeIndexVector index_vector;
+		HyperedgeVector edge_vector;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
+
+		io::readHypergraphFile(
+				config.initial_partitioning.coarse_graph_filename,
+				num_hypernodes, num_hyperedges, index_vector, edge_vector,
+				&hyperedge_weights, &hypernode_weights);
+		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
+
+		HypernodeWeight hypergraph_weight = 0;
+		for (HypernodeID hn : hypergraph->nodes()) {
+			hypergraph_weight += hypergraph->nodeWeight(hn);
+		}
+		initializeConfiguration(config, k, hypergraph_weight);
+
+		partitioner = new GreedyHypergraphGrowingRoundRobinInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>(*hypergraph, config);
+	}
+
+	GreedyHypergraphGrowingRoundRobinInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>* partitioner;
+	Hypergraph* hypergraph;
+	Configuration config;
+
+};
+
+class ARecursiveBisectionInstanceTest: public Test {
+public:
+	ARecursiveBisectionInstanceTest() :
+			config(), partitioner(nullptr), hypergraph(nullptr) {
+	}
+
+	void initializePartitioning(PartitionID k) {
+		config.initial_partitioning.coarse_graph_filename =
+				"test_instances/ibm01.hgr";
+
+		HypernodeID num_hypernodes;
+		HyperedgeID num_hyperedges;
+		HyperedgeIndexVector index_vector;
+		HyperedgeVector edge_vector;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
+
+		io::readHypergraphFile(
+				config.initial_partitioning.coarse_graph_filename,
+				num_hypernodes, num_hyperedges, index_vector, edge_vector,
+				&hyperedge_weights, &hypernode_weights);
+		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
+
+		HypernodeWeight hypergraph_weight = 0;
+		for (HypernodeID hn : hypergraph->nodes()) {
+			hypergraph_weight += hypergraph->nodeWeight(hn);
+		}
+		initializeConfiguration(config, k, hypergraph_weight);
+
+		partitioner = new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>>(*hypergraph, config);
+	}
+
+	RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<TestStartNodeSelectionPolicy,FMGainComputationPolicy>>* partitioner;
 	Hypergraph* hypergraph;
 	Configuration config;
 

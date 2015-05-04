@@ -23,6 +23,7 @@
 using defs::HypernodeWeight;
 using partition::StartNodeSelectionPolicy;
 using partition::GainComputationPolicy;
+using datastructure::BucketQueue;
 
 using Gain = HyperedgeWeight;
 
@@ -52,8 +53,10 @@ private:
 
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part = 0;
-		for (HypernodeID hn : _hg.nodes()) {
-			_hg.setNodePart(hn, unassigned_part);
+		if (unassigned_part != -1) {
+			for (HypernodeID hn : _hg.nodes()) {
+				_hg.setNodePart(hn, unassigned_part);
+			}
 		}
 
 		std::vector<BucketQueue<HypernodeID, Gain>> bq(
@@ -62,7 +65,9 @@ private:
 
 		//Enable parts are allowed to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
-		partEnable[unassigned_part] = false;
+		if (unassigned_part != -1) {
+			partEnable[unassigned_part] = false;
+		}
 
 		//Calculate Startnodes and push them into the queues.
 		std::vector<HypernodeID> startNodes;
@@ -72,57 +77,56 @@ private:
 			processNodeForBucketPQ(bq[i], startNodes[i], i);
 		}
 
+		HypernodeID assigned_nodes_weight = 0;
+		if (unassigned_part != -1) {
+			assigned_nodes_weight =
+					_config.initial_partitioning.lower_allowed_partition_weight[unassigned_part];
+		}
+
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
 		double epsilon = _config.partition.epsilon;
 		_config.partition.epsilon = -_config.partition.epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints();
 		bool release_upper_partition_bound = false;
 
-		int count = 0;
-		while (_hg.partWeight(unassigned_part)
-				> _config.initial_partitioning.lower_allowed_partition_weight[unassigned_part]) {
+		std::vector<PartitionID> part_shuffle(_config.initial_partitioning.k);
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			part_shuffle[i] = i;
+		}
 
+		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
+			std::random_shuffle(part_shuffle.begin(), part_shuffle.end());
 			//Searching for the highest gain value
 			Gain best_gain = initial_gain;
-			PartitionID best_part = 0;
+			PartitionID best_part = unassigned_part;
 			HypernodeID best_node = 0;
 			bool every_part_is_disable = true;
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-				every_part_is_disable = every_part_is_disable && !partEnable[i];
-				if (partEnable[i]) {
+				every_part_is_disable = every_part_is_disable
+						&& !partEnable[part_shuffle[i]];
+				if (partEnable[part_shuffle[i]]) {
 					HypernodeID hn;
-					if (bq[i].empty()) {
+					if (bq[part_shuffle[i]].empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						processNodeForBucketPQ(bq[i], newStartNode, i);
+						processNodeForBucketPQ(bq[part_shuffle[i]],
+								newStartNode, part_shuffle[i]);
 					}
-					hn = bq[i].getMax();
+					hn = bq[part_shuffle[i]].getMax();
 
-					//If the current maximum gain hypernode isn't an unassigned hypernode, we search until we found one.
-					while (_hg.partID(hn) != unassigned_part && !bq[i].empty()) {
-						count++;
-						bq[i].deleteMax();
-						if (bq[i].empty()) {
-							HypernodeID newStartNode =
-									InitialPartitionerBase::getUnassignedNode(
-											unassigned_part);
-							processNodeForBucketPQ(bq[i], newStartNode, i);
-						}
-						hn = bq[i].getMax();
-					}
+
 					ASSERT(_hg.partID(hn) == unassigned_part,
 							"Hypernode " << hn << "should be unassigned!");
-					ASSERT(!bq[i].empty(),
+					ASSERT(!bq[part_shuffle[i]].empty(),
 							"Bucket Queue of partition " << i << " should not be empty!");
-					if (best_gain < bq[i].getMaxKey()) {
-						best_gain = bq[i].getMaxKey();
+					if (best_gain < bq[part_shuffle[i]].getMaxKey()) {
+						best_gain = bq[part_shuffle[i]].getMaxKey();
 						best_node = hn;
-						best_part = i;
+						best_part = part_shuffle[i];
 					}
 				}
 			}
-
 			//Release upper partition weight bound
 			if (every_part_is_disable && !release_upper_partition_bound) {
 				_config.partition.epsilon = epsilon;
@@ -137,33 +141,38 @@ private:
 			} else {
 				ASSERT(best_gain != initial_gain,
 						"No hypernode found to assign!");
+
 				if (!assignHypernodeToPartition(best_node, best_part)) {
 					partEnable[best_part] = false;
 				} else {
 					ASSERT(!bq[best_part].empty(),
 							"Bucket queue of partition " << best_part << " shouldn't be empty!");
 
-					ASSERT(
-							[&]() {
-								_hg.changeNodePart(best_node,best_part,unassigned_part);
-								HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-								_hg.changeNodePart(best_node,unassigned_part,best_part);
-								return metrics::hyperedgeCut(_hg) == (cut_before-best_gain);
-							}(), "Gain calculation failed!");
+					ASSERT([&]() {
+						Gain gain = bq[best_part].getMaxKey();
+						_hg.changeNodePart(best_node,best_part,unassigned_part);
+						HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+						_hg.changeNodePart(best_node,unassigned_part,best_part);
+						return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+					}(), "Gain calculation failed!");
 
 					bq[best_part].deleteMax();
-				}
-				//Pushing incident hypernode into bucket queue or update gain value
-				for (HyperedgeID he : _hg.incidentEdges(best_node)) {
-					for (HypernodeID hnode : _hg.pins(he)) {
-						if (_hg.partID(hnode) == unassigned_part) {
-							processNodeForBucketPQ(bq, hnode, best_part);
+					deleteAssignedNodeInBucketPQ(bq,best_node);
+
+					//Pushing incident hypernode into bucket queue or update gain value
+					for (HyperedgeID he : _hg.incidentEdges(best_node)) {
+						for (HypernodeID hnode : _hg.pins(he)) {
+							if (_hg.partID(hnode) == unassigned_part) {
+								processNodeForBucketPQ(bq, hnode, best_part);
+							}
 						}
 					}
+
+					assigned_nodes_weight += _hg.nodeWeight(best_node);
+
 				}
 			}
 		}
-		std::cout << count << std::endl;
 		InitialPartitionerBase::recalculateBalanceConstraints();
 		InitialPartitionerBase::performFMRefinement();
 	}
@@ -177,11 +186,34 @@ private:
 			_hg.setNodePart(hn, 1);
 		}
 		processNodeForBucketPQ(bq, startNode[0], 0);
-		HypernodeID hn;
+		HypernodeID hn = invalid_node;
 		do {
+
+			if (hn != invalid_node) {
+
+				ASSERT(
+						[&]() {
+							Gain gain = bq.getMaxKey();
+							_hg.changeNodePart(hn,0,1);
+							HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+							_hg.changeNodePart(hn,1,0);
+							return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+						}(), "Gain calculation failed!");
+
+
+				bq.deleteMax();
+
+				for (HyperedgeID he : _hg.incidentEdges(hn)) {
+					for (HypernodeID hnode : _hg.pins(he)) {
+						if (_hg.partID(hnode) == 1 && hnode != hn) {
+							processNodeForBucketPQ(bq, hnode, 0);
+						}
+					}
+				}
+			}
+
 			if (!bq.empty()) {
 				hn = bq.getMax();
-				bq.deleteMax();
 				while (_hg.partID(hn) != 1 && !bq.empty()) {
 					hn = bq.getMax();
 					bq.deleteMax();
@@ -190,12 +222,6 @@ private:
 
 			if (bq.empty() && _hg.partID(hn) != 1) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);
-			}
-
-			for (HyperedgeID he : _hg.incidentEdges(hn)) {
-				for (HypernodeID hnode : _hg.pins(he)) {
-					processNodeForBucketPQ(bq, hnode, 0);
-				}
 			}
 
 		} while (assignHypernodeToPartition(hn, 0, 1, true));
@@ -233,11 +259,33 @@ private:
 		}
 	}
 
+	void deleteAssignedNodeInBucketPQ(std::vector<BucketQueue<HypernodeID, Gain>>& bq,
+			const HypernodeID hn) {
+		for (int i = 0; i < bq.size(); i++) {
+			if(bq[i].contains(hn)) {
+				bq[i].deleteNode(hn);
+			}
+		}
+	}
+
+	void updateAssignedNodeInBucketPQ(
+			std::vector<BucketQueue<HypernodeID, Gain>>& bq,
+			const HypernodeID hn) {
+		for (int i = 0; i < bq.size(); i++) {
+			if (bq[i].contains(hn)) {
+				Gain gain = GainComputation::calculateGain(_hg, hn, i);
+				bq[i].updateKey(hn, gain);
+			}
+		}
+	}
+
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 
 	static const Gain initial_gain = std::numeric_limits<Gain>::min();
+	static const HypernodeID invalid_node =
+			std::numeric_limits<HypernodeID>::max();
 
 };
 

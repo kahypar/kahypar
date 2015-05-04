@@ -55,13 +55,13 @@ public:
 		cut_edges_during_bisection.assign(_hg.numEdges(),false);
 
 		for (const HypernodeID hn : _hg.nodes()) {
-			hypergraph_weight += _hg.nodeWeight(hn);
+			total_hypergraph_weight += _hg.nodeWeight(hn);
 			if(_hg.nodeWeight(hn) > heaviest_node) {
 				heaviest_node = _hg.nodeWeight(hn);
 			}
 		}
 
-		_config.partition.total_graph_weight = hypergraph_weight;
+		_config.partition.total_graph_weight = total_hypergraph_weight;
 
 	}
 
@@ -71,12 +71,12 @@ public:
 		for (int i = 0; i < _config.initial_partitioning.k; i++) {
 			_config.initial_partitioning.lower_allowed_partition_weight[i] =
 			ceil(
-					hypergraph_weight
+					total_hypergraph_weight
 					/ static_cast<double>(_config.initial_partitioning.k))
 			* (1.0 - _config.partition.epsilon);
 			_config.initial_partitioning.upper_allowed_partition_weight[i] =
 			ceil(
-					hypergraph_weight
+					total_hypergraph_weight
 					/ static_cast<double>(_config.initial_partitioning.k))
 			* (1.0 + _config.partition.epsilon);
 		}
@@ -84,7 +84,7 @@ public:
 
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
-			_config.partition.total_graph_weight = hypergraph_weight;
+			_config.partition.total_graph_weight = total_hypergraph_weight;
 			refiner.initialize();
 
 			std::vector<HypernodeID> refinement_nodes;
@@ -104,25 +104,25 @@ public:
 
 	void rollbackToBestBisectionCut() {
 		if (_config.initial_partitioning.rollback) {
-			ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max() && best_partition_size != std::numeric_limits<HypernodeWeight>::max(),
-					"There are no precalculations for a rollback to the best bisection cut!");
-			HypernodeWeight currentSize = std::numeric_limits<HypernodeWeight>::max();
-			HypernodeID currentHypernode = 0;
-			while (currentSize > best_partition_size
-					&& !bisection_assignment_history.empty()) {
-				if (currentSize != std::numeric_limits<HypernodeWeight>::max()) {
-					ASSERT(_hg.partID(currentHypernode) == 0,
-							"The hypernode " << currentHypernode << " isn't assigned to partition 0.");
-					_hg.changeNodePart(currentHypernode, 0, 1);
+			if(!bisection_assignment_history.empty()) {
+				HypernodeWeight currentSize = std::numeric_limits<HypernodeWeight>::max();
+				HypernodeID currentHypernode = 0;
+				while (currentSize > best_partition_size
+						&& !bisection_assignment_history.empty()) {
+					if (currentSize != std::numeric_limits<HypernodeWeight>::max()) {
+						ASSERT(_hg.partID(currentHypernode) == 0,
+								"The hypernode " << currentHypernode << " isn't assigned to partition 0.");
+						_hg.changeNodePart(currentHypernode, 0, 1);
+					}
+					std::pair<int, HypernodeID> cutPair =
+					bisection_assignment_history.top();
+					bisection_assignment_history.pop();
+					currentSize = cutPair.first;
+					currentHypernode = cutPair.second;
 				}
-				std::pair<int, HypernodeID> cutPair =
-				bisection_assignment_history.top();
-				bisection_assignment_history.pop();
-				currentSize = cutPair.first;
-				currentHypernode = cutPair.second;
+				ASSERT(metrics::hyperedgeCut(_hg) == best_cut,
+						"Calculation of the best seen cut failed. Should be " << best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
 			}
-			ASSERT(metrics::hyperedgeCut(_hg) == best_cut,
-					"Calculation of the best seen cut failed. Should be " << best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
 		}
 	}
 
@@ -259,6 +259,8 @@ public:
 protected:
 	Hypergraph& _hg;
 	Configuration& _config;
+	HypernodeWeight total_hypergraph_weight = 0;
+	HypernodeWeight heaviest_node = 0;
 
 private:
 
@@ -290,8 +292,6 @@ private:
 	HyperedgeWeight current_cut = 0;
 	HypernodeWeight part_weight = 0;
 	HypernodeWeight best_partition_size = std::numeric_limits<HypernodeWeight>::max();
-	HypernodeWeight hypergraph_weight = 0;
-	HypernodeWeight heaviest_node = 0;
 	std::vector<bool> cut_edges_during_bisection;
 	std::stack<std::pair<HypernodeWeight, HyperedgeWeight>> bisection_assignment_history;
 

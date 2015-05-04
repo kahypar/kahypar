@@ -31,7 +31,6 @@ struct GainComputationPolicy {
 
 struct FMGainComputationPolicy: public GainComputationPolicy {
 
-
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
@@ -39,8 +38,12 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 		for (const HyperedgeID he : hg.incidentEdges(hn)) {
 			ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
 			if (hg.connectivity(he) == 1) {
-				gain -= hg.edgeWeight(he);
-			} else {
+				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
+						target_part);
+				if (pins_in_target_part == 0) {
+					gain -= hg.edgeWeight(he);
+				}
+			} else if (hg.connectivity(he) > 1 && source_part != -1) {
 				const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
 						source_part);
 				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
@@ -66,7 +69,11 @@ struct FMLocalyGainComputationPolicy: public GainComputationPolicy {
 		for (const HyperedgeID he : hg.incidentEdges(hn)) {
 			ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
 			if (hg.connectivity(he) == 1) {
-				gain -= hg.edgeWeight(he);
+				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
+						target_part);
+				if (pins_in_target_part == 0) {
+					gain -= hg.edgeWeight(he);
+				}
 			} else {
 				const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
 						source_part);
@@ -76,7 +83,7 @@ struct FMLocalyGainComputationPolicy: public GainComputationPolicy {
 						&& pins_in_target_part == hg.edgeSize(he) - 1) {
 					gain += hg.edgeWeight(he);
 				}
-				gain += (gain_factor*hg.edgeWeight(he))/pins_in_source_part;
+				gain += (gain_factor * hg.edgeWeight(he)) / pins_in_source_part;
 			}
 		}
 		return gain;
@@ -97,7 +104,6 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 	}
 };
 
-
 struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
@@ -106,7 +112,7 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 		for (HyperedgeID he : hg.incidentEdges(hn)) {
 			const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
 					target_part);
-			if(pins_in_target_part > 0)
+			if (pins_in_target_part > 0)
 				gain++;
 		}
 		return gain;

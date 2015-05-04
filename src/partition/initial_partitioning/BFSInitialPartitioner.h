@@ -106,7 +106,7 @@ private:
 					ASSERT([&]() {
 						for (HyperedgeID he : _hg.incidentEdges(hn)) {
 							for (HypernodeID hnodes : _hg.pins(he)) {
-								if (!in_queue[hnodes]) {
+								if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) {
 									return false;
 								}
 							}

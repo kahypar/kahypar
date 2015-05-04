@@ -31,6 +31,11 @@ class RecursiveBisection: public IInitialPartitioner,
 public:
 	RecursiveBisection(Hypergraph& hypergraph, Configuration& config) :
 			InitialPartitionerBase(hypergraph, config), balancer(_hg, _config) {
+
+		for (const HypernodeID hn : _hg.nodes()) {
+			total_hypergraph_weight += _hg.nodeWeight(hn);
+		}
+
 	}
 
 	~RecursiveBisection() {
@@ -39,9 +44,8 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1, _config.initial_partitioning.upper_allowed_partition_weight[0]);
+		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1);
 		InitialPartitionerBase::recalculateBalanceConstraints();
-		balancer.balancePartitions();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -52,7 +56,43 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2, HyperedgeWeight max_allowed_partition_weight) {
+	double calculateEpsilon(Hypergraph& hyper,
+			HypernodeWeight hypergraph_weight, PartitionID k) {
+
+		double base = ((static_cast<double>(k) * total_hypergraph_weight)
+				/ (static_cast<double>(_config.initial_partitioning.k)
+						* hypergraph_weight))*(1 + _config.partition.epsilon);
+
+
+		return std::pow(base,
+				1.0
+						/ std::ceil((std::log(
+								static_cast<double>(k))/std::log(2))))
+				- 1.0;
+
+	}
+
+	/*double calculateRecursiveEpsilon(PartitionID curk, PartitionID k,
+	 double current_value) {
+	 if (curk == 1) {
+	 return std::pow(
+	 current_value * (1.0 + _config.partition.epsilon)
+	 / _config.initial_partitioning.k,
+	 1.0 / (std::log(static_cast<double>(k)) / std::log(2.0)))
+	 - 1.0;
+	 }
+	 return std::min(
+	 calculateRecursiveEpsilon(
+	 std::floor(static_cast<double>(curk) / 2.0), k,
+	 current_value * curk
+	 / std::floor(static_cast<double>(curk) / 2.0)),
+	 calculateRecursiveEpsilon(
+	 std::ceil(static_cast<double>(curk) / 2.0), k,
+	 current_value * curk
+	 / std::ceil(static_cast<double>(curk) / 2.0)));
+	 }*/
+
+	void recursiveBisection(Hypergraph& hyper, PartitionID k1, PartitionID k2) {
 
 		//Assign partition id
 		if (k2 - k1 == 0) {
@@ -73,32 +113,29 @@ private:
 		PartitionID k = (k2 - k1 + 1);
 		PartitionID km = floor(static_cast<double>(k) / 2.0);
 
+		_config.initial_partitioning.epsilon = calculateEpsilon(hyper,
+				hypergraph_weight, k);
+
 		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
 				- _config.initial_partitioning.epsilon)
-				* static_cast<double>(km)
-				* ceil(hypergraph_weight / static_cast<double>(k));
+				* static_cast<double>(km) * hypergraph_weight
+				/ static_cast<double>(k);
 		_config.initial_partitioning.upper_allowed_partition_weight[0] = (1.0
 				+ _config.initial_partitioning.epsilon)
-				* static_cast<double>(km)
-				* ceil(hypergraph_weight / static_cast<double>(k));
+				* static_cast<double>(km) * hypergraph_weight
+				/ static_cast<double>(k);
 		_config.initial_partitioning.lower_allowed_partition_weight[1] = (1.0
 				- _config.initial_partitioning.epsilon)
-				* static_cast<double>(k - km)
-				* ceil(hypergraph_weight / static_cast<double>(k));
+				* static_cast<double>(k - km) * hypergraph_weight
+				/ static_cast<double>(k);
 		_config.initial_partitioning.upper_allowed_partition_weight[1] = (1.0
 				+ _config.initial_partitioning.epsilon)
-				* static_cast<double>(k - km)
-				* ceil(hypergraph_weight / static_cast<double>(k));
-
-		_config.initial_partitioning.upper_allowed_partition_weight[0] = std::min(static_cast<HypernodeWeight>(km*max_allowed_partition_weight),_config.initial_partitioning.upper_allowed_partition_weight[0]);
-		_config.initial_partitioning.upper_allowed_partition_weight[1] = std::min(static_cast<HypernodeWeight>((k-km)*max_allowed_partition_weight),_config.initial_partitioning.upper_allowed_partition_weight[1]);
-
-		std::cout << k1 << " - " << k2 << ", Num Hyperedges: " << hyper.numEdges() << std::endl;
+				* static_cast<double>(k - km) * hypergraph_weight
+				/ static_cast<double>(k);
 
 		//Performing bisection
 		InitialPartitioner partitioner(hyper, _config);
 		partitioner.partition(2);
-
 
 		//Extract Hypergraph with partition 0
 		HypernodeID num_hypernodes_0;
@@ -117,7 +154,7 @@ private:
 				&hyperedge_weights_0, &hypernode_weights_0);
 
 		//Recursive bisection on partition 0
-		recursiveBisection(partition_0, k1, k1 + km - 1, max_allowed_partition_weight);
+		recursiveBisection(partition_0, k1, k1 + km - 1);
 
 		//Extract Hypergraph with partition 1
 		HypernodeID num_hypernodes_1;
@@ -136,7 +173,7 @@ private:
 				&hyperedge_weights_1, &hypernode_weights_1);
 
 		//Recursive bisection on partition 1
-		recursiveBisection(partition_1, k1 + km, k2, max_allowed_partition_weight);
+		recursiveBisection(partition_1, k1 + km, k2);
 
 		//Assign partition id from partition 0 to the current hypergraph
 		for (HypernodeID hn : partition_0.nodes()) {
@@ -148,6 +185,10 @@ private:
 			}
 		}
 
+		ASSERT(
+				[&]() { for(HypernodeID hn : partition_0.nodes()) { if(partition_0.partID(hn) != hyper.partID(hgToExtractedHypergraphMapper_0[hn])) { return false; } } return true; }(),
+				"Assignment of a hypernode from a bisection step below failed in partition 0!");
+
 		//Assign partition id from partition 1 to the current hypergraph
 		for (HypernodeID hn : partition_1.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_1[hn])
@@ -158,10 +199,16 @@ private:
 			}
 		}
 
+		ASSERT(
+				[&]() { for(HypernodeID hn : partition_1.nodes()) { if(partition_1.partID(hn) != hyper.partID(hgToExtractedHypergraphMapper_1[hn])) { return false; } } return true; }(),
+				"Assignment of a hypernode from a bisection step below failed in partition 1!");
+
 	}
 
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
+
+	HypernodeWeight total_hypergraph_weight = 0;
 
 	HypergraphPartitionBalancer balancer;
 
