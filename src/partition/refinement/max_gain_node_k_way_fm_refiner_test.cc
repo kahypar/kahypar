@@ -241,4 +241,23 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   ASSERT_THAT(refiner->computeMaxGainMove(3).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(3).second, Eq(2));
 }
+
+TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
+  hypergraph.reset(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 3 },
+                                  HyperedgeVector { 0, 1, 0 }, 2));
+
+  config.partition.k = 2;
+  config.partition.epsilon = 1.0;
+  config.partition.max_part_weight =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(1, 1);
+
+  refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+
+  ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
+  ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));
+}
 } // namespace partition

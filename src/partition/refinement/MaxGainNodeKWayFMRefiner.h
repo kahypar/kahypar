@@ -104,6 +104,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner,
               AccountsForInternalHEsDuringConnectivityDecreaseCalculation);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecrease);
+  FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation);
 
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
@@ -450,11 +451,16 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     Gain max_gain = 0;
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      ASSERT(_hg.edgeSize(he) > 1, V(he));
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
         case 1:
-          internal_weight += he_weight;
+          if (_hg.edgeSize(he) == 1) {
+            num_hes_with_only_hn_in_part += 1;
+          } else {
+            // As we currently do not ensure that the hypergraph does not contain any
+            // single-node HEs, we explicitly have to check for |e| > 1
+            internal_weight += he_weight;
+          }
           break;
         case 2:
           // Moving the HN to a different part will not __increase__ the connectivity of

@@ -121,6 +121,7 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
+  FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
 
   void initializeImpl(HyperedgeWeight) noexcept final {
     initializeImpl();
@@ -422,14 +423,12 @@ class TwoWayFMRefiner : public IRefiner,
     PartitionID target_partition = _hg.partID(hn) ^ 1;
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      // Some MCNC Instances like primary1 and industry3 have hyperedges that
-      // only contain one hypernode. Thus this assertion will fail in this case.
-      ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,
-             "Trying to compute gain for single-node HE " << he);
-      if (_hg.pinCountInPart(he, target_partition) == 0) {
+      // As we currently do not ensure that the hypergraph does not contain any
+      // single-node HEs, we explicitly have to check for |e| > 1
+      if (_hg.pinCountInPart(he, target_partition) == 0 && _hg.edgeSize(he) > 1) {
         gain -= _hg.edgeWeight(he);
       }
-      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1 && _hg.edgeSize(he) > 1) {
         gain += _hg.edgeWeight(he);
       }
     }
