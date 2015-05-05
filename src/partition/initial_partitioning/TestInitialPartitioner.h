@@ -9,6 +9,8 @@
 #define SRC_PARTITION_INITIAL_PARTITIONING_TESTINITIALPARTITIONER_H_
 
 #include <vector>
+#include <set>
+#include <queue>
 
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
@@ -17,82 +19,116 @@
 
 using defs::HypernodeWeight;
 
+typedef std::pair<int, HyperedgeID> ih;
+
 namespace partition {
 
 class TestInitialPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
-	public:
-		TestInitialPartitioner(Hypergraph& hypergraph,
-				Configuration& config) :
-				InitialPartitionerBase(hypergraph, config) {
+public:
+	TestInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
+			InitialPartitionerBase(hypergraph, config) {
+	}
+
+	~TestInitialPartitioner() {
+	}
+
+private:
+
+	void kwayPartitionImpl() final {
+
+	}
+
+	void bisectionPartitionImpl() final {
+
+		PartitionID unassigned_part = 1;
+
+		for (const HypernodeID hn : _hg.nodes()) {
+			_hg.setNodePart(hn, 1);
 		}
 
-		~TestInitialPartitioner() {
-		}
-
-	private:
-
-
-
-		void kwayPartitionImpl() final {
-
-		}
-
-		void bisectionPartitionImpl() final {
-
-			PartitionID unassigned_part = 1;
-
-			for (const HypernodeID hn : _hg.nodes()) {
-					_hg.setNodePart(hn,1);
+		std::vector<bool> assigned(_hg.numEdges(), false);
+		std::priority_queue<ih, std::vector<ih>, std::greater<ih>> pq;
+		HyperedgeID startEdge = 0;
+		pq.push(std::make_pair(getEdgeDegree(startEdge),startEdge));
+		bool bound_reach = false;
+		while(!pq.empty()) {
+			HyperedgeID he = pq.top().second; pq.pop();
+			if(assigned[he]) {
+				continue;
 			}
-
-			std::vector<std::vector<int>> hyperedge_count(_hg.numNodes(),std::vector<int>(_hg.numNodes(),0));
-			HypernodeID bi = 0; HypernodeID bj = 0;
-
-			for(HypernodeID hn : _hg.nodes()) {
-				for(HyperedgeID he : _hg.incidentEdges(hn) ) {
-					for(HypernodeID hnode : _hg.pins(he)) {
-						if(hn < hnode) {
-							hyperedge_count[hn][hnode]++;
-							hyperedge_count[hnode][hn] = hyperedge_count[hn][hnode];
-							if(hyperedge_count[bi][bj] < hyperedge_count[hn][hnode]) {
-								bi = hn;
-								bj = hnode;
-							}
-						}
+			assigned[he] = true;
+			for(HypernodeID hn : _hg.pins(he)) {
+				if(_hg.partID(hn) != 0 && !assignHypernodeToPartition(hn,0,1,true)) {
+					bound_reach = true;
+					break;
+				}
+			}
+			std::cout << _hg.partWeight(0) << std::endl;
+			if(bound_reach) {
+				break;
+			}
+			std::set<HyperedgeID> edgeSet;
+			for (HypernodeID hn : _hg.pins(he)) {
+				for (HyperedgeID edge : _hg.incidentEdges(hn)) {
+					if (std::find(edgeSet.begin(), edgeSet.end(), edge)
+							== edgeSet.end()) {
+						edgeSet.insert(edge);
 					}
 				}
 			}
-
-			assignHypernodeToPartition(bi,0,unassigned_part,true);
-			HypernodeID current_node = bj;
-			while(assignHypernodeToPartition(current_node,0,-1,true)) {
-				HypernodeID best_node = -1;
-				int best_count = -1;
-				for(HypernodeID hn : _hg.nodes()) {
-					if(_hg.partID(hn) == unassigned_part && best_count < hyperedge_count[current_node][hn]) {
-						best_count = hyperedge_count[current_node][hn];
-						best_node = hn;
+			for (HyperedgeID edge : edgeSet) {
+				bool add_edge = false;
+				for(HypernodeID hn : _hg.pins(edge)) {
+					if(_hg.partID(hn) == 1) {
+						add_edge = true;
+						break;
 					}
 				}
-				current_node = best_node;
+				if(add_edge && !assigned[edge]) {
+					pq.push(std::make_pair(getEdgeDegree(edge),edge));
+				}
 			}
-
-
-
-
-			InitialPartitionerBase::rollbackToBestBisectionCut();
-			InitialPartitionerBase::performFMRefinement();
 		}
 
-		using InitialPartitionerBase::_hg;
-		using InitialPartitionerBase::_config;
+		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::performFMRefinement();
+	}
 
-	};
+	int getEdgeDegree(HyperedgeID he) {
+		int degree = 0;
+		std::set<HypernodeID> nodeSet;
+		std::set<HyperedgeID> edgeSet;
+		for (HypernodeID hn : _hg.pins(he)) {
+			if (std::find(nodeSet.begin(), nodeSet.end(), hn)
+					== nodeSet.end()) {
+				nodeSet.insert(hn);
+			}
+			for (HyperedgeID edge : _hg.incidentEdges(hn)) {
+				if (std::find(edgeSet.begin(), edgeSet.end(), edge)
+						== edgeSet.end()) {
+					edgeSet.insert(edge);
+				}
+			}
+		}
+		for (HyperedgeID edge : edgeSet) {
+			for (HypernodeID node : _hg.pins(edge)) {
+				if (std::find(nodeSet.begin(), nodeSet.end(), node)
+						== nodeSet.end() && _hg.partID(node) != 0) {
+					degree++;
+					break;
+				}
+			}
+		}
+		return degree;
+	}
+
+	using InitialPartitionerBase::_hg;
+	using InitialPartitionerBase::_config;
+
+};
 
 }
-
-
 
 #endif /* SRC_PARTITION_INITIAL_PARTITIONING_TESTINITIALPARTITIONER_H_ */

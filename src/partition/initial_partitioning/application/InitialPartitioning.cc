@@ -43,6 +43,7 @@ using partition::RandomInitialPartitioner;
 using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::GreedyHypergraphGrowingInitialPartitioner;
+using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;

@@ -36,7 +36,8 @@ public:
 	}
 
 private:
-	FRIEND_TEST(ABFSInitialPartionerTest, ABFSInitialPartionerPushesHypernodesIntoPriorityQueueTest);
+	FRIEND_TEST(ABFSInitialPartionerTest, BFSExpectedHypernodesInQueueAfterPushingIncidentHypernodesInQueue);
+	FRIEND_TEST(ABFSInitialPartionerTest, BFSInQueueMapUpdateAfterPushingIncidentHypernodesInQueue);
 
 	void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q,
 			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
@@ -152,16 +153,10 @@ private:
 
 			//Searching for an unassigned hypernode in the queue.
 			if (!bfs.empty()) {
-				hn = bfs.front();
-				bfs.pop();
-				while (_hg.partID(hn) != unassigned_part && !bfs.empty()) {
-					hn = bfs.front();
-					bfs.pop();
-				}
+				hn = bfs.front(); bfs.pop();
 			}
-
 			//If no unassigned hypernode was found we have to select a new startnode.
-			if (_hg.partID(hn) != unassigned_part && bfs.empty()) {
+			else {
 				hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
 				in_queue[hn] = true;
 			}

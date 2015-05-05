@@ -116,6 +116,7 @@ private:
 		_config.initial_partitioning.epsilon = calculateEpsilon(hyper,
 				hypergraph_weight, k);
 
+
 		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
 				- _config.initial_partitioning.epsilon)
 				* static_cast<double>(km) * hypergraph_weight

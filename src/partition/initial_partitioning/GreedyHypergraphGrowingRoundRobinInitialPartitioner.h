@@ -22,8 +22,7 @@
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
-using partition::StartNodeSelectionPolicy;
-using partition::GainComputationPolicy;
+
 
 using Gain = HyperedgeWeight;
 

@@ -127,7 +127,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
           config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
           break;
         case InitialPartitioner::PaToH:
-          config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+          config.partition.initial_partitioner_path = "/software/patoh";
           break;
         case InitialPartitioner::KaHyPar:
           config.partition.initial_partitioner_path = "../partition/initial_partitioning/application/InitialPartitioningKaHyPar";

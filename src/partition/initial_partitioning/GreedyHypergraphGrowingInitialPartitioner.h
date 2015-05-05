@@ -17,11 +17,13 @@
 #include "lib/datastructure/BucketQueue.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
+#include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
+using partition::HypergraphPartitionBalancer;
 using partition::StartNodeSelectionPolicy;
 using partition::GainComputationPolicy;
 using datastructure::BucketQueue;
@@ -33,13 +35,12 @@ namespace partition {
 template<class StartNodeSelection = StartNodeSelectionPolicy,
 		class GainComputation = GainComputationPolicy>
 class GreedyHypergraphGrowingInitialPartitioner: public IInitialPartitioner,
-		private InitialPartitionerBase {
+		public InitialPartitionerBase {
 
 public:
 	GreedyHypergraphGrowingInitialPartitioner(Hypergraph& hypergraph,
 			Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), _balancer(hypergraph,
-					config) {
+			InitialPartitionerBase(hypergraph, config), _balancer(_hg,config) {
 
 		/*max_net_size = 0.0;
 		 for(HyperedgeID he : hypergraph.edges()) {
@@ -48,11 +49,12 @@ public:
 		 }*/
 	}
 
-	~GreedyHypergraphGrowingInitialPartitioner() {
+	 ~GreedyHypergraphGrowingInitialPartitioner() {
 	}
 
 private:
-	FRIEND_TEST(AGreedyInitialPartionerTest, APushingNodesIntoBucketQueueInitialPartionerTest);
+	FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue);
+	FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeIntoBucketQueue);
 
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part = 0;
@@ -72,7 +74,9 @@ private:
 				_config.initial_partitioning.k);
 
 		for (PartitionID i = 0; i < startNodes.size(); i++) {
-			processNodeForBucketPQ(bq[i], startNodes[i], i);
+			GreedyHypergraphGrowingInitialPartitioner<StartNodeSelection,
+					GainComputation>::processNodeForBucketPQ(bq[i],
+					startNodes[i], i);
 		}
 
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
@@ -83,9 +87,9 @@ private:
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 			if (i != unassigned_part) {
 
-				processNodeForBucketPQ(bq[i], bq[i].getMax(), i);
+				GreedyHypergraphGrowingInitialPartitioner<StartNodeSelection, GainComputation>::processNodeForBucketPQ(bq[i], bq[i].getMax(), i);
 				HypernodeID hn = bq[i].getMax();
-				while (assignHypernodeToPartition(hn, i)) {
+				while (InitialPartitionerBase::assignHypernodeToPartition(hn, i)) {
 
 					ASSERT([&]() {
 						Gain gain = bq[i].getMaxKey();
@@ -104,7 +108,9 @@ private:
 								auto startNode = std::find(startNodes.begin(),
 										startNodes.end(), hnode);
 								if (startNode == startNodes.end()) {
-									processNodeForBucketPQ(bq[i], hnode, i);
+									GreedyHypergraphGrowingInitialPartitioner<
+											StartNodeSelection, GainComputation>::processNodeForBucketPQ(
+											bq[i], hnode, i);
 								}
 							}
 						}
@@ -114,7 +120,9 @@ private:
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						processNodeForBucketPQ(bq[i], newStartNode, i);
+						GreedyHypergraphGrowingInitialPartitioner<
+								StartNodeSelection, GainComputation>::processNodeForBucketPQ(
+								bq[i], newStartNode, i);
 					}
 
 					ASSERT(!bq[i].empty(),
@@ -238,12 +246,13 @@ private:
 	}
 
 	//double max_net_size;
+protected:
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
-	HypergraphPartitionBalancer _balancer;
-
 	static const HypernodeID invalid_node =
 			std::numeric_limits<HypernodeID>::max();
+
+	HypergraphPartitionBalancer _balancer;
 
 };
 

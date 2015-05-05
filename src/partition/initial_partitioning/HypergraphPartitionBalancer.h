@@ -69,7 +69,6 @@ public:
 					}
 				}
 			}
-			std::cout << bestNode << " from " << p << " to " << toPart << " with gain " << bestGain << std::endl;
 			HyperedgeWeight cut = metrics::hyperedgeCut(_hg);
 
 			ASSERT(_hg.partID(bestNode) == p, "Hypernode " << bestNode << " should be in partition " << p << ", but is currently in partition " << _hg.partID(bestNode) );

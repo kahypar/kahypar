@@ -415,10 +415,10 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 int main(int argc, char* argv[]) {
 
 	std::vector<std::string> benchmarks { "ibm01", "ibm02", "ibm03", "ibm04",
-			"ibm05", "ibm06", "ibm07", "vibrobox","avqsmall","avqlarge",
-			"bcsstk29", "bcsstk31", "bcsstk32", "s3rmq4m1", "s15850", "s35932",
+			"ibm05", "ibm06", "ibm07",
+			"bcsstk29", "bcsstk31", "bcsstk32", "s15850", "s35932",
 			"s38584" };
-	std::vector<std::string> modes { "recursive-greedy" };
+	std::vector<std::string> modes { "random", "recursive-random", "bfs", "recursive-bfs", "greedy","greedy-global", "greedy-round", "recursive-greedy" };
 
 	/*std::vector<std::string> benchmarks {
 	 "ibm03", "ibm04", "ibm05"};

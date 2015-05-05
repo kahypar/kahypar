@@ -256,6 +256,7 @@ public:
 
 	}
 
+
 protected:
 	Hypergraph& _hg;
 	Configuration& _config;
