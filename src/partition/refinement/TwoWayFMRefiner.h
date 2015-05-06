@@ -53,9 +53,6 @@ class TwoWayFMRefiner : public IRefiner,
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
 
-  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
-  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
-
   public:
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
