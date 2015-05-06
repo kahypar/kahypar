@@ -53,8 +53,6 @@ class KWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
   static const bool dbg_refinement_kaway_locked_hes = false;
   static const bool dbg_refinement_kway_infeasible_moves = false;
-
-  using Gain = HyperedgeWeight;
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
 
@@ -63,10 +61,6 @@ class KWayFMRefiner : public IRefiner,
     PartitionID from_part;
     PartitionID to_part;
   };
-
-  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
-  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
@@ -96,14 +90,6 @@ class KWayFMRefiner : public IRefiner,
   }
 
   private:
-  // FRIEND_TEST(AKWayFMRefiner, IdentifiesBorderHypernodes);
-  // FRIEND_TEST(AKWayFMRefiner, ComputesGainOfHypernodeMoves);
-  // FRIEND_TEST(AKWayFMRefiner, ActivatesBorderNodes);
-  // FRIEND_TEST(AKWayFMRefiner, DoesNotActivateInternalNodes);
-  // FRIEND_TEST(AKWayFMRefiner, DoesNotPerformMovesThatWouldLeadToImbalancedPartitions);
-  // FRIEND_TEST(AKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions);
-  // FRIEND_TEST(AKWayFMRefiner, ComputesCorrectGainValues);
-
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
 
@@ -313,15 +299,15 @@ class KWayFMRefiner : public IRefiner,
                         const HypernodeID pin_count_source_part_before_move,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
-    if (he_connectivity == 2 && pin_count_target_part_after_move == 1
-        && pin_count_source_part_before_move > 1) {
-        // pin_count_source_part_before_move > 1 == pin_count_source_part_after_move > 0
-        // This check is necessary to validate that the net is not a cut net before applying the move.
-        // Imagine a HE, with several pins in one part (say 0) and only the moved pin outside (say in part 1).
-        // If this pin is moved to, say, part 2. the first and the second condition are true. However
-        // the HE has been a cut HE already before the move. The third contition ensures that this cannot be 
-        // the case. However this could be expressed in a more transparent way by verifying for exmaple,
-        // that pin_count_source_part_before_move == |he_size|.
+    if (he_connectivity == 2 && pin_count_target_part_after_move == 1 &&
+        pin_count_source_part_before_move > 1) {
+      // pin_count_source_part_before_move > 1 == pin_count_source_part_after_move > 0
+      // This check is necessary to validate that the net is not a cut net before applying the move.
+      // Imagine a HE, with several pins in one part (say 0) and only the moved pin outside (say in part 1).
+      // If this pin is moved to, say, part 2. the first and the second condition are true. However
+      // the HE has been a cut HE already before the move. The third contition ensures that this cannot be
+      // the case. However this could be expressed in a more transparent way by verifying for exmaple,
+      // that pin_count_source_part_before_move == |he_size|.
       DBG(dbg_refinement_kway_fm_gain_update,
           "he " << he << " is not cut before applying move");
       // Update pin of a HE that is not cut before applying the move.
@@ -957,17 +943,7 @@ class KWayFMRefiner : public IRefiner,
 };
 
 template <class T, class U>
-constexpr HypernodeID KWayFMRefiner<T, U>::kInvalidHN;
-template <class T, class U>
-constexpr typename KWayFMRefiner<T, U>::Gain KWayFMRefiner<T, U>::kInvalidGain;
-template <class T, class U>
-constexpr typename KWayFMRefiner<T, U>::Gain KWayFMRefiner<T, U>::kInvalidDecrease;
-template <class T, class U>
-constexpr PartitionID KWayFMRefiner<T, U>::kLocked;
-template <class T, class U>
 const PartitionID KWayFMRefiner<T, U>::kFree;
-
-
 #pragma GCC diagnostic pop
 } // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_

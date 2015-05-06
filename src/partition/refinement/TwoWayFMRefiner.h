@@ -50,7 +50,6 @@ template <class StoppingPolicy = Mandatory,
 class TwoWayFMRefiner : public IRefiner,
                         private FMRefinerBase {
   private:
-  using Gain = HyperedgeWeight;
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
 

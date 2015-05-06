@@ -5,6 +5,8 @@
 #ifndef SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_
 #define SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_
 
+#include <limits>
+
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 
@@ -23,7 +25,13 @@ class FMRefinerBase {
   FMRefinerBase& operator = (const FMRefinerBase&) = delete;
   FMRefinerBase& operator = (FMRefinerBase&&) = delete;
 
+  using Gain = HyperedgeWeight;
+
   protected:
+  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
+  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
+  static constexpr HyperedgeWeight kInvalidDecrease = std::numeric_limits<PartitionID>::min();
+
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config) { }

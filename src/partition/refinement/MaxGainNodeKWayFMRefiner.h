@@ -48,7 +48,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_update = false;
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
-  using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
@@ -63,10 +62,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID from_part;
     PartitionID to_part;
   };
-
-  static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
-  static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static constexpr Gain kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
   public:
   MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
@@ -617,12 +612,5 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   Stats _stats;
 };
 #pragma GCC diagnostic pop
-
-template <class T, class U>
-constexpr HypernodeID MaxGainNodeKWayFMRefiner<T, U>::kInvalidHN;
-template <class T, class U>
-constexpr typename MaxGainNodeKWayFMRefiner<T, U>::Gain MaxGainNodeKWayFMRefiner<T, U>::kInvalidGain;
-template <class T, class U>
-constexpr typename MaxGainNodeKWayFMRefiner<T, U>::Gain MaxGainNodeKWayFMRefiner<T, U>::kInvalidDecrease;
 }             // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
