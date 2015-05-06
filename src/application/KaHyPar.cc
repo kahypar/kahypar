@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
   using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
   using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
   using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
-  using TwoWayFMFactoryExecutor = FMFactoryExecutor<TwoWayFMRefiner>;
+  using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
   using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
   using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
   using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
                                                               RandomWalkModelStopsSearch,
                                                               nGPRandomWalkStopsSearch>,
                                                      PolicyBase,
-                                                     Typelist<OnlyRemoveIfBothQueuesClogged>,
+                                                     Typelist<NullPolicy>,
                                                      IRefiner*>;
   using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                         PolicyBase,

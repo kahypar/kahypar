@@ -36,14 +36,11 @@ using partition::Configuration;
 using partition::Partitioner;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::EligibleTopGain;
-using partition::RemoveOnlyTheCloggingEntry;
 
 namespace metrics {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {
   public:

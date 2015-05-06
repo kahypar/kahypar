@@ -12,8 +12,6 @@
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
-#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
@@ -23,14 +21,10 @@ using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 
-using partition::EligibleTopGain;
-using partition::RemoveOnlyTheCloggingEntry;
-
 namespace partition {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {
   public:

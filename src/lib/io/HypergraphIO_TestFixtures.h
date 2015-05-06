@@ -17,8 +17,6 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
-#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
@@ -32,8 +30,6 @@ using partition::FirstRatingWins;
 using partition::Configuration;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::EligibleTopGain;
-using partition::RemoveOnlyTheCloggingEntry;
 using defs::Hypergraph;
 
 namespace io {
@@ -193,8 +189,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitionOfAHypergraph : public Test {
   public:
