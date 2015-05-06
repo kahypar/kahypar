@@ -406,6 +406,7 @@ int main(int argc, char* argv[]) {
     );
 
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
+  std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
   RefinerParameters refiner_parameters(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(nullptr);
 
@@ -414,10 +415,9 @@ int main(int argc, char* argv[]) {
       TwoWayFMFactoryExecutor exec;
       refiner.reset(TwoWayFMFactoryDispatcher::go(
                       PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-                      *(clogging_policy.get()),
+                      *(null_policy.get()),
                       exec, refiner_parameters));
     } else {
-      std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
       if (vm["rtype"].as<std::string>() == "max_gain_kfm") {
         MaxGainNodeKWayFMFactoryExecutor exec;
         refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
