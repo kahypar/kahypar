@@ -22,6 +22,8 @@ using defs::HypernodeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeID;
 
+using partition::InitialStatManager;
+
 namespace partition {
 
 template<class InitialPartitioner = IInitialPartitioner>
@@ -116,7 +118,6 @@ private:
 		_config.initial_partitioning.epsilon = calculateEpsilon(hyper,
 				hypergraph_weight, k);
 
-
 		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
 				- _config.initial_partitioning.epsilon)
 				* static_cast<double>(km) * hypergraph_weight
@@ -138,6 +139,16 @@ private:
 		InitialPartitioner partitioner(hyper, _config);
 		partitioner.partition(2);
 
+		InitialStatManager::getInstance().addStat("Recursive Bisection",
+				"Hypergraph weight (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
+				hypergraph_weight);
+		InitialStatManager::getInstance().addStat("Recursive Bisection",
+				"Epsilon (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
+				_config.initial_partitioning.epsilon);
+		InitialStatManager::getInstance().addStat("Recursive Bisection",
+				"Hypergraph cut (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
+				metrics::hyperedgeCut(hyper));
+
 		//Extract Hypergraph with partition 0
 		HypernodeID num_hypernodes_0;
 		HyperedgeID num_hyperedges_0;
@@ -156,6 +167,7 @@ private:
 
 		//Recursive bisection on partition 0
 		recursiveBisection(partition_0, k1, k1 + km - 1);
+
 
 		//Extract Hypergraph with partition 1
 		HypernodeID num_hypernodes_1;

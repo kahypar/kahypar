@@ -16,15 +16,20 @@
 
 #include "lib/io/HypergraphIO.h"
 #include "lib/datastructure/BucketQueue.h"
+#include "lib/datastructure/PriorityQueue.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/initial_partitioner_test_TestFixtures.h"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/PriorityQueue.h"
+
 
 using ::testing::Eq;
 using ::testing::Test;
 
+using external::NoDataBinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
@@ -32,8 +37,14 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 
 using datastructure::BucketQueue;
+using datastructure::PriorityQueue;
+
 
 using Gain = HyperedgeWeight;
+
+using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
+                                         std::numeric_limits<HyperedgeWeight> >;
+
 
 namespace partition {
 
@@ -235,12 +246,12 @@ TEST_F(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushing
 		}
 	}
 
-	BucketQueue<HypernodeID,Gain> bq(2 * hypergraph.numNodes());
-	partitioner->processNodeForBucketPQ(bq,2,0);
-	partitioner->processNodeForBucketPQ(bq,4,0);
-	partitioner->processNodeForBucketPQ(bq,6,0);
-	ASSERT_EQ(bq.size(),3);
-	ASSERT_TRUE(bq.getMax() == 2 && bq.getMaxKey() == 0);
+	PriorityQueue<TwoWayFMHeap>* bq = new PriorityQueue<TwoWayFMHeap>(2 * hypergraph.numNodes());
+	partitioner->processNodeForBucketPQ(*bq,2,0,true);
+	partitioner->processNodeForBucketPQ(*bq,4,0,true);
+	partitioner->processNodeForBucketPQ(*bq,6,0,true);
+	ASSERT_EQ(bq->size(),3);
+	ASSERT_TRUE(bq->max() == 2 && bq->maxKey() == 0);
 
 
 }
@@ -256,19 +267,19 @@ TEST_F(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeInt
 		}
 	}
 
-	BucketQueue<HypernodeID,Gain> bq(2 * hypergraph.numNodes());
-	partitioner->processNodeForBucketPQ(bq,2,0);
-	partitioner->processNodeForBucketPQ(bq,4,0);
-	partitioner->processNodeForBucketPQ(bq,6,0);
+	PriorityQueue<TwoWayFMHeap>* bq = new PriorityQueue<TwoWayFMHeap>(2 * hypergraph.numNodes());
+	partitioner->processNodeForBucketPQ(*bq,2,0,true);
+	partitioner->processNodeForBucketPQ(*bq,4,0,true);
+	partitioner->processNodeForBucketPQ(*bq,6,0,true);
 
 
 	hypergraph.changeNodePart(2,1,0);
 	hypergraph.changeNodePart(4,1,0);
-	bq.deleteNode(2);
-	bq.deleteNode(4);
-	partitioner->processNodeForBucketPQ(bq,6,0);
-	ASSERT_TRUE(bq.getMax() == 6 && bq.getMaxKey() == 0);
-	ASSERT_EQ(bq.size(), 1);
+	bq->remove(2);
+	bq->remove(4);
+	partitioner->processNodeForBucketPQ(*bq,6,0,true);
+	ASSERT_TRUE(bq->max() == 6 && bq->maxKey() == 0);
+	ASSERT_EQ(bq->size(), 1);
 
 }
 

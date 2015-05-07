@@ -15,11 +15,12 @@
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+
 
 
 using ::testing::Test;
@@ -164,12 +165,12 @@ public:
 		PartitionID k = 2;
 		initializeConfiguration(config, k, 7);
 
-		partitioner = new GreedyHypergraphGrowingInitialPartitioner<
+		partitioner = new GreedyHypergraphGrowingSequentialInitialPartitioner<
 				TestStartNodeSelectionPolicy, FMGainComputationPolicy>(
 				hypergraph, config);
 	}
 
-	GreedyHypergraphGrowingInitialPartitioner<
+	GreedyHypergraphGrowingSequentialInitialPartitioner<
 			TestStartNodeSelectionPolicy, FMGainComputationPolicy>* partitioner;
 	Hypergraph hypergraph;
 	Configuration config;
@@ -207,12 +208,12 @@ public:
 		}
 		initializeConfiguration(config, k, hypergraph_weight);
 
-		partitioner = new GreedyHypergraphGrowingInitialPartitioner<
+		partitioner = new GreedyHypergraphGrowingSequentialInitialPartitioner<
 				TestStartNodeSelectionPolicy, FMGainComputationPolicy>(
 				*hypergraph, config);
 	}
 
-	GreedyHypergraphGrowingInitialPartitioner<
+	GreedyHypergraphGrowingSequentialInitialPartitioner<
 			TestStartNodeSelectionPolicy, FMGainComputationPolicy>* partitioner;
 	Hypergraph* hypergraph;
 	Configuration config;
@@ -337,13 +338,13 @@ public:
 		initializeConfiguration(config, k, hypergraph_weight);
 
 		partitioner = new RecursiveBisection<
-				GreedyHypergraphGrowingInitialPartitioner<
+				GreedyHypergraphGrowingSequentialInitialPartitioner<
 						TestStartNodeSelectionPolicy, FMGainComputationPolicy>>(
 				*hypergraph, config);
 	}
 
 	RecursiveBisection<
-			GreedyHypergraphGrowingInitialPartitioner<
+			GreedyHypergraphGrowingSequentialInitialPartitioner<
 					TestStartNodeSelectionPolicy, FMGainComputationPolicy>>* partitioner;
 	Hypergraph* hypergraph;
 	Configuration config;

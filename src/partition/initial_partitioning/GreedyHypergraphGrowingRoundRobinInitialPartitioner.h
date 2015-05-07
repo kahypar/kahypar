@@ -20,11 +20,19 @@
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "tools/RandomFunctions.h"
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/PriorityQueue.h"
+using datastructure::PriorityQueue;
+using external::NoDataBinaryMaxHeap;
 
 using defs::HypernodeWeight;
 
 
 using Gain = HyperedgeWeight;
+
+using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
+std::numeric_limits<HyperedgeWeight> >;
+using PrioQueue = PriorityQueue<TwoWayFMHeap>;
 
 namespace partition {
 
@@ -58,9 +66,11 @@ private:
 			}
 		}
 
-		std::vector<BucketQueue<HypernodeID, Gain>> bq(
-				_config.initial_partitioning.k,
-				BucketQueue<HypernodeID, Gain>(2 * _hg.numNodes()));
+		Gain init_pq = 2 * _hg.numNodes();
+		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
+		for(PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			bq[i] = new PrioQueue(init_pq);
+		}
 
 		//Enable parts are allowed to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
@@ -73,7 +83,7 @@ private:
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
 		for (PartitionID i = 0; i < startNodes.size(); i++) {
-			processNodeForBucketPQ(bq[i], startNodes[i], i);
+			processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
 		HypernodeID assigned_nodes_weight = 0;
@@ -87,13 +97,13 @@ private:
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 				if (partEnable[i]) {
 					HypernodeID hn;
-					if (bq[i].empty()) {
+					if (bq[i]->empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						processNodeForBucketPQ(bq[i], newStartNode, i);
+						processNodeForBucketPQ(*bq[i], newStartNode, i);
 					}
-					hn = bq[i].getMax();
+					hn = bq[i]->max();
 
 					ASSERT(_hg.partID(hn) == unassigned_part,
 							"Hypernode " << hn << "should be unassigned!");
@@ -102,27 +112,29 @@ private:
 						partEnable[i] = false;
 					} else {
 
-						ASSERT(!bq[i].empty(),
+						ASSERT(!bq[i]->empty(),
 								"Bucket queue of partition " << i << " shouldn't be empty!");
 
 						ASSERT(
 								[&]() {
-									Gain gain = bq[i].getMaxKey();
+									Gain gain = bq[i]->maxKey();
 									_hg.changeNodePart(hn,i,unassigned_part);
 									HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 									_hg.changeNodePart(hn,unassigned_part,i);
 									return metrics::hyperedgeCut(_hg) == (cut_before-gain);
 								}(), "Gain calculation failed!");
 
-						bq[i].deleteMax();
+						bq[i]->deleteMax();
 						deleteAssignedNodeInBucketPQ(bq,hn);
 
 						assigned_nodes_weight += _hg.nodeWeight(hn);
 
+
+						deltaGainUpdate(bq, hn, unassigned_part, i);
 						for (HyperedgeID he : _hg.incidentEdges(hn)) {
 							for (HypernodeID hnode : _hg.pins(he)) {
 								if (_hg.partID(hnode) == unassigned_part) {
-									processNodeForBucketPQ(bq, hnode, i);
+									processNodeForBucketPQ(*bq[i], hnode, i);
 								}
 							}
 						}
@@ -135,107 +147,154 @@ private:
 			}
 		}
 		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::rollbackToBestBisectionCut();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
 
 	void bisectionPartitionImpl() final {
-		BucketQueue<HypernodeID, Gain> bq(2 * _hg.numNodes());
+		HyperedgeWeight init_pq = 2 * _hg.numNodes();
+		PrioQueue* bq = new PrioQueue(init_pq);
 		std::vector<HypernodeID> startNode;
 		StartNodeSelection::calculateStartNodes(startNode, _hg,
 				static_cast<PartitionID>(2));
 		for (HypernodeID hn : _hg.nodes()) {
 			_hg.setNodePart(hn, 1);
 		}
-		processNodeForBucketPQ(bq, startNode[0], 0);
+		processNodeForBucketPQ(*bq, startNode[0], 0);
 		HypernodeID hn = invalid_node;
 		do {
 
 			if (hn != invalid_node) {
 
-				ASSERT(
-						[&]() {
-							Gain gain = bq.getMaxKey();
-							_hg.changeNodePart(hn,0,1);
-							HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-							_hg.changeNodePart(hn,1,0);
-							return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-						}(), "Gain calculation failed!");
+				ASSERT([&]() {
+					Gain gain = bq->maxKey();
+					_hg.changeNodePart(hn,0,1);
+					HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+					_hg.changeNodePart(hn,1,0);
+					return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+				}(), "Gain calculation failed!");
 
-				bq.deleteMax();
+				bq->deleteMax();
 
 				for (HyperedgeID he : _hg.incidentEdges(hn)) {
 					for (HypernodeID hnode : _hg.pins(he)) {
 						if (_hg.partID(hnode) == 1 && hnode != hn) {
-							processNodeForBucketPQ(bq, hnode, 0);
+							processNodeForBucketPQ(*bq, hnode, 0, true);
 						}
 					}
 				}
 			}
 
-			if (!bq.empty()) {
-				hn = bq.getMax();
-				while (_hg.partID(hn) != 1 && !bq.empty()) {
-					hn = bq.getMax();
-					bq.deleteMax();
+			if (!bq->empty()) {
+				hn = bq->max();
+				while (_hg.partID(hn) != 1 && !bq->empty()) {
+					hn = bq->max();
+					bq->deleteMax();
 				}
 			}
 
-			if (bq.empty() && _hg.partID(hn) != 1) {
+			if (bq->empty() && _hg.partID(hn) != 1) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);
+				processNodeForBucketPQ(*bq, hn, 0);
 			}
 
-		} while (assignHypernodeToPartition(hn, 0, 1, true));
+			ASSERT(_hg.partID(hn) == 1,
+					"Hypernode " << hn << " should be from part 1!");
+
+		} while (assignHypernodeToPartition(hn, 0));
 
 		InitialPartitionerBase::rollbackToBestBisectionCut();
 		InitialPartitionerBase::performFMRefinement();
 
 	}
 
-	void processNodeForBucketPQ(BucketQueue<HypernodeID, Gain>& bq,
-			const HypernodeID hn, const PartitionID target_part) {
-		if (_hg.partID(hn) != target_part) {
-			Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
-			if (bq.contains(hn)) {
-				bq.updateKey(hn, gain);
-			} else {
-				bq.push(hn, gain);
+	void deltaGainUpdate(std::vector<PrioQueue*>& bq, HypernodeID hn,
+			PartitionID from, PartitionID to) {
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+
+			HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
+					from) + 1;
+			HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he,
+					to);
+			PartitionID connectivity = _hg.connectivity(he);
+
+			for (HypernodeID node : _hg.pins(he)) {
+				if (node != hn) {
+
+					if (connectivity == 2 && pin_count_in_target_part_after == 1
+							&& pin_count_in_source_part_before > 1) {
+						for (PartitionID i = 0;
+								i < _config.initial_partitioning.k; i++) {
+							if (i != from) {
+								deltaNodeUpdate(*bq[i], node,
+										_hg.edgeWeight(he));
+							}
+						}
+					}
+
+					if (connectivity == 1
+							&& pin_count_in_source_part_before == 1) {
+						for (PartitionID i = 0;
+								i < _config.initial_partitioning.k; i++) {
+							if (i != to) {
+								deltaNodeUpdate(*bq[i], node,
+										-_hg.edgeWeight(he));
+							}
+						}
+					}
+
+					if (pin_count_in_target_part_after
+							== _hg.edgeSize(he) - 1) {
+						if (_hg.partID(node) != to) {
+							deltaNodeUpdate(*bq[to], node, _hg.edgeWeight(he));
+						}
+					}
+
+					if (pin_count_in_source_part_before
+							== _hg.edgeSize(he) - 1) {
+						if (_hg.partID(node) != from) {
+							deltaNodeUpdate(*bq[from], node,
+									-_hg.edgeWeight(he));
+						}
+					}
+
+				}
 			}
 		}
 	}
 
-	void processNodeForBucketPQ(std::vector<BucketQueue<HypernodeID, Gain>>& bq,
-			const HypernodeID hn, const PartitionID target_part) {
-		for (int i = 0; i < bq.size(); i++) {
-			if (_hg.partID(hn) != target_part) {
-				if (bq[i].contains(hn)) {
-					Gain gain = GainComputation::calculateGain(_hg, hn, i);
-					bq[i].updateKey(hn, gain);
-				} else if (i == target_part) {
+	void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn, Gain delta_gain) {
+		if (bq.contains(hn)) {
+			Gain old_gain = bq.key(hn);
+			bq.updateKey(hn, old_gain + delta_gain);
+		}
+	}
+
+	void processNodeForBucketPQ(PrioQueue& bq, const HypernodeID hn,
+			const PartitionID target_part, bool updateGain = false) {
+		if (_hg.partID(hn) != target_part) {
+			if (!bq.contains(hn)) {
+				Gain gain = GainComputation::calculateGain(_hg, hn,
+						target_part);
+				bq.insert(hn, gain);
+			}
+			if(updateGain) {
+				if (bq.contains(hn)) {
 					Gain gain = GainComputation::calculateGain(_hg, hn,
 							target_part);
-					bq[target_part].push(hn, gain);
+					bq.updateKey(hn, gain);
 				}
 			}
 		}
 	}
 
-	void deleteAssignedNodeInBucketPQ(std::vector<BucketQueue<HypernodeID, Gain>>& bq,
-			const HypernodeID hn) {
+	void deleteAssignedNodeInBucketPQ(
+			std::vector<PrioQueue*>& bq, HypernodeID hn) {
 		for (int i = 0; i < bq.size(); i++) {
-			if(bq[i].contains(hn)) {
-				bq[i].deleteNode(hn);
+			if (bq[i]->contains(hn)) {
+				bq[i]->remove(hn);
 			}
-		}
-	}
-
-	void updateAssignedNodeInBucketPQ(std::vector<BucketQueue<HypernodeID, Gain>>& bq,
-			const HypernodeID hn) {
-		for (int i = 0; i < bq.size(); i++) {
-				if (bq[i].contains(hn)) {
-					Gain gain = GainComputation::calculateGain(_hg, hn, i);
-					bq[i].updateKey(hn, gain);
-				}
 		}
 	}
 

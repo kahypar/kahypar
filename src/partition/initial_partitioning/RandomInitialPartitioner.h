@@ -49,7 +49,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 			for (HypernodeID hn : _hg.nodes())
 				_hg.setNodePart(hn, 1);
 			HypernodeID hn = InitialPartitionerBase::getUnassignedNode(1);
-			while(assignHypernodeToPartition(hn,0,1,true)) {
+			while(assignHypernodeToPartition(hn,0)) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);
 			}
 			InitialPartitionerBase::rollbackToBestBisectionCut();

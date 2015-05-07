@@ -12,6 +12,8 @@
 #include "lib/io/PartitioningOutput.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/initial_partitioning/InitialStatManager.h"
+#include "partition/initial_partitioning/InitialPartitioningStats.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/TestInitialPartitioner.h"
@@ -19,7 +21,7 @@
 #include "partition/initial_partitioning/MultilevelInitialPartitioner.h"
 #include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
 #include "partition/initial_partitioning/SimulatedAnnealingPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
@@ -38,12 +40,13 @@ using defs::HypernodeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeID;
 using partition::Configuration;
+using partition::InitialStatManager;
+using partition::InitialPartitioningStats;
 using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
 using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
-using partition::GreedyHypergraphGrowingInitialPartitioner;
-using partition::GreedyHypergraphGrowingInitialPartitioner;
+using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
@@ -87,7 +90,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		}
 		if (vm.count("epsilon")) {
 			config.initial_partitioning.epsilon = vm["epsilon"].as<double>()
-					/*- vm["epsilon"].as<double>() / 4*/;
+			/*- vm["epsilon"].as<double>() / 4*/;
 			config.partition.epsilon = vm["epsilon"].as<double>();
 		}
 		if (vm.count("mode")) {
@@ -106,7 +109,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 		}
 		if (vm.count("refinement")) {
-			config.initial_partitioning.refinement = vm["refinement"].as<bool>();
+			config.initial_partitioning.refinement =
+					vm["refinement"].as<bool>();
 		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
@@ -145,7 +149,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy-global",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -157,11 +161,11 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy-maxpin",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy-maxnet",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
+				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -177,7 +181,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -185,49 +189,24 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("multilevel",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("sa",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils-greedy"
 			"",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 }
 
-void printStats(Hypergraph& hypergraph, Configuration& config) {
-	LOG("**********************************");
-	LOG("******** HypergraphInfo **********");
-	LOG("**********************************");
-	std::cout << "Nodes: " << hypergraph.numNodes() << ", Edges: "
-			<< hypergraph.numEdges() << std::endl;
-	std::cout << "Balance constraints: "
-			<< config.initial_partitioning.lower_allowed_partition_weight[0]
-			<< " until "
-			<< config.initial_partitioning.upper_allowed_partition_weight[0]
-			<< std::endl;
-	LOG("**********************************");
-	LOG("*** Initial Partitioning Stats ***");
-	LOG("**********************************");
-	std::cout << "Hyperedge Cut  (minimize) = "
-			<< metrics::hyperedgeCut(hypergraph) << std::endl;
-	std::cout << "Imbalance = "
-			<< metrics::imbalance(hypergraph) << std::endl;
-	LOG("**********************************");
-	for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-		std::cout << "| part" << i << " | = " << hypergraph.partWeight(i)
-				<< std::endl;
-	}
-	LOG("**********************************");
 
-}
 
 int main(int argc, char* argv[]) {
 	//Reading command line input
@@ -243,10 +222,9 @@ int main(int argc, char* argv[]) {
 			po::value<int>(),
 			"Iterations of the iterative local search partitioner")("rollback",
 			po::value<bool>(),
-			"Rollback to best cut, if you bipartition a hypergraph")
-			("refinement",
-						po::value<bool>(),
-						"Enables/Disable refinement after initial partitioning calculation");
+			"Rollback to best cut, if you bipartition a hypergraph")(
+			"refinement", po::value<bool>(),
+			"Enables/Disable refinement after initial partitioning calculation");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -277,8 +255,6 @@ int main(int argc, char* argv[]) {
 	Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
 			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
 			&hypernode_weights);
-
-
 
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {
@@ -314,14 +290,17 @@ int main(int argc, char* argv[]) {
 	(*partitioner).partition(config.initial_partitioning.k);
 	end = std::chrono::high_resolution_clock::now();
 
-
 	std::chrono::duration<double> elapsed_seconds = end - start;
+	InitialStatManager::getInstance().addStat("Time Measurements",
+			"Initial Partitioning Time",
+			static_cast<double>(elapsed_seconds.count()), "\033[32;1m");
 
-	LOG("**********************************");
-	std::cout << "Initial Partitioner Time: " << elapsed_seconds.count() << " s" << std::endl;
-	LOG("**********************************");
-
-	printStats(hypergraph, config);
+	InitialPartitioningStats* stats = new InitialPartitioningStats(hypergraph,config);
+	stats->createConfiguration();
+	stats->createMetrics();
+	stats->createHypergraphInformation();
+	stats->createPartitioningResults();
+	InitialStatManager::getInstance().printStats();
 
 	if (vm.count("output"))
 		io::writePartitionFile(hypergraph,

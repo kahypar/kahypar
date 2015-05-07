@@ -16,6 +16,7 @@
 
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
+#include "partition/initial_partitioning/InitialStatManager.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
@@ -32,7 +33,9 @@ using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
+using defs::HighResClockTimepoint;
 
+using partition::InitialStatManager;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
@@ -41,6 +44,13 @@ using partition::KWayFMRefiner;
 
 namespace partition {
 
+struct node_assignment {
+	HypernodeID hn;
+	PartitionID from;
+	PartitionID to;
+};
+
+
 class InitialPartitionerBase {
 
 public:
@@ -48,11 +58,9 @@ public:
 	InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept:
 	_hg(hypergraph),
 	_config(config),
-	cut_edges_during_bisection(),
 	bisection_assignment_history(),
 	refiner(_hg, _config) {
 
-		cut_edges_during_bisection.assign(_hg.numEdges(),false);
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -91,13 +99,19 @@ public:
 			for(HypernodeID hn : _hg.nodes()) {
 				refinement_nodes.push_back(hn);
 			}
-			HyperedgeWeight cut = metrics::hyperedgeCut(_hg);
+			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+			HyperedgeWeight cut = cut_before;
 			double imbalance = metrics::imbalance(_hg);
 
 			//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
 			if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
 				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
+				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+				std::chrono::duration<double> elapsed_seconds = end - start;
+				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
+				InitialStatManager::getInstance().updateStat("Time Measurements", "Refinement time",InitialStatManager::getInstance().getStat("Time Measurements", "Refinement time") + static_cast<double>(elapsed_seconds.count()));
 			}
 		}
 	}
@@ -105,48 +119,46 @@ public:
 	void rollbackToBestBisectionCut() {
 		if (_config.initial_partitioning.rollback) {
 			if(!bisection_assignment_history.empty()) {
-				HypernodeWeight currentSize = std::numeric_limits<HypernodeWeight>::max();
-				HypernodeID currentHypernode = 0;
-				while (currentSize > best_partition_size
+				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+				HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
+				PartitionID from, to;
+				while (current_node != best_cut_node
 						&& !bisection_assignment_history.empty()) {
-					if (currentSize != std::numeric_limits<HypernodeWeight>::max()) {
-						ASSERT(_hg.partID(currentHypernode) == 0,
-								"The hypernode " << currentHypernode << " isn't assigned to partition 0.");
-						_hg.changeNodePart(currentHypernode, 0, 1);
+					if(current_node != std::numeric_limits<HypernodeID>::max()) {
+						_hg.changeNodePart(current_node,to,from);
 					}
-					std::pair<int, HypernodeID> cutPair =
-					bisection_assignment_history.top();
+					node_assignment assignment = bisection_assignment_history.top();
 					bisection_assignment_history.pop();
-					currentSize = cutPair.first;
-					currentHypernode = cutPair.second;
+					current_node = assignment.hn;
+					from = assignment.from;
+					to = assignment.to;
 				}
 				ASSERT(metrics::hyperedgeCut(_hg) == best_cut,
 						"Calculation of the best seen cut failed. Should be " << best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
+				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during rollback",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during rollback") + (cut_before-best_cut));
 			}
 		}
 	}
 
-	bool assignHypernodeToPartition(HypernodeID hn, PartitionID p, PartitionID other_part = -1,
-			bool preparingForRollback = false) {
-		HypernodeWeight assign_partition_weight = _hg.partWeight(p)
+	bool assignHypernodeToPartition(HypernodeID hn, PartitionID target_part) {
+		HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
 		+ _hg.nodeWeight(hn);
+		PartitionID source_part = _hg.partID(hn);
 		if (assign_partition_weight
-				<= _config.initial_partitioning.upper_allowed_partition_weight[p] && hn < _hg.numNodes()) {
+				<= _config.initial_partitioning.upper_allowed_partition_weight[target_part] && hn < _hg.numNodes()) {
 			if (_hg.partID(hn) == -1) {
-				_hg.setNodePart(hn, p);
+				_hg.setNodePart(hn, target_part);
 			} else {
-				if (_hg.partID(hn) != p) {
-					_hg.changeNodePart(hn, _hg.partID(hn), p);
+				if (_hg.partID(hn) != target_part) {
+					_hg.changeNodePart(hn, _hg.partID(hn), target_part);
 				}
 				else {
 					return false;
 				}
 			}
-			if (p == 0 && preparingForRollback && _config.initial_partitioning.rollback) {
-				calculateBisectionCutAfterAssignment(hn, other_part);
-			}
-			ASSERT(_hg.partID(hn) == p,
-					"Assigned partition of Hypernode "<< hn<< " should be " << p << ", but currently is " << _hg.partID(hn));
+			calculateBisectionCutAfterAssignment(hn, source_part, target_part);
+			ASSERT(_hg.partID(hn) == target_part,
+					"Assigned partition of Hypernode "<< hn<< " should be " << target_part << ", but currently is " << _hg.partID(hn));
 			return true;
 		} else {
 			return false;
@@ -256,7 +268,6 @@ public:
 
 	}
 
-
 protected:
 	Hypergraph& _hg;
 	Configuration& _config;
@@ -265,36 +276,52 @@ protected:
 
 private:
 
-	void calculateBisectionCutAfterAssignment(HypernodeID hn, PartitionID other_part) {
-		part_weight += _hg.nodeWeight(hn);
-		ASSERT(part_weight == _hg.partWeight(0), "Calculation of weight for partition 0 failed. Should be " << _hg.partWeight(0) << " but is " << part_weight);
+	void calculateBisectionCutAfterAssignment(HypernodeID hn, PartitionID from, PartitionID to) {
 		for(HyperedgeID he : _hg.incidentEdges(hn)) {
-			if(_hg.connectivity(he) > 1) {
-				if(!cut_edges_during_bisection[he]) {
-					cut_edges_during_bisection[he] = true;
-					current_cut += _hg.edgeWeight(he);
-				}
-			} else if(cut_edges_during_bisection[he]) {
-				cut_edges_during_bisection[he] = false;
+			HyperedgeID pins_in_source_part_before = 0;
+			if(from != -1) {
+				pins_in_source_part_before = _hg.pinCountInPart(he,from) + 1;
+			}
+			HyperedgeID pins_in_target_part_after = _hg.pinCountInPart(he,to);
+			HyperedgeID connectivity_before = _hg.connectivity(he);
+			if(pins_in_source_part_before == 1) {
+				connectivity_before++;
+			}
+			if(pins_in_target_part_after == 1) {
+				connectivity_before--;
+			}
+			if(_hg.connectivity(he) == 1 && connectivity_before == 2) {
 				current_cut -= _hg.edgeWeight(he);
 			}
-		}
-
-		if(_config.initial_partitioning.lower_allowed_partition_weight[0] <= part_weight && _config.initial_partitioning.upper_allowed_partition_weight[0] >= part_weight ) {
-			bisection_assignment_history.push(std::make_pair(part_weight,hn));
-			if(current_cut <= best_cut) {
-				best_cut = current_cut;
-				best_partition_size = part_weight;
+			if(_hg.connectivity(he) == 2 && connectivity_before == 1) {
+				current_cut += _hg.edgeWeight(he);
 			}
 		}
+		bool isFeasibleSolution = true;
+		for(PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
+			if(_hg.partWeight(k) > _config.initial_partitioning.upper_allowed_partition_weight[k]) {
+				isFeasibleSolution = false;
+				break;
+			}
+		}
+		if(isFeasibleSolution) {
+			node_assignment assign;
+			assign.hn = hn;
+			assign.from = from;
+			assign.to = to;
+			if(current_cut < best_cut) {
+				best_cut = current_cut;
+				best_cut_node = hn;
+			}
+			bisection_assignment_history.push(assign);
+		}
+
 	}
 
+	HypernodeID best_cut_node = std::numeric_limits<HypernodeID>::max();
 	HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 	HyperedgeWeight current_cut = 0;
-	HypernodeWeight part_weight = 0;
-	HypernodeWeight best_partition_size = std::numeric_limits<HypernodeWeight>::max();
-	std::vector<bool> cut_edges_during_bisection;
-	std::stack<std::pair<HypernodeWeight, HyperedgeWeight>> bisection_assignment_history;
+	std::stack<node_assignment> bisection_assignment_history;
 
 	KWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
 	CutDecreasedOrInfeasibleImbalanceDecreased> refiner;

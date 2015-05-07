@@ -164,7 +164,7 @@ private:
 			ASSERT(_hg.partID(hn) == unassigned_part, "Hypernode " << hn << " isn't a node from an unassigned part.");
 
 			pushIncidentHyperedgesIntoQueue(bfs, hn, in_queue, unassigned_part);
-		} while (assignHypernodeToPartition(hn, 0, 1, true));
+		} while (assignHypernodeToPartition(hn, 0));
 
 		InitialPartitionerBase::rollbackToBestBisectionCut();
 		InitialPartitionerBase::performFMRefinement();

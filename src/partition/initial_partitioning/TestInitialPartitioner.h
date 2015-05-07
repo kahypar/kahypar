@@ -60,7 +60,7 @@ private:
 			}
 			assigned[he] = true;
 			for(HypernodeID hn : _hg.pins(he)) {
-				if(_hg.partID(hn) != 0 && !assignHypernodeToPartition(hn,0,1,true)) {
+				if(_hg.partID(hn) != 0 && !assignHypernodeToPartition(hn,0)) {
 					bound_reach = true;
 					break;
 				}

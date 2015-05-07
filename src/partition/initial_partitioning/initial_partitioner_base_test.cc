@@ -76,7 +76,7 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 	ASSERT_FALSE(partitioner->assignHypernodeToPartition(3,1));
 }
 
-TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
+/*TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
 	//Assign hypernodes
 	hypergraph.setNodePart(0,1);
 	hypergraph.setNodePart(1,1);
@@ -85,10 +85,10 @@ TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
 	hypergraph.setNodePart(4,1);
 	hypergraph.setNodePart(5,1);
 	hypergraph.setNodePart(6,1);
-	ASSERT_TRUE(partitioner->assignHypernodeToPartition(0,0,1,true));
-	ASSERT_TRUE(partitioner->assignHypernodeToPartition(1,0,1,true));
-	ASSERT_TRUE(partitioner->assignHypernodeToPartition(2,0,1,true));
-	ASSERT_TRUE(partitioner->assignHypernodeToPartition(3,0,1,true));
+	ASSERT_TRUE(partitioner->assignHypernodeToPartition(0,0));
+	ASSERT_TRUE(partitioner->assignHypernodeToPartition(1,0));
+	ASSERT_TRUE(partitioner->assignHypernodeToPartition(2,0));
+	ASSERT_TRUE(partitioner->assignHypernodeToPartition(3,0));
 
 	//Perform rollback to best bisection cut
 	HyperedgeWeight cut_before = metrics::hyperedgeCut(hypergraph);
@@ -105,7 +105,7 @@ TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
 			ASSERT_EQ(hypergraph.partID(hn), 1);
 	}
 
-}
+}*/
 
 TEST_F(AInitialPartionerBaseTest, AExtractingHypergraphPartitionTest) {
 
