@@ -66,7 +66,7 @@ class BucketQueue {
     }
 
     _buckets[address].push_back(id);
-    _queue_index[id].first = _buckets[address].size() - 1;  //store position
+    _queue_index[id].first = _buckets[address].size() - 1;  // store position
     _queue_index[id].second = key;
 
     _elements++;
@@ -131,12 +131,12 @@ class BucketQueue {
     const key_slot address = old_key + _key_span;
 
     if (_buckets[address].size() > 1) {
-      //swap current element with last element and pop_back
-      _queue_index[_buckets[address].back()].first = in_bucket_idx; // update helper structure
+      // swap current element with last element and pop_back
+      _queue_index[_buckets[address].back()].first = in_bucket_idx;  // update helper structure
       std::swap(_buckets[address][in_bucket_idx], _buckets[address].back());
       _buckets[address].pop_back();
     } else {
-      //size is 1
+      // size is 1
       _buckets[address].pop_back();
       if (address == _max_idx) {
         searchNewMax();
@@ -161,7 +161,7 @@ class BucketQueue {
 
   id_slot _elements;
   key_slot _key_span;
-  key_slot _max_idx; //points to the non-empty bucket with the largest key
+  key_slot _max_idx;  // points to the non-empty bucket with the largest key
 
   std::unordered_map<id_slot, std::pair<size_t, key_slot> > _queue_index;
   std::unique_ptr<std::vector<id_slot>[]> _buckets;
@@ -172,5 +172,5 @@ void swap(BucketQueue<id_slot, key_slot>& a,
           BucketQueue<id_slot, key_slot>& b) noexcept {
   a.swap(b);
 }
-} // namespace datastructure
+}  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_BUCKETQUEUE_H_

@@ -39,8 +39,8 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
  public:
   HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
   HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator = (const HeuristicHeavyEdgeCoarsener&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator = (HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
 
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
@@ -190,6 +190,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   TargetToSourcesMap _sources;
   std::vector<bool> _just_updated;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_

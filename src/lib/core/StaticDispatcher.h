@@ -48,12 +48,12 @@ class StaticDispatcher {
   }
 };
 
-template
-<class Executor,
- class BaseLhs,
- class BaseRhs,
- class TypesRhs,
- typename ResultType>
+template <
+  class Executor,
+  class BaseLhs,
+  class BaseRhs,
+  class TypesRhs,
+  typename ResultType>
 class StaticDispatcher<Executor, BaseLhs, NullType, BaseRhs, TypesRhs, ResultType>{
  public:
   static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
@@ -62,12 +62,12 @@ class StaticDispatcher<Executor, BaseLhs, NullType, BaseRhs, TypesRhs, ResultTyp
   }
 };
 
-template
-<class Executor,
- class BaseLhs,
- class TypesLhs,
- class BaseRhs,
- typename ResultType>
+template <
+  class Executor,
+  class BaseLhs,
+  class TypesLhs,
+  class BaseRhs,
+  typename ResultType>
 class StaticDispatcher<Executor, BaseLhs, TypesLhs, BaseRhs, NullType, ResultType>{
  public:
   static ResultType dispatchRhs(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
@@ -75,6 +75,6 @@ class StaticDispatcher<Executor, BaseLhs, TypesLhs, BaseRhs, NullType, ResultTyp
     return exec.onError(lhs, rhs, parameters);
   }
 };
-} // namespace core
+}  // namespace core
 
 #endif  // SRC_LIB_CORE_STATICDISPATCHER_H_

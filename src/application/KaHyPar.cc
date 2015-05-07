@@ -400,8 +400,7 @@ int main(int argc, char* argv[]) {
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
   std::unique_ptr<ICoarsener> coarsener(
-    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters)
-    );
+    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters));
 
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
   std::unique_ptr<NullPolicy> null_policy(new NullPolicy());

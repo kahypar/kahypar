@@ -45,7 +45,7 @@ using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 class AnUnPartitionedHypergraph : public Test {
  public:
   AnUnPartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
   Hypergraph hypergraph;
@@ -59,7 +59,7 @@ class TheDemoHypergraph : public AnUnPartitionedHypergraph {
 class APartitionedHypergraph : public Test {
  public:
   APartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(config),
@@ -143,4 +143,4 @@ TEST_F(TheDemoHypergraph, HasAvgHyperedgeDegree3) {
 TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
   ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
-} // namespace metrics
+}  // namespace metrics

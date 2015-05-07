@@ -22,8 +22,8 @@ class FMRefinerBase {
  public:
   FMRefinerBase(const FMRefinerBase&) = delete;
   FMRefinerBase(FMRefinerBase&&) = delete;
-  FMRefinerBase& operator = (const FMRefinerBase&) = delete;
-  FMRefinerBase& operator = (FMRefinerBase&&) = delete;
+  FMRefinerBase& operator= (const FMRefinerBase&) = delete;
+  FMRefinerBase& operator= (FMRefinerBase&&) = delete;
 
   using Gain = HyperedgeWeight;
 
@@ -105,5 +105,5 @@ class FMRefinerBase {
   Hypergraph& _hg;
   const Configuration& _config;
 };
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_

@@ -113,6 +113,6 @@ struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity : public CloggingPolicy {
  protected:
   ~DoNotRemoveAnyCloggingEntriesAndResetEligiblity() { }
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_

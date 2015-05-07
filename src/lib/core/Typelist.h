@@ -27,6 +27,6 @@ struct Typelist<T, Args ...>{
   using Head = T;
   using Tail = Typelist<Args ...>;
 };
-} // namespace core
+}  // namespace core
 
 #endif  // SRC_LIB_CORE_TYPELIST_H_

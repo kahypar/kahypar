@@ -63,5 +63,5 @@ class KFMFactoryExecutor {
     return nullptr;
   }
 };
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_FMFACTORYEXECUTOR_H_

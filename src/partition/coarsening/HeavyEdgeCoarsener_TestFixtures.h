@@ -49,7 +49,7 @@ template <class CoarsenerType>
 class ACoarsenerBase : public Test {
  public:
   explicit ACoarsenerBase(Hypergraph* graph =
-                            new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                            new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                                            HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
@@ -73,7 +73,8 @@ void removesHyperedgesOfSizeOneDuringCoarsening(Coarsener& coarsener, Hypergraph
 }
 
 template <class Coarsener, class Hypergraph>
-void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener, Hypergraph& hypergraph) {
+void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener,
+                                                          Hypergraph& hypergraph) {
   coarsener.coarsen(6);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
 
@@ -81,7 +82,8 @@ void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener, 
 }
 
 template <class Coarsener, class HypergraphT, class Refiner>
-void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph, Refiner& refiner) {
+void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph,
+                                                 Refiner& refiner) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
@@ -112,7 +114,8 @@ void removesParallelHyperedgesDuringCoarsening(Coarsener& coarsener, Hypergraph&
 }
 
 template <class Coarsener, class Hypergraph>
-void updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(Coarsener& coarsener, Hypergraph& hypergraph) {
+void updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(Coarsener& coarsener,
+                                                                          Hypergraph& hypergraph) {
   coarsener.coarsen(2);
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph->edgeIsEnabled(1)) {
@@ -124,7 +127,8 @@ void updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(Coarse
 }
 
 template <class Coarsener, class Hypergraph>
-void decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(Coarsener& coarsener, Hypergraph& hypergraph) {
+void decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(Coarsener& coarsener,
+                                                           Hypergraph& hypergraph) {
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->numEdges(), Eq(1));
 }
@@ -137,7 +141,8 @@ void decreasesNumberOfPinsOnParallelHyperedgeRemoval(Coarsener& coarsener, Hyper
 
 
 template <class Coarsener, class HypergraphT, class Refiner>
-void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph, Refiner& refiner) {
+void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph,
+                                                  Refiner& refiner) {
   coarsener.coarsen(2);
 
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
@@ -162,7 +167,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   // two successive parallel hyperedges.
   HyperedgeWeightVector edge_weights { 1, 1, 1, 1 };
   HypernodeWeightVector node_weights { 50, 1, 1 };
-  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6,  /*sentinel*/ 8 },
                         HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, 2, &edge_weights,
                         &node_weights);
 
@@ -196,7 +201,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   // three single-node hyperedges.
   HyperedgeWeightVector edge_weights { 5, 5, 5, 1 };
   HypernodeWeightVector node_weights { 1, 1, 5 };
-  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6, /*sentinel*/ 8 },
+  Hypergraph hypergraph(3, 4, HyperedgeIndexVector { 0, 2, 4, 6,  /*sentinel*/ 8 },
                         HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, 2, &edge_weights,
                         &node_weights);
 
@@ -232,6 +237,6 @@ void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hyper
   }
   ASSERT_THAT(hypergraph->numNodes(), Eq(3));
 }
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_

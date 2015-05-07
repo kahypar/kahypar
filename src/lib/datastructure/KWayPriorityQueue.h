@@ -38,8 +38,8 @@ class KWayPriorityQueue {
  public:
   KWayPriorityQueue(const KWayPriorityQueue&) = delete;
   KWayPriorityQueue(KWayPriorityQueue&&) = delete;
-  KWayPriorityQueue& operator = (const KWayPriorityQueue&) = delete;
-  KWayPriorityQueue& operator = (KWayPriorityQueue&&) = delete;
+  KWayPriorityQueue& operator= (const KWayPriorityQueue&) = delete;
+  KWayPriorityQueue& operator= (KWayPriorityQueue&&) = delete;
 
   explicit KWayPriorityQueue(const PartitionID k) noexcept :
     _queues(),
@@ -115,7 +115,7 @@ class KWayPriorityQueue {
     if (isUnused(part)) {
       ASSERT(_part[_num_nonempty_pqs] == kInvalidPart, V(_part[_num_nonempty_pqs]));
       _part[_num_nonempty_pqs] = part;
-      _queues[_num_nonempty_pqs].clear(); // lazy clear
+      _queues[_num_nonempty_pqs].clear();  // lazy clear
       _index[part] = _num_nonempty_pqs++;
     }
     _queues[_index[part]].push(id, key);
@@ -139,7 +139,7 @@ class KWayPriorityQueue {
     if (_queues[max_index].empty()) {
       ASSERT(isEnabled(max_part), V(max_part));
       --_num_enabled_pqs;  // now points to the last enabled pq
-      --_num_nonempty_pqs; // now points to the last non-empty disbabled pq
+      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
       swap(_index[max_part], _num_enabled_pqs);
       swap(_index[max_part], _num_nonempty_pqs);
       markUnused(max_part);
@@ -182,7 +182,7 @@ class KWayPriorityQueue {
     _queues[_index[part]].deleteNode(id);
     if (_queues[_index[part]].empty()) {
       if (isEnabled(part)) {
-        --_num_enabled_pqs; // now points to the last enabled pq
+        --_num_enabled_pqs;  // now points to the last enabled pq
         swap(_index[part], _num_enabled_pqs);
       }
       --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
@@ -203,12 +203,12 @@ class KWayPriorityQueue {
   }
 
   IDType max() const noexcept {
-    //Should only be used for testing
+    // Should only be used for testing
     return _queues[maxIndex()].getMax();
   }
 
   KeyType maxKey() const noexcept {
-    //Should only be used for testing
+    // Should only be used for testing
     return _queues[maxIndex()].getMaxKey();
   }
 
@@ -254,7 +254,7 @@ class KWayPriorityQueue {
 
   std::vector<Queue> _queues;
   std::vector<size_t> _index;     // part to index mapping
-  std::vector<PartitionID> _part; // index to part mapping
+  std::vector<PartitionID> _part;  // index to part mapping
   size_t _num_entries;
   size_t _num_nonempty_pqs;
   size_t _num_enabled_pqs;
@@ -270,6 +270,6 @@ template <typename IDType,
           typename MetaKey,
           class Storage>
 constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage>::kInvalidPart;
-} // namespace datastructure
+}  // namespace datastructure
 
 #endif  // SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_

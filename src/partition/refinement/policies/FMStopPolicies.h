@@ -130,6 +130,6 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
 };
 
 double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_

@@ -32,7 +32,7 @@ class IteratorPair {
     std::cout << "IteratorPairMoveConstructor" << std::endl;
   }
 
-  IteratorPair& operator = (IteratorPair&& other) = default;
+  IteratorPair& operator= (IteratorPair&& other) = default;
 
   const Iterator & begin() const noexcept { return _f; }
   const Iterator & end() const noexcept { return _l; }
@@ -47,6 +47,6 @@ IteratorPair<Iterator> makeIteratorPair(Iterator&& f, Iterator&& l) noexcept {
   std::cout << "calling makeIteratorPair" << std::endl;
   return std::move(IteratorPair<Iterator>(std::forward<Iterator>(f), std::forward<Iterator>(l)));
 }
-} // namespace core
+}  // namespace core
 
 #endif  // SRC_LIB_CORE_ITERATORPAIR_H_

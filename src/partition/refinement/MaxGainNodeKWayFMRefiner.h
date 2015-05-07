@@ -66,8 +66,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
  public:
   MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
   MaxGainNodeKWayFMRefiner(MaxGainNodeKWayFMRefiner&&) = delete;
-  MaxGainNodeKWayFMRefiner& operator = (const MaxGainNodeKWayFMRefiner&) = delete;
-  MaxGainNodeKWayFMRefiner& operator = (MaxGainNodeKWayFMRefiner&&) = delete;
+  MaxGainNodeKWayFMRefiner& operator= (const MaxGainNodeKWayFMRefiner&) = delete;
+  MaxGainNodeKWayFMRefiner& operator= (MaxGainNodeKWayFMRefiner&&) = delete;
 
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -319,7 +319,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                 // order in which HEs are visited and therefore might change the max_target_part.
                 // This might happen in case a part becomes empty, because in this case it is
                 // deleted and then reinserted into the connectivity set of a HE during simulation.
-                if (_pq.key(pin, target_part) != pair.first /*|| target_part != pair.second*/) {
+                if (_pq.key(pin, target_part) != pair.first  /*|| target_part != pair.second*/) {
                   LOG("Incorrect maxGain or target_part for HN " << pin);
                   LOG("expected key=" << pair.first);
                   LOG("actual key=" << _pq.key(pin, target_part));
@@ -578,7 +578,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             (source_part_imbalanced &&
              (_hg.partWeight(tmp_max_part) < _hg.partWeight(max_gain_part)))) {
           max_gain_part = tmp_max_part;
-          max_connectivity_decrease = _tmp_gains[tmp_max_part].connectivity_decrease; //target_part_connectivity_decrease;
+          max_connectivity_decrease = _tmp_gains[tmp_max_part].connectivity_decrease;  // target_part_connectivity_decrease;
         }
       }
     } else {

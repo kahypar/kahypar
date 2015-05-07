@@ -24,8 +24,8 @@ class Factory {
  public:
   Factory(const Factory&) = delete;
   Factory(Factory&&) = delete;
-  Factory& operator = (const Factory&) = delete;
-  Factory& operator = (Factory&&) = delete;
+  Factory& operator= (const Factory&) = delete;
+  Factory& operator= (Factory&&) = delete;
 
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
     return _callbacks.insert({ id, creator }).second;
@@ -60,5 +60,5 @@ class Factory {
 
 template <class A, typename I, typename P, class Pms>
 std::unique_ptr<Factory<A, I, P, Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
-} // namespace core
+}  // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_

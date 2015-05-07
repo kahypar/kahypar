@@ -5,10 +5,10 @@
 #ifndef SRC_LIB_UTILS_TIMER_H_
 #define SRC_LIB_UTILS_TIMER_H_
 
-#include "lib/definitions.h"
-
 #include <chrono>
 #include <string>
+
+#include "lib/definitions.h"
 
 using defs::HighResClockTimepoint;
 
@@ -38,6 +38,6 @@ class NoTimer {
   void start() { }
   void stop() { }
 };
-} // namespace utils
+}  // namespace utils
 
 #endif  // SRC_LIB_UTILS_TIMER_H_

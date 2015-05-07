@@ -29,7 +29,7 @@ using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 class APartitioner : public Test {
  public:
   APartitioner(Hypergraph* graph =
-                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
@@ -124,7 +124,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        TriesToMinimizesCutIfNoPinOfRemainingHyperedgeIsPartitioned) {
-  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
+  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 7 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
   std::vector<HyperedgeID> removed_hyperedges { 1, 2 };
@@ -142,7 +142,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        TriesToMinimizesCutIfOnlyOnePartitionIsUsed) {
-  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 7 },
+  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 7 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
 
   hypergraph->setNodePart(0, 0);
@@ -163,7 +163,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized) {
-  hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 8 },
+  hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 8 },
                                   HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
   std::vector<HyperedgeID> removed_hyperedges { 1 };
   hypergraph->setNodePart(0, 0);
@@ -181,7 +181,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 }
 
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
-  //simulate the first vcycle by explicitly setting a partitioning
+  // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   partitioner.partition(*hypergraph, *coarsener, *refiner);
@@ -189,4 +189,4 @@ TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   metrics::hyperedgeCut(*hypergraph);
 }
-} // namespace partition
+}  // namespace partition

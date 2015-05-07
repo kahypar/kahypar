@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
-#define SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
+#ifndef SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_
+#define SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_
 
 #include <algorithm>
 #include <bitset>
@@ -45,7 +45,7 @@ template <typename HypernodeType_ = Mandatory,
           class HyperedgeData_ = Empty
           >
 class GenericHypergraph {
-  //export template parameters
+  // export template parameters
 
  public:
   using HypernodeID = HypernodeType_;
@@ -130,7 +130,7 @@ class GenericHypergraph {
       _weight(other._weight),
       _valid(other._valid) { }
 
-    InternalVertex& operator = (InternalVertex&&) = default;
+    InternalVertex& operator= (InternalVertex&&) = default;
 
     void disable() noexcept {
       ASSERT(!isDisabled(), "Vertex is already disabled");
@@ -188,28 +188,28 @@ class GenericHypergraph {
       _weight = weight;
     }
 
-    bool operator == (const InternalVertex& rhs) const noexcept {
+    bool operator== (const InternalVertex& rhs) const noexcept {
       return _begin == rhs._begin && _size == rhs._size && _weight == rhs._weight;
     }
 
-    bool operator != (const InternalVertex& rhs) const noexcept {
-      return !operator == (this, rhs);
+    bool operator!= (const InternalVertex& rhs) const noexcept {
+      return !operator== (this, rhs);
     }
 
-    bool operator < (const InternalVertex& rhs) const noexcept {
+    bool operator< (const InternalVertex& rhs) const noexcept {
       return _begin < rhs._begin;
     }
 
-    bool operator > (const InternalVertex& rhs) const noexcept {
-      return operator < (rhs, this);
+    bool operator> (const InternalVertex& rhs) const noexcept {
+      return operator< (rhs, this);
     }
 
-    bool operator <= (const InternalVertex& rhs) const noexcept {
-      return !operator > (this, rhs);
+    bool operator<= (const InternalVertex& rhs) const noexcept {
+      return !operator> (this, rhs);
     }
 
-    bool operator >= (const InternalVertex& rhs) const noexcept {
-      return !operator < (this, rhs);
+    bool operator>= (const InternalVertex& rhs) const noexcept {
+      return !operator< (this, rhs);
     }
 
  private:
@@ -226,8 +226,8 @@ class GenericHypergraph {
 
  public:
     VertexIterator(const VertexIterator& other) = delete;
-    VertexIterator& operator = (const VertexIterator& other) = delete;
-    VertexIterator& operator = (VertexIterator&& other) = default;
+    VertexIterator& operator= (const VertexIterator& other) = delete;
+    VertexIterator& operator= (VertexIterator&& other) = default;
 
     VertexIterator() noexcept :
       _id(0),
@@ -239,7 +239,7 @@ class GenericHypergraph {
       _max_id(max_id),
       _container(container) {
       if (_id != _max_id && (*_container)[_id].isDisabled()) {
-        operator ++ ();
+        operator++ ();
       }
     }
 
@@ -248,11 +248,11 @@ class GenericHypergraph {
       _max_id(std::move(other._max_id)),
       _container(std::move(other._container)) { }
 
-    IDType operator * () const noexcept {
+    IDType operator* () const noexcept {
       return _id;
     }
 
-    VertexIterator& operator ++ () noexcept {
+    VertexIterator& operator++ () noexcept {
       ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
       do {
         ++_id;
@@ -260,16 +260,16 @@ class GenericHypergraph {
       return *this;
     }
 
-    VertexIterator operator ++ (int) noexcept {
+    VertexIterator operator++ (int) noexcept {
       VertexIterator copy = *this;
-      operator ++ ();
+      operator++ ();
       return copy;
     }
 
     friend VertexIterator end<>(std::pair<VertexIterator, VertexIterator>& x);
     friend VertexIterator begin<>(std::pair<VertexIterator, VertexIterator>& x);
 
-    VertexIterator& operator -- () noexcept {
+    VertexIterator& operator-- () noexcept {
       ASSERT(_id > 0, "Hypernode iterator out of bounds");
       do {
         --_id;
@@ -277,13 +277,13 @@ class GenericHypergraph {
       return *this;
     }
 
-    VertexIterator operator -- (int) noexcept {
+    VertexIterator operator-- (int) noexcept {
       VertexIterator copy = *this;
-      operator -- ();
+      operator-- ();
       return copy;
     }
 
-    bool operator != (const VertexIterator& rhs) noexcept {
+    bool operator!= (const VertexIterator& rhs) noexcept {
       return _id != rhs._id;
     }
 
@@ -295,8 +295,8 @@ class GenericHypergraph {
 
   struct Memento {
     Memento(const Memento& other) = delete;
-    Memento& operator = (const Memento& other) = delete;
-    Memento& operator = (Memento&& other) = default;
+    Memento& operator= (const Memento& other) = delete;
+    Memento& operator= (Memento&& other) = default;
 
     Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
             HypernodeID v_) noexcept :
@@ -335,8 +335,8 @@ class GenericHypergraph {
  public:
   GenericHypergraph(const GenericHypergraph&) = delete;
   GenericHypergraph(GenericHypergraph&&) = delete;
-  GenericHypergraph& operator = (const GenericHypergraph&) = delete;
-  GenericHypergraph& operator = (GenericHypergraph&&) = delete;
+  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
+  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
 
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
                     const HyperedgeIndexVector& index_vector,
@@ -371,7 +371,7 @@ class GenericHypergraph {
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
       }
-      //_pins_in_part[i].resize(_k);
+      // _pins_in_part[i].resize(_k);
     }
 
     hypernode(0).setFirstEntry(_num_pins);
@@ -461,7 +461,7 @@ class GenericHypergraph {
     printHyperedgeInfo();
     printHypernodes();
     printHyperedges();
-    //printIncidenceArray();
+    // printIncidenceArray();
   }
 
   void printEdgeState(const HyperedgeID e) const {
@@ -1223,5 +1223,5 @@ bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType,
          expected._hyperedges == actual._hyperedges &&
          expected_incidence_array == actual_incidence_array;
 }
-} // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_GENERIC_HYPERGRAPH_H_
+}  // namespace datastructure
+#endif  // SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_

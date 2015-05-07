@@ -10,5 +10,5 @@ class Empty {
  protected:
   ~Empty() { }
 };
-} // namespace core
+}  // namespace core
 #endif  // SRC_LIB_CORE_EMPTY_H_

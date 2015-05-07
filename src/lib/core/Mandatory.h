@@ -19,7 +19,7 @@ class MandatoryTemplateArgument {
                 "You forgot to specify a mandatory template argument which cannot be deduced."
                 );
 };
-} // namespace core
+}  // namespace core
 
 using Mandatory = core::MandatoryTemplateArgument<core::unspecified_type>;
 

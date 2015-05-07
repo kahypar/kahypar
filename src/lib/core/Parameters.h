@@ -15,6 +15,6 @@ struct Parameters {
 #pragma GCC diagnostic ignored "-Weffc++"
 struct NullParameters : public Parameters { };
 #pragma GCC diagnostic pop
-} // namespace core
+}  // namespace core
 
 #endif  // SRC_LIB_CORE_PARAMETERS_H_

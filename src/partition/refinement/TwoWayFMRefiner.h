@@ -62,8 +62,8 @@ class TwoWayFMRefiner : public IRefiner,
  public:
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
-  TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
-  TwoWayFMRefiner& operator = (TwoWayFMRefiner&&) = delete;
+  TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
 
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -382,14 +382,14 @@ class TwoWayFMRefiner : public IRefiner,
                   // Before move, there were two pins (moved_node and the current pin) in from_part.
                   // After moving moved_node to to_part, the gain of the remaining pin in
                   // from_part increases by w(he).
-                  factor = 1; //after all pins are activated, one could break here
+                  factor = 1;  // after all pins are activated, one could break here
                 }
                 if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
                   // Before move, pin was the only HN in to_part. It thus had a
                   // positive gain, because moving it to from_part would have removed
                   // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
                   // because now there are pins in both parts.
-                  factor = -1; //after all pins are activated, one could break here
+                  factor = -1;  // after all pins are activated, one could break here
                 }
               }
               if (factor != 0) {

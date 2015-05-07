@@ -2,8 +2,8 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_MACROS_H_
-#define LIB_MACROS_H_
+#ifndef SRC_LIB_MACROS_H_
+#define SRC_LIB_MACROS_H_
 
 #ifndef NDEBUG
 #define USE_ASSERTIONS
@@ -81,4 +81,4 @@
 #define UNUSED_FUNCTION(x) x
 #endif
 
-#endif  // LIB_MACROS_H_
+#endif  // SRC_LIB_MACROS_H_

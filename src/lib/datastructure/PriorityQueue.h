@@ -29,8 +29,8 @@ class PriorityQueue {
  public:
   PriorityQueue(const PriorityQueue&) = delete;
   PriorityQueue(PriorityQueue&&) = delete;
-  PriorityQueue& operator = (const PriorityQueue&) = delete;
-  PriorityQueue& operator = (PriorityQueue&&) = delete;
+  PriorityQueue& operator= (const PriorityQueue&) = delete;
+  PriorityQueue& operator= (PriorityQueue&&) = delete;
 
   explicit PriorityQueue(IDType size) noexcept :
     _heap(size) { }
@@ -109,6 +109,6 @@ class PriorityQueue {
  private:
   BinaryHeap _heap;
 };
-} // namespace datastructure
+}  // namespace datastructure
 
 #endif  // SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_

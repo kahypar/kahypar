@@ -21,8 +21,8 @@ class ICoarsener {
  public:
   ICoarsener(const ICoarsener&) = delete;
   ICoarsener(ICoarsener&&) = delete;
-  ICoarsener& operator = (const ICoarsener&) = delete;
-  ICoarsener& operator = (ICoarsener&&) = delete;
+  ICoarsener& operator= (const ICoarsener&) = delete;
+  ICoarsener& operator= (ICoarsener&&) = delete;
 
   void coarsen(const HypernodeID limit) noexcept {
     coarsenImpl(limit);
@@ -51,6 +51,6 @@ class ICoarsener {
   virtual std::string policyStringImpl() const noexcept = 0;
   virtual const Stats & statsImpl() const noexcept = 0;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_ICOARSENER_H_

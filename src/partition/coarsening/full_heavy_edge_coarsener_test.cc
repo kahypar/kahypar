@@ -73,7 +73,7 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
 }
 
 TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
-  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
+  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 2 },
                         HyperedgeVector { 0, 1 });
 
   Configuration config;
@@ -113,4 +113,4 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
 }
-} // namespace partition
+}  // namespace partition

@@ -44,8 +44,8 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
  public:
   LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
   LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator = (const LazyUpdateHeavyEdgeCoarsener&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator = (LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),

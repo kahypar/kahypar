@@ -305,10 +305,10 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + " " + std::to_string(_config.partition.k)
                                    + " SD=" + std::to_string(seed)
                                    + " FI=" + std::to_string(_config.partition.epsilon)
-                                   + " PQ=Q" // quality preset
-                                   + " UM=U" // net-cut metric
-                                   + " WI=1" // write partition info
-                                   + " BO=C" // balance on cell weights
+                                   + " PQ=Q"  // quality preset
+                                   + " UM=U"  // net-cut metric
+                                   + " WI=1"  // write partition info
+                                   + " BO=C"  // balance on cell weights
                                    + (_config.partition.verbose_output ? " OD=2" : " > /dev/null");
         break;
     }
@@ -321,7 +321,9 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
     DBG(dbg_partition_initial_partitioning, "attempt " << attempt << " seed("
-        << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning));
+        << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg,
+                                                                              hg_to_hmetis,
+                                                                              partitioning));
     _stats.add("initialCut_" + std::to_string(attempt), 0, current_cut);
 
     if (current_cut < best_cut) {
@@ -341,4 +343,4 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
          << "best initial cut");
 }
-} // namespace partition
+}  // namespace partition

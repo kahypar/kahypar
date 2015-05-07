@@ -49,8 +49,8 @@ class CoarsenerBase {
  public:
   CoarsenerBase(const CoarsenerBase&) = delete;
   CoarsenerBase(CoarsenerBase&&) = delete;
-  CoarsenerBase& operator = (const CoarsenerBase&) = delete;
-  CoarsenerBase& operator = (CoarsenerBase&&) = delete;
+  CoarsenerBase& operator= (const CoarsenerBase&) = delete;
+  CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
   CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
@@ -227,6 +227,6 @@ class CoarsenerBase {
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_COARSENERBASE_H_

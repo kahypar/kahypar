@@ -68,8 +68,8 @@ class KWayFMRefiner : public IRefiner,
  public:
   KWayFMRefiner(const KWayFMRefiner&) = delete;
   KWayFMRefiner(KWayFMRefiner&&) = delete;
-  KWayFMRefiner& operator = (const KWayFMRefiner&) = delete;
-  KWayFMRefiner& operator = (KWayFMRefiner&&) = delete;
+  KWayFMRefiner& operator= (const KWayFMRefiner&) = delete;
+  KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
 
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -661,7 +661,7 @@ class KWayFMRefiner : public IRefiner,
                 return false;
               }
 
-              //there should not be any move of this HN in the PQ.
+              // there should not be any move of this HN in the PQ.
               for (PartitionID part = 0; part < _config.partition.k; ++part) {
                 valid = (_pq.contains(pin, part) == false);
                 if (!valid) {
@@ -674,7 +674,7 @@ class KWayFMRefiner : public IRefiner,
               for (const PartitionID part : _hg.connectivitySet(he)) {
                 ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " not connected to " << V(part));
                 if (_pq.contains(pin, part)) {
-              // if the move to target.part is in the PQ, it has to have the correct gain
+                  // if the move to target.part is in the PQ, it has to have the correct gain
                   ASSERT(_active[pin], "Pin is not active");
                   ASSERT(isBorderNode(pin), "BorderFail");
                   const Gain expected_gain = gainInducedByHypergraph(pin, part);
@@ -941,5 +941,5 @@ class KWayFMRefiner : public IRefiner,
 template <class T, class U>
 const PartitionID KWayFMRefiner<T, U>::kFree;
 #pragma GCC diagnostic pop
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_

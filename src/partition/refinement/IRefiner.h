@@ -22,8 +22,8 @@ class IRefiner {
  public:
   IRefiner(const IRefiner&) = delete;
   IRefiner(IRefiner&&) = delete;
-  IRefiner& operator = (const IRefiner&) = delete;
-  IRefiner& operator = (IRefiner&&) = delete;
+  IRefiner& operator= (const IRefiner&) = delete;
+  IRefiner& operator= (IRefiner&&) = delete;
 
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
               const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
@@ -71,6 +71,6 @@ class IRefiner {
   virtual std::string policyStringImpl() const noexcept = 0;
   virtual const Stats & statsImpl() const noexcept = 0;
 };
-} //namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_IREFINER_H_

@@ -409,7 +409,7 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
 }
 
 TEST(AnUnconnectedHypernode, IsRemovedTogetherWithLastEdgeIfFlagIsTrue) {
-  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 1 },
                         HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0, true);
@@ -417,7 +417,7 @@ TEST(AnUnconnectedHypernode, IsRemovedTogetherWithLastEdgeIfFlagIsTrue) {
 }
 
 TEST(AnUnconnectedHypernode, IsNotRemovedTogetherWithLastEdgeIfFlagIsFalse) {
-  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 1 },
                         HyperedgeVector { 0 });
 
   hypergraph.removeEdge(0, false);
@@ -619,7 +619,7 @@ TEST_F(AHypergraph, AllowsIterationOverConnectivitySetOfAHyperege) {
 }
 
 TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
-  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0, /*sentinel*/ 1 },
+  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 1 },
                         HyperedgeVector { 0 });
   hypergraph.setNodePart(0, 0);
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
@@ -661,4 +661,4 @@ TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
   mementos.pop();
   ASSERT_THAT(hypergraph.partSize(0), Eq(4));
 }
-} // namespace datastructure
+}  // namespace datastructure

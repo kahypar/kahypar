@@ -194,7 +194,7 @@ using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 class APartitionOfAHypergraph : public Test {
  public:
   APartitionOfAHypergraph() :
-    _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _config(),
     _partitioner(_config),
@@ -227,6 +227,6 @@ class APartitionOfAHypergraph : public Test {
   std::unique_ptr<ICoarsener> _coarsener;
   std::unique_ptr<IRefiner> _refiner;
 };
-} // namespace io
+}  // namespace io
 
 #endif  // SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_

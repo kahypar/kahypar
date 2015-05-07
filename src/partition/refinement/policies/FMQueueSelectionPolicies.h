@@ -32,5 +32,5 @@ struct EligibleTopGain {
  protected:
   ~EligibleTopGain() { }
 };
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUESELECTIONPOLICIES_H_

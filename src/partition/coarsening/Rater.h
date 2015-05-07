@@ -35,8 +35,8 @@ class Rater {
 
   struct HeavyEdgeRating {
     HeavyEdgeRating(const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator = (const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator = (HeavyEdgeRating&&) = delete;
+    HeavyEdgeRating& operator= (const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
 
     HeavyEdgeRating(HeavyEdgeRating&& other) noexcept :
       target(std::move(other.target)),
@@ -60,8 +60,8 @@ class Rater {
  public:
   Rater(const Rater&) = delete;
   Rater(Rater&&) = delete;
-  Rater& operator = (const Rater&) = delete;
-  Rater& operator = (Rater&&) = delete;
+  Rater& operator= (const Rater&) = delete;
+  Rater& operator= (Rater&&) = delete;
 
   using Rating = HeavyEdgeRating;
   Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
@@ -152,6 +152,6 @@ class Rater {
   std::vector<bool> _visited_hypernodes;
 };
 #pragma GCC diagnostic pop
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_RATER_H_

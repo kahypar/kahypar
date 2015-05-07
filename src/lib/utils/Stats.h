@@ -2,8 +2,8 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_STATISTICS_STATS_H_
-#define SRC_LIB_STATISTICS_STATS_H_
+#ifndef SRC_LIB_UTILS_STATS_H_
+#define SRC_LIB_UTILS_STATS_H_
 
 #include <map>
 #include <sstream>
@@ -24,8 +24,8 @@ class Stats {
  public:
   Stats(const Stats&) = delete;
   Stats(Stats&&) = delete;
-  Stats& operator = (const Stats&) = delete;
-  Stats& operator = (Stats&&) = delete;
+  Stats& operator= (const Stats&) = delete;
+  Stats& operator= (Stats&&) = delete;
 
   Stats() :
     _stats() { }
@@ -69,7 +69,7 @@ class Stats {
 };
 
 #endif
-} // namespace utils
+}  // namespace utils
 
 
-#endif  // SRC_LIB_STATISTICS_STATS_H_
+#endif  // SRC_LIB_UTILS_STATS_H_

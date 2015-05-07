@@ -42,8 +42,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
  public:
   FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
   FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
-  FullHeavyEdgeCoarsener& operator = (const FullHeavyEdgeCoarsener&) = delete;
-  FullHeavyEdgeCoarsener& operator = (FullHeavyEdgeCoarsener&&) = delete;
+  FullHeavyEdgeCoarsener& operator= (const FullHeavyEdgeCoarsener&) = delete;
+  FullHeavyEdgeCoarsener& operator= (FullHeavyEdgeCoarsener&&) = delete;
 
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
@@ -160,5 +160,5 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
 };
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

@@ -2,17 +2,18 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_IO_PARTITIONINGOUTPUT_H_
-#define LIB_IO_PARTITIONINGOUTPUT_H_
+#ifndef SRC_LIB_IO_PARTITIONINGOUTPUT_H_
+#define SRC_LIB_IO_PARTITIONINGOUTPUT_H_
 
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
-#include "partition/Metrics.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -98,5 +99,5 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
     std::cout << "# HEs with λ=" << i << ": " << connectivity_stats[i] << std::endl;
   }
 }
-} // namespace io
-#endif  // LIB_IO_PARTITIONINGOUTPUT_H_
+}  // namespace io
+#endif  // SRC_LIB_IO_PARTITIONINGOUTPUT_H_

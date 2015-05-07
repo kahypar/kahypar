@@ -2,18 +2,19 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef LIB_DEFINITIONS_H_
-#define LIB_DEFINITIONS_H_
+#ifndef SRC_LIB_DEFINITIONS_H_
+#define SRC_LIB_DEFINITIONS_H_
 
 #include <chrono>
+#include <utility>
 
 #include "lib/datastructure/GenericHypergraph.h"
 
 // Use bucket PQ for FM refinement.
-//#define USE_BUCKET_PQ
+// #define USE_BUCKET_PQ
 
 // Gather advanced statistics
-//#define GATHER_STATS
+// #define GATHER_STATS
 
 namespace defs {
 using hypernode_id_t = unsigned int;
@@ -40,7 +41,7 @@ using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
 using IncidenceIterator = Hypergraph::IncidenceIterator;
 
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
-} // namespace defs
+}  // namespace defs
 
 // this is nasty and needs to be fixed
 namespace std {
@@ -52,4 +53,4 @@ static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::Inci
   return std::move(x.second);
 }
 }
-#endif  // LIB_DEFINITIONS_H_
+#endif  // SRC_LIB_DEFINITIONS_H_

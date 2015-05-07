@@ -25,7 +25,7 @@ class AKwayFMRefiner : public Test {
  public:
   AKwayFMRefiner() :
     config(),
-    hypergraph(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 3 },
+    hypergraph(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
                               HyperedgeVector { 0, 1, 0 }, 2)),
     refiner() {
     config.two_way_fm.max_number_of_fruitless_moves = 50;
@@ -57,4 +57,4 @@ TEST_F(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
 TEST_F(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation) {
   ASSERT_THAT(refiner->gainInducedByHypergraph(0, 0), Eq(1));
 }
-} // namespace partition
+}  // namespace partition

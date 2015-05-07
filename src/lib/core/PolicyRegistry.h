@@ -45,6 +45,6 @@ class PolicyRegistry {
  private:
   PolicyMap _policies;
 };
-} // namespace core
+}  // namespace core
 
 #endif  // SRC_LIB_CORE_POLICYREGISTRY_H_

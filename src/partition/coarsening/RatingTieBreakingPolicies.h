@@ -35,6 +35,6 @@ struct RandomRatingWins {
  protected:
   ~RandomRatingWins() { }
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_RATINGTIEBREAKINGPOLICIES_H_

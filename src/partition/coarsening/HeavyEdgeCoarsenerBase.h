@@ -68,8 +68,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  public:
   HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
-  HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase& operator = (HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
@@ -157,6 +157,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   Rater _rater;
   PrioQueue _pq;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
