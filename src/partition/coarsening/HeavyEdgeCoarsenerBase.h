@@ -50,7 +50,7 @@ template <class Rater = Mandatory,
                                 typename Rater::RatingType,
                                 MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
-  protected:
+ protected:
   using Base = CoarsenerBase<CoarseningMemento>;
   using Base::_hg;
   using Base::_config;
@@ -65,7 +65,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Rating = typename Rater::Rating;
   using RatingType = typename Rater::RatingType;
 
-  public:
+ public:
   HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
   HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
@@ -78,7 +78,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
-  protected:
+ protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {

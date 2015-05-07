@@ -12,7 +12,7 @@
 #include <vector>
 
 class Randomize {
-  public:
+ public:
   static bool flipCoin() {
     return static_cast<bool>(_bool_dist(_gen));
   }
@@ -45,7 +45,7 @@ class Randomize {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
 
-  private:
+ private:
   static int _seed;
   static std::mt19937 _gen;
   static std::uniform_int_distribution<int> _bool_dist;

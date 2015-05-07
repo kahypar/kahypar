@@ -25,7 +25,7 @@ static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_fingerprinting = false;
 
 class HypergraphPruner {
-  private:
+ private:
   struct Fingerprint {
     Fingerprint(HyperedgeID id_, HyperedgeID hash_, HypernodeID size_) noexcept :
       id(id_),
@@ -44,7 +44,7 @@ class HypergraphPruner {
     const HyperedgeID removed_id;
   };
 
-  public:
+ public:
   HypergraphPruner(const HypergraphPruner&) = delete;
   HypergraphPruner(HypergraphPruner&&) = delete;
   HypergraphPruner& operator = (const HypergraphPruner&) = delete;
@@ -216,7 +216,7 @@ class HypergraphPruner {
     return _removed_single_node_hyperedges;
   }
 
-  private:
+ private:
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;

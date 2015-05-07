@@ -63,7 +63,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     PartitionID to_part;
   };
 
-  public:
+ public:
   MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
   MaxGainNodeKWayFMRefiner(MaxGainNodeKWayFMRefiner&&) = delete;
   MaxGainNodeKWayFMRefiner& operator = (const MaxGainNodeKWayFMRefiner&) = delete;
@@ -85,7 +85,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
 
-  private:
+ private:
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves);
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes);

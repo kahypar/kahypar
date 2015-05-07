@@ -49,7 +49,7 @@ struct HyperedgeCoarseningMemento {
 template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
                            public CoarsenerBase<HyperedgeCoarseningMemento>{
-  private:
+ private:
   using Base = CoarsenerBase<HyperedgeCoarseningMemento>;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
@@ -61,7 +61,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Rating = HyperedgeRating;
   using ContractionMemento = typename Hypergraph::ContractionMemento;
 
-  public:
+ public:
   HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
   HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
   HyperedgeCoarsener& operator = (const HyperedgeCoarsener&) = delete;
@@ -72,7 +72,7 @@ class HyperedgeCoarsener : public ICoarsener,
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
-  private:
+ private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);

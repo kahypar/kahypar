@@ -28,7 +28,7 @@ using LastWinsRater = Rater<defs::RatingType, LastRatingWins>;
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 
 class ARater : public Test {
-  public:
+ public:
   explicit ARater(Hypergraph* graph = nullptr) :
     hypergraph(graph),
     config() {
@@ -40,7 +40,7 @@ class ARater : public Test {
 };
 
 class AFirstWinsRater : public ARater {
-  public:
+ public:
   AFirstWinsRater() :
     ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
@@ -50,7 +50,7 @@ class AFirstWinsRater : public ARater {
 };
 
 class ALastWinsRater : public ARater {
-  public:
+ public:
   ALastWinsRater() :
     ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
@@ -60,7 +60,7 @@ class ALastWinsRater : public ARater {
 };
 
 class ARandomWinsRater : public ARater {
-  public:
+ public:
   ARandomWinsRater() :
     ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
@@ -70,7 +70,7 @@ class ARandomWinsRater : public ARater {
 };
 
 class AHyperedgeRater : public ARater {
-  public:
+ public:
   AHyperedgeRater() :
     ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) { }

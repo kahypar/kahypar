@@ -52,14 +52,14 @@ template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner : public IRefiner,
                         private FMRefinerBase {
-  private:
+ private:
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
 
   static constexpr char kLocked = std::numeric_limits<char>::max();
   static const char kFree = std::numeric_limits<char>::max() - 1;
 
-  public:
+ public:
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
   TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
@@ -101,7 +101,7 @@ class TwoWayFMRefiner : public IRefiner,
     return _is_initialized;
   }
 
-  private:
+ private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
   FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);

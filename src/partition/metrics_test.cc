@@ -43,7 +43,7 @@ using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {
-  public:
+ public:
   AnUnPartitionedHypergraph() :
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
@@ -52,12 +52,12 @@ class AnUnPartitionedHypergraph : public Test {
 };
 
 class TheDemoHypergraph : public AnUnPartitionedHypergraph {
-  public:
+ public:
   TheDemoHypergraph() : AnUnPartitionedHypergraph() { }
 };
 
 class APartitionedHypergraph : public Test {
-  public:
+ public:
   APartitionedHypergraph() :
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
@@ -92,7 +92,7 @@ class APartitionedHypergraph : public Test {
 };
 
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
-  public:
+ public:
   TheHyperedgeCutCalculationForInitialPartitioning() :
     AnUnPartitionedHypergraph(),
     config(),

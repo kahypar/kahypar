@@ -19,7 +19,7 @@ using utils::Stats;
 
 namespace partition {
 class IRefiner {
-  public:
+ public:
   IRefiner(const IRefiner&) = delete;
   IRefiner(IRefiner&&) = delete;
   IRefiner& operator = (const IRefiner&) = delete;
@@ -55,11 +55,11 @@ class IRefiner {
 
   virtual ~IRefiner() { }
 
-  protected:
+ protected:
   IRefiner() noexcept { }
   bool _is_initialized = false;
 
-  private:
+ private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                           const size_t num_refinement_nodes,
                           const HypernodeWeight max_allowed_part_weight,

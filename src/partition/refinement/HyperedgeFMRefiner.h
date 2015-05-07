@@ -50,7 +50,7 @@ template <class StoppingPolicy = Mandatory,
           >
 class HyperedgeFMRefiner : public IRefiner,
                            private FMRefinerBase {
-  private:
+ private:
   using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
                                               std::numeric_limits<HyperedgeWeight> >;
   using HyperedgeFMPQ = PriorityQueue<HyperedgeFMHeap>;
@@ -58,7 +58,7 @@ class HyperedgeFMRefiner : public IRefiner,
   static const int K = 2;
 
   class HyperedgeEvalIndicator {
-    public:
+ public:
     explicit HyperedgeEvalIndicator(HyperedgeID size) noexcept :
       _bitvector(size) { }
 
@@ -76,11 +76,11 @@ class HyperedgeFMRefiner : public IRefiner,
       _bitvector.assign(_bitvector.size(), false);
     }
 
-    private:
+ private:
     std::vector<bool> _bitvector;
   };
 
-  public:
+ public:
   HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
   HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
   HyperedgeFMRefiner& operator = (const HyperedgeFMRefiner&) = delete;
@@ -308,7 +308,7 @@ class HyperedgeFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
+ private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
   FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);

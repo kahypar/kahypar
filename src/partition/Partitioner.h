@@ -59,7 +59,7 @@ class Partitioner {
     kInitialParallelHErestore = 6
   };
 
-  public:
+ public:
   Partitioner(const Partitioner&) = delete;
   Partitioner(Partitioner&&) = delete;
   Partitioner& operator = (const Partitioner&) = delete;
@@ -80,7 +80,7 @@ class Partitioner {
     return _stats;
   }
 
-  private:
+ private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresHyperedgesExceedingThreshold);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,

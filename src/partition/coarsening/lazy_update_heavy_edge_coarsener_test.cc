@@ -17,7 +17,7 @@ using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using CoarsenerType = LazyUpdateHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
-  public:
+ public:
   explicit ACoarsener() :
     ACoarsenerBase() { }
 };

@@ -27,10 +27,10 @@ static const bool dbg_partition_rating = false;
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
 template <typename _RatingType, class _TieBreakingPolicy>
 class Rater {
-  public:
+ public:
   using RatingType = _RatingType;
 
-  private:
+ private:
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
@@ -57,7 +57,7 @@ class Rater {
     bool valid;
   };
 
-  public:
+ public:
   Rater(const Rater&) = delete;
   Rater(Rater&&) = delete;
   Rater& operator = (const Rater&) = delete;
@@ -136,7 +136,7 @@ class Rater {
     return _config.coarsening.max_allowed_node_weight;
   }
 
-  private:
+ private:
   bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const noexcept {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }

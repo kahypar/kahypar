@@ -21,7 +21,7 @@ namespace partition {
 using KWayFMRefinerSimpleStopping = MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AMaxGainNodeKWayFMRefiner : public Test {
-  public:
+ public:
   AMaxGainNodeKWayFMRefiner() :
     config(),
     // example hypergraph with one additional HN and one additional HE

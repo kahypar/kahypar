@@ -15,7 +15,7 @@ using::testing::Test;
 
 namespace datastructure {
 class APriorityQueue : public Test {
-  public:
+ public:
   APriorityQueue() :
     prio_queue(3) { }
 

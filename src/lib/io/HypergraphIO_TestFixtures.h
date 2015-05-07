@@ -34,7 +34,7 @@ using defs::Hypergraph;
 
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
-  public:
+ public:
   AnUnweightedHypergraphFile() :
     _filename(""),
     _num_hyperedges(0),
@@ -56,7 +56,7 @@ class AnUnweightedHypergraphFile : public Test {
 };
 
 class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHyperedgeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hyperedge_weights({ 2, 3, 8, 7 }) { }
@@ -69,7 +69,7 @@ class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
 };
 
 class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHypernodeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hypernode_weights({ 5, 1, 8, 7, 3, 9, 3 }) { }
@@ -82,7 +82,7 @@ class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
 };
 
 class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHypernodeAndHyperedgeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hyperedge_weights({ 2, 3, 8, 7 }),
@@ -97,7 +97,7 @@ class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHyper
 };
 
 class AnUnweightedHypergraph : public Test {
-  public:
+ public:
   AnUnweightedHypergraph() :
     _filename(""),
     _num_hyperedges(4),
@@ -133,7 +133,7 @@ class AnUnweightedHypergraph : public Test {
 };
 
 class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHyperedgeWeights() :
     AnUnweightedHypergraph(),
     _hyperedge_weights({ 2, 3, 8, 7 }),
@@ -150,7 +150,7 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
 };
 
 class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHypernodeWeights() :
     AnUnweightedHypergraph(),
     _hypernode_weights({ 5, 1, 8, 7, 3, 9, 3 }),
@@ -167,7 +167,7 @@ class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
 };
 
 class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHypernodeAndHyperedgeWeights() :
     AnUnweightedHypergraph(),
     _hyperedge_weights({ 2, 3, 8, 7 }),
@@ -192,7 +192,7 @@ using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitionOfAHypergraph : public Test {
-  public:
+ public:
   APartitionOfAHypergraph() :
     _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),

@@ -22,7 +22,7 @@ using KWayFMRefinerSimpleStopping = KWayFMRefiner<NumberOfFruitlessMovesStopsSea
 
 
 class AKwayFMRefiner : public Test {
-  public:
+ public:
   AKwayFMRefiner() :
     config(),
     hypergraph(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 3 },

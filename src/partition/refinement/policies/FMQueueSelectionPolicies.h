@@ -29,7 +29,7 @@ struct EligibleTopGain {
     return chosen_pq_index;
   }
 
-  protected:
+ protected:
   ~EligibleTopGain() { }
 };
 } // namespace partition

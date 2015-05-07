@@ -25,7 +25,7 @@ using partition::Partitioner;
 
 namespace serializer {
 class SQLPlotToolsSerializer {
-  public:
+ public:
   static void serialize(const Configuration& config, const Hypergraph& hypergraph,
                         const Partitioner& partitioner,
                         const ICoarsener& coarsener, const IRefiner& refiner,

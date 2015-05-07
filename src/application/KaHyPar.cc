@@ -279,27 +279,25 @@ int main(int argc, char* argv[]) {
     "hyperedge",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new HyperedgeCoarsener(p.hypergraph, p.config);
-  }
-    );
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_heuristic",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-  }
-    );
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_full",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-  }
-    );
+  });
 
   CoarsenerFactory::getInstance().registerObject(
     "heavy_lazy",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-  }
-    );
+  });
 
   po::options_description desc("Allowed options");
   desc.add_options()

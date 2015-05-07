@@ -59,7 +59,8 @@ class Stats{
   std::string toString() const {
     return std::string("");
   }
-   std::string toConsoleString() const {
+
+  std::string toConsoleString() const {
     return std::string("");
   }
 };

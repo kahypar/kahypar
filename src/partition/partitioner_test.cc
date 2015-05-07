@@ -27,7 +27,7 @@ using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {
-  public:
+ public:
   APartitioner(Hypergraph* graph =
                  new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
@@ -63,7 +63,7 @@ class APartitioner : public Test {
 };
 
 class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
-  public:
+ public:
   APartitionerWithHyperedgeSizeThreshold() :
     APartitioner() {
     config.partition.hyperedge_size_threshold = 3;

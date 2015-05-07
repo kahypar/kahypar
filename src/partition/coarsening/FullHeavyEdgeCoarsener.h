@@ -25,7 +25,7 @@ namespace partition {
 template <class Rater = Mandatory>
 class FullHeavyEdgeCoarsener : public ICoarsener,
                                private HeavyEdgeCoarsenerBase<Rater>{
-  private:
+ private:
   using Base = HeavyEdgeCoarsenerBase<Rater>;
   using Base::removeParallelHyperedges;
   using Base::removeSingleNodeHyperedges;
@@ -35,11 +35,11 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   using Rating = typename Rater::Rating;
 
   class NullMap {
-    public:
+ public:
     void insert(std::pair<HypernodeID, HypernodeID>) { }
   };
 
-  public:
+ public:
   FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
   FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
   FullHeavyEdgeCoarsener& operator = (const FullHeavyEdgeCoarsener&) = delete;
@@ -51,7 +51,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
   ~FullHeavyEdgeCoarsener() { }
 
-  private:
+ private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void coarsenImpl(const HypernodeID limit) noexcept final {

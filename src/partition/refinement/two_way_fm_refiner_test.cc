@@ -22,7 +22,7 @@ namespace partition {
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class ATwoWayFMRefiner : public Test {
-  public:
+ public:
   ATwoWayFMRefiner() :
     hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
@@ -46,7 +46,7 @@ class ATwoWayFMRefiner : public Test {
 };
 
 class AGainUpdateMethod : public Test {
-  public:
+ public:
   AGainUpdateMethod() :
     config() {
     config.two_way_fm.max_number_of_fruitless_moves = 50;

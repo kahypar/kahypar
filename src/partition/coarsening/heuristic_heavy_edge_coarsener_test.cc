@@ -16,7 +16,7 @@ using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using CoarsenerType = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
-  public:
+ public:
   explicit ACoarsener() :
     ACoarsenerBase() { }
 };

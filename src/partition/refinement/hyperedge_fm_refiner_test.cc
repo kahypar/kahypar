@@ -27,7 +27,7 @@ using HyperedgeFMRefinerSimpleStopping = HyperedgeFMRefiner<NumberOfFruitlessMov
                                                             OnlyRemoveIfBothQueuesClogged>;
 
 class AHyperedgeFMRefiner : public Test {
-  public:
+ public:
   AHyperedgeFMRefiner() :
     hypergraph(nullptr),
     config() { }
@@ -37,7 +37,7 @@ class AHyperedgeFMRefiner : public Test {
 };
 
 class AHyperedgeMovementOperation : public AHyperedgeFMRefiner {
-  public:
+ public:
   AHyperedgeMovementOperation() :
     AHyperedgeFMRefiner() { }
 
@@ -53,7 +53,7 @@ class AHyperedgeMovementOperation : public AHyperedgeFMRefiner {
 };
 
 class TheUpdateGainsMethod : public AHyperedgeFMRefiner {
-  public:
+ public:
   TheUpdateGainsMethod() :
     AHyperedgeFMRefiner() { }
 
@@ -73,7 +73,7 @@ class TheUpdateGainsMethod : public AHyperedgeFMRefiner {
 };
 
 class RollBackInformation : public AHyperedgeFMRefiner {
-  public:
+ public:
   RollBackInformation() :
     AHyperedgeFMRefiner(),
     hyperedge_fm_refiner(nullptr) { }

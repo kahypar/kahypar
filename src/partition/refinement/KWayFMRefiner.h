@@ -65,7 +65,7 @@ class KWayFMRefiner : public IRefiner,
   static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
   static const PartitionID kFree = -1;
 
-  public:
+ public:
   KWayFMRefiner(const KWayFMRefiner&) = delete;
   KWayFMRefiner(KWayFMRefiner&&) = delete;
   KWayFMRefiner& operator = (const KWayFMRefiner&) = delete;
@@ -89,7 +89,7 @@ class KWayFMRefiner : public IRefiner,
     _performed_moves.reserve(_hg.initialNumNodes());
   }
 
-  private:
+ private:
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
 
