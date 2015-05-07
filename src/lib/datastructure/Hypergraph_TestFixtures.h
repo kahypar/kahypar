@@ -16,7 +16,7 @@ using defs::HyperedgeID;
 
 namespace datastructure {
 class AHypergraph : public Test {
-  public:
+ public:
   AHypergraph() :
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
@@ -27,17 +27,17 @@ using AHypernodeIterator = AHypergraph;
 using AHyperedgeIterator = AHypergraph;
 
 class AHypergraphMacro : public AHypergraph {
-  public:
+ public:
   AHypergraphMacro() : AHypergraph() { }
 };
 
 class AContractionMemento : public AHypergraph {
-  public:
+ public:
   AContractionMemento() : AHypergraph() { }
 };
 
 class AnUncontractionOperation : public AHypergraph {
-  public:
+ public:
   AnUncontractionOperation() : AHypergraph() {
     hypergraph.setNodePart(0, 0);
     hypergraph.setNodePart(1, 0);
@@ -50,7 +50,7 @@ class AnUncontractionOperation : public AHypergraph {
 };
 
 class AnUncontractedHypergraph : public AHypergraph {
-  public:
+ public:
   AnUncontractedHypergraph() :
     AHypergraph(),
     modified_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
@@ -60,7 +60,7 @@ class AnUncontractedHypergraph : public AHypergraph {
 };
 
 class APartitionedHypergraph : public AHypergraph {
-  public:
+ public:
   APartitionedHypergraph() :
     AHypergraph() {
     hypergraph.setNodePart(0, 0);
@@ -74,7 +74,7 @@ class APartitionedHypergraph : public AHypergraph {
 };
 
 class AnUnPartitionedHypergraph : public AHypergraph {
-  public:
+ public:
   AnUnPartitionedHypergraph() :
     AHypergraph() { }
 };

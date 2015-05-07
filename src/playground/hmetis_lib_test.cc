@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #include <cstddef>
 #include <iostream>
 #include <vector>

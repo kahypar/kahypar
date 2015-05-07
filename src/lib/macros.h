@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef LIB_MACROS_H_
 #define LIB_MACROS_H_
 
@@ -26,12 +30,12 @@
 #define STR(macro) QUOTE(macro)
 
 // Idea taken from https://github.com/bingmann/parallel-string-sorting/blob/master/src/tools/debug.h
-#define DBGX(dbg,X)   do { if (dbg) { std::cout << X; } } while(0)
-#define DBG(dbg,X)    DBGX(dbg, __FUNCTION__ << "(): " << X << std::endl)
-#define DBGVAR(dbg,X) DBGX(dbg, __FUNCTION__ << "(): " << #X << "=" << X << std::endl)
+#define DBGX(dbg, X)   do { if (dbg) { std::cout << X; } } while (0)
+#define DBG(dbg, X)    DBGX(dbg, __FUNCTION__ << "(): " << X << std::endl)
+#define DBGVAR(dbg, X) DBGX(dbg, __FUNCTION__ << "(): " << #X << "=" << X << std::endl)
 
-#define LOG(X) DBG(true,X)
-#define LOGVAR(X) DBGVAR(true,X)
+#define LOG(X) DBG(true, X)
+#define LOGVAR(X) DBGVAR(true, X)
 
 #define V(X) #X << "=" << X << " "
 
@@ -40,9 +44,9 @@
   do {                                                 \
     if (!(cond)) {                                     \
       std::cerr << __FILE__ << ":" << __LINE__ << ": " \
-                << __PRETTY_FUNCTION__ << ": "         \
-                << "Assertion `" #cond "` failed: "    \
-                << msg << std::endl;                   \
+      << __PRETTY_FUNCTION__ << ": "                   \
+      << "Assertion `" #cond "` failed: "              \
+      << msg << std::endl;                             \
       std::abort();                                    \
     }                                                  \
   } while (0)
@@ -51,23 +55,23 @@
 #endif
 
 // *** an always-on ASSERT
-#define ALWAYS_ASSERT(cond, msg)					\
-  do {									\
-    if ( !(cond) ) {							\
-      std::cerr << __FILE__ << ":" << __LINE__ << ": "			\
-		<< __PRETTY_FUNCTION__ << ": "				\
-		<< "Assertion `" #cond "` failed: "			\
-                << msg << std::endl;					\
-      std::abort();                  					\
-    }									\
-  } while(0)
+#define ALWAYS_ASSERT(cond, msg)                       \
+  do {                                                 \
+    if (!(cond)) {                                     \
+      std::cerr << __FILE__ << ":" << __LINE__ << ": " \
+      << __PRETTY_FUNCTION__ << ": "                   \
+      << "Assertion `" #cond "` failed: "              \
+      << msg << std::endl;                             \
+      std::abort();                                    \
+    }                                                  \
+  } while (0)
 
 // http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
 #define ONLYDEBUG(x) ((void)x)
 #ifdef NDEBUG
 #ifdef __GNUC__
-#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
-#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#define UNUSED(x) UNUSED_ ## x __attribute__ ((__unused__))
+#define UNUSED_FUNCTION(x) __attribute__ ((__unused__)) UNUSED_ ## x
 #else
 #define UNUSED(x) UNUSED_ ## x
 #define UNUSED_FUNCTION(x) UNUSED_ ## x

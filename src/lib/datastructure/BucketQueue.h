@@ -19,7 +19,7 @@ namespace datastructure {
 template <typename id_slot = Mandatory,
           typename key_slot = Mandatory>
 class BucketQueue {
-  public:
+ public:
   explicit BucketQueue(const key_slot& key_span) noexcept :
     _elements(0),
     _key_span(key_span),
@@ -151,7 +151,7 @@ class BucketQueue {
     return _queue_index.find(id) != _queue_index.end();
   }
 
-  private:
+ private:
   void searchNewMax() noexcept {
     while (_max_idx != 0 && _buckets[_max_idx].empty()) {
       --_max_idx;

@@ -1,61 +1,64 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef SRC_LIB_CORE_FACTORY_H_
 #define SRC_LIB_CORE_FACTORY_H_
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
+#include "lib/core/Mandatory.h"
 #include "lib/core/Parameters.h"
 #include "lib/macros.h"
-#include "lib/core/Mandatory.h"
 
 namespace core {
-
-template < class AbstractProduct = Mandatory,
-           typename IdentifierType = Mandatory,
-           typename ProductCreator = AbstractProduct* (*)(NullParameters&),
-           class Parameters = NullParameters>
+template <class AbstractProduct = Mandatory,
+          typename IdentifierType = Mandatory,
+          typename ProductCreator = AbstractProduct* (*)(NullParameters&),
+          class Parameters = NullParameters>
 class Factory {
  private:
   using CallbackMap = std::unordered_map<IdentifierType, ProductCreator>;
-  using FactoryPtr =  std::unique_ptr<Factory>;
-  
+  using FactoryPtr = std::unique_ptr<Factory>;
+
  public:
-  Factory(const Factory &) = delete;
-  Factory(Factory &&) = delete;
-  Factory& operator= (const Factory&) = delete;
-  Factory& operator= (Factory&&) = delete;
+  Factory(const Factory&) = delete;
+  Factory(Factory&&) = delete;
+  Factory& operator = (const Factory&) = delete;
+  Factory& operator = (Factory&&) = delete;
 
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
-    return _callbacks.insert({id,creator}).second;
+    return _callbacks.insert({ id, creator }).second;
   }
 
   bool unregisterObject(const IdentifierType& id) {
     return _callbacks.erase(id) == 1;
   }
 
-  AbstractProduct* createObject(const IdentifierType& id,  Parameters& parameters) {
+  AbstractProduct* createObject(const IdentifierType& id, Parameters& parameters) {
     auto creator = _callbacks.find(id);
     if (creator != _callbacks.end()) {
       return (creator->second)(parameters);
     }
-    throw std::invalid_argument( "Identifier '" + id + "' not found." );
+    throw std::invalid_argument("Identifier '" + id + "' not found.");
   }
 
-  static Factory& getInstance() {
+  static Factory & getInstance() {
     if (_factory_instance.get() == nullptr) {
       _factory_instance.reset(new Factory());
     }
     return *(_factory_instance.get());
   }
-  
-private:
+
+ private:
   Factory() :
-      _callbacks() { }
+    _callbacks() { }
   CallbackMap _callbacks;
   static FactoryPtr _factory_instance;
 };
 
 
-template < class A, typename I, typename P, class Pms>
-std::unique_ptr<Factory<A, I, P,Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
+template <class A, typename I, typename P, class Pms>
+std::unique_ptr<Factory<A, I, P, Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
 } // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_

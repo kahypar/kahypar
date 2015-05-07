@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef LIB_IO_PARTITIONINGOUTPUT_H_
 #define LIB_IO_PARTITIONINGOUTPUT_H_
 
@@ -5,10 +9,10 @@
 #include <iostream>
 #include <string>
 
+#include "lib/GitRevision.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "lib/GitRevision.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/ICoarsener.h"
@@ -37,15 +41,15 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
-            << "\t HE size:   [min:" << std::setw(10) << std::left << he_sizes[0]
-            << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
-            << "max:" << std::setw(10) << std::left << he_sizes[he_sizes.size() - 1]
-            << "]" << std::endl;
+  << "\t HE size:   [min:" << std::setw(10) << std::left << he_sizes[0]
+  << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
+  << "max:" << std::setw(10) << std::left << he_sizes[he_sizes.size() - 1]
+  << "]" << std::endl;
   std::cout << "# HNs: " << hypergraph.numNodes()
-            << "\t HN degree: [min:" << std::setw(10) << std::left << hn_degrees[0]
-            << "avg:" << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
-            << "max:" << std::setw(10) << std::left << hn_degrees[hn_degrees.size() - 1]
-            << "]" << std::endl;
+  << "\t HN degree: [min:" << std::setw(10) << std::left << hn_degrees[0]
+  << "avg:" << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
+  << "max:" << std::setw(10) << std::left << hn_degrees[hn_degrees.size() - 1]
+  << "]" << std::endl;
 }
 
 template <class Configuration>
@@ -56,9 +60,9 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const std::chrono::duration<double>& elapsed_seconds,
-                                     const std::array<std::chrono::duration<double>,7>& timings) {
+                                     const std::array<std::chrono::duration<double>, 7>& timings) {
   std::cout << "***********************" << hypergraph.k()
-            << "-way Partition Result************************" << std::endl;
+  << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
@@ -82,7 +86,7 @@ inline void printPartitioningStatistics(const Partitioner& partitioner, const IC
   std::cout << "*****************************Statistics******************************" << std::endl;
   std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
   std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
-            << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
+  << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
   std::cout << partitioner.stats().toConsoleString();
   std::cout << coarsener.stats().toConsoleString();
   std::cout << refiner.stats().toConsoleString();
@@ -94,6 +98,5 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
     std::cout << "# HEs with λ=" << i << ": " << connectivity_stats[i] << std::endl;
   }
 }
-
 } // namespace io
 #endif  // LIB_IO_PARTITIONINGOUTPUT_H_

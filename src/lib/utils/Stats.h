@@ -1,9 +1,13 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef SRC_LIB_STATISTICS_STATS_H_
 #define SRC_LIB_STATISTICS_STATS_H_
 
-#include <string>
 #include <map>
 #include <sstream>
+#include <string>
 
 #include "lib/definitions.h"
 
@@ -11,21 +15,20 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 
 namespace utils {
-
 #ifdef GATHER_STATS
 
-class Stats{
+class Stats {
  private:
   using StatsMap = std::map<std::string, double>;
-  
+
  public:
-  Stats(const Stats &) = delete;
-  Stats(Stats &&) = delete;
-  Stats& operator= (const Stats&) = delete;
-  Stats& operator= (Stats&&) = delete;
+  Stats(const Stats&) = delete;
+  Stats(Stats&&) = delete;
+  Stats& operator = (const Stats&) = delete;
+  Stats& operator = (Stats&&) = delete;
 
   Stats() :
-      _stats() { }
+    _stats() { }
 
   void add(const std::string& key, int vcycle, double value) {
     _stats[key + "_v" + std::to_string(vcycle)] += value;
@@ -46,16 +49,16 @@ class Stats{
     }
     return s.str();
   }
-  
+
  private:
   StatsMap _stats;
 };
 
 #else
 
-class Stats{
+class Stats {
  public:
-  void add(const std::string&, int, double) {}
+  void add(const std::string&, int, double) { }
   std::string toString() const {
     return std::string("");
   }
@@ -66,7 +69,6 @@ class Stats{
 };
 
 #endif
-
 } // namespace utils
 
 

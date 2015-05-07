@@ -35,7 +35,7 @@ class KWayPriorityQueue {
   static const size_t kInvalidIndex = std::numeric_limits<size_t>::max();
   static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
 
-  public:
+ public:
   KWayPriorityQueue(const KWayPriorityQueue&) = delete;
   KWayPriorityQueue(KWayPriorityQueue&&) = delete;
   KWayPriorityQueue& operator = (const KWayPriorityQueue&) = delete;
@@ -212,7 +212,7 @@ class KWayPriorityQueue {
     return _queues[maxIndex()].getMaxKey();
   }
 
-  private:
+ private:
   FRIEND_TEST(AKWayPriorityQueue, DisablesInternalHeapIfItBecomesEmptyDueToRemoval);
   FRIEND_TEST(AKWayPriorityQueue, ChoosesMaxKeyAmongAllEnabledInternalHeaps);
   FRIEND_TEST(AKWayPriorityQueue, DoesNotConsiderDisabledHeapForChoosingMax);

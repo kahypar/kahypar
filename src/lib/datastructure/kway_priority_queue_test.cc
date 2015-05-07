@@ -16,7 +16,7 @@ using defs::HyperedgeWeight;
 
 namespace datastructure {
 class AKWayPriorityQueue : public Test {
-  public:
+ public:
   AKWayPriorityQueue() :
     prio_queue(4) {
     //should be large enough to act as upper bound for both bucket- and heap-based PQ
