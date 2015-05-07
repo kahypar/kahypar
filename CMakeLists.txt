@@ -8,7 +8,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 #ensure that gmock is built before tests are executed
 include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
 ExternalProject_Add(gmock
-  SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gmock"
+  INSTALL_COMMAND "")
+ExternalProject_Add(gtest
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gtest"
   INSTALL_COMMAND "")
 
 site_name(HOSTNAME)
@@ -71,7 +74,7 @@ if(ENABLE_PROFILE MATCHES ON)
   set(PROFILE_FLAGS "-lprofiler")
 endif()
 
-
+include(gmock)
 enable_testing()
 add_subdirectory(src/application)
 add_subdirectory(src/lib/datastructure)
@@ -82,7 +85,6 @@ add_subdirectory(src/partition/refinement)
 add_subdirectory(src/playground)
 add_subdirectory(src/tools)
 
-include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)
