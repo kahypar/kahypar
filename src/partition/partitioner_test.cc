@@ -38,6 +38,7 @@ class APartitioner : public Test {
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.contraction_limit = 2;
     config.coarsening.max_allowed_node_weight = 5;
+    config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     config.partition.graph_filename = "PartitionerTest.hgr";
     config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";

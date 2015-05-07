@@ -70,6 +70,7 @@ class APartitionedHypergraph : public Test {
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "Test";
+    config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
