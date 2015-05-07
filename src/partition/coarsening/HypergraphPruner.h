@@ -131,11 +131,11 @@ class HypergraphPruner {
     //debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
     //[](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
     DBG(dbg_coarsening_fingerprinting, [&]() {
-          for (auto& fp : _fingerprints) {
-            LOG("{" << fp.id << "," << fp.hash << "," << fp.size << "}");
-          }
-          return std::string("");
-        } ());
+        for (auto& fp : _fingerprints) {
+          LOG("{" << fp.id << "," << fp.hash << "," << fp.size << "}");
+        }
+        return std::string("");
+      } ());
 
     size_t i = 0;
     while (i < _fingerprints.size()) {

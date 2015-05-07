@@ -278,27 +278,27 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject(
     "hyperedge",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new HyperedgeCoarsener(p.hypergraph, p.config);
-    }
+    return new HyperedgeCoarsener(p.hypergraph, p.config);
+  }
     );
   CoarsenerFactory::getInstance().registerObject(
     "heavy_heuristic",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-    }
+    return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
+  }
     );
   CoarsenerFactory::getInstance().registerObject(
     "heavy_full",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-    }
+    return new RandomWinsFullCoarsener(p.hypergraph, p.config);
+  }
     );
 
   CoarsenerFactory::getInstance().registerObject(
     "heavy_lazy",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-    }
+    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+  }
     );
 
   po::options_description desc("Allowed options");
@@ -450,12 +450,12 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
   for (const HyperedgeID he : hypergraph.edges()) {
     ASSERT([&]() -> bool {
-             HypernodeID num_pins = 0;
-             for (PartitionID i = 0; i < config.partition.k; ++i) {
-               num_pins += hypergraph.pinCountInPart(he, i);
-             }
-             return num_pins == hypergraph.edgeSize(he);
-           } (),
+      HypernodeID num_pins = 0;
+      for (PartitionID i = 0; i < config.partition.k; ++i) {
+        num_pins += hypergraph.pinCountInPart(he, i);
+      }
+      return num_pins == hypergraph.edgeSize(he);
+    } (),
            "Incorrect calculation of pin counts");
   }
 #endif

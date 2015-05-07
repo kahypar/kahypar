@@ -92,12 +92,12 @@ class HyperedgeCoarsener : public ICoarsener,
       DBG(dbg_coarsening_coarsen, "|" << he_to_contract << "|=" << _hg.edgeSize(he_to_contract));
 
       ASSERT([&]() {
-               HypernodeWeight total_weight = 0;
-               for (const HypernodeID pin : _hg.pins(he_to_contract)) {
-                 total_weight += _hg.nodeWeight(pin);
-               }
-               return total_weight;
-             } () <= _config.coarsening.max_allowed_node_weight,
+          HypernodeWeight total_weight = 0;
+          for (const HypernodeID pin : _hg.pins(he_to_contract)) {
+            total_weight += _hg.nodeWeight(pin);
+          }
+          return total_weight;
+        } () <= _config.coarsening.max_allowed_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight threshold");
       ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
                                                 _config.coarsening.max_allowed_node_weight).value,

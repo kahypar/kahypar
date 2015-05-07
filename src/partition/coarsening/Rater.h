@@ -74,13 +74,13 @@ class Rater {
   HeavyEdgeRating rate(const HypernodeID u) noexcept {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT([&]() {
-             for (const auto& bit : _visited_hypernodes) {
-               if (bit) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Bitset not empty");
+        for (const auto& bit : _visited_hypernodes) {
+          if (bit) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
@@ -120,12 +120,12 @@ class Rater {
       ret.valid = true;
     }
     ASSERT([&]() {
-             bool flag = true;
-             if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
-               flag = false;
-             }
-             return flag;
-           } (), "Representative " << u << " & contraction target " << ret.target
+        bool flag = true;
+        if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
+          flag = false;
+        }
+        return flag;
+      } (), "Representative " << u << " & contraction target " << ret.target
            << " are in different parts!");
     DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
         << ret.valid << ")");

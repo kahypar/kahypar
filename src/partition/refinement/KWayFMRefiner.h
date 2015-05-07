@@ -161,12 +161,12 @@ class KWayFMRefiner : public IRefiner,
       ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part), "Inconsistent gain caculation");
       ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
       ASSERT([&]() {
-               _hg.changeNodePart(max_gain_node, from_part, to_part);
-               ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
-                      "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
-               _hg.changeNodePart(max_gain_node, to_part, from_part);
-               return true;
-             } ()
+          _hg.changeNodePart(max_gain_node, from_part, to_part);
+          ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
+                 "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+          _hg.changeNodePart(max_gain_node, to_part, from_part);
+          return true;
+        } ()
              , "max_gain move does not correspond to expected cut!");
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
@@ -491,80 +491,80 @@ class KWayFMRefiner : public IRefiner,
                                               const HypernodeWeight max_allowed_part_weight)
   noexcept {
     ASSERT([&]() {
-             // Only the moved_node is marked
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (pin != moved_hn && _marked[pin]) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Encountered a free HE with more than one marked pins.");
+        // Only the moved_node is marked
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (pin != moved_hn && _marked[pin]) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Encountered a free HE with more than one marked pins.");
 
     fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
 
     ASSERT([&]() {
-             // all border HNs are active
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (isBorderNode(pin) && !_active[pin]) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Pins of HE " << he << "are not activated correctly");
+        // all border HNs are active
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (isBorderNode(pin) && !_active[pin]) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Pins of HE " << he << "are not activated correctly");
   }
 
   void updatePinsOfHyperedgeRemainingLoose(const HypernodeID moved_hn, const PartitionID from_part,
                                            const PartitionID to_part, const HyperedgeID he,
                                            const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT([&]() {
-             // There is at least one marked pin whose partID = to_part and
-             // no marked pin has a partID other than to_part
-             bool valid = false;
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (_hg.partID(pin) == to_part && _marked[pin]) {
-                 valid = true;
-               }
-               if (_hg.partID(pin) != to_part && _marked[pin]) {
-                 return false;
-               }
-             }
-             return valid;
-           } (), "");
+        // There is at least one marked pin whose partID = to_part and
+        // no marked pin has a partID other than to_part
+        bool valid = false;
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (_hg.partID(pin) == to_part && _marked[pin]) {
+            valid = true;
+          }
+          if (_hg.partID(pin) != to_part && _marked[pin]) {
+            return false;
+          }
+        }
+        return valid;
+      } (), "");
     ASSERT([&]() {
-             // Loose HEs remaining loose should have only active border HNs
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (isBorderNode(pin) && !_active[pin]) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "");
+        // Loose HEs remaining loose should have only active border HNs
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (isBorderNode(pin) && !_active[pin]) {
+            return false;
+          }
+        }
+        return true;
+      } (), "");
 
     connectivityAndDeltaGainUpdateForHEsRemainingLoose(moved_hn, from_part, to_part, he,
                                                        max_allowed_part_weight);
 
     ASSERT([&]() {
-             HypernodeID count = 0;
-             for (const HypernodeID pin : _hg.pins(he)) {
-               // - All border HNs are active
-               // - At least two pins of the HE are marked
-               // - No internal HNs have moves in PQ
-               if (isBorderNode(pin) && !_active[pin]) {
-                 return false;
-               }
-               if (_marked[pin]) {
-                 ++count;
-               }
-               if (!isBorderNode(pin)) {
-                 for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                   if (_pq.contains(pin, part)) {
-                     return false;
-                   }
-                 }
-               }
-             }
-             return count >= 2;
-           } (), " ");
+        HypernodeID count = 0;
+        for (const HypernodeID pin : _hg.pins(he)) {
+          // - All border HNs are active
+          // - At least two pins of the HE are marked
+          // - No internal HNs have moves in PQ
+          if (isBorderNode(pin) && !_active[pin]) {
+            return false;
+          }
+          if (_marked[pin]) {
+            ++count;
+          }
+          if (!isBorderNode(pin)) {
+            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              if (_pq.contains(pin, part)) {
+                return false;
+              }
+            }
+          }
+        }
+        return count >= 2;
+      } (), " ");
   }
 
 
@@ -577,15 +577,15 @@ class KWayFMRefiner : public IRefiner,
     fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
 
     ASSERT([&]() {
-             // If a HE becomes locked, the activation of its pins will definitely
-             // happen because it not has to be a cut HE.
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (!_active[pin]) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Loose HE" << he << " becomes locked, but not all pins are active");
+        // If a HE becomes locked, the activation of its pins will definitely
+        // happen because it not has to be a cut HE.
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (!_active[pin]) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Loose HE" << he << " becomes locked, but not all pins are active");
   }
 
   void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn, const PartitionID from_part,
@@ -593,14 +593,14 @@ class KWayFMRefiner : public IRefiner,
                                             const HypernodeWeight max_allowed_part_weight)
   noexcept {
     ASSERT([&]() {
-             // All pins of a locked HE have to be active.
-             for (const HypernodeID pin : _hg.pins(he)) {
-               if (!_active[pin]) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Loose HE" << he << " remains locked, but not all pins are active");
+        // All pins of a locked HE have to be active.
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (!_active[pin]) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Loose HE" << he << " remains locked, but not all pins are active");
 
     connectivityUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
   }
@@ -640,138 +640,138 @@ class KWayFMRefiner : public IRefiner,
     }
 
     ASSERT([&]() {
-             // This lambda checks verifies the internal state of KFM for all pins that could
-             // have been touched during updateNeighbours.
-             for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-               bool valid = true;
-               for (const HypernodeID pin : _hg.pins(he)) {
-                 if (!isBorderNode(pin)) {
-                   // The pin is an internal HN
+        // This lambda checks verifies the internal state of KFM for all pins that could
+        // have been touched during updateNeighbours.
+        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+          bool valid = true;
+          for (const HypernodeID pin : _hg.pins(he)) {
+            if (!isBorderNode(pin)) {
+              // The pin is an internal HN
 
-                   // If the pin is active, but not marked as moved, we forgot to reset
-                   // the active flag for that pin, because an internal HN should not
-                   // be contained in any PQ and therefore should not be marked as active.
-                   // If the pin is not active, but marked as moved, we forgot to mark the
-                   // pin as active when we inserted its moves into the PQ.
-                   // We check both error conditions via XOR
-                   if (!_active[pin] != !_marked[pin]) {
-                     LOG("HN " << pin << " has inconsistent bool flag state");
-                     LOGVAR(_active[pin]);
-                     LOGVAR(_marked[pin]);
-                     return false;
-                   }
+              // If the pin is active, but not marked as moved, we forgot to reset
+              // the active flag for that pin, because an internal HN should not
+              // be contained in any PQ and therefore should not be marked as active.
+              // If the pin is not active, but marked as moved, we forgot to mark the
+              // pin as active when we inserted its moves into the PQ.
+              // We check both error conditions via XOR
+              if (!_active[pin] != !_marked[pin]) {
+                LOG("HN " << pin << " has inconsistent bool flag state");
+                LOGVAR(_active[pin]);
+                LOGVAR(_marked[pin]);
+                return false;
+              }
 
-                   //there should not be any move of this HN in the PQ.
-                   for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                     valid = (_pq.contains(pin, part) == false);
-                     if (!valid) {
-                       LOG("HN " << pin << " should not be contained in PQ");
-                       return false;
-                     }
-                   }
-                 } else {
-                   // Pin is a border HN
-                   for (const PartitionID part : _hg.connectivitySet(he)) {
-                     ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " not connected to " << V(part));
-                     if (_pq.contains(pin, part)) {
-                   // if the move to target.part is in the PQ, it has to have the correct gain
-                       ASSERT(_active[pin], "Pin is not active");
-                       ASSERT(isBorderNode(pin), "BorderFail");
-                       const Gain expected_gain = gainInducedByHypergraph(pin, part);
-                       valid = (_pq.key(pin, part) == expected_gain);
-                       if (!valid) {
-                         LOG("Incorrect maxGain for HN " << pin);
-                         LOG("expected key=" << expected_gain);
-                         LOG("actual key=" << _pq.key(pin, part));
-                         LOG("from_part=" << _hg.partID(pin));
-                         LOG("to part = " << part);
-                         LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
-                         return false;
-                       }
-                       if (_hg.partWeight(part) < max_allowed_part_weight &&
-                           !_pq.isEnabled(part)) {
-                         LOGVAR(pin);
-                         LOG("key=" << expected_gain);
-                         LOG("Part " << part << " should be enabled as target part");
-                         return false;
-                       }
-                       if (_hg.partWeight(part) >= max_allowed_part_weight &&
-                           _pq.isEnabled(part)) {
-                         LOGVAR(pin);
-                         LOG("key=" << expected_gain);
-                         LOG("Part " << part << " should NOT be enabled as target part");
-                         return false;
-                       }
-                     } else {
-                       // if it is not in the PQ then either the HN has already been marked as moved
-                       // or we currently look at the source partition of pin.
-                       valid = (_marked[pin] == true) || (part == _hg.partID(pin));
-                       if (!valid) {
-                         LOG("HN " << pin << " not in PQ but also not marked");
-                         LOG("gain=" << gainInducedByHypergraph(pin, part));
-                         LOG("from_part=" << _hg.partID(pin));
-                         LOG("to_part=" << part);
-                         LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
-                         LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
-                         return false;
-                       }
-                       if (_marked[pin]) {
-                         // If the pin is already marked as moved, then all moves concerning this pin
-                         // should have been removed from the PQ.
-                         for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                           if (_pq.contains(pin, part)) {
-                             LOG("HN " << pin << " should not be contained in PQ, because it is already marked");
-                             return false;
-                           }
-                         }
-                       }
-                     }
-                   }
-                 }
-                 // Staleness check. If the PQ contains a move of pin to part, there
-                 // has to be at least one HE that connects to that part. Otherwise the
-                 // move is stale and should have been removed from the PQ.
-                 for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                   bool connected = false;
-                   for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
-                     if (_hg.pinCountInPart(incident_he, part) > 0) {
-                       connected = true;
-                       break;
-                     }
-                   }
-                   if (!connected && _pq.contains(pin, part)) {
-                     LOG("PQ contains stale move of HN " << pin << ":");
-                     LOG("calculated gain=" << gainInducedByHypergraph(pin, part));
-                     LOG("gain in PQ=" << _pq.key(pin, part));
-                     LOG("from_part=" << _hg.partID(pin));
-                     LOG("to_part=" << part);
-                     LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
-                     LOG("current HN " << moved_hn << " was moved from " << from_part << " to " << to_part);
-                     return false;
-                   }
-                 }
-               }
-             }
-             return true;
-           } (), V(moved_hn));
+              //there should not be any move of this HN in the PQ.
+              for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                valid = (_pq.contains(pin, part) == false);
+                if (!valid) {
+                  LOG("HN " << pin << " should not be contained in PQ");
+                  return false;
+                }
+              }
+            } else {
+              // Pin is a border HN
+              for (const PartitionID part : _hg.connectivitySet(he)) {
+                ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " not connected to " << V(part));
+                if (_pq.contains(pin, part)) {
+              // if the move to target.part is in the PQ, it has to have the correct gain
+                  ASSERT(_active[pin], "Pin is not active");
+                  ASSERT(isBorderNode(pin), "BorderFail");
+                  const Gain expected_gain = gainInducedByHypergraph(pin, part);
+                  valid = (_pq.key(pin, part) == expected_gain);
+                  if (!valid) {
+                    LOG("Incorrect maxGain for HN " << pin);
+                    LOG("expected key=" << expected_gain);
+                    LOG("actual key=" << _pq.key(pin, part));
+                    LOG("from_part=" << _hg.partID(pin));
+                    LOG("to part = " << part);
+                    LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
+                    return false;
+                  }
+                  if (_hg.partWeight(part) < max_allowed_part_weight &&
+                      !_pq.isEnabled(part)) {
+                    LOGVAR(pin);
+                    LOG("key=" << expected_gain);
+                    LOG("Part " << part << " should be enabled as target part");
+                    return false;
+                  }
+                  if (_hg.partWeight(part) >= max_allowed_part_weight &&
+                      _pq.isEnabled(part)) {
+                    LOGVAR(pin);
+                    LOG("key=" << expected_gain);
+                    LOG("Part " << part << " should NOT be enabled as target part");
+                    return false;
+                  }
+                } else {
+                  // if it is not in the PQ then either the HN has already been marked as moved
+                  // or we currently look at the source partition of pin.
+                  valid = (_marked[pin] == true) || (part == _hg.partID(pin));
+                  if (!valid) {
+                    LOG("HN " << pin << " not in PQ but also not marked");
+                    LOG("gain=" << gainInducedByHypergraph(pin, part));
+                    LOG("from_part=" << _hg.partID(pin));
+                    LOG("to_part=" << part);
+                    LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
+                    LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
+                    return false;
+                  }
+                  if (_marked[pin]) {
+                    // If the pin is already marked as moved, then all moves concerning this pin
+                    // should have been removed from the PQ.
+                    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                      if (_pq.contains(pin, part)) {
+                        LOG("HN " << pin << " should not be contained in PQ, because it is already marked");
+                        return false;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            // Staleness check. If the PQ contains a move of pin to part, there
+            // has to be at least one HE that connects to that part. Otherwise the
+            // move is stale and should have been removed from the PQ.
+            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              bool connected = false;
+              for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
+                if (_hg.pinCountInPart(incident_he, part) > 0) {
+                  connected = true;
+                  break;
+                }
+              }
+              if (!connected && _pq.contains(pin, part)) {
+                LOG("PQ contains stale move of HN " << pin << ":");
+                LOG("calculated gain=" << gainInducedByHypergraph(pin, part));
+                LOG("gain in PQ=" << _pq.key(pin, part));
+                LOG("from_part=" << _hg.partID(pin));
+                LOG("to_part=" << part);
+                LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
+                LOG("current HN " << moved_hn << " was moved from " << from_part << " to " << to_part);
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      } (), V(moved_hn));
     ASSERT([&]() {
-             for (const HypernodeID hn : _hg.nodes()) {
-               if (_active[hn]) {
-                 bool valid = _marked[hn] || !isBorderNode(hn);
-                 for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                   if (_pq.contains(hn, part)) {
-                     valid = true;
-                     break;
-                   }
-                 }
-                 if (!valid) {
-                   LOG(V(hn) << " is active but neither marked nor in one of the PQs");
-                   return false;
-                 }
-               }
-             }
-             return true;
-           } (), V(moved_hn));
+        for (const HypernodeID hn : _hg.nodes()) {
+          if (_active[hn]) {
+            bool valid = _marked[hn] || !isBorderNode(hn);
+            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              if (_pq.contains(hn, part)) {
+                valid = true;
+                break;
+              }
+            }
+            if (!valid) {
+              LOG(V(hn) << " is active but neither marked nor in one of the PQs");
+              return false;
+            }
+          }
+        }
+        return true;
+      } (), V(moved_hn));
   }
 
   void updatePin(const HypernodeID pin, const PartitionID part, const HyperedgeID he,
@@ -787,13 +787,13 @@ class KWayFMRefiner : public IRefiner,
               _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
       // Assert that we only perform delta-gain updates on moves that are not stale!
       ASSERT([&]() {
-               for (const HyperedgeID he : _hg.incidentEdges(pin)) {
-                 if (_hg.pinCountInPart(he, part) > 0) {
-                   return true;
-                 }
-               }
-               return false;
-             } (), V(pin));
+          for (const HyperedgeID he : _hg.incidentEdges(pin)) {
+            if (_hg.pinCountInPart(he, part) > 0) {
+              return true;
+            }
+          }
+          return false;
+        } (), V(pin));
 
       const Gain old_gain = _pq.key(pin, part);
       DBG(dbg_refinement_kway_fm_gain_update,
@@ -807,13 +807,13 @@ class KWayFMRefiner : public IRefiner,
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(!_active[hn], V(hn));
     ASSERT([&]() {
-             for (PartitionID part = 0; part < _config.partition.k; ++part) {
-               if (_pq.contains(hn, part)) {
-                 return false;
-               }
-             }
-             return true;
-           } (),
+        for (PartitionID part = 0; part < _config.partition.k; ++part) {
+          if (_pq.contains(hn, part)) {
+            return false;
+          }
+        }
+        return true;
+      } (),
            "HN " << hn << " is already contained in PQ ");
     if (isBorderNode(hn)) {
       insertHNintoPQ(hn, max_allowed_part_weight);
@@ -848,13 +848,13 @@ class KWayFMRefiner : public IRefiner,
     ASSERT(!_marked[hn], " Trying to insertHNintoPQ for  marked HN " << hn);
     ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
-             for (Gain gain : _tmp_gains) {
-               if (gain != 0) {
-                 return false;
-               }
-             }
-             return true;
-           } () == true, "_tmp_gains not initialized correctly");
+        for (Gain gain : _tmp_gains) {
+          if (gain != 0) {
+            return false;
+          }
+        }
+        return true;
+      } () == true, "_tmp_gains not initialized correctly");
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;

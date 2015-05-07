@@ -252,14 +252,14 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
   DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = "
       << std::to_string([&]() {
-                          HypernodeID count = 0;
-                          for (const HypernodeID hn : hg.nodes()) {
-                            if (hg.nodeDegree(hn) == 0) {
-                              ++count;
-                            }
-                          }
-                          return count;
-                        } ()));
+      HypernodeID count = 0;
+      for (const HypernodeID hn : hg.nodes()) {
+        if (hg.nodeDegree(hn) == 0) {
+          ++count;
+        }
+      }
+      return count;
+    } ()));
 
   HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(), 0);
   CoarsenedToHmetisMapping hg_to_hmetis;
