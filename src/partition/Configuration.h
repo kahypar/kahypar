@@ -225,6 +225,6 @@ inline std::string toString(const Configuration& config) {
   }
   return oss.str();
 }
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_CONFIGURATION_H_

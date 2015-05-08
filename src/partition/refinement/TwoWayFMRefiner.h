@@ -13,23 +13,23 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/BucketQueue.h"
+#include "lib/datastructure/FastResetVector.h"
+#include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "partition/Partitioner.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
 
-using external::NoDataBinaryMaxHeap;
-using datastructure::PriorityQueue;
-using datastructure::BucketQueue;
+using datastructure::KWayPriorityQueue;
+using datastructure::FastResetVector;
+
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -39,59 +39,61 @@ using defs::HypernodeWeight;
 using defs::IncidenceIterator;
 
 namespace partition {
-static const bool dbg_refinement_2way_fm_improvements = false;
+static const bool dbg_refinement_2way_fm_improvements_cut = false;
+static const bool dbg_refinement_2way_fm_improvements_balance = false;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
 static const bool dbg_refinement_2way_fm_gain_update = false;
-static const bool dbg_refinement_2way_fm_eligible_pqs = false;
 static const bool dbg_refinement_2way_fm__activation = false;
-static const bool dbg_refinement_2way_fm_eligible = false;
+static const bool dbg_refinement_2way_locked_hes = false;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
-          template <class> class QueueSelectionPolicy = MandatoryTemplate,
-          class QueueCloggingPolicy = Mandatory
-          >
+          class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner : public IRefiner,
                         private FMRefinerBase {
-  private:
-  using Gain = HyperedgeWeight;
-  using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight> >;
-  using RefinementPQ = PriorityQueue<TwoWayFMHeap>;
+ private:
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                             std::numeric_limits<HyperedgeWeight> >;
 
-  static const int K = 2;
+  static constexpr char kLocked = std::numeric_limits<char>::max();
+  static const char kFree = std::numeric_limits<char>::max() - 1;
 
-  public:
+ public:
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
-  TwoWayFMRefiner& operator = (const TwoWayFMRefiner&) = delete;
-  TwoWayFMRefiner& operator = (TwoWayFMRefiner&&) = delete;
+  TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
 
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    // ToDo: We could also use different storage to avoid initialization like this
-    _pq{nullptr, nullptr},
+    _pq(2),
     _marked(_hg.initialNumNodes()),
-    _just_activated(_hg.initialNumNodes()),
+    _just_activated(_hg.initialNumNodes(), false),
+    _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
+    _locked_hes(_hg.initialNumEdges(), kFree),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
 
-  ~TwoWayFMRefiner() {
-    delete _pq[0];
-    delete _pq[1];
-  }
+  ~TwoWayFMRefiner() { }
 
-  void activate(const HypernodeID hn) noexcept {
+  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     if (isBorderNode(hn)) {
+      const PartitionID target_part = _hg.partID(hn) ^ 1;
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
-      ASSERT(!_pq[_hg.partID(hn)]->contains(hn),
-             "HN " << hn << " is already contained in PQ " << _hg.partID(hn));
+      ASSERT(!_pq.contains(hn, target_part),
+             "HN " << hn << " is already contained in PQ " << target_part);
       DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain " << computeGain(hn)
-          << " in PQ " << _hg.partID(hn));
-      _pq[_hg.partID(hn)]->reInsert(hn, computeGain(hn));
+          << " in PQ " << target_part);
+      _pq.insert(hn, target_part, computeGain(hn));
+      if (_hg.partWeight(target_part) < max_allowed_part_weight) {
+        _pq.enablePart(target_part);
+      }
+      // mark HN as just activated to prevent delta-gain updates in current
+      // updateNeighbours call, because we just calculated the correct gain values.
+      _just_activated[hn] = true;
     }
   }
 
@@ -99,7 +101,7 @@ class TwoWayFMRefiner : public IRefiner,
     return _is_initialized;
   }
 
-  private:
+ private:
   FRIEND_TEST(ATwoWayFMRefiner, IdentifiesBorderHypernodes);
   FRIEND_TEST(ATwoWayFMRefiner, ComputesPartitionSizesOfHE);
   FRIEND_TEST(ATwoWayFMRefiner, ChecksIfPartitionSizesOfHEAreAlreadyCalculated);
@@ -121,197 +123,286 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
-
-  void initializeImpl(HyperedgeWeight) noexcept final {
-    initializeImpl();
-  }
+  FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
 
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
-      _pq[0] = new RefinementPQ(_hg.initialNumNodes());
-      _pq[1] = new RefinementPQ(_hg.initialNumNodes());
+      _pq.initialize(_hg.initialNumNodes());
+    }
+    _is_initialized = true;
+  }
+
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+    if (!_is_initialized) {
+      _pq.initialize(max_gain);
     }
     _is_initialized = true;
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-                  const HypernodeWeight UNUSED(max_allowed_part_weight),
+                  const HypernodeWeight max_allowed_part_weight,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(calculateImbalance())),
+             FloatingPoint<double>(metrics::imbalance(_hg))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << calculateImbalance());
+           << " by hypergraph " << metrics::imbalance(_hg));
 
-    _pq[0]->clear();
-    _pq[1]->clear();
+    _pq.clear();
     _marked.assign(_marked.size(), false);
+    _he_fully_active.assign(_he_fully_active.size(), false);
+    _locked_hes.resetUsedEntries();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i]);
+      activate(refinement_nodes[i], max_allowed_part_weight);
     }
 
     const HyperedgeWeight initial_cut = best_cut;
-    HyperedgeWeight cut = best_cut;
-    int min_cut_index = -1;
-    double imbalance = best_imbalance;
+    const double initial_imbalance = best_imbalance;
+    HyperedgeWeight current_cut = best_cut;
+    double current_imbalance = best_imbalance;
 
-    int step = 0;
+    int min_cut_index = -1;
     int num_moves = 0;
     int num_moves_since_last_improvement = 0;
-    int max_number_of_moves = _hg.numNodes();
     StoppingPolicy::resetStatistics();
 
-    bool pq0_eligible = false;
-    bool pq1_eligible = false;
-
-    // forward
     const double beta = log(_hg.numNodes());
-    for (step = 0, num_moves = 0; num_moves < max_number_of_moves; ++step) {
-      if (queuesAreEmpty() || StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
-                                                               _config, beta, best_cut, cut)) {
-        break;
-      }
-      DBG(false, "-------------------------------");
+    while (!_pq.empty() && !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
+                                                             _config, beta, best_cut, current_cut)) {
+      Gain max_gain = kInvalidGain;
+      HypernodeID max_gain_node = kInvalidHN;
+      PartitionID to_part = Hypergraph::kInvalidPartition;
+      _pq.deleteMax(max_gain_node, max_gain, to_part);
+      PartitionID from_part = _hg.partID(max_gain_node);
 
-      checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
-      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
-                                                          _pq[0], _pq[1])) {
-        // DBG(true, "Removed clogging entry");
-        // getchar();
-        continue;
-      }
-
-      // TODO(schlag) :
-      // [ ] look at which strategy is proposed by others
-      // [ ] toward-tiebreaking (siehe tomboy)
-      bool chosen_pq_index = selectQueue(pq0_eligible, pq1_eligible);
-      Gain max_gain = _pq[chosen_pq_index]->maxKey();
-      HypernodeID max_gain_node = _pq[chosen_pq_index]->max();
-      _pq[chosen_pq_index]->deleteMax();
-      PartitionID from_partition = chosen_pq_index;
-      PartitionID to_partition = chosen_pq_index ^ 1;
-
+      DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
+          << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
+          << " target_part=" << to_part);
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
       ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation: " <<
              "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
              " - got g(" << max_gain_node << ")=" << max_gain);
       ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+      ASSERT([&]() {
+          _hg.changeNodePart(max_gain_node, from_part, to_part);
+          ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
+                 "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+          _hg.changeNodePart(max_gain_node, to_part, from_part);
+          return true;
+        } ()
+             , "max_gain move does not correspond to expected cut!");
 
-      DBG(false, "TwoWayFM moving HN" << max_gain_node << " from " << from_partition
-          << " to " << to_partition << " (gain: " << max_gain << ", weight="
-          << _hg.nodeWeight(max_gain_node) << ")");
-
-
-      DBG(false, "Move preserves balance="
-          << moveIsFeasible(max_gain_node, from_partition, to_partition));
-
-      moveHypernode(max_gain_node, from_partition, to_partition);
+      moveHypernode(max_gain_node, from_part, to_part);
       _marked[max_gain_node] = true;
 
-      cut -= max_gain;
-      StoppingPolicy::updateStatistics(max_gain);
-      imbalance = calculateImbalance();
+      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
+        _pq.disablePart(to_part);
+      }
+      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
+        _pq.enablePart(from_part);
+      }
 
-      ASSERT(cut == metrics::hyperedgeCut(_hg),
-             "Calculated cut (" << cut << ") and cut induced by hypergraph ("
-             << metrics::hyperedgeCut(_hg) << ") do not match");
+      current_imbalance = (static_cast<double>(std::max(_hg.partWeight(0), _hg.partWeight(1))) /
+                           (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
+
+
+      current_cut -= max_gain;
+      StoppingPolicy::updateStatistics(max_gain);
+
+      ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+             V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg),
+             V(current_imbalance) << V(metrics::imbalance(_hg)));
 
       // TODO(schlag):
-      // [ ] lock HEs for gain update! (improve running time without quality decrease)
       // [ ] what about zero-gain updates?
-      updateNeighbours(max_gain_node, from_partition, to_partition);
-
+      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      bool improved_cut_within_balance = (cut < best_cut) &&
-                                         (imbalance <= _config.partition.epsilon);
-      bool improved_balance_less_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
-
+      const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
+                                               (current_cut < best_cut);
+      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
+                                                   (current_cut <= best_cut);
       ++num_moves_since_last_improvement;
-      if (improved_balance_less_equal_cut || improved_cut_within_balance) {
-        ASSERT(cut <= best_cut, "Accepted a node move which decreased cut");
-        if (cut < best_cut) {
-          DBG(dbg_refinement_2way_fm_improvements,
-              "TwoWayFM improved cut from " << best_cut << " to " << cut);
-          best_cut = cut;
-          // Currently only a reduction in cut is considered an improvement!
-          // To also consider a zero-gain rebalancing move as an improvement we
-          // always have to reset the stats.
-          StoppingPolicy::resetStatistics();
-        }
-        DBG(dbg_refinement_2way_fm_improvements,
-            "TwoWayFM improved imbalance from " << best_imbalance << " to " << imbalance);
-        best_imbalance = imbalance;
+      if (improved_cut_within_balance || improved_balance_less_equal_cut) {
+        DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
+            "2WayFM improved balance between " << from_part << " and " << to_part
+            << "(max_gain=" << max_gain << ")");
+        DBG(dbg_refinement_2way_fm_improvements_cut && current_cut < best_cut,
+            "2WayFM improved cut from " << best_cut << " to " << current_cut);
+        best_cut = current_cut;
+        best_imbalance = current_imbalance;
+        StoppingPolicy::resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
       }
       _performed_moves[num_moves] = max_gain_node;
       ++num_moves;
     }
-
-    DBG(dbg_refinement_2way_fm_stopping_crit, "TwoWayFM performed " << num_moves - 1
-        << " local search movements (" << step << " steps): stopped because of "
+    DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << num_moves
+        << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
-                                             best_cut, cut)
+                                             best_cut, current_cut)
             == true ? "policy" : "empty queue"));
+
     rollback(num_moves - 1, min_cut_index);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    return best_cut < initial_cut;
+    return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
+                                                 initial_imbalance, _config.partition.epsilon);
   }
 
-  // Gain update as decribed in [ParMar06]
-  void updateNeighbours(const HypernodeID moved_node, const PartitionID source_part,
-                        const PartitionID target_part) noexcept {
+
+  void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
+                        const PartitionID to_part, const HypernodeWeight max_allowed_part_weight) {
     _just_activated.assign(_just_activated.size(), false);
-    for (const HyperedgeID he : _hg.incidentEdges(moved_node)) {
-      if (_hg.edgeSize(he) == 2) {
-        // moved_node is not updated here, since updatePin only updates HNs that
-        // are contained in the PQ and only activates HNs that are unmarked
-        updatePinsOfHyperedge(he, (_hg.pinCountInPart(he, 0) == 1 ? 2 : -2));
-      } else if (_hg.pinCountInPart(he, target_part) == 1) {
+    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+      if (_locked_hes.get(he) != kLocked) {
+        if (_locked_hes.get(he) == to_part) {
+          // he is loose
+          // TODO(schlag): We could provide a version similar to KFM that does not check for activation.
+          fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " maintained state: loose");
+        } else if (_locked_hes.get(he) == kFree) {
+          // he is free.
+          fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+          _locked_hes.set(he, to_part);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: free -> loose");
+        } else {
+          // he is loose and becomes locked after the move
+          fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+          _locked_hes.set(he, kLocked);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
+        }
+      } else {
+        // he is locked
+        // In case of 2-FM, nothing to do here
+        DBG(dbg_refinement_2way_locked_hes, he << " is locked");
+      }
+    }
+
+    ASSERT([&]() {
+        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
+            const PartitionID other_part = _hg.partID(pin) ^ 1;
+            if (!isBorderNode(pin)) {
+              // The pin is an internal HN
+              if (_pq.contains(pin, other_part)) {
+                LOG("HN " << pin << " should not be contained in PQ");
+                return false;
+              }
+            } else {
+              // HN is border HN
+              if (_pq.contains(pin, other_part)) {
+                ASSERT(!_marked[pin],
+                       "HN " << pin << " should not be in PQ, because it is already marked");
+                if (_pq.key(pin, other_part) != computeGain(pin)) {
+                  LOG("Incorrect gain for HN " << pin);
+                  LOG("expected key=" << computeGain(pin));
+                  LOG("actual key=" << _pq.key(pin, other_part));
+                  LOG("from_part=" << _hg.partID(pin));
+                  LOG("to part = " << other_part);
+                  return false;
+                }
+              } else if (!_marked[pin]) {
+                LOG("HN " << pin << " not in PQ, but also not marked!");
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      } (), "UpdateNeighbors failed!");
+  }
+
+  bool moveAffectsGainUpdate(const HypernodeID pin_count_source_part_after_move,
+                             const HypernodeID pin_count_target_part_after_move,
+                             const HypernodeID he_size) const {
+    return (pin_count_source_part_after_move == 0 || pin_count_source_part_after_move == 1 ||
+            pin_count_target_part_after_move == 1 || pin_count_target_part_after_move == 2 ||
+            he_size == 2);
+  }
+
+  // Full update includes:
+  // 1.) Activation of new border HNs
+  // 2.) Removal of new non-border HNs
+  // 3.) Delta-Gain Update as decribed in [ParMar06]: encoded in factor
+  // This is used for the state transitions: free -> loose and loose -> locked
+  void fullUpdate(const HypernodeID moved_hn, const PartitionID from_part,
+                  const PartitionID to_part, const HyperedgeID he,
+                  const HypernodeWeight max_allowed_part_weight) noexcept {
+    const HypernodeID pin_count_from_part_after_move = _hg.pinCountInPart(he, from_part);
+    const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
+    const HypernodeID he_size = _hg.edgeSize(he);
+
+    if (!_he_fully_active[he] || moveAffectsGainUpdate(pin_count_from_part_after_move,
+                                                       pin_count_to_part_after_move,
+                                                       he_size)) {
+      Gain factor = 0;
+      if (he_size == 2) {
+        factor = (_hg.pinCountInPart(he, 0) == 1 ? 2 : -2);
+      } else if (pin_count_to_part_after_move == 1) {
         // HE was an internal edge before move and is a cut HE now.
         // Before the move, all pins had gain -w(e). Now after the move,
-        // these pins have gain 0 (since all of them are in source_part).
-        updatePinsOfHyperedge(he, 1);
-      } else if (_hg.pinCountInPart(he, source_part) == 0) {
+        // these pins have gain 0 (since all of them are in from_part).
+        factor = 1;
+      } else if (pin_count_from_part_after_move == 0) {
         // HE was cut HE before move and is internal HE now.
         // Since the HE is now internal, moving a pin incurs gain -w(e)
         // and make it a cut HE again.
-        updatePinsOfHyperedge(he, -1);
-      } else {
-        if (_hg.pinCountInPart(he, source_part) == 1) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (_hg.partID(pin) == source_part && pin != moved_node) {
-              // Before move, there were two pins (moved_node and the current pin) in source_part.
-              // After moving moved_node to target_part, the gain of the remaining pin in
-              // source_part increases by w(he).
-              updatePin(he, pin, 1);
-              break;
-            }
-          }
-        }
-        if (_hg.pinCountInPart(he, target_part) == 2) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            // Before move, pin was the only HN in target_part. It thus had a
-            // positive gain, because moving it to source_part would have removed
-            // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
-            // because now there are pins in both parts.
-            if (_hg.partID(pin) == target_part && pin != moved_node) {
-              updatePin(he, pin, -1);
-              break;
-            }
-          }
-        }
+        factor = -1;
       }
-      // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
-      // See for example [CadKaMa99]
+
+      HypernodeID num_active_pins = 0;
+      for (const HypernodeID pin : _hg.pins(he)) {
+        if (pin == moved_hn) {
+          continue;
+        }
+
+        const PartitionID target_part = _hg.partID(pin) ^ 1;
+        if (!_marked[pin]) {
+          if (!_pq.contains(pin, target_part)) {
+            activate(pin, max_allowed_part_weight);
+          } else {
+            if (!isBorderNode(pin)) {
+              DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
+                  << to_part);
+              if (_pq.contains(pin, target_part)) {
+                _pq.remove(pin, target_part);
+              }
+            } else {
+              if (factor == 0) {
+                if (pin_count_from_part_after_move == 1 && _hg.partID(pin) == from_part) {
+                  // Before move, there were two pins (moved_node and the current pin) in from_part.
+                  // After moving moved_node to to_part, the gain of the remaining pin in
+                  // from_part increases by w(he).
+                  factor = 1;  // after all pins are activated, one could break here
+                }
+                if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
+                  // Before move, pin was the only HN in to_part. It thus had a
+                  // positive gain, because moving it to from_part would have removed
+                  // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
+                  // because now there are pins in both parts.
+                  factor = -1;  // after all pins are activated, one could break here
+                }
+              }
+              if (factor != 0) {
+                updatePin(he, pin, factor, max_allowed_part_weight);
+              }
+              // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
+              // See for example [CadKaMa99]
+            }
+          }
+        }
+        num_active_pins += _pq.contains(pin, _hg.partID(pin) ^ 1);
+      }
+      _he_fully_active[he] = num_active_pins == he_size;
     }
   }
 
@@ -320,10 +411,13 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const noexcept final {
-    return std::string(" Refiner=TwoWay QueueSelectionPolicy=" + templateToString<QueueSelectionPolicy<Gain> >()
-                       + " QueueCloggingPolicy=" + templateToString<QueueCloggingPolicy>()
-                       + " StoppingPolicy=" + templateToString<StoppingPolicy>()
-                       + " UsesBucketPQ=false"
+    return std::string(" Refiner=TwoWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " UsesBucketQueue=" +
+#ifdef USE_BUCKET_PQ
+                       "true"
+#else
+                       "false"
+#endif
                        );
   }
 
@@ -331,78 +425,23 @@ class TwoWayFMRefiner : public IRefiner,
     return _stats;
   }
 
-
-  bool selectQueue(const bool pq0_eligible, const bool pq1_eligible) const noexcept {
-    ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
-    DBG(dbg_refinement_2way_fm_eligible, "PQ 0 is empty: " << _pq[0]->empty() << " ---> "
-        << (!_pq[0]->empty() ? "HN " + std::to_string(_pq[0]->max()) + " is "
-            + (pq0_eligible ? "" : " NOT ") + " eligible, gain="
-            + std::to_string(_pq[0]->maxKey()) :
-            ""));
-    DBG(dbg_refinement_2way_fm_eligible, "PQ 1 is empty: " << _pq[1]->empty() << " ---> "
-        << (!_pq[1]->empty() ? "HN " + std::to_string(_pq[1]->max()) + " is "
-            + (pq1_eligible ? "" : " NOT ") + " eligible, gain="
-            + std::to_string(_pq[1]->maxKey()) :
-            ""));
-    return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
-  }
-
-  void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const noexcept {
-    pq0_eligible = !_pq[0]->empty() && moveIsFeasible(_pq[0]->max(), 0, 1);
-    pq1_eligible = !_pq[1]->empty() && moveIsFeasible(_pq[1]->max(), 1, 0);
-    DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && !_pq[0]->empty(),
-        "HN " << _pq[0]->max() << "w(hn)=" << _hg.nodeWeight(_pq[0]->max())
-        << " clogs PQ 0: w(p1)=" << _hg.partWeight(1));
-    DBG(dbg_refinement_2way_fm_eligible && !pq0_eligible && _pq[0]->empty(), "PQ 0 is empty");
-    DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && !_pq[1]->empty(),
-        "HN " << _pq[1]->max() << "w(hn)=" << _hg.nodeWeight(_pq[1]->max())
-        << " clogs PQ 1: w(p0)=" << _hg.partWeight(0));
-    DBG(dbg_refinement_2way_fm_eligible && !pq1_eligible && _pq[1]->empty(), "PQ 1 is empty");
-  }
-
-  bool queuesAreEmpty() const noexcept {
-    return _pq[0]->empty() && _pq[1]->empty();
-  }
-
-  double calculateImbalance() const noexcept {
-    double imbalance = (std::max(_hg.partWeight(0), _hg.partWeight(1)) /
-                        (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
-    ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
-           "imbalance calculation inconsistent beween fm-refiner and hypergraph");
-    return imbalance;
-  }
-
-  void updatePinsOfHyperedge(const HyperedgeID he, const Gain sign) noexcept {
-    for (const HypernodeID pin : _hg.pins(he)) {
-      updatePin(he, pin, sign);
-    }
-  }
-
-  void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain sign) noexcept {
-    if (_pq[_hg.partID(pin)]->contains(pin)) {
-      ASSERT(!_marked[pin],
-             " Trying to update marked HN " << pin << " in PQ " << _hg.partID(pin));
-      if (isBorderNode(pin)) {
-        if (!_just_activated[pin]) {
-          const Gain old_gain = _pq[_hg.partID(pin)]->key(pin);
-          const Gain gain_delta = sign * _hg.edgeWeight(he);
-          DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
-              << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
-              << _hg.partID(pin));
-          _pq[_hg.partID(pin)]->updateKey(pin, old_gain + gain_delta);
-        }
-      } else {
-        DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
-            << _hg.partID(pin));
-        _pq[_hg.partID(pin)]->remove(pin);
-      }
-    } else {
-      if (!_marked[pin]) {
-        // border node check is performed in activate
-        activate(pin);
-        _just_activated[pin] = true;
-      }
+  void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain factor,
+                 const HypernodeWeight max_allowed_part_weight) noexcept {
+    const PartitionID target_part = _hg.partID(pin) ^ 1;
+    ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
+    ASSERT(factor != 0, V(factor));
+    ASSERT(!_marked[pin],
+           " Trying to update marked HN " << pin << " in PQ " << target_part);
+    ASSERT(isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
+    ASSERT((_hg.partWeight(target_part) < max_allowed_part_weight ?
+            _pq.isEnabled(target_part) : !_pq.isEnabled(target_part)), V(target_part));
+    if (!_just_activated[pin]) {
+      const Gain old_gain = _pq.key(pin, target_part);
+      const Gain gain_delta = factor * _hg.edgeWeight(he);
+      DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
+          << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
+          << target_part);
+      _pq.updateKey(pin, target_part, computeGain(pin));
     }
   }
 
@@ -419,17 +458,13 @@ class TwoWayFMRefiner : public IRefiner,
   Gain computeGain(const HypernodeID hn) const noexcept {
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
-    PartitionID target_partition = _hg.partID(hn) ^ 1;
-
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      // Some MCNC Instances like primary1 and industry3 have hyperedges that
-      // only contain one hypernode. Thus this assertion will fail in this case.
-      ASSERT(_hg.pinCountInPart(he, 0) + _hg.pinCountInPart(he, 1) > 1,
-             "Trying to compute gain for single-node HE " << he);
-      if (_hg.pinCountInPart(he, target_partition) == 0) {
+      // As we currently do not ensure that the hypergraph does not contain any
+      // single-node HEs, we explicitly have to check for |e| > 1
+      if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0 && _hg.edgeSize(he) > 1) {
         gain -= _hg.edgeWeight(he);
       }
-      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1 && _hg.edgeSize(he) > 1) {
         gain += _hg.edgeWeight(he);
       }
     }
@@ -438,12 +473,18 @@ class TwoWayFMRefiner : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  std::array<RefinementPQ*, K> _pq;
+  KWayRefinementPQ _pq;
   std::vector<bool> _marked;
   std::vector<bool> _just_activated;
+  std::vector<bool> _he_fully_active;
   std::vector<HypernodeID> _performed_moves;
+  FastResetVector<char> _locked_hes;
   Stats _stats;
 };
+
+template <class T, class U>
+const char TwoWayFMRefiner<T, U>::kFree;
+
 #pragma GCC diagnostic pop
 }                                   // namespace partition
 

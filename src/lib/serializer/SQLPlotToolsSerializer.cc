@@ -89,4 +89,4 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     std::cout << oss.str() << std::endl;
   }
 }
-} // namespace serializer
+}  // namespace serializer

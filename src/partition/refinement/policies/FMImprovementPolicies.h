@@ -24,6 +24,6 @@ struct CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
            ((initial_imbalance > max_imbalance) && (best_imbalance < initial_imbalance));
   }
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMIMPROVEMENTPOLICIES_H_

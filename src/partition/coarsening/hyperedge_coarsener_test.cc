@@ -21,9 +21,9 @@ namespace partition {
 using HyperedgeCoarsenerType = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
 
 class AHyperedgeCoarsener : public Test {
-  public:
+ public:
   explicit AHyperedgeCoarsener(Hypergraph* graph =
-                                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+                                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                                                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
@@ -60,7 +60,7 @@ TEST_F(AHyperedgeCoarsener, RemovesHyperedgesThatWouldViolateThresholdNodeWeight
 }
 
 TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
-  Hypergraph hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9, /*sentinel*/ 11 },
+  Hypergraph hypergraph(5, 4, HyperedgeIndexVector { 0, 3, 7, 9,  /*sentinel*/ 11 },
                         HyperedgeVector { 0, 1, 2, 0, 1, 2, 3, 2, 3, 3, 4 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
@@ -74,7 +74,7 @@ TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
 }
 
 TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
-  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 5 },
                         HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
@@ -88,7 +88,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
 }
 
 TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
-  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 6 },
                         HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
@@ -114,7 +114,7 @@ TEST_F(AHyperedgeCoarsener, UpdatesRatingsOfIncidentHyperedgesOfRepresentativeAf
 }
 
 TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
-  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4, /*sentinel*/ 6 },
+  Hypergraph hypergraph(3, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 6 },
                         HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
@@ -130,7 +130,7 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
 }
 
 TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
-  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 5 },
+  Hypergraph hypergraph(3, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 5 },
                         HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
@@ -146,7 +146,7 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
 }
 
 TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
-  Hypergraph input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+  Hypergraph input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
   config.coarsening.max_allowed_node_weight = 10;
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
@@ -159,7 +159,7 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
 }
 
 TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
-  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 3 },
+  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 3 },
                         HyperedgeVector { 0, 1, 2 });
   Configuration config;
   HyperedgeCoarsenerType coarsener(hypergraph, config);
@@ -178,4 +178,4 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
   ASSERT_THAT(num_refinement_nodes, Eq(3));
   ASSERT_THAT(refinement_nodes, UnorderedElementsAre(0, 1, 2));
 }
-} // namespace partition
+}  // namespace partition

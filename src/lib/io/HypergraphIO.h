@@ -69,7 +69,7 @@ inline void readHypergraphFile(std::string& filename, HypernodeID& num_hypernode
                                  hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
                                  true : false;
 
-    index_vector.reserve(num_hyperedges + /*sentinel*/ 1);
+    index_vector.reserve(num_hyperedges +  /*sentinel*/ 1);
     index_vector.push_back(edge_vector.size());
 
     std::string line;
@@ -184,7 +184,7 @@ inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergraph,
   std::ofstream out_stream(filename.c_str());
   out_stream << 1;                     // 1-based indexing
   out_stream << " " << hypergraph.numNodes() << " " << hypergraph.numEdges() << " " << hypergraph.numPins();
-  out_stream << " " << 3 << std::endl; // weighting scheme: both edge and node weights
+  out_stream << " " << 3 << std::endl;  // weighting scheme: both edge and node weights
 
   for (const HyperedgeID he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
@@ -225,6 +225,6 @@ inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& 
   }
   out_stream.close();
 }
-} // namespace io
+}  // namespace io
 
 #endif  // SRC_LIB_IO_HYPERGRAPHIO_H_

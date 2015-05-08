@@ -37,7 +37,7 @@ static const bool dbg_coarsening_uncoarsen_improvement = false;
 
 template <class CoarseningMemento = Mandatory>
 class CoarsenerBase {
-  protected:
+ protected:
   struct CurrentMaxNodeWeight {
     CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
       num_nodes(num_hns),
@@ -46,11 +46,11 @@ class CoarsenerBase {
     HypernodeWeight max_weight;
   };
 
-  public:
+ public:
   CoarsenerBase(const CoarsenerBase&) = delete;
   CoarsenerBase(CoarsenerBase&&) = delete;
-  CoarsenerBase& operator = (const CoarsenerBase&) = delete;
-  CoarsenerBase& operator = (CoarsenerBase&&) = delete;
+  CoarsenerBase& operator= (const CoarsenerBase&) = delete;
+  CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
   CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
@@ -66,7 +66,7 @@ class CoarsenerBase {
 
   virtual ~CoarsenerBase() { }
 
-  protected:
+ protected:
   void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
     _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
                                                   _history.back().one_pin_hes_begin,
@@ -227,6 +227,6 @@ class CoarsenerBase {
   Stats _stats;
   HypergraphPruner _hypergraph_pruner;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_COARSENERBASE_H_

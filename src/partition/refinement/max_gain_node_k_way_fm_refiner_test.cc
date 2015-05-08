@@ -21,11 +21,11 @@ namespace partition {
 using KWayFMRefinerSimpleStopping = MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AMaxGainNodeKWayFMRefiner : public Test {
-  public:
+ public:
   AMaxGainNodeKWayFMRefiner() :
     config(),
     // example hypergraph with one additional HN and one additional HE
-    hypergraph(new Hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 6, 9, 12, /*sentinel*/ 14 },
+    hypergraph(new Hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 6, 9, 12,  /*sentinel*/ 14 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6, 2, 7 }, 4)),
     refiner() {
     config.partition.k = 4;
@@ -40,7 +40,7 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     config.two_way_fm.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-    //should be large enough to act as upper bound for both bucket- and heap-based PQ
+    // should be large enough to act as upper bound for both bucket- and heap-based PQ
     refiner->initialize(100);
   }
 
@@ -70,7 +70,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   // hypergraph with positive, zero and negative gain nodes
-  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10, /*sentinel*/ 13 },
+  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10,  /*sentinel*/ 13 },
                                   HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8 }, 4));
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
   hypergraph->setNodePart(0, 0);
@@ -97,7 +97,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartitions) {
-  hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7, /*sentinel*/ 9 },
+  hypergraph.reset(new Hypergraph(8, 4, HyperedgeIndexVector { 0, 2, 4, 7,  /*sentinel*/ 9 },
                                   HyperedgeVector { 0, 1, 2, 3, 4, 5, 7, 5, 6 }, 4));
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
@@ -120,7 +120,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
-  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11, /*sentinel*/ 13 },
+  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  /*sentinel*/ 13 },
                                   HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4));
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
@@ -131,7 +131,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
 
-  Hypergraph orig_hgr(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11, /*sentinel*/ 13 },
+  Hypergraph orig_hgr(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  /*sentinel*/ 13 },
                       HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4);
   orig_hgr.setNodePart(0, 0);
   orig_hgr.setNodePart(1, 0);
@@ -149,7 +149,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-  //should be large enough to act as upper bound for both bucket- and heap-based PQ
+  // should be large enough to act as upper bound for both bucket- and heap-based PQ
   refiner->initialize(100);
 
   double old_imbalance = metrics::imbalance(*hypergraph);
@@ -162,7 +162,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
-  hypergraph.reset(new Hypergraph(10, 5, HyperedgeIndexVector { 0, 4, 7, 9, 12, /*sentinel*/ 15 },
+  hypergraph.reset(new Hypergraph(10, 5, HyperedgeIndexVector { 0, 4, 7, 9, 12,  /*sentinel*/ 15 },
                                   HyperedgeVector { 1, 2, 5, 6, 2, 3, 4, 0, 2, 2, 8, 9, 0, 2, 8 }, 4));
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
@@ -190,7 +190,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
   // hypergraph with positive, zero and negative gain nodes
-  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 7, 11, /*sentinel*/ 13, 16, 20 },
+  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 7, 11,  /*sentinel*/ 13, 16, 20 },
                                   HyperedgeVector { 0, 2, 0, 1, 3, 4, 5, 0, 3, 4, 5, 0, 1, 0, 3, 5, 0, 2, 6, 7 }, 4));
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
@@ -216,7 +216,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
 TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecrease) {
   // hypergraph with zero gain moves and different connectivity decrease values
   // Move of HN 3 to part 1 has decrease -1 and move to part 2 has decrease +1
-  hypergraph.reset(new Hypergraph(10, 4, HyperedgeIndexVector { 0, 4, 7, 10, /*sentinel*/ 13 },
+  hypergraph.reset(new Hypergraph(10, 4, HyperedgeIndexVector { 0, 4, 7, 10,  /*sentinel*/ 13 },
                                   HyperedgeVector { 0, 1, 2, 3, 3, 4, 5, 3, 8, 9, 3, 6, 7 }, 3));
 
   config.partition.k = 3;
@@ -241,4 +241,23 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   ASSERT_THAT(refiner->computeMaxGainMove(3).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(3).second, Eq(2));
 }
-} // namespace partition
+
+TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
+  hypergraph.reset(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
+                                  HyperedgeVector { 0, 1, 0 }, 2));
+
+  config.partition.k = 2;
+  config.partition.epsilon = 1.0;
+  config.partition.max_part_weight =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(1, 1);
+
+  refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+
+  ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
+  ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));
+}
+}  // namespace partition

@@ -1,18 +1,21 @@
-#ifndef SRC_LIB_STATISTICS_TIMER_H_
-#define SRC_LIB_STATISTICS_TIMER_H_
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
 
-#include "lib/definitions.h"
+#ifndef SRC_LIB_UTILS_TIMER_H_
+#define SRC_LIB_UTILS_TIMER_H_
 
 #include <chrono>
 #include <string>
 
+#include "lib/definitions.h"
+
 using defs::HighResClockTimepoint;
 
 namespace utils {
-
 class Timer {
-public:
-Timer() :
+ public:
+  Timer() :
     _start(),
     _end() { }
 
@@ -26,7 +29,7 @@ Timer() :
     LOG(timing_name << ": " << elapsed_seconds.count() << " s");
   }
 
-private:
+ private:
   HighResClockTimepoint _start;
   HighResClockTimepoint _end;
 };
@@ -35,7 +38,6 @@ class NoTimer {
   void start() { }
   void stop() { }
 };
+}  // namespace utils
 
-} // namespace utils
-
-#endif  // SRC_LIB_STATISTICS_TIMER_H_
+#endif  // SRC_LIB_UTILS_TIMER_H_

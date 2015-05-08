@@ -283,7 +283,7 @@ int main(int argc, char* argv[]) {
   using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
   using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
   using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
-  using TwoWayFMFactoryExecutor = FMFactoryExecutor<TwoWayFMRefiner>;
+  using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
   using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
   using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
   using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
                                                               RandomWalkModelStopsSearch,
                                                               nGPRandomWalkStopsSearch>,
                                                      PolicyBase,
-                                                     Typelist<OnlyRemoveIfBothQueuesClogged>,
+                                                     Typelist<NullPolicy>,
                                                      IRefiner*>;
   using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                         PolicyBase,
@@ -330,28 +330,26 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject(
     "hyperedge",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new HyperedgeCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new HyperedgeCoarsener(p.hypergraph, p.config);
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_heuristic",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_full",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsFullCoarsener(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject(
     "heavy_lazy",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+  });
 
   // lp clique not sampled
   // class 1
@@ -834,10 +832,10 @@ int main(int argc, char* argv[]) {
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
   std::unique_ptr<ICoarsener> coarsener(
-    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters)
-    );
+    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters));
 
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
+  std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
   RefinerParameters refiner_parameters(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(nullptr);
 
@@ -846,10 +844,9 @@ int main(int argc, char* argv[]) {
       TwoWayFMFactoryExecutor exec;
       refiner.reset(TwoWayFMFactoryDispatcher::go(
                       PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-                      *(clogging_policy.get()),
+                      *(null_policy.get()),
                       exec, refiner_parameters));
     } else {
-      std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
       if (vm["rtype"].as<std::string>() == "max_gain_kfm") {
         MaxGainNodeKWayFMFactoryExecutor exec;
         refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
@@ -881,6 +878,19 @@ int main(int argc, char* argv[]) {
   start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, *coarsener, *refiner);
   end = std::chrono::high_resolution_clock::now();
+
+#ifndef NDEBUG
+  for (const HyperedgeID he : hypergraph.edges()) {
+    ASSERT([&]() -> bool {
+      HypernodeID num_pins = 0;
+      for (PartitionID i = 0; i < config.partition.k; ++i) {
+        num_pins += hypergraph.pinCountInPart(he, i);
+      }
+      return num_pins == hypergraph.edgeSize(he);
+    } (),
+           "Incorrect calculation of pin counts");
+  }
+#endif
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 

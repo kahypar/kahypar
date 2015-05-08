@@ -21,16 +21,16 @@ struct MetaKeyDouble {
 
 template <class BinaryHeap>
 class PriorityQueue {
-  private:
+ private:
   using IDType = typename BinaryHeap::value_type;
   using KeyType = typename BinaryHeap::key_type;
   using DataType = typename BinaryHeap::data_type;
 
-  public:
+ public:
   PriorityQueue(const PriorityQueue&) = delete;
   PriorityQueue(PriorityQueue&&) = delete;
-  PriorityQueue& operator = (const PriorityQueue&) = delete;
-  PriorityQueue& operator = (PriorityQueue&&) = delete;
+  PriorityQueue& operator= (const PriorityQueue&) = delete;
+  PriorityQueue& operator= (PriorityQueue&&) = delete;
 
   explicit PriorityQueue(IDType size) noexcept :
     _heap(size) { }
@@ -106,9 +106,9 @@ class PriorityQueue {
     _heap.clear();
   }
 
-  private:
+ private:
   BinaryHeap _heap;
 };
-} // namespace datastructure
+}  // namespace datastructure
 
 #endif  // SRC_LIB_DATASTRUCTURE_PRIORITYQUEUE_H_

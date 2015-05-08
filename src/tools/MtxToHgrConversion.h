@@ -28,6 +28,6 @@ void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData&
 void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data);
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data, const std::string& filename);
 void convertMtxToHgr(const std::string& matrix_filename, const std::string& hypergraph_filename);
-} // namespace mtxconversion
+}  // namespace mtxconversion
 
 #endif  // SRC_TOOLS_MTXTOHGRCONVERSION_H_

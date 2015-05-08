@@ -27,16 +27,16 @@ static const bool dbg_partition_rating = false;
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
 template <typename _RatingType, class _TieBreakingPolicy>
 class Rater {
-  public:
+ public:
   using RatingType = _RatingType;
 
-  private:
+ private:
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
     HeavyEdgeRating(const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator = (const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator = (HeavyEdgeRating&&) = delete;
+    HeavyEdgeRating& operator= (const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
 
     HeavyEdgeRating(HeavyEdgeRating&& other) noexcept :
       target(std::move(other.target)),
@@ -57,11 +57,11 @@ class Rater {
     bool valid;
   };
 
-  public:
+ public:
   Rater(const Rater&) = delete;
   Rater(Rater&&) = delete;
-  Rater& operator = (const Rater&) = delete;
-  Rater& operator = (Rater&&) = delete;
+  Rater& operator= (const Rater&) = delete;
+  Rater& operator= (Rater&&) = delete;
 
   using Rating = HeavyEdgeRating;
   Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
@@ -74,13 +74,13 @@ class Rater {
   HeavyEdgeRating rate(const HypernodeID u) noexcept {
     ASSERT(_used_entries.empty(), "Stack is not empty");
     ASSERT([&]() {
-             for (const auto& bit : _visited_hypernodes) {
-               if (bit) {
-                 return false;
-               }
-             }
-             return true;
-           } (), "Bitset not empty");
+        for (const auto& bit : _visited_hypernodes) {
+          if (bit) {
+            return false;
+          }
+        }
+        return true;
+      } (), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
@@ -120,12 +120,12 @@ class Rater {
       ret.valid = true;
     }
     ASSERT([&]() {
-             bool flag = true;
-             if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
-               flag = false;
-             }
-             return flag;
-           } (), "Representative " << u << " & contraction target " << ret.target
+        bool flag = true;
+        if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
+          flag = false;
+        }
+        return flag;
+      } (), "Representative " << u << " & contraction target " << ret.target
            << " are in different parts!");
     DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
         << ret.valid << ")");
@@ -136,7 +136,7 @@ class Rater {
     return _config.coarsening.max_allowed_node_weight;
   }
 
-  private:
+ private:
   bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const noexcept {
     return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
   }
@@ -152,6 +152,6 @@ class Rater {
   std::vector<bool> _visited_hypernodes;
 };
 #pragma GCC diagnostic pop
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_RATER_H_

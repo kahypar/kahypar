@@ -49,7 +49,7 @@ struct HyperedgeCoarseningMemento {
 template <class RatingPolicy = Mandatory>
 class HyperedgeCoarsener : public ICoarsener,
                            public CoarsenerBase<HyperedgeCoarseningMemento>{
-  private:
+ private:
   using Base = CoarsenerBase<HyperedgeCoarseningMemento>;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
@@ -61,18 +61,18 @@ class HyperedgeCoarsener : public ICoarsener,
   using Rating = HyperedgeRating;
   using ContractionMemento = typename Hypergraph::ContractionMemento;
 
-  public:
+ public:
   HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
   HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
-  HyperedgeCoarsener& operator = (const HyperedgeCoarsener&) = delete;
-  HyperedgeCoarsener& operator = (HyperedgeCoarsener&&) = delete;
+  HyperedgeCoarsener& operator= (const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener& operator= (HyperedgeCoarsener&&) = delete;
 
   HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
-  private:
+ private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);
   FRIEND_TEST(AHyperedgeCoarsener, DoesNotEnqueueHyperedgesThatWouldViolateThresholdNodeWeight);
   FRIEND_TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ);
@@ -92,19 +92,19 @@ class HyperedgeCoarsener : public ICoarsener,
       DBG(dbg_coarsening_coarsen, "|" << he_to_contract << "|=" << _hg.edgeSize(he_to_contract));
 
       ASSERT([&]() {
-               HypernodeWeight total_weight = 0;
-               for (const HypernodeID pin : _hg.pins(he_to_contract)) {
-                 total_weight += _hg.nodeWeight(pin);
-               }
-               return total_weight;
-             } () <= _config.coarsening.max_allowed_node_weight,
+          HypernodeWeight total_weight = 0;
+          for (const HypernodeID pin : _hg.pins(he_to_contract)) {
+            total_weight += _hg.nodeWeight(pin);
+          }
+          return total_weight;
+        } () <= _config.coarsening.max_allowed_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight threshold");
       ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
                                                 _config.coarsening.max_allowed_node_weight).value,
              "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
              << RatingPolicy::rate(he_to_contract, _hg, _config.coarsening.max_allowed_node_weight).value);
 
-      //TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
+      // TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
       //              this HE. Instead we just remove it from the PQ? -> make a testcase!
       //              Or do we just say we coarsen until there are no more than 150 nodes left?
 
@@ -220,7 +220,7 @@ class HyperedgeCoarsener : public ICoarsener,
     auto pins_end = _hg.pins(he).second;
     HypernodeID representative = *pins_begin;
     ++pins_begin;
-    //TODO(schlag): modify hypergraph DS such that we can do index-based iteration over incidence array
+    // TODO(schlag): modify hypergraph DS such that we can do index-based iteration over incidence array
     //              via custom iterator (so that we do not need to collect the IDs to contract upfront).
     std::vector<HypernodeID> hns_to_contract;
     while (pins_begin != pins_end) {
@@ -267,6 +267,6 @@ class HyperedgeCoarsener : public ICoarsener,
   PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HYPEREDGECOARSENER_H_
