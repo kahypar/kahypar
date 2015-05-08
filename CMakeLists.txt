@@ -58,11 +58,8 @@ else(KAHYPAR_VERSION_GIT_REFSPEC)
   message(FATAL_ERROR "No git refspec detected")
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    message(STATUS "Debug Mode:")
-# Enable codestyle checks at compile time
-include(codestyle/CMakeLists.txt)
-endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
+add_custom_target(AnalyzeModifiedSource ALL  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
+add_custom_target(AnalzyeAllSource ALL  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-a")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")

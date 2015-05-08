@@ -27,12 +27,20 @@ my $launch_emacs = 0;
 # write changes to files (dangerous!)
 my $write_changes = 0;
 
+# analyze all source files instead of only modified files
+my $all_files = 0;
+
 # function testing whether to uncrustify a path
 sub filter_uncrustify($) {
     my ($path) = @_;
 
     return 1;
 }
+
+# get path to codestyle directory
+use Cwd 'abs_path';
+my $codestyle_path =  abs_path($0);
+$codestyle_path =~ s/analyze-source.pl//;
 
 use strict;
 use warnings;
@@ -159,7 +167,7 @@ sub process_cpp {
     if (filter_uncrustify($path))
     {
         my $data = join("", @data);
-        @data = filter_program($data, "uncrustify", "-q", "-c", "codestyle/uncrustify.cfg", "-l", "CPP");
+        @data = filter_program($data, "uncrustify", "-q", "-c", $codestyle_path."uncrustify.cfg", "-l", "CPP");
     }
 
     return if array_equal(\@data, \@origdata);
@@ -241,34 +249,38 @@ foreach my $arg (@ARGV) {
     if ($arg eq "-w") { $write_changes = 1; }
     elsif ($arg eq "-e") { $launch_emacs = 1; }
     elsif ($arg eq "-m") { $email_multimap = 1; }
+    elsif ($arg eq "-a") {$all_files = 1;}
     else {
         print "Unknown parameter: $arg\n";
-    }
+    } 
 }
-
-(-e "CMakeLists.txt")
-    or die("Please run this script in the C7A source base directory.");
-
 # check uncrustify's version:
 my ($uncrustver) = filter_program("", "uncrustify", "--version");
-($uncrustver eq "uncrustify 0.61\n")
-    or die("Requires uncrustify 0.61 to run correctly. ".
-           "See https://github.com/PdF14-MR/c7a/wiki/Uncrustify-as-local-pre-commit-hook");
+($uncrustver eq "uncrustify 0.61\n") or die("Requires uncrustify 0.61 to run correctly. ");
 
-use File::Find;
 my @filelist;
-find(sub { !-d && push(@filelist, $File::Find::name) }, ".");
+
+if ($all_files) {
+    use File::Find;
+    find(sub { !-d && push(@filelist, $File::Find::name) }, "../.");
+} else {
+    foreach (split /\n+/, `git status`) {
+	next unless /modified:/;
+	next if /untracked/;
+	s/	modified:   //;
+	push(@filelist, "./" . $_);
+    }
+}
 
 foreach my $file (@filelist)
 {
     $file =~ s!./!! or die("File does not start ./");
-
     if ($file =~ m!^b!) {
     }
-    elsif ($file =~ m!external|external_tools|codestyle/!) {
-        # skip external libraries
+    elsif ($file =~ m!external|external_tools|.git|cmake|codestyle/!) {
+        # skip external libraries and non-code project dirs
     }
-    elsif ($file =~ m!^release.*|debug|profile/!) {
+    elsif ($file =~ m!release.*|debug|profile/!) {
         # skip build dirs
     }
     elsif ($file =~ m!^patches/!) {
@@ -317,25 +329,6 @@ if (0)
     }
 }
 
-# print authors to AUTHORS
-print "Writing AUTHORS:\n";
-open(A, "> AUTHORS");
-foreach my $a (sort keys %authormap)
-{
-    my $mail = $authormap{$a};
-    if ($email_multimap) {
-        $mail = join(",", sort keys %{$mail});
-    }
-    else {
-        $mail = (sort keys(%{$mail}))[0]; # pick first
-    }
-    $mail = $mail ? " <$mail>" : "";
-
-    print "  $a$mail\n";
-    print A "$a$mail\n";
-}
-close(A);
-
 # check includemap for C-style headers
 {
 
@@ -363,7 +356,7 @@ close(A);
         push(@lintlist, $path);
     }
 
-    system("codestyle/cpplint.py", "--counting=total", "--extensions=h,c,cc,hpp,cpp", @lintlist);
+    system($codestyle_path."cpplint.py", "--counting=total", "--extensions=h,c,cc,hpp,cpp", @lintlist);
 }
 
 ################################################################################
