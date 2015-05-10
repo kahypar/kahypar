@@ -47,7 +47,7 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
 public:
 	GreedyHypergraphGrowingSequentialInitialPartitioner(Hypergraph& hypergraph,
 			Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), _balancer(_hg, config) {
+			InitialPartitionerBase(hypergraph, config) {
 
 		/*max_net_size = 0.0;
 		 for(HyperedgeID he : hypergraph.edges()) {
@@ -146,9 +146,9 @@ private:
 		_config.partition.epsilon = epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints();
 
-		_balancer.balancePartitions();
-
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::balancePartitions();
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -204,7 +204,7 @@ private:
 
 		} while (assignHypernodeToPartition(hn, 0));
 
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 
 	}
@@ -306,7 +306,6 @@ protected:
 	static const HypernodeID invalid_node =
 			std::numeric_limits<HypernodeID>::max();
 
-	HypergraphPartitionBalancer _balancer;
 
 };
 

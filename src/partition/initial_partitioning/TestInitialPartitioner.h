@@ -65,7 +65,6 @@ private:
 					break;
 				}
 			}
-			std::cout << _hg.partWeight(0) << std::endl;
 			if(bound_reach) {
 				break;
 			}
@@ -92,7 +91,7 @@ private:
 			}
 		}
 
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -116,12 +115,12 @@ private:
 			for (HypernodeID node : _hg.pins(edge)) {
 				if (std::find(nodeSet.begin(), nodeSet.end(), node)
 						== nodeSet.end() && _hg.partID(node) != 0) {
-					degree++;
+					degree += _hg.edgeWeight(edge);
 					break;
 				}
 			}
 		}
-		return degree;
+		return degree - _hg.edgeWeight(he);
 	}
 
 	using InitialPartitionerBase::_hg;

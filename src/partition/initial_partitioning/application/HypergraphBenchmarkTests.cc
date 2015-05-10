@@ -82,12 +82,12 @@ void printConfig(std::ofstream& latexStream) {
 	latexStream << "\\begin{itemize}\n";
 	latexStream << "\\item k = " << config.k << "\n";
 	latexStream << "\\item epsilon = ";
-	for(unsigned int i = 0; i < config.eps.size() - 1; i++) {
+	for (unsigned int i = 0; i < config.eps.size() - 1; i++) {
 		latexStream << config.eps[i] << ", ";
 	}
 	latexStream << config.eps[config.eps.size() - 1] << "\n";
 	latexStream << "\\item Seeds = ";
-	for(unsigned int i = 0; i < config.seed.size() - 1; i++)
+	for (unsigned int i = 0; i < config.seed.size() - 1; i++)
 		latexStream << config.seed[i] << ", ";
 	latexStream << config.seed[config.seed.size() - 1] << "\n";
 	latexStream << "\\end{itemize}\n";
@@ -99,11 +99,11 @@ void printTable(std::ofstream& latexStream,
 		std::vector<std::string>& benchmarks, std::vector<std::string>& modes,
 		int j) {
 	latexStream << "\\begin{tabular}[t]{";
-	for(unsigned int i = 0; i < config.eps.size(); i++) {
+	for (unsigned int i = 0; i < config.eps.size(); i++) {
 		latexStream << "|c|c|c";
 	}
 	latexStream << "|c|} \\hline \n";
-	for(unsigned int i = 0; i < config.eps.size(); i++) {
+	for (unsigned int i = 0; i < config.eps.size(); i++) {
 		latexStream
 				<< "& \\textbf{Cut} & \\textbf{Time} & \\textbf{Imbalance} ";
 	}
@@ -113,13 +113,13 @@ void printTable(std::ofstream& latexStream,
 	sum.imbalance.assign(config.eps.size(), 0);
 	sum.cut.assign(config.eps.size(), 0);
 	sum.time.assign(config.eps.size(), 0);
-	for(unsigned int i = 0; i < stats.size(); i++) {
+	for (unsigned int i = 0; i < stats.size(); i++) {
 		if (stats[i][j].status == 0)
 			latexStream << "\\textbf{" << benchmarks[i] << "}";
 		else
 			latexStream << "\\textcolor{red}{\\textbf{" << benchmarks[i]
 					<< "}}";
-		for(unsigned int k = 0; k < config.eps.size(); k++) {
+		for (unsigned int k = 0; k < config.eps.size(); k++) {
 			rounded(stats[i][j].time[k], 3);
 			rounded(stats[i][j].imbalance[k], 3);
 			sum.cut[k] += stats[i][j].cut[k];
@@ -136,7 +136,7 @@ void printTable(std::ofstream& latexStream,
 
 	}
 	latexStream << "\\textbf{Result}";
-	for(unsigned int k = 0; k < config.eps.size(); k++) {
+	for (unsigned int k = 0; k < config.eps.size(); k++) {
 		latexStream << " & " << sum.cut[k] << " & " << sum.time[k] << " s & "
 				<< (sum.imbalance[k] / static_cast<double>(benchmarks.size()));
 	}
@@ -146,24 +146,25 @@ void printTable(std::ofstream& latexStream,
 
 void printCutTable(std::ofstream& latexStream,
 		std::vector<std::vector<partitioning_stats>>& stats,
-		std::vector<std::string>& benchmarks, std::vector<std::string>& modes, int k) {
+		std::vector<std::string>& benchmarks, std::vector<std::string>& modes,
+		int k) {
 
 	latexStream << "\\begin{tabular}[t]{|c|";
-	for(unsigned int i = 0; i < modes.size(); i++)
+	for (unsigned int i = 0; i < modes.size(); i++)
 		latexStream << "c|";
 	latexStream << "} \\hline \n";
 
-	for(unsigned int i = 0; i < modes.size(); i++) {
+	for (unsigned int i = 0; i < modes.size(); i++) {
 		latexStream << " & \\textbf{" << modes[i] << "}";
 	}
 	latexStream << "\\\\ \\hline \\hline \n";
 
 	std::vector<HyperedgeWeight> result(modes.size(), 0);
-	for(unsigned int i = 0; i < benchmarks.size(); i++) {
+	for (unsigned int i = 0; i < benchmarks.size(); i++) {
 
 		latexStream << "\\textbf{" << benchmarks[i] << "}";
 
-		for(unsigned int j = 0; j < modes.size(); j++) {
+		for (unsigned int j = 0; j < modes.size(); j++) {
 			latexStream << " & " << stats[i][j].cut[k];
 			result[j] += stats[i][j].cut[k];
 		}
@@ -174,7 +175,7 @@ void printCutTable(std::ofstream& latexStream,
 	}
 
 	latexStream << "\\textbf{Result}";
-	for(unsigned int i = 0; i < result.size(); i++) {
+	for (unsigned int i = 0; i < result.size(); i++) {
 		latexStream << " & " << result[i];
 	}
 	latexStream << "\\\\ \\hline \n";
@@ -352,7 +353,7 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 
 	printConfig(latexStream);
 
-	for(unsigned int i = 0; i < modes.size(); i++) {
+	for (unsigned int i = 0; i < modes.size(); i++) {
 		latexStream << "\\subsection{" << modes[i] << "} \n";
 		latexStream << "\\begin{center}\n";
 		printTable(latexStream, stats, benchmarks, modes, i);
@@ -360,7 +361,7 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 		latexStream << "\n";
 	}
 
-	for(unsigned int i = 0; i < config.eps.size(); i++) {
+	for (unsigned int i = 0; i < config.eps.size(); i++) {
 		latexStream << "\\subsection{$\\epsilon = " << config.eps[i] << "$} \n";
 		latexStream << "\\begin{center}\n";
 		printCutTable(latexStream, stats, benchmarks, modes, i);
@@ -415,10 +416,11 @@ void printLatexFile2(std::vector<std::vector<partitioning_stats>>& stats,
 int main(int argc, char* argv[]) {
 
 	std::vector<std::string> benchmarks { "ibm01", "ibm02", "ibm03", "ibm04",
-			"ibm05", "ibm06", "ibm07",
-			"bcsstk29", "bcsstk31", "bcsstk32", "s15850", "s35932",
-			"s38584" };
-	std::vector<std::string> modes { "random", "recursive-random", "bfs", "recursive-bfs", "greedy","greedy-global", "greedy-round", "recursive-greedy" };
+			"ibm05", "ibm06", "ibm07", "vibrobox", "bcsstk29", "bcsstk31",
+			"bcsstk32" };
+	std::vector<std::string> modes { "random", "recursive-random", "bfs",
+			"recursive-bfs", "lp", "greedy", "greedy-global", "greedy-round",
+			"recursive-greedy" };
 
 	/*std::vector<std::string> benchmarks {
 	 "ibm03", "ibm04", "ibm05"};
@@ -456,7 +458,7 @@ int main(int argc, char* argv[]) {
 			statistic.time.assign(config.eps.size(), 0);
 			statistic.status = 0;
 
-			for(unsigned int j = 0; j < config.eps.size(); j++) {
+			for (unsigned int j = 0; j < config.eps.size(); j++) {
 
 				for (std::string seed : config.seed) {
 
@@ -488,7 +490,7 @@ int main(int argc, char* argv[]) {
 									+ " --epsilon="
 									+ std::to_string(config.eps[j]) + " --mode="
 									+ mode
-									+ " --refinement=false --rollback=false --output=output/"
+									+ " --refinement=false --rollback=false --erase_components=false --stats=false --output=output/"
 									+ benchmark + ".part." + config.k;
 
 					HighResClockTimepoint start;

@@ -52,7 +52,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 			while(assignHypernodeToPartition(hn,0)) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);
 			}
-			InitialPartitionerBase::rollbackToBestBisectionCut();
+			InitialPartitionerBase::rollbackToBestCut();
 			InitialPartitionerBase::performFMRefinement();
 		}
 

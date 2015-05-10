@@ -76,7 +76,7 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 	ASSERT_FALSE(partitioner->assignHypernodeToPartition(3,1));
 }
 
-/*TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
+TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
 	//Assign hypernodes
 	hypergraph.setNodePart(0,1);
 	hypergraph.setNodePart(1,1);
@@ -92,7 +92,7 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 
 	//Perform rollback to best bisection cut
 	HyperedgeWeight cut_before = metrics::hyperedgeCut(hypergraph);
-	partitioner->rollbackToBestBisectionCut();
+	partitioner->rollbackToBestCut();
 	HyperedgeWeight cut_after = metrics::hyperedgeCut(hypergraph);
 
 	//The best bisection cut is 2 (0,1,2 -> 0 and 3,4,5,6 -> 1)
@@ -105,7 +105,7 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 			ASSERT_EQ(hypergraph.partID(hn), 1);
 	}
 
-}*/
+}
 
 TEST_F(AInitialPartionerBaseTest, AExtractingHypergraphPartitionTest) {
 

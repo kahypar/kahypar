@@ -24,6 +24,7 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
+#include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
@@ -49,6 +50,7 @@ using partition::BFSInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
+using partition::LabelPropagationInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
 using partition::SimulatedAnnealingPartitioner;
 using partition::RecursiveBisection;
@@ -112,6 +114,19 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			config.initial_partitioning.refinement =
 					vm["refinement"].as<bool>();
 		}
+		if (vm.count("erase_components")) {
+			config.initial_partitioning.erase_components =
+					vm["erase_components"].as<bool>();
+		}
+		if (vm.count("balance")) {
+			config.initial_partitioning.balance = vm["balance"].as<bool>();
+		}
+		if (vm.count("stats")) {
+			config.initial_partitioning.stats = vm["stats"].as<bool>();
+		}
+		if (vm.count("styles")) {
+			config.initial_partitioning.styles = vm["styles"].as<bool>();
+		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);
@@ -128,6 +143,10 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.ils_iterations = 50;
 	config.initial_partitioning.rollback = true;
 	config.initial_partitioning.refinement = true;
+	config.initial_partitioning.erase_components = true;
+	config.initial_partitioning.balance = true;
+	config.initial_partitioning.stats = true;
+	config.initial_partitioning.styles = true;
 
 	config.two_way_fm.stopping_rule = "simple";
 	config.two_way_fm.num_repetitions = -1;
@@ -146,6 +165,10 @@ void createInitialPartitioningFactory() {
 	InitialPartitioningFactory::getInstance().registerObject("bfs",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("lp",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -183,6 +206,10 @@ void createInitialPartitioningFactory() {
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
+	InitialPartitioningFactory::getInstance().registerObject("recursive-lp",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new RecursiveBisection<LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy>>(p.hypergraph,p.config);
+			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new RecursiveBisection<TestInitialPartitioner>(p.hypergraph,p.config);
@@ -206,9 +233,12 @@ void createInitialPartitioningFactory() {
 			});
 }
 
-
-
 int main(int argc, char* argv[]) {
+
+	HighResClockTimepoint start;
+	HighResClockTimepoint end;
+
+	start = std::chrono::high_resolution_clock::now();
 	//Reading command line input
 	po::options_description desc("Allowed options");
 	desc.add_options()("help", "show help message")("hgr",
@@ -224,7 +254,16 @@ int main(int argc, char* argv[]) {
 			po::value<bool>(),
 			"Rollback to best cut, if you bipartition a hypergraph")(
 			"refinement", po::value<bool>(),
-			"Enables/Disable refinement after initial partitioning calculation");
+			"Enables/Disable refinement after initial partitioning calculation")(
+			"erase_components", po::value<bool>(),
+			"Enables/Disable erasing of connected components")("balance",
+			po::value<bool>(), "Enables/Disable balancing of heavy partitions")(
+			"stats", po::value<bool>(),
+			"Enables/Disable initial partitioning statistic output")("styles",
+			po::value<bool>(),
+			"Enables/Disable initial partitioning statistic output with styles")("file",
+			po::value<std::string>(), "filename of result file");
+	;
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -282,29 +321,51 @@ int main(int argc, char* argv[]) {
 			InitialPartitioningFactory::getInstance().createObject(
 					config.initial_partitioning.mode,
 					initial_partitioning_parameters));
-
-	HighResClockTimepoint start;
-	HighResClockTimepoint end;
+	end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	InitialStatManager::getInstance().addStat("Time Measurements",
+			"Enviroment Creation time",
+			static_cast<double>(elapsed_seconds.count()));
 
 	start = std::chrono::high_resolution_clock::now();
 	(*partitioner).partition(config.initial_partitioning.k);
 	end = std::chrono::high_resolution_clock::now();
 
-	std::chrono::duration<double> elapsed_seconds = end - start;
+	elapsed_seconds = end - start;
 	InitialStatManager::getInstance().addStat("Time Measurements",
-			"Initial Partitioning Time",
-			static_cast<double>(elapsed_seconds.count()), "\033[32;1m");
+			"initialPartitioningTime",
+			static_cast<double>(elapsed_seconds.count()), "\033[32;1m", true);
 
-	InitialPartitioningStats* stats = new InitialPartitioningStats(hypergraph,config);
-	stats->createConfiguration();
-	stats->createMetrics();
-	stats->createHypergraphInformation();
-	stats->createPartitioningResults();
-	InitialStatManager::getInstance().printStats();
+	if (config.initial_partitioning.stats) {
+		InitialPartitioningStats* stats = new InitialPartitioningStats(
+				hypergraph, config);
+		stats->createConfiguration();
+		stats->createMetrics();
+		stats->createHypergraphInformation();
+		stats->createPartitioningResults();
+	}
 
-	if (vm.count("output"))
+	if (vm.count("output")) {
+		start = std::chrono::high_resolution_clock::now();
 		io::writePartitionFile(hypergraph,
 				config.initial_partitioning.coarse_graph_partition_filename);
+		end = std::chrono::high_resolution_clock::now();
+		elapsed_seconds = end - start;
+		InitialStatManager::getInstance().addStat("Time Measurements",
+				"Partition Output Write Time",
+				static_cast<double>(elapsed_seconds.count()));
+	}
+
+	std::string result_file;
+	if (vm.count("file")) {
+		result_file = vm["file"].as<std::string>();
+	}
+
+	InitialStatManager::getInstance().setGraphName(
+			config.initial_partitioning.coarse_graph_filename);
+	InitialStatManager::getInstance().setMode(config.initial_partitioning.mode);
+	InitialStatManager::getInstance().printStats(result_file,config.initial_partitioning.styles);
+	InitialStatManager::getInstance().printResultLine(result_file);
 
 }
 

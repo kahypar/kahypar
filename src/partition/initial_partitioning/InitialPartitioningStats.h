@@ -58,39 +58,43 @@ public:
 
 	void createConfiguration() {
 		InitialStatManager::getInstance().addStat("Configuration", "k",
-				_config.initial_partitioning.k);
+				_config.initial_partitioning.k, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "epsilon",
-				_config.partition.epsilon);
+				_config.partition.epsilon, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "seed",
-				_config.initial_partitioning.seed);
+				_config.initial_partitioning.seed, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
-				"refinement active", _config.initial_partitioning.refinement);
+				"refinement", _config.initial_partitioning.refinement, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
-				"rollback active", _config.initial_partitioning.rollback);
+				"rollback", _config.initial_partitioning.rollback, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
-				"Minimum allowed partition weight",
-				_config.initial_partitioning.lower_allowed_partition_weight[0]);
+				"erase_components", _config.initial_partitioning.erase_components, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
-				"Maximum allowed partition weight",
-				_config.initial_partitioning.upper_allowed_partition_weight[0]);
+				"balance", _config.initial_partitioning.balance, "", true);
+		InitialStatManager::getInstance().addStat("Configuration",
+				"minimumAllowedPartitionWeight",
+				_config.initial_partitioning.lower_allowed_partition_weight[0], "", true);
+		InitialStatManager::getInstance().addStat("Configuration",
+				"maximumAllowedPartitionWeight",
+				_config.initial_partitioning.upper_allowed_partition_weight[0], "", true);
 	}
 
 	void createMetrics() {
-		InitialStatManager::getInstance().addStat("Metrics", "Hyperedge Cut",
-				metrics::hyperedgeCut(_hg), BOLDGREEN);
-		InitialStatManager::getInstance().addStat("Metrics", "Soed",
-				metrics::soed(_hg));
-		InitialStatManager::getInstance().addStat("Metrics", "k-1",
-				metrics::kMinus1(_hg));
-		InitialStatManager::getInstance().addStat("Metrics", "Absorption",
-				metrics::absorption(_hg));
+		InitialStatManager::getInstance().addStat("Metrics", "hyperedgeCut",
+				metrics::hyperedgeCut(_hg), BOLDGREEN, true);
+		InitialStatManager::getInstance().addStat("Metrics", "soed",
+				metrics::soed(_hg), "", true);
+		InitialStatManager::getInstance().addStat("Metrics", "kMinus1",
+				metrics::kMinus1(_hg), "", true);
+		InitialStatManager::getInstance().addStat("Metrics", "absorption",
+				metrics::absorption(_hg), "", true);
 		double imbalance = metrics::imbalance(_hg);
 		if (imbalance <= _config.partition.epsilon + 0.0001) {
-			InitialStatManager::getInstance().addStat("Metrics", "Imbalance",
-					metrics::imbalance(_hg), BOLDGREEN);
+			InitialStatManager::getInstance().addStat("Metrics", "imbalance",
+					metrics::imbalance(_hg), BOLDGREEN, true);
 		} else {
-			InitialStatManager::getInstance().addStat("Metrics", "Imbalance",
-					metrics::imbalance(_hg), BOLDRED);
+			InitialStatManager::getInstance().addStat("Metrics", "imbalance",
+					metrics::imbalance(_hg), BOLDRED, true);
 		}
 	}
 
@@ -100,10 +104,12 @@ public:
 		HyperedgeWeight greatest_hyperedge_weight = 0.0;
 		double avg_hyperedge_weight = 0.0;
 		int cut_edges = 0;
+		double total_hyperedge_weight = 0.0;
 		for(HyperedgeID he : _hg.edges()) {
 			if(_hg.connectivity(he) > 1) {
 				cut_edges++;
 			}
+			total_hyperedge_weight += _hg.edgeWeight(he);
 			avg_hyperedge_size += _hg.edgeSize(he);
 			avg_hyperedge_weight += _hg.edgeWeight(he);
 			if(biggest_hyperedge < _hg.edgeSize(he)) {
@@ -119,7 +125,9 @@ public:
 		double avg_hypernode_degree = 0.0;
 		HypernodeWeight greatest_hypernode_weight = 0.0;
 		double avg_hypernode_weight = 0.0;
+		double total_hypernode_weight = 0.0;
 		for(HypernodeID hn : _hg.nodes()) {
+			total_hypernode_weight += _hg.nodeWeight(hn);
 			avg_hypernode_degree += _hg.nodeDegree(hn);
 			avg_hypernode_weight += _hg.nodeWeight(hn);
 			if(greatest_hypernode_degree < _hg.nodeDegree(hn)) {
@@ -132,56 +140,72 @@ public:
 		avg_hypernode_degree /= _hg.numNodes();
 		avg_hypernode_weight /= _hg.numNodes();
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Number of Hypernodes", _hg.numNodes());
+				"numberOfHypernodes", _hg.numNodes(), "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Number of Hyperedges", _hg.numEdges());
+				"numberOfHyperedges", _hg.numEdges(), "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Average hyperedge size", avg_hyperedge_size);
+				"weightOfHypernodes", total_hypernode_weight, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Average hyperedge weight", avg_hyperedge_weight);
+				"weightOfHyperedges", total_hyperedge_weight, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Average hypernode degree", avg_hypernode_degree);
+				"averageHyperedgeSize", avg_hyperedge_size, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Average hypernode weight", avg_hypernode_weight);
+				"averageHyperedgeWeight", avg_hyperedge_weight, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Maximum hyperedge size", biggest_hyperedge);
+				"averageHypernodeDegree", avg_hypernode_degree, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Maximum hyperedge weight", greatest_hyperedge_weight);
+				"averageHypernodeWeight", avg_hypernode_weight, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Maximum hypernode degree", greatest_hypernode_degree);
+				"maximumHyperedgeSize", biggest_hyperedge, "", true);
 		InitialStatManager::getInstance().addStat("Hypergraph Informations",
-				"Maximum hypernode weight", greatest_hypernode_weight);
+				"maximumHyperedgeWeight", greatest_hyperedge_weight, "", true);
+		InitialStatManager::getInstance().addStat("Hypergraph Informations",
+				"maximumHypernodeDegree", greatest_hypernode_degree, "", true);
+		InitialStatManager::getInstance().addStat("Hypergraph Informations",
+				"maximumHypernodeWeight", greatest_hypernode_weight, "", true);
 
 		InitialStatManager::getInstance().addStat("Partitioning Results",
-				"Cut edges count", cut_edges);
+				"cutEdges", cut_edges, "", true);
 	}
 
 	void createPartitioningResults(bool calc_partition_weights = true,
 			bool calc_connected_components = true) {
+		int connected_components_count = 0;
+		double average_partition_weight = 0.0;
+		double max_partition_weight = 0.0;
+		double min_partition_weight = std::numeric_limits<double>::max();
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			average_partition_weight += _hg.partWeight(i);
+			if(_hg.partWeight(i) > max_partition_weight) {
+				max_partition_weight = _hg.partWeight(i);
+			}
+			if(_hg.partWeight(i) < min_partition_weight) {
+				min_partition_weight = _hg.partWeight(i);
+			}
 			if (calc_partition_weights) {
 				if (_hg.partWeight(i)
 						> _config.initial_partitioning.upper_allowed_partition_weight[i]) {
 					InitialStatManager::getInstance().addStat(
 							"Partitioning Results",
-							"Part weight of partition " + std::to_string(i),
-							_hg.partWeight(i), BOLDRED);
+							"partWeight" + std::to_string(i),
+							_hg.partWeight(i), BOLDRED, true);
 				} else if (_hg.partWeight(i)
 						< _config.initial_partitioning.lower_allowed_partition_weight[i]) {
 					InitialStatManager::getInstance().addStat(
 							"Partitioning Results",
-							"Part weight of partition " + std::to_string(i),
-							_hg.partWeight(i), YELLOW);
+							"partWeight" + std::to_string(i),
+							_hg.partWeight(i), YELLOW, true);
 				} else {
 					InitialStatManager::getInstance().addStat(
 							"Partitioning Results",
-							"Part weight of partition " + std::to_string(i),
-							_hg.partWeight(i));
+							"partWeight" + std::to_string(i),
+							_hg.partWeight(i),"",true);
 				}
 			}
 			if (calc_connected_components) {
 				std::vector<int> connectedComponents =
 						countConnectedComponentsInPartition(i);
+				connected_components_count += connectedComponents.size();
 				std::sort(connectedComponents.begin(),
 						connectedComponents.end(), std::greater<int>());
 				if (connectedComponents.size() == 1) {
@@ -207,6 +231,25 @@ public:
 				}
 			}
 		}
+		average_partition_weight /= _config.initial_partitioning.k;
+		if(calc_connected_components) {
+			InitialStatManager::getInstance().addStat(
+					"Partitioning Results",
+					"connectedComponentsCount",
+					connected_components_count, "", true);
+		}
+		InitialStatManager::getInstance().addStat(
+				"Partitioning Results",
+				"averagePartitionWeight",
+				average_partition_weight, "", true);
+		InitialStatManager::getInstance().addStat(
+				"Partitioning Results",
+				"minPartitionWeight",
+				min_partition_weight, "", true);
+		InitialStatManager::getInstance().addStat(
+				"Partitioning Results",
+				"maxPartitionWeight",
+				max_partition_weight, "", true);
 	}
 
 protected:

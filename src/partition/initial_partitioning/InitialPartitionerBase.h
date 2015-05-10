@@ -17,6 +17,7 @@
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialStatManager.h"
+#include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
@@ -35,6 +36,7 @@ using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
 
+using partition::HypergraphPartitionBalancer;
 using partition::InitialStatManager;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
@@ -50,7 +52,6 @@ struct node_assignment {
 	PartitionID to;
 };
 
-
 class InitialPartitionerBase {
 
 public:
@@ -59,8 +60,8 @@ public:
 	_hg(hypergraph),
 	_config(config),
 	bisection_assignment_history(),
-	refiner(_hg, _config) {
-
+	refiner(_hg, _config),
+	_balancer(_hg, _config) {
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -90,6 +91,22 @@ public:
 		}
 	}
 
+	void eraseConnectedComponents() {
+		if(_config.initial_partitioning.erase_components) {
+			HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+			_balancer.eraseSmallConnectedComponents();
+			HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> elapsed_seconds = end - start;
+			InitialStatManager::getInstance().updateStat("Time Measurements", "Erasing Connected Components time",InitialStatManager::getInstance().getStat("Time Measurements", "Erasing Connected Components time") + static_cast<double>(elapsed_seconds.count()));
+		}
+	}
+
+	void balancePartitions() {
+		if(_config.initial_partitioning.balance) {
+			_balancer.balancePartitions();
+		}
+	}
+
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
@@ -116,9 +133,10 @@ public:
 		}
 	}
 
-	void rollbackToBestBisectionCut() {
+	void rollbackToBestCut() {
 		if (_config.initial_partitioning.rollback) {
 			if(!bisection_assignment_history.empty()) {
+				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 				HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
 				PartitionID from, to;
@@ -133,9 +151,12 @@ public:
 					from = assignment.from;
 					to = assignment.to;
 				}
+				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+				std::chrono::duration<double> elapsed_seconds = end - start;
 				ASSERT(metrics::hyperedgeCut(_hg) == best_cut,
 						"Calculation of the best seen cut failed. Should be " << best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during rollback",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during rollback") + (cut_before-best_cut));
+				InitialStatManager::getInstance().updateStat("Time Measurements", "Rollback time",InitialStatManager::getInstance().getStat("Time Measurements", "Rollback time") + static_cast<double>(elapsed_seconds.count()));
 			}
 		}
 	}
@@ -156,7 +177,9 @@ public:
 					return false;
 				}
 			}
-			calculateBisectionCutAfterAssignment(hn, source_part, target_part);
+			if(_config.initial_partitioning.rollback) {
+				calculateCutAfterAssignment(hn, source_part, target_part);
+			}
 			ASSERT(_hg.partID(hn) == target_part,
 					"Assigned partition of Hypernode "<< hn<< " should be " << target_part << ", but currently is " << _hg.partID(hn));
 			return true;
@@ -181,6 +204,8 @@ public:
 			HyperedgeWeightVector& hyperedge_weights,
 			HypernodeWeightVector& hypernode_weights,
 			std::vector<HypernodeID>& hgToExtractedPartitionMapping) {
+
+		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
 		std::unordered_map<HypernodeID, HypernodeID> hypernodeMapper;
 		for (HypernodeID hn : hyper.nodes()) {
@@ -266,17 +291,22 @@ public:
 					return true;
 				}(),"There are cut edges in the extracted hypergraph.");
 
+		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		InitialStatManager::getInstance().updateStat("Time Measurements", "Extracting Hypergraph time",InitialStatManager::getInstance().getStat("Time Measurements", "Extracting Hypergraph time") + static_cast<double>(elapsed_seconds.count()));
 	}
 
 protected:
 	Hypergraph& _hg;
 	Configuration& _config;
+	HypergraphPartitionBalancer _balancer;
 	HypernodeWeight total_hypergraph_weight = 0;
 	HypernodeWeight heaviest_node = 0;
 
 private:
 
-	void calculateBisectionCutAfterAssignment(HypernodeID hn, PartitionID from, PartitionID to) {
+	void calculateCutAfterAssignment(HypernodeID hn, PartitionID from, PartitionID to) {
+		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 		for(HyperedgeID he : _hg.incidentEdges(hn)) {
 			HyperedgeID pins_in_source_part_before = 0;
 			if(from != -1) {
@@ -297,6 +327,9 @@ private:
 				current_cut += _hg.edgeWeight(he);
 			}
 		}
+
+		ASSERT(current_cut == metrics::hyperedgeCut(_hg),"Calculated hyperedge cut doesn't match with the real hyperedge cut!");
+
 		bool isFeasibleSolution = true;
 		for(PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
 			if(_hg.partWeight(k) > _config.initial_partitioning.upper_allowed_partition_weight[k]) {
@@ -316,6 +349,9 @@ private:
 			bisection_assignment_history.push(assign);
 		}
 
+		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		InitialStatManager::getInstance().updateStat("Time Measurements", "Precalculation Rollback time",InitialStatManager::getInstance().getStat("Time Measurements", "Precalculation Rollback time") + static_cast<double>(elapsed_seconds.count()));
 	}
 
 	HypernodeID best_cut_node = std::numeric_limits<HypernodeID>::max();

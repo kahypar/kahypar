@@ -47,6 +47,7 @@ private:
 
 	void kwayPartitionImpl() final {
 		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1);
+		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::recalculateBalanceConstraints();
 		InitialPartitionerBase::performFMRefinement();
 	}
@@ -63,13 +64,12 @@ private:
 
 		double base = ((static_cast<double>(k) * total_hypergraph_weight)
 				/ (static_cast<double>(_config.initial_partitioning.k)
-						* hypergraph_weight))*(1 + _config.partition.epsilon);
-
+						* hypergraph_weight)) * (1 + _config.partition.epsilon);
 
 		return std::pow(base,
 				1.0
-						/ std::ceil((std::log(
-								static_cast<double>(k))/std::log(2))))
+						/ std::ceil(
+								(std::log(static_cast<double>(k)) / std::log(2))))
 				- 1.0;
 
 	}
@@ -139,15 +139,19 @@ private:
 		InitialPartitioner partitioner(hyper, _config);
 		partitioner.partition(2);
 
-		InitialStatManager::getInstance().addStat("Recursive Bisection",
-				"Hypergraph weight (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
-				hypergraph_weight);
-		InitialStatManager::getInstance().addStat("Recursive Bisection",
-				"Epsilon (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
-				_config.initial_partitioning.epsilon);
-		InitialStatManager::getInstance().addStat("Recursive Bisection",
-				"Hypergraph cut (" + std::to_string(k1) + " - " + std::to_string(k2) + ")",
-				metrics::hyperedgeCut(hyper));
+		if (_config.initial_partitioning.stats) {
+			InitialStatManager::getInstance().addStat("Recursive Bisection",
+					"Hypergraph weight (" + std::to_string(k1) + " - "
+							+ std::to_string(k2) + ")", hypergraph_weight);
+			InitialStatManager::getInstance().addStat("Recursive Bisection",
+					"Epsilon (" + std::to_string(k1) + " - "
+							+ std::to_string(k2) + ")",
+					_config.initial_partitioning.epsilon);
+			InitialStatManager::getInstance().addStat("Recursive Bisection",
+					"Hypergraph cut (" + std::to_string(k1) + " - "
+							+ std::to_string(k2) + ")",
+					metrics::hyperedgeCut(hyper));
+		}
 
 		//Extract Hypergraph with partition 0
 		HypernodeID num_hypernodes_0;
@@ -167,7 +171,6 @@ private:
 
 		//Recursive bisection on partition 0
 		recursiveBisection(partition_0, k1, k1 + km - 1);
-
 
 		//Extract Hypergraph with partition 1
 		HypernodeID num_hypernodes_1;

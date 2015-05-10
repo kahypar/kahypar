@@ -94,8 +94,11 @@ private:
 
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
 
+			bool every_part_disable = true;
+
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 				if (partEnable[i]) {
+					every_part_disable = false;
 					HypernodeID hn;
 					if (bq[i]->empty()) {
 						HypernodeID newStartNode =
@@ -145,9 +148,13 @@ private:
 					break;
 				}
 			}
+			if(every_part_disable) {
+				break;
+			}
 		}
 		InitialPartitionerBase::recalculateBalanceConstraints();
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -204,7 +211,7 @@ private:
 
 		} while (assignHypernodeToPartition(hn, 0));
 
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 
 	}

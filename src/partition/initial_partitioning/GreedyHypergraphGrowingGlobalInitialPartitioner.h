@@ -149,6 +149,7 @@ private:
 						partEnable[i] = true;
 					}
 				}
+				every_part_is_disable = false;
 			} else {
 				ASSERT(best_gain != initial_gain,
 						"No hypernode found to assign!");
@@ -186,9 +187,14 @@ private:
 
 				}
 			}
+
+			if(every_part_is_disable  && release_upper_partition_bound) {
+				break;
+			}
 		}
 		InitialPartitionerBase::recalculateBalanceConstraints();
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -244,7 +250,7 @@ private:
 
 		} while (assignHypernodeToPartition(hn, 0));
 
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 
 	}

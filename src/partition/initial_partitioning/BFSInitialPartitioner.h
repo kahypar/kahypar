@@ -166,7 +166,7 @@ private:
 			pushIncidentHyperedgesIntoQueue(bfs, hn, in_queue, unassigned_part);
 		} while (assignHypernodeToPartition(hn, 0));
 
-		InitialPartitionerBase::rollbackToBestBisectionCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
