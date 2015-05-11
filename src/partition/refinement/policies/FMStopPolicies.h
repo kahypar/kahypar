@@ -108,9 +108,9 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
                                const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
     return num_moves_since_last_improvement
            >= config.fm_local_search.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
-                                         / (2.0 * (static_cast<double>(best_cut) - cut)
-                                            * (static_cast<double>(best_cut) - cut) - 0.5)
-                                         + beta);
+                                              / (2.0 * (static_cast<double>(best_cut) - cut)
+                                                 * (static_cast<double>(best_cut) - cut) - 0.5)
+                                              + beta);
   }
 
   static void resetStatistics() noexcept {

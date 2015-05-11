@@ -112,16 +112,14 @@ struct Configuration {
     bool active;
   };
 
-  struct LPRefinementParameters
-  {
+  struct LPRefinementParameters {
     LPRefinementParameters() :
       max_number_iterations(3),
-      active(false) { };
+      active(false) { }
 
     int max_number_iterations;
     bool active;
   };
-
 
 
   PartitioningParameters partition;
@@ -134,7 +132,7 @@ struct Configuration {
     partition(),
     coarsening(),
     fm_local_search(),
-    her_fm()
+    her_fm(),
     lp_refiner() { }
 };
 

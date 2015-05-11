@@ -30,9 +30,9 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -189,7 +189,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.her_fm.active = true;
         config.lp_refiner.active = false;
       } else if (vm["rtype"].as<std::string>() == "lp_refiner") {
-        config.two_way_fm.active = false;
+        config.fm_local_search.active = false;
         config.her_fm.active = false;
         config.lp_refiner.active = true;
 
@@ -382,7 +382,6 @@ int main(int argc, char* argv[]) {
                                             static_cast<double>(config.partition.k));
 
 
-
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
                                               config.partition.total_graph_weight;
   config.fm_local_search.beta = log(num_hypernodes);
@@ -431,14 +430,14 @@ int main(int argc, char* argv[]) {
         MaxGainNodeKWayFMFactoryExecutor exec;
         refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
                         PolicyRegistry::getInstance().getPolicy(
-                            config.fm_local_search.stopping_rule),
+                          config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
                         exec, refiner_parameters));
       } else if (vm["rtype"].as<std::string>() == "kfm") {
         KWayFMFactoryExecutor exec;
         refiner.reset(KWayFMFactoryDispatcher::go(
                         PolicyRegistry::getInstance().getPolicy(
-                            config.fm_local_search.stopping_rule),
+                          config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
                         exec, refiner_parameters));
       }
