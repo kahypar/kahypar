@@ -46,12 +46,12 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " coarseningContractionLimit=" << config.coarsening.contraction_limit
   << coarsener.stats().toString()
   << partitioner.stats().toString();
-  if (config.two_way_fm.active) {
-    oss << " twowayFMactive=" << config.two_way_fm.active
-    << " twowayFMNumRepetitions=" << config.two_way_fm.num_repetitions
-    << " twowayFMFruitlessMoves=" << config.two_way_fm.max_number_of_fruitless_moves
-    << " twowayFMalpha=" << config.two_way_fm.alpha
-    << " twowayFMbeta=" << config.two_way_fm.beta;
+  if (config.fm_local_search.active) {
+    oss << " FMactive=" << config.fm_local_search.active
+    << " FMNumRepetitions=" << config.fm_local_search.num_repetitions
+    << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
+    << " FMalpha=" << config.fm_local_search.alpha
+    << " FMbeta=" << config.fm_local_search.beta;
   }
   if (config.her_fm.active) {
     oss << " herFMactive=" << config.her_fm.active

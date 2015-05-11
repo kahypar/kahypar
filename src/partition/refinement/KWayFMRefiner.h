@@ -244,7 +244,7 @@ class KWayFMRefiner : public IRefiner,
   }
 
   int numRepetitionsImpl() const noexcept final {
-    return _config.two_way_fm.num_repetitions;
+    return _config.fm_local_search.num_repetitions;
   }
 
   std::string policyStringImpl() const noexcept final {

@@ -19,7 +19,7 @@ struct StoppingPolicy : PolicyBase {
 struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int, const Configuration& config,
                                const double, const HyperedgeWeight, const HyperedgeWeight) noexcept {
-    return _num_moves >= config.two_way_fm.max_number_of_fruitless_moves;
+    return _num_moves >= config.fm_local_search.max_number_of_fruitless_moves;
   }
 
   static void resetStatistics() noexcept {
@@ -45,12 +45,12 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
                                const HyperedgeWeight, const HyperedgeWeight) noexcept {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
-    DBG(false, config.two_way_fm.alpha << "*" << _expected_variance << "+" << beta << "="
-        << config.two_way_fm.alpha * _expected_variance + beta);
+    DBG(false, config.fm_local_search.alpha << "*" << _expected_variance << "+" << beta << "="
+        << config.fm_local_search.alpha * _expected_variance + beta);
     DBG(false, "return=" << ((_num_steps * _expected_gain * _expected_gain >
-                              config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1)));
+                              config.fm_local_search.alpha * _expected_variance + beta) && (_num_steps != 1)));
     return (_num_steps * _expected_gain * _expected_gain >
-            config.two_way_fm.alpha * _expected_variance + beta) && (_num_steps != 1);
+            config.fm_local_search.alpha * _expected_variance + beta) && (_num_steps != 1);
   }
 
   static void resetStatistics() noexcept {
@@ -107,7 +107,7 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
                                const Configuration& config, const double beta,
                                const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
     return num_moves_since_last_improvement
-           >= config.two_way_fm.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
+           >= config.fm_local_search.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
                                          / (2.0 * (static_cast<double>(best_cut) - cut)
                                             * (static_cast<double>(best_cut) - cut) - 0.5)
                                          + beta);

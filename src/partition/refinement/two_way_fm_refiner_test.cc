@@ -35,7 +35,7 @@ class ATwoWayFMRefiner : public Test {
     hypergraph->setNodePart(4, 0);
     hypergraph->setNodePart(5, 1);
     hypergraph->setNodePart(6, 1);
-    config.two_way_fm.max_number_of_fruitless_moves = 50;
+    config.fm_local_search.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, config);
     refiner->initialize();
   }
@@ -49,7 +49,7 @@ class AGainUpdateMethod : public Test {
  public:
   AGainUpdateMethod() :
     config() {
-    config.two_way_fm.max_number_of_fruitless_moves = 50;
+    config.fm_local_search.max_number_of_fruitless_moves = 50;
   }
 
   Configuration config;
@@ -429,7 +429,7 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
   hypergraph.reset(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
                                   HyperedgeVector { 0, 1, 0 }, 2));
 
-  config.two_way_fm.max_number_of_fruitless_moves = 50;
+  config.fm_local_search.max_number_of_fruitless_moves = 50;
   config.partition.total_graph_weight = 2;
   config.partition.k = 2;
   config.partition.epsilon = 1.0;

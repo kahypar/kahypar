@@ -28,7 +28,7 @@ class AKwayFMRefiner : public Test {
     hypergraph(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
                               HyperedgeVector { 0, 1, 0 }, 2)),
     refiner() {
-    config.two_way_fm.max_number_of_fruitless_moves = 50;
+    config.fm_local_search.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 2;
     config.partition.k = 2;
     config.partition.epsilon = 1.0;
