@@ -30,25 +30,25 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
 
 
 // vitali lp-includes
-//#include "external/lpa_hypergraph/include/clusterer/policies.hpp"
-//#include "external/lpa_hypergraph/include/clusterer/first_choice.hpp"
-//#include "external/lpa_hypergraph/include/clusterer/heavy_connectivity.hpp"
-//#include "partition/coarsening/BestChoiceCoarsener.h"
-#include "partition/coarsening/clusterer/TwoPhaseLPClusterer.h"
-#include "partition/coarsening/clusterer/BipartiteLPClusterer.h"
-#include "partition/coarsening/clusterer/LPPolicies.h"
+// #include "external/lpa_hypergraph/include/clusterer/policies.hpp"
+// #include "external/lpa_hypergraph/include/clusterer/first_choice.hpp"
+// #include "external/lpa_hypergraph/include/clusterer/heavy_connectivity.hpp"
+// #include "partition/coarsening/BestChoiceCoarsener.h"
 #include "partition/coarsening/GenericCoarsener.h"
 #include "partition/coarsening/GenericCoarsenerMultilevel.h"
 #include "partition/coarsening/TwoPhaseLPVariants.h"
+#include "partition/coarsening/clusterer/BipartiteLPClusterer.h"
+#include "partition/coarsening/clusterer/LPPolicies.h"
+#include "partition/coarsening/clusterer/TwoPhaseLPClusterer.h"
 
 
 namespace po = boost::program_options;
@@ -216,7 +216,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         }
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
-        //exit(0);
+        // exit(0);
       }
     }
 
@@ -354,363 +354,613 @@ int main(int argc, char* argv[]) {
   // lp clique not sampled
   // class 1
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   // class 2
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::DefaultScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::DefaultScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score6", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::ConnectivityPenaltyScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_max_score<partition::ConnectivityPenaltyScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   // class 3
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score7", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score8", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score9", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score10", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score11", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score12", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score13", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score14", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score15", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score16", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score17", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score18", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score19", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score20", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score21", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score22", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score23", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score24", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
 
 
   // bipartite
   // class 1
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score1",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score2",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr0> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score1", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score2", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
 
   // class 2
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score3",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score4",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr2> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score5",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score6",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr4> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score7",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score8",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score3", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score4", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score5", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score6", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score7", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score8", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DumbScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
 
 
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score9",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr1> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score10",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr2> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score11",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr3> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score12",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr4> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score13",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr5> >(p.hypergraph, p.config);});
-  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score14",[](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr6> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score9", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score10", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score11", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score12", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score13", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
+  CoarsenerFactory::getInstance().registerObject("bipartite_lp_score14", [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new GenericCoarsener<bipartite_lp<partition::DefaultScoreBipartite, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
 
 
-
-    CoarsenerFactory::getInstance().registerObject("two_phase_lp_no", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
+  CoarsenerFactory::getInstance().registerObject("two_phase_lp_no", [](CoarsenerFactoryParameters& p) ->
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   // lp clique sampled
   // class 1
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
 
   // class 2
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_max_score<partition::DumbScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_max_score<partition::DumbScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_max_score<partition::DefaultScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_max_score<partition::DefaultScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score6", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_max_score<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_max_score<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr0> >(p.hypergraph, p.config);
+  });
 
 
   // class 3
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score7", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score8", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score9", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score10", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score11", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score12", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score13", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score14", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score15", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score16", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score17", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score18", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score19", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score20", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score21", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score22", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DumbScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score23", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score24", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
-
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
 
 
   // best variants with nodeordering
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::DefaultScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled<partition::ConnectivityPenaltyScore, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::DefaultScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no0", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6> >(p.hypergraph, p.config);
+  });
 
 
   // nodeordering 1
   // no sampling
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering1> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no1", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering1> >(p.hypergraph, p.config);
+  });
 
 
 // nodeordering 2
-  // no sampling
+// no sampling
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering2> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no2", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);});
-
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering2> >(p.hypergraph, p.config);
+  });
 
 
 // nodeordering 3
-  // no sampling
+// no sampling
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering3> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no3", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);});
-
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering3> >(p.hypergraph, p.config);
+  });
 
 
 // nodeordering 4
-  // no sampling
+// no sampling
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering4> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no4", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);});
-
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering4> >(p.hypergraph, p.config);
+  });
 
 
 // nodeordering 5
-  // no sampling
+// no sampling
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,1_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,1_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,3_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,3_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score2,6_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::DefaultScore, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_no_sampling_score3,6_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_clique_sampled_node_ordering<partition::ConnectivityPenaltyScore, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   // sampled
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,1_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,1_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr1, partition::Ordering5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,3_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,3_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr3, partition::Ordering5> >(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score2,6_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);});
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::DefaultScoreNonBiased, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);
+  });
   CoarsenerFactory::getInstance().registerObject("two_phase_lp_score3,6_no5", [](CoarsenerFactoryParameters& p) ->
-      ICoarsener* {return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);});
-
+                                                 ICoarsener* {
+    return new GenericCoarsener<two_phase_lp_node_ordering<partition::ConnectivityPenaltyScoreNonBiased, partition::SizeConstr6, partition::Ordering5> >(p.hypergraph, p.config);
+  });
 
 
   po::options_description desc("Allowed options");
@@ -762,8 +1012,7 @@ int main(int argc, char* argv[]) {
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
 
-  if (config.partition.seed == -1)
-  {
+  if (config.partition.seed == -1) {
     config.partition.seed = std::random_device()();
   }
 
@@ -824,9 +1073,9 @@ int main(int argc, char* argv[]) {
 
   // Vitali : set the config for the policies
   size_t big_edges_threshold = 95;
-  if(vm.count("big_edges_threshold") > 0) big_edges_threshold = vm["big_edges_threshold"].as<size_t>();
+  if (vm.count("big_edges_threshold") > 0) big_edges_threshold = vm["big_edges_threshold"].as<size_t>();
   // set the maximum_edge_size (the threshold after which edges are ignored)
-  config.lp_clustering_params.max_edge_size = ceil(metrics::hyperedgeSizePercentile(hypergraph,big_edges_threshold));
+  config.lp_clustering_params.max_edge_size = ceil(metrics::hyperedgeSizePercentile(hypergraph, big_edges_threshold));
 
   Partitioner partitioner(config);
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
@@ -866,9 +1115,9 @@ int main(int argc, char* argv[]) {
   } else {
     HyperedgeFMFactoryExecutor exec;
     refiner.reset(HyperedgeFMFactoryDispatcher::go(
-          PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
-          *(clogging_policy.get()),
-          exec, refiner_parameters));
+                    PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
+                    *(clogging_policy.get()),
+                    exec, refiner_parameters));
   }
 
 

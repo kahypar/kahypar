@@ -1,16 +1,19 @@
-#include <boost/program_options.hpp>
-#include <random>
-#include <fstream>
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #include <algorithm>
+#include <boost/program_options.hpp>
 #include <ctime>
+#include <fstream>
 #include <iostream>
+#include <random>
 
 #include "tools/RandomFunctions.h"
 
 namespace po = boost::program_options;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")
@@ -36,8 +39,7 @@ int main(int argc, char* argv[])
       !vm.count("m") ||
       !vm.count("k") ||
       !vm.count("p_inter") ||
-      !vm.count("output"))
-  {
+      !vm.count("output")) {
     std::cout << "missing parameters!" << std::endl;
     std::cout << "deviation is the only optional and is in that case assumed to be 0" << std::endl;
     std::cout << desc << std::endl;
@@ -51,18 +53,16 @@ int main(int argc, char* argv[])
   unsigned int min_edge = vm["min_edge"].as<unsigned int>();
   unsigned int max_edge = vm["max_edge"].as<unsigned int>();
 
-  float p_inter = vm["p_inter"].as<float>(); // inter partition egdes -> between partitions
+  float p_inter = vm["p_inter"].as<float>();  // inter partition egdes -> between partitions
   std::string result_file = vm["output"].as<std::string>();
 
   float deviation = 0;
-  if (vm.count("deviation"))
-  {
+  if (vm.count("deviation")) {
     deviation = vm["deviation"].as<float>();
   }
 
   int seed = std::random_device()();
-  if (vm.count("seed") && vm["seed"].as<int>() != -1)
-  {
+  if (vm.count("seed") && vm["seed"].as<int>() != -1) {
     seed = vm["seed"].as<int>();
   }
 
@@ -78,11 +78,9 @@ int main(int argc, char* argv[])
 
   std::vector<int> block_size;
   int cur = 0;
-  for (unsigned int i = 0; i < k; ++i)
-  {
+  for (unsigned int i = 0; i < k; ++i) {
     int t = std::round(Randomize::getNormalDistributedFloat(mean, deviation));
-    if (t + cur < n)
-    {
+    if (t + cur < n) {
       block_size.push_back(t);
     } else {
       t = n - cur;
@@ -91,13 +89,11 @@ int main(int argc, char* argv[])
     cur += t;
   }
 
-  std::vector<std::vector<int>> blocks;
+  std::vector<std::vector<int> > blocks;
   int last_pos = 0;
-  for (unsigned int i = 0; i < k; ++i)
-  {
+  for (unsigned int i = 0; i < k; ++i) {
     std::vector<int> temp_block;
-    for (unsigned int j = 0; j < block_size.at(i); ++j)
-    {
+    for (unsigned int j = 0; j < block_size.at(i); ++j) {
       temp_block.push_back(nodes.at(last_pos++));
     }
     blocks.push_back(std::move(temp_block));
@@ -105,19 +101,16 @@ int main(int argc, char* argv[])
 
   std::ofstream ofs("temp.txt");
   ofs << "% seed = " << seed << " n = " << n << " m = " << m <<
-    " k = " << k << " p_inter = " << p_inter  <<  " standart_deviation_block_size = " << deviation <<
-    " min_edge = " << min_edge << " max_edge = " << max_edge << std::endl;
+  " k = " << k << " p_inter = " << p_inter << " standart_deviation_block_size = " << deviation <<
+  " min_edge = " << min_edge << " max_edge = " << max_edge << std::endl;
 
-  std::vector<std::vector<int>> clean_blocks;
+  std::vector<std::vector<int> > clean_blocks;
   int t = 1;
-  for (const auto blk : blocks)
-  {
-    if (blk.size() >= 2)
-    {
+  for (const auto blk : blocks) {
+    if (blk.size() >= 2) {
       clean_blocks.push_back(blk);
-      ofs << "% block" << t++ << " (size=" << blk.size() <<") : ";
-      for (auto&& nds : blk)
-      {
+      ofs << "% block" << t++ << " (size=" << blk.size() << ") : ";
+      for (auto && nds : blk) {
         ofs << nds << " ";
       }
       ofs << std::endl;
@@ -127,33 +120,29 @@ int main(int argc, char* argv[])
   unsigned int cut_weight = 0;
 
   std::vector<int> all_pins;
-  for (auto&& blk : blocks)
-  {
-    for (auto pin : blk)
-    {
+  for (auto && blk : blocks) {
+    for (auto pin : blk) {
       all_pins.push_back(pin);
     }
   }
 
   // the header of the hgr file
   ofs << m << " " << n << std::endl;
-  for (unsigned int i = 0; i < m; ++i)
-  {
-    std::vector<int> *current_hyperedge;
+  for (unsigned int i = 0; i < m; ++i) {
+    std::vector<int>* current_hyperedge;
     // determine wheter it is an anter or intra cluster edge
-    if (Randomize::getRandomFloat(0.,1.) < p_inter)
-    {
+    if (Randomize::getRandomFloat(0., 1.) < p_inter) {
       // inter cluster edge (between different blocks)
       cut_weight++;
       current_hyperedge = &all_pins;
     } else {
       // intra cluster edge (inside a block)
       // determine the block oh this hyperedge
-      int block_id = Randomize::getRandomInt(0, clean_blocks.size() -1);
+      int block_id = Randomize::getRandomInt(0, clean_blocks.size() - 1);
       current_hyperedge = &clean_blocks.at(block_id);
     }
 
-    //int num_pins = Randomize::getRandomInt(2, current_hyperedge->size());
+    // int num_pins = Randomize::getRandomInt(2, current_hyperedge->size());
     int num_pins = Randomize::getRandomInt(std::max<int>(2, min_edge),
                                            std::min<int>(current_hyperedge->size(), max_edge));
 
@@ -161,8 +150,7 @@ int main(int argc, char* argv[])
     if (num_pins < min_edge || num_pins > max_edge) continue;
 
     Randomize::shuffleVector(*current_hyperedge, current_hyperedge->size());
-    for (int j = 0; j < num_pins; j++)
-    {
+    for (int j = 0; j < num_pins; j++) {
       ofs << current_hyperedge->at(j) << " ";
     }
     ofs << std::endl;
@@ -176,10 +164,8 @@ int main(int argc, char* argv[])
   std::string tmp_string;
 
   int c = 0;
-  while (std::getline(tmp_istream, tmp_string))
-  {
-    if (c==1)
-    {
+  while (std::getline(tmp_istream, tmp_string)) {
+    if (c == 1) {
       result_ofs << "% cut = " << cut_weight << std::endl;
     }
     result_ofs << tmp_string << std::endl;

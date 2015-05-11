@@ -112,8 +112,7 @@ struct Configuration {
     bool active;
   };
 
-  struct LPClusteringParameters
-  {
+  struct LPClusteringParameters {
     LPClusteringParameters() :
       max_number_iterations(20),
       sample_size(5),
@@ -128,16 +127,14 @@ struct Configuration {
     size_t max_edge_size;
   };
 
-  struct LPRefinementParameters
-  {
+  struct LPRefinementParameters {
     LPRefinementParameters() :
       max_number_iterations(3),
-      active(false) { };
+      active(false) { }
 
     int max_number_iterations;
     bool active;
   };
-
 
 
   PartitioningParameters partition;

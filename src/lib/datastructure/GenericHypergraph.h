@@ -16,7 +16,7 @@
 #include "gtest/gtest_prod.h"
 #include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
-//#include "lib/definitions.h"
+// #include "lib/definitions.h"
 #include "lib/macros.h"
 
 using core::Empty;
