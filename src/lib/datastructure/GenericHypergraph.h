@@ -347,6 +347,7 @@ class GenericHypergraph {
     _num_hypernodes(num_hypernodes),
     _num_hyperedges(num_hyperedges),
     _num_pins(edge_vector.size()),
+    _total_weight(0),
     _k(k),
     _type(Type::Unweighted),
     _current_num_hypernodes(_num_hypernodes),
@@ -402,7 +403,10 @@ class GenericHypergraph {
       has_hypernode_weights = true;
       for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
         hypernode(i).setWeight((*hypernode_weights)[i]);
+        _total_weight += (*hypernode_weights)[i];
       }
+    } else {
+      _total_weight = _num_hypernodes;
     }
 
     if (has_hyperedge_weights && has_hypernode_weights) {
@@ -918,6 +922,9 @@ class GenericHypergraph {
     return _part_info;
   }
 
+  HypernodeWeight totalWeight() const noexcept {
+    return _total_weight;
+  }
 
   HypernodeWeight partWeight(const PartitionID id) const noexcept {
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
@@ -1163,6 +1170,7 @@ class GenericHypergraph {
   const HypernodeID _num_hypernodes;
   const HyperedgeID _num_hyperedges;
   const HypernodeID _num_pins;
+  HypernodeWeight _total_weight;
   const int _k;
   Type _type;
 

@@ -661,4 +661,8 @@ TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
   mementos.pop();
   ASSERT_THAT(hypergraph.partSize(0), Eq(4));
 }
+
+TEST_F(AHypergraph, MaintainsItsTotalWeight) {
+  ASSERT_THAT(hypergraph.totalWeight(), Eq(7));
+}
 }  // namespace datastructure
