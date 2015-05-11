@@ -93,7 +93,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
   config.coarsening.max_allowed_node_weight = 3;
-  std::string graph_file("../../../../benchmark_instances/special_instances/bad_for_ec.hgr");
+  std::string graph_file("../../../../special_instances/bad_for_ec.hgr");
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
