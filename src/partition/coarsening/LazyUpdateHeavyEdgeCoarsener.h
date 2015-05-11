@@ -27,7 +27,7 @@ namespace partition {
 template <class Rater = Mandatory>
 class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
                                      private HeavyEdgeCoarsenerBase<Rater>{
-  private:
+ private:
   using Base = HeavyEdgeCoarsenerBase<Rater>;
   using Base::rateAllHypernodes;
   using Base::performContraction;
@@ -37,15 +37,15 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Rating = typename Rater::Rating;
 
   class NullMap {
-    public:
+ public:
     void insert(std::pair<HypernodeID, HypernodeID>) { }
   };
 
-  public:
+ public:
   LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
   LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator = (const LazyUpdateHeavyEdgeCoarsener&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator = (LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
@@ -55,7 +55,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
 
   ~LazyUpdateHeavyEdgeCoarsener() { }
 
-  private:
+ private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
 
   void coarsenImpl(const HypernodeID limit) noexcept final {

@@ -50,8 +50,7 @@ template <class StoppingPolicy = Mandatory,
           >
 class HyperedgeFMRefiner : public IRefiner,
                            private FMRefinerBase {
-  private:
-  using Gain = HyperedgeWeight;
+ private:
   using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
                                               std::numeric_limits<HyperedgeWeight> >;
   using HyperedgeFMPQ = PriorityQueue<HyperedgeFMHeap>;
@@ -59,7 +58,7 @@ class HyperedgeFMRefiner : public IRefiner,
   static const int K = 2;
 
   class HyperedgeEvalIndicator {
-    public:
+ public:
     explicit HyperedgeEvalIndicator(HyperedgeID size) noexcept :
       _bitvector(size) { }
 
@@ -77,15 +76,15 @@ class HyperedgeFMRefiner : public IRefiner,
       _bitvector.assign(_bitvector.size(), false);
     }
 
-    private:
+ private:
     std::vector<bool> _bitvector;
   };
 
-  public:
+ public:
   HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
   HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
-  HyperedgeFMRefiner& operator = (const HyperedgeFMRefiner&) = delete;
-  HyperedgeFMRefiner& operator = (HyperedgeFMRefiner&&) = delete;
+  HyperedgeFMRefiner& operator= (const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
 
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -144,7 +143,7 @@ class HyperedgeFMRefiner : public IRefiner,
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       activateIncidentCutHyperedges(refinement_nodes[i]);
     }
-    //DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
+    // DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
     //    << _pq[1]->size() << "----------------------");
 
 #ifndef NDEBUG
@@ -170,7 +169,7 @@ class HyperedgeFMRefiner : public IRefiner,
       bool pq1_eligible = false;
       checkPQsForEligibleMoves(pq0_eligible, pq1_eligible);
 
-      //TODO(schlag):
+      // TODO(schlag):
       // [ ] We might consider the removal of HEs from PQs as one step that lead to no
       //     improvement. Thus we might need to "increment step by 1". However we'd need
       //     another counting variable that only counts the loop iterations to do that, since
@@ -180,7 +179,7 @@ class HyperedgeFMRefiner : public IRefiner,
         continue;
       }
 
-      //TODO(schlag):
+      // TODO(schlag):
       // [ ] think about selection strategies and tiebreaking
       bool chosen_pq_index = selectQueue(pq0_eligible, pq1_eligible);
       Gain max_gain = _pq[chosen_pq_index]->maxKey();
@@ -309,7 +308,7 @@ class HyperedgeFMRefiner : public IRefiner,
     return _stats;
   }
 
-  private:
+ private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
   FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
@@ -417,7 +416,7 @@ class HyperedgeFMRefiner : public IRefiner,
       _pq[to]->remove(he);
     }
     markAsMoved(he);
-    //set sentinel
+    // set sentinel
     _movement_indices[step + 1] = curr_index;
   }
 

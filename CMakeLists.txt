@@ -8,7 +8,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 #ensure that gmock is built before tests are executed
 include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
 ExternalProject_Add(gmock
-  SOURCE_DIR "${PROJECT_SOURCE_DIR}/gmock"
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gmock"
+  INSTALL_COMMAND "")
+ExternalProject_Add(gtest
+  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gtest"
   INSTALL_COMMAND "")
 
 site_name(HOSTNAME)
@@ -55,11 +58,8 @@ else(KAHYPAR_VERSION_GIT_REFSPEC)
   message(FATAL_ERROR "No git refspec detected")
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    message(STATUS "Debug Mode:")
-# Enable codestyle checks at compile time
-include(codestyle/CMakeLists.txt)
-endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
+add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
+add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-a")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")
@@ -71,7 +71,7 @@ if(ENABLE_PROFILE MATCHES ON)
   set(PROFILE_FLAGS "-lprofiler")
 endif()
 
-
+include(gmock)
 enable_testing()
 add_subdirectory(src/application)
 add_subdirectory(src/lib/datastructure)
@@ -82,7 +82,6 @@ add_subdirectory(src/partition/refinement)
 add_subdirectory(src/playground)
 add_subdirectory(src/tools)
 
-include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)

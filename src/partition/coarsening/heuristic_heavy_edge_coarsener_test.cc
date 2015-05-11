@@ -16,7 +16,7 @@ using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using CoarsenerType = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
-  public:
+ public:
   explicit ACoarsener() :
     ACoarsenerBase() { }
 };
@@ -98,4 +98,4 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(4));
 }
-} // namespace partition
+}  // namespace partition

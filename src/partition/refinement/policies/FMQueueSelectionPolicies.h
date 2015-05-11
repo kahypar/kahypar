@@ -29,8 +29,8 @@ struct EligibleTopGain {
     return chosen_pq_index;
   }
 
-  protected:
+ protected:
   ~EligibleTopGain() { }
 };
-} // namespace partition
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUESELECTIONPOLICIES_H_

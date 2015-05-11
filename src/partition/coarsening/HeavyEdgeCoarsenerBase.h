@@ -50,7 +50,7 @@ template <class Rater = Mandatory,
                                 typename Rater::RatingType,
                                 MetaKeyDouble> > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
-  protected:
+ protected:
   using Base = CoarsenerBase<CoarseningMemento>;
   using Base::_hg;
   using Base::_config;
@@ -65,11 +65,11 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Rating = typename Rater::Rating;
   using RatingType = typename Rater::RatingType;
 
-  public:
+ public:
   HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
-  HeavyEdgeCoarsenerBase& operator = (const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase& operator = (HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     Base(hypergraph, config),
@@ -78,7 +78,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
   virtual ~HeavyEdgeCoarsenerBase() { }
 
-  protected:
+ protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
@@ -115,13 +115,13 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         _max_hn_weights.pop_back();
       }
       ASSERT([&]() {
-               for (const HypernodeID hn : _hg.nodes()) {
-                 if (_hg.nodeWeight(hn) == _max_hn_weights.back().max_weight) {
-                   return true;
-                 }
-               }
-               return false;
-             } (), "No HN of weight " << _max_hn_weights.back().max_weight << " found");
+          for (const HypernodeID hn : _hg.nodes()) {
+            if (_hg.nodeWeight(hn) == _max_hn_weights.back().max_weight) {
+              return true;
+            }
+          }
+          return false;
+        } (), "No HN of weight " << _max_hn_weights.back().max_weight << " found");
 
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop_back();
@@ -157,6 +157,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   Rater _rater;
   PrioQueue _pq;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_

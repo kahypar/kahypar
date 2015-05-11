@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
-include(gmock)
 
 # This test needs test instance files, so we copy them to the corresponding build dir
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

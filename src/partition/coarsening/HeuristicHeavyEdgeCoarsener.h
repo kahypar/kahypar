@@ -26,7 +26,7 @@ static const bool dbg_coarsening_removed_hes = false;
 template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener : public ICoarsener,
                                     private HeavyEdgeCoarsenerBase<Rater>{
-  private:
+ private:
   using Base = HeavyEdgeCoarsenerBase<Rater>;
   using Base::rateAllHypernodes;
   using Base::performContraction;
@@ -36,11 +36,11 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Rating = typename Rater::Rating;
   using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
-  public:
+ public:
   HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
   HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator = (const HeuristicHeavyEdgeCoarsener&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator = (HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
 
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
@@ -50,7 +50,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
-  private:
+ private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
   void coarsenImpl(const HypernodeID limit) noexcept final {
@@ -190,6 +190,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   TargetToSourcesMap _sources;
   std::vector<bool> _just_updated;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_

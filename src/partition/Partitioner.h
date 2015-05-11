@@ -59,11 +59,11 @@ class Partitioner {
     kInitialParallelHErestore = 6
   };
 
-  public:
+ public:
   Partitioner(const Partitioner&) = delete;
   Partitioner(Partitioner&&) = delete;
-  Partitioner& operator = (const Partitioner&) = delete;
-  Partitioner& operator = (Partitioner&&) = delete;
+  Partitioner& operator= (const Partitioner&) = delete;
+  Partitioner& operator= (Partitioner&&) = delete;
 
   explicit Partitioner(Configuration& config) :
     _config(config),
@@ -80,7 +80,7 @@ class Partitioner {
     return _stats;
   }
 
-  private:
+ private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RestoresHyperedgesExceedingThreshold);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
@@ -113,6 +113,6 @@ class Partitioner {
   Stats _stats;
   std::array<std::chrono::duration<double>, 7> _timings;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_PARTITIONER_H_

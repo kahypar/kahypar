@@ -36,33 +36,30 @@ using partition::Configuration;
 using partition::Partitioner;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::EligibleTopGain;
-using partition::RemoveOnlyTheCloggingEntry;
 
 namespace metrics {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {
-  public:
+ public:
   AnUnPartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
   Hypergraph hypergraph;
 };
 
 class TheDemoHypergraph : public AnUnPartitionedHypergraph {
-  public:
+ public:
   TheDemoHypergraph() : AnUnPartitionedHypergraph() { }
 };
 
 class APartitionedHypergraph : public Test {
-  public:
+ public:
   APartitionedHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(config),
@@ -73,6 +70,7 @@ class APartitionedHypergraph : public Test {
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "Test";
+    config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
@@ -94,7 +92,7 @@ class APartitionedHypergraph : public Test {
 };
 
 class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
-  public:
+ public:
   TheHyperedgeCutCalculationForInitialPartitioning() :
     AnUnPartitionedHypergraph(),
     config(),
@@ -145,4 +143,4 @@ TEST_F(TheDemoHypergraph, HasAvgHyperedgeDegree3) {
 TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
   ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
-} // namespace metrics
+}  // namespace metrics

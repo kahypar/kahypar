@@ -13,7 +13,7 @@ struct LastRatingWins {
     return true;
   }
 
-  protected:
+ protected:
   ~LastRatingWins() { }
 };
 
@@ -22,19 +22,19 @@ struct FirstRatingWins {
     return false;
   }
 
-  protected:
+ protected:
   ~FirstRatingWins() { }
 };
 
 struct RandomRatingWins {
-  public:
+ public:
   static bool acceptEqual() noexcept {
     return Randomize::flipCoin();
   }
 
-  protected:
+ protected:
   ~RandomRatingWins() { }
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_RATINGTIEBREAKINGPOLICIES_H_

@@ -25,7 +25,7 @@ static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_fingerprinting = false;
 
 class HypergraphPruner {
-  private:
+ private:
   struct Fingerprint {
     Fingerprint(HyperedgeID id_, HyperedgeID hash_, HypernodeID size_) noexcept :
       id(id_),
@@ -44,11 +44,11 @@ class HypergraphPruner {
     const HyperedgeID removed_id;
   };
 
-  public:
+ public:
   HypergraphPruner(const HypergraphPruner&) = delete;
   HypergraphPruner(HypergraphPruner&&) = delete;
-  HypergraphPruner& operator = (const HypergraphPruner&) = delete;
-  HypergraphPruner& operator = (HypergraphPruner&&) = delete;
+  HypergraphPruner& operator= (const HypergraphPruner&) = delete;
+  HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
   HypergraphPruner(Hypergraph& hypergraph, const Configuration& config, Stats& stats) noexcept :
     _hg(hypergraph),
@@ -128,14 +128,14 @@ class HypergraphPruner {
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
-    //debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
-    //[](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
+    // debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
+    // [](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
     DBG(dbg_coarsening_fingerprinting, [&]() {
-          for (auto& fp : _fingerprints) {
-            LOG("{" << fp.id << "," << fp.hash << "," << fp.size << "}");
-          }
-          return std::string("");
-        } ());
+        for (auto& fp : _fingerprints) {
+          LOG("{" << fp.id << "," << fp.hash << "," << fp.size << "}");
+        }
+        return std::string("");
+      } ());
 
     size_t i = 0;
     while (i < _fingerprints.size()) {
@@ -198,7 +198,7 @@ class HypergraphPruner {
   void createFingerprints(const HypernodeID u) noexcept {
     _fingerprints.clear();
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
-      HyperedgeID hash = /* seed */ 42;
+      HyperedgeID hash =  /* seed */ 42;
       for (const HypernodeID pin : _hg.pins(he)) {
         hash ^= pin;
       }
@@ -216,7 +216,7 @@ class HypergraphPruner {
     return _removed_single_node_hyperedges;
   }
 
-  private:
+ private:
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
@@ -225,6 +225,6 @@ class HypergraphPruner {
   std::vector<bool> _contained_hypernodes;
   Stats& _stats;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_

@@ -18,11 +18,11 @@ namespace partition {
 class IRefiner;
 
 class ICoarsener {
-  public:
+ public:
   ICoarsener(const ICoarsener&) = delete;
   ICoarsener(ICoarsener&&) = delete;
-  ICoarsener& operator = (const ICoarsener&) = delete;
-  ICoarsener& operator = (ICoarsener&&) = delete;
+  ICoarsener& operator= (const ICoarsener&) = delete;
+  ICoarsener& operator= (ICoarsener&&) = delete;
 
   void coarsen(const HypernodeID limit) noexcept {
     coarsenImpl(limit);
@@ -42,15 +42,15 @@ class ICoarsener {
 
   virtual ~ICoarsener() { }
 
-  protected:
+ protected:
   ICoarsener() { }
 
-  private:
+ private:
   virtual void coarsenImpl(const HypernodeID limit) noexcept = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) noexcept = 0;
   virtual std::string policyStringImpl() const noexcept = 0;
   virtual const Stats & statsImpl() const noexcept = 0;
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_COARSENING_ICOARSENER_H_

@@ -56,7 +56,7 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
     return false;
   }
 
-  protected:
+ protected:
   ~OnlyRemoveIfBothQueuesClogged() { }
 };
 
@@ -97,7 +97,7 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
     return removed_a_node;
   }
 
-  protected:
+ protected:
   ~RemoveOnlyTheCloggingEntry() { }
 };
 
@@ -110,9 +110,9 @@ struct DoNotRemoveAnyCloggingEntriesAndResetEligiblity : public CloggingPolicy {
     return false;
   }
 
-  protected:
+ protected:
   ~DoNotRemoveAnyCloggingEntriesAndResetEligiblity() { }
 };
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMQUEUECLOGGINGPOLICIES_H_

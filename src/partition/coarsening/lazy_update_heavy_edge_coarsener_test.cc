@@ -17,7 +17,7 @@ using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using CoarsenerType = LazyUpdateHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
-  public:
+ public:
   explicit ACoarsener() :
     ACoarsenerBase() { }
 };
@@ -66,7 +66,7 @@ TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
 }
 
 TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
-  Hypergraph hypergraph(5, 2, HyperedgeIndexVector { 0, 2, /*sentinel*/ 7 },
+  Hypergraph hypergraph(5, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 7 },
                         HyperedgeVector { 0, 1, 0, 1, 2, 3, 4 });
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
@@ -81,4 +81,4 @@ TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
   ASSERT_THAT(coarsener._outdated_rating[3], Eq(true));
   ASSERT_THAT(coarsener._outdated_rating[4], Eq(true));
 }
-} // namespace partition
+}  // namespace partition

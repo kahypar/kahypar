@@ -63,7 +63,7 @@ TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
 
   ASSERT_THAT(index_vector, ContainerEq(_control_index_vector));
   ASSERT_THAT(edge_vector, ContainerEq(_control_edge_vector));
-  //ASSERT_THAT(hypernode_weights, ContainerEq(_control_hypernode_weights));
+  // ASSERT_THAT(hypernode_weights, ContainerEq(_control_hypernode_weights));
   Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
                         2, nullptr, &hypernode_weights);
 }
@@ -144,7 +144,7 @@ TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
 TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
   HyperedgeWeightVector he_weights = { 10, 15, 13, 18, 25, 20, 14, 27, 29 };
   HypernodeWeightVector hn_weights = HypernodeWeightVector { 80, 85, 30, 55, 42, 39, 90, 102 };
-  Hypergraph hypergraph(8, 9, HyperedgeIndexVector { 0, 5, 9, 13, 15, 17, 20, 23, 26, /*sentinel*/ 28 },
+  Hypergraph hypergraph(8, 9, HyperedgeIndexVector { 0, 5, 9, 13, 15, 17, 20, 23, 26,  /*sentinel*/ 28 },
                         HyperedgeVector { 7, 5, 2, 4, 1, 3, 4, 0, 6, 3, 1, 4, 6, 3, 6, 2, 4, 7, 1, 3, 5, 4, 1, 4, 6, 1, 7, 3 },
                         2, &he_weights, &hn_weights);
 
@@ -175,4 +175,4 @@ TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
 
   ASSERT_THAT(serialized_lines, ::testing::ContainerEq(original_lines));
 }
-} // namespace io
+}  // namespace io
