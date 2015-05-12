@@ -11,6 +11,7 @@
 #include "lib/definitions.h"
 
 using::testing::Eq;
+using::testing::ContainerEq;
 using::testing::Test;
 
 using defs::HypernodeID;
@@ -377,7 +378,7 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
     contraction_history.pop();
   }
 
-  ASSERT_THAT(verifyEquivalence(hypergraph, modified_hypergraph), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, modified_hypergraph), Eq(true));
 }
 
 TEST_F(AHypergraph, ReturnsInitialNumberOfHypernodesAfterHypergraphModification) {
@@ -664,5 +665,61 @@ TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
 
 TEST_F(AHypergraph, MaintainsItsTotalWeight) {
   ASSERT_THAT(hypergraph.totalWeight(), Eq(7));
+}
+
+TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
+  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  auto extr_part1 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 1);
+  Hypergraph& part0_hypergraph = *extr_part0.first;
+  Hypergraph& part1_hypergraph = *extr_part1.first;
+
+  ASSERT_THAT(part0_hypergraph.numNodes(), Eq(4));
+  ASSERT_THAT(part1_hypergraph.numNodes(), Eq(3));
+
+  ASSERT_THAT(part0_hypergraph.numEdges(), Eq(1));
+  ASSERT_THAT(part1_hypergraph.numEdges(), Eq(1));
+
+  ASSERT_THAT(part0_hypergraph.edgeSize(0), Eq(4));
+  ASSERT_THAT(part1_hypergraph.edgeSize(0), Eq(3));
+
+  const std::vector<HypernodeID>& mapping_0 = extr_part0.second;
+  const std::vector<HypernodeID>& mapping_1 = extr_part1.second;
+
+  ASSERT_THAT(mapping_0, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 4 }));
+  ASSERT_THAT(mapping_1, ContainerEq(std::vector<HypernodeID>{ 2, 5, 6 }));
+}
+
+TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartitionRelatedInfos) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 0);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, *extr_part0.first), Eq(true));
+}
+
+TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 0);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+
+  ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
+  ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
+  ASSERT_THAT(extr_part0.first->_connectivity_sets.size(), Eq(4));
+
+  for (const HyperedgeID he: extr_part0.first->edges()) {
+    ASSERT_THAT(extr_part0.first->connectivitySet(he).size(), Eq(0));
+  }
+
+  ASSERT_THAT(extr_part0.first->_part_ids, ContainerEq(
+                std::vector<PartitionID>{ -1, -1, -1, -1, -1, -1, -1 }));
 }
 }  // namespace datastructure

@@ -9,7 +9,9 @@
 #include <bitset>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -115,7 +117,7 @@ class GenericHypergraph {
     InternalVertex() noexcept :
       _begin(0),
       _size(0),
-      _weight(0),
+      _weight(1),
       _valid(true) { }
 
     InternalVertex(InternalVertex&& other) noexcept  :
@@ -320,6 +322,10 @@ class GenericHypergraph {
   struct PartInfo {
     HypernodeWeight weight;
     HypernodeID size;
+
+    bool operator== (const PartInfo& other) const {
+      return weight == other.weight && size == other.size;
+    }
   };
 
   struct HypernodeTraits {
@@ -965,6 +971,28 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval);
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
+  FRIEND_TEST(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation);
+
+  GenericHypergraph() noexcept :
+    _num_hypernodes(0),
+    _num_hyperedges(0),
+    _num_pins(0),
+    _total_weight(0),
+    _k(2),
+    _type(Type::Unweighted),
+    _current_num_hypernodes(0),
+    _current_num_hyperedges(0),
+    _current_num_pins(0),
+    _hypernodes(),
+    _hyperedges(),
+    _incidence_array(),
+    _part_ids(),
+    _part_info(_k),
+    _pins_in_part(),
+    _connectivity_sets(),
+    _processed_hyperedges(),
+    _active_hyperedges_u(),
+    _active_hyperedges_v() { }
 
   void updatePartInfo(const HypernodeID u, const PartitionID id) noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
@@ -1167,9 +1195,9 @@ class GenericHypergraph {
     return const_cast<HyperedgeVertex&>(static_cast<const GenericHypergraph&>(*this).hyperedge(e));
   }
 
-  const HypernodeID _num_hypernodes;
-  const HyperedgeID _num_hyperedges;
-  const HypernodeID _num_pins;
+  HypernodeID _num_hypernodes;
+  HyperedgeID _num_hyperedges;
+  HypernodeID _num_pins;
   HypernodeWeight _total_weight;
   const int _k;
   Type _type;
@@ -1196,25 +1224,41 @@ class GenericHypergraph {
   std::vector<bool> _active_hyperedges_u;
   std::vector<bool> _active_hyperedges_v;
 
-  template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
-  friend bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
-                                const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual);
+  template <typename Hypergraph>
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> >
+  extractPartitionAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                        const typename
+                                                        Hypergraph::PartitionID part);
+
+  template <typename Hypergraph>
+  friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
+                                                    const Hypergraph& actual);
+
+  template <typename Hypergraph>
+  friend bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
+                                                 const Hypergraph& actual);
 };
 
-template <typename HNType, typename HEType, typename HNWType, typename HEWType, typename PartType>
-bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& expected,
-                       const GenericHypergraph<HNType, HEType, HNWType, HEWType, PartType>& actual) {
+template <typename Hypergraph>
+bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hypergraph& actual) {
+  ASSERT(expected._num_hypernodes == actual._num_hypernodes,
+         V(expected._num_hypernodes) << V(actual._num_hypernodes));
+  ASSERT(expected._num_hyperedges == actual._num_hyperedges,
+         V(expected._num_hyperedges) << V(actual._num_hyperedges));
+  ASSERT(expected._num_pins == actual._num_pins, V(expected._num_pins) << V(actual._num_pins));
+  ASSERT(expected._total_weight == actual._total_weight,
+         V(expected._total_weight) << V(actual._total_weight));
+  ASSERT(expected._k == actual._k, V(expected._k) << V(actual._k));
+  ASSERT(expected._type == actual._type, "Error!");
   ASSERT(expected._current_num_hypernodes == actual._current_num_hypernodes,
-         "Expected: _current_num_hypernodes= " << expected._current_num_hypernodes << "\n"
-         << "  Actual: _current_num_hypernodes= " << actual._current_num_hypernodes);
+         V(expected._current_num_hypernodes) << V(actual._current_num_hypernodes));
   ASSERT(expected._current_num_hyperedges == actual._current_num_hyperedges,
-         "Expected: _current_num_hyperedges= " << expected._current_num_hyperedges << "\n"
-         << "  Actual: _current_num_hyperedges= " << actual._current_num_hyperedges);
+         V(expected._current_num_hyperedges) << V(actual._current_num_hyperedges));
   ASSERT(expected._current_num_pins == actual._current_num_pins,
-         "Expected: _current_num_pins= " << expected._current_num_pins << "\n"
-         << "  Actual: _current_num_pins= " << actual._current_num_pins);
-  ASSERT(expected._hypernodes == actual._hypernodes, "expected._hypernodes != actual._hypernodes");
-  ASSERT(expected._hyperedges == actual._hyperedges, "expected._hyperedges != actual._hyperedges");
+         V(expected._current_num_pins) << V(actual._current_num_pins));
+  ASSERT(expected._hypernodes == actual._hypernodes, "Error!");
+  ASSERT(expected._hyperedges == actual._hyperedges, "Error!");
 
   std::vector<unsigned int> expected_incidence_array(expected._incidence_array);
   std::vector<unsigned int> actual_incidence_array(actual._incidence_array);
@@ -1224,12 +1268,121 @@ bool verifyEquivalence(const GenericHypergraph<HNType, HEType, HNWType, HEWType,
   ASSERT(expected_incidence_array == actual_incidence_array,
          "expected._incidence_array != actual._incidence_array");
 
-  return expected._current_num_hypernodes == actual._current_num_hypernodes &&
+  return expected._num_hypernodes == actual._num_hypernodes &&
+         expected._num_hyperedges == actual._num_hyperedges &&
+         expected._num_pins == actual._num_pins &&
+         expected._k == actual._k &&
+         expected._type == actual._type &&
+         expected._current_num_hypernodes == actual._current_num_hypernodes &&
          expected._current_num_hyperedges == actual._current_num_hyperedges &&
          expected._current_num_pins == actual._current_num_pins &&
          expected._hypernodes == actual._hypernodes &&
          expected._hyperedges == actual._hyperedges &&
          expected_incidence_array == actual_incidence_array;
+}
+
+template <typename Hypergraph>
+bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hypergraph& actual) {
+  ASSERT(expected._part_ids == actual._part_ids, "Error");
+  ASSERT(expected._part_info == actual._part_info, "Error");
+  ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
+
+  bool connectivity_sets_valid = true;
+  for (const typename Hypergraph::HyperedgeID he : actual.edges()) {
+    ASSERT(expected._connectivity_sets[he] == actual._connectivity_sets[he], V(he));
+    if (expected._connectivity_sets[he] != actual._connectivity_sets[he]) {
+      connectivity_sets_valid = false;
+      break;
+    }
+  }
+
+  return verifyEquivalenceWithoutPartitionInfo(expected, actual) &&
+         expected._part_ids == actual._part_ids &&
+         expected._part_info == actual._part_info &&
+         expected._pins_in_part == actual._pins_in_part &&
+         connectivity_sets_valid;
+}
+
+template <typename Hypergraph>
+std::pair<std::unique_ptr<Hypergraph>,
+          std::vector<typename Hypergraph::HypernodeID> >
+extractPartitionAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                      const typename Hypergraph::PartitionID part) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
+  std::vector<HypernodeID> subhypergraph_to_hypergraph;
+  std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
+
+  HypernodeID num_hypernodes = 0;
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    if (hypergraph.partID(hn) == part) {
+      hypergraph_to_subhypergraph[hn] = subhypergraph_to_hypergraph.size();
+      subhypergraph_to_hypergraph.push_back(hn);
+      ++num_hypernodes;
+    }
+  }
+
+  subhypergraph->_hypernodes.resize(num_hypernodes);
+  subhypergraph->_num_hypernodes = num_hypernodes;
+
+  HyperedgeID num_hyperedges = 0;
+  HypernodeID pin_index = 0;
+  for (const HyperedgeID he : hypergraph.edges()) {
+    if (hypergraph.connectivity(he) > 1) {
+      continue;
+    }
+    if (*hypergraph.connectivitySet(he).begin() == part) {
+      subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+      ++subhypergraph->_num_hyperedges;
+      subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+      for (const HypernodeID pin : hypergraph.pins(he)) {
+        subhypergraph->hyperedge(num_hyperedges).increaseSize();
+        subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+        subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
+        ++pin_index;
+      }
+      ++num_hyperedges;
+    }
+  }
+
+  const HypernodeID num_pins = pin_index;
+  subhypergraph->_num_pins = num_pins;
+  subhypergraph->_current_num_hypernodes = num_hypernodes;
+  subhypergraph->_current_num_hyperedges = num_hyperedges;
+  subhypergraph->_current_num_pins = num_pins;
+  subhypergraph->_type = hypergraph.type();
+
+  subhypergraph->_incidence_array.resize(2 * num_pins);
+  subhypergraph->_part_ids.resize(num_hypernodes, Hypergraph::kInvalidPartition);
+  subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
+  subhypergraph->_connectivity_sets.resize(num_hyperedges);
+  subhypergraph->_processed_hyperedges.resize(num_hyperedges);
+  subhypergraph->_active_hyperedges_u.resize(num_hyperedges);
+  subhypergraph->_active_hyperedges_v.resize(num_hyperedges);
+
+  subhypergraph->hypernode(0).setFirstEntry(num_pins);
+  for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+    subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
+    subhypergraph->hypernode(i).setSize(0);
+    subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
+    subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
+  }
+  subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
+  subhypergraph->hypernode(num_hypernodes - 1).setWeight(
+    hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
+  subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
+
+  for (const HyperedgeID he : subhypergraph->edges()) {
+    for (const HypernodeID pin : subhypergraph->pins(he)) {
+      subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
+      subhypergraph->hypernode(pin).increaseSize();
+    }
+  }
+
+  return std::make_pair(std::move(subhypergraph),
+                        subhypergraph_to_hypergraph);
 }
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_
