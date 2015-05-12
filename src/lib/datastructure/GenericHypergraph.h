@@ -794,6 +794,17 @@ class GenericHypergraph {
     }
   }
 
+  void resetPartitioning() noexcept {
+    _part_ids.clear();
+    _part_ids.resize(_num_hypernodes, kInvalidPartition);
+    _part_info.clear();
+    _part_info.resize(_k);
+    _pins_in_part.clear();
+    _pins_in_part.resize(_num_hyperedges * _k);
+    _connectivity_sets.clear();
+    _connectivity_sets.resize(_num_hyperedges);
+  }
+
   Type type() const noexcept {
     if (isModified()) {
       return Type::EdgeAndNodeWeights;
@@ -1228,8 +1239,7 @@ class GenericHypergraph {
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> >
   extractPartitionAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                        const typename
-                                                        Hypergraph::PartitionID part);
+                                                        const typename Hypergraph::PartitionID part);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,

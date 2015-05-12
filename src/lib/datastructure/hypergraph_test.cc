@@ -722,4 +722,9 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
   ASSERT_THAT(extr_part0.first->_part_ids, ContainerEq(
                 std::vector<PartitionID>{ -1, -1, -1, -1, -1, -1, -1 }));
 }
+
+TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
+  hypergraph.resetPartitioning();
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(hypergraph, original_hypergraph), Eq(true));
+}
 }  // namespace datastructure
