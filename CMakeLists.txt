@@ -84,9 +84,8 @@ add_subdirectory(src/partition/initial_partitioning/application)
 add_subdirectory(src/playground)
 add_subdirectory(src/tools)
 
+include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/tools/RandomFunctions.cc)
 add_library(Partitioner OBJECT ${PROJECT_SOURCE_DIR}/src/partition/Partitioner.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/lib/serializer/SQLPlotToolsSerializer.cc)
-
-
 

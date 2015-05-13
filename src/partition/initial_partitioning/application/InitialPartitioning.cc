@@ -154,13 +154,14 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.stats = true;
 	config.initial_partitioning.styles = true;
 
-	config.two_way_fm.stopping_rule = "simple";
-	config.two_way_fm.num_repetitions = -1;
-	config.two_way_fm.max_number_of_fruitless_moves = 300;
-	config.two_way_fm.alpha = 8;
+	config.fm_local_search.stopping_rule = "simple";
+	config.fm_local_search.num_repetitions = -1;
+	config.fm_local_search.max_number_of_fruitless_moves = 150;
+	config.fm_local_search.alpha = 8;
 	config.her_fm.stopping_rule = "simple";
-	config.her_fm.num_repetitions = -1;
-	config.her_fm.max_number_of_fruitless_moves = 300;
+	config.her_fm.num_repetitions = 1;
+	config.her_fm.max_number_of_fruitless_moves = 10;
+	config.lp_refiner.max_number_iterations = 3;
 }
 
 void createInitialPartitioningFactory() {
@@ -259,8 +260,9 @@ int main(int argc, char* argv[]) {
 			po::value<double>(), "Imbalance ratio")("mode",
 			po::value<std::string>(), "Initial partitioning variant")("seed",
 			po::value<int>(), "Seed for randomization")("nruns",
-					po::value<int>(), "Runs of the initial partitioner during bisection")("ils_iterations",
 			po::value<int>(),
+			"Runs of the initial partitioner during bisection")(
+			"ils_iterations", po::value<int>(),
 			"Iterations of the iterative local search partitioner")("rollback",
 			po::value<bool>(),
 			"Rollback to best cut, if you bipartition a hypergraph")(
@@ -272,8 +274,8 @@ int main(int argc, char* argv[]) {
 			"stats", po::value<bool>(),
 			"Enables/Disable initial partitioning statistic output")("styles",
 			po::value<bool>(),
-			"Enables/Disable initial partitioning statistic output with styles")("file",
-			po::value<std::string>(), "filename of result file");
+			"Enables/Disable initial partitioning statistic output with styles")(
+			"file", po::value<std::string>(), "filename of result file");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -374,7 +376,8 @@ int main(int argc, char* argv[]) {
 	InitialStatManager::getInstance().setGraphName(
 			config.initial_partitioning.coarse_graph_filename);
 	InitialStatManager::getInstance().setMode(config.initial_partitioning.mode);
-	InitialStatManager::getInstance().printStats(result_file,config.initial_partitioning.styles);
+	InitialStatManager::getInstance().printStats(result_file,
+			config.initial_partitioning.styles);
 	InitialStatManager::getInstance().printResultLine(result_file);
 
 }

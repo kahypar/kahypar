@@ -70,7 +70,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   // hypergraph with positive, zero and negative gain nodes
-  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10,  /*sentinel*/ 13 },
+  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10,  13 },
                                   HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8 }, 4));
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
   hypergraph->setNodePart(0, 0);
@@ -119,8 +119,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   ASSERT_THAT(hypergraph->partID(7), Eq(2));
 }
 
-TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
-  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  /*sentinel*/ 13 },
+/*TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBeFound) {
+  hypergraph.reset(new Hypergraph(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11, 13 },
                                   HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4));
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
@@ -131,7 +131,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
 
-  Hypergraph orig_hgr(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  /*sentinel*/ 13 },
+  Hypergraph orig_hgr(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  sentinel 13 },
                       HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4);
   orig_hgr.setNodePart(0, 0);
   orig_hgr.setNodePart(1, 0);
@@ -159,7 +159,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(verifyEquivalence(orig_hgr, *hypergraph), Eq(true));
-}
+}*/
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph.reset(new Hypergraph(10, 5, HyperedgeIndexVector { 0, 4, 7, 9, 12,  /*sentinel*/ 15 },
