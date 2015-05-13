@@ -93,7 +93,7 @@ TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
                          _written_edge_vector);
 
-  ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
 }
 
 TEST_F(AHypergraphWithHyperedgeWeights, CanBeWrittenToFile) {
@@ -103,7 +103,7 @@ TEST_F(AHypergraphWithHyperedgeWeights, CanBeWrittenToFile) {
                      _written_edge_vector, &_written_hyperedge_weights, nullptr);
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
                          _written_edge_vector, 2, &_written_hyperedge_weights);
-  ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
 }
 
 TEST_F(AHypergraphWithHypernodeWeights, CanBeWrittenToFile) {
@@ -114,7 +114,7 @@ TEST_F(AHypergraphWithHypernodeWeights, CanBeWrittenToFile) {
   Hypergraph hypergraph2(_num_hypernodes, _num_hyperedges, _written_index_vector,
                          _written_edge_vector, 2, nullptr, &_written_hypernode_weights);
 
-  ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
 }
 
 TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
@@ -127,7 +127,7 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
                          _written_edge_vector, 2, &_written_hyperedge_weights,
                          &_written_hypernode_weights);
 
-  ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
 }
 
 TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {

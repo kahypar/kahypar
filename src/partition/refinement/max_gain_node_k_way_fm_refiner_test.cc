@@ -156,9 +156,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 
-  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, 0, old_cut, old_imbalance);
 
-  ASSERT_THAT(verifyEquivalence(orig_hgr, *hypergraph), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(orig_hgr, *hypergraph), Eq(true));
 }
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {

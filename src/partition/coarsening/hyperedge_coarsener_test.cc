@@ -14,7 +14,7 @@
 
 using::testing::UnorderedElementsAre;
 
-using datastructure::verifyEquivalence;
+using datastructure::verifyEquivalenceWithPartitionInfo;
 using defs::Hypergraph;
 
 namespace partition {
@@ -155,7 +155,7 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   hypergraph->setNodePart(0, 0);
   coarsener.uncoarsen(*refiner);
 
-  ASSERT_THAT(verifyEquivalence(*hypergraph, input_hypergraph), Eq(true));
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(*hypergraph, input_hypergraph), Eq(true));
 }
 
 TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
