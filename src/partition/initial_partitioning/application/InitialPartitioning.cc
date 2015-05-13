@@ -18,6 +18,7 @@
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/TestInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
+#include "partition/initial_partitioning/HMetisInitialPartitioner.h"
 #include "partition/initial_partitioning/MultilevelInitialPartitioner.h"
 #include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
 #include "partition/initial_partitioning/SimulatedAnnealingPartitioner.h"
@@ -47,6 +48,7 @@ using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
 using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
+using partition::HMetisInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
@@ -107,6 +109,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("seed")) {
 			config.initial_partitioning.seed = vm["seed"].as<int>();
 		}
+		if (vm.count("nruns")) {
+			config.initial_partitioning.nruns = vm["nruns"].as<int>();
+		}
 		if (vm.count("rollback")) {
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 		}
@@ -141,6 +146,7 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.mode = "random";
 	config.initial_partitioning.seed = -1;
 	config.initial_partitioning.ils_iterations = 50;
+	config.initial_partitioning.nruns = 1;
 	config.initial_partitioning.rollback = true;
 	config.initial_partitioning.refinement = true;
 	config.initial_partitioning.erase_components = true;
@@ -169,6 +175,10 @@ void createInitialPartitioningFactory() {
 	InitialPartitioningFactory::getInstance().registerObject("lp",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
+			});
+	InitialPartitioningFactory::getInstance().registerObject("hMetis",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new HMetisInitialPartitioner(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -224,7 +234,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMLocalyGainComputationPolicy>>>(p.hypergraph,p.config);
+				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("ils-greedy"
 			"",
@@ -248,7 +258,8 @@ int main(int argc, char* argv[]) {
 			po::value<PartitionID>(), "Number of partitions")("epsilon",
 			po::value<double>(), "Imbalance ratio")("mode",
 			po::value<std::string>(), "Initial partitioning variant")("seed",
-			po::value<int>(), "Seed for randomization")("ils_iterations",
+			po::value<int>(), "Seed for randomization")("nruns",
+					po::value<int>(), "Runs of the initial partitioner during bisection")("ils_iterations",
 			po::value<int>(),
 			"Iterations of the iterative local search partitioner")("rollback",
 			po::value<bool>(),
@@ -263,7 +274,6 @@ int main(int argc, char* argv[]) {
 			po::value<bool>(),
 			"Enables/Disable initial partitioning statistic output with styles")("file",
 			po::value<std::string>(), "filename of result file");
-	;
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);

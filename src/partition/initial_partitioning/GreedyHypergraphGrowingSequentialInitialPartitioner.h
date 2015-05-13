@@ -92,15 +92,12 @@ private:
 		_config.partition.epsilon = 0.0;
 		InitialPartitionerBase::recalculateBalanceConstraints();
 
-
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 			if (i != unassigned_part) {
 
 				processNodeForBucketPQ(*bq[i], bq[i]->max(), i);
 				HypernodeID hn = bq[i]->max();
 				while (InitialPartitionerBase::assignHypernodeToPartition(hn, i)) {
-
-
 
 					ASSERT([&]() {
 						Gain gain = bq[i]->maxKey();
@@ -137,11 +134,9 @@ private:
 							"Bucket queue of partition " << i << " shouldn't be empty!");
 					hn = bq[i]->max();
 
-
 				}
 			}
 		}
-
 
 		_config.partition.epsilon = epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints();
@@ -159,7 +154,13 @@ private:
 		StartNodeSelection::calculateStartNodes(startNode, _hg,
 				static_cast<PartitionID>(2));
 		for (HypernodeID hn : _hg.nodes()) {
-			_hg.setNodePart(hn, 1);
+			if (_hg.partID(hn) != -1) {
+				if (_hg.partID(hn) != 1) {
+					_hg.changeNodePart(hn, _hg.partID(hn), 1);
+				}
+			} else {
+				_hg.setNodePart(hn, 1);
+			}
 		}
 		processNodeForBucketPQ(*bq, startNode[0], 0);
 		HypernodeID hn = invalid_node;
@@ -279,7 +280,7 @@ private:
 						target_part);
 				bq.insert(hn, gain);
 			}
-			if(updateGain) {
+			if (updateGain) {
 				if (bq.contains(hn)) {
 					Gain gain = GainComputation::calculateGain(_hg, hn,
 							target_part);
@@ -288,7 +289,6 @@ private:
 			}
 		}
 	}
-
 
 	void deleteAssignedNodeInBucketPQ(std::vector<PrioQueue*>& bq,
 			HypernodeID hn) {
@@ -306,11 +306,8 @@ protected:
 	static const HypernodeID invalid_node =
 			std::numeric_limits<HypernodeID>::max();
 
-
 };
 
 }
-
-
 
 #endif /* SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGSEQUENTIALINITIALPARTITIONER_H_ */

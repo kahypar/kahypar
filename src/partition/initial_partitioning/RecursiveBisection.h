@@ -136,8 +136,26 @@ private:
 				/ static_cast<double>(k);
 
 		//Performing bisection
-		InitialPartitioner partitioner(hyper, _config);
-		partitioner.partition(2);
+		std::vector<PartitionID> best_partition(hyper.numNodes(),0);
+		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+		for (int i = 0; i < _config.initial_partitioning.nruns; i++) {
+			InitialPartitioner partitioner(hyper, _config);
+			partitioner.partition(2);
+
+			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
+			if(current_cut < best_cut) {
+				best_cut = current_cut;
+				for(HypernodeID hn : hyper.nodes()) {
+					best_partition[hn] = hyper.partID(hn);
+				}
+			}
+		}
+
+		for(HypernodeID hn : hyper.nodes()) {
+			if(hyper.partID(hn) != best_partition[hn]) {
+				hyper.changeNodePart(hn,hyper.partID(hn),best_partition[hn]);
+			}
+		}
 
 		if (_config.initial_partitioning.stats) {
 			InitialStatManager::getInstance().addStat("Recursive Bisection",

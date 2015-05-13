@@ -53,6 +53,7 @@ struct Configuration {
 		  upper_allowed_partition_weight(),
 		  lower_allowed_partition_weight(),
 		  seed(-1),
+		  nruns(1),
 		  ils_iterations(),
 		  rollback(),
 		  refinement(),
@@ -68,6 +69,7 @@ struct Configuration {
 	  std::string mode;
 	  HypernodeWeightVector upper_allowed_partition_weight;
 	  HypernodeWeightVector lower_allowed_partition_weight;
+	  int nruns;
 	  int seed;
 	  int ils_iterations;
 	  bool rollback;
