@@ -86,6 +86,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
                << _rater.rate(rep_node).value);
 
         performContraction(rep_node, contracted_node);
+        ASSERT(_pq.contains(contracted_node), V(contracted_node));
         _pq.remove(contracted_node);
 
         removeSingleNodeHyperedges(rep_node);

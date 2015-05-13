@@ -1,0 +1,2051 @@
+[33mcommit b4b72e431e8f05fd600767978235eceaf9523239[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Wed May 13 12:25:35 2015 +0200
+
+    Commit before merging master into branch
+
+[33mcommit 229365313f801ce14f83a5e3c49d0cf5a3871ece[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Sun May 10 14:56:52 2015 +0200
+
+    Adding Label Propagation Initial Partitioning
+
+[33mcommit 84ecd453417dd0dee3a5b88088ab0ecce668ce65[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Thu May 7 22:19:50 2015 +0200
+
+    Adding kWay-Rollback and Statistic Manager
+
+[33mcommit ea0c723c65af05a7c9c1bb8090d611dc67efbc16[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Tue May 5 20:53:32 2015 +0200
+
+    Updated test cases for initial partitioners
+
+[33mcommit 93cf18e09c9a6fa3ead60b2e0bf155a94e5845d3[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon May 4 07:45:22 2015 +0200
+
+    Deleting Debug-Folder
+
+[33mcommit 6c231c70415cddbf3a6c653df5edde255817ddb3[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon May 4 07:43:07 2015 +0200
+
+    Complete tested greedy hypergraph growing and recursive bisection with adapted epsilon
+
+[33mcommit 0825b08597111159c85299f66289d25b1dcee1da[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Thu Apr 30 15:59:16 2015 +0200
+
+    Adding Greedy Hypergraph Growing Variants
+
+[33mcommit 4b28632de162d0263204b6d6c3accdc118b4e874[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Wed Apr 29 17:39:30 2015 +0200
+
+    Adding BFS- and Random-Test, Implementation of two different GHG-Variants (code documentation follows tomorrow)
+
+[33mcommit 0c134fdf9185d3d1ec30eac6ed386fba82dd7738[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Wed Apr 29 11:46:22 2015 +0200
+
+    Adding bfs test and refactor bfs and random
+
+[33mcommit f0517b03d0ebc355d1727803dfe416e8fd8cbd6c[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Tue Apr 28 11:31:41 2015 +0200
+
+    Better bisection variant of GHG
+
+[33mcommit 5d78c221998c5f6c0908d0081c38e14ef1437027[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon Apr 27 09:54:46 2015 +0200
+
+    Improvement of the code based on the comments
+
+[33mcommit 973514c0863ec9f0cde1e6898ff8eca0e0d033a7[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Sun Apr 26 14:48:36 2015 +0200
+
+    Simulated Annealing and fixing some bugs
+
+[33mcommit 1f57fb35d83f2ee97c9967ba7552ed5bcbe1cdc3[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Wed Apr 22 23:58:51 2015 +0200
+
+    Adding first complete InititialPartitionerTest, implement k-Way GHG and BenchmarkTestProgram
+
+[33mcommit 151e32022842bce911a30ebe4250352b712a6ddc[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Tue Apr 21 13:09:29 2015 +0200
+
+    Iterative Local Search and Pseudo Multilevel
+
+[33mcommit e7ed0a4b9eb964fe248ead2bdae851b45e229652[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon Apr 20 08:11:56 2015 +0200
+
+    Policy for start node selection
+
+[33mcommit 49a814be88d47a6ffaa1a921fd0d12b0af2e9c0d[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Sat Apr 18 09:58:20 2015 +0200
+
+    Adding Assertions and Greedy Hypergaph Growing
+
+[33mcommit 2ad7f1bc4f659520f211ad232d88be4a44691283[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Wed Apr 15 19:34:29 2015 +0200
+
+    Adding Naiv Balancer and Refiner for initial partitioning
+
+[33mcommit 15bcba849f985f0c8c94bb69e9f35498f47c2e87[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Tue Apr 14 08:04:21 2015 +0200
+
+    Fixing bug: Recursive Bisection take care on weights now
+
+[33mcommit 0090fe88354a63bb44a655b22776f19d8519371e[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon Apr 13 12:29:16 2015 +0200
+
+    Adding BFSInitialPartitioning for k-Way, Naiv Partition-Balancer and Rollback to best bisection tool
+
+[33mcommit 7ecf842194670fbcfd84ffde170c29742571227c[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Sun Apr 12 18:45:05 2015 +0200
+
+    Adding recursive bisection and BFS initial partition
+
+[33mcommit 6f69fd39d6681b10a3c55ca29e037ec138ada34e[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Mon Apr 6 11:32:18 2015 +0200
+
+    Integrate Initial Partitioner into KaHyPar and adding a Factory to create the Initial-Partitioning variant
+
+[33mcommit a4569c09b5dfdc8e3952a0afeb884dbcaa52b131[m
+Author: kittobi1992 <tobias.heuer@gmx.net>
+Date:   Fri Apr 3 09:51:00 2015 +0200
+
+    Fundament of the standalone initial partitioning framework
+
+[33mcommit 822ed50d67d544a93934755ae1bfc335194255aa[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 23 14:46:46 2015 +0100
+
+    fix indentation
+
+[33mcommit 82e06f64021ca11561d70470612560e641475c96[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 23 14:12:25 2015 +0100
+
+    add TODO for small improvement
+
+[33mcommit cb96a26b855a7fb0cfa4bd53e718ad2674ba8ce6[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 23 14:10:50 2015 +0100
+
+    apply codestyle
+
+[33mcommit f34c7e2c4bb8b59ed8ed1f09dbdfe7eb3ccff995[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 19 18:22:08 2015 +0100
+
+    use provided meta key instead of numeric limits
+
+[33mcommit 7dad3e714610074664c77ad666435aab1b67d62c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 19 16:54:40 2015 +0100
+
+    remove dead using declarartion
+
+[33mcommit 73f5add5e463e29d64d020a981c7a1dd2e1b04ae[m
+Merge: 8a01e26 90ae888
+Author: Sebastian Schlag <dev@sebastianschlag.de>
+Date:   Mon Mar 16 22:18:31 2015 +0100
+
+    Merged in new_typelists (pull request #1)
+    
+    New typelists and more random functions
+
+[33mcommit 8a01e268037f2f90a7156b278d1a7ee679709888[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 19:47:22 2015 +0100
+
+    set vectir entries to false explicitly
+
+[33mcommit 72da1a182e86b9991745c4fed113e4ba6b3cf1dd[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 19:45:32 2015 +0100
+
+    speedup gain computation
+
+[33mcommit 55b7cc84c8bdba6ba09bf297eb85be7e81b9bddb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 18:41:27 2015 +0100
+
+    create custom vector that only resets used entries and use it
+
+[33mcommit 90ae888de5e6f516256a700742b8eb2d746fe16f[m
+Author: Vitali Henne <vitali.henne@gmail.com>
+Date:   Mon Mar 16 18:25:56 2015 +0100
+
+    removed dead code
+
+[33mcommit c50372df93150caf839c21e7dc6083c9b0cd718a[m
+Author: Vitali Henne <vitali.henne@gmail.com>
+Date:   Mon Mar 16 18:24:35 2015 +0100
+
+    changed CMakelists to sebastians
+
+[33mcommit 3475350263a4715cabb6abb596d89d9b37aaf65c[m
+Author: Vitali Henne <vitali.henne@gmail.com>
+Date:   Mon Mar 16 18:21:36 2015 +0100
+
+    changed typelists from macro based to variadic template based. added more random functions
+
+[33mcommit 434db0d9a6ad0d12a7cc0e6931f37da8b397736f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 16:15:32 2015 +0100
+
+    add another assertion to verfiy consistent state of KFM
+
+[33mcommit 81f8c1836cce4421561821881aa01e510c7c85d4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 15:23:40 2015 +0100
+
+    cleanup code
+
+[33mcommit 6924854cf880e0596f9c0e512d64e972e312be11[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 16 15:08:16 2015 +0100
+
+    Bugfix: deactive Hns that become internal
+    
+    If a HN becomes internal, it's corresponding entries in the
+    PQs are deleted - thus it is inactive. However, we missed to
+    reset the _active[hn] flag. Thus Hns that are internal once,
+    could not be activated again.
+    
+    This commit also extends the updateNeighbour-assertion to verify
+    correct behaviour.
+
+[33mcommit 4327edd359f7b4a57f0cba8e8176ffd2f32c0a7c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Mar 13 16:41:26 2015 +0100
+
+    add testcase to explicitely check pinCounts of restored HEs
+    
+    Previous testcases did this implicitly. However, in the
+    multilevel context, we remove hyperedges that become
+    parallel or single-node. During uncoarsening theses HEs are
+    restored. Since they are "added" to the now partitioned hypergraph,
+    we have to maintain the connectivity, connectivitySet and pinCount
+    datastructures. While there are explicit tests for the first two,
+    the last one was only impicitly tested by another testcase.
+
+[33mcommit d3a2a92dc44b12436d5737288cd228eb855faaa9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 12 15:51:04 2015 +0100
+
+    cleanup debug code
+
+[33mcommit 3fa2b205ae31483cd9231af7ec1e494ff9f2c46d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 10 15:27:26 2015 +0100
+
+    refactor emplace_back usage
+
+[33mcommit 71038cf316c55562e0604aa0e0d1ae857fb58d1d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Mar 9 11:03:30 2015 +0100
+
+    small optimization
+
+[33mcommit bd3d613f90c59ec6c0ccefedf37fcfd122e6665d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 12:52:41 2015 +0100
+
+    change history-stack to vector
+
+[33mcommit 8fb7c3023a51a612c6b580ac668e731d88e28287[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 11:16:20 2015 +0100
+
+    mark methods noexcept since we dont do any exception handling
+
+[33mcommit 33108fa9ae2e42ee379e68a91d9c6440c6fb0120[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 09:27:06 2015 +0100
+
+    cleanup dead code
+
+[33mcommit d047ab3e6f88ba0cfd3893fc1fc2078bf8d5bf78[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 09:14:20 2015 +0100
+
+    cleanup leftovers
+
+[33mcommit e502af8d232e055428f4c09d26c914983d3bacbe[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 09:07:42 2015 +0100
+
+    allow range-based for iterators to be moved completely
+
+[33mcommit 392b72ff91f9ff6a96ce4371524d8898bd04fca5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Mar 5 08:49:26 2015 +0100
+
+    make mementos movable
+
+[33mcommit 90ad06af996f5384bcb2d2a6a3127ec817de074d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Mar 4 20:10:24 2015 +0100
+
+    simplify iterator pairs for range-based for loops
+
+[33mcommit 17b8b9126a2437dd161c6f6f4ef272e89f427be0[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Mar 4 20:07:06 2015 +0100
+
+    make constructors explicit
+
+[33mcommit 5d383626bec4b5f6105dcc27523313492e815746[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Mar 4 19:56:32 2015 +0100
+
+    bugfix
+
+[33mcommit 85ea3710b1fe5568f4ebd106cada14a2b5e29829[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Mar 4 12:56:17 2015 +0100
+
+    add noexcept and move constructor to iteratorpair
+
+[33mcommit 5ce1dfc02e24d905ba8eb0148989c33971962576[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 15:48:47 2015 +0100
+
+    consolidate configuration into one place
+
+[33mcommit ee695675aa4aeb18dc85a1db55083ce7777915cb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 15:40:36 2015 +0100
+
+    move branch prediction macros
+
+[33mcommit 19add2aa1e757a856f247712d3b6acb1080a495c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 15:12:37 2015 +0100
+
+    switch to using declarations
+
+[33mcommit 9bf21026b057de6fad8e00baa5d056f0608b85af[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 14:20:23 2015 +0100
+
+    refactor types
+
+[33mcommit 04766a1090fdd6dfd8442775e5380f82ed130962[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 13:48:02 2015 +0100
+
+    fix metrics and update stats
+
+[33mcommit 4d78198a4a9872a47c207bb6beed461d7cd3489b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 13:47:35 2015 +0100
+
+    remove DISALLOW_COPY... macro and make deletion explicit
+
+[33mcommit 3f846700278a8c555166d956d8b57bbce69c66ce[m
+Merge: 1746be0 2c13a9b
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Mar 3 09:19:44 2015 +0100
+
+    Merge branch 'kfm-improvements'
+
+[33mcommit 2c13a9bacaeca321438d401d5519fbf9c953a25d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 17:05:28 2015 +0100
+
+    fix bug in connectivity decrease assertion
+
+[33mcommit 0e21d008c3515c9a1d2d419eba5085a30cc9e310[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 16:37:25 2015 +0100
+
+    change typedefs to using declarations
+
+[33mcommit ab373033cfd12c2dc8dd5b1c8596c15d62ae9366[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 16:19:51 2015 +0100
+
+    enable use of bucket queue in KFM-PQ
+
+[33mcommit 80c2a10b9847ab08617dcbd08a045cdb10dcf8ff[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 15:17:14 2015 +0100
+
+    modify bucket pq to suit our needs
+
+[33mcommit 1fdf0847ed60c9563c61e29b0ba169a04a6bb985[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 15:16:47 2015 +0100
+
+    remove dead code
+
+[33mcommit 02f99d711821bcb4f6c8e310601ecea270192032[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 10:30:50 2015 +0100
+
+    adapt gain comp changes to KFM
+
+[33mcommit dae42be8988a050ed004997f01fb5805825c479f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 27 09:10:56 2015 +0100
+
+    fix broken iterators
+
+[33mcommit b9f9a90c8d223a6fa5c5ca39cf562af20f583a03[m
+Author: Sebastian Schlag <dev@sebastianschlag.de>
+Date:   Thu Feb 26 20:35:52 2015 +0100
+
+    refactor iterators
+
+[33mcommit 5e1133a24b1d4f014f0f886ce7b0818f9489cc90[m
+Author: Sebastian Schlag <dev@sebastianschlag.de>
+Date:   Thu Feb 26 20:35:34 2015 +0100
+
+    fix debug output
+
+[33mcommit 905d4242530b7df12c70a9abc85b072e0fd97c4f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 26 18:34:31 2015 +0100
+
+    store connectivity sets in sorted order
+
+[33mcommit 3ed975339d97a062f390126f4027562d14fbd086[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 26 18:33:21 2015 +0100
+
+    fine-tune gain computation
+
+[33mcommit 14ce3e0cd192220e794b46adf426cf5dbe8f3984[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 20 17:12:05 2015 +0100
+
+    further refactoring and minor optimization
+
+[33mcommit 3f9b0f238fe24cb7495514953cfe2857f0971c7d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 20 16:52:59 2015 +0100
+
+    minor optimization for connectivity decrease calculation
+
+[33mcommit f22f26a6455e85d175ee0a14ed893aff5ef9b3a3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 19 19:18:03 2015 +0100
+
+    remove typedef
+
+[33mcommit 7a69d06c9771570ef2138ef74a3badd0551866f6[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 19 19:10:44 2015 +0100
+
+    tansform pin counts into flat array
+
+[33mcommit b6eb5b7360199585e873ec2e3b410bd59191e765[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 19 17:34:06 2015 +0100
+
+    reactivate imbalance assertion
+
+[33mcommit 2ed9dd837d85ba327355778f32b4e1151ea0976f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 19 17:07:29 2015 +0100
+
+    change numbering of HNs to reflect paper
+
+[33mcommit 6ea0b02d37167641c41c969ded78095cfdca5e7e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Feb 11 13:43:31 2015 +0100
+
+    use vector<bool> instead of dynamic_bitset
+    
+    Remove another boost dependency. vector<bool>
+    suffices for all operations we currently perform on bitvectors
+
+[33mcommit 6e2578ce83330542f7db4c7cc38b871f61fc3b61[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 10 16:19:01 2015 +0100
+
+    imbalance can be equal to epsilon
+
+[33mcommit 3113e3e1e84291e264f48bd14f20e26f7ac5441c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 10 15:06:27 2015 +0100
+
+    dont show stats
+
+[33mcommit 0423a4dd797552f4af792d1f8c273c2e33e38192[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Feb 9 19:46:59 2015 +0100
+
+    remove debug output
+
+[33mcommit d61e4c597abc994ad80c5c6b32081df941371f24[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Feb 9 19:21:29 2015 +0100
+
+    use exact number of moves since last improvement
+
+[33mcommit db0d33f91c73cdbf398ef9c6b775bd8e19c21a75[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Feb 9 17:11:21 2015 +0100
+
+    beta is based on current number of vertices rather than initial number
+
+[33mcommit 5f42856b9863b2312e9b721f51f09fef1ed90ba7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Feb 9 14:33:06 2015 +0100
+
+    make parameters const
+
+[33mcommit 13ac0dc10b502f2b24571a79b836c465618693bd[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Feb 9 14:29:20 2015 +0100
+
+    change nGP stopping policy to code equivalent to esa10 submission
+
+[33mcommit df785b729f8bf9c0097a3356c3b1846b674d9ab5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 15:54:18 2015 +0100
+
+    few micro optimizations in computeMaxGain
+
+[33mcommit 12e179e5ff852f5ccf42a40e0232c979f98557ea[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 14:57:14 2015 +0100
+
+    refactoring
+
+[33mcommit 8a70eae3a630cc3a52620be2c908ae15fa6908f8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 14:32:02 2015 +0100
+
+    rebalancing with zero gain move also resets stoppingrule
+
+[33mcommit 7f2c364868a032bd977f16fa6f32ef97fb69f28e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 14:20:37 2015 +0100
+
+    refactor improvementFound decision into a policy
+
+[33mcommit a5027d317bc5c7501e5044a2deb10d29aa264583[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 13:25:24 2015 +0100
+
+    repair tests and do automatic codestyle
+
+[33mcommit 95679d83298ebf59d71ad2a01c09a3fcfce6f6b7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 13:07:35 2015 +0100
+
+    rename variable
+
+[33mcommit e8997ad12369f65ef88e9c1882d5e83b372e0836[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 12:02:19 2015 +0100
+
+    transfer changes to KFM
+
+[33mcommit 6814cc89ae518aadc539db40c22aeb83dd293ebb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 11:46:52 2015 +0100
+
+    remove code handling infeasible moves
+
+[33mcommit 44da3937910b1cb2b9776e9f21f13aab7db03756[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 11:38:37 2015 +0100
+
+    accept improvements in imbalance and also perform infeasible moves
+
+[33mcommit 2166b4b2c70065f5f498e52081b0733775c2f9ed[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 10:47:42 2015 +0100
+
+    relax enabling of pq parts: always allow heaviest node to move
+
+[33mcommit a946a298b26244375141c3de78793345b780ba03[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 10:30:08 2015 +0100
+
+    track max hypernode weight during coarsening
+
+[33mcommit 62b65a60437016e0b1998d256baf822b27aaf940[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 09:26:55 2015 +0100
+
+    fix not compiling testcase and stylecheck update
+
+[33mcommit edaedc0eac41852c4de09e3d9f44ae396cccc1fd[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Feb 6 09:22:11 2015 +0100
+
+    update KFM to enable and disable parts of PQ
+
+[33mcommit 22c167ed7d4e39c7d47e66c6f8b578713ed12ed5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 5 17:53:05 2015 +0100
+
+    integrate enabling/disabling of interal heaps of kway-pq into MaxGainFM
+    
+    First step towards better performing refiner.
+    Explicitly enabling and disabling target parts in PQ ensures that
+    we do not get a move via deleteMax that would move a HN to an overloaded
+    part (i.e. we reduce the number of infeasible moves we currently have to
+    buffer).
+    Additionally, we don't do zero gain updates anymore.
+
+[33mcommit 5e1c75c6ecff60406535d187b3596bd288d972fa[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 5 15:28:11 2015 +0100
+
+    bugfix: remove works on both enabled and disabled heaps
+    
+    however previous version treated all removals as remove
+    operations on enabled heaps.
+
+[33mcommit 7a35f05dfbf37cf0df2fb625eb5dbbd65e3f78d9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 5 13:26:26 2015 +0100
+
+    enhance KFM pq to handle enabling/disabling of heaps
+    
+    The current version automatically enables each encountered part
+    and thus works exactly as the previous version with no significant
+    performance penalty.
+    
+    The upcoming versions of Refiners will explicitly enable and disable
+    underloaded/overloaded parts. In this case, the PQ has to be adapted to
+    not enable heaps by default and the 2 disabled testcases can be activated.
+
+[33mcommit 1746be0d6371d278afa1b4933c2550d11c4f051a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Feb 5 13:05:22 2015 +0100
+
+    fix stats in case maps are empty
+
+[33mcommit cf250a13c1c8553453a6fdb8acc147bdae24a302[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Feb 4 10:31:48 2015 +0100
+
+    gather more stats about coarsening process
+
+[33mcommit 3ebfeb5b22bfca024b0d5d76e1572e69d6038fb3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Feb 4 10:15:54 2015 +0100
+
+    add v for vcycle number
+
+[33mcommit 92757f2f73e858d991fc1632859f783bf3f0da29[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 3 16:43:52 2015 +0100
+
+    unify hypergraph information and reuse vectors
+
+[33mcommit 633ce8f11a0044db10e03818cb96862057ed8d3d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 3 15:48:04 2015 +0100
+
+    switch to Knuth's algorithm for standard deviation
+    
+    see Donald E. Knuth in The Art of Computer Programming, 4.2.2, p. 232
+
+[33mcommit 4d1b92302c8a2530ba12eddf7afa08dee8106554[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 3 15:45:33 2015 +0100
+
+    cleanup
+
+[33mcommit bb3b0895aa5e1ba2b518d13dd1510379b55c102f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Feb 3 15:44:38 2015 +0100
+
+    modify k-way pq to use only nonempty pqs
+
+[33mcommit f94320627a689a7d9ef5d11d581715ca18cf414a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 23 16:41:20 2015 +0100
+
+    cleanup mess with constexprs
+
+[33mcommit 491ea2d74b2942cd8619a22cc361949478bef52d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 23 15:20:01 2015 +0100
+
+    consolidate constants
+
+[33mcommit a7d56c09763a471c5b919743960b398fa0b5c215[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 23 12:50:00 2015 +0100
+
+    implement swap
+
+[33mcommit a2a23385081269f2006362e1cde575a717c93f85[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 23 11:42:24 2015 +0100
+
+    update documentation and simplify assertin
+
+[33mcommit 43f39104c8f01ebdfe8ab0993b82f150ec548d61[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 23 11:42:05 2015 +0100
+
+    remove constexpr
+
+[33mcommit 0653151645e86726b4187ba0c85de73ba8b7205b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 22 14:00:35 2015 +0100
+
+    undo previous commit
+
+[33mcommit 86cd6868a6591f3deba7df07a7dd6ab1a852fc29[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 22 10:36:39 2015 +0100
+
+    allow enabling and disabling of pqs
+
+[33mcommit a21371fb148f22bfd48799027bd72bfca8f8ce5e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 22 09:04:48 2015 +0100
+
+    use _num_entries instead of calculating size
+
+[33mcommit adb6e62c82612e02b396ae0941d6c76c64665762[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Jan 21 11:46:56 2015 +0100
+
+    cleanup comments
+
+[33mcommit 256b263362df97989e9e380d3a4effa01396100f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Jan 21 11:21:22 2015 +0100
+
+    consolidate heaps
+    
+    Standard PQ now directly forwards elements to its heap.
+    K-FM PQ uses NoDataBinaryMAXHeaps as default.
+    We keep the current NoDataBinaryHeap as NoDataBinaryMINHeap.
+
+[33mcommit 6de2b9e0415756740bc6ae3c43ff346589e27fa3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Jan 21 10:44:07 2015 +0100
+
+    use NoDataBinaryHeap if we don't need data
+
+[33mcommit a342ce94554e6333f7e096e2ba022a9eab74b15d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Jan 20 16:47:12 2015 +0100
+
+    automatic source code formatting
+
+[33mcommit 72540b62d8d4a58a74252ee71c1068d2972121c5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Jan 20 16:46:23 2015 +0100
+
+    add changes to kPQ interface neccessary because of previous commit
+
+[33mcommit 215b016c32f34f85fc5d0083e096716b8512497f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Jan 20 16:44:16 2015 +0100
+
+    use k-way PQ also for maxGainKFM
+    
+    Preliminary experiments show slightly better cut.
+    Additionally this allows us to use smarter tie-breaking rules
+    to select the max_gain_move and to implement the active_queues
+    aproach of nGP.
+
+[33mcommit 78de63a30bee03752dd40078b60a87c64f7482da[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Jan 19 16:30:46 2015 +0100
+
+    eliminate variable
+
+[33mcommit 30d26a81f92adfeed0ddebb3cf35e349ea330fec[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Jan 19 16:27:02 2015 +0100
+
+    move const values out of inner loop
+
+[33mcommit b9aefdbc6d466dd6a59414c8094e908a9f61d8d8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 16 14:53:18 2015 +0100
+
+    only print to file if specified
+
+[33mcommit c0c09c00b3180bb1b8c1b2826d0914f943a54a0d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Jan 16 13:49:16 2015 +0100
+
+    also print result line to cout for ic2
+
+[33mcommit 0cc396c413dc0b6fd4a642406f30c630f4684277[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 16:07:23 2015 +0100
+
+    make path of initial partitioner configurable
+
+[33mcommit 9914459e36541a28382e4c02363bd829e5c01721[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 15:39:28 2015 +0100
+
+    disable sparsehash dependency
+
+[33mcommit 62252a44d035853e8b56d8cf4d3c4aad3fcd9127[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 15:39:11 2015 +0100
+
+    remove include directive
+
+[33mcommit b34e0f29c67f929c3c1fbe395a56bb67bab10318[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 14:04:46 2015 +0100
+
+    make parameters const
+
+[33mcommit 5f6c6c69413d786165c143181374028dd520af36[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 13:13:54 2015 +0100
+
+    make parameters const
+
+[33mcommit 8f44e45c06ea50985abf1a597c871259a548ea91[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Jan 15 11:53:57 2015 +0100
+
+    bugfix: global connectivity decrease
+    
+    calculation of the global connectivity decrease for a potential move did
+    not account for the fact that if the HN to be moved is the only HN in
+    the source part for a HE, the assumed connectivity increase has to be
+    corrected by -1 for all other parts since a part-change won't increase
+    the connectivity (but this is assuemd by initializing each
+    decrease-counter with nodeDegree(hn)).
+    
+    Additionally, this commit provides a new lambda-assertion to verify the
+    calculated connectivity decrease values by simulating the move, since
+    the original assertion contained the same bug as the calculation!
+
+[33mcommit fa61bf9dab6ce294db3e712cc6ec48320a2969b9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Jan 13 15:26:28 2015 +0100
+
+    refactoring
+
+[33mcommit 4d7f5749ef4d568839f84569d7e733570bedb819[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Jan 12 11:57:58 2015 +0100
+
+    add test for single node HNs
+
+[33mcommit 480e32748bf98e394df5aed1f9891ce36d974929[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 18 12:59:51 2014 +0100
+
+    refactor and cleanup MaxGainKFM
+
+[33mcommit a8521164345c08467f213949f18cfdb202dc5932[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 18 11:32:16 2014 +0100
+
+    assert that all active HNs have a valid state
+    
+    Either they are marked (and thus have been moved in the current pass),
+    or the are internal (e.g. no border HN) or they are in one of the PQs.
+
+[33mcommit 8c19b4e5bad4e585fef2122c4783031651de5224[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 18 10:58:32 2014 +0100
+
+    silence compiler warning
+
+[33mcommit 9ab4168726b9f38bf68c434e8af3334dec33cac2[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 18 10:43:40 2014 +0100
+
+    fix moveAffectsGainUpdate
+
+[33mcommit 0ef5a6643d0a3fe1e0f88b8a634c5b1b0f2fc109[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 15:50:09 2014 +0100
+
+    further speed up hypergraph DS but sacrifice space
+    
+    We now use more space to store the pin counts explicitly and
+    additionally store only part ids as connectivity set. If space
+    consumption becomes too large, we should rollback to commit d6a5576,
+    where we use the first connectivity set version along with a bitvector.
+
+[33mcommit 7698a21b040582d97d8457357f2ed69e0cab888b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 13:14:22 2014 +0100
+
+    cleanup and fix operator<
+
+[33mcommit cc289e04ecd29d4711553493c5376541665c4ea8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 11:58:18 2014 +0100
+
+    remove dead code
+
+[33mcommit d6a5576523538585c9d989f7a426702481a46e7a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 11:53:07 2014 +0100
+
+    improve pinCountInPart through bitset
+
+[33mcommit 8b47381438b023cd1c03ac9303239cb4666a0e41[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 10:41:15 2014 +0100
+
+    fix memory allocation
+
+[33mcommit bafb0c5b1efdda54b4c6004ad64c2b7a6e5b4d26[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 12 10:11:25 2014 +0100
+
+    update docu and cpplint
+
+[33mcommit bb01097197d2419de4eaef306c96a04f6fc2cb7e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 17:42:41 2014 +0100
+
+    Revert "use isCutEdge instead of counting active pins"
+    
+    This reverts commit 23cfb8bf50630a4560bc441530719083d22dcf3f.
+
+[33mcommit 23cfb8bf50630a4560bc441530719083d22dcf3f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 17:37:58 2014 +0100
+
+    use isCutEdge instead of counting active pins
+    
+    once a HE is cut-edge, all its pins are active for sureg
+
+[33mcommit 581f2078221365bf565c78e63c6ee0db27a684b3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 16:20:12 2014 +0100
+
+    update assertions to net macro format
+
+[33mcommit 6e67e1c068fe9283386755cf7ac6a4f0170f1c42[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 16:18:38 2014 +0100
+
+    use heap as top buffer instead of vectorscan
+
+[33mcommit 55547e79bcfe37acb5bdf6bee66d8bd994678804[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 13:50:55 2014 +0100
+
+    use reference to connectivity entry
+
+[33mcommit 6bedf7d02e34fc615e5ebe6df074023643a242a0[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 13:50:33 2014 +0100
+
+    deactivate reInsert
+
+[33mcommit 8ea9626374d6809f56ca801d9434f082081fb37f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 13:50:02 2014 +0100
+
+    remember if a HE is already fully active
+
+[33mcommit e4440a22179cfd9c41ee7364bd0ef55e502adb43[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Dec 11 12:53:45 2014 +0100
+
+    refactor KFM gainupdate
+
+[33mcommit 94ca0a50ddf72c8a4371cfde87bee0074a3e1083[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Dec 10 18:03:18 2014 +0100
+
+    add moveAffectsGainUpate
+
+[33mcommit 812ab613297711daaf128228e8f1748ad0dbdc47[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Dec 10 17:34:16 2014 +0100
+
+    reimplement locking of HEs for KFM
+
+[33mcommit b647c2d531bceec077930e41bcd86539e3b0b890[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Dec 10 17:07:35 2014 +0100
+
+    fix update neighbours for KFM
+
+[33mcommit 1cd19ce55c03da36778e2344a0857dd72e4e0952[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Dec 9 13:40:05 2014 +0100
+
+    add staleness assertion to both MaxGainKfm and Kfm
+
+[33mcommit 77b7e008ee20b1b750f277a7741b1e16f62a151e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Dec 8 13:15:27 2014 +0100
+
+    switch to c++14 and use ubsan in debug mode
+    
+    See
+    http://developerblog.redhat.com/2014/10/16/gcc-undefined-behavior-sanitizer-ubsan/
+    for ubsan
+
+[33mcommit 004bef0576a96367f8bc247b85eb223ae242fc09[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 5 14:50:53 2014 +0100
+
+    use k provided in config struct
+
+[33mcommit 74dc178ab952757caf7f0d30b3b723328f737058[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 5 14:03:03 2014 +0100
+
+    speedup KFM by combining max operations into a single deleteMax and
+    counting entries
+
+[33mcommit 41ce960ac424622bddf189a4623942818476e1a4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 5 11:09:04 2014 +0100
+
+    minor refactorings
+
+[33mcommit 4d53a7bbd91dc14b6b6b5a1d17c8305d939a6113[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 5 10:47:08 2014 +0100
+
+    refactor infeasible moves tuple to struct
+
+[33mcommit 5075a6693ee12748adf5a6fe99fa8113e48efb54[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Dec 5 09:46:43 2014 +0100
+
+    add debug output for HN activation
+
+[33mcommit 297273621f01e5371657cdc573e0750aaaaa1844[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Dec 2 17:48:02 2014 +0100
+
+    fix balance constraint calculation
+
+[33mcommit 1221568fa5de9150c5fdf2767c0155d77da5b90c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Dec 2 17:47:47 2014 +0100
+
+    codestyle changes
+
+[33mcommit 0195309053308583eb766f2a2bece108134a8e05[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Dec 2 17:46:35 2014 +0100
+
+    make functions static
+
+[33mcommit 3c5ae8e08b8e3f86346fc3564eca0ff221d67055[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Dec 2 17:41:56 2014 +0100
+
+    fix KFM
+    
+    2 major bug fixes:
+    - Previous version missed to insert possible moves if the connectivity
+    of a HE did increase after a move. This version now also inserts a move
+    to the newly connected part for all pins.
+    - In addition, the previous version missed to activate pins of a
+    hyperedge if it first became an internal HE (on state change free ->
+    loose we assumed to activate those pins). If another move later on made
+    the HE a cut HE again, then we did not insert the Pins into the PQ.
+
+[33mcommit 958a9e4c54e0bcbcbc81823832e29c32142906c8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Dec 1 15:26:52 2014 +0100
+
+    add missing example hypergraph
+
+[33mcommit 7d77eeef6843fabc12c9700bb892d2f7ff279e93[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Dec 1 10:03:51 2014 +0100
+
+    switch to c++14
+
+[33mcommit cbfdf005d9c8c521615e6ec952e8eaf25576cacb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Dec 1 10:03:39 2014 +0100
+
+    cleanup dead code
+
+[33mcommit a26b0af6e5d936b5edb0318744bfbc829ba2a46b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 27 11:53:59 2014 +0100
+
+    update gitignore
+
+[33mcommit b048c5f04cc482f94cdd4996709e356e5e1c65e5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 27 11:13:26 2014 +0100
+
+    simplify condition
+
+[33mcommit fe8658eacedddde95b7cc250025bedb779a11826[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 27 10:39:48 2014 +0100
+
+    add const
+
+[33mcommit da3c63e179b04f3979eda68d3c5e46ce21897487[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 27 09:47:34 2014 +0100
+
+    add assertion to validate connectivity decrease
+
+[33mcommit 703ffe239c27e10b192270df64009038c47a3209[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 26 14:50:38 2014 +0100
+
+    add soed, k-1 and absorption metric
+
+[33mcommit 157b50408ca0ca63075561b84159e2d8a48d3edb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 26 13:47:16 2014 +0100
+
+    simplify cut calculation
+
+[33mcommit 83e8642a39d72ae5a28020c2d70c54d72a0c6e5a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 25 13:59:57 2014 +0100
+
+    cleanup and disable debug output by default
+
+[33mcommit b13ff2a81f563cbd31beb89617737fcfca5e2de9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Nov 21 15:17:55 2014 +0100
+
+    enable patoh as possible initial partitioner
+
+[33mcommit 152e7c5920ae0781419b5a4906ae0ffaa12969d3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Nov 21 11:51:50 2014 +0100
+
+    create ouput method for coarse graph in PaToH format and add test
+
+[33mcommit 9fa89c957af3aa60efbbb63866c50eeadaccb605[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Nov 21 11:51:27 2014 +0100
+
+    indentation cleanup
+
+[33mcommit ca1dd291323a3b68b6e7284dcf5bb508f854b5d5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Nov 21 11:51:10 2014 +0100
+
+    make initial partitioner configurable
+
+[33mcommit e4733f79e883791240bc0fbb40e44e23edf033f5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Nov 21 11:49:56 2014 +0100
+
+    fix imbalance calculation in twoway refiner
+
+[33mcommit a2a0d0eff62da7e2b5cd938852eb1396f1d1df6c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 20 19:51:33 2014 +0100
+
+    set currently best params as default
+
+[33mcommit 90215c93fa3741b0b5bbf6a2ffa303f00990af46[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 20 15:05:52 2014 +0100
+
+    temporarily disable locked-HE and affected-HE optimizations
+    
+    serious runtime improvements are only seen for MCNC, otherwise it
+    is not that much. however we currently loose quality because we do not
+    update moves based on global connectivity decrease
+
+[33mcommit 8a49edf4e647b0d2e2657ab582df40187286c1d9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 20 13:02:14 2014 +0100
+
+    refactor InvalidGain constant
+
+[33mcommit fdc6a8b7fc54c0c95fea7ae7668dad30d81ff04f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 19 16:14:17 2014 +0100
+
+    refactor free and locked constants for locked HEs for KWayFMRefiner
+
+[33mcommit 43fd7fb639fbd389b88d92060e880379f3686296[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 19 15:51:11 2014 +0100
+
+    document fact that locked_hes opt prevents correct global connectivity decrease
+
+[33mcommit 8cd320fffde9e7fab9aad74457dae916bc1dc684[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 19 11:23:12 2014 +0100
+
+    refactor free and locked constants for locked HEs
+
+[33mcommit 8d78d35e38f172f563292ebc804c4509811bcc05[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 19 10:23:38 2014 +0100
+
+    add stats about edge weight distribution
+
+[33mcommit 3e65112f64e077bc8ac6e7cc8a3760a923a3cd9d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 18 14:38:39 2014 +0100
+
+    fix balance calculation
+
+[33mcommit 52a267e4abbc0bec97622eb796f5402afa864611[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 18 11:50:05 2014 +0100
+
+    add additional debug info
+
+[33mcommit 5e9e536d50fc647873fb6e75abbc162a2b37f617[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 18 11:25:02 2014 +0100
+
+    minor code cleanup
+
+[33mcommit 3417e63907586d9f325297d2201b75e7e19683f8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 16:44:01 2014 +0100
+
+    update debug message
+
+[33mcommit 0c22f4193d9d6213392ec519ec8b708d4821c16f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 16:21:19 2014 +0100
+
+    allow maximal part size
+
+[33mcommit ee98d9fe7bac3779865446b7c44ef278f272cfdd[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 15:40:55 2014 +0100
+
+    fix gcc4.9.1 warnings
+
+[33mcommit 854f803255057f74ee66fcf4152c0baed78a71d9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 15:29:43 2014 +0100
+
+    update makefile
+
+[33mcommit 96f63c75805727da33bc2a7031457140d50b2d7c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 13:28:44 2014 +0100
+
+    remove sqlite dependency from cmake
+
+[33mcommit 82b2f3768d70006a4c5f8bc5436e8f314cb885b0[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 13:26:19 2014 +0100
+
+    use boost from /software on servers
+
+[33mcommit 86eb23a1ff2264725412989bd9fbcc5385da849a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 10:02:34 2014 +0100
+
+    update dbg msg
+
+[33mcommit 69195b503af022de4049e92cd35d5a9c06380d70[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Nov 13 09:44:25 2014 +0100
+
+    remove dense hash map dependencies
+
+[33mcommit f5e90d391576a77b2f49078e325207dd75ba8d75[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 5 13:06:33 2014 +0100
+
+    update macro to prevent copy assignment
+
+[33mcommit 31310530b71300640484640ebbbedcf83c8fefda[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 5 11:08:55 2014 +0100
+
+    improve logging functionality
+
+[33mcommit 82e51652e9f9ece77b88ffc2fafd93b6828663d3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Nov 5 11:02:48 2014 +0100
+
+    consolidate use of stopping rule and modify simple stopping rule
+    
+    Previous version considered zero-gain moves as an improvement in some
+    refiners. We now only consider actual decrease in cut an improvement
+    consistently across all refiners. This might be changed in the future.
+    
+    Furthermore, the old implementation of SimpleStoppingRule did perform
+    more than the specified amout of fruitless moves due to the way it was
+    implemented and used. The new implementation now really aborts after x
+    fruitless moves that did not lead do a decrease in cut.
+
+[33mcommit a1c0fa17a57223825f5a3e2aa0e28db286658075[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 4 16:35:55 2014 +0100
+
+    minor refactoring
+
+[33mcommit ebace9f00dc61378e6af57d33a286def03acfaa4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 4 13:48:51 2014 +0100
+
+    quality improvement: look at global connectivity decrease
+    
+    Previous version only looked at local connectivity decrease (i.e, does
+    the move decrease the connectivity for one particular hyperedges), but
+    did not consider the global,overall decrease in connectivity. This
+    version now considers the global view and did perform considerably
+    better than the previous version on an initial benchmark run.
+
+[33mcommit d71a79858fdbc643760c096bb9a27d2e357bca4b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 4 13:10:42 2014 +0100
+
+    add excludes
+
+[33mcommit 9ad04ef9b7c4a81f3f52f5711ec34747dffc8734[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Nov 4 13:09:21 2014 +0100
+
+    bugfix: reset _tmp_connectivity_decrease for source part
+
+[33mcommit 982439952d4043cd863f505651e7c8b58c323946[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Nov 3 18:04:29 2014 +0100
+
+    track results of initial partitioning attempts
+
+[33mcommit a95c87a9a803553164485860bc5bb10e2127520f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Nov 3 17:18:35 2014 +0100
+
+    decouple generation of random seeds for initial partitioning
+    
+    Since both, initial partitioning and KaHyPar code used the same
+    generator, performing a different number of initial partitionings had
+    an effect on the overall partitioning result, even if the first initial
+    partitioning trial performed best.
+    
+    We now use a separate random generator for initial partitioning do
+    decouple it from refinement. Thus if the first initial partitioning
+    attempt produces the best result, doing more attempts does not change
+    the random choices for refinement and thus lead to a constistent result.
+
+[33mcommit 2255d76df6df7a3acffe0678d8f7d50824eb7278[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Nov 3 13:12:39 2014 +0100
+
+    add missing HypergraphPruner
+
+[33mcommit 7c5272a15989146092e71ff50027b5bed4412d22[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 17:24:41 2014 +0100
+
+    allow removal of parallel HEs before partitioning via --init-remove-hes=true
+
+[33mcommit dbce35c97479fc744ee99ac340a6381ce01fde31[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 13:54:26 2014 +0100
+
+    disallow copy and assignment
+
+[33mcommit a1f3424cc6495fe2e757d4cbbd37e50f4b961f3e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 13:48:11 2014 +0100
+
+    extract single node and parallel HE removal into HypergraphPruner
+    
+    Encapsulation of hypergraph pruning becomes necessary, because we
+    need the removal of parallel HEs also outside of coarsening.
+
+[33mcommit fcc1bf8964dc6b187fd603e465328733bdeaff1b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 10:41:44 2014 +0100
+
+    remove universal references and add more consts
+
+[33mcommit 37238c1596bed5050de7303c9ad3746cabe5f107[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 10:19:47 2014 +0100
+
+    cleanup unnecessary use of auto and make variables const
+
+[33mcommit 1d928539daf806bc9bc8d24d0e98c1ed478b42a6[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 31 09:34:06 2014 +0100
+
+    bugfix: hypergraph did not maintain correct part sizes during uncoarsening
+
+[33mcommit fbdf14daf3726b2dd7a8165940506c5e5817e8a3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 30 17:16:26 2014 +0100
+
+    bugfix: correct parallel hyperedge detection
+
+[33mcommit 20d7a006863bea9dd5dcc0ff17e9c861abc1fa94[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 29 11:26:05 2014 +0100
+
+    cleanup
+
+[33mcommit 88a3d1a9eb3ab8831465cf2b4e75b4c3c1920d2c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 29 11:24:54 2014 +0100
+
+    bugfix: if big HEs get removed, HNs might get invalidated
+
+[33mcommit 3924d961330d49ca50acc648a680014099d910f4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 29 11:24:32 2014 +0100
+
+    fix broken test cases
+
+[33mcommit 8576dca9173f85f5f8016b8403238590ba1d36df[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 29 11:23:54 2014 +0100
+
+    add testcase that got forgotten in previous commit
+
+[33mcommit 989772e5b79778716e7564bb094afc3c4143836f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 29 10:50:19 2014 +0100
+
+    bugfix: If rep_node does not have any incident HEs, it would not get rerated
+
+[33mcommit 933c25ceabac4d90fbc91c6eaaae5f07ca5ffa98[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Oct 27 18:16:43 2014 +0100
+
+    add stats for weight distribution of coarsest graph
+
+[33mcommit f1578ff41fe13e704b39b58efe1f3cdf8df4eb5d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Oct 27 14:04:18 2014 +0100
+
+    document reason why we dont need containmen check on lazy variant
+
+[33mcommit 2fc9b536f9555b14232e404ec7ab1f59a2d35869[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Oct 27 13:54:31 2014 +0100
+
+    document reason for explicit containment check
+
+[33mcommit 6805c67cc56838f6309def3eb1a2399d24f50843[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Oct 27 13:48:40 2014 +0100
+
+    Revert "remove superfluous containment check in coarseners"
+    
+    Those checks are actually necessary for V-cycling, because in a
+    V-cycle not all hypernodes will be present in the PQ due to size
+    constraint on the hypernodes. Thus in case of heuristic and full
+    coarsener, this will lead to errornous deletes from the PQ.
+    
+    This reverts commit 0a32374cd361885d9c5a884460220393f5705890.
+
+[33mcommit 0ad85428d08ee4d448829255f805071cf39e5e3f[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 24 10:49:49 2014 +0200
+
+    interface change for parameters s and t.
+    
+    contraction limit = t * k
+    max. allowed node weight = s * w(Nodes) / contraction limit
+
+[33mcommit abe81e7711e3e80e69672b607e0c363f34613179[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 23 16:29:19 2014 +0200
+
+    calculate rating score only once per HE
+
+[33mcommit 47c347fd54abe5f93c71f2659385052c3e8369a6[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 23 10:05:20 2014 +0200
+
+    use NoDataBinaryHeap in coarsening PQs
+
+[33mcommit 0a32374cd361885d9c5a884460220393f5705890[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 23 09:56:22 2014 +0200
+
+    remove superfluous containment check in coarseners
+
+[33mcommit e8fd4aa4de81aea1f4d1bc029c2a2d9a4cdacabe[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 22 15:59:56 2014 +0200
+
+    fix performance bug: redundant reRatings heuristic coarsener
+    
+    Heuristic heavy edge coarsener showed poor performance on sparse matrix
+    instances. Profiling revealed that this was due to a high load on
+    reRateHypernodesAffectedByParallelHyperedgeRemoval. In case of SPM
+    instances, this was especially critical, because these instances produce
+    a lot of parallel hyperedges.
+    
+    Starting with this commit we now evaluate every affected pin only once!
+
+[33mcommit 9dabe7a721b1562d47716364c383a0d9c000c7d2[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 17 13:55:09 2014 +0200
+
+    cleanup update code: activation only happens in updateNeighbours
+
+[33mcommit 42e45db59501bc642a4bd4f1221482ebfc3b87ce[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 17 13:53:53 2014 +0200
+
+    minor codestyle change
+
+[33mcommit e07c68878bc4ef59295e24ccc398db84e98f98d9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 17 13:27:51 2014 +0200
+
+    use provided metakey instead of numeric limits
+
+[33mcommit dbe7659fde4b4649f95d29cb74a9631340a6f876[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 17 13:26:27 2014 +0200
+
+    minor refactoring
+
+[33mcommit c64252806588153166d07cc9a898c650af2e68c5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 16 10:53:57 2014 +0200
+
+    remove pot whitespace from template string
+
+[33mcommit 814b9283a8bcb97c171a96a0d612af39d3911113[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 15 16:14:52 2014 +0200
+
+    bugfix: if graph could not coarsened we forgot edge and node weights indicator
+
+[33mcommit 0852f4cc48e51eb10dc992e71cf695c36b5f6bf4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Oct 13 16:55:59 2014 +0200
+
+    fix hyperedge coarsener for hypergraphs with edges of size 1
+    
+    Hypergraph instances might contain hyperedges that only contain one pin.
+    In this case, no contraction is performed and therefore there is no
+    coarsening memento in this case. The corresponding
+    hypepredgecoarsener-memento contains only information about the removed
+    single-node hyperedge. However the previous version did not check for
+    the size of coarsening memento and therefore included invalid hypernodes
+    in the refinement process!
+
+[33mcommit edfd27cd81c95d6642624240976101557b9479b6[m
+Merge: c703813 921f980
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 16:02:23 2014 +0200
+
+    Merge branch 'kway-full'
+
+[33mcommit 921f9803497b25b5f30d390fe0a6ef3be68b07ce[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 15:58:38 2014 +0200
+
+    fix typo
+
+[33mcommit 0db9ba32a58a840c2eef26b0f7fa28081cc3905b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 15:48:27 2014 +0200
+
+    reanable insertion of infeasible move: separate tuning run necessary to
+    determine (positive/negative) effect
+
+[33mcommit 6475e07a8148932c446cce288cb5d405cf0fda2c[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 15:35:08 2014 +0200
+
+    fix MaxGainNodeFMRefiner: removal caused positive gain moves to be
+    missing
+    
+    This refiner only considers the move with maximum gain. Therefore removing
+    infeasible moves without explicitly reinserting them causes the
+    assertion in updateNeighbours to fail. Locked HEs might lead to the fact
+    that previously removed infeasible moves will not get reinserted again,
+    even if they now are feasible.
+
+[33mcommit 82ba7c1d1ec6932b3dd964e6892262877cf11343[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 13:49:42 2014 +0200
+
+    update documentation
+
+[33mcommit e79a6925c3a95222c3741b17b6ad6b0301b6ac51[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 13:26:09 2014 +0200
+
+    add missig changes
+
+[33mcommit 551a2c3ad8f707f9fa7cde3838bf95aa737e7281[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 13:24:44 2014 +0200
+
+    integrate partition pin count into connectivity set for another 33% speedup
+
+[33mcommit 3a4a39fee36613fc8bc935b104bdfc1a4658d7e7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 11:29:18 2014 +0200
+
+    new vector-based connectivity-set implementation that increases performance
+
+[33mcommit eec0f50a16626f0b16f90f53414734862ed3d832[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Oct 10 09:45:28 2014 +0200
+
+    correct indentation
+
+[33mcommit 001ce6dab23098a9207812909dec831a88d5eb87[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 9 18:09:06 2014 +0200
+
+    replace dense_hash_set with simple vector and linear scan
+    
+    siginificant performance improvement! since k is expected to be
+    rather small, simply scanning will most certainly always be faster
+    than hashset operations.
+
+[33mcommit f6c2c45583cf368f2ef26303d2bbaae4161931cc[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 9 16:29:13 2014 +0200
+
+    consolidate code with minor code change
+    
+    Previous version only performed a move, if it was feasible and only
+    then updated the neighbours etc. This behavior is equivalent to first
+    finding the max gain move that is acutally feasible (and to discard all
+    unfeasible moves) and then performing that move.
+    
+    Slight change that might have improved performance: Removed infeasible
+    moves were marked as moved before this commit, although they were never
+    moved. Now, only moves that are actually performed are marked as such.
+    
+    The behavior of the new version is exactly the same as the old version,
+    if one only marks a move as _marked[hn]=true, if the move is actually
+    performed.
+
+[33mcommit 308600ff91b348dd00b4408b87dd75a1b12adc1a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 9 14:57:50 2014 +0200
+
+    do not reinsert infeasible moves after one feasible move is found
+    
+    According to some initial experiments it seems that reinsertion
+    accutally decreases the solution quality. However this has to be
+    evaluated by a separate tuning run!
+
+[33mcommit 9b3b30c37ed2e16cd8558962ca4d39cab5fdab99[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 16:25:08 2014 +0200
+
+    fix priority queue mehtods to work with both types of binary heaps
+
+[33mcommit 6cf5f6e01947c29b2a79afb52089df594442af8b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 13:26:12 2014 +0200
+
+    add dummy data type
+
+[33mcommit 72200b27c4df6fa3e8e5d32a0c145062acbfa1d4[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 13:25:36 2014 +0200
+
+    add enable_if to distiguish between heaps with and without data
+
+[33mcommit f932561fb2e5540e9c8f0b5917967fc647656ca7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 12:59:10 2014 +0200
+
+    make usage of heap in PQ configurable
+
+[33mcommit 502da6f4e323876924f5f2eb45ca16276cc9617d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:35:11 2014 +0200
+
+    fix indentation
+
+[33mcommit 47ad49d59bc4af021eb774b94138998d66a53597[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:34:33 2014 +0200
+
+    remove data related methods from no data heap
+
+[33mcommit d91a00f711f8a635d4aecad67aedf513fb80d57d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:33:44 2014 +0200
+
+    correct debug output
+
+[33mcommit 12f128c32abc1a98799e7f456a760e632e14eef2[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:33:27 2014 +0200
+
+    full kfm now uses kfm pq
+
+[33mcommit a4f561a658919a99cabac735e8fd34417d98b626[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:19:25 2014 +0200
+
+    first very simple version of a kway-fm pq
+
+[33mcommit 74eab3cf343d0957c2d59d9e945f733efd6d9243[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Oct 8 11:04:28 2014 +0200
+
+    implement heap that does not store extra data
+    
+    this heap only stores key and values and thus does not need
+    additional indirections.
+
+[33mcommit aae6a5d32ef6f75e99d28aabd24cc6ba6930ca15[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 2 14:29:10 2014 +0200
+
+    modify binary heap to support constant time clear
+
+[33mcommit 17f371e94a6874cf36c5d0d73b713f64fe7efd4d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 2 14:27:33 2014 +0200
+
+    add debug info for profiling
+
+[33mcommit a70f8a0cf1ad740859c461f0ffa829e2c4c899e8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Oct 2 09:45:44 2014 +0200
+
+    fix indentation
+
+[33mcommit 0e6f5989579e64ff60b45650298807a7477b4196[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 25 14:19:08 2014 +0200
+
+    make both k-way refiners accessible via KaHyPar
+
+[33mcommit 71b19458339b109eb55181c9607c490422f3feeb[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 24 14:58:10 2014 +0200
+
+    update cmake file for MaxGainNodeRefiner testcases
+
+[33mcommit bf89541dcd894fd546679c0810fb25c418711468[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 24 14:57:49 2014 +0200
+
+    make storage configurable for pq
+
+[33mcommit 7f3533f44a9c2e9b834171eccab5cbac5b744080[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 24 14:57:23 2014 +0200
+
+    allow dense_hash_map as heap storage
+
+[33mcommit 008ea2fddc6b44900fd8874f8ec384204d59eb45[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 24 14:52:18 2014 +0200
+
+    reorganize serializer
+
+[33mcommit a477ab40632200cf020300c1c854e6af6ad829ad[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 24 14:51:34 2014 +0200
+
+    rename old fm refiner to MaxGainNodeKWayFMRefiner
+
+[33mcommit c703813ed627ea021c367aab60f5dd0e517dcb4a[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 23 17:58:54 2014 +0200
+
+    add comment why assertion in 2FM might fail on MCNC instances
+    
+    Some MCNC instances contain hyperedges that only contain one pin.
+    As the refiner assumes this to be an inconsistent hypergraph state,
+    a corresponding assertion in gain computation will fail.
+
+[33mcommit 67d5be85294ad0dd278a18fce00f79f01feb8d1b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 23 10:38:23 2014 +0200
+
+    make old gain and gain delta const
+
+[33mcommit 94746dc43a78f82f2b153c8d68cdb466123a98c7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 22 17:40:27 2014 +0200
+
+    only update Pins for HEs affected by HN move
+
+[33mcommit 1f5cbe9b5e784b2897d5f89ded74c8a860ca96ba[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 22 15:36:23 2014 +0200
+
+    change meaning of stats variables
+    
+    numRemovedSingleNodeHEs is now named removedSingleNodeHEWeight, because
+    it effectively counts the HE-weight that is removed from the graph due to
+    single-node HE removal. However, since we also remove parallel HEs and
+    add their weight to the representative HE, this sum also includes the
+    edgeweight of HEs that were removed during the coarsening process
+    because they were parallel.
+    Thus # HEs != # coarse HEs + # removed parallel HEs +
+    removedSingleNodeHEWeight because the last term also counts those
+    parallel HEs whose representative got became a single node HE.
+
+[33mcommit 690f9ef75cf0a388d537e0d5d9570b62c3c916cc[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 22 15:03:12 2014 +0200
+
+    fix counting of removed single-node and parallel HEs
+    
+    Number of removed single-node HEs did not correspond to the true
+    number of hyperedges that were removed as single-node HEs, due to
+    parallel hyperedge removal. During coarsening a single-node HE might
+    represent several (parallel) HEs (edgeweight > 1). Thus instead of
+    counting the number of entries in _removed_single_node_hes, it is
+    necessary to count the edge weights. Additionally, the number
+    of removed parallel HEs has to be adjusted by edgeweight - 1 to count
+    only those edges that did not get removed as single node HEs.
+    Now #coarse HEs + # removed single-node HEs + # removede parallel HEs =
+
+[33mcommit fc73b0928a0e3bb25392fa0630e74b22c8998d28[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 22 13:51:55 2014 +0200
+
+    speedup kFM by locking HEs for gain update
+
+[33mcommit d379404283315350dadf6f12cec15864a2e4fccd[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 16 16:34:14 2014 +0200
+
+    add assertion that HN to be moved still is a border node
+
+[33mcommit d4bdb3591656b71f48e7bb637b9b3797fcd3fecf[m
+Merge: 3d1d168 ee53c27
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 16 10:06:55 2014 +0200
+
+    resolve merge conflict
+
+[33mcommit ee53c27598dd528328e717574dd68d9e7713bcd7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 16 10:00:22 2014 +0200
+
+    use hMetis binary in /software
+
+[33mcommit e59823a9099e8d450df333bed80183f10b1bd0e8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 16 09:56:46 2014 +0200
+
+    fix performance regression in 2WayFM due to new gain update
+
+[33mcommit 3d1d1686461c68368b66e5eb3e92491b647d339d[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 15 14:38:31 2014 +0200
+
+    new gain update calculation does not produce 0 deta gains
+
+[33mcommit 3a3b6f6cbede0673cff4beddd456184a4996d2a5[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 12 16:27:51 2014 +0200
+
+    update comment and exklicit if
+
+[33mcommit 3218d40f4b853b1b30b4897b7a8624d5489b49c1[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 11 18:07:12 2014 +0200
+
+    refactor 2way-fm gain update calculation
+
+[33mcommit ef6018370fbe956dc204f489e6ad3629acd5fc29[m
+Author: Vitali Henne <henne@i10pc150.iti.kit.edu>
+Date:   Wed Sep 10 19:29:30 2014 +0200
+
+    add the found sparse hash include directories to the project includes
+
+[33mcommit 3c01d72961bc6d13849e5556dbf232b1862cc2da[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 10 14:52:48 2014 +0200
+
+    repare stale testcases and debug ouput
+
+[33mcommit 09f2ea22bd8a2a09ddb4247be171a58994a16533[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 10 14:25:01 2014 +0200
+
+    add cmake module to find sparsehash
+
+[33mcommit bb4f296affe7bc13a40690a84971825f741098b9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 10 14:00:48 2014 +0200
+
+    update comment
+
+[33mcommit b871d5ddd0bb58bf25c3720f2def2e2a46ea4d6b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 10 13:58:48 2014 +0200
+
+    adapt large-he=removal to k-way case
+
+[33mcommit ba99cfa372eb83ae2c41bbb1eca6f34162c869db[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 9 10:51:13 2014 +0200
+
+    stop v-cycling if cut could not be improved
+
+[33mcommit 13a2a091c3e762569f2846a8cd2273973bd945c7[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 9 10:24:46 2014 +0200
+
+    count only cut reduction as improvement in FM refiners
+    
+    Previous version also considered reduction in imbalance as an
+    improvement. This seemed necessary in order to reduce imbalance produced
+    by initial partitioning. This, however, is now fixed by correctly
+    calculating an appropriate UBfactor for hMetis-RB.
+
+[33mcommit b9c652d5fdaafd1b87cd7f93281c719f77b533cc[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Tue Sep 9 09:44:36 2014 +0200
+
+    fix calculation of hypernode_weight_fraction
+
+[33mcommit 94f65758b213f7a95ce2f67ca86f0a5e274a40e3[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 8 17:36:16 2014 +0200
+
+    set invalid s value at the beginning to allow setting specific one
+
+[33mcommit 004765c64abc2b476f84c224184d86eeb2b13eb8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 8 16:59:40 2014 +0200
+
+    update gitignore:
+
+[33mcommit 8f564e5538f6bf614f26b4fda3f3d1a706c7ece0[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Mon Sep 8 16:58:30 2014 +0200
+
+    add KaSPar default for s and update stats
+
+[33mcommit 04a0581e952f32952adb77e82d355b2987c045fe[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 13:38:35 2014 +0200
+
+    reset kfm stopping statistics only when cut is really improved
+
+[33mcommit fefc28b6031849b7690013140cdedc844fe91441[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 13:14:34 2014 +0200
+
+    rename max_part_size to max_part_weight for clarity
+
+[33mcommit 4d89ac71d6f80bf06065b3be844aedd50a7ccf2b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 12:51:31 2014 +0200
+
+    rename connectivityValues to connectivityStats for clarity
+
+[33mcommit 2179800d826ee5401b80fb0ccf3516329f225081[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 12:50:32 2014 +0200
+
+    perfer same gain moves that ensure max. decrease in connectivity
+
+[33mcommit da3c1a1149da796e501027afb76114df3f976758[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 12:00:19 2014 +0200
+
+    add possibility to output connectivity values
+
+[33mcommit 4fadba461d1a8054f56d98987b25d1fee09fec60[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Fri Sep 5 11:49:04 2014 +0200
+
+    Print ubfactor and graph weight to output and plottools file
+
+[33mcommit 0c6928951be44d7431bc18c62fb1a0b7a4d286c9[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 4 18:10:08 2014 +0200
+
+    fix bug induced by missing cast
+
+[33mcommit 2fcdc864fd7602b1895b2370e776548dd1f3fe9b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 4 17:48:06 2014 +0200
+
+    use total_graph_weight instead of numNodes - support weighted hypergraphs
+
+[33mcommit b9a93fc92b9daf55c50e1d427678d920cec01ab8[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 4 17:42:44 2014 +0200
+
+    correct calculation of UBfactor for initial partitioning to ensure balance.
+
+[33mcommit 078e166e6e09b4adbc6436f5b04726b20137638b[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Thu Sep 4 10:27:07 2014 +0200
+
+    integrate gmock into source and build automatically
+
+[33mcommit 859640297e056a70714bf55032163b6489fe2210[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 13:44:23 2014 +0200
+
+    readd randomization for more variety
+
+[33mcommit 3abbfe25b9bbbb1c97ba2cf6300d31ad7953d8ed[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 13:32:33 2014 +0200
+
+    update assertion msg
+
+[33mcommit 88c41ddc56719a72ee1d14d3824d11ac580cc578[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 11:48:00 2014 +0200
+
+    additional log msgs for improved cut and balance
+
+[33mcommit e3c976043f062bcd3f726295d8bbc84bee921460[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 11:42:52 2014 +0200
+
+    add missing using declarations and codestyle
+
+[33mcommit d35d69d27d553367328c8586dbc562e9b3a08d44[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 10:03:23 2014 +0200
+
+    ignore HE and HN weights by defaul and fix stats output
+
+[33mcommit 71e8a32d58ddb05080da7dd4350474c8e14cb643[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 10:02:00 2014 +0200
+
+    add additional mtx information during conversion
+
+[33mcommit 483447396b83e56785ab5c35eeb96eb4eff4b84e[m
+Author: Sebastian Schlag <sebastian.schlag@kit.edu>
+Date:   Wed Sep 3 10:00:40 2014 +0200
+
+    improve debug msgs for cut and balance improvement and remove randomization

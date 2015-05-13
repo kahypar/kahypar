@@ -81,6 +81,8 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       ASSERT(!invalid_hypernodes[contracted_node], "Contract HN " << contracted_node << " is invalid");
 
       performContraction(rep_node, contracted_node);
+
+      ASSERT(_pq.contains(contracted_node), V(contracted_node));
       _pq.remove(contracted_node);
 
       removeSingleNodeHyperedges(rep_node);

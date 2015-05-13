@@ -55,7 +55,7 @@ class Stats{
 
 class Stats{
  public:
-  void add(const std::string& key, int vcycle, double value) {}
+  void add(const std::string&, int, double) {}
   std::string toString() const {
     return std::string("");
   }
