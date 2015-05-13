@@ -56,4 +56,4 @@ TEST(AnMtxToHgrConversionRoutine, ConvertsGeneralCoordinateMTXMatrixToHGRFormat)
   std::string hgr_filename("test_instances/CoordinateGeneral.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 }
-} // namespace mtxconversion
+}  // namespace mtxconversion

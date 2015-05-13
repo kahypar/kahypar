@@ -17,8 +17,6 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
-#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
@@ -32,13 +30,11 @@ using partition::FirstRatingWins;
 using partition::Configuration;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::EligibleTopGain;
-using partition::RemoveOnlyTheCloggingEntry;
 using defs::Hypergraph;
 
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
-  public:
+ public:
   AnUnweightedHypergraphFile() :
     _filename(""),
     _num_hyperedges(0),
@@ -60,7 +56,7 @@ class AnUnweightedHypergraphFile : public Test {
 };
 
 class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHyperedgeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hyperedge_weights({ 2, 3, 8, 7 }) { }
@@ -73,7 +69,7 @@ class AHypergraphFileWithHyperedgeWeights : public AnUnweightedHypergraphFile {
 };
 
 class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHypernodeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hypernode_weights({ 5, 1, 8, 7, 3, 9, 3 }) { }
@@ -86,7 +82,7 @@ class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
 };
 
 class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraphFile {
-  public:
+ public:
   AHypergraphFileWithHypernodeAndHyperedgeWeights() :
     AnUnweightedHypergraphFile(),
     _control_hyperedge_weights({ 2, 3, 8, 7 }),
@@ -101,7 +97,7 @@ class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHyper
 };
 
 class AnUnweightedHypergraph : public Test {
-  public:
+ public:
   AnUnweightedHypergraph() :
     _filename(""),
     _num_hyperedges(4),
@@ -137,7 +133,7 @@ class AnUnweightedHypergraph : public Test {
 };
 
 class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHyperedgeWeights() :
     AnUnweightedHypergraph(),
     _hyperedge_weights({ 2, 3, 8, 7 }),
@@ -154,7 +150,7 @@ class AHypergraphWithHyperedgeWeights : public AnUnweightedHypergraph {
 };
 
 class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHypernodeWeights() :
     AnUnweightedHypergraph(),
     _hypernode_weights({ 5, 1, 8, 7, 3, 9, 3 }),
@@ -171,7 +167,7 @@ class AHypergraphWithHypernodeWeights : public AnUnweightedHypergraph {
 };
 
 class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraph {
-  public:
+ public:
   AHypergraphWithHypernodeAndHyperedgeWeights() :
     AnUnweightedHypergraph(),
     _hyperedge_weights({ 2, 3, 8, 7 }),
@@ -193,26 +189,26 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                EligibleTopGain, RemoveOnlyTheCloggingEntry>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitionOfAHypergraph : public Test {
-  public:
+ public:
   APartitionOfAHypergraph() :
-    _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _config(),
     _partitioner(_config),
     _coarsener(new FirstWinsCoarsener(_hypergraph, _config)),
     _refiner(new Refiner(_hypergraph, _config)) {
     _config.partition.k = 2;
+    _config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     _config.partition.total_graph_weight = 7;
     _config.coarsening.contraction_limit = 2;
     _config.coarsening.max_allowed_node_weight = 5;
-    _config.partition.graph_filename = "APartitionOfAHypergrpahTest";
-    _config.partition.graph_partition_filename = "APartitionOfAHypergrpahTest.hgr.part.2.KaHyPar";
-    _config.partition.coarse_graph_filename = "APartitionOfAHypergrpahTest_coarse.hgr";
-    _config.partition.coarse_graph_partition_filename = "APartitionOfAHypergrpahTest_coarse.hgr.part.2";
+    _config.partition.graph_filename = "APartitionOfAHypergraphTest";
+    _config.partition.graph_partition_filename = "APartitionOfAHypergraphTest.hgr.part.2.KaHyPar";
+    _config.partition.coarse_graph_filename = "APartitionOfAHypergraphTest_coarse.hgr";
+    _config.partition.coarse_graph_partition_filename = "APartitionOfAHypergraphTest_coarse.hgr.part.2";
     _config.partition.max_part_weight = (1 + _config.partition.epsilon) * ceil(7.0 / 2);
     double exp = 1.0 / log2(_config.partition.k);
     _config.partition.hmetis_ub_factor =
@@ -231,6 +227,6 @@ class APartitionOfAHypergraph : public Test {
   std::unique_ptr<ICoarsener> _coarsener;
   std::unique_ptr<IRefiner> _refiner;
 };
-} // namespace io
+}  // namespace io
 
 #endif  // SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_

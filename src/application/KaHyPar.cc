@@ -30,6 +30,7 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
@@ -63,6 +64,7 @@ using partition::TwoWayFMRefiner;
 using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::MaxGainNodeKWayFMRefiner;
+using partition::LPRefiner;
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
@@ -156,25 +158,25 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.coarsening.contraction_limit_multiplier = vm["t"].as<HypernodeID>();
     }
     if (vm.count("stopFM")) {
-      config.two_way_fm.stopping_rule = vm["stopFM"].as<std::string>();
+      config.fm_local_search.stopping_rule = vm["stopFM"].as<std::string>();
       config.her_fm.stopping_rule = vm["stopFM"].as<std::string>();
     }
     if (vm.count("FMreps")) {
-      config.two_way_fm.num_repetitions = vm["FMreps"].as<int>();
+      config.fm_local_search.num_repetitions = vm["FMreps"].as<int>();
       config.her_fm.num_repetitions = vm["FMreps"].as<int>();
-      if (config.two_way_fm.num_repetitions == -1) {
-        config.two_way_fm.num_repetitions = std::numeric_limits<int>::max();
+      if (config.fm_local_search.num_repetitions == -1) {
+        config.fm_local_search.num_repetitions = std::numeric_limits<int>::max();
         config.her_fm.num_repetitions = std::numeric_limits<int>::max();
       }
     }
     if (vm.count("i")) {
-      config.two_way_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
+      config.fm_local_search.max_number_of_fruitless_moves = vm["i"].as<int>();
       config.her_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
     }
     if (vm.count("alpha")) {
-      config.two_way_fm.alpha = vm["alpha"].as<double>();
-      if (config.two_way_fm.alpha == -1) {
-        config.two_way_fm.alpha = std::numeric_limits<double>::max();
+      config.fm_local_search.alpha = vm["alpha"].as<double>();
+      if (config.fm_local_search.alpha == -1) {
+        config.fm_local_search.alpha = std::numeric_limits<double>::max();
       }
     }
     if (vm.count("verbose")) {
@@ -187,11 +189,22 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       if (vm["rtype"].as<std::string>() == "twoway_fm" ||
           vm["rtype"].as<std::string>() == "max_gain_kfm" ||
           vm["rtype"].as<std::string>() == "kfm") {
-        config.two_way_fm.active = true;
+        config.fm_local_search.active = true;
         config.her_fm.active = false;
+        config.lp_refiner.active = false;
       } else if (vm["rtype"].as<std::string>() == "her_fm") {
-        config.two_way_fm.active = false;
+        config.fm_local_search.active = false;
         config.her_fm.active = true;
+        config.lp_refiner.active = false;
+      } else if (vm["rtype"].as<std::string>() == "lp_refiner") {
+        config.fm_local_search.active = false;
+        config.her_fm.active = false;
+        config.lp_refiner.active = true;
+
+        // parse the lp_refiner param .. TODO think about better organization of this part
+        if (vm.count("lp_refiner_max_iterations")) {
+          config.lp_refiner.max_number_iterations = vm["lp_refiner_max_iterations"].as<int>();
+        }
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
         exit(0);
@@ -217,13 +230,14 @@ void setDefaults(Configuration& config) {
   config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
-  config.two_way_fm.stopping_rule = "simple";
-  config.two_way_fm.num_repetitions = -1;
-  config.two_way_fm.max_number_of_fruitless_moves = 150;
-  config.two_way_fm.alpha = 8;
+  config.fm_local_search.stopping_rule = "simple";
+  config.fm_local_search.num_repetitions = -1;
+  config.fm_local_search.max_number_of_fruitless_moves = 150;
+  config.fm_local_search.alpha = 8;
   config.her_fm.stopping_rule = "simple";
   config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
+  config.lp_refiner.max_number_iterations = 3;
 }
 
 struct CoarsenerFactoryParameters {
@@ -240,7 +254,7 @@ int main(int argc, char* argv[]) {
   using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
   using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
   using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
-  using TwoWayFMFactoryExecutor = FMFactoryExecutor<TwoWayFMRefiner>;
+  using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
   using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
   using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
   using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
@@ -250,7 +264,7 @@ int main(int argc, char* argv[]) {
                                                               RandomWalkModelStopsSearch,
                                                               nGPRandomWalkStopsSearch>,
                                                      PolicyBase,
-                                                     Typelist<OnlyRemoveIfBothQueuesClogged>,
+                                                     Typelist<NullPolicy>,
                                                      IRefiner*>;
   using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                         PolicyBase,
@@ -287,28 +301,26 @@ int main(int argc, char* argv[]) {
   CoarsenerFactory::getInstance().registerObject(
     "hyperedge",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new HyperedgeCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new HyperedgeCoarsener(p.hypergraph, p.config);
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_heuristic",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
+  });
+
   CoarsenerFactory::getInstance().registerObject(
     "heavy_full",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsFullCoarsener(p.hypergraph, p.config);
+  });
 
   CoarsenerFactory::getInstance().registerObject(
     "heavy_lazy",
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
-      return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-    }
-    );
+    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+  });
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -329,7 +341,8 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
+    ("lp_refiner_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
@@ -366,10 +379,7 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
                         config.partition.k);
 
-  HypernodeWeight hypergraph_weight = 0;
-  for (const HypernodeID hn : hypergraph.nodes()) {
-    hypergraph_weight += hypergraph.nodeWeight(hn);
-  }
+  config.partition.total_graph_weight = hypergraph.totalWeight();
 
   config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier
                                         * config.partition.k;
@@ -378,14 +388,13 @@ int main(int argc, char* argv[]) {
                                                 / config.coarsening.contraction_limit;
 
   config.partition.max_part_weight = (1 + config.partition.epsilon)
-                                     * ceil(hypergraph_weight /
+                                     * ceil(config.partition.total_graph_weight /
                                             static_cast<double>(config.partition.k));
-  config.partition.total_graph_weight = hypergraph_weight;
 
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
-                                              hypergraph_weight;
-  config.two_way_fm.beta = log(num_hypernodes);
+                                              config.partition.total_graph_weight;
+  config.fm_local_search.beta = log(num_hypernodes);
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
   // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
@@ -412,36 +421,39 @@ int main(int argc, char* argv[]) {
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
   std::unique_ptr<ICoarsener> coarsener(
-    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters)
-    );
+    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters));
 
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
+  std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
   RefinerParameters refiner_parameters(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(nullptr);
 
-  if (config.two_way_fm.active) {
+  if (config.fm_local_search.active) {
     if (vm["rtype"].as<std::string>() == "twoway_fm") {
       TwoWayFMFactoryExecutor exec;
       refiner.reset(TwoWayFMFactoryDispatcher::go(
-                      PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
-                      *(clogging_policy.get()),
+                      PolicyRegistry::getInstance().getPolicy(config.fm_local_search.stopping_rule),
+                      *(null_policy.get()),
                       exec, refiner_parameters));
     } else {
-      std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
       if (vm["rtype"].as<std::string>() == "max_gain_kfm") {
         MaxGainNodeKWayFMFactoryExecutor exec;
         refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
-                        PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                        PolicyRegistry::getInstance().getPolicy(
+                          config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
                         exec, refiner_parameters));
       } else if (vm["rtype"].as<std::string>() == "kfm") {
         KWayFMFactoryExecutor exec;
         refiner.reset(KWayFMFactoryDispatcher::go(
-                        PolicyRegistry::getInstance().getPolicy(config.two_way_fm.stopping_rule),
+                        PolicyRegistry::getInstance().getPolicy(
+                          config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
                         exec, refiner_parameters));
       }
     }
+  } else if (config.lp_refiner.active) {
+    refiner.reset(new LPRefiner(hypergraph, config));
   } else {
     HyperedgeFMFactoryExecutor exec;
     refiner.reset(HyperedgeFMFactoryDispatcher::go(
@@ -460,12 +472,12 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
   for (const HyperedgeID he : hypergraph.edges()) {
     ASSERT([&]() -> bool {
-             HypernodeID num_pins = 0;
-             for (PartitionID i = 0; i < config.partition.k; ++i) {
-               num_pins += hypergraph.pinCountInPart(he, i);
-             }
-             return num_pins == hypergraph.edgeSize(he);
-           } (),
+      HypernodeID num_pins = 0;
+      for (PartitionID i = 0; i < config.partition.k; ++i) {
+        num_pins += hypergraph.pinCountInPart(he, i);
+      }
+      return num_pins == hypergraph.edgeSize(he);
+    } (),
            "Incorrect calculation of pin counts");
   }
 #endif

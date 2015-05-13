@@ -121,8 +121,8 @@ struct Configuration {
     std::string initial_partitioner_path;
   };
 
-  struct TwoWayFMParameters {
-    TwoWayFMParameters() :
+  struct FMParameters {
+    FMParameters() :
       max_number_of_fruitless_moves(50),
       num_repetitions(1),
       alpha(4),
@@ -151,17 +151,29 @@ struct Configuration {
     bool active;
   };
 
+  struct LPRefinementParameters {
+    LPRefinementParameters() :
+      max_number_iterations(3),
+      active(false) { }
+
+    int max_number_iterations;
+    bool active;
+  };
+
+
   PartitioningParameters partition;
   CoarseningParameters coarsening;
   InitialPartitioningParameters initial_partitioning;
-  TwoWayFMParameters two_way_fm;
+  FMParameters fm_local_search;
   HERFMParameters her_fm;
+  LPRefinementParameters lp_refiner;
 
   Configuration() :
     partition(),
     coarsening(),
-    two_way_fm(),
-    her_fm() { }
+    fm_local_search(),
+    her_fm(),
+    lp_refiner() { }
 };
 
 inline std::string toString(const Configuration& config) {
@@ -209,17 +221,16 @@ inline std::string toString(const Configuration& config) {
   << std::endl;
   oss << std::setw(35) << "  contraction limit: " << config.coarsening.contraction_limit
   << std::endl;
-
-  if (config.two_way_fm.active) {
-    oss << "2-Way-FM Refinement Parameters:" << std::endl;
-    oss << std::setw(35) << "  stopping rule: " << config.two_way_fm.stopping_rule << std::endl;
-    oss << std::setw(35) << "  max. # repetitions: " << config.two_way_fm.num_repetitions << std::endl;
+  if (config.fm_local_search.active) {
+    oss << "FM Refinement Parameters:" << std::endl;
+    oss << std::setw(35) << "  stopping rule: " << config.fm_local_search.stopping_rule << std::endl;
+    oss << std::setw(35) << "  max. # repetitions: " << config.fm_local_search.num_repetitions << std::endl;
     oss << std::setw(35) << "  max. # fruitless moves: "
-    << config.two_way_fm.max_number_of_fruitless_moves << std::endl;
+    << config.fm_local_search.max_number_of_fruitless_moves << std::endl;
     oss << std::setw(35) << "  random walk stop alpha: "
-    << config.two_way_fm.alpha << std::endl;
+    << config.fm_local_search.alpha << std::endl;
     oss << std::setw(35) << "  random walk stop beta : "
-    << config.two_way_fm.beta << std::endl;
+    << config.fm_local_search.beta << std::endl;
   }
   if (config.her_fm.active) {
     oss << "HER-FM Refinement Parameters:" << std::endl;
@@ -228,8 +239,12 @@ inline std::string toString(const Configuration& config) {
     oss << std::setw(35) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
   }
+  if (config.lp_refiner.active) {
+    oss << "LP Refinement Parameters:" << std::endl;
+    oss << std::setw(35) << "  max. # iterations: " << config.lp_refiner.max_number_iterations << std::endl;
+  }
   return oss.str();
 }
-} // namespace partition
+}  // namespace partition
 
 #endif  // SRC_PARTITION_CONFIGURATION_H_

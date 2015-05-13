@@ -28,7 +28,7 @@ using LastWinsRater = Rater<defs::RatingType, LastRatingWins>;
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 
 class ARater : public Test {
-  public:
+ public:
   explicit ARater(Hypergraph* graph = nullptr) :
     hypergraph(graph),
     config() {
@@ -40,9 +40,9 @@ class ARater : public Test {
 };
 
 class AFirstWinsRater : public ARater {
-  public:
+ public:
   AFirstWinsRater() :
-    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
@@ -50,9 +50,9 @@ class AFirstWinsRater : public ARater {
 };
 
 class ALastWinsRater : public ARater {
-  public:
+ public:
   ALastWinsRater() :
-    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
@@ -60,9 +60,9 @@ class ALastWinsRater : public ARater {
 };
 
 class ARandomWinsRater : public ARater {
-  public:
+ public:
   ARandomWinsRater() :
-    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     rater(*hypergraph, config) { }
 
@@ -70,9 +70,9 @@ class ARandomWinsRater : public ARater {
 };
 
 class AHyperedgeRater : public ARater {
-  public:
+ public:
   AHyperedgeRater() :
-    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) { }
 };
 
@@ -136,7 +136,8 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 }
 
 TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.max_allowed_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph,
+                                               config.coarsening.max_allowed_node_weight).value,
               DoubleEq(1.0));
 
   config.coarsening.max_allowed_node_weight = 10;
@@ -144,21 +145,24 @@ TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
   hypergraph->setNodeWeight(3, 3);
   hypergraph->setNodeWeight(4, 4);
 
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.max_allowed_node_weight).value,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph,
+                                               config.coarsening.max_allowed_node_weight).value,
               DoubleEq(1.0 / (2 * 3 * 4)));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
   config.coarsening.max_allowed_node_weight = 3;
 
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph, config.coarsening.max_allowed_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph,
+                                               config.coarsening.max_allowed_node_weight).valid,
               Eq(false));
 }
 
 TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(2, 1);
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph, config.coarsening.max_allowed_node_weight).valid,
+  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph,
+                                               config.coarsening.max_allowed_node_weight).valid,
               Eq(false));
 }
-} // namespace partition
+}  // namespace partition

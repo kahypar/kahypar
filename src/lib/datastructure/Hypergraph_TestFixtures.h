@@ -16,9 +16,9 @@ using defs::HyperedgeID;
 
 namespace datastructure {
 class AHypergraph : public Test {
-  public:
+ public:
   AHypergraph() :
-    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
   Hypergraph hypergraph;
 };
@@ -27,17 +27,17 @@ using AHypernodeIterator = AHypergraph;
 using AHyperedgeIterator = AHypergraph;
 
 class AHypergraphMacro : public AHypergraph {
-  public:
+ public:
   AHypergraphMacro() : AHypergraph() { }
 };
 
 class AContractionMemento : public AHypergraph {
-  public:
+ public:
   AContractionMemento() : AHypergraph() { }
 };
 
 class AnUncontractionOperation : public AHypergraph {
-  public:
+ public:
   AnUncontractionOperation() : AHypergraph() {
     hypergraph.setNodePart(0, 0);
     hypergraph.setNodePart(1, 0);
@@ -50,19 +50,22 @@ class AnUncontractionOperation : public AHypergraph {
 };
 
 class AnUncontractedHypergraph : public AHypergraph {
-  public:
+ public:
   AnUncontractedHypergraph() :
     AHypergraph(),
-    modified_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/ 12 },
+    modified_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                         HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { }
 
   Hypergraph modified_hypergraph;
 };
 
 class APartitionedHypergraph : public AHypergraph {
-  public:
+ public:
   APartitionedHypergraph() :
-    AHypergraph() {
+    AHypergraph(),
+    original_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
+                        HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })
+  {
     hypergraph.setNodePart(0, 0);
     hypergraph.setNodePart(1, 0);
     hypergraph.setNodePart(2, 1);
@@ -71,14 +74,16 @@ class APartitionedHypergraph : public AHypergraph {
     hypergraph.setNodePart(5, 1);
     hypergraph.setNodePart(6, 1);
   }
+
+  Hypergraph original_hypergraph;
 };
 
 class AnUnPartitionedHypergraph : public AHypergraph {
-  public:
+ public:
   AnUnPartitionedHypergraph() :
     AHypergraph() { }
 };
-} // namespace datastructure
+}  // namespace datastructure
 
 
 #endif  // SRC_LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_

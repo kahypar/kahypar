@@ -167,6 +167,6 @@ static inline void connectivityStats(const Hypergraph& hypergraph,
     ++connectivity_stats[hypergraph.connectivity(he)];
   }
 }
-} // namespace metrics
+}  // namespace metrics
 
 #endif  // SRC_PARTITION_METRICS_H_

@@ -122,4 +122,4 @@ void convertMtxToHgr(const std::string& matrix_filename, const std::string& hype
   mtx_file.close();
   writeMatrixInHgrFormat(info, matrix_data, hypergraph_filename);
 }
-} // namespace mtxconversion
+}  // namespace mtxconversion

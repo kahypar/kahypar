@@ -445,7 +445,7 @@ _root = None
 
 # The allowed line length of files.
 # This is set by --linelength flag.
-_line_length = 80
+_line_length = 110
 
 # The allowed extensions for file names
 # This is set by --extensions flag.

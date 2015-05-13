@@ -16,7 +16,7 @@ using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
 using CoarsenerType = FullHeavyEdgeCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
-  public:
+ public:
   explicit ACoarsener() :
     ACoarsenerBase() { }
 };
@@ -73,7 +73,7 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
 }
 
 TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
-  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0, /*sentinel*/ 2 },
+  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 2 },
                         HyperedgeVector { 0, 1 });
 
   Configuration config;
@@ -93,7 +93,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
   config.coarsening.max_allowed_node_weight = 3;
-  std::string graph_file("../../../../benchmark_instances/special_instances/bad_for_ec.hgr");
+  std::string graph_file("../../../../special_instances/bad_for_ec.hgr");
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
@@ -113,4 +113,4 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
 }
-} // namespace partition
+}  // namespace partition

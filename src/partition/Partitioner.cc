@@ -252,14 +252,14 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
   DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = "
       << std::to_string([&]() {
-                          HypernodeID count = 0;
-                          for (const HypernodeID hn : hg.nodes()) {
-                            if (hg.nodeDegree(hn) == 0) {
-                              ++count;
-                            }
-                          }
-                          return count;
-                        } ()));
+      HypernodeID count = 0;
+      for (const HypernodeID hn : hg.nodes()) {
+        if (hg.nodeDegree(hn) == 0) {
+          ++count;
+        }
+      }
+      return count;
+    } ()));
 
   HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(), 0);
   CoarsenedToHmetisMapping hg_to_hmetis;
@@ -309,10 +309,10 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
                                    + " " + std::to_string(_config.partition.k)
                                    + " SD=" + std::to_string(seed)
                                    + " FI=" + std::to_string(_config.partition.epsilon)
-                                   + " PQ=Q" // quality preset
-                                   + " UM=U" // net-cut metric
-                                   + " WI=1" // write partition info
-                                   + " BO=C" // balance on cell weights
+                                   + " PQ=Q"  // quality preset
+                                   + " UM=U"  // net-cut metric
+                                   + " WI=1"  // write partition info
+                                   + " BO=C"  // balance on cell weights
                                    + (_config.partition.verbose_output ? " OD=2" : " > /dev/null");
         break;
       case InitialPartitioner::KaHyPar:
@@ -334,7 +334,9 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
 
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
     DBG(dbg_partition_initial_partitioning, "attempt " << attempt << " seed("
-        << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning));
+        << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg,
+                                                                              hg_to_hmetis,
+                                                                              partitioning));
     _stats.add("initialCut_" + std::to_string(attempt), 0, current_cut);
 
     if (current_cut < best_cut) {
@@ -355,4 +357,4 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
          << "best initial cut");
 }
-} // namespace partition
+}  // namespace partition
