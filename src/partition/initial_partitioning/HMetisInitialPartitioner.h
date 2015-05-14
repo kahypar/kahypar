@@ -47,7 +47,7 @@ public:
 
 		double exp = 1.0 / log2(_config.initial_partitioning.k);
 		_config.partition.hmetis_ub_factor =
-				50.0
+				std::max(50.0
 						* (2
 								* pow(
 										(1
@@ -57,7 +57,7 @@ public:
 										ceil(
 												static_cast<double>(total_graph_weight)
 														/ _config.initial_partitioning.k)
-												/ total_graph_weight, exp) - 1);
+												/ total_graph_weight, exp) - 1), 0.1);
 
 		std::string partition_output =
 				_config.initial_partitioning.coarse_graph_filename + ".part."
