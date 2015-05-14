@@ -158,8 +158,13 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
 
   refiner->refine(refinement_nodes, 2, 0, old_cut, old_imbalance);
 
-  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(orig_hgr, *hypergraph), Eq(true));
+<<<<<<< HEAD
+  ASSERT_THAT(verifyEquivalence(orig_hgr, *hypergraph), Eq(true));
 }*/
+=======
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(orig_hgr, *hypergraph), Eq(true));
+}
+>>>>>>> master
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph.reset(new Hypergraph(10, 5, HyperedgeIndexVector { 0, 4, 7, 9, 12,  /*sentinel*/ 15 },

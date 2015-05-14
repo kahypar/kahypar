@@ -127,8 +127,13 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
                          _written_edge_vector, 2, &_written_hyperedge_weights,
                          &_written_hypernode_weights);
 
-  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
+<<<<<<< HEAD
+  ASSERT_THAT(verifyEquivalence(*_hypergraph, hypergraph2), Eq(true));
 }*/
+=======
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
+}
+>>>>>>> master
 
 TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
   _partitioner.partition(_hypergraph, *_coarsener, *_refiner);
