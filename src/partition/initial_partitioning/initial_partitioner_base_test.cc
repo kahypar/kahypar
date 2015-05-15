@@ -183,6 +183,38 @@ TEST_F(AInitialPartionerBaseTest, AExtractingHypergraphPartitionTest) {
 
 }
 
+TEST_F(AInitialPartionerBaseTest, AResetPartitionToMinusOneTest) {
+	hypergraph.setNodePart(0,1);
+	hypergraph.setNodePart(1,1);
+	hypergraph.setNodePart(2,1);
+	hypergraph.setNodePart(3,1);
+	hypergraph.setNodePart(4,1);
+	hypergraph.setNodePart(5,1);
+	hypergraph.setNodePart(6,1);
+
+	partitioner->resetPartitioning(-1);
+	for(HypernodeID hn : hypergraph.nodes()) {
+		ASSERT_EQ(hypergraph.partID(hn),-1);
+	}
+
+}
+
+TEST_F(AInitialPartionerBaseTest, AResetPartitionToPartitionOneTest) {
+	hypergraph.setNodePart(0,1);
+	hypergraph.setNodePart(1,1);
+	hypergraph.setNodePart(2,1);
+	hypergraph.setNodePart(3,1);
+	hypergraph.setNodePart(4,1);
+	hypergraph.setNodePart(5,1);
+	hypergraph.setNodePart(6,1);
+
+	partitioner->resetPartitioning(0);
+	for(HypernodeID hn : hypergraph.nodes()) {
+		ASSERT_EQ(hypergraph.partID(hn),0);
+	}
+
+}
+
 }
 
 

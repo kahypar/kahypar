@@ -16,6 +16,9 @@
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
+#include "partition/initial_partitioning/RandomInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
+#include "partition/initial_partitioning/RecursiveBisection.h"
 #include "tools/RandomFunctions.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
@@ -26,6 +29,7 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 using partition::GainComputationPolicy;
 using partition::StartNodeSelectionPolicy;
+using Gain = HyperedgeWeight;
 
 namespace partition {
 
@@ -45,8 +49,6 @@ public:
 
 	void kwayPartitionImpl() final {
 
-		int lambda = 5;
-
 		std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
 		for (HypernodeID hn : _hg.nodes()) {
 			nodes[hn] = hn;
@@ -54,26 +56,37 @@ public:
 
 		int assigned_nodes = 0;
 
-		std::vector<HypernodeID> startNodes;
-		StartNodeSelection::calculateStartNodes(startNodes, _hg,
-				lambda * _config.initial_partitioning.k);
-		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-			for (int j = 0; j < lambda; j++) {
-				InitialPartitionerBase::assignHypernodeToPartition(
-						startNodes[lambda * i + j], i);
-				assigned_nodes++;
-			}
-		}
+		/*int lambda = 2;
+		 std::vector<HypernodeID> startNodes;
+		 StartNodeSelection::calculateStartNodes(startNodes, _hg,
+		 lambda * _config.initial_partitioning.k);
+		 for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+		 for (int j = 0; j < lambda; j++) {
+		 InitialPartitionerBase::assignHypernodeToPartition(
+		 startNodes[lambda * i + j], i);
+		 assigned_nodes++;
+		 }
+		 }*/
+
+		RecursiveBisection<
+				GreedyHypergraphGrowingSequentialInitialPartitioner<
+						BFSStartNodeSelectionPolicy, FMGainComputationPolicy>>* random =
+				new RecursiveBisection<
+						GreedyHypergraphGrowingSequentialInitialPartitioner<
+								BFSStartNodeSelectionPolicy,
+								FMGainComputationPolicy>>(_hg, _config);
+		random->partition(_config.initial_partitioning.k);
 
 		bool converged = false;
 		int iterations = 0;
-		while (!converged && iterations < 50) {
+		double lower_tmp_bound = -1.5;
+		while (!converged && iterations < 1000) {
 			converged = true;
 			Randomize::shuffleVector(nodes, nodes.size());
 			for (HypernodeID v : nodes) {
 
 				std::vector<double> tmp_scores(_config.initial_partitioning.k,
-						0);
+						std::numeric_limits<double>::min());
 
 				for (HyperedgeID he : _hg.incidentEdges(v)) {
 					for (HypernodeID p : _hg.pins(he)) {
@@ -83,7 +96,13 @@ public:
 									+ _hg.partWeight(_hg.partID(p))
 									< _config.initial_partitioning.upper_allowed_partition_weight[_hg.partID(
 											p)]) {
-								tmp_scores[_hg.partID(p)] += score1(he);
+								if (tmp_scores[_hg.partID(p)]
+										== std::numeric_limits<double>::min()) {
+									tmp_scores[_hg.partID(p)] = 0;
+								}
+								Gain gain = GainComputation::calculateGain(_hg,
+										v, _hg.partID(p));
+								tmp_scores[_hg.partID(p)] += gain;
 							}
 						}
 
@@ -91,10 +110,12 @@ public:
 				}
 
 				PartitionID max_part = -1;
-				double max_score = std::numeric_limits<double>::min();
+				double max_score = (-2.0) * _hg.numNodes();
 				for (PartitionID i = 0; i < _config.initial_partitioning.k;
 						i++) {
-					if (tmp_scores[i] > max_score) {
+					if (tmp_scores[i] > max_score && tmp_scores[i] > lower_tmp_bound &&
+							 tmp_scores[i]
+									!= std::numeric_limits<double>::min()) {
 						max_score = tmp_scores[i];
 						max_part = i;
 					}
@@ -104,14 +125,18 @@ public:
 					if (_hg.partID(v) == -1) {
 						assigned_nodes++;
 					}
-					InitialPartitionerBase::assignHypernodeToPartition(v,
-							max_part);
-					converged = false;
+					if(InitialPartitionerBase::assignHypernodeToPartition(v,
+							max_part)) {
+						converged = false;
+					}
 				}
 
 			}
 			iterations++;
-			std::cout << ", " << assigned_nodes << ", " << iterations << ", "
+			if(lower_tmp_bound < 0) {
+				lower_tmp_bound += 0.1;
+			}
+			std::cout << assigned_nodes << ", " << iterations << ", "
 					<< metrics::hyperedgeCut(_hg) << std::endl;
 
 		}
@@ -122,80 +147,10 @@ public:
 	}
 
 	void bisectionPartitionImpl() final {
-		PartitionID k = 2;
-		std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
-		for (HypernodeID hn : _hg.nodes()) {
-			nodes[hn] = hn;
-		}
-
-		std::vector<std::vector<HypernodeID>> connected_components =
-				getConnectedComponentsInPartition(-1);
-		std::cout << connected_components.size() << std::endl;
-
-		int assigned_nodes = 0;
-
-		std::vector<HypernodeID> startNodes;
-		for (int i = 0; i < connected_components.size(); i++) {
-			int part0 = Randomize::getRandomInt(0,
-					connected_components[i].size() - 1);
-			int part1 = Randomize::getRandomInt(0,
-					connected_components[i].size() - 1);
-			if (part0 != part1) {
-				InitialPartitionerBase::assignHypernodeToPartition(
-						connected_components[i][part0], 0);
-				InitialPartitionerBase::assignHypernodeToPartition(
-						connected_components[i][part1], 1);
-			} else {
-				InitialPartitionerBase::assignHypernodeToPartition(
-						connected_components[i][part0], Randomize::flipCoin());
-			}
-		}
-
-		bool converged = false;
-		int change_count = 50;
-		int iterations = 0;
-		while (!converged && iterations < 100) {
-			change_count = 0;
-			converged = true;
-			Randomize::shuffleVector(nodes, nodes.size());
-			for (HypernodeID hn : nodes) {
-				std::vector<double> tmp_scores(k, 0);
-				for (HyperedgeID he : _hg.incidentEdges(hn)) {
-					for (HypernodeID node : _hg.pins(he)) {
-						if (node != hn && _hg.partID(node) != -1) {
-							if (_hg.nodeWeight(hn)
-									+ _hg.partWeight(_hg.partID(node))
-									< _config.initial_partitioning.upper_allowed_partition_weight[_hg.partID(
-											node)]) {
-								tmp_scores[_hg.partID(node)] +=
-										static_cast<double>(_hg.edgeWeight(he))
-												/ (_hg.edgeSize(he) - 1);
-							}
-						}
-					}
-				}
-				PartitionID max_part = -1;
-				double max_score = std::numeric_limits<double>::min();
-				for (PartitionID i = 0; i < k; i++) {
-					if (tmp_scores[i] > max_score) {
-						max_score = tmp_scores[i];
-						max_part = i;
-					}
-				}
-				if (max_part != _hg.partID(hn)) {
-					if (_hg.partID(hn) == -1) {
-						assigned_nodes++;
-					}
-					InitialPartitionerBase::assignHypernodeToPartition(hn,
-							max_part);
-					change_count++;
-					converged = false;
-				}
-
-			}
-			iterations++;
-
-		}
+		PartitionID k = _config.initial_partitioning.k;
+		_config.initial_partitioning.k = 2;
+		kwayPartitionImpl();
+		_config.initial_partitioning.k = k;
 	}
 
 	double score1(HyperedgeID he) {

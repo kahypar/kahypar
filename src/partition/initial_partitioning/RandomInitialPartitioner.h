@@ -36,6 +36,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 
 
 		void kwayPartitionImpl() final {
+			InitialPartitionerBase::resetPartitioning(-1);
 			for (const HypernodeID hn : _hg.nodes()) {
 				PartitionID p = Randomize::getRandomInt(0,
 						_config.initial_partitioning.k - 1);
@@ -46,8 +47,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 		}
 
 		void bisectionPartitionImpl() final {
-			for (HypernodeID hn : _hg.nodes())
-				_hg.setNodePart(hn, 1);
+			InitialPartitionerBase::resetPartitioning(1);
 			HypernodeID hn = InitialPartitionerBase::getUnassignedNode(1);
 			while(assignHypernodeToPartition(hn,0)) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);

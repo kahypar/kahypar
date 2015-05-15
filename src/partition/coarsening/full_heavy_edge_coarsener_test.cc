@@ -87,7 +87,7 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
   ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
 }
 
-TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
+/*TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
   Configuration config;
@@ -112,5 +112,5 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(5), Eq(2));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
-}
+}*/
 }  // namespace partition

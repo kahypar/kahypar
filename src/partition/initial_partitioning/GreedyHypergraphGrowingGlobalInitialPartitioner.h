@@ -61,11 +61,7 @@ private:
 
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part = 0;
-		if (unassigned_part != -1) {
-			for (HypernodeID hn : _hg.nodes()) {
-				_hg.setNodePart(hn, unassigned_part);
-			}
-		}
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
 		Gain init_pq = 2 * _hg.numNodes();
 		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
@@ -199,14 +195,14 @@ private:
 	}
 
 	void bisectionPartitionImpl() final {
+		InitialPartitionerBase::resetPartitioning(1);
+
 		HyperedgeWeight init_pq = 2 * _hg.numNodes();
 		PrioQueue* bq = new PrioQueue(init_pq);
 		std::vector<HypernodeID> startNode;
 		StartNodeSelection::calculateStartNodes(startNode, _hg,
 				static_cast<PartitionID>(2));
-		for (HypernodeID hn : _hg.nodes()) {
-			_hg.setNodePart(hn, 1);
-		}
+
 		processNodeForBucketPQ(*bq, startNode[0], 0);
 		HypernodeID hn = invalid_node;
 		do {

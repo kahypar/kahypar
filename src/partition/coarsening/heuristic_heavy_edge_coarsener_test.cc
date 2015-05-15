@@ -72,7 +72,7 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
 }
 
-TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
+/*TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
   Configuration config;
@@ -97,5 +97,5 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(4), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(4));
-}
+}*/
 }  // namespace partition

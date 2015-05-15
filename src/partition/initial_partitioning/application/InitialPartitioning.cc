@@ -19,7 +19,6 @@
 #include "partition/initial_partitioning/TestInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/HMetisInitialPartitioner.h"
-#include "partition/initial_partitioning/MultilevelInitialPartitioner.h"
 #include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
 #include "partition/initial_partitioning/SimulatedAnnealingPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
@@ -29,7 +28,6 @@
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
-#include "partition/initial_partitioning/policies/CoarseningNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/PartitionNeighborPolicy.h"
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
@@ -56,14 +54,12 @@ using partition::LabelPropagationInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
 using partition::SimulatedAnnealingPartitioner;
 using partition::RecursiveBisection;
-using partition::MultilevelInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
 using partition::FMGainComputationPolicy;
 using partition::FMLocalyGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
 using partition::MaxNetGainComputationPolicy;
-using partition::CoarseningMaximumNodeSelectionPolicy;
 using partition::CutHyperedgeRemovalNeighborPolicy;
 using partition::LooseStableNetRemoval;
 using core::Factory;
@@ -175,7 +171,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("lp",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
+				return new LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("hMetis",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -219,15 +215,11 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-lp",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new RecursiveBisection<TestInitialPartitioner>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("multilevel",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new MultilevelInitialPartitioner<CoarseningMaximumNodeSelectionPolicy,RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("sa",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {

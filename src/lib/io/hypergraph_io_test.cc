@@ -85,7 +85,7 @@ TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergra
                         2, &hyperedge_weights, &hypernode_weights);
 }
 
-/*TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
+TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
   writeHypergraphFile(*_hypergraph, _filename);
 
   readHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, _written_index_vector,
@@ -128,7 +128,7 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
                          &_written_hypernode_weights);
 
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(*_hypergraph, hypergraph2), Eq(true));
-}*/
+}
 
 TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
   _partitioner.partition(_hypergraph, *_coarsener, *_refiner);

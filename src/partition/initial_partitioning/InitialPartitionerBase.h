@@ -107,6 +107,15 @@ public:
 		}
 	}
 
+	void resetPartitioning(PartitionID unassigned_part) {
+		_hg.resetPartitioning();
+		if(unassigned_part != -1) {
+			for(HypernodeID hn : _hg.nodes()) {
+				_hg.setNodePart(hn, unassigned_part);
+			}
+		}
+	}
+
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;

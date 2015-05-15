@@ -55,6 +55,7 @@ private:
 
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
 		//Initialize a vector of queues for each partition
 		std::vector<std::queue<HypernodeID>> q(_config.initial_partitioning.k,
@@ -138,14 +139,13 @@ private:
 		std::queue<HypernodeID> bfs;
 		std::unordered_map<HypernodeID,bool> in_queue;
 
+
 		//Calculate Startnode and push them into the queues.
 		std::vector<HypernodeID> startNode;
 		StartNodeSelection::calculateStartNodes(startNode, _hg,
 				static_cast<PartitionID>(2));
 		bfs.push(startNode[0]);
-		for (HypernodeID hn : _hg.nodes()) {
-			_hg.setNodePart(hn, 1);
-		}
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
 		in_queue[startNode[0]] = true;
 
 		HypernodeID hn;

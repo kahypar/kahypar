@@ -64,11 +64,7 @@ private:
 
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part = 0;
-		if (unassigned_part != -1) {
-			for (HypernodeID hn : _hg.nodes()) {
-				_hg.setNodePart(hn, unassigned_part);
-			}
-		}
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
 		Gain init_pq = 2 * _hg.numNodes();
 		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
@@ -148,20 +144,16 @@ private:
 	}
 
 	void bisectionPartitionImpl() final {
+
+		PartitionID unassigned_part = 1;
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
+
 		HyperedgeWeight init_pq = 2 * _hg.numNodes();
 		PrioQueue* bq = new PrioQueue(init_pq);
 		std::vector<HypernodeID> startNode;
 		StartNodeSelection::calculateStartNodes(startNode, _hg,
 				static_cast<PartitionID>(2));
-		for (HypernodeID hn : _hg.nodes()) {
-			if (_hg.partID(hn) != -1) {
-				if (_hg.partID(hn) != 1) {
-					_hg.changeNodePart(hn, _hg.partID(hn), 1);
-				}
-			} else {
-				_hg.setNodePart(hn, 1);
-			}
-		}
+
 		processNodeForBucketPQ(*bq, startNode[0], 0);
 		HypernodeID hn = invalid_node;
 		do {
@@ -180,7 +172,7 @@ private:
 
 				for (HyperedgeID he : _hg.incidentEdges(hn)) {
 					for (HypernodeID hnode : _hg.pins(he)) {
-						if (_hg.partID(hnode) == 1 && hnode != hn) {
+						if (_hg.partID(hnode) == unassigned_part && hnode != hn) {
 							processNodeForBucketPQ(*bq, hnode, 0, true);
 						}
 					}
@@ -189,13 +181,13 @@ private:
 
 			if (!bq->empty()) {
 				hn = bq->max();
-				while (_hg.partID(hn) != 1 && !bq->empty()) {
+				while (_hg.partID(hn) != unassigned_part && !bq->empty()) {
 					hn = bq->max();
 					bq->deleteMax();
 				}
 			}
 
-			if (bq->empty() && _hg.partID(hn) != 1) {
+			if (bq->empty() && _hg.partID(hn) != unassigned_part) {
 				hn = InitialPartitionerBase::getUnassignedNode(1);
 				processNodeForBucketPQ(*bq, hn, 0);
 			}
@@ -204,6 +196,14 @@ private:
 					"Hypernode " << hn << " should be from part 1!");
 
 		} while (assignHypernodeToPartition(hn, 0));
+
+		if(unassigned_part == -1) {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					_hg.setNodePart(hn,1);
+				}
+			}
+		}
 
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
