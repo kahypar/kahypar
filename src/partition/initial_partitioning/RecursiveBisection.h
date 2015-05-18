@@ -150,7 +150,11 @@ private:
 
 		int runs = calculateRuns(_config.initial_partitioning.alpha,2,k);
 		std::cout << runs << std::endl;
-		for (int i = 0; i < runs; i++) {
+                for (int i = 0; i < runs; i++) {
+                  // TODO(heuer): In order to improve running time, you really should
+                  // instantiate the partitioner only _once_ and have the partition
+                  // method clear the interal state of the partitioner at the beginning.
+                  // I think this will remove a lot of memory management overhead.
 			InitialPartitioner partitioner(hyper, _config);
 			partitioner.partition(2);
 
