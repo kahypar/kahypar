@@ -48,7 +48,10 @@ using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
 
 namespace partition {
 
-
+// TODO(heuer):
+// - Each partitioner should have its own test.cpp file
+// - TestGroup names should not contain the word Test (unneccesarry)
+// - The name of the testcase should make clear what the test does/ensures
 TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignmentTest) {
 
 	partitioner->partition(2);
@@ -63,6 +66,8 @@ TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignm
 
 }
 
+// TODO(heuer): For example this test should be named:
+// TEST_F(ABFSInitialPartitioner, LeavesNoHypernodeUnassigned)
 TEST_F(ABFSInitialPartionerTest, BFSBisectionNoUnassignedHypernodesTest) {
 
 	partitioner->partition(2);
