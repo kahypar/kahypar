@@ -52,6 +52,8 @@ namespace partition {
 // - Each partitioner should have its own test.cpp file
 // - TestGroup names should not contain the word Test (unneccesarry)
 // - The name of the testcase should make clear what the test does/ensures
+// - In general all test only verfiy "end-results", but do not ensure correct
+//   internal behavior. Especially stuff that is not verified with assertions.
 TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignmentTest) {
 
 	partitioner->partition(2);
