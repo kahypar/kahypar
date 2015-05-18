@@ -74,6 +74,15 @@ private:
 
 	}
 
+	int calculateRuns(double alpha, PartitionID all_runs_k, PartitionID x) {
+		int n = _config.initial_partitioning.nruns;
+		PartitionID k = _config.initial_partitioning.k;
+		double m = ((1.0-alpha)*n)/(all_runs_k-k);
+		double c = ((alpha*all_runs_k-k)*n)/(all_runs_k-k);
+		return std::max(((int) (m*x + c)),1);
+	}
+
+
 	/*double calculateRecursiveEpsilon(PartitionID curk, PartitionID k,
 	 double current_value) {
 	 if (curk == 1) {
@@ -136,24 +145,27 @@ private:
 				/ static_cast<double>(k);
 
 		//Performing bisection
-		std::vector<PartitionID> best_partition(hyper.numNodes(),0);
+		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-		for (int i = 0; i < _config.initial_partitioning.nruns; i++) {
+
+		int runs = calculateRuns(_config.initial_partitioning.alpha,2,k);
+		std::cout << runs << std::endl;
+		for (int i = 0; i < runs; i++) {
 			InitialPartitioner partitioner(hyper, _config);
 			partitioner.partition(2);
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
-			if(current_cut < best_cut) {
+			if (current_cut < best_cut) {
 				best_cut = current_cut;
-				for(HypernodeID hn : hyper.nodes()) {
+				for (HypernodeID hn : hyper.nodes()) {
 					best_partition[hn] = hyper.partID(hn);
 				}
 			}
 		}
 
-		for(HypernodeID hn : hyper.nodes()) {
-			if(hyper.partID(hn) != best_partition[hn]) {
-				hyper.changeNodePart(hn,hyper.partID(hn),best_partition[hn]);
+		for (HypernodeID hn : hyper.nodes()) {
+			if (hyper.partID(hn) != best_partition[hn]) {
+				hyper.changeNodePart(hn, hyper.partID(hn), best_partition[hn]);
 			}
 		}
 

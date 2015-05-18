@@ -54,6 +54,7 @@ struct Configuration {
 		  lower_allowed_partition_weight(),
 		  seed(-1),
 		  nruns(1),
+		  alpha(0.25),
 		  ils_iterations(),
 		  rollback(),
 		  refinement(),
@@ -70,6 +71,7 @@ struct Configuration {
 	  HypernodeWeightVector upper_allowed_partition_weight;
 	  HypernodeWeightVector lower_allowed_partition_weight;
 	  int nruns;
+	  double alpha;
 	  int seed;
 	  int ils_iterations;
 	  bool rollback;

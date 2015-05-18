@@ -108,6 +108,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("nruns")) {
 			config.initial_partitioning.nruns = vm["nruns"].as<int>();
 		}
+		if (vm.count("alpha")) {
+			config.initial_partitioning.alpha = vm["alpha"].as<double>();
+		}
 		if (vm.count("rollback")) {
 			config.initial_partitioning.rollback = vm["rollback"].as<bool>();
 		}
@@ -143,6 +146,7 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.seed = -1;
 	config.initial_partitioning.ils_iterations = 50;
 	config.initial_partitioning.nruns = 1;
+	config.initial_partitioning.alpha = 1.0;
 	config.initial_partitioning.rollback = true;
 	config.initial_partitioning.refinement = true;
 	config.initial_partitioning.erase_components = true;
@@ -155,6 +159,7 @@ void setDefaults(Configuration& config) {
 	config.fm_local_search.max_number_of_fruitless_moves = 150;
 	config.fm_local_search.alpha = 8;
 	config.her_fm.stopping_rule = "simple";
+
 	config.her_fm.num_repetitions = 1;
 	config.her_fm.max_number_of_fruitless_moves = 10;
 	config.lp_refiner.max_number_iterations = 3;
@@ -255,8 +260,10 @@ int main(int argc, char* argv[]) {
 			po::value<int>(),
 			"Runs of the initial partitioner during bisection")(
 			"ils_iterations", po::value<int>(),
-			"Iterations of the iterative local search partitioner")("rollback",
-			po::value<bool>(),
+			"Iterations of the iterative local search partitioner")("alpha",
+			po::value<double>(),
+			"There are alpha * nruns initial partitioning attempts on the highest level of recursive bisection")(
+			"rollback", po::value<bool>(),
 			"Rollback to best cut, if you bipartition a hypergraph")(
 			"refinement", po::value<bool>(),
 			"Enables/Disable refinement after initial partitioning calculation")(
