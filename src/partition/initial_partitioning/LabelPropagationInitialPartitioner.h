@@ -33,6 +33,10 @@ using Gain = HyperedgeWeight;
 
 namespace partition {
 
+// TODO(heuer): This has _nothing_ to do with a LabelPropagationInitialPartitioner
+// I assume that you know this as well :)
+// However, using LP as a very fast greedy refiner in the InitialPartitioner BaseClass
+// might actually be worth a try.
 template<class StartNodeSelection = StartNodeSelectionPolicy,
 		class GainComputation = GainComputationPolicy>
 class LabelPropagationInitialPartitioner: public IInitialPartitioner,
