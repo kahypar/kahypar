@@ -70,6 +70,9 @@ class InitialPartitionerBase {
       }
     }
 
+    // TODO(heuer): This should be done in your application.
+    // In general, the partitioner should only use the config parameters, not
+    // set them.
     _config.partition.total_graph_weight = total_hypergraph_weight;
 
   }
@@ -77,6 +80,8 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() {}
 
   void recalculateBalanceConstraints() {
+    // TODO(heuer): The calculation could be done once and the
+    // values then only assigned.
     for (int i = 0; i < _config.initial_partitioning.k; i++) {
       _config.initial_partitioning.lower_allowed_partition_weight[i] =
           ceil(
@@ -109,6 +114,9 @@ class InitialPartitionerBase {
 
   void resetPartitioning(PartitionID unassigned_part) {
     _hg.resetPartitioning();
+    // TODO(heuer): For efficiency: Do you want a reset-Method where you
+    // can choose what unassigned means, i.e. reset everything and move
+    // all nodes into a predefined part?
     if(unassigned_part != -1) {
       for(HypernodeID hn : _hg.nodes()) {
         _hg.setNodePart(hn, unassigned_part);
@@ -129,10 +137,17 @@ class InitialPartitionerBase {
       HyperedgeWeight cut = cut_before;
       double imbalance = metrics::imbalance(_hg);
 
+      // TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
+      // not possible to give more than one upper bound to the refiner.
+      // However, if I'm correct, the condition always evaluates to true if k=2^x right?
       //Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
       if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
         HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
         HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+        // TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
+        // another idea is to restart the refiner as long as it finds an improvement on the current
+        // level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
+        //for.
         refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
         HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
@@ -203,6 +218,8 @@ class InitialPartitionerBase {
     }
   }
 
+  // TODO(heuer): Are you sure that this code, in combination with GHG will never
+  // run in an endless loop?
   HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
     HypernodeID unassigned_node = Randomize::getRandomInt(0,
                                                           _hg.numNodes() - 1);
@@ -213,6 +230,7 @@ class InitialPartitionerBase {
     return unassigned_node;
   }
 
+  // TODO(heuer): Kill this and use my version :)
   void extractPartitionAsHypergraph(Hypergraph& hyper, PartitionID part,
                                     HypernodeID& num_hypernodes, HyperedgeID& num_hyperedges,
                                     HyperedgeIndexVector& index_vector, HyperedgeVector& edge_vector,
