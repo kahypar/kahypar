@@ -23,10 +23,8 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   HighResClockTimepoint start;
   HighResClockTimepoint end;
 
-  HypergraphPruner hypergraph_pruner(hypergraph, _config, _stats);
-  RemovedParallelHyperedgesStack parallel_he_stack;
   if (_config.partition.initial_parallel_he_removal) {
-    removeParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+    removeParallelHyperedges(hypergraph);
   }
 
 
@@ -78,32 +76,22 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   _timings[kInitialLargeHErestore] = end - start;
 
   if (_config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph_pruner, parallel_he_stack);
+    restoreParallelHyperedges(hypergraph);
   }
 }
 
-void Partitioner::removeParallelHyperedges(Hypergraph& hypergraph,
-                                           HypergraphPruner& hypergraph_pruner,
-                                           RemovedParallelHyperedgesStack& stack) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  for (const HypernodeID hn : hypergraph.nodes()) {
-    stack.emplace(std::make_pair(0, 0));
-    hypergraph_pruner.removeParallelHyperedges(hn, stack.top().first, stack.top().second);
-  }
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialParallelHEremoval] = end - start;
-  LOG("Initially removed parallel HEs:" << _stats.toString());
+void Partitioner::removeParallelHyperedges(Hypergraph&) {
+  // HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  throw std::runtime_error("Not Implemented");
+  // HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  // _timings[kInitialParallelHEremoval] = end - start;
+  // LOG("Initially removed parallel HEs:" << _stats.toString());
 }
 
-void Partitioner::restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
-                                            RemovedParallelHyperedgesStack& stack) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  while (!stack.empty()) {
-    hypergraph_pruner.restoreParallelHyperedges(stack.top().first, stack.top().second);
-    stack.pop();
-  }
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialParallelHErestore] = end - start;
+void Partitioner::restoreParallelHyperedges(Hypergraph&) {
+  // HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  // HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  // _timings[kInitialParallelHErestore] = end - start;
 }
 
 void Partitioner::removeLargeHyperedges(Hypergraph& hg,

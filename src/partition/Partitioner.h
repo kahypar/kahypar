@@ -100,10 +100,8 @@ class Partitioner {
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg);
   void performInitialPartitioning(Hypergraph& hg);
-  void removeParallelHyperedges(Hypergraph& hypergraph, HypergraphPruner& hypergraph_pruner,
-                                RemovedParallelHyperedgesStack& stack);
-  void restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
-                                 RemovedParallelHyperedgesStack& stack);
+  void removeParallelHyperedges(Hypergraph& hypergraph);
+  void restoreParallelHyperedges(Hypergraph& hypergraph);
 
   Configuration& _config;
   Stats _stats;
