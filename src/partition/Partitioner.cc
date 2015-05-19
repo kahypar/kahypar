@@ -18,43 +18,27 @@
 using defs::HighResClockTimepoint;
 
 namespace partition {
-void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
-                            IRefiner& refiner) {
-  HighResClockTimepoint start;
-  HighResClockTimepoint end;
-
+void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
+                                                IRefiner& refiner) {
   if (_config.partition.initial_parallel_he_removal) {
     removeParallelHyperedges(hypergraph);
   }
 
-
-  start = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges);
-  end = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   _timings[kInitialLargeHEremoval] = end - start;
 
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
+  partition(hypergraph, coarsener, refiner);
+  DBG(dbg_partition_vcycles, "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
+
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
-    start = std::chrono::high_resolution_clock::now();
-    coarsener.coarsen(_config.coarsening.contraction_limit);
-    end = std::chrono::high_resolution_clock::now();
-    _timings[kCoarsening] += end - start;
-
-    if (vcycle == 0) {
-      start = std::chrono::high_resolution_clock::now();
-      performInitialPartitioning(hypergraph);
-      end = std::chrono::high_resolution_clock::now();
-      _timings[kInitialPartitioning] = end - start;
-    }
-
-    start = std::chrono::high_resolution_clock::now();
-    const bool found_improved_cut = coarsener.uncoarsen(refiner);
-    end = std::chrono::high_resolution_clock::now();
-    _timings[kUncoarseningRefinement] += end - start;
+    const bool found_improved_cut = partitionVCycle(hypergraph, coarsener, refiner);
 
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
@@ -80,57 +64,6 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   }
 }
 
-void Partitioner::removeParallelHyperedges(Hypergraph&) {
-  // HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  throw std::runtime_error("Not Implemented");
-  // HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  // _timings[kInitialParallelHEremoval] = end - start;
-  // LOG("Initially removed parallel HEs:" << _stats.toString());
-}
-
-void Partitioner::restoreParallelHyperedges(Hypergraph&) {
-  // HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  // HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  // _timings[kInitialParallelHErestore] = end - start;
-}
-
-void Partitioner::removeLargeHyperedges(Hypergraph& hg,
-                                        std::vector<HyperedgeID>& removed_hyperedges) {
-  if (_config.partition.hyperedge_size_threshold != -1) {
-    for (const HyperedgeID he : hg.edges()) {
-      if (hg.edgeSize(he) > _config.partition.hyperedge_size_threshold) {
-        DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
-            << hg.edgeSize(he) << ")   exceeds threshold: "
-            << _config.partition.hyperedge_size_threshold);
-        removed_hyperedges.push_back(he);
-        hg.removeEdge(he, false);
-      }
-    }
-  }
-  _stats.add("numInitiallyRemovedLargeHEs", _config.partition.current_v_cycle,
-             removed_hyperedges.size());
-  LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
-      << _config.partition.hyperedge_size_threshold << " pins");
-}
-
-void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
-                                         const std::vector<HyperedgeID>& removed_hyperedges) {
-  for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-    DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
-    hg.restoreEdge(*edge);
-  }
-}
-
-void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                       CoarsenedToHmetisMapping& hg_to_hmetis,
-                                                       const Hypergraph& hg) {
-  int i = 0;
-  for (const HypernodeID hn : hg.nodes()) {
-    hg_to_hmetis[hn] = i;
-    hmetis_to_hg[i] = hn;
-    ++i;
-  }
-}
 
 void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   io::printHypergraphInfo(hg, _config.partition.coarse_graph_filename.substr(

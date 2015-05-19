@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
   HighResClockTimepoint end;
 
   start = std::chrono::high_resolution_clock::now();
-  partitioner.partition(hypergraph, *coarsener, *refiner);
+  partitioner.performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
   end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
