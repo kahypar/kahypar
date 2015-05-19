@@ -747,7 +747,7 @@ class GenericHypergraph {
   //     the number of hypernodes that have been contracted with it. Thus is achieved
   //     by setting the flag to _false_.
   // 2.) In order to avoid tedious reevaluation of ratings for really large hyperedges
-  //     we want to provide an option do _really_ delte these edges from the graph before
+  //     we want to provide an option do _really_ delete these edges from the graph before
   //     starting the actual n-level partitioning. In this case, we _do_ want unconnected
   //     hypernodes to disappear from the graph. After the partitioning is finished, we then
   //     reintegrate these edges into the graph. As we sacrificed theses edges in the beginning
@@ -771,7 +771,7 @@ class GenericHypergraph {
   // hypernodes (i.e. pins). Since the removal of the internal edge (HN_Vertex,HE_Vertex)
   // was done by swapping the HyperedgeID to the end of the edgelist of the hypernode and
   // decrementing the size, it is necessary to perform the restore operations __in reverse__
-  // order as the removal operations occured!
+  // order as the removal operations occurred!
   void restoreEdge(const HyperedgeID he) noexcept {
     ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
     enableEdge(he);
