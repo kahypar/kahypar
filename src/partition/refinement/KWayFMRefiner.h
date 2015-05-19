@@ -300,7 +300,7 @@ class KWayFMRefiner : public IRefiner,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
     if (pin_count_source_part_before_move == he_size) {
-      ASSERT(he_connectivity == 2, V(he_connectivity));
+      ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
       ASSERT(pin_count_target_part_after_move == 1, V(pin_count_target_part_after_move));
       DBG(dbg_refinement_kway_fm_gain_update,
           "he " << he << " is not cut before applying move");
@@ -312,7 +312,7 @@ class KWayFMRefiner : public IRefiner,
       }
     }
     if (pin_count_target_part_after_move == he_size) {
-      ASSERT(he_connectivity == 1, V(he_connectivity));
+      ASSERT(_hg.connectivity(he) == 1, V(_hg.connectivity(he)));
       ASSERT(pin_count_source_part_before_move == 1, V(pin_count_source_part_before_move));
       DBG(dbg_refinement_kway_fm_gain_update, "he " << he
           << " is cut before applying move and uncut after");
