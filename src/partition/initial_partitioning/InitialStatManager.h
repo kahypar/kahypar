@@ -106,10 +106,15 @@ public:
 
 	void pushGroupToEndOfOutput(std::string group) {
 		if(std::find(groups.begin(),groups.end(),group) != groups.end()) {
-			auto i = std::find(groups.begin(),groups.end(),group);
-			std::string tmp = *i;
-			for(; i != groups.end(); i++) {
-				*i = *(i+1);
+			int i = 0;
+			for(; i < groups.size(); i++) {
+				if(groups[i].compare(group) == 0) {
+					break;
+				}
+			}
+			std::string tmp = groups[i];
+			for(; i < groups.size()-1; i++) {
+				groups[i] = groups[i+1];
 			}
 			groups[groups.size()-1] = tmp;
 		}

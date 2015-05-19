@@ -53,8 +53,7 @@ private:
 	}
 
 	void bisectionPartitionImpl() final {
-		InitialPartitioner partitioner(_hg, _config);
-		partitioner.partition(2);
+		performMultipleRunsOnHypergraph(_hg, 2);
 		InitialPartitionerBase::recalculateBalanceConstraints();
 		InitialPartitionerBase::performFMRefinement();
 	}
@@ -77,6 +76,8 @@ private:
 	int calculateRuns(double alpha, PartitionID all_runs_k, PartitionID x) {
 		int n = _config.initial_partitioning.nruns;
 		PartitionID k = _config.initial_partitioning.k;
+		if(k <= all_runs_k)
+			return n;
 		double m = ((1.0-alpha)*n)/(all_runs_k-k);
 		double c = ((alpha*all_runs_k-k)*n)/(all_runs_k-k);
 		return std::max(((int) (m*x + c)),1);
@@ -145,33 +146,7 @@ private:
 				/ static_cast<double>(k);
 
 		//Performing bisection
-		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
-		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-
-		int runs = calculateRuns(_config.initial_partitioning.alpha,2,k);
-		std::cout << runs << std::endl;
-                for (int i = 0; i < runs; i++) {
-                  // TODO(heuer): In order to improve running time, you really should
-                  // instantiate the partitioner only _once_ and have the partition
-                  // method clear the interal state of the partitioner at the beginning.
-                  // I think this will remove a lot of memory management overhead.
-			InitialPartitioner partitioner(hyper, _config);
-			partitioner.partition(2);
-
-			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
-			if (current_cut < best_cut) {
-				best_cut = current_cut;
-				for (HypernodeID hn : hyper.nodes()) {
-					best_partition[hn] = hyper.partID(hn);
-				}
-			}
-		}
-
-		for (HypernodeID hn : hyper.nodes()) {
-			if (hyper.partID(hn) != best_partition[hn]) {
-				hyper.changeNodePart(hn, hyper.partID(hn), best_partition[hn]);
-			}
-		}
+		performMultipleRunsOnHypergraph(hyper, k);
 
 		if (_config.initial_partitioning.stats) {
 			InitialStatManager::getInstance().addStat("Recursive Bisection",
@@ -253,6 +228,36 @@ private:
 				[&]() { for(HypernodeID hn : partition_1.nodes()) { if(partition_1.partID(hn) != hyper.partID(hgToExtractedHypergraphMapper_1[hn])) { return false; } } return true; }(),
 				"Assignment of a hypernode from a bisection step below failed in partition 1!");
 
+	}
+
+	void performMultipleRunsOnHypergraph(Hypergraph& hyper, PartitionID k) {
+		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
+		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+
+		int runs = calculateRuns(_config.initial_partitioning.alpha,2,k);
+		std::cout << runs << std::endl;
+	    for (int i = 0; i < runs; i++) {
+	              // TODO(heuer): In order to improve running time, you really should
+	              // instantiate the partitioner only _once_ and have the partition
+	              // method clear the interal state of the partitioner at the beginning.
+	              // I think this will remove a lot of memory management overhead.
+			InitialPartitioner partitioner(hyper, _config);
+			partitioner.partition(2);
+
+			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
+			if (current_cut < best_cut) {
+				best_cut = current_cut;
+				for (HypernodeID hn : hyper.nodes()) {
+					best_partition[hn] = hyper.partID(hn);
+				}
+			}
+		}
+
+		for (HypernodeID hn : hyper.nodes()) {
+			if (hyper.partID(hn) != best_partition[hn]) {
+				hyper.changeNodePart(hn, hyper.partID(hn), best_partition[hn]);
+			}
+		}
 	}
 
 	using InitialPartitionerBase::_hg;
