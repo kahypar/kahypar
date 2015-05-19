@@ -295,7 +295,7 @@ class KWayFMRefiner : public IRefiner,
 
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
-                        const HyperedgeWeight he_weight, const PartitionID he_connectivity,
+                        const HyperedgeWeight he_weight,
                         const HypernodeID pin_count_source_part_before_move,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
@@ -392,7 +392,6 @@ class KWayFMRefiner : public IRefiner,
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
 
-      const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
@@ -410,7 +409,7 @@ class KWayFMRefiner : public IRefiner,
                                  move_increased_connectivity,
                                  max_allowed_part_weight);
               deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                               he_connectivity, pin_count_source_part_before_move,
+                               pin_count_source_part_before_move,
                                pin_count_target_part_after_move,
                                max_allowed_part_weight);
             }
@@ -440,7 +439,6 @@ class KWayFMRefiner : public IRefiner,
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
 
-      const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
@@ -454,7 +452,7 @@ class KWayFMRefiner : public IRefiner,
                                move_increased_connectivity,
                                max_allowed_part_weight);
             deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                             he_connectivity, pin_count_source_part_before_move,
+                             pin_count_source_part_before_move,
                              pin_count_target_part_after_move,
                              max_allowed_part_weight);
           }
