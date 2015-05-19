@@ -122,64 +122,6 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
   ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
 }
 
-TEST_F(APartitionerWithHyperedgeSizeThreshold,
-       TriesToMinimizesCutIfNoPinOfRemainingHyperedgeIsPartitioned) {
-  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 7 },
-                                  HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
-
-  std::vector<HyperedgeID> removed_hyperedges { 1, 2 };
-
-  for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
-  }
-
-  ASSERT_THAT(hypergraph->partID(2), Eq(0));
-  ASSERT_THAT(hypergraph->partID(3), Eq(0));
-  ASSERT_THAT(hypergraph->partID(4), Eq(1));
-  ASSERT_THAT(hypergraph->partID(5), Eq(1));
-  ASSERT_THAT(hypergraph->partID(6), Eq(1));
-}
-
-TEST_F(APartitionerWithHyperedgeSizeThreshold,
-       TriesToMinimizesCutIfOnlyOnePartitionIsUsed) {
-  hypergraph.reset(new Hypergraph(7, 3, HyperedgeIndexVector { 0, 2, 4,  /*sentinel*/ 7 },
-                                  HyperedgeVector { 0, 1, 2, 3, 4, 5, 6 }));
-
-  hypergraph->setNodePart(0, 0);
-  hypergraph->setNodePart(1, 1);
-  hypergraph->setNodePart(2, 0);
-  hypergraph->setNodePart(4, 1);
-  hypergraph->setNodePart(5, 1);
-  hypergraph->setNodePart(6, 1);
-
-  std::vector<HyperedgeID> removed_hyperedges { 1 };
-
-  for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
-  }
-
-  ASSERT_THAT(hypergraph->partID(3), Eq(0));
-}
-
-TEST_F(APartitionerWithHyperedgeSizeThreshold,
-       DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized) {
-  hypergraph.reset(new Hypergraph(7, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 8 },
-                                  HyperedgeVector { 0, 1, 0, 2, 3, 4, 5, 6 }));
-  std::vector<HyperedgeID> removed_hyperedges { 1 };
-  hypergraph->setNodePart(0, 0);
-  hypergraph->setNodePart(1, 1);
-
-  for (auto removed_edge : removed_hyperedges) {
-    partitioner.partitionUnpartitionedPins(removed_edge, *hypergraph);
-  }
-
-  ASSERT_THAT(hypergraph->partID(2), Eq(0));
-  ASSERT_THAT(hypergraph->partID(3), Eq(1));
-  ASSERT_THAT(hypergraph->partID(4), Eq(0));
-  ASSERT_THAT(hypergraph->partID(5), Eq(1));
-  ASSERT_THAT(hypergraph->partID(6), Eq(0));
-}
-
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;

@@ -95,11 +95,7 @@ class Partitioner {
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
 
   void removeLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
-  void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID>& removed_hyperedges);
-  void partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg);
-  void assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg);
-  void assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg);
-  void distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg);
+  void restoreLargeHyperedges(Hypergraph& hg, const std::vector<HyperedgeID>& removed_hyperedges);
   void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                             CoarsenedToHmetisMapping& hg_to_hmetis,
                                             const Hypergraph& hg);
