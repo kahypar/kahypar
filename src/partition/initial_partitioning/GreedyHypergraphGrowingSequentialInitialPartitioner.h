@@ -177,6 +177,7 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
 
     // TODO(heuer): Consistency: Why is unassigned_part 0 in k-way impl. and 1 in bisection impl.
     PartitionID unassigned_part = 1;
+    PartitionID assigned_part = 1 - unassigned_part;
     InitialPartitionerBase::resetPartitioning(unassigned_part);
 
     HyperedgeWeight init_pq = 2 * _hg.numNodes();
@@ -188,49 +189,45 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
     StartNodeSelection::calculateStartNodes(startNode, _hg,
                                             static_cast<PartitionID>(2));
 
-    processNodeForBucketPQ(*bq[0], startNode[0], 0);
+    processNodeForBucketPQ(*bq[assigned_part], startNode[assigned_part], assigned_part);
     HypernodeID hn = invalid_node;
     do {
 
       if (hn != invalid_node) {
 
         ASSERT([&]() {
-            Gain gain = bq[0]->maxKey();
-            _hg.changeNodePart(hn,0,1);
+            Gain gain = bq[assigned_part]->maxKey();
+            _hg.changeNodePart(hn,assigned_part,unassigned_part);
             HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-            _hg.changeNodePart(hn,1,0);
+            _hg.changeNodePart(hn,unassigned_part,assigned_part);
             return metrics::hyperedgeCut(_hg) == (cut_before-gain);
           }(), "Gain calculation failed!");
 
         bq[0]->deleteMax();
 
-        deltaGainUpdate(bq, hn, unassigned_part, 0, true);
+        deltaGainUpdate(bq, hn, unassigned_part, assigned_part);
         for (HyperedgeID he : _hg.incidentEdges(hn)) {
           for (HypernodeID hnode : _hg.pins(he)) {
             if (_hg.partID(hnode) == unassigned_part && hnode != hn) {
-              processNodeForBucketPQ(*bq[0], hnode, 0);
+              processNodeForBucketPQ(*bq[assigned_part], hnode, assigned_part);
             }
           }
         }
       }
 
-      if (!bq[0]->empty()) {
-        hn = bq[0]->max();
-        while (_hg.partID(hn) != unassigned_part && !bq[0]->empty()) {
-          hn = bq[0]->max();
-          bq[0]->deleteMax();
-        }
+      if (!bq[assigned_part]->empty()) {
+        hn = bq[assigned_part]->max();
       }
 
-      if (bq[0]->empty() && _hg.partID(hn) != unassigned_part) {
+      if (bq[assigned_part]->empty() && _hg.partID(hn) != unassigned_part) {
         hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
-        processNodeForBucketPQ(*bq[0], hn, 0);
+        processNodeForBucketPQ(*bq[assigned_part], hn, assigned_part);
       }
 
-      ASSERT(_hg.partID(hn) == 1,
+      ASSERT(_hg.partID(hn) == unassigned_part,
              "Hypernode " << hn << " should be from part 1!");
 
-    } while (assignHypernodeToPartition(hn, 0));
+    } while (assignHypernodeToPartition(hn, assigned_part));
 
     if(unassigned_part == -1) {
       for(HypernodeID hn : _hg.nodes()) {
@@ -246,11 +243,7 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
   }
 
   void deltaGainUpdate(std::vector<PrioQueue*>& bq, HypernodeID hn,
-                       PartitionID from, PartitionID to, bool bisection = false) {
-    PartitionID k = _config.initial_partitioning.k;
-    if(bisection) {
-      k = 2;
-    }
+                       PartitionID from, PartitionID to) {
 
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
@@ -266,7 +259,7 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
           if (connectivity == 2 && pin_count_in_target_part_after == 1
               && pin_count_in_source_part_before > 1) {
             for (PartitionID i = 0;
-                 i < k; i++) {
+                 i < bq.size(); i++) {
               if (i != from) {
                 deltaNodeUpdate(*bq[i], node,
                                 _hg.edgeWeight(he));
@@ -277,7 +270,7 @@ class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartit
           if (connectivity == 1
               && pin_count_in_source_part_before == 1) {
             for (PartitionID i = 0;
-                 i < k; i++) {
+                 i < bq.size(); i++) {
               if (i != to) {
                 deltaNodeUpdate(*bq[i], node,
                                 -_hg.edgeWeight(he));

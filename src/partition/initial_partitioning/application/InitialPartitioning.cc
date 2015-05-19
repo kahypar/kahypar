@@ -354,6 +354,10 @@ int main(int argc, char* argv[]) {
 		stats->createMetrics();
 		stats->createHypergraphInformation();
 		stats->createPartitioningResults();
+		InitialStatManager::getInstance().pushGroupToEndOfOutput("Partitioning Results");
+		InitialStatManager::getInstance().pushGroupToEndOfOutput("Configuration");
+		InitialStatManager::getInstance().pushGroupToEndOfOutput("Time Measurements");
+		InitialStatManager::getInstance().pushGroupToEndOfOutput("Metrics");
 	}
 
 	if (vm.count("output")) {

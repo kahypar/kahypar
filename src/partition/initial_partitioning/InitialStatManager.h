@@ -34,6 +34,9 @@ public:
 
 	void addStat(std::string group, std::string name, double stat,
 			std::string style = "", bool result = false) {
+		if(std::find(groups.begin(),groups.end(),group) == groups.end()) {
+			groups.push_back(group);
+		}
 		stats[group].push_back(std::make_pair(name, stat));
 		styles[group].push_back(std::make_pair(name, style));
 		results[group].push_back(std::make_pair(name, result));
@@ -60,29 +63,31 @@ public:
 
 	void printStats(std::string filename, bool enable_style) {
 		std::ostringstream oss;
-		for (auto s : stats) {
+		for (int i = 0; i < groups.size(); i++) {
+
+			std::string group = groups[i];
 
 			if (enable_style) {
 				oss << BOLD << BLUE;
 			}
-			for (int i = 0; i < s.first.size() + 18; i++)
+			for (int i = 0; i < group.size() + 18; i++)
 				oss << "=";
-			oss << "\n======== " << s.first << " ========\n";
-			for (int i = 0; i < s.first.size() + 18; i++)
+			oss << "\n======== " << group << " ========\n";
+			for (int i = 0; i < group.size() + 18; i++)
 				oss << "=";
 			if (enable_style) {
 				oss << RESET;
 			}
 			oss << "\n";
 
-			for (int i = 0; i < s.second.size(); i++) {
+			for (int j = 0; j < stats[group].size(); j++) {
 				if (enable_style) {
-					oss << styles[s.first][i].second << s.second[i].first
-							<< " = " << s.second[i].second << RESET << "\n";
+					oss << styles[group][j].second << stats[group][j].first
+							<< " = " << stats[group][j].second << RESET << "\n";
 				}
 				else {
-					oss <<  s.second[i].first
-							<< " = " << s.second[i].second << "\n";
+					oss <<  stats[group][j].first
+							<< " = " << stats[group][j].second << "\n";
 				}
 			}
 		}
@@ -96,6 +101,17 @@ public:
 			}
 		} else {
 			std::cout << oss.str() << std::endl;
+		}
+	}
+
+	void pushGroupToEndOfOutput(std::string group) {
+		if(std::find(groups.begin(),groups.end(),group) != groups.end()) {
+			auto i = std::find(groups.begin(),groups.end(),group);
+			std::string tmp = *i;
+			for(; i != groups.end(); i++) {
+				*i = *(i+1);
+			}
+			groups[groups.size()-1] = tmp;
 		}
 	}
 
@@ -135,6 +151,7 @@ public:
 	std::string graphname;
 	std::string mode;
 
+	std::vector<std::string> groups;
 	std::map<std::string, std::vector<std::pair<std::string, double>>>stats;
 	std::map<std::string, std::vector<std::pair<std::string, std::string>>> styles;
 	std::map<std::string, std::vector<std::pair<std::string, bool>>> results;

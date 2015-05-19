@@ -180,64 +180,75 @@ class GreedyHypergraphGrowingRoundRobinInitialPartitioner: public IInitialPartit
   // Since the implementation is the same as GHG-Global, it has the same BUGs
   // in it. :(
   void bisectionPartitionImpl() final {
-    InitialPartitionerBase::resetPartitioning(1);
+	    PartitionID unassigned_part = 1;
+	    PartitionID assigned_part = 1 - unassigned_part;
+	    InitialPartitionerBase::resetPartitioning(unassigned_part);
 
-    HyperedgeWeight init_pq = 2 * _hg.numNodes();
-    PrioQueue* bq = new PrioQueue(init_pq);
-    std::vector<HypernodeID> startNode;
-    StartNodeSelection::calculateStartNodes(startNode, _hg,
-                                            static_cast<PartitionID>(2));
+	    HyperedgeWeight init_pq = 2 * _hg.numNodes();
+	    std::vector<PrioQueue*> bq(2);
+	    for (PartitionID i = 0; i < 2; i++) {
+	      bq[i] = new PrioQueue(init_pq);
+	    }
+	    std::vector<HypernodeID> startNode;
+	    StartNodeSelection::calculateStartNodes(startNode, _hg,
+	                                            static_cast<PartitionID>(2));
 
-    processNodeForBucketPQ(*bq, startNode[0], 0);
-    HypernodeID hn = invalid_node;
-    do {
+	    processNodeForBucketPQ(*bq[assigned_part], startNode[assigned_part], assigned_part);
+	    HypernodeID hn = invalid_node;
+	    do {
 
-      if (hn != invalid_node) {
+	      if (hn != invalid_node) {
 
-        ASSERT([&]() {
-            Gain gain = bq->maxKey();
-            _hg.changeNodePart(hn,0,1);
-            HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-            _hg.changeNodePart(hn,1,0);
-            return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-          }(), "Gain calculation failed!");
+	        ASSERT([&]() {
+	            Gain gain = bq[assigned_part]->maxKey();
+	            _hg.changeNodePart(hn,assigned_part,unassigned_part);
+	            HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+	            _hg.changeNodePart(hn,unassigned_part,assigned_part);
+	            return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+	          }(), "Gain calculation failed!");
 
-        bq->deleteMax();
+	        bq[0]->deleteMax();
 
-        for (HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (HypernodeID hnode : _hg.pins(he)) {
-            if (_hg.partID(hnode) == 1 && hnode != hn) {
-              processNodeForBucketPQ(*bq, hnode, 0, true);
-            }
-          }
-        }
-      }
+	        deltaGainUpdate(bq, hn, unassigned_part, assigned_part);
+	        for (HyperedgeID he : _hg.incidentEdges(hn)) {
+	          for (HypernodeID hnode : _hg.pins(he)) {
+	            if (_hg.partID(hnode) == unassigned_part && hnode != hn) {
+	              processNodeForBucketPQ(*bq[assigned_part], hnode, assigned_part);
+	            }
+	          }
+	        }
+	      }
 
-      if (!bq->empty()) {
-        hn = bq->max();
-        while (_hg.partID(hn) != 1 && !bq->empty()) {
-          hn = bq->max();
-          bq->deleteMax();
-        }
-      }
+	      if (!bq[assigned_part]->empty()) {
+	        hn = bq[assigned_part]->max();
+	      }
 
-      if (bq->empty() && _hg.partID(hn) != 1) {
-        hn = InitialPartitionerBase::getUnassignedNode(1);
-        processNodeForBucketPQ(*bq, hn, 0);
-      }
+	      if (bq[assigned_part]->empty() && _hg.partID(hn) != unassigned_part) {
+	        hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
+	        processNodeForBucketPQ(*bq[assigned_part], hn, assigned_part);
+	      }
 
-      ASSERT(_hg.partID(hn) == 1,
-             "Hypernode " << hn << " should be from part 1!");
+	      ASSERT(_hg.partID(hn) == unassigned_part,
+	             "Hypernode " << hn << " should be from part 1!");
 
-    } while (assignHypernodeToPartition(hn, 0));
+	    } while (assignHypernodeToPartition(hn, assigned_part));
 
-    InitialPartitionerBase::rollbackToBestCut();
-    InitialPartitionerBase::performFMRefinement();
+	    if(unassigned_part == -1) {
+	      for(HypernodeID hn : _hg.nodes()) {
+	        if(_hg.partID(hn) == -1) {
+	          _hg.setNodePart(hn,1);
+	        }
+	      }
+	    }
+
+	    InitialPartitionerBase::rollbackToBestCut();
+	    InitialPartitionerBase::performFMRefinement();
 
   }
 
   void deltaGainUpdate(std::vector<PrioQueue*>& bq, HypernodeID hn,
                        PartitionID from, PartitionID to) {
+
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
       HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
@@ -252,7 +263,7 @@ class GreedyHypergraphGrowingRoundRobinInitialPartitioner: public IInitialPartit
           if (connectivity == 2 && pin_count_in_target_part_after == 1
               && pin_count_in_source_part_before > 1) {
             for (PartitionID i = 0;
-                 i < _config.initial_partitioning.k; i++) {
+                 i < bq.size(); i++) {
               if (i != from) {
                 deltaNodeUpdate(*bq[i], node,
                                 _hg.edgeWeight(he));
@@ -263,7 +274,7 @@ class GreedyHypergraphGrowingRoundRobinInitialPartitioner: public IInitialPartit
           if (connectivity == 1
               && pin_count_in_source_part_before == 1) {
             for (PartitionID i = 0;
-                 i < _config.initial_partitioning.k; i++) {
+                 i < bq.size(); i++) {
               if (i != to) {
                 deltaNodeUpdate(*bq[i], node,
                                 -_hg.edgeWeight(he));

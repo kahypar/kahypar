@@ -220,86 +220,70 @@ class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitione
   }
 
   void bisectionPartitionImpl() final {
-    InitialPartitionerBase::resetPartitioning(1);
+	    // TODO(heuer): Consistency: Why is unassigned_part 0 in k-way impl. and 1 in bisection impl.
+	    PartitionID unassigned_part = 1;
+	    PartitionID assigned_part = 1 - unassigned_part;
+	    InitialPartitionerBase::resetPartitioning(unassigned_part);
 
-    // TODO(heuer): Again wrong initialization
-    HyperedgeWeight init_pq = 2 * _hg.numNodes();
-    // TODO(heuer): Pointer indirection not really necessary
-    // TODO(heuer): In addition, there is a memory-leak because you forgot
-    // to delete the PQ. Better use smart_pointers, i.e. unique_ptr
-    PrioQueue* bq = new PrioQueue(init_pq);
-    std::vector<HypernodeID> startNode;
-    StartNodeSelection::calculateStartNodes(startNode, _hg,
-                                            static_cast<PartitionID>(2));
+	    HyperedgeWeight init_pq = 2 * _hg.numNodes();
+	    std::vector<PrioQueue*> bq(2);
+	    for (PartitionID i = 0; i < 2; i++) {
+	      bq[i] = new PrioQueue(init_pq);
+	    }
+	    std::vector<HypernodeID> startNode;
+	    StartNodeSelection::calculateStartNodes(startNode, _hg,
+	                                            static_cast<PartitionID>(2));
 
-    processNodeForBucketPQ(*bq, startNode[0], 0);
-    HypernodeID hn = invalid_node;
-    do {
+	    processNodeForBucketPQ(*bq[assigned_part], startNode[assigned_part], assigned_part);
+	    HypernodeID hn = invalid_node;
+	    do {
 
-      if (hn != invalid_node) {
+	      if (hn != invalid_node) {
 
-        ASSERT([&]() {
-            Gain gain = bq->maxKey();
-            _hg.changeNodePart(hn,0,1);
-            HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-            _hg.changeNodePart(hn,1,0);
-            return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-          }(), "Gain calculation failed!");
+	        ASSERT([&]() {
+	            Gain gain = bq[assigned_part]->maxKey();
+	            _hg.changeNodePart(hn,assigned_part,unassigned_part);
+	            HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+	            _hg.changeNodePart(hn,unassigned_part,assigned_part);
+	            return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+	          }(), "Gain calculation failed!");
 
-        bq->deleteMax();
+	        bq[0]->deleteMax();
 
-        // TODO(heuer): What about delta-gain updates? They can be implemented
-        // even more efficiently for k=2!
-        for (HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (HypernodeID hnode : _hg.pins(he)) {
-            if (_hg.partID(hnode) == 1 && hnode != hn) {
-              // TODO(heuer): If you create a different overload for
-              // processNodeForBucketPQ, then you don't have to check
-              // if the last parameter is true all the time.
-              processNodeForBucketPQ(*bq, hnode, 0, true);
-            }
-          }
-        }
-      }
+	        deltaGainUpdate(bq, hn, unassigned_part, assigned_part);
+	        for (HyperedgeID he : _hg.incidentEdges(hn)) {
+	          for (HypernodeID hnode : _hg.pins(he)) {
+	            if (_hg.partID(hnode) == unassigned_part && hnode != hn) {
+	              processNodeForBucketPQ(*bq[assigned_part], hnode, assigned_part);
+	            }
+	          }
+	        }
+	      }
 
-      if (!bq->empty()) {
-        hn = bq->max();
-        // TODO(heuer): BUG!: This code can produce wrong behavior.
-        // Assume that the while loop is executed once. Then
-        // hn is the current max-element and this element is deleted
-        // from the pq.
-        // Now the current max-element != hn. Hn is the assigned and
-        // a new iteration of the while-loop is started. Due to the code
-        // above, bq->deleteMax() is called again and therefore you mit
-        // the one max-element!
-        // This would not have happened, if you wrote a test case, that
-        // asserts that a sequence of assignments is performed using
-        // the expeted hypernodes. Please write a test case first now that
-        // fails and the fix this code such that the test becomes green.
-        while (_hg.partID(hn) != 1 && !bq->empty()) {
-          hn = bq->max();
-          bq->deleteMax();
-        }
-      }
+	      if (!bq[assigned_part]->empty()) {
+	        hn = bq[assigned_part]->max();
+	      }
 
-      // TODO(heuer): BUG!: This code has the same bug. The next loop iteration
-      // removes the max-element without you having used it. Also the behavior
-      // in the body seems strange. Why do you start with the unassigned node?
-      // Wouldn't it be smarter to insert it - and all its neighbors - into the
-      // queue and then again choose the move with maximum gain?
-      // If I'm correct, this is what you do in the k-way implementation.
-      if (bq->empty() && _hg.partID(hn) != 1) {
-        hn = InitialPartitionerBase::getUnassignedNode(1);
-        processNodeForBucketPQ(*bq, hn, 0);
-      }
+	      if (bq[assigned_part]->empty() && _hg.partID(hn) != unassigned_part) {
+	        hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
+	        processNodeForBucketPQ(*bq[assigned_part], hn, assigned_part);
+	      }
 
-      ASSERT(_hg.partID(hn) == 1,
-             "Hypernode " << hn << " should be from part 1!");
+	      ASSERT(_hg.partID(hn) == unassigned_part,
+	             "Hypernode " << hn << " should be from part 1!");
 
-    } while (assignHypernodeToPartition(hn, 0));
+	    } while (assignHypernodeToPartition(hn, assigned_part));
 
-    InitialPartitionerBase::rollbackToBestCut();
-    InitialPartitionerBase::performFMRefinement();
+	    if(unassigned_part == -1) {
+	      for(HypernodeID hn : _hg.nodes()) {
+	        if(_hg.partID(hn) == -1) {
+	          _hg.setNodePart(hn,1);
+	        }
+	      }
+	    }
+
+	    InitialPartitionerBase::rollbackToBestCut();
+	    InitialPartitionerBase::performFMRefinement();
 
   }
 
@@ -307,6 +291,7 @@ class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitione
   // pin_count_in_source_part_before etc...
   void deltaGainUpdate(std::vector<PrioQueue*>& bq, HypernodeID hn,
                        PartitionID from, PartitionID to) {
+
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
       HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
@@ -321,7 +306,7 @@ class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitione
           if (connectivity == 2 && pin_count_in_target_part_after == 1
               && pin_count_in_source_part_before > 1) {
             for (PartitionID i = 0;
-                 i < _config.initial_partitioning.k; i++) {
+                 i < bq.size(); i++) {
               if (i != from) {
                 deltaNodeUpdate(*bq[i], node,
                                 _hg.edgeWeight(he));
@@ -332,7 +317,7 @@ class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitione
           if (connectivity == 1
               && pin_count_in_source_part_before == 1) {
             for (PartitionID i = 0;
-                 i < _config.initial_partitioning.k; i++) {
+                 i < bq.size(); i++) {
               if (i != to) {
                 deltaNodeUpdate(*bq[i], node,
                                 -_hg.edgeWeight(he));
@@ -340,7 +325,6 @@ class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitione
             }
           }
 
-          // TODO(heuer): could be collapsed into one if
           if (pin_count_in_target_part_after
               == _hg.edgeSize(he) - 1) {
             if (_hg.partID(node) != to) {
