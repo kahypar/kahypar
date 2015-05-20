@@ -17,6 +17,7 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingBaseFunctions.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "tools/RandomFunctions.h"
@@ -34,310 +35,216 @@ using datastructure::PriorityQueue;
 using Gain = HyperedgeWeight;
 
 using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
-                                         std::numeric_limits<HyperedgeWeight> >;
+std::numeric_limits<HyperedgeWeight> >;
 using PrioQueue = PriorityQueue<TwoWayFMHeap>;
 
 namespace partition {
 
 template<class StartNodeSelection = StartNodeSelectionPolicy,
-         class GainComputation = GainComputationPolicy>
+		class GainComputation = GainComputationPolicy>
 class GreedyHypergraphGrowingSequentialInitialPartitioner: public IInitialPartitioner,
-                                                           public InitialPartitionerBase {
+		public InitialPartitionerBase {
 
- public:
-  GreedyHypergraphGrowingSequentialInitialPartitioner(Hypergraph& hypergraph,
-                                                      Configuration& config) :
-      InitialPartitionerBase(hypergraph, config) {
+public:
+	GreedyHypergraphGrowingSequentialInitialPartitioner(Hypergraph& hypergraph,
+			Configuration& config) :
+			InitialPartitionerBase(hypergraph, config), greedy_base(hypergraph,
+					config) {
 
-    /*max_net_size = 0.0;
-      for(HyperedgeID he : hypergraph.edges()) {
-      if(hypergraph.edgeSize(he) > max_net_size)
-      max_net_size = static_cast<double>(hypergraph.edgeSize(he));
-      }*/
-  }
+		/*max_net_size = 0.0;
+		 for(HyperedgeID he : hypergraph.edges()) {
+		 if(hypergraph.edgeSize(he) > max_net_size)
+		 max_net_size = static_cast<double>(hypergraph.edgeSize(he));
+		 }*/
+	}
 
-  ~GreedyHypergraphGrowingSequentialInitialPartitioner() {
-  }
+	~GreedyHypergraphGrowingSequentialInitialPartitioner() {
+	}
 
- private:
-  FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue);FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeIntoBucketQueue);
+private:
+	FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue);FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeIntoBucketQueue);
 
-  void kwayPartitionImpl() final {
-    PartitionID unassigned_part = 0;
-    InitialPartitionerBase::resetPartitioning(unassigned_part);
+	void kwayPartitionImpl() final {
+		PartitionID unassigned_part =
+				_config.initial_partitioning.unassigned_part;
+		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
-    // TODO(heuer): Again, I'll only comment the stuff that is different from
-    // the comments in the other versions.
-    Gain init_pq = 2 * _hg.numNodes();
-    std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-      bq[i] = new PrioQueue(init_pq);
-    }
+		Gain init_pq = _hg.numNodes();
+		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			bq[i] = new PrioQueue(init_pq);
+		}
 
-    //Calculate Startnodes and push them into the queues.
-    std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _hg,
-                                            _config.initial_partitioning.k);
+		//Calculate Startnodes and push them into the queues.
+		std::vector<HypernodeID> startNodes;
+		StartNodeSelection::calculateStartNodes(startNodes, _hg,
+				_config.initial_partitioning.k);
+		for (PartitionID i = 0; i < startNodes.size(); i++) {
+			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
+		}
 
-    for (PartitionID i = 0; i < startNodes.size(); i++) {
-      processNodeForBucketPQ(*bq[i], startNodes[i], i);
-    }
+		// TODO(heuer): This does not seem to be fair. In other variants you
+		// (1) have a less tight bound, (2) you unlock the upper bound later on...
+		// Why don't you also perform an unlock here?
+		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
+		double epsilon = _config.initial_partitioning.epsilon;
+		// TODO(heuer): Why different bound than in GHG-global?
+		_config.initial_partitioning.epsilon = 0.0;
+		InitialPartitionerBase::recalculateBalanceConstraints();
 
-    // TODO(heuer): Why?
-    std::sort(startNodes.begin(), startNodes.end());
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			if (i != unassigned_part) {
 
-    // TODO(heuer): This does not seem to be fair. In other variants you
-    // (1) have a less tight bound, (2) you unlock the upper bound later on...
-    // Why don't you also perform an unlock here?
-    //Define a weight bound, which every partition have to reach, to avoid very small partitions.
-    double epsilon = _config.partition.epsilon;
-    // TODO(heuer): Why different bound than in GHG-global?
-    _config.partition.epsilon = 0.0;
-    InitialPartitionerBase::recalculateBalanceConstraints();
+				HypernodeID hn = bq[i]->max();
 
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-      // TODO(heuer): Why not start the loop at 1 if 0 is the unassigned part?
-      if (i != unassigned_part) {
+				// TODO(heuer): Is there a reason why it is a while loop here and a do-while in
+				// the other GHG variants?
+				while (InitialPartitionerBase::assignHypernodeToPartition(hn, i)) {
+					ASSERT([&]() {
+						Gain gain = bq[i]->maxKey();
+						_hg.changeNodePart(hn,i,unassigned_part);
+						HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+						_hg.changeNodePart(hn,unassigned_part,i);
+						return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+					}(), "Gain calculation of hypernode " << hn << " failed!");
 
-        // TODO(heuer): ??? Why? start nodes have already been processed,
-        // all other nodes that are already contained in the pq are already processed,
-        // to use this for gain update, the last parameter should have been true?!
-        processNodeForBucketPQ(*bq[i], bq[i]->max(), i);
-        HypernodeID hn = bq[i]->max();
+					bq[i]->deleteMax();
 
-        // TODO(heuer): Is there a reason why it is a while loop here and a do-while in
-        // the other GHG variants?
-        while (InitialPartitionerBase::assignHypernodeToPartition(hn, i)) {
+					// TODO(heuer): Performance improvement if you only loop once
+					GainComputation::deltaGainUpdate(_hg, bq, hn,
+							unassigned_part, i);
+					//Pushing incident hypernode into bucket queue or update gain value
+					for (HyperedgeID he : _hg.incidentEdges(hn)) {
+						for (HypernodeID hnode : _hg.pins(he)) {
+							if (_hg.partID(hnode) == unassigned_part) {
+								// TODO(heuer): why? if you find this node via bfs, it might as well
+								// be a candidate for this part. It it becomes assigned to part i,
+								// you just have to find a new start node for the other part.
+								auto startNode = std::find(startNodes.begin(),
+										startNodes.end(), hnode);
+								if (startNode == startNodes.end()) {
+									greedy_base.processNodeForBucketPQ(*bq[i],
+											hnode, i);
+								}
+							}
+						}
+					}
+					// TODO(heuer): Isn't it possible that you create an endless loop in
+					// getUnassignedNode? Assume a call to newStartNode returns the last not
+					// which is unassigned. It is then inserted into the pq, hn is set to that node
+					// then you perform the assignment, delete the node, delta-gain and the
+					// other loops do nothing. The PQ is now empty again. You search for a new unassigned
+					// node.... and this call will never ever return. BOOOM! :)
+					// Even if this case is unlikely, the code should be built in such way, that this
+					// won't happen.
+					if (bq[i]->empty()) {
+						HypernodeID newStartNode =
+								InitialPartitionerBase::getUnassignedNode(
+										unassigned_part);
+						// TODO(heuer): Here, you have the behavior I would expect.
+						greedy_base.processNodeForBucketPQ(*bq[i], newStartNode,
+								i);
+					}
 
-          ASSERT([&]() {
-              Gain gain = bq[i]->maxKey();
-              _hg.changeNodePart(hn,i,unassigned_part);
-              HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-              _hg.changeNodePart(hn,unassigned_part,i);
-              return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-            }(), "Gain calculation of hypernode " << hn << " failed!");
+					ASSERT(!bq[i]->empty(),
+							"Bucket queue of partition " << i << " shouldn't be empty!");
+					hn = bq[i]->max();
 
-          bq[i]->deleteMax();
+				}
+			}
+		}
+		_config.initial_partitioning.epsilon = epsilon;
+		InitialPartitionerBase::recalculateBalanceConstraints();
+		assignAllUnassignedHypernodesAccordingToTheirGain(bq);
 
-          // TODO(heuer): Performance improvement if you only loop once
-          deltaGainUpdate(bq, hn, unassigned_part, i);
-          //Pushing incident hypernode into bucket queue or update gain value
-          for (HyperedgeID he : _hg.incidentEdges(hn)) {
-            for (HypernodeID hnode : _hg.pins(he)) {
-              if (_hg.partID(hnode) == unassigned_part) {
-                // TODO(heuer): why? if you find this node via bfs, it might as well
-                // be a candidate for this part. It it becomes assigned to part i,
-                // you just have to find a new start node for the other part.
-                auto startNode = std::find(startNodes.begin(),
-                                           startNodes.end(), hnode);
-                if (startNode == startNodes.end()) {
-                  processNodeForBucketPQ(*bq[i], hnode, i);
-                }
-              }
-            }
-          }
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::eraseConnectedComponents();
+		InitialPartitionerBase::performFMRefinement();
+	}
 
-          // TODO(heuer): Isn't it possible that you create an endless loop in
-          // getUnassignedNode? Assume a call to newStartNode returns the last not
-          // which is unassigned. It is then inserted into the pq, hn is set to that node
-          // then you perform the assignment, delete the node, delta-gain and the
-          // other loops do nothing. The PQ is now empty again. You search for a new unassigned
-          // node.... and this call will never ever return. BOOOM! :)
-          // Even if this case is unlikely, the code should be built in such way, that this
-          // won't happen.
-          if (bq[i]->empty()) {
-            HypernodeID newStartNode =
-                InitialPartitionerBase::getUnassignedNode(
-                    unassigned_part);
-            // TODO(heuer): Here, you have the behavior I would expect.
-            processNodeForBucketPQ(*bq[i], newStartNode, i);
+	// TODO(heuer): Same comments apply as in GHG-RR.
+	void bisectionPartitionImpl() final {
+		PartitionID k = _config.initial_partitioning.k;
+		_config.initial_partitioning.k = 2;
+		kwayPartitionImpl();
+		_config.initial_partitioning.k = k;
+	}
 
-          }
+	void assignAllUnassignedHypernodesAccordingToTheirGain(
+			std::vector<PrioQueue*>& bq) {
+		//Assign first all possible unassigned nodes, which are still left in the priority queue.
+		while (true) {
+			std::pair<HypernodeID, PartitionID> best_move =
+					greedy_base.getMaxGainHypernode(bq);
+			HypernodeID best_node = best_move.first;
+			PartitionID best_part = best_move.second;
+			if (best_part != -1) {
+				if (assignHypernodeToPartition(best_node, best_part)) {
+					greedy_base.deleteAssignedNodeInBucketPQ(bq, best_node);
+					GainComputation::deltaGainUpdate(_hg, bq, best_node,
+							_config.initial_partitioning.unassigned_part,
+							best_part);
+				}
+			} else {
+				break;
+			}
+		}
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			bq[i]->clear();
+		}
 
-          ASSERT(!bq[i]->empty(),
-                 "Bucket queue of partition " << i << " shouldn't be empty!");
-          hn = bq[i]->max();
+		//Visit all unassigned nodes in a random order and assign them to best partition according to their gain
+		std::vector<HypernodeID> unassigned_nodes;
+		HypernodeWeight part_weight = 0;
+		HypernodeWeight unassigned_part_weight_bound =
+				(_config.initial_partitioning.unassigned_part == -1) ?
+						0 :
+						_config.initial_partitioning.upper_allowed_partition_weight[_config.initial_partitioning.unassigned_part];
+		for (HypernodeID hn : _hg.nodes()) {
+			if (_hg.partID(hn)
+					== _config.initial_partitioning.unassigned_part) {
+				unassigned_nodes.push_back(hn);
+				part_weight += _hg.partWeight(hn);
+			}
+		}
+		Randomize::shuffleVector(unassigned_nodes, unassigned_nodes.size());
+		while (part_weight > unassigned_part_weight_bound
+				&& !unassigned_nodes.empty()) {
+			HypernodeID hn = unassigned_nodes.back();
+			unassigned_nodes.pop_back();
+			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+				if (i != _config.initial_partitioning.unassigned_part) {
+					greedy_base.processNodeForBucketPQ(*bq[i], hn, i);
+				}
+			}
+			std::pair<HypernodeID, PartitionID> best_move =
+					greedy_base.getMaxGainHypernode(bq);
+			HypernodeID best_node = best_move.first;
+			PartitionID best_part = best_move.second;
+			if (best_part != -1) {
+				if (assignHypernodeToPartition(best_node, best_part)) {
+					part_weight -= _hg.nodeWeight(best_node);
+				}
+			} else {
+				if (_config.initial_partitioning.unassigned_part == -1) {
+					_hg.setNodePart(best_node,
+							Randomize::getRandomInt(0,
+									_config.initial_partitioning.k - 1));
+				}
+			}
+			greedy_base.deleteAssignedNodeInBucketPQ(bq, best_node);
+		}
+	}
 
-        }
-      }
-    }
+	//double max_net_size;
+protected:
+	using InitialPartitionerBase::_hg;
+	using InitialPartitionerBase::_config;
 
-    _config.partition.epsilon = epsilon;
-    InitialPartitionerBase::recalculateBalanceConstraints();
+	GreedyHypergraphGrowingBaseFunctions<GainComputation> greedy_base;
 
-    // TODO(heuer): Why has this variant a call to balance partitions and the others don't?
-    InitialPartitionerBase::balancePartitions();
-    InitialPartitionerBase::rollbackToBestCut();
-    InitialPartitionerBase::eraseConnectedComponents();
-    InitialPartitionerBase::performFMRefinement();
-  }
-
-  // TODO(heuer): Same comments apply as in GHG-RR.
-  void bisectionPartitionImpl() final {
-
-    // TODO(heuer): Consistency: Why is unassigned_part 0 in k-way impl. and 1 in bisection impl.
-    PartitionID unassigned_part = 1;
-    PartitionID assigned_part = 1 - unassigned_part;
-    InitialPartitionerBase::resetPartitioning(unassigned_part);
-
-    HyperedgeWeight init_pq = 2 * _hg.numNodes();
-    std::vector<PrioQueue*> bq(2);
-    for (PartitionID i = 0; i < 2; i++) {
-      bq[i] = new PrioQueue(init_pq);
-    }
-    std::vector<HypernodeID> startNode;
-    StartNodeSelection::calculateStartNodes(startNode, _hg,
-                                            static_cast<PartitionID>(2));
-
-    processNodeForBucketPQ(*bq[assigned_part], startNode[assigned_part], assigned_part);
-    HypernodeID hn = invalid_node;
-    do {
-
-      if (hn != invalid_node) {
-
-        ASSERT([&]() {
-            Gain gain = bq[assigned_part]->maxKey();
-            _hg.changeNodePart(hn,assigned_part,unassigned_part);
-            HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-            _hg.changeNodePart(hn,unassigned_part,assigned_part);
-            return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-          }(), "Gain calculation failed!");
-
-        bq[0]->deleteMax();
-
-        deltaGainUpdate(bq, hn, unassigned_part, assigned_part);
-        for (HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (HypernodeID hnode : _hg.pins(he)) {
-            if (_hg.partID(hnode) == unassigned_part && hnode != hn) {
-              processNodeForBucketPQ(*bq[assigned_part], hnode, assigned_part);
-            }
-          }
-        }
-      }
-
-      if (!bq[assigned_part]->empty()) {
-        hn = bq[assigned_part]->max();
-      }
-
-      if (bq[assigned_part]->empty() && _hg.partID(hn) != unassigned_part) {
-        hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
-        processNodeForBucketPQ(*bq[assigned_part], hn, assigned_part);
-      }
-
-      ASSERT(_hg.partID(hn) == unassigned_part,
-             "Hypernode " << hn << " should be from part 1!");
-
-    } while (assignHypernodeToPartition(hn, assigned_part));
-
-    if(unassigned_part == -1) {
-      for(HypernodeID hn : _hg.nodes()) {
-        if(_hg.partID(hn) == -1) {
-          _hg.setNodePart(hn,1);
-        }
-      }
-    }
-
-    InitialPartitionerBase::rollbackToBestCut();
-    InitialPartitionerBase::performFMRefinement();
-
-  }
-
-  void deltaGainUpdate(std::vector<PrioQueue*>& bq, HypernodeID hn,
-                       PartitionID from, PartitionID to) {
-
-    for (HyperedgeID he : _hg.incidentEdges(hn)) {
-
-      HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
-                                                                       from) + 1;
-      HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he,
-                                                                      to);
-      PartitionID connectivity = _hg.connectivity(he);
-
-      for (HypernodeID node : _hg.pins(he)) {
-        if (node != hn) {
-
-          if (connectivity == 2 && pin_count_in_target_part_after == 1
-              && pin_count_in_source_part_before > 1) {
-            for (PartitionID i = 0;
-                 i < bq.size(); i++) {
-              if (i != from) {
-                deltaNodeUpdate(*bq[i], node,
-                                _hg.edgeWeight(he));
-              }
-            }
-          }
-
-          if (connectivity == 1
-              && pin_count_in_source_part_before == 1) {
-            for (PartitionID i = 0;
-                 i < bq.size(); i++) {
-              if (i != to) {
-                deltaNodeUpdate(*bq[i], node,
-                                -_hg.edgeWeight(he));
-              }
-            }
-          }
-
-          if (pin_count_in_target_part_after
-              == _hg.edgeSize(he) - 1) {
-            if (_hg.partID(node) != to) {
-              deltaNodeUpdate(*bq[to], node, _hg.edgeWeight(he));
-            }
-          }
-
-          if (pin_count_in_source_part_before
-              == _hg.edgeSize(he) - 1) {
-            if (_hg.partID(node) != from) {
-              deltaNodeUpdate(*bq[from], node,
-                              -_hg.edgeWeight(he));
-            }
-          }
-
-        }
-      }
-    }
-  }
-
-  void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn, Gain delta_gain) {
-    if (bq.contains(hn)) {
-      Gain old_gain = bq.key(hn);
-      bq.updateKey(hn, old_gain + delta_gain);
-    }
-  }
-
-  void processNodeForBucketPQ(PrioQueue& bq, const HypernodeID hn,
-                              const PartitionID target_part, bool updateGain = false) {
-    if (_hg.partID(hn) != target_part) {
-      if (!bq.contains(hn)) {
-        Gain gain = GainComputation::calculateGain(_hg, hn,
-                                                   target_part);
-        bq.insert(hn, gain);
-      }
-      if (updateGain) {
-        if (bq.contains(hn)) {
-          Gain gain = GainComputation::calculateGain(_hg, hn,
-                                                     target_part);
-          bq.updateKey(hn, gain);
-        }
-      }
-    }
-  }
-
-  void deleteAssignedNodeInBucketPQ(std::vector<PrioQueue*>& bq,
-                                    HypernodeID hn) {
-    for (int i = 0; i < bq.size(); i++) {
-      if (bq[i]->contains(hn)) {
-        bq[i]->remove(hn);
-      }
-    }
-  }
-
-  //double max_net_size;
- protected:
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_config;
-  static const HypernodeID invalid_node =
-                             std::numeric_limits<HypernodeID>::max();
+	static const HypernodeID invalid_node =
+			std::numeric_limits<HypernodeID>::max();
 
 };
 

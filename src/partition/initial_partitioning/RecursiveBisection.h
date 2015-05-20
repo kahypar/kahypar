@@ -76,13 +76,12 @@ private:
 	int calculateRuns(double alpha, PartitionID all_runs_k, PartitionID x) {
 		int n = _config.initial_partitioning.nruns;
 		PartitionID k = _config.initial_partitioning.k;
-		if(k <= all_runs_k)
+		if (k <= all_runs_k)
 			return n;
-		double m = ((1.0-alpha)*n)/(all_runs_k-k);
-		double c = ((alpha*all_runs_k-k)*n)/(all_runs_k-k);
-		return std::max(((int) (m*x + c)),1);
+		double m = ((1.0 - alpha) * n) / (all_runs_k - k);
+		double c = ((alpha * all_runs_k - k) * n) / (all_runs_k - k);
+		return std::max(((int) (m * x + c)), 1);
 	}
-
 
 	/*double calculateRecursiveEpsilon(PartitionID curk, PartitionID k,
 	 double current_value) {
@@ -128,22 +127,13 @@ private:
 		_config.initial_partitioning.epsilon = calculateEpsilon(hyper,
 				hypergraph_weight, k);
 
-		_config.initial_partitioning.lower_allowed_partition_weight[0] = (1.0
-				- _config.initial_partitioning.epsilon)
-				* static_cast<double>(km) * hypergraph_weight
-				/ static_cast<double>(k);
-		_config.initial_partitioning.upper_allowed_partition_weight[0] = (1.0
-				+ _config.initial_partitioning.epsilon)
-				* static_cast<double>(km) * hypergraph_weight
-				/ static_cast<double>(k);
-		_config.initial_partitioning.lower_allowed_partition_weight[1] = (1.0
-				- _config.initial_partitioning.epsilon)
-				* static_cast<double>(k - km) * hypergraph_weight
-				/ static_cast<double>(k);
-		_config.initial_partitioning.upper_allowed_partition_weight[1] = (1.0
-				+ _config.initial_partitioning.epsilon)
-				* static_cast<double>(k - km) * hypergraph_weight
-				/ static_cast<double>(k);
+		_config.initial_partitioning.perfect_balance_partition_weight[0] =
+				static_cast<double>(km) * hypergraph_weight
+						/ static_cast<double>(k);
+		_config.initial_partitioning.perfect_balance_partition_weight[1] =
+				static_cast<double>(k - km) * hypergraph_weight
+						/ static_cast<double>(k);
+		InitialPartitionerBase::recalculateBalanceConstraints();
 
 		//Performing bisection
 		performMultipleRunsOnHypergraph(hyper, k);
@@ -234,13 +224,12 @@ private:
 		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 
-		int runs = calculateRuns(_config.initial_partitioning.alpha,2,k);
-		std::cout << runs << std::endl;
-	    for (int i = 0; i < runs; i++) {
-	              // TODO(heuer): In order to improve running time, you really should
-	              // instantiate the partitioner only _once_ and have the partition
-	              // method clear the interal state of the partitioner at the beginning.
-	              // I think this will remove a lot of memory management overhead.
+		int runs = calculateRuns(_config.initial_partitioning.alpha, 2, k);
+		for (int i = 0; i < runs; i++) {
+			// TODO(heuer): In order to improve running time, you really should
+			// instantiate the partitioner only _once_ and have the partition
+			// method clear the interal state of the partitioner at the beginning.
+			// I think this will remove a lot of memory management overhead.
 			InitialPartitioner partitioner(hyper, _config);
 			partitioner.partition(2);
 

@@ -51,10 +51,11 @@ struct Configuration {
 		  epsilon(0.05),
 	  	  mode(),
 		  upper_allowed_partition_weight(),
-		  lower_allowed_partition_weight(),
+		  perfect_balance_partition_weight(),
 		  seed(-1),
 		  nruns(1),
 		  alpha(0.25),
+		  unassigned_part(0),
 		  ils_iterations(),
 		  rollback(),
 		  refinement(),
@@ -69,8 +70,9 @@ struct Configuration {
 	  double epsilon;
 	  std::string mode;
 	  HypernodeWeightVector upper_allowed_partition_weight;
-	  HypernodeWeightVector lower_allowed_partition_weight;
+	  HypernodeWeightVector perfect_balance_partition_weight;
 	  int nruns;
+	  PartitionID unassigned_part;
 	  double alpha;
 	  int seed;
 	  int ils_iterations;

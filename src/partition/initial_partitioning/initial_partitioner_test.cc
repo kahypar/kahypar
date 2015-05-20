@@ -54,7 +54,7 @@ namespace partition {
 // - The name of the testcase should make clear what the test does/ensures
 // - In general all test only verfiy "end-results", but do not ensure correct
 //   internal behavior. Especially stuff that is not verified with assertions.
-TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignmentTest) {
+/*TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignmentTest) {
 
 	partitioner->partition(2);
 	std::vector<HypernodeID> partition_zero {0,1,2,3};
@@ -66,7 +66,7 @@ TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignm
 		ASSERT_EQ(hypergraph.partID(partition_one[i]),1);
 	}
 
-}
+}*/
 
 // TODO(heuer): For example this test should be named:
 // TEST_F(ABFSInitialPartitioner, LeavesNoHypernodeUnassigned)
@@ -217,7 +217,7 @@ TEST_F(ARandomInitialPartionerInstanceTest, KWayRandomNoUnassignedHypernodesTest
 }
 
 
-TEST_F(AGreedyInitialPartionerTest, ExpectedGreedyBisectionHypernodeToPartitionAssignmentTest) {
+/*TEST_F(AGreedyInitialPartionerTest, ExpectedGreedyBisectionHypernodeToPartitionAssignmentTest) {
 
 	partitioner->partition(2);
 	std::vector<HypernodeID> partition_zero {0,1,2,5};
@@ -229,7 +229,7 @@ TEST_F(AGreedyInitialPartionerTest, ExpectedGreedyBisectionHypernodeToPartitionA
 	for(unsigned int i = 0; i < partition_one.size(); i++) {
 		ASSERT_EQ(hypergraph.partID(partition_one[i]),1);
 	}
-}
+}*/
 
 TEST_F(AGreedyInitialPartionerTest, GreedyBisectionNoUnassignedHypernodesTest) {
 
@@ -242,7 +242,7 @@ TEST_F(AGreedyInitialPartionerTest, GreedyBisectionNoUnassignedHypernodesTest) {
 }
 
 
-TEST_F(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue) {
+/*TEST_F(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue) {
 
 	for(HypernodeID hn : hypergraph.nodes()) {
 		if(hn != 0) {
@@ -320,7 +320,7 @@ TEST_F(AGreedyInitialPartionerInstanceTest, KWayGreedySequentialLowerBoundPartit
 		ASSERT_GE(hypergraph->partWeight(k),(lower_bound_factor/100.0)*heaviest_part);
 	}
 
-}
+}*/
 
 TEST_F(AGreedyInitialPartionerInstanceTest, KWayGreedySequentialNoUnassignedHypernodesTest) {
 

@@ -20,49 +20,51 @@ using defs::HypernodeWeight;
 namespace partition {
 
 class RandomInitialPartitioner: public IInitialPartitioner,
-                                private InitialPartitionerBase {
+		private InitialPartitionerBase {
 
- public:
-  RandomInitialPartitioner(Hypergraph& hypergraph,
-                           Configuration& config) :
-      InitialPartitionerBase(hypergraph, config) {
-  }
+public:
+	RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
+			InitialPartitionerBase(hypergraph, config) {
+	}
 
-  ~RandomInitialPartitioner() {
-  }
+	~RandomInitialPartitioner() {
+	}
 
- private:
+private:
 
+	void kwayPartitionImpl() final {
+		InitialPartitionerBase::resetPartitioning(
+				_config.initial_partitioning.unassigned_part);
 
+		for (const HypernodeID hn : _hg.nodes()) {
+			PartitionID p = -1;
+			do {
+				p = Randomize::getRandomInt(0,
+						_config.initial_partitioning.k - 1);
+			} while (_hg.partWeight(p) + _hg.nodeWeight(hn)
+					> _config.initial_partitioning.upper_allowed_partition_weight[p]);
 
-  void kwayPartitionImpl() final {
-    InitialPartitionerBase::resetPartitioning(-1);
-    for (const HypernodeID hn : _hg.nodes()) {
-      PartitionID p = Randomize::getRandomInt(0,
-                                              _config.initial_partitioning.k - 1);
-      // TODO(heuer): In order to be truly random, I think you should
-      // use a new random partition instead of linear search...
-      while (!assignHypernodeToPartition(hn, p))
-        p = (p + 1) % _config.initial_partitioning.k;
-    }
-    InitialPartitionerBase::performFMRefinement();
-  }
+			if(p == _config.initial_partitioning.unassigned_part) {
+				break;
+			}
+			assignHypernodeToPartition(hn, p);
+		}
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::performFMRefinement();
+	}
 
-  void bisectionPartitionImpl() final {
-    // TODO(heuer): Why is this different from the k-way version?
-    InitialPartitionerBase::resetPartitioning(1);
-    HypernodeID hn = InitialPartitionerBase::getUnassignedNode(1);
-    while(assignHypernodeToPartition(hn,0)) {
-      hn = InitialPartitionerBase::getUnassignedNode(1);
-    }
-    InitialPartitionerBase::rollbackToBestCut();
-    InitialPartitionerBase::performFMRefinement();
-  }
+	void bisectionPartitionImpl() final {
+		PartitionID k = _config.initial_partitioning.k;
+		_config.initial_partitioning.k = 2;
+		kwayPartitionImpl();
+		_config.initial_partitioning.k = k;
+	}
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_config;
+	using InitialPartitionerBase::_hg;
+	using InitialPartitionerBase::_config;
 
-};
+}
+;
 
 }
 

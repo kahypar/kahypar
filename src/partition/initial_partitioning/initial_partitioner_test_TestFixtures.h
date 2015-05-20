@@ -41,13 +41,12 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 	config.initial_partitioning.balance = true;
 	config.initial_partitioning.upper_allowed_partition_weight.resize(
 			config.initial_partitioning.k);
-	config.initial_partitioning.lower_allowed_partition_weight.resize(
+	config.initial_partitioning.perfect_balance_partition_weight.resize(
 			config.initial_partitioning.k);
 	for (int i = 0; i < config.initial_partitioning.k; i++) {
-		config.initial_partitioning.lower_allowed_partition_weight[i] = ceil(
+		config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
 				hypergraph_weight
-						/ static_cast<double>(config.initial_partitioning.k))
-				* (1.0 - config.partition.epsilon);
+						/ static_cast<double>(config.initial_partitioning.k));
 		config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
 				hypergraph_weight
 						/ static_cast<double>(config.initial_partitioning.k))

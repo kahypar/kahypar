@@ -13,12 +13,20 @@
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
 #include <algorithm>
+#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/PriorityQueue.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::HyperedgeWeight;
 using defs::PartitionID;
 using defs::Hypergraph;
+using datastructure::BucketQueue;
+using datastructure::PriorityQueue;
+
+using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
+std::numeric_limits<HyperedgeWeight> >;
+using PrioQueue = PriorityQueue<TwoWayFMHeap>;
 
 using Gain = HyperedgeWeight;
 
@@ -56,6 +64,68 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 		}
 		return gain;
 	}
+
+	static inline void deltaGainUpdate(Hypergraph& _hg, std::vector<PrioQueue*>& bq, HypernodeID hn,
+			PartitionID from, PartitionID to) {
+
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+
+			HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
+					from) + 1;
+			HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he,
+					to);
+			PartitionID connectivity = _hg.connectivity(he);
+
+			for (HypernodeID node : _hg.pins(he)) {
+				if (node != hn) {
+
+					if (connectivity == 2 && pin_count_in_target_part_after == 1
+							&& pin_count_in_source_part_before > 1) {
+						for (PartitionID i = 0; i < bq.size(); i++) {
+							if (i != from) {
+								deltaNodeUpdate(*bq[i], node,
+										_hg.edgeWeight(he));
+							}
+						}
+					}
+
+					if (connectivity == 1
+							&& pin_count_in_source_part_before == 1) {
+						for (PartitionID i = 0; i < bq.size(); i++) {
+							if (i != to) {
+								deltaNodeUpdate(*bq[i], node,
+										-_hg.edgeWeight(he));
+							}
+						}
+					}
+
+					if (pin_count_in_target_part_after
+							== _hg.edgeSize(he) - 1) {
+						if (_hg.partID(node) != to) {
+							deltaNodeUpdate(*bq[to], node, _hg.edgeWeight(he));
+						}
+					}
+
+					if (pin_count_in_source_part_before
+							== _hg.edgeSize(he) - 1) {
+						if (_hg.partID(node) != from) {
+							deltaNodeUpdate(*bq[from], node,
+									-_hg.edgeWeight(he));
+						}
+					}
+
+				}
+			}
+		}
+	}
+
+	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn, Gain delta_gain) {
+		if (bq.contains(hn)) {
+			Gain old_gain = bq.key(hn);
+			bq.updateKey(hn, old_gain + delta_gain);
+		}
+	}
+
 };
 
 struct FMLocalyGainComputationPolicy: public GainComputationPolicy {
