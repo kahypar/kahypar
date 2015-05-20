@@ -38,7 +38,7 @@ class PolicyRegistry {
   }
 
   PolicyBase & getPolicy(const IDType& name) {
-    auto it = _policies.find(static_cast<UnderlyingIDType>(name));
+    const auto it = _policies.find(static_cast<UnderlyingIDType>(name));
     if (it != _policies.end()) {
       return *(it->second.get());
     }

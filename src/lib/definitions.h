@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <utility>
+#include <cstdint>
 
 #include "lib/datastructure/GenericHypergraph.h"
 
@@ -17,11 +18,11 @@
 // #define GATHER_STATS
 
 namespace defs {
-using hypernode_id_t = unsigned int;
-using hyperedge_id_t = unsigned int;
-using hypernode_weight_t = unsigned int;
-using hyperedge_weight_t = int;
-using partition_id_t = int;
+using hypernode_id_t = std::uint32_t;
+using hyperedge_id_t = std::uint32_t;
+using hypernode_weight_t = std::uint32_t;
+using hyperedge_weight_t = std::int32_t;
+using partition_id_t = std::int32_t;
 
 using Hypergraph = datastructure::GenericHypergraph<hypernode_id_t,
                                                     hyperedge_id_t, hypernode_weight_t,

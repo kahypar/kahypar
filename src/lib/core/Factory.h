@@ -37,7 +37,7 @@ class Factory {
   }
 
   AbstractProduct* createObject(const IdentifierType& id, Parameters& parameters) {
-    auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
+    const auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
     if (creator != _callbacks.end()) {
       return (creator->second)(parameters);
     }
