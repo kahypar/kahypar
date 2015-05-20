@@ -167,11 +167,15 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
 		Gain gain = 0;
+		std::set<HypernodeID> target_part_pins;
 		for (HyperedgeID he : hg.incidentEdges(hn)) {
-			const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
-					target_part);
-			gain += pins_in_target_part;
+			for (HypernodeID node : hg.pins(he)) {
+				if (hg.partID(node) == target_part) {
+					target_part_pins.insert(node);
+				}
+			}
 		}
+		gain = target_part_pins.size();
 		return gain;
 	}
 
@@ -179,19 +183,27 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
 			PartitionID to) {
 
+		std::set<HypernodeID> delta_increment_nodes;
+		std::set<HypernodeID> delta_decrement_nodes;
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
 			for (HypernodeID node : _hg.pins(he)) {
 				if (bq[to]->contains(node)) {
-					deltaNodeUpdate(*bq[to], node, 1);
+					delta_increment_nodes.insert(node);
 				}
 
 				if (from != -1) {
 					if (bq[from]->contains(node)) {
-						deltaNodeUpdate(*bq[from], node, -1);
+						delta_decrement_nodes.insert(node);
 					}
 				}
 			}
+		}
+		for (HypernodeID node : delta_increment_nodes) {
+			deltaNodeUpdate(*bq[to], node, 1);
+		}
+		for (HypernodeID node : delta_decrement_nodes) {
+			deltaNodeUpdate(*bq[from], node, -1);
 		}
 	}
 
@@ -225,19 +237,22 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 			PartitionID to) {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+			Gain pins_in_source_part = -1;
+			if (from != -1) {
+				pins_in_source_part = _hg.pinCountInPart(he, from);
+			}
+			Gain pins_in_target_part = _hg.pinCountInPart(he, to);
 
-			for (HypernodeID node : _hg.pins(he)) {
-				if (from != -1) {
-					const HypernodeID pins_in_source_part = _hg.pinCountInPart(he,
-							from);
-					if (pins_in_source_part == 0 && bq[from]->contains(node)) {
-						deltaNodeUpdate(*bq[from], node, -1);
+			if (pins_in_source_part == 0 || pins_in_target_part == 1) {
+				for (HypernodeID node : _hg.pins(he)) {
+					if (from != -1) {
+						if (pins_in_source_part == 0) {
+							deltaNodeUpdate(*bq[from], node, -1);
+						}
 					}
-				}
-				const HypernodeID pins_in_target_part = _hg.pinCountInPart(he,
-						to);
-				if(pins_in_target_part == 1 &&  bq[to]->contains(node)) {
-					deltaNodeUpdate(*bq[to], node, 1);
+					if (pins_in_target_part == 1) {
+						deltaNodeUpdate(*bq[to], node, 1);
+					}
 				}
 			}
 		}
