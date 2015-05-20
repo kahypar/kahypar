@@ -445,42 +445,38 @@ int main(int argc, char* argv[]) {
 
   switch (config.partition.refinement_algorithm) {
     case RefinementAlgorithm::twoway_fm: {
-        TwoWayFMFactoryExecutor exec;
         refiner.reset(TwoWayFMFactoryDispatcher::go(
                         PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                           config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
-                        exec, refiner_parameters));
+                        TwoWayFMFactoryExecutor(), refiner_parameters));
       }
       break;
     case RefinementAlgorithm::kway_fm_maxgain: {
-        MaxGainNodeKWayFMFactoryExecutor exec;
         refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
                         PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                           config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
-                        exec, refiner_parameters));
+                        MaxGainNodeKWayFMFactoryExecutor(), refiner_parameters));
       }
       break;
     case RefinementAlgorithm::kway_fm: {
-        KWayFMFactoryExecutor exec;
         refiner.reset(KWayFMFactoryDispatcher::go(
                         PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                           config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
-                        exec, refiner_parameters));
+                        KWayFMFactoryExecutor(), refiner_parameters));
       }
       break;
     case RefinementAlgorithm::label_propagation:
       refiner.reset(new LPRefiner(hypergraph, config));
       break;
     case RefinementAlgorithm::hyperedge: {
-        HyperedgeFMFactoryExecutor exec;
         refiner.reset(HyperedgeFMFactoryDispatcher::go(
                         PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                           config.her_fm.stopping_rule),
                         *(clogging_policy.get()),
-                        exec, refiner_parameters));
+                        HyperedgeFMFactoryExecutor(), refiner_parameters));
       }
   }
 
