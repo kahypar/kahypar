@@ -12,9 +12,7 @@
 namespace core {
 template <
   class Executor = Mandatory,
-  class BaseLhs = Mandatory,
   class TypesLhs = Mandatory,
-  class BaseRhs = BaseLhs,
   class TypesRhs = TypesLhs,
   typename ResultType = void
   >
@@ -23,26 +21,29 @@ class StaticDispatcher {
   using Tail = typename TypesLhs::Tail;
 
  public:
-  static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+  template <typename BaseTypeLhs,
+            typename BaseTypeRhs>
+  static ResultType go(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
                        const Parameters& parameters) {
     if (Head* p1 = dynamic_cast<Head*>(&lhs)) {
-      return StaticDispatcher<Executor, BaseLhs, TypesLhs, BaseRhs, TypesRhs,
+      return StaticDispatcher<Executor, TypesLhs, TypesRhs,
                               ResultType>::dispatchRhs(*p1, rhs, exec, parameters);
     } else {
-      return StaticDispatcher<Executor, BaseLhs, Tail, BaseRhs, TypesRhs,
+      return StaticDispatcher<Executor, Tail, TypesRhs,
                               ResultType>::go(lhs, rhs, exec, parameters);
     }
   }
 
-  template <class SomeLhs>
-  static ResultType dispatchRhs(SomeLhs& lhs, BaseRhs& rhs, Executor exec,
+  template <class SomeLhs,
+            typename BaseTypeRhs>
+  static ResultType dispatchRhs(SomeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
                                 const Parameters& parameters) {
     using Head = typename TypesRhs::Head;
     using Tail = typename TypesRhs::Tail;
     if (Head* p2 = dynamic_cast<Head*>(&rhs)) {
       return exec.fire(lhs, *p2, parameters);
     } else {
-      return StaticDispatcher<Executor, SomeLhs, TypesLhs, BaseRhs, Tail,
+      return StaticDispatcher<Executor, TypesLhs, Tail,
                               ResultType>::dispatchRhs(lhs, rhs, exec, parameters);
     }
   }
@@ -50,13 +51,13 @@ class StaticDispatcher {
 
 template <
   class Executor,
-  class BaseLhs,
-  class BaseRhs,
   class TypesRhs,
   typename ResultType>
-class StaticDispatcher<Executor, BaseLhs, NullType, BaseRhs, TypesRhs, ResultType>{
+class StaticDispatcher<Executor, NullType, TypesRhs, ResultType>{
  public:
-  static ResultType go(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+  template <typename BaseTypeLhs,
+            typename BaseTypeRhs>
+  static ResultType go(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
                        const Parameters& parameters) {
     return exec.onError(lhs, rhs, parameters);
   }
@@ -64,13 +65,13 @@ class StaticDispatcher<Executor, BaseLhs, NullType, BaseRhs, TypesRhs, ResultTyp
 
 template <
   class Executor,
-  class BaseLhs,
   class TypesLhs,
-  class BaseRhs,
   typename ResultType>
-class StaticDispatcher<Executor, BaseLhs, TypesLhs, BaseRhs, NullType, ResultType>{
+class StaticDispatcher<Executor, TypesLhs, NullType, ResultType>{
  public:
-  static ResultType dispatchRhs(BaseLhs& lhs, BaseRhs& rhs, Executor exec,
+  template <typename BaseTypeLhs,
+            typename BaseTypeRhs>
+  static ResultType dispatchRhs(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
                                 const Parameters& parameters) {
     return exec.onError(lhs, rhs, parameters);
   }

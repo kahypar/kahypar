@@ -65,7 +65,6 @@ using partition::HyperedgeFMRefiner;
 using partition::KWayFMRefiner;
 using partition::MaxGainNodeKWayFMRefiner;
 using partition::LPRefiner;
-using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
@@ -266,35 +265,27 @@ int main(int argc, char* argv[]) {
   using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
   using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
   using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
-                                                     PolicyBase,
                                                      Typelist<NumberOfFruitlessMovesStopsSearch,
                                                               RandomWalkModelStopsSearch,
                                                               nGPRandomWalkStopsSearch>,
-                                                     PolicyBase,
                                                      Typelist<NullPolicy>,
                                                      IRefiner*>;
   using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
-                                                        PolicyBase,
                                                         Typelist<NumberOfFruitlessMovesStopsSearch,
                                                                  RandomWalkModelStopsSearch,
                                                                  nGPRandomWalkStopsSearch>,
-                                                        PolicyBase,
                                                         Typelist<OnlyRemoveIfBothQueuesClogged>,
                                                         IRefiner*>;
   using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
-                                                   PolicyBase,
                                                    Typelist<NumberOfFruitlessMovesStopsSearch,
                                                             RandomWalkModelStopsSearch,
                                                             nGPRandomWalkStopsSearch>,
-                                                   PolicyBase,
                                                    Typelist<NullPolicy>,
                                                    IRefiner*>;
   using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
-                                                              PolicyBase,
                                                               Typelist<NumberOfFruitlessMovesStopsSearch,
                                                                        RandomWalkModelStopsSearch,
                                                                        nGPRandomWalkStopsSearch>,
-                                                              PolicyBase,
                                                               Typelist<NullPolicy>,
                                                               IRefiner*>;
   using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
