@@ -284,24 +284,4 @@ inline std::string toString(const Configuration& config) {
   return oss.str();
 }
 }  // namespace partition
-
-namespace std {
-template <>
-struct hash<partition::RefinementStoppingRule>{
-  size_t operator() (const partition::RefinementStoppingRule& x) const {
-    return hash<std::underlying_type<partition::RefinementStoppingRule>::type>()(
-      static_cast<std::underlying_type<partition::RefinementStoppingRule>::type>(x));
-  }
-};
-
-template <>
-struct hash<partition::CoarseningAlgorithm>{
-  size_t operator() (const partition::CoarseningAlgorithm& x) const {
-    return hash<std::underlying_type<partition::CoarseningAlgorithm>::type>()(
-      static_cast<std::underlying_type<partition::CoarseningAlgorithm>::type>(x));
-  }
-};
-}  // namespace std
-
-
 #endif  // SRC_PARTITION_CONFIGURATION_H_

@@ -22,13 +22,15 @@ template <typename IDType>
 class PolicyRegistry {
  private:
   using PolicyBasePtr = std::unique_ptr<PolicyBase>;
-  using PolicyMap = std::unordered_map<IDType, PolicyBasePtr>;
+  using UnderlyingIDType = typename std::underlying_type_t<IDType>;
+  using PolicyMap = std::unordered_map<UnderlyingIDType, PolicyBasePtr>;
 
   PolicyRegistry() : _policies() { }
 
  public:
   bool registerPolicy(const IDType& name, PolicyBase* policy) {
-    return _policies.emplace(name, PolicyBasePtr(policy)).second;
+    return _policies.emplace(
+      static_cast<UnderlyingIDType>(name), PolicyBasePtr(policy)).second;
   }
   static PolicyRegistry & getInstance() {
     static std::unique_ptr<PolicyRegistry> instance(new PolicyRegistry());
@@ -36,7 +38,7 @@ class PolicyRegistry {
   }
 
   PolicyBase & getPolicy(const IDType& name) {
-    auto it = _policies.find(name);
+    auto it = _policies.find(static_cast<UnderlyingIDType>(name));
     if (it != _policies.end()) {
       return *(it->second.get());
     }
