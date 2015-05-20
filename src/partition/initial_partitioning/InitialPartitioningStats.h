@@ -72,6 +72,12 @@ public:
 				_config.initial_partitioning.erase_components, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "balance",
 				_config.initial_partitioning.balance, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "unassignedPart",
+				_config.initial_partitioning.unassigned_part, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "nruns",
+				_config.initial_partitioning.nruns, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "alpha",
+				_config.initial_partitioning.alpha, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
 				"perfectBalancedPartitionWeight",
 				_config.initial_partitioning.perfect_balance_partition_weight[0],
