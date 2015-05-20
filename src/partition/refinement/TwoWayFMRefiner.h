@@ -411,8 +411,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const noexcept final {
-    return std::string(" Refiner=TwoWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
-                       " UsesBucketQueue=" +
+    return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true"
 #else

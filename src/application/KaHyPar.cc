@@ -74,6 +74,9 @@ using partition::OnlyRemoveIfBothQueuesClogged;
 using partition::RemoveOnlyTheCloggingEntry;
 using partition::DoNotRemoveAnyCloggingEntriesAndResetEligiblity;
 using partition::RefinerParameters;
+using partition::CoarseningAlgorithm;
+using partition::RefinementAlgorithm;
+using partition::RefinementStoppingRule;
 
 using serializer::SQLPlotToolsSerializer;
 
@@ -141,7 +144,18 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       }
     }
     if (vm.count("ctype")) {
-      config.coarsening.scheme = vm["ctype"].as<std::string>();
+      if (vm["ctype"].as<std::string>() == "heavy_full") {
+        config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_full;
+      } else if (vm["ctype"].as<std::string>() == "heavy_partial") {
+        config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_partial;
+      } else if (vm["ctype"].as<std::string>() == "heavy_lazy") {
+        config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+      } else if (vm["ctype"].as<std::string>() == "hyperedge") {
+        config.partition.coarsening_algorithm = CoarseningAlgorithm::hyperedge;
+      } else {
+        std::cout << "Illegal ctype option! Exiting..." << std::endl;
+        exit(0);
+      }
     }
     if (vm.count("s")) {
       config.coarsening.max_allowed_weight_multiplier = vm["s"].as<double>();
@@ -150,8 +164,19 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
       config.coarsening.contraction_limit_multiplier = vm["t"].as<HypernodeID>();
     }
     if (vm.count("stopFM")) {
-      config.fm_local_search.stopping_rule = vm["stopFM"].as<std::string>();
-      config.her_fm.stopping_rule = vm["stopFM"].as<std::string>();
+      if (vm["stopFM"].as<std::string>() == "simple") {
+        config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
+        config.her_fm.stopping_rule = RefinementStoppingRule::simple;
+      } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
+        config.fm_local_search.stopping_rule = RefinementStoppingRule::adaptive1;
+        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive1;
+      } else if (vm["stopFM"].as<std::string>() == "adaptive2") {
+        config.fm_local_search.stopping_rule = RefinementStoppingRule::adaptive2;
+        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive2;
+      } else {
+        std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+        exit(0);
+      }
     }
     if (vm.count("FMreps")) {
       config.fm_local_search.num_repetitions = vm["FMreps"].as<int>();
@@ -177,26 +202,20 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("init-remove-hes")) {
       config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
     }
+    if (vm.count("lp_refiner_max_iterations")) {
+      config.lp_refiner.max_number_iterations = vm["lp_refiner_max_iterations"].as<int>();
+    }
     if (vm.count("rtype")) {
-      if (vm["rtype"].as<std::string>() == "twoway_fm" ||
-          vm["rtype"].as<std::string>() == "max_gain_kfm" ||
-          vm["rtype"].as<std::string>() == "kfm") {
-        config.fm_local_search.active = true;
-        config.her_fm.active = false;
-        config.lp_refiner.active = false;
-      } else if (vm["rtype"].as<std::string>() == "her_fm") {
-        config.fm_local_search.active = false;
-        config.her_fm.active = true;
-        config.lp_refiner.active = false;
-      } else if (vm["rtype"].as<std::string>() == "lp_refiner") {
-        config.fm_local_search.active = false;
-        config.her_fm.active = false;
-        config.lp_refiner.active = true;
-
-        // parse the lp_refiner param .. TODO think about better organization of this part
-        if (vm.count("lp_refiner_max_iterations")) {
-          config.lp_refiner.max_number_iterations = vm["lp_refiner_max_iterations"].as<int>();
-        }
+      if (vm["rtype"].as<std::string>() == "twoway_fm") {
+        config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+      } else if (vm["rtype"].as<std::string>() == "kway_fm") {
+        config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
+      } else if (vm["rtype"].as<std::string>() == "kway_fm_maxgain") {
+        config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm_maxgain;
+      } else if (vm["rtype"].as<std::string>() == "hyperedge") {
+        config.partition.refinement_algorithm = RefinementAlgorithm::hyperedge;
+      } else if (vm["rtype"].as<std::string>() == "label_propagation") {
+        config.partition.refinement_algorithm = RefinementAlgorithm::label_propagation;
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
         exit(0);
@@ -215,17 +234,19 @@ void setDefaults(Configuration& config) {
   config.partition.initial_partitioning_attempts = 10;
   config.partition.global_search_iterations = 10;
   config.partition.hyperedge_size_threshold = -1;
-  config.coarsening.scheme = "heavy_full";
+  config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_full;
+  config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
   config.coarsening.contraction_limit_multiplier = 160;
   config.coarsening.max_allowed_weight_multiplier = 3.5;
-  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier * config.partition.k;
+  config.coarsening.contraction_limit =
+    config.coarsening.contraction_limit_multiplier * config.partition.k;
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
-  config.fm_local_search.stopping_rule = "simple";
+  config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
   config.fm_local_search.num_repetitions = -1;
   config.fm_local_search.max_number_of_fruitless_moves = 150;
   config.fm_local_search.alpha = 8;
-  config.her_fm.stopping_rule = "simple";
+  config.her_fm.stopping_rule = RefinementStoppingRule::simple;
   config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
   config.lp_refiner.max_number_iterations = 3;
@@ -281,34 +302,37 @@ int main(int argc, char* argv[]) {
                                                               PolicyBase,
                                                               Typelist<NullPolicy>,
                                                               IRefiner*>;
-  using CoarsenerFactory = Factory<ICoarsener, std::string,
+  using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
                                    ICoarsener* (*)(CoarsenerFactoryParameters&),
                                    CoarsenerFactoryParameters>;
 
-  PolicyRegistry::getInstance().registerPolicy("simple", new NumberOfFruitlessMovesStopsSearch());
-  PolicyRegistry::getInstance().registerPolicy("adaptive1", new RandomWalkModelStopsSearch());
-  PolicyRegistry::getInstance().registerPolicy("adaptive2", new nGPRandomWalkStopsSearch());
+  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+    RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
+  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+    RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
+  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+    RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
   CoarsenerFactory::getInstance().registerObject(
-    "hyperedge",
+    CoarseningAlgorithm::hyperedge,
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new HyperedgeCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
-    "heavy_heuristic",
+    CoarseningAlgorithm::heavy_partial,
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
-    "heavy_full",
+    CoarseningAlgorithm::heavy_full,
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsFullCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
-    "heavy_lazy",
+    CoarseningAlgorithm::heavy_lazy,
     [](CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
   });
@@ -411,45 +435,53 @@ int main(int argc, char* argv[]) {
   CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
   std::unique_ptr<ICoarsener> coarsener(
-    CoarsenerFactory::getInstance().createObject(config.coarsening.scheme, coarsener_parameters));
+    CoarsenerFactory::getInstance().createObject(
+      config.partition.coarsening_algorithm, coarsener_parameters));
 
   std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
   std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
   RefinerParameters refiner_parameters(hypergraph, config);
   std::unique_ptr<IRefiner> refiner(nullptr);
 
-  if (config.fm_local_search.active) {
-    if (vm["rtype"].as<std::string>() == "twoway_fm") {
-      TwoWayFMFactoryExecutor exec;
-      refiner.reset(TwoWayFMFactoryDispatcher::go(
-                      PolicyRegistry::getInstance().getPolicy(config.fm_local_search.stopping_rule),
-                      *(null_policy.get()),
-                      exec, refiner_parameters));
-    } else {
-      if (vm["rtype"].as<std::string>() == "max_gain_kfm") {
-        MaxGainNodeKWayFMFactoryExecutor exec;
-        refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
-                        PolicyRegistry::getInstance().getPolicy(
-                          config.fm_local_search.stopping_rule),
-                        *(null_policy.get()),
-                        exec, refiner_parameters));
-      } else if (vm["rtype"].as<std::string>() == "kfm") {
-        KWayFMFactoryExecutor exec;
-        refiner.reset(KWayFMFactoryDispatcher::go(
-                        PolicyRegistry::getInstance().getPolicy(
+  switch (config.partition.refinement_algorithm) {
+    case RefinementAlgorithm::twoway_fm: {
+        TwoWayFMFactoryExecutor exec;
+        refiner.reset(TwoWayFMFactoryDispatcher::go(
+                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                           config.fm_local_search.stopping_rule),
                         *(null_policy.get()),
                         exec, refiner_parameters));
       }
-    }
-  } else if (config.lp_refiner.active) {
-    refiner.reset(new LPRefiner(hypergraph, config));
-  } else {
-    HyperedgeFMFactoryExecutor exec;
-    refiner.reset(HyperedgeFMFactoryDispatcher::go(
-                    PolicyRegistry::getInstance().getPolicy(config.her_fm.stopping_rule),
-                    *(clogging_policy.get()),
-                    exec, refiner_parameters));
+      break;
+    case RefinementAlgorithm::kway_fm_maxgain: {
+        MaxGainNodeKWayFMFactoryExecutor exec;
+        refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
+                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                          config.fm_local_search.stopping_rule),
+                        *(null_policy.get()),
+                        exec, refiner_parameters));
+      }
+      break;
+    case RefinementAlgorithm::kway_fm: {
+        KWayFMFactoryExecutor exec;
+        refiner.reset(KWayFMFactoryDispatcher::go(
+                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                          config.fm_local_search.stopping_rule),
+                        *(null_policy.get()),
+                        exec, refiner_parameters));
+      }
+      break;
+    case RefinementAlgorithm::label_propagation:
+      refiner.reset(new LPRefiner(hypergraph, config));
+      break;
+    case RefinementAlgorithm::hyperedge: {
+        HyperedgeFMFactoryExecutor exec;
+        refiner.reset(HyperedgeFMFactoryDispatcher::go(
+                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                          config.her_fm.stopping_rule),
+                        *(clogging_policy.get()),
+                        exec, refiner_parameters));
+      }
   }
 
   HighResClockTimepoint start;

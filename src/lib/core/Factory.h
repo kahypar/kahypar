@@ -40,7 +40,7 @@ class Factory {
     if (creator != _callbacks.end()) {
       return (creator->second)(parameters);
     }
-    throw std::invalid_argument("Identifier '" + id + "' not found.");
+    throw std::invalid_argument("Unknown Identifier");
   }
 
   static Factory & getInstance() {

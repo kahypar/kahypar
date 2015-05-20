@@ -18,15 +18,16 @@ struct NullPolicy : PolicyBase {
   virtual ~NullPolicy() { }
 };
 
+template <typename IDType>
 class PolicyRegistry {
  private:
   using PolicyBasePtr = std::unique_ptr<PolicyBase>;
-  using PolicyMap = std::unordered_map<std::string, PolicyBasePtr>;
+  using PolicyMap = std::unordered_map<IDType, PolicyBasePtr>;
 
   PolicyRegistry() : _policies() { }
 
  public:
-  bool registerPolicy(const std::string& name, PolicyBase* policy) {
+  bool registerPolicy(const IDType& name, PolicyBase* policy) {
     return _policies.emplace(name, PolicyBasePtr(policy)).second;
   }
   static PolicyRegistry & getInstance() {
@@ -34,12 +35,12 @@ class PolicyRegistry {
     return *(instance.get());
   }
 
-  PolicyBase & getPolicy(const std::string& name) {
+  PolicyBase & getPolicy(const IDType& name) {
     auto it = _policies.find(name);
     if (it != _policies.end()) {
       return *(it->second.get());
     }
-    throw std::invalid_argument("Policy '" + name + "' not found.");
+    throw std::invalid_argument("Policy not found.");
   }
 
  private:
