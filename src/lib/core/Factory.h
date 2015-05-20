@@ -10,6 +10,9 @@
 #include "lib/core/Mandatory.h"
 #include "lib/core/Parameters.h"
 #include "lib/macros.h"
+#include "partition/Configuration.h"
+
+using partition::toString;
 
 namespace core {
 template <class AbstractProduct = Mandatory,
@@ -41,7 +44,7 @@ class Factory {
     if (creator != _callbacks.end()) {
       return (creator->second)(parameters);
     }
-    throw std::invalid_argument("Unknown Identifier");
+    throw std::invalid_argument(toString(id));
   }
 
   static Factory & getInstance() {

@@ -7,75 +7,45 @@
 #include <memory>
 #include <string>
 
-#include "lib/core/Factory.h"
-#include "lib/core/PolicyRegistry.h"
-#include "lib/core/StaticDispatcher.h"
-#include "lib/core/Typelist.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"
-#include "lib/serializer/SQLPlotToolsSerializer.h"
 #include "partition/Configuration.h"
+#include "partition/Factories.h"
+#include "partition/Factories.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
-#include "partition/coarsening/FullHeavyEdgeCoarsener.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
-#include "partition/coarsening/HyperedgeCoarsener.h"
-#include "partition/coarsening/HyperedgeRatingPolicies.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
-#include "partition/coarsening/Rater.h"
-#include "partition/refinement/FMFactoryExecutor.h"
-#include "partition/refinement/HyperedgeFMRefiner.h"
-#include "partition/refinement/IRefiner.h"
-#include "partition/refinement/KWayFMRefiner.h"
-#include "partition/refinement/LPRefiner.h"
-#include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
-#include "partition/refinement/policies/FMStopPolicies.h"
 #include "tools/RandomFunctions.h"
+
+#include "lib/serializer/SQLPlotToolsSerializer.h"
 
 namespace po = boost::program_options;
 
-using core::StaticDispatcher;
-using core::Typelist;
-using core::NullType;
-using core::PolicyRegistry;
-using core::NullPolicy;
-using core::Factory;
-
-using partition::Rater;
-using partition::ICoarsener;
-using partition::IRefiner;
-using partition::HeuristicHeavyEdgeCoarsener;
-using partition::FullHeavyEdgeCoarsener;
-using partition::LazyUpdateHeavyEdgeCoarsener;
 using partition::Partitioner;
-using partition::RandomRatingWins;
 using partition::InitialPartitioner;
 using partition::Configuration;
-using partition::HyperedgeCoarsener;
-using partition::EdgeWeightDivMultPinWeight;
-using partition::FMFactoryExecutor;
-using partition::KFMFactoryExecutor;
-using partition::TwoWayFMRefiner;
-using partition::HyperedgeFMRefiner;
-using partition::KWayFMRefiner;
-using partition::MaxGainNodeKWayFMRefiner;
-using partition::LPRefiner;
-using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::RandomWalkModelStopsSearch;
-using partition::nGPRandomWalkStopsSearch;
-using partition::CloggingPolicy;
-using partition::OnlyRemoveIfBothQueuesClogged;
-using partition::RemoveOnlyTheCloggingEntry;
-using partition::DoNotRemoveAnyCloggingEntriesAndResetEligiblity;
-using partition::RefinerParameters;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
+
 using partition::RefinementStoppingRule;
+using partition::CoarsenerFactory;
+using partition::CoarsenerFactoryParameters;
+using partition::RefinerFactory;
+using partition::RefinerParameters;
+using partition::RandomWinsFullCoarsener;
+using partition::RandomWinsLazyUpdateCoarsener;
+using partition::RandomWinsHeuristicCoarsener;
+using partition::HyperedgeCoarsener2;
+using partition::TwoWayFMFactoryDispatcher;
+using partition::HyperedgeFMFactoryDispatcher;
+using partition::KWayFMFactoryDispatcher;
+using partition::MaxGainNodeKWayFMFactoryDispatcher;
+using partition::TwoWayFMFactoryExecutor;
+using partition::HyperedgeFMFactoryExecutor;
+using partition::KWayFMFactoryExecutor;
+using partition::MaxGainNodeKWayFMFactoryExecutor;
+using partition::LPRefiner;
 
 using serializer::SQLPlotToolsSerializer;
 
@@ -88,6 +58,7 @@ using defs::HyperedgeVector;
 using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
+
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
@@ -251,89 +222,44 @@ void setDefaults(Configuration& config) {
   config.lp_refiner.max_number_iterations = 3;
 }
 
-struct CoarsenerFactoryParameters {
-  CoarsenerFactoryParameters(Hypergraph& hgr, Configuration& conf) :
-    hypergraph(hgr),
-    config(conf) { }
-  Hypergraph& hypergraph;
-  Configuration& config;
-};
-
 int main(int argc, char* argv[]) {
-  using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
-  using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
-  using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
-  using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
-  using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
-                                                     Typelist<NumberOfFruitlessMovesStopsSearch,
-                                                              RandomWalkModelStopsSearch,
-                                                              nGPRandomWalkStopsSearch>,
-                                                     Typelist<NullPolicy>,
-                                                     IRefiner*>;
-  using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
-                                                        Typelist<NumberOfFruitlessMovesStopsSearch,
-                                                                 RandomWalkModelStopsSearch,
-                                                                 nGPRandomWalkStopsSearch>,
-                                                        Typelist<OnlyRemoveIfBothQueuesClogged>,
-                                                        IRefiner*>;
-  using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
-                                                   Typelist<NumberOfFruitlessMovesStopsSearch,
-                                                            RandomWalkModelStopsSearch,
-                                                            nGPRandomWalkStopsSearch>,
-                                                   Typelist<NullPolicy>,
-                                                   IRefiner*>;
-  using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
-                                                              Typelist<NumberOfFruitlessMovesStopsSearch,
-                                                                       RandomWalkModelStopsSearch,
-                                                                       nGPRandomWalkStopsSearch>,
-                                                              Typelist<NullPolicy>,
-                                                              IRefiner*>;
-  using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                   ICoarsener* (*)(const CoarsenerFactoryParameters&),
-                                   CoarsenerFactoryParameters>;
+  static bool reg_heavy_lazy_coarsener = CoarsenerFactory::getInstance().registerObject(
+    CoarseningAlgorithm::heavy_lazy,
+    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
+    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+  });
+  static bool reg_simple_stopping =
+    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+      RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
 
-  using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
-                                 IRefiner* (*)(const RefinerParameters&),
-                                 RefinerParameters>;
+  static bool reg_adaptive1_stopping =
+    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+      RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
 
-  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-    RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
-  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-    RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
-  PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-    RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
+  static bool reg_adaptive2_stopping =
+    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+      RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
-  using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
-  using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
-  using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
-  using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
-  using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
-
-  CoarsenerFactory::getInstance().registerObject(
+  static bool reg_hyperedge_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::hyperedge,
     [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new HyperedgeCoarsener(p.hypergraph, p.config);
+    return new HyperedgeCoarsener2(p.hypergraph, p.config);
   });
 
-  CoarsenerFactory::getInstance().registerObject(
+  static bool reg_heavy_partial_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_partial,
     [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
   });
 
-  CoarsenerFactory::getInstance().registerObject(
+  static bool reg_heavy_full_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_full,
     [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsFullCoarsener(p.hypergraph, p.config);
   });
 
-  CoarsenerFactory::getInstance().registerObject(
-    CoarseningAlgorithm::heavy_lazy,
-    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-  });
 
-  RefinerFactory::getInstance().registerObject(
+  static bool reg_twoway_fm_local_search = RefinerFactory::getInstance().registerObject(
     RefinementAlgorithm::twoway_fm,
     [](const RefinerParameters& parameters) -> IRefiner* {
     NullPolicy x;
@@ -344,18 +270,18 @@ int main(int argc, char* argv[]) {
       TwoWayFMFactoryExecutor(), parameters);
   });
 
-  RefinerFactory::getInstance().registerObject(
+  static bool reg_kway_fm_maxgain_local_search = RefinerFactory::getInstance().registerObject(
     RefinementAlgorithm::kway_fm_maxgain,
     [](const RefinerParameters& parameters) -> IRefiner* {
-    NullPolicy x;
+    NullPolicy* x = new NullPolicy;
     return MaxGainNodeKWayFMFactoryDispatcher::go(
       PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
         parameters.config.fm_local_search.stopping_rule),
-      x,
+      *x,
       MaxGainNodeKWayFMFactoryExecutor(), parameters);
   });
 
-  RefinerFactory::getInstance().registerObject(
+  static bool reg_kway_fm_local_search = RefinerFactory::getInstance().registerObject(
     RefinementAlgorithm::kway_fm,
     [](const RefinerParameters& parameters) -> IRefiner* {
     NullPolicy x;
@@ -366,13 +292,13 @@ int main(int argc, char* argv[]) {
       KWayFMFactoryExecutor(), parameters);
   });
 
-  RefinerFactory::getInstance().registerObject(
+  static bool reg_lp_local_search = RefinerFactory::getInstance().registerObject(
     RefinementAlgorithm::label_propagation,
     [](const RefinerParameters& parameters) -> IRefiner* {
     return new LPRefiner(parameters.hypergraph, parameters.config);
   });
 
-  RefinerFactory::getInstance().registerObject(
+  static bool reg_hyperedge_local_search = RefinerFactory::getInstance().registerObject(
     RefinementAlgorithm::hyperedge,
     [](const RefinerParameters& parameters) -> IRefiner* {
     NullPolicy x;
@@ -382,6 +308,7 @@ int main(int argc, char* argv[]) {
       x,
       HyperedgeFMFactoryExecutor(), parameters);
   });
+
 
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -479,16 +406,8 @@ int main(int argc, char* argv[]) {
 
   Partitioner partitioner(config);
 
-  std::unique_ptr<ICoarsener> coarsener(
-    CoarsenerFactory::getInstance().createObject(
-      config.partition.coarsening_algorithm, CoarsenerFactoryParameters(hypergraph, config)));
-
-  std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
-                                      config.partition.refinement_algorithm,
-                                      RefinerParameters(hypergraph, config)));
-
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  partitioner.performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
+  partitioner.performDirectKwayPartitioning(hypergraph);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
@@ -506,14 +425,14 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 
-  io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
+  // io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner, *coarsener, *refiner,
+  SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner,
                                     elapsed_seconds, partitioner.timings(), result_file);
   return 0;
 }

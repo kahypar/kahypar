@@ -5,10 +5,9 @@
 #ifndef SRC_PARTITION_PARTITIONER_H_
 #define SRC_PARTITION_PARTITIONER_H_
 
-#include <cstdlib>
-
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <random>
@@ -18,10 +17,12 @@
 #include <utility>
 #include <vector>
 
+#include "gtest/gtest_prod.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
+#include "partition/Factories.h"
 #include "partition/coarsening/HypergraphPruner.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
@@ -38,6 +39,17 @@ using defs::PartitionID;
 using defs::HypernodeID;
 using defs::HighResClockTimepoint;
 using utils::Stats;
+
+// Workaround for bug in gtest
+// Because of different namespaces it is not possible to use
+// FRIEND_TEST macro.
+namespace io {
+class APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
+}
+
+namespace metrics {
+class APartitionedHypergraph;
+}
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;
@@ -70,10 +82,10 @@ class Partitioner {
   explicit Partitioner(Configuration& config) :
     _config(config),
     _stats(),
-    _timings() { }
+    _timings(),
+    _internals() { }
 
-  void performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                     IRefiner& refiner);
+  inline void performDirectKwayPartitioning(Hypergraph& hypergraph);
 
 
   const std::array<std::chrono::duration<double>, 7> & timings() const {
@@ -82,6 +94,10 @@ class Partitioner {
 
   const Stats & stats() const {
     return _stats;
+  }
+
+  const std::string internals() const {
+    return _internals;
   }
 
  private:
@@ -97,6 +113,15 @@ class Partitioner {
               TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
+  FRIEND_TEST(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph);
+  FRIEND_TEST(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph);
+  FRIEND_TEST(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning);
+  FRIEND_TEST(APartitioner, CanUseVcyclesAsGlobalSearchStrategy);
+  friend class io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
+  friend class metrics::APartitionedHypergraph;
+
+  void performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
+                                     IRefiner& refiner);
 
   inline void removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges);
   inline void restoreLargeHyperedges(Hypergraph& hg, const Hyperedges& removed_hyperedges);
@@ -115,8 +140,24 @@ class Partitioner {
   Configuration& _config;
   Stats _stats;
   std::array<std::chrono::duration<double>, 7> _timings;
+  std::string _internals;
 };
 
+void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph) {
+  std::unique_ptr<ICoarsener> coarsener(
+    CoarsenerFactory::getInstance().createObject(
+      _config.partition.coarsening_algorithm, CoarsenerFactoryParameters(hypergraph, _config)));
+
+  std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
+                                      _config.partition.refinement_algorithm,
+                                      RefinerParameters(hypergraph, _config)));
+
+  // TODO(schlag): fix this
+  _internals.append(coarsener->policyString());
+  _internals.append(" ");
+  _internals.append(refiner->policyString());
+  performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
+}
 
 inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
                                    IRefiner& refiner) {

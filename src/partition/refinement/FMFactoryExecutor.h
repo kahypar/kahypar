@@ -7,16 +7,14 @@
 
 #include <iostream>
 
-#include "lib/core/StaticDispatcher.h"
+#include "lib/core/Parameters.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 
 using core::Parameters;
-using defs::Hypergraph;
 
 namespace partition {
 struct RefinerParameters : public Parameters {

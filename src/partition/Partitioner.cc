@@ -8,7 +8,6 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
 #include "tools/RandomFunctions.h"
 
 #ifndef NDEBUG
@@ -63,7 +62,6 @@ void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsen
     restoreParallelHyperedges(hypergraph);
   }
 }
-
 
 void Partitioner::performInitialPartitioning(Hypergraph& hg) {
   io::printHypergraphInfo(hg, _config.partition.coarse_graph_filename.substr(
