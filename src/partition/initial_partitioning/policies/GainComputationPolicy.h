@@ -65,8 +65,9 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 		return gain;
 	}
 
-	static inline void deltaGainUpdate(Hypergraph& _hg, std::vector<PrioQueue*>& bq, HypernodeID hn,
-			PartitionID from, PartitionID to) {
+	static inline void deltaGainUpdate(Hypergraph& _hg,
+			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
+			PartitionID to) {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
@@ -119,7 +120,8 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 		}
 	}
 
-	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn, Gain delta_gain) {
+	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn,
+			Gain delta_gain) {
 		if (bq.contains(hn)) {
 			Gain old_gain = bq.key(hn);
 			bq.updateKey(hn, old_gain + delta_gain);
@@ -172,6 +174,35 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 		}
 		return gain;
 	}
+
+	static inline void deltaGainUpdate(Hypergraph& _hg,
+			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
+			PartitionID to) {
+
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+
+			for (HypernodeID node : _hg.pins(he)) {
+				if (bq[to]->contains(node)) {
+					deltaNodeUpdate(*bq[to], node, 1);
+				}
+
+				if (from != -1) {
+					if (bq[from]->contains(node)) {
+						deltaNodeUpdate(*bq[from], node, -1);
+					}
+				}
+			}
+		}
+	}
+
+	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn,
+			Gain delta_gain) {
+		if (bq.contains(hn)) {
+			Gain old_gain = bq.key(hn);
+			bq.updateKey(hn, old_gain + delta_gain);
+		}
+	}
+
 };
 
 struct MaxNetGainComputationPolicy: public GainComputationPolicy {
@@ -182,11 +213,44 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 		for (HyperedgeID he : hg.incidentEdges(hn)) {
 			const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
 					target_part);
-			if (pins_in_target_part > 0)
+			if (pins_in_target_part > 0) {
 				gain++;
+			}
 		}
 		return gain;
 	}
+
+	static inline void deltaGainUpdate(Hypergraph& _hg,
+			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
+			PartitionID to) {
+
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+
+			for (HypernodeID node : _hg.pins(he)) {
+				if (from != -1) {
+					const HypernodeID pins_in_source_part = _hg.pinCountInPart(he,
+							from);
+					if (pins_in_source_part == 0 && bq[from]->contains(node)) {
+						deltaNodeUpdate(*bq[from], node, -1);
+					}
+				}
+				const HypernodeID pins_in_target_part = _hg.pinCountInPart(he,
+						to);
+				if(pins_in_target_part == 1 &&  bq[to]->contains(node)) {
+					deltaNodeUpdate(*bq[to], node, 1);
+				}
+			}
+		}
+	}
+
+	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn,
+			Gain delta_gain) {
+		if (bq.contains(hn)) {
+			Gain old_gain = bq.key(hn);
+			bq.updateKey(hn, old_gain + delta_gain);
+		}
+	}
+
 };
 
 }
