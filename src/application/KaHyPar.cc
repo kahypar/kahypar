@@ -261,11 +261,6 @@ struct CoarsenerFactoryParameters {
 };
 
 int main(int argc, char* argv[]) {
-  using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
-  using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
-  using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
-  using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
-  using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
   using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
   using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
   using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
@@ -303,8 +298,12 @@ int main(int argc, char* argv[]) {
                                                               Typelist<NullPolicy>,
                                                               IRefiner*>;
   using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                   ICoarsener* (*)(CoarsenerFactoryParameters&),
+                                   ICoarsener* (*)(const CoarsenerFactoryParameters&),
                                    CoarsenerFactoryParameters>;
+
+  using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
+                                 IRefiner* (*)(const RefinerParameters&),
+                                 RefinerParameters>;
 
   PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
     RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
@@ -313,28 +312,84 @@ int main(int argc, char* argv[]) {
   PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
     RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
+  using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
+  using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
+  using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
+  using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
+  using HyperedgeCoarsener = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
+
   CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::hyperedge,
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new HyperedgeCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_partial,
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_full,
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsFullCoarsener(p.hypergraph, p.config);
   });
 
   CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_lazy,
-    [](CoarsenerFactoryParameters& p) -> ICoarsener* {
+    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
     return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+  });
+
+  RefinerFactory::getInstance().registerObject(
+    RefinementAlgorithm::twoway_fm,
+    [](const RefinerParameters& parameters) -> IRefiner* {
+    NullPolicy x;
+    return TwoWayFMFactoryDispatcher::go(
+      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+        parameters.config.fm_local_search.stopping_rule),
+      x,
+      TwoWayFMFactoryExecutor(), parameters);
+  });
+
+  RefinerFactory::getInstance().registerObject(
+    RefinementAlgorithm::kway_fm_maxgain,
+    [](const RefinerParameters& parameters) -> IRefiner* {
+    NullPolicy x;
+    return MaxGainNodeKWayFMFactoryDispatcher::go(
+      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+        parameters.config.fm_local_search.stopping_rule),
+      x,
+      MaxGainNodeKWayFMFactoryExecutor(), parameters);
+  });
+
+  RefinerFactory::getInstance().registerObject(
+    RefinementAlgorithm::kway_fm,
+    [](const RefinerParameters& parameters) -> IRefiner* {
+    NullPolicy x;
+    return KWayFMFactoryDispatcher::go(
+      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+        parameters.config.fm_local_search.stopping_rule),
+      x,
+      KWayFMFactoryExecutor(), parameters);
+  });
+
+  RefinerFactory::getInstance().registerObject(
+    RefinementAlgorithm::label_propagation,
+    [](const RefinerParameters& parameters) -> IRefiner* {
+    return new LPRefiner(parameters.hypergraph, parameters.config);
+  });
+
+  RefinerFactory::getInstance().registerObject(
+    RefinementAlgorithm::hyperedge,
+    [](const RefinerParameters& parameters) -> IRefiner* {
+    NullPolicy x;
+    return HyperedgeFMFactoryDispatcher::go(
+      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+        parameters.config.her_fm.stopping_rule),
+      x,
+      HyperedgeFMFactoryExecutor(), parameters);
   });
 
   po::options_description desc("Allowed options");
@@ -432,60 +487,18 @@ int main(int argc, char* argv[]) {
 #endif
 
   Partitioner partitioner(config);
-  CoarsenerFactoryParameters coarsener_parameters(hypergraph, config);
 
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      config.partition.coarsening_algorithm, coarsener_parameters));
+      config.partition.coarsening_algorithm, CoarsenerFactoryParameters(hypergraph, config)));
 
-  std::unique_ptr<CloggingPolicy> clogging_policy(new OnlyRemoveIfBothQueuesClogged());
-  std::unique_ptr<NullPolicy> null_policy(new NullPolicy());
-  RefinerParameters refiner_parameters(hypergraph, config);
-  std::unique_ptr<IRefiner> refiner(nullptr);
+  std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
+                                      config.partition.refinement_algorithm,
+                                      RefinerParameters(hypergraph, config)));
 
-  switch (config.partition.refinement_algorithm) {
-    case RefinementAlgorithm::twoway_fm: {
-        refiner.reset(TwoWayFMFactoryDispatcher::go(
-                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                          config.fm_local_search.stopping_rule),
-                        *(null_policy.get()),
-                        TwoWayFMFactoryExecutor(), refiner_parameters));
-      }
-      break;
-    case RefinementAlgorithm::kway_fm_maxgain: {
-        refiner.reset(MaxGainNodeKWayFMFactoryDispatcher::go(
-                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                          config.fm_local_search.stopping_rule),
-                        *(null_policy.get()),
-                        MaxGainNodeKWayFMFactoryExecutor(), refiner_parameters));
-      }
-      break;
-    case RefinementAlgorithm::kway_fm: {
-        refiner.reset(KWayFMFactoryDispatcher::go(
-                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                          config.fm_local_search.stopping_rule),
-                        *(null_policy.get()),
-                        KWayFMFactoryExecutor(), refiner_parameters));
-      }
-      break;
-    case RefinementAlgorithm::label_propagation:
-      refiner.reset(new LPRefiner(hypergraph, config));
-      break;
-    case RefinementAlgorithm::hyperedge: {
-        refiner.reset(HyperedgeFMFactoryDispatcher::go(
-                        PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                          config.her_fm.stopping_rule),
-                        *(clogging_policy.get()),
-                        HyperedgeFMFactoryExecutor(), refiner_parameters));
-      }
-  }
-
-  HighResClockTimepoint start;
-  HighResClockTimepoint end;
-
-  start = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
-  end = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
   for (const HyperedgeID he : hypergraph.edges()) {
