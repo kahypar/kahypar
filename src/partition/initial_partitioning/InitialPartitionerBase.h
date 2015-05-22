@@ -59,9 +59,10 @@ public:
 	InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept:
 	_hg(hypergraph),
 	_config(config),
-	bisection_assignment_history(),
-	refiner(_hg, _config),
-	_balancer(_hg, _config) {
+	_bisection_assignment_history(),
+	_refiner(_hg, _config),
+	_balancer(_hg, _config),
+	_record_assignment_history(false) {
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -79,13 +80,11 @@ public:
 
 	virtual ~InitialPartitionerBase() {}
 
-	void recalculateBalanceConstraints() {
-		// TODO(heuer): The calculation could be done once and the
-		// values then only assigned.
+	void recalculateBalanceConstraints(double epsilon) {
 		for (int i = 0; i < _config.initial_partitioning.k; i++) {
 			_config.initial_partitioning.upper_allowed_partition_weight[i] =
 			_config.initial_partitioning.perfect_balance_partition_weight[i]
-			* (1.0 + _config.initial_partitioning.epsilon);
+			* (1.0 + epsilon);
 		}
 	}
 
@@ -120,7 +119,7 @@ public:
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
-			refiner.initialize();
+			_refiner.initialize();
 
 			std::vector<HypernodeID> refinement_nodes;
 			for(HypernodeID hn : _hg.nodes()) {
@@ -141,7 +140,7 @@ public:
 				// another idea is to restart the refiner as long as it finds an improvement on the current
 				// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
 				//for.
-				refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+				_refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
 				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<double> elapsed_seconds = end - start;
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
@@ -152,20 +151,20 @@ public:
 
 	void rollbackToBestCut() {
 		if (_config.initial_partitioning.rollback) {
-			if(!bisection_assignment_history.empty()) {
+			if(!_bisection_assignment_history.empty()) {
 				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 				HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
 				// TODO(heuer): Please use PartitionID from = ...;
 				// PartitionID to = ...;
 				PartitionID from, to;
-				while (current_node != best_cut_node
-						&& !bisection_assignment_history.empty()) {
+				while (current_node != _best_cut_node
+						&& !_bisection_assignment_history.empty()) {
 					if(current_node != std::numeric_limits<HypernodeID>::max()) {
 						_hg.changeNodePart(current_node,to,from);
 					}
-					node_assignment assignment = bisection_assignment_history.top();
-					bisection_assignment_history.pop();
+					node_assignment assignment = _bisection_assignment_history.top();
+					_bisection_assignment_history.pop();
 					current_node = assignment.hn;
 					from = assignment.from;
 					to = assignment.to;
@@ -173,17 +172,15 @@ public:
 				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<double> elapsed_seconds = end - start;
 				// TODO(heuer): Try to restrict line length to 100.
-				ASSERT(metrics::hyperedgeCut(_hg) == best_cut,
-						"Calculation of the best seen cut failed. Should be " << best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
-				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during rollback",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during rollback") + (cut_before-best_cut));
+				ASSERT(metrics::hyperedgeCut(_hg) == _best_cut,
+						"Calculation of the best seen cut failed. Should be " << _best_cut << ", but is " << metrics::hyperedgeCut(_hg)<< ".");
+				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during rollback",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during rollback") + (cut_before-_best_cut));
 				InitialStatManager::getInstance().updateStat("Time Measurements", "Rollback time",InitialStatManager::getInstance().getStat("Time Measurements", "Rollback time") + static_cast<double>(elapsed_seconds.count()));
 			}
 		}
 	}
 
-	// TODO(heuer): Make parameters const, although they are passed by value. This way
-	// you get a compiler error when modifying them unintentionally.
-	bool assignHypernodeToPartition(HypernodeID hn, PartitionID target_part) {
+	bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
 		HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
 		+ _hg.nodeWeight(hn);
 		PartitionID source_part = _hg.partID(hn);
@@ -211,8 +208,6 @@ public:
 		}
 	}
 
-	// TODO(heuer): Are you sure that this code, in combination with GHG will never
-	// run in an endless loop?
 	HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
 		HypernodeID unassigned_node = 0;
 		for(HypernodeID hn : _hg.nodes()) {
@@ -352,14 +347,14 @@ private:
 				connectivity_before--;
 			}
 			if(_hg.connectivity(he) == 1 && connectivity_before == 2) {
-				current_cut -= _hg.edgeWeight(he);
+				_current_cut -= _hg.edgeWeight(he);
 			}
 			if(_hg.connectivity(he) == 2 && connectivity_before == 1) {
-				current_cut += _hg.edgeWeight(he);
+				_current_cut += _hg.edgeWeight(he);
 			}
 		}
 
-		ASSERT(current_cut == metrics::hyperedgeCut(_hg),"Calculated hyperedge cut doesn't match with the real hyperedge cut!");
+		ASSERT(_current_cut == metrics::hyperedgeCut(_hg),"Calculated hyperedge cut doesn't match with the real hyperedge cut!");
 
 		bool isFeasibleSolution = true;
 		// TODO(heuer): ??? Only to-part can become overloaded. It should not be necessary to check all parts
@@ -370,18 +365,22 @@ private:
 				break;
 			}
 		}
-		if(isFeasibleSolution) {
+		if(isFeasibleSolution && !_record_assignment_history) {
+			_record_assignment_history = true;
+		}
+
+		if(_record_assignment_history) {
 			node_assignment assign;
 			assign.hn = hn;
 			assign.from = from;
 			assign.to = to;
-			if(current_cut < best_cut) {
-				best_cut = current_cut;
-				best_cut_node = hn;
+			if(isFeasibleSolution &&_current_cut < _best_cut) {
+				_best_cut = _current_cut;
+				_best_cut_node = hn;
 			}
 			// TODO(heuer): Potentially it is slightly more efficient to use a vector.
 			// Additionally, using emplace, the node-assignment could be constructed inplace
-			bisection_assignment_history.push(assign);
+			_bisection_assignment_history.push(assign);
 		}
 
 		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -389,14 +388,14 @@ private:
 		InitialStatManager::getInstance().updateStat("Time Measurements", "Precalculation Rollback time",InitialStatManager::getInstance().getStat("Time Measurements", "Precalculation Rollback time") + static_cast<double>(elapsed_seconds.count()));
 	}
 
-	// TODO(heuer): naming conventions. Member variables are named _name!
-	HypernodeID best_cut_node = std::numeric_limits<HypernodeID>::max();
-	HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-	HyperedgeWeight current_cut = 0;
-	std::stack<node_assignment> bisection_assignment_history;
+	HypernodeID _best_cut_node = std::numeric_limits<HypernodeID>::max();
+	HyperedgeWeight _best_cut = std::numeric_limits<HyperedgeWeight>::max();
+	HyperedgeWeight _current_cut = 0;
+	std::stack<node_assignment> _bisection_assignment_history;
+	bool _record_assignment_history;
 
 	KWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-	CutDecreasedOrInfeasibleImbalanceDecreased> refiner;
+	CutDecreasedOrInfeasibleImbalanceDecreased> _refiner;
 
 };
 

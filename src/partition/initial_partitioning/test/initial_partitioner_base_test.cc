@@ -19,9 +19,9 @@ using defs::HyperedgeID;
 
 namespace partition {
 
-class AInitialPartionerBaseTest: public Test {
+class InitialPartitionerBaseTest: public Test {
 public:
-	AInitialPartionerBaseTest() :
+	InitialPartitionerBaseTest() :
 			hypergraph(7, 4,
 					HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/12 },
 					HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), partitioner(
@@ -34,7 +34,7 @@ public:
 
 		initializeConfiguration(hypergraph_weight);
 		partitioner = new InitialPartitionerBase(hypergraph, config);
-		partitioner->recalculateBalanceConstraints();
+		partitioner->recalculateBalanceConstraints(config.initial_partitioning.epsilon);
 	}
 
 	void initializeConfiguration(HypernodeWeight hypergraph_weight) {
@@ -61,7 +61,7 @@ public:
 
 };
 
-TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
+TEST_F(InitialPartitionerBaseTest, AssignHypernodesToPartition) {
 	//Assign hypernodes
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(0, 0));
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(1, 0));
@@ -85,7 +85,7 @@ TEST_F(AInitialPartionerBaseTest, AAssignHypernodesToPartitionTest) {
 	ASSERT_FALSE(partitioner->assignHypernodeToPartition(3, 1));
 }
 
-TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
+TEST_F(InitialPartitionerBaseTest, CheckHyperedgeCutAfterRollbackToBestCut) {
 	//Assign hypernodes
 	hypergraph.setNodePart(0, 1);
 	hypergraph.setNodePart(1, 1);
@@ -116,7 +116,7 @@ TEST_F(AInitialPartionerBaseTest, ARollbackToBestBisectionCutTest) {
 
 }
 
-TEST_F(AInitialPartionerBaseTest, AExtractingHypergraphPartitionTest) {
+TEST_F(InitialPartitionerBaseTest, ExtractingHypergraphFromPartition) {
 
 	//Assign hypernodes
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(0, 0));
@@ -197,7 +197,7 @@ TEST_F(AInitialPartionerBaseTest, AExtractingHypergraphPartitionTest) {
 
 }
 
-TEST_F(AInitialPartionerBaseTest, AResetPartitionToMinusOneTest) {
+TEST_F(InitialPartitionerBaseTest, ResetPartitionToMinusOne) {
 	hypergraph.setNodePart(0, 1);
 	hypergraph.setNodePart(1, 1);
 	hypergraph.setNodePart(2, 1);
@@ -213,7 +213,7 @@ TEST_F(AInitialPartionerBaseTest, AResetPartitionToMinusOneTest) {
 
 }
 
-TEST_F(AInitialPartionerBaseTest, AResetPartitionToPartitionOneTest) {
+TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
 	hypergraph.setNodePart(0, 1);
 	hypergraph.setNodePart(1, 1);
 	hypergraph.setNodePart(2, 1);

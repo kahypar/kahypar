@@ -90,7 +90,7 @@ public:
 				}
 				if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part && gain > best_gain
 						&& _hg.partWeight(i) + _hg.nodeWeight(hn)
-						< _config.initial_partitioning.upper_allowed_partition_weight[i]) {
+						<= _config.initial_partitioning.upper_allowed_partition_weight[i]) {
 					best_gain = gain;
 					best_node_move.first = bq[i]->max();
 					best_node_move.second = i;

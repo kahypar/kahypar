@@ -63,7 +63,8 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
+		PartitionID unassigned_part =
+				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
 		Gain init_pq = _hg.numNodes();
@@ -87,7 +88,6 @@ private:
 			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
-		// TODO(heuer): In the current implementation, unassigned_part will never be -1 ?!
 		HypernodeID assigned_nodes_weight = 0;
 		if (unassigned_part != -1) {
 			assigned_nodes_weight =
@@ -96,12 +96,9 @@ private:
 		}
 
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
-		double epsilon = _config.initial_partitioning.epsilon;
-		_config.initial_partitioning.epsilon = -_config.initial_partitioning.epsilon;
-		InitialPartitionerBase::recalculateBalanceConstraints();
-		// TODO(heuer): should be renamed. It does not indicate that the upper bound should be released.
-		// but that it is released.
-		bool release_upper_partition_bound = false;
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				-_config.initial_partitioning.epsilon);
+		bool is_upper_bound_released = false;
 
 		std::vector<PartitionID> part_shuffle(_config.initial_partitioning.k);
 		// TODO(heuer): Use ++i instead of i++. This applies to all for-loops ;)
@@ -119,24 +116,21 @@ private:
 			// your really have to make sure that you to the right things..
 			PartitionID best_part = -1;
 			HypernodeID best_node = 0;
-			// TODO(heuer): Should be renamed to ..._is_disabled
-			bool every_part_is_disable = true;
-			// TODO(heuer): Again, always use pre-increment instead of post-increment
-			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-				// TODO(heuer): To make the code more readable, i would extract
-				// the current part: const PartitionID current_part = part_shuffle[i]
-				every_part_is_disable = every_part_is_disable
-						&& !partEnable[part_shuffle[i]];
-				if (partEnable[part_shuffle[i]]) {
+			bool is_every_part_disable = true;
+			for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+				const PartitionID current_part = part_shuffle[i];
+				is_every_part_disable = is_every_part_disable
+						&& !partEnable[current_part];
+				if (partEnable[current_part]) {
 					HypernodeID hn;
-					if (bq[part_shuffle[i]]->empty()) {
+					if (bq[current_part]->empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						greedy_base.processNodeForBucketPQ(*bq[part_shuffle[i]],
-								newStartNode, part_shuffle[i]);
+						greedy_base.processNodeForBucketPQ(*bq[current_part],
+								newStartNode, current_part);
 					}
-					hn = bq[part_shuffle[i]]->max();
+					hn = bq[current_part]->max();
 
 					ASSERT(_hg.partID(hn) == unassigned_part,
 							"Hypernode " << hn << "should be unassigned!");
@@ -150,21 +144,18 @@ private:
 				}
 			}
 			//Release upper partition weight bound
-			if (every_part_is_disable && !release_upper_partition_bound) {
-				_config.initial_partitioning.epsilon = epsilon;
-				// TODO(heuer): If you would provide epsilon as a parameter to
-				// recalculateBalanceConstraints(<here>) then it would not be
-				// necessary to modify the configuration.
-				InitialPartitionerBase::recalculateBalanceConstraints();
-				release_upper_partition_bound = true;
+			if (is_every_part_disable && !is_upper_bound_released) {
+				InitialPartitionerBase::recalculateBalanceConstraints(
+						_config.initial_partitioning.epsilon);
+				is_upper_bound_released = true;
 				for (PartitionID i = 0; i < _config.initial_partitioning.k;
 						i++) {
 					if (i != unassigned_part) {
 						partEnable[i] = true;
 					}
 				}
-				every_part_is_disable = false;
-			} else if(best_part != -1) {
+				is_every_part_disable = false;
+			} else if (best_part != -1) {
 				ASSERT(best_gain != initial_gain,
 						"No hypernode found to assign!");
 
@@ -206,12 +197,12 @@ private:
 
 			// TODO(heuer): Is this break really necessary? Loop should exit as soon as all
 			// nodes are assigned?
-			if (every_part_is_disable && release_upper_partition_bound) {
+			if (is_every_part_disable && is_upper_bound_released) {
 				break;
 			}
 		}
 		// TODO(heuer): Do you ensure that _config.epsilon is reset to its original value?
-		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();

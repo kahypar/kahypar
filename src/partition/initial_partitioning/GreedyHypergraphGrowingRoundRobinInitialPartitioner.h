@@ -164,7 +164,7 @@ private:
 				break;
 			}
 		}
-		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();

@@ -36,7 +36,8 @@ public:
 	}
 
 private:
-	FRIEND_TEST(ABFSInitialPartionerTest, BFSExpectedHypernodesInQueueAfterPushingIncidentHypernodesInQueue);FRIEND_TEST(ABFSInitialPartionerTest, BFSInQueueMapUpdateAfterPushingIncidentHypernodesInQueue);
+	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
+	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
 	// TODO(heuer): Rename this method. Current method name is misleading!
 	// TODO(heuer): Make all parameters that should not be modified const: In this case unassigned_part
@@ -151,7 +152,7 @@ private:
 				break;
 			}
 		}
-	    InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}
 

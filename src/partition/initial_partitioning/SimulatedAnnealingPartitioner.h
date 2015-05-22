@@ -100,7 +100,7 @@ private:
 				_hg.changeNodePart(hn, _hg.partID(hn), best_partition[hn]);
 		}
 
-		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		_balancer.balancePartitions();
 
 	}

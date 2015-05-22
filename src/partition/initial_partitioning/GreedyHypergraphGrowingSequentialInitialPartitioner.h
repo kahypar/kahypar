@@ -87,10 +87,7 @@ private:
 		// (1) have a less tight bound, (2) you unlock the upper bound later on...
 		// Why don't you also perform an unlock here?
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
-		double epsilon = _config.initial_partitioning.epsilon;
-		// TODO(heuer): Why different bound than in GHG-global?
-		_config.initial_partitioning.epsilon = 0.0;
-		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::recalculateBalanceConstraints(0.0);
 
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 			if (i != unassigned_part) {
@@ -153,8 +150,7 @@ private:
 				}
 			}
 		}
-		_config.initial_partitioning.epsilon = epsilon;
-		InitialPartitionerBase::recalculateBalanceConstraints();
+		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		assignAllUnassignedHypernodesAccordingToTheirGain(bq);
 
 		InitialPartitionerBase::rollbackToBestCut();
@@ -184,6 +180,13 @@ private:
 					GainComputation::deltaGainUpdate(_hg, bq, best_node,
 							_config.initial_partitioning.unassigned_part,
 							best_part);
+					if (_config.initial_partitioning.unassigned_part != -1) {
+						if (_hg.partWeight(
+								_config.initial_partitioning.unassigned_part)
+								< _config.initial_partitioning.upper_allowed_partition_weight[_config.initial_partitioning.unassigned_part]) {
+							break;
+						}
+					}
 				}
 			} else {
 				break;
@@ -203,8 +206,8 @@ private:
 		for (HypernodeID hn : _hg.nodes()) {
 			if (_hg.partID(hn)
 					== _config.initial_partitioning.unassigned_part) {
-				unassigned_nodes.push_back(hn);
-				part_weight += _hg.partWeight(hn);
+ 				unassigned_nodes.push_back(hn);
+				part_weight += _hg.nodeWeight(hn);
 			}
 		}
 		Randomize::shuffleVector(unassigned_nodes, unassigned_nodes.size());
