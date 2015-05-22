@@ -71,8 +71,11 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
-			HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he,
-					from) + 1;
+			HypernodeID pin_count_in_source_part_before = 0;
+			if (from != -1) {
+				pin_count_in_source_part_before = _hg.pinCountInPart(he, from)
+						+ 1;
+			}
 			HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he,
 					to);
 			PartitionID connectivity = _hg.connectivity(he);

@@ -365,6 +365,9 @@ private:
 				break;
 			}
 		}
+		if(from == -1) {
+			isFeasibleSolution = false;
+		}
 		if(isFeasibleSolution && !_record_assignment_history) {
 			_record_assignment_history = true;
 		}

@@ -41,7 +41,7 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 	config.initial_partitioning.epsilon = 0.05;
 	config.partition.epsilon = 0.05;
 	config.initial_partitioning.seed = 1;
-	config.initial_partitioning.ils_iterations = 30;
+    config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.rollback = false;
 	config.initial_partitioning.refinement = false;
 	config.initial_partitioning.erase_components = false;
@@ -164,7 +164,7 @@ public:
 };
 
 
-/*TEST_F(ABFSInitialPartionerTest, ExpectedBFSBisectionHypernodeToPartitionAssignmentTest) {
+TEST_F(ABFSBisectionInitialPartionerTest, ChecksCorrectBisectionCut) {
 
 	partitioner->partition(2);
 	std::vector<HypernodeID> partition_zero {0,1,2,3};
@@ -176,7 +176,7 @@ public:
 		ASSERT_EQ(hypergraph.partID(partition_one[i]),1);
 	}
 
-}*/
+}
 
 
 
@@ -188,6 +188,40 @@ TEST_F(ABFSBisectionInitialPartionerTest, LeavesNoHypernodeUnassigned) {
 		ASSERT_NE(hypergraph.partID(hn),-1);
 	}
 
+}
+
+TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
+
+	std::queue<HypernodeID> q;
+	std::unordered_map<HypernodeID,bool> in_queue;
+	in_queue[0] = true;
+	q.push(0);
+	PartitionID tmp = -1;
+	partitioner->pushIncidentHyperedgesIntoQueue(q,0,in_queue,tmp);
+	for(HypernodeID hn = 0; hn < 5; hn++) {
+		ASSERT_TRUE(in_queue[hn]);
+	}
+	for(HypernodeID hn = 5; hn < 7; hn++) {
+		ASSERT_FALSE(in_queue[hn]);
+	}
+
+}
+
+TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue) {
+
+	std::queue<HypernodeID> q;
+	std::unordered_map<HypernodeID,bool> in_queue;
+	in_queue[0] = true;
+	q.push(0);
+	PartitionID tmp = -1;
+	partitioner->pushIncidentHyperedgesIntoQueue(q,0,in_queue,tmp);
+	std::vector<HypernodeID> expected_in_queue {0,2,1,3,4};
+	for(unsigned int i = 0; i < expected_in_queue.size(); i++) {
+		HypernodeID hn = q.front(); q.pop();
+		ASSERT_EQ(hn,expected_in_queue[i]);
+	}
+
+	ASSERT_TRUE(q.empty());
 }
 
 TEST_F(AKWayBFSInitialPartitionerTest, HasValidImbalance) {
@@ -227,39 +261,17 @@ TEST_F(AKWayBFSInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 	}
 }
 
-TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
+TEST_F(AKWayBFSInitialPartitionerTest, GrowPartitionOnPartitionMinus1) {
+	config.initial_partitioning.unassigned_part = -1;
+	partitioner->partition(config.initial_partitioning.k);
 
-	std::queue<HypernodeID> q;
-	std::unordered_map<HypernodeID,bool> in_queue;
-	in_queue[0] = true;
-	q.push(0);
-	PartitionID tmp = -1;
-	partitioner->pushIncidentHyperedgesIntoQueue(q,0,in_queue,tmp);
-	for(HypernodeID hn = 0; hn < 5; hn++) {
-		ASSERT_TRUE(in_queue[hn]);
+	for(HypernodeID hn : hypergraph->nodes()) {
+		ASSERT_NE(hypergraph->partID(hn),-1);
 	}
-	for(HypernodeID hn = 5; hn < 7; hn++) {
-		ASSERT_FALSE(in_queue[hn]);
-	}
-
 }
 
-TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue) {
 
-	std::queue<HypernodeID> q;
-	std::unordered_map<HypernodeID,bool> in_queue;
-	in_queue[0] = true;
-	q.push(0);
-	PartitionID tmp = -1;
-	partitioner->pushIncidentHyperedgesIntoQueue(q,0,in_queue,tmp);
-	std::vector<HypernodeID> expected_in_queue {0,2,1,3,4};
-	for(unsigned int i = 0; i < expected_in_queue.size(); i++) {
-		HypernodeID hn = q.front(); q.pop();
-		ASSERT_EQ(hn,expected_in_queue[i]);
-	}
 
-	ASSERT_TRUE(q.empty());
-}
 
 TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
 
