@@ -91,10 +91,12 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
   if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
     config.partition.graph_filename = vm["hgr"].as<std::string>();
     config.partition.k = vm["k"].as<PartitionID>();
-
-    config.partition.coarse_graph_filename = std::string("/tmp/PID_")
-                                             + std::to_string(getpid())
-                                             + std::string("_coarse_")
+    if (vm.count("seed")) {
+      config.partition.seed = vm["seed"].as<int>();
+    }
+    config.partition.coarse_graph_filename = std::string("/home/theuer/Dokumente/Hypergraph-Experiments/coarse_instances/Hypergraph_")
+                                             + std::to_string(config.partition.seed)
+                                             + std::string("_coarse_") + std::to_string(config.partition.k) + std::string("_")
                                              + config.partition.graph_filename.substr(
       config.partition.graph_filename.find_last_of("/")
       + 1);
@@ -106,9 +108,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
                                                        + std::to_string(config.partition.k);
     config.partition.epsilon = vm["e"].as<double>();
 
-    if (vm.count("seed")) {
-      config.partition.seed = vm["seed"].as<int>();
-    }
+
     if (vm.count("nruns")) {
       config.partition.initial_partitioning_attempts = vm["nruns"].as<int>();
     }

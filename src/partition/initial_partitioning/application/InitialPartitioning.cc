@@ -354,15 +354,15 @@ int main(int argc, char* argv[]) {
 	HyperedgeID num_hyperedges;
 	HyperedgeIndexVector index_vector;
 	HyperedgeVector edge_vector;
-	HyperedgeWeightVector* hyperedge_weights = NULL;
-	HypernodeWeightVector* hypernode_weights = NULL;
+	HyperedgeWeightVector hyperedge_weights;
+	HypernodeWeightVector hypernode_weights;
 
 	io::readHypergraphFile(config.initial_partitioning.coarse_graph_filename,
 			num_hypernodes, num_hyperedges, index_vector, edge_vector,
-			hyperedge_weights, hypernode_weights);
+			&hyperedge_weights, &hypernode_weights);
 	Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
-			edge_vector, config.initial_partitioning.k, hyperedge_weights,
-			hypernode_weights);
+			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
+			&hypernode_weights);
 
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {
