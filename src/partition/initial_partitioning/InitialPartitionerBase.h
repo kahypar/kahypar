@@ -62,7 +62,8 @@ public:
 	_bisection_assignment_history(),
 	_refiner(_hg, _config),
 	_balancer(_hg, _config),
-	_record_assignment_history(false) {
+	_record_assignment_history(false),
+	_removed_hyperedges() {
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -79,6 +80,8 @@ public:
 	}
 
 	virtual ~InitialPartitionerBase() {}
+
+
 
 	void recalculateBalanceConstraints(double epsilon) {
 		for (int i = 0; i < _config.initial_partitioning.k; i++) {
@@ -396,6 +399,8 @@ private:
 	HyperedgeWeight _current_cut = 0;
 	std::stack<node_assignment> _bisection_assignment_history;
 	bool _record_assignment_history;
+
+	std::vector<HyperedgeID> _removed_hyperedges;
 
 	KWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
 	CutDecreasedOrInfeasibleImbalanceDecreased> _refiner;

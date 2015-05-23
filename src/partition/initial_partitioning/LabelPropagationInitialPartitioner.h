@@ -106,7 +106,7 @@ public:
 				}
 
 				for(PartitionID p = 0; p < _config.initial_partitioning.k; p++) {
-					if(assigned_nodes >= _hg.numNodes() && tmp_scores[p] < -2.0) {
+					if(assigned_nodes >= _hg.numNodes() && tmp_scores[p] < 0.0) {
 						continue;
 					} else {
 						if(tmp_scores[p] > max_score) {

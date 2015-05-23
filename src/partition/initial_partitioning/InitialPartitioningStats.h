@@ -78,6 +78,8 @@ public:
 				_config.initial_partitioning.nruns, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "alpha",
 				_config.initial_partitioning.alpha, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "beta",
+				_config.initial_partitioning.beta, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
 				"perfectBalancedPartitionWeight",
 				_config.initial_partitioning.perfect_balance_partition_weight[0],

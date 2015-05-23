@@ -54,7 +54,8 @@ struct Configuration {
 		  perfect_balance_partition_weight(),
 		  seed(-1),
 		  nruns(1),
-		  alpha(0.25),
+		  alpha(1),
+		  beta(1),
 		  unassigned_part(0),
 		  ils_iterations(),
 		  rollback(),
@@ -74,6 +75,7 @@ struct Configuration {
 	  int nruns;
 	  PartitionID unassigned_part;
 	  double alpha;
+	  double beta;
 	  int seed;
 	  int ils_iterations;
 	  bool rollback;
