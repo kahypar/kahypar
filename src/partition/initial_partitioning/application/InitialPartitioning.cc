@@ -19,6 +19,7 @@
 #include "partition/initial_partitioning/TestInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/HMetisInitialPartitioner.h"
+#include "partition/initial_partitioning/PaToHInitialPartitioner.h"
 #include "partition/initial_partitioning/IterativeLocalSearchPartitioner.h"
 #include "partition/initial_partitioning/SimulatedAnnealingPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
@@ -47,6 +48,7 @@ using partition::RandomInitialPartitioner;
 using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::HMetisInitialPartitioner;
+using partition::PaToHInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
@@ -191,6 +193,10 @@ void createInitialPartitioningFactory() {
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new HMetisInitialPartitioner(p.hypergraph,p.config);
 			});
+	InitialPartitioningFactory::getInstance().registerObject("PaToH",
+			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+				return new PaToHInitialPartitioner(p.hypergraph,p.config);
+			});
 	InitialPartitioningFactory::getInstance().registerObject("greedy",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
@@ -314,33 +320,42 @@ void createInitialPartitioningFactory() {
 			});
 }
 
-std::vector<HyperedgeID> removeLargeHyperedges(Hypergraph& hg, Configuration& config) {
+std::vector<HyperedgeID> removeLargeHyperedges(Hypergraph& hg,
+		Configuration& config) {
 	std::vector<HyperedgeID> hyperedges;
 	std::vector<HyperedgeID> removed_hyperedges;
 	HypernodeID max_hyperedge_size = std::numeric_limits<HypernodeID>::min();
-	for(HyperedgeID he : hg.edges()) {
+	double avg_hyperedge_size = 0;
+	for (HyperedgeID he : hg.edges()) {
 		hyperedges.push_back(he);
-		if(hg.edgeSize(he) > max_hyperedge_size) {
+		avg_hyperedge_size += hg.edgeSize(he);
+		if (hg.edgeSize(he) > max_hyperedge_size) {
 			max_hyperedge_size = hg.edgeSize(he);
 		}
 	}
-	std::sort(hyperedges.begin(),hyperedges.end(),[&](const HyperedgeID& he1, const HyperedgeID& he2) {
+	avg_hyperedge_size /= hg.numEdges();
+	double removal_bound = avg_hyperedge_size
+			+ config.initial_partitioning.beta
+					* (static_cast<double>(max_hyperedge_size)
+							- avg_hyperedge_size);
+	std::sort(hyperedges.begin(), hyperedges.end(),
+			[&](const HyperedgeID& he1, const HyperedgeID& he2) {
 				return hg.edgeSize(he1) > hg.edgeSize(he2);
 			});
-	for(int i = 0; i < hyperedges.size(); i++) {
-		if(hg.edgeSize(hyperedges[i]) > config.initial_partitioning.beta*static_cast<double>(max_hyperedge_size)) {
-			hg.removeEdge(hyperedges[i],false);
+	for (int i = 0; i < hyperedges.size(); i++) {
+		if (hg.edgeSize(hyperedges[i]) > removal_bound) {
+			hg.removeEdge(hyperedges[i], false);
 			removed_hyperedges.push_back(hyperedges[i]);
-		}
-		else {
+		} else {
 			break;
 		}
 	}
 	return removed_hyperedges;
 }
 
-void restoreLargeHyperedges(Hypergraph& hg, std::vector<HyperedgeID> removed_hyperedges) {
-	while(!removed_hyperedges.empty()) {
+void restoreLargeHyperedges(Hypergraph& hg,
+		std::vector<HyperedgeID> removed_hyperedges) {
+	while (!removed_hyperedges.empty()) {
 		HyperedgeID he = removed_hyperedges.back();
 		removed_hyperedges.pop_back();
 		hg.restoreEdge(he);
@@ -447,13 +462,14 @@ int main(int argc, char* argv[]) {
 			"Enviroment Creation time",
 			static_cast<double>(elapsed_seconds.count()));
 
-	std::vector<HyperedgeID> removed_hyperedges = removeLargeHyperedges(hypergraph,config);
+	std::vector<HyperedgeID> removed_hyperedges = removeLargeHyperedges(
+			hypergraph, config);
 
 	start = std::chrono::high_resolution_clock::now();
 	(*partitioner).partition(config.initial_partitioning.k);
 	end = std::chrono::high_resolution_clock::now();
 
-	restoreLargeHyperedges(hypergraph,removed_hyperedges);
+	restoreLargeHyperedges(hypergraph, removed_hyperedges);
 
 	elapsed_seconds = end - start;
 	InitialStatManager::getInstance().addStat("Time Measurements",
