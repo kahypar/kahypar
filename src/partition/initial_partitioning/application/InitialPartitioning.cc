@@ -187,7 +187,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("lp",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+				return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject("hMetis",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
@@ -269,7 +269,7 @@ void createInitialPartitioningFactory() {
 			});
 	InitialPartitioningFactory::getInstance().registerObject("recursive-lp",
 			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<LabelPropagationInitialPartitioner<RandomStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+				return new RecursiveBisection<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
 			});
 	InitialPartitioningFactory::getInstance().registerObject(
 			"recursive-greedy-maxpin",
