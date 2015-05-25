@@ -41,7 +41,7 @@ public:
 			total_graph_weight += _hg.nodeWeight(hn);
 		}
 
-		_config.partition.initial_partitioner_path = "/software/patoh/patoh";
+		_config.partition.initial_partitioner_path = "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
 
 		std::string patoh_coarse_graph = "patoh_hypergraph.hgr";
 		std::string partition_output =

@@ -8,7 +8,7 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_LABELPROPAGATIONINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_LABELPROPAGATIONINITIALPARTITIONER_H_
 
-#define EMPTY_LABEL -1
+#define MAX_ITERATIONS 100
 
 #include <vector>
 #include <algorithm>
@@ -50,6 +50,8 @@ public:
 
 	void kwayPartitionImpl() final {
 
+		InitialPartitionerBase::resetPartitioning(-1);
+
 		std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
 		for (HypernodeID hn : _hg.nodes()) {
 			nodes[hn] = hn;
@@ -65,45 +67,45 @@ public:
 			assigned_nodes += bfsAssignHypernodeToPartition(startNodes[i], i,
 					connected_nodes);
 		}
+
 		bool converged = false;
-		int changed_nodes = 0;
 		int iterations = 0;
-		while (!converged && iterations < 300) {
-			changed_nodes = 0;
+		while (!converged && iterations < MAX_ITERATIONS) {
 			converged = true;
-			int assigned_nodes_before = assigned_nodes;
+
 			Randomize::shuffleVector(nodes, nodes.size());
 			for (HypernodeID v : nodes) {
 
 				std::vector<double> tmp_scores(_config.initial_partitioning.k,
 						invalid_score_value);
-				PartitionID max_part = _hg.partID(v);
-				double max_score =
-						(_hg.partID(v) == -1
-								|| _hg.partWeight(max_part)
-										> _config.initial_partitioning.upper_allowed_partition_weight[max_part]) ?
-								invalid_score_value : 0;
 
 				for (HyperedgeID he : _hg.incidentEdges(v)) {
 					for (HypernodeID p : _hg.pins(he)) {
 
 						if (p != v && _hg.partID(p) != -1) {
-							if (_hg.partID(v) == -1
-									|| _hg.nodeWeight(v)
-											+ _hg.partWeight(_hg.partID(p))
-											< _config.initial_partitioning.upper_allowed_partition_weight[_hg.partID(
-													p)]) {
-								Gain gain = GainComputation::calculateGain(_hg,
-										v, _hg.partID(p));
-								tmp_scores[_hg.partID(p)] = gain;
+							if (_hg.nodeWeight(v)
+									+ _hg.partWeight(_hg.partID(p))
+									<= _config.initial_partitioning.upper_allowed_partition_weight[_hg.partID(
+											p)]) {
+								if (tmp_scores[_hg.partID(p)]
+										== invalid_score_value) {
+									Gain gain = GainComputation::calculateGain(
+											_hg, v, _hg.partID(p));
+									tmp_scores[_hg.partID(p)] = gain;
+								}
 							}
 						}
 
 					}
 				}
 
+				PartitionID max_part = _hg.partID(v);
+				double max_score =
+						(_hg.partID(v) == -1) ? invalid_score_value : 0;
 				for (PartitionID p = 0; p < _config.initial_partitioning.k;
 						p++) {
+					HypernodeWeight new_partition_weight = _hg.partWeight(p)
+							+ _hg.nodeWeight(v);
 					if (tmp_scores[p] > max_score) {
 						max_score = tmp_scores[p];
 						max_part = p;
@@ -112,30 +114,39 @@ public:
 
 				if (max_part != _hg.partID(v)) {
 					PartitionID source_part = _hg.partID(v);
-					if (source_part != -1) {
-						if (InitialPartitionerBase::assignHypernodeToPartition(
-								v, max_part)) {
-							if (source_part == -1) {
-								assigned_nodes++;
-							}
-							converged = false;
-							changed_nodes++;
+					if (InitialPartitionerBase::assignHypernodeToPartition(v,
+							max_part)) {
+						if (source_part == -1) {
+							assigned_nodes++;
 						}
-					} else {
-						_hg.setNodePart(v, max_part);
 						converged = false;
-						changed_nodes++;
-						assigned_nodes++;
 					}
 				}
 
 			}
 			iterations++;
 
-			std::cout << changed_nodes << ", " << assigned_nodes << ", "
-					<< _hg.numNodes() << ", " << iterations << ", "
-					<< metrics::hyperedgeCut(_hg) << std::endl;
+			int assign_unassigned_node_count = 5;
+			if (converged && assigned_nodes < _hg.numNodes()) {
+				for (HypernodeID hn : nodes) {
+					if (_hg.partID(hn) == -1) {
+						assignHypernodeToPartitionWithMinimumPartitionWeight(hn);
+						converged = false;
+						assigned_nodes++;
+						assign_unassigned_node_count--;
+						if (!assign_unassigned_node_count) {
+							break;
+						}
+					}
+				}
+			}
 
+		}
+
+		for(HypernodeID hn : _hg.nodes()) {
+			if (_hg.partID(hn) == -1) {
+				assignHypernodeToPartitionWithMinimumPartitionWeight(hn);
+			}
 		}
 
 		InitialPartitionerBase::eraseConnectedComponents();
@@ -161,8 +172,22 @@ public:
 		}
 	}
 
+	void assignHypernodeToPartitionWithMinimumPartitionWeight(HypernodeID hn) {
+		ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << " isn't part from partition -1!");
+		PartitionID p = -1;
+		HypernodeWeight min_partition_weight = std::numeric_limits<
+				HypernodeWeight>::max();
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+			if (_hg.partWeight(i) < min_partition_weight) {
+				min_partition_weight = _hg.partWeight(i);
+				p = i;
+			}
+		}
+		_hg.setNodePart(hn, p);
+	}
+
 	int bfsAssignHypernodeToPartition(HypernodeID hn, PartitionID p, int count =
-			std::numeric_limits<int>::min()) {
+			std::numeric_limits<int>::max()) {
 		std::queue<HypernodeID> q;
 		std::map<HypernodeID, bool> in_queue;
 		int assigned_nodes = 0;
@@ -171,7 +196,9 @@ public:
 		while (!q.empty()) {
 			HypernodeID node = q.front();
 			q.pop();
-			if (InitialPartitionerBase::assignHypernodeToPartition(node, p)) {
+			if (_hg.partID(node) == -1
+					&& InitialPartitionerBase::assignHypernodeToPartition(node,
+							p)) {
 				assigned_nodes++;
 				for (HyperedgeID he : _hg.incidentEdges(node)) {
 					for (HypernodeID pin : _hg.pins(he)) {

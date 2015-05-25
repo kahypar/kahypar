@@ -109,10 +109,8 @@ private:
 
 		//Assign partition id
 		if (k2 - k1 == 0) {
-			int count = 0;
 			for (HypernodeID hn : hyper.nodes()) {
 				hyper.setNodePart(hn, k1);
-				count++;
 			}
 			return;
 		}
@@ -136,6 +134,7 @@ private:
 				static_cast<double>(k - km) * hypergraph_weight
 						/ static_cast<double>(k);
 		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
+
 
 		//Performing bisection
 		performMultipleRunsOnHypergraph(hyper, k);
@@ -195,7 +194,7 @@ private:
 		//Assign partition id from partition 0 to the current hypergraph
 		for (HypernodeID hn : partition_0.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_0[hn])
-					!= partition_0.partID(hn)) {
+					!= partition_0.partID(hn) && partition_0.partID(hn) != -1) {
 				hyper.changeNodePart(hgToExtractedHypergraphMapper_0[hn],
 						hyper.partID(hgToExtractedHypergraphMapper_0[hn]),
 						partition_0.partID(hn));
@@ -209,7 +208,7 @@ private:
 		//Assign partition id from partition 1 to the current hypergraph
 		for (HypernodeID hn : partition_1.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_1[hn])
-					!= partition_1.partID(hn)) {
+					!= partition_1.partID(hn) &&  partition_1.partID(hn) != -1) {
 				hyper.changeNodePart(hgToExtractedHypergraphMapper_1[hn],
 						hyper.partID(hgToExtractedHypergraphMapper_1[hn]),
 						partition_1.partID(hn));
