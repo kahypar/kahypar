@@ -46,11 +46,7 @@ public:
 			InitialPartitionerBase(hypergraph, config),
 			greedy_base(hypergraph,config) {
 
-		/*max_net_size = 0.0;
-		 for(HyperedgeID he : hypergraph.edges()) {
-		 if(hypergraph.edgeSize(he) > max_net_size)
-		 max_net_size = static_cast<double>(hypergraph.edgeSize(he));
-		 }*/
+		_config.initial_partitioning.unassigned_part = -1;
 	}
 
 	~GreedyHypergraphGrowingRoundRobinInitialPartitioner() {
