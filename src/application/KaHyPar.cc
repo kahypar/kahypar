@@ -13,7 +13,6 @@
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
-#include "partition/Factories.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "tools/RandomFunctions.h"

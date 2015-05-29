@@ -41,6 +41,38 @@ enum class RefinementAlgorithm : std::uint8_t {
   label_propagation
 };
 
+enum class InitialPartitionerAlgorithm : std::uint8_t {
+  greedy,
+  greedy_global,
+  greedy_round,
+  greedy_maxpin,
+  greedy_global_maxpin,
+  greedy_round_maxpin,
+  greedy_maxnet,
+  greedy_global_maxnet,
+  greedy_round_maxnet,
+  bfs,
+  random,
+  lp,
+  hMetis,
+  PaToH,
+  rb_greedy,
+  rb_greedy_global,
+  rb_greedy_round,
+  rb_greedy_maxpin,
+  rb_greedy_global_maxpin,
+  rb_greedy_round_maxpin,
+  rb_greedy_maxnet,
+  rb_greedy_global_maxnet,
+  rb_greedy_round_maxnet,
+  rb_bfs,
+  rb_random,
+  rb_lp,
+  ils,
+  sa
+
+};
+
 enum class RefinementStoppingRule : std::uint8_t {
   simple,
   adaptive1,
@@ -83,6 +115,68 @@ static std::string toString(const RefinementAlgorithm& algo) {
       return std::string("hyperedge");
     case RefinementAlgorithm::label_propagation:
       return std::string("label_propagation");
+  }
+  return std::string("UNDEFINED");
+}
+
+static std::string toString(const InitialPartitionerAlgorithm& algo) {
+  switch (algo) {
+    case InitialPartitionerAlgorithm::greedy:
+      return std::string("greedy");
+    case InitialPartitionerAlgorithm::greedy_global:
+      return std::string("greedy-global");
+    case InitialPartitionerAlgorithm::greedy_round:
+      return std::string("greedy-round");
+    case InitialPartitionerAlgorithm::greedy_maxpin:
+      return std::string("greedy-maxpin");
+    case InitialPartitionerAlgorithm::greedy_global_maxpin:
+      return std::string("greedy-global-maxpin");
+    case InitialPartitionerAlgorithm::greedy_round_maxpin:
+      return std::string("greedy-round-maxpin");
+    case InitialPartitionerAlgorithm::greedy_maxnet:
+      return std::string("greedy-maxnet");
+    case InitialPartitionerAlgorithm::greedy_global_maxnet:
+      return std::string("greedy-global-maxnet");
+    case InitialPartitionerAlgorithm::greedy_round_maxnet:
+      return std::string("greedy-round-maxnet");
+    case InitialPartitionerAlgorithm::bfs:
+      return std::string("bfs");
+    case InitialPartitionerAlgorithm::random:
+      return std::string("random");
+    case InitialPartitionerAlgorithm::lp:
+      return std::string("lp");
+    case InitialPartitionerAlgorithm::rb_greedy:
+      return std::string("recursive-greedy");
+    case InitialPartitionerAlgorithm::rb_greedy_global:
+      return std::string("recursive-greedy-global");
+    case InitialPartitionerAlgorithm::rb_greedy_round:
+      return std::string("recursive-greedy-round");
+    case InitialPartitionerAlgorithm::rb_greedy_maxpin:
+      return std::string("recursive-greedy-maxpin");
+    case InitialPartitionerAlgorithm::rb_greedy_global_maxpin:
+      return std::string("recursive-greedy-global-maxpin");
+    case InitialPartitionerAlgorithm::rb_greedy_round_maxpin:
+      return std::string("recursive-greedy-round-maxpin");
+    case InitialPartitionerAlgorithm::rb_greedy_maxnet:
+      return std::string("recursive-greedy-maxnet");
+    case InitialPartitionerAlgorithm::rb_greedy_global_maxnet:
+      return std::string("recursive-greedy-global-maxnet");
+    case InitialPartitionerAlgorithm::rb_greedy_round_maxnet:
+      return std::string("recursive-greedy-round-maxnet");
+    case InitialPartitionerAlgorithm::rb_bfs:
+      return std::string("recursive-bfs");
+    case InitialPartitionerAlgorithm::rb_random:
+      return std::string("recursive-random");
+    case InitialPartitionerAlgorithm::rb_lp:
+      return std::string("recursive-lp");
+    case InitialPartitionerAlgorithm::hMetis:
+      return std::string("hMetis");
+    case InitialPartitionerAlgorithm::PaToH:
+      return std::string("PaToH");
+    case InitialPartitionerAlgorithm::ils:
+      return std::string("ils");
+    case InitialPartitionerAlgorithm::sa:
+      return std::string("sa");
   }
   return std::string("UNDEFINED");
 }

@@ -33,8 +33,10 @@
 #include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
-#include "lib/core/Factory.h"
+#include "partition/Factories.h"
 namespace po = boost::program_options;
+
+using partition::InitialPartitionerAlgorithm;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -67,17 +69,8 @@ using partition::LooseStableNetRemoval;
 using core::Factory;
 using defs::HighResClockTimepoint;
 
-struct InitialPartitioningFactoryParameters {
-	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
-			hypergraph(hgr), config(conf) {
-	}
-	Hypergraph& hypergraph;
-	Configuration& config;
-};
-
-using InitialPartitioningFactory = Factory<IInitialPartitioner, std::string,
-IInitialPartitioner* (*)(InitialPartitioningFactoryParameters&),
-InitialPartitioningFactoryParameters>;
+using partition::InitialPartitioningFactoryParameters;
+using partition::InitialPartitioningFactory;
 
 void configurePartitionerFromCommandLineInput(Configuration& config,
 		const po::variables_map& vm) {
@@ -165,159 +158,182 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.stats = true;
 	config.initial_partitioning.styles = true;
 
-	config.fm_local_search.stopping_rule = "simple";
 	config.fm_local_search.num_repetitions = -1;
 	config.fm_local_search.max_number_of_fruitless_moves = 150;
 	config.fm_local_search.alpha = 8;
-	config.her_fm.stopping_rule = "simple";
-
-	config.her_fm.num_repetitions = 1;
-	config.her_fm.max_number_of_fruitless_moves = 10;
-	config.lp_refiner.max_number_iterations = 3;
+	config.her_fm.num_repetitions = -1;
+	config.her_fm.max_number_of_fruitless_moves = 150;
 }
 
 void createInitialPartitioningFactory() {
-	InitialPartitioningFactory::getInstance().registerObject("random",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RandomInitialPartitioner(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("bfs",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("lp",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("hMetis",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new HMetisInitialPartitioner(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("PaToH",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new PaToHInitialPartitioner(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy-global",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy-round",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"greedy-global-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"greedy-round-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("greedy-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"greedy-global-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"greedy-round-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<RandomInitialPartitioner>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive-random",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<RandomInitialPartitioner>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive-bfs",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<BFSInitialPartitioner<BFSStartNodeSelectionPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive-greedy",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-global",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-round",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive-lp",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-global-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-round-maxpin",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-global-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject(
-			"recursive-greedy-round-maxnet",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("recursive-test",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new RecursiveBisection<TestInitialPartitioner>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("sa",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("ils",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
-			});
-	InitialPartitioningFactory::getInstance().registerObject("ils-greedy"
-			"",
-			[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
-				return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
-			});
+	static bool reg_random =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::random,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RandomInitialPartitioner(p.hypergraph,p.config);
+					});
+	static bool reg_bfs =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::bfs,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_lp =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::lp,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_hmetis =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::hMetis,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new HMetisInitialPartitioner(p.hypergraph,p.config);
+					});
+	static bool reg_patoh =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::PaToH,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new PaToHInitialPartitioner(p.hypergraph,p.config);
+					});
+	static bool reg_greedy =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_global =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_global,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_round =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_round,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_global_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_global_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_round_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_round_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_global_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_global_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_greedy_round_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_round_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_random =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_random,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<RandomInitialPartitioner>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_bfs =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_bfs,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<BFSInitialPartitioner<BFSStartNodeSelectionPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_global =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_global,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_round =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::greedy_round,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_lp =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_lp,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_global_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_global_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_global_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_round_maxpin =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_round_maxpin,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_global_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_global_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_rb_greedy_round_maxnet =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::rb_greedy_round_maxnet,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(p.hypergraph,p.config);
+					});
+	static bool reg_sa =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::sa,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new SimulatedAnnealingPartitioner<CutHyperedgeRemovalNeighborPolicy, RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+					});
+	static bool reg_ils =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::ils,
+					[](InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
+					});
 }
 
 std::vector<HyperedgeID> removeLargeHyperedges(Hypergraph& hg,
@@ -449,13 +465,11 @@ int main(int argc, char* argv[]) {
 	}
 
 	//Initialize the InitialPartitioner
-	InitialPartitioningFactoryParameters initial_partitioning_parameters(
-			hypergraph, config);
 	createInitialPartitioningFactory();
 	std::unique_ptr<IInitialPartitioner> partitioner(
 			InitialPartitioningFactory::getInstance().createObject(
-					config.initial_partitioning.mode,
-					initial_partitioning_parameters));
+					InitialPartitionerAlgorithm::rb_greedy_global,
+					InitialPartitioningFactoryParameters(hypergraph, config)));
 	end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 	InitialStatManager::getInstance().addStat("Time Measurements",

@@ -26,6 +26,7 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/initial_partitioning/IInitialPartitioner.h"
 
 using core::Parameters;
 using core::Factory;
@@ -45,6 +46,14 @@ struct CoarsenerFactoryParameters {
     config(conf) { }
   Hypergraph& hypergraph;
   Configuration& config;
+};
+
+struct InitialPartitioningFactoryParameters {
+	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
+			hypergraph(hgr), config(conf) {
+	}
+	Hypergraph& hypergraph;
+	Configuration& config;
 };
 
 using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
@@ -90,6 +99,10 @@ using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
 using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
                                IRefiner* (*)(const RefinerParameters&),
                                RefinerParameters>;
+
+using InitialPartitioningFactory = Factory<IInitialPartitioner, InitialPartitionerAlgorithm,
+										IInitialPartitioner* (*)(InitialPartitioningFactoryParameters&),
+										InitialPartitioningFactoryParameters>;
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
