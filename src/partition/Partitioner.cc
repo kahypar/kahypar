@@ -8,7 +8,6 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
 #include "tools/RandomFunctions.h"
 
 #ifndef NDEBUG
@@ -18,45 +17,27 @@
 using defs::HighResClockTimepoint;
 
 namespace partition {
-void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
-                            IRefiner& refiner) {
-  HighResClockTimepoint start;
-  HighResClockTimepoint end;
-
-  HypergraphPruner hypergraph_pruner(hypergraph, _config, _stats);
-  RemovedParallelHyperedgesStack parallel_he_stack;
+void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
+                                                IRefiner& refiner) {
   if (_config.partition.initial_parallel_he_removal) {
-    removeParallelHyperedges(hypergraph, hypergraph_pruner, parallel_he_stack);
+    removeParallelHyperedges(hypergraph);
   }
 
-
-  start = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges);
-  end = std::chrono::high_resolution_clock::now();
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   _timings[kInitialLargeHEremoval] = end - start;
 
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
+  partition(hypergraph, coarsener, refiner);
+  DBG(dbg_partition_vcycles, "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
+
   for (int vcycle = 0; vcycle < _config.partition.global_search_iterations; ++vcycle) {
-    start = std::chrono::high_resolution_clock::now();
-    coarsener.coarsen(_config.coarsening.contraction_limit);
-    end = std::chrono::high_resolution_clock::now();
-    _timings[kCoarsening] += end - start;
-
-    if (vcycle == 0) {
-      start = std::chrono::high_resolution_clock::now();
-      performInitialPartitioning(hypergraph);
-      end = std::chrono::high_resolution_clock::now();
-      _timings[kInitialPartitioning] = end - start;
-    }
-
-    start = std::chrono::high_resolution_clock::now();
-    const bool found_improved_cut = coarsener.uncoarsen(refiner);
-    end = std::chrono::high_resolution_clock::now();
-    _timings[kUncoarseningRefinement] += end - start;
+    const bool found_improved_cut = partitionVCycle(hypergraph, coarsener, refiner);
 
     DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
@@ -78,171 +59,7 @@ void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
   _timings[kInitialLargeHErestore] = end - start;
 
   if (_config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph_pruner, parallel_he_stack);
-  }
-}
-
-void Partitioner::removeParallelHyperedges(Hypergraph& hypergraph,
-                                           HypergraphPruner& hypergraph_pruner,
-                                           RemovedParallelHyperedgesStack& stack) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  for (const HypernodeID hn : hypergraph.nodes()) {
-    stack.emplace(std::make_pair(0, 0));
-    hypergraph_pruner.removeParallelHyperedges(hn, stack.top().first, stack.top().second);
-  }
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialParallelHEremoval] = end - start;
-  LOG("Initially removed parallel HEs:" << _stats.toString());
-}
-
-void Partitioner::restoreParallelHyperedges(HypergraphPruner& hypergraph_pruner,
-                                            RemovedParallelHyperedgesStack& stack) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  while (!stack.empty()) {
-    hypergraph_pruner.restoreParallelHyperedges(stack.top().first, stack.top().second);
-    stack.pop();
-  }
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialParallelHErestore] = end - start;
-}
-
-void Partitioner::removeLargeHyperedges(Hypergraph& hg,
-                                        std::vector<HyperedgeID>& removed_hyperedges) {
-  if (_config.partition.hyperedge_size_threshold != -1) {
-    for (const HyperedgeID he : hg.edges()) {
-      if (hg.edgeSize(he) > _config.partition.hyperedge_size_threshold) {
-        DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
-            << hg.edgeSize(he) << ")   exceeds threshold: "
-            << _config.partition.hyperedge_size_threshold);
-        removed_hyperedges.push_back(he);
-        hg.removeEdge(he, true);
-      }
-    }
-  }
-  _stats.add("numInitiallyRemovedLargeHEs", _config.partition.current_v_cycle,
-             removed_hyperedges.size());
-  LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
-      << _config.partition.hyperedge_size_threshold << " pins");
-}
-
-void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
-                                         std::vector<HyperedgeID>& removed_hyperedges) {
-  HyperedgeID conn_one_hes = 0;
-  for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-    DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
-    hg.restoreEdge(*edge);
-    if (hg.connectivity(*edge) == 1) {
-      ++conn_one_hes;
-    }
-    partitionUnpartitionedPins(*edge, hg);
-  }
-  LOG(conn_one_hes << " could have been assigned to one part");
-  ASSERT(metrics::imbalance(hg) <= _config.partition.epsilon,
-         "Final assignment of unpartitioned pins violated balance constraint");
-}
-
-void Partitioner::partitionUnpartitionedPins(HyperedgeID he, Hypergraph& hg) {
-  const HypernodeID num_pins = hg.edgeSize(he);
-  HypernodeID num_unpartitioned_hns = 0;
-  HypernodeWeight unpartitioned_weight = 0;
-  for (const HypernodeID pin : hg.pins(he)) {
-    if (hg.partID(pin) == Hypergraph::kInvalidPartition) {
-      ++num_unpartitioned_hns;
-      unpartitioned_weight += hg.nodeWeight(pin);
-    }
-  }
-
-  // First case: If HE does not contain any pins that are already partitioned,
-  // we try to find a part that can store this HE as an internal HE.
-  PartitionID target_part = Hypergraph::kInvalidPartition;
-  HypernodeWeight target_part_weight_after_assignment = std::numeric_limits<HypernodeWeight>::max();
-  if (num_unpartitioned_hns == num_pins) {
-    ASSERT(hg.connectivity(he) == 0, "HE " << he << " does already contain partitioned pins");
-    for (PartitionID part = 0; part < _config.partition.k; ++part) {
-      const HypernodeWeight current_part_weight_after_assignment = hg.partWeight(part)
-                                                                   + unpartitioned_weight;
-      if (current_part_weight_after_assignment <= _config.partition.max_part_weight &&
-          current_part_weight_after_assignment < target_part_weight_after_assignment) {
-        target_part = part;
-        target_part_weight_after_assignment = current_part_weight_after_assignment;
-      }
-    }
-    DBG(dbg_partition_large_he_restore, "All pins unassigned: Assigned all pins of HE "
-        << he << " to part " << target_part);
-    assignAllPinsToPartition(he, target_part, hg);
-    return;
-  }
-
-  // Second case: If the HE has a connectivity of 1, we try to internalize it
-  // into that part.
-  if (hg.connectivity(he) == 1) {
-    const PartitionID connected_part = *hg.connectivitySet(he).begin();
-    if (hg.partWeight(connected_part) + unpartitioned_weight
-        <= _config.partition.max_part_weight) {
-      assignUnpartitionedPinsToPartition(he, connected_part, hg);
-      DBG(dbg_partition_large_he_restore, "Connectivity=1: Moved all unpartitioned pins of HE "
-          << he << " to part " << connected_part);
-      return;
-    }
-  }
-
-  // Third case: Distribute the remaining pins such that imbalance is minimzed.
-  // TODO(schlag): If we add global objective functions, this has to be adapted:
-  // In this case, we would probably want to distibute the pins only into connected
-  // parts.
-  distributePinsAcrossPartitions(he, hg);
-}
-
-void Partitioner::assignUnpartitionedPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg) {
-  DBG(dbg_partition_large_he_removal,
-      "Assigning unpartitioned pins of HE " << he << " to partition " << id);
-  for (const HypernodeID pin : hg.pins(he)) {
-    ASSERT(hg.partID(pin) == Hypergraph::kInvalidPartition || hg.partID(pin) == id,
-           "HN " << pin << " is not in partition " << id << " but in "
-           << hg.partID(pin));
-    if (hg.partID(pin) == Hypergraph::kInvalidPartition) {
-      hg.setNodePart(pin, id);
-    }
-  }
-}
-
-void Partitioner::assignAllPinsToPartition(HyperedgeID he, PartitionID id, Hypergraph& hg) {
-  DBG(dbg_partition_large_he_removal, "Assigning all pins of HE " << he << " to partition " << id);
-  for (const HypernodeID pin : hg.pins(he)) {
-    ASSERT(hg.partID(pin) == Hypergraph::kInvalidPartition,
-           "HN " << pin << " is not in partition " << id << " but in "
-           << hg.partID(pin));
-    hg.setNodePart(pin, id);
-  }
-}
-
-void Partitioner::distributePinsAcrossPartitions(HyperedgeID he, Hypergraph& hg) {
-  DBG(dbg_partition_large_he_removal, "Distributing pins of HE " << he << " to both partitions");
-
-  static auto comparePartWeights = [](const auto& a, const auto& b) {
-                                     return a.weight < b.weight;
-                                   };
-
-  PartitionID min_partition = 0;
-
-  for (const HypernodeID pin : hg.pins(he)) {
-    if (hg.partID(pin) == Hypergraph::kInvalidPartition) {
-      min_partition = std::min_element(hg.partInfos().begin(), hg.partInfos().end(),
-                                       comparePartWeights)
-                      - hg.partInfos().begin();
-      hg.setNodePart(pin, min_partition);
-    }
-  }
-}
-
-void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                       CoarsenedToHmetisMapping& hg_to_hmetis,
-                                                       const Hypergraph& hg) {
-  int i = 0;
-  for (const HypernodeID hn : hg.nodes()) {
-    hg_to_hmetis[hn] = i;
-    hmetis_to_hg[i] = hn;
-    ++i;
+    restoreParallelHyperedges(hypergraph);
   }
 }
 

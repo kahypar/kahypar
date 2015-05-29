@@ -249,8 +249,8 @@ class KWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const noexcept final {
-    return std::string(" Refiner=KWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
-                       " UsesBucketQueue=" +
+    return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true"
 #else
@@ -296,12 +296,12 @@ class KWayFMRefiner : public IRefiner,
 
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
-                        const HyperedgeWeight he_weight, const PartitionID he_connectivity,
+                        const HyperedgeWeight he_weight,
                         const HypernodeID pin_count_source_part_before_move,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
     if (pin_count_source_part_before_move == he_size) {
-      ASSERT(he_connectivity == 2, V(he_connectivity));
+      ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
       ASSERT(pin_count_target_part_after_move == 1, V(pin_count_target_part_after_move));
       DBG(dbg_refinement_kway_fm_gain_update,
           "he " << he << " is not cut before applying move");
@@ -313,7 +313,7 @@ class KWayFMRefiner : public IRefiner,
       }
     }
     if (pin_count_target_part_after_move == he_size) {
-      ASSERT(he_connectivity == 1, V(he_connectivity));
+      ASSERT(_hg.connectivity(he) == 1, V(_hg.connectivity(he)));
       ASSERT(pin_count_source_part_before_move == 1, V(pin_count_source_part_before_move));
       DBG(dbg_refinement_kway_fm_gain_update, "he " << he
           << " is cut before applying move and uncut after");
@@ -393,7 +393,6 @@ class KWayFMRefiner : public IRefiner,
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
 
-      const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
@@ -411,7 +410,7 @@ class KWayFMRefiner : public IRefiner,
                                  move_increased_connectivity,
                                  max_allowed_part_weight);
               deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                               he_connectivity, pin_count_source_part_before_move,
+                               pin_count_source_part_before_move,
                                pin_count_target_part_after_move,
                                max_allowed_part_weight);
             }
@@ -441,7 +440,6 @@ class KWayFMRefiner : public IRefiner,
       const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
       const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
 
-      const PartitionID he_connectivity = _hg.connectivity(he);
       const HypernodeID he_size = _hg.edgeSize(he);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
@@ -455,7 +453,7 @@ class KWayFMRefiner : public IRefiner,
                                move_increased_connectivity,
                                max_allowed_part_weight);
             deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
-                             he_connectivity, pin_count_source_part_before_move,
+                             pin_count_source_part_before_move,
                              pin_count_target_part_after_move,
                              max_allowed_part_weight);
           }

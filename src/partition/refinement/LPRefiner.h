@@ -2,10 +2,13 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#pragma once
+#ifndef SRC_PARTITION_REFINEMENT_LPREFINER_H_
+#define SRC_PARTITION_REFINEMENT_LPREFINER_H_
 
+#include <limits>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "lib/definitions.h"
@@ -112,7 +115,7 @@ class LPRefiner : public IRefiner {
   }
 
   std::string policyStringImpl() const noexcept final {
-    return " refiner=LabelPropagationRefiner lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
+    return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
   }
 
   const Stats & statsImpl() const noexcept final {
@@ -317,3 +320,4 @@ class LPRefiner : public IRefiner {
   Stats _stats;
 };
 }
+#endif  // SRC_PARTITION_REFINEMENT_LPREFINER_H_

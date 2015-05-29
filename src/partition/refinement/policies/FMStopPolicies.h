@@ -11,6 +11,7 @@
 using core::PolicyBase;
 
 namespace partition {
+namespace {
 struct StoppingPolicy : PolicyBase {
  protected:
   StoppingPolicy() { }
@@ -37,8 +38,6 @@ struct NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  private:
   static int _num_moves;
 };
-
-int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
 
 struct RandomWalkModelStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int, const Configuration& config, const double beta,
@@ -93,14 +92,6 @@ struct RandomWalkModelStopsSearch : public StoppingPolicy {
   ~RandomWalkModelStopsSearch() { }
 };
 
-int RandomWalkModelStopsSearch::_num_steps = 0;
-double RandomWalkModelStopsSearch::_sum_gains = 0.0;
-double RandomWalkModelStopsSearch::_expected_gain = 0.0;
-double RandomWalkModelStopsSearch::_expected_variance = 0.0;
-double RandomWalkModelStopsSearch::_Mk = 0.0;
-double RandomWalkModelStopsSearch::_MkMinus1 = 0.0;
-double RandomWalkModelStopsSearch::_Sk = 0.0;
-double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 
 struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   static bool searchShouldStop(const int num_moves_since_last_improvement,
@@ -129,7 +120,17 @@ struct nGPRandomWalkStopsSearch : public StoppingPolicy {
   ~nGPRandomWalkStopsSearch() { }
 };
 
+int RandomWalkModelStopsSearch::_num_steps = 0;
+double RandomWalkModelStopsSearch::_sum_gains = 0.0;
+double RandomWalkModelStopsSearch::_expected_gain = 0.0;
+double RandomWalkModelStopsSearch::_expected_variance = 0.0;
+double RandomWalkModelStopsSearch::_Mk = 0.0;
+double RandomWalkModelStopsSearch::_MkMinus1 = 0.0;
+double RandomWalkModelStopsSearch::_Sk = 0.0;
+double RandomWalkModelStopsSearch::_SkMinus1 = 0.0;
 double nGPRandomWalkStopsSearch::_sum_gains_squared = 0.0;
+int NumberOfFruitlessMovesStopsSearch::_num_moves = 0;
+}  // namespace
 }  // namespace partition
 
 #endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_

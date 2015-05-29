@@ -12,10 +12,12 @@
 
 namespace ip = boost::interprocess;
 
+using partition::toString;
+using partition::RefinementAlgorithm;
+
 namespace serializer {
 void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
                                        const Partitioner& partitioner,
-                                       const ICoarsener& coarsener, const IRefiner& refiner,
                                        const std::chrono::duration<double>& elapsed_seconds,
                                        const std::array<std::chrono::duration<double>, 7>& timings,
                                        const std::string& filename) {
@@ -37,28 +39,28 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " numVCycles=" << config.partition.global_search_iterations
   << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
   << " initiallyRemoveParallelHEs=" << std::boolalpha << config.partition.initial_parallel_he_removal
-  << " coarseningScheme=" << config.coarsening.scheme
-  << coarsener.policyString()
+  << " coarseningAlgo=" << toString(config.partition.coarsening_algorithm)
   << " coarseningMaxAllowedWeightMultiplier=" << config.coarsening.max_allowed_weight_multiplier
   << " coarseningContractionLimitMultiplier=" << config.coarsening.contraction_limit_multiplier
   << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
   << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
   << " coarseningContractionLimit=" << config.coarsening.contraction_limit
-  << coarsener.stats().toString()
-  << partitioner.stats().toString();
-  if (config.fm_local_search.active) {
-    oss << " FMactive=" << config.fm_local_search.active
-    << " FMNumRepetitions=" << config.fm_local_search.num_repetitions
+  << partitioner.stats().toString()
+  << " refinementAlgo=" << toString(config.partition.refinement_algorithm);
+  if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
+      config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm) {
+    oss << " FMNumRepetitions=" << config.fm_local_search.num_repetitions
     << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
     << " FMalpha=" << config.fm_local_search.alpha
     << " FMbeta=" << config.fm_local_search.beta;
   }
-  if (config.her_fm.active) {
-    oss << " herFMactive=" << config.her_fm.active
-    << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
+  if (config.partition.refinement_algorithm == RefinementAlgorithm::hyperedge) {
+    oss << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
   }
-  oss << refiner.policyString()
-  << refiner.stats().toString();
+  if (config.partition.refinement_algorithm == RefinementAlgorithm::label_propagation) {
+    oss << " lpMaxNumIterations=" << config.lp_refiner.max_number_iterations;
+  }
+  oss << partitioner.internals();
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " part" << i << "=" << hypergraph.partWeight(i);
   }

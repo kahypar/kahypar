@@ -10,6 +10,9 @@
 #include "lib/core/Mandatory.h"
 #include "lib/core/Parameters.h"
 #include "lib/macros.h"
+#include "partition/Configuration.h"
+
+using partition::toString;
 
 namespace core {
 template <class AbstractProduct = Mandatory,
@@ -18,7 +21,8 @@ template <class AbstractProduct = Mandatory,
           class Parameters = NullParameters>
 class Factory {
  private:
-  using CallbackMap = std::unordered_map<IdentifierType, ProductCreator>;
+  using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
+  using CallbackMap = std::unordered_map<UnderlyingIdentifierType, ProductCreator>;
   using FactoryPtr = std::unique_ptr<Factory>;
 
  public:
@@ -28,19 +32,19 @@ class Factory {
   Factory& operator= (Factory&&) = delete;
 
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
-    return _callbacks.insert({ id, creator }).second;
+    return _callbacks.insert({ static_cast<UnderlyingIdentifierType>(id), creator }).second;
   }
 
   bool unregisterObject(const IdentifierType& id) {
-    return _callbacks.erase(id) == 1;
+    return _callbacks.erase(static_cast<UnderlyingIdentifierType>(id)) == 1;
   }
 
-  AbstractProduct* createObject(const IdentifierType& id, Parameters& parameters) {
-    auto creator = _callbacks.find(id);
+  AbstractProduct* createObject(const IdentifierType& id, const Parameters& parameters) {
+    const auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
     if (creator != _callbacks.end()) {
       return (creator->second)(parameters);
     }
-    throw std::invalid_argument("Identifier '" + id + "' not found.");
+    throw std::invalid_argument(toString(id));
   }
 
   static Factory & getInstance() {

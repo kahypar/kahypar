@@ -265,9 +265,10 @@ if ($all_files) {
     find(sub { !-d && push(@filelist, $File::Find::name) }, "../.");
 } else {
     foreach (split /\n+/, `git status`) {
-	next unless /modified:/;
+	next unless /modified:|file:/;
 	next if /untracked/;
 	s/	modified:   //;
+	s/	new file:   //;
 	push(@filelist, "./" . $_);
     }
 }

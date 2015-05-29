@@ -411,8 +411,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   std::string policyStringImpl() const noexcept final {
-    return std::string(" Refiner=TwoWayFM StoppingPolicy=" + templateToString<StoppingPolicy>() +
-                       " UsesBucketQueue=" +
+    return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true"
 #else
@@ -427,6 +427,7 @@ class TwoWayFMRefiner : public IRefiner,
 
   void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain factor,
                  const HypernodeWeight max_allowed_part_weight) noexcept {
+    ONLYDEBUG(max_allowed_part_weight);
     const PartitionID target_part = _hg.partID(pin) ^ 1;
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
     ASSERT(factor != 0, V(factor));
