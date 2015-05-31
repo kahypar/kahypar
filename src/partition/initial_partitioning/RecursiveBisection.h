@@ -49,14 +49,16 @@ private:
 		recursiveBisection(_hg, 0, _config.initial_partitioning.k - 1);
 		_config.initial_partitioning.epsilon = _config.partition.epsilon;
 		InitialPartitionerBase::eraseConnectedComponents();
-		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::performFMRefinement();
 	}
 
 	void bisectionPartitionImpl() final {
 		performMultipleRunsOnHypergraph(_hg, 2);
 		_config.initial_partitioning.epsilon = _config.partition.epsilon;
-		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -133,8 +135,8 @@ private:
 		_config.initial_partitioning.perfect_balance_partition_weight[1] =
 				static_cast<double>(k - km) * hypergraph_weight
 						/ static_cast<double>(k);
-		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
-
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
 
 		//Performing bisection
 		performMultipleRunsOnHypergraph(hyper, k);
@@ -208,7 +210,7 @@ private:
 		//Assign partition id from partition 1 to the current hypergraph
 		for (HypernodeID hn : partition_1.nodes()) {
 			if (hyper.partID(hgToExtractedHypergraphMapper_1[hn])
-					!= partition_1.partID(hn) &&  partition_1.partID(hn) != -1) {
+					!= partition_1.partID(hn) && partition_1.partID(hn) != -1) {
 				hyper.changeNodePart(hgToExtractedHypergraphMapper_1[hn],
 						hyper.partID(hgToExtractedHypergraphMapper_1[hn]),
 						partition_1.partID(hn));

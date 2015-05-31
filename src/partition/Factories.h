@@ -101,7 +101,7 @@ using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
                                RefinerParameters>;
 
 using InitialPartitioningFactory = Factory<IInitialPartitioner, InitialPartitionerAlgorithm,
-										IInitialPartitioner* (*)(InitialPartitioningFactoryParameters&),
+										IInitialPartitioner* (*)(const InitialPartitioningFactoryParameters&),
 										InitialPartitioningFactoryParameters>;
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;

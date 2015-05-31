@@ -216,6 +216,7 @@ struct Configuration {
 		  k(2),
 		  epsilon(0.05),
 	  	  mode(),
+		  algo(InitialPartitionerAlgorithm::rb_greedy_global),
 		  upper_allowed_partition_weight(),
 		  perfect_balance_partition_weight(),
 		  seed(-1),
@@ -236,6 +237,7 @@ struct Configuration {
 	  PartitionID k;
 	  double epsilon;
 	  std::string mode;
+	  InitialPartitionerAlgorithm algo;
 	  HypernodeWeightVector upper_allowed_partition_weight;
 	  HypernodeWeightVector perfect_balance_partition_weight;
 	  int nruns;

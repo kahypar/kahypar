@@ -196,8 +196,8 @@ TEST_F(AGreedyGlobalBisectionTest, ExpectedGreedyGlobalBisectionResult) {
 TEST_F(AGreedyRoundRobinBisectionTest, ExpectedGreedyRoundRobinBisectionResult) {
 
 	partitioner->partition(2);
-	std::vector<HypernodeID> partition_zero {0,1,2,5};
-	std::vector<HypernodeID> partition_one {3,4,6};
+	std::vector<HypernodeID> partition_zero {0,1,2,4};
+	std::vector<HypernodeID> partition_one {3,5,6};
 
 	for(unsigned int i = 0; i < partition_zero.size(); i++) {
 		ASSERT_EQ(hypergraph.partID(partition_zero[i]),0);

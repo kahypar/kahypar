@@ -29,7 +29,7 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 
 public:
 	BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config) {
+			InitialPartitionerBase(hypergraph, config), q() {
 	}
 
 	~BFSInitialPartitioner() {
@@ -39,11 +39,9 @@ private:
 	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
 	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
-	// TODO(heuer): Rename this method. Current method name is misleading!
-	// TODO(heuer): Make all parameters that should not be modified const: In this case unassigned_part
-	void pushIncidentHyperedgesIntoQueue(std::queue<HypernodeID>& q,
+	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
 			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
-			PartitionID& unassigned_part) {
+			const PartitionID& unassigned_part) {
 		// TODO(heuer): Make he und hnodes const
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 			for (HypernodeID hnodes : _hg.pins(he)) {
@@ -63,12 +61,10 @@ private:
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
-		// TODO(heuer): I think it would be better to make this a member of BFSInitialPartitioner.
-		// In case of multiple runs etc. there is no need to always create these data structures
-		// and a simple reset/clear would be enough.
+
 		//Initialize a vector of queues for each partition
-		std::vector<std::queue<HypernodeID>> q(_config.initial_partitioning.k,
-				std::queue<HypernodeID>());
+		q.clear();
+		q.assign(_config.initial_partitioning.k,std::queue<HypernodeID>());
 
 		//Initialize a vector for each partition, which indicate if a partition is ready to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
@@ -91,24 +87,19 @@ private:
 		std::vector<HypernodeID> startNodes;
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
-		// TODO(heuer): This loop should loop over k instead of i for more clarity.
 		// TODO(heuer): Also, why build the start node vector only to then insert the nodes into
 		// the queue. Why not directly insert them into the queue?
-		for (unsigned int i = 0; i < startNodes.size(); i++) {
-			q[i].push(startNodes[i]);
-			in_queue[i][startNodes[i]] = true;
+		for (PartitionID k = 0; k < startNodes.size(); k++) {
+			q[k].push(startNodes[k]);
+			in_queue[k][startNodes[k]] = true;
 		}
 
-		// TODO(heuer): When you ennumerate hypernodes, please use HypernodeID as type.
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
 			bool every_part_is_disable = true;
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 				every_part_is_disable = every_part_is_disable && !partEnable[i];
 				if (partEnable[i]) {
-					// TODO(heuer): Better use an invalid value for initialization, since 0 is a valid hypernode.
-					// If queues are empty, you might end up with hn0 after the search, although actually
-					// you did not find a unassigned node.
-					HypernodeID hn = 0;
+					HypernodeID hn = invalid_hypernode;
 
 					//Searching for an unassigned hypernode in queue for Partition i
 					if (!q[i].empty()) {
@@ -122,7 +113,7 @@ private:
 					}
 
 					//If no unassigned hypernode was found we have to select a new startnode.
-					if (_hg.partID(hn) != unassigned_part && q[i].empty()) {
+					if (hn == invalid_hypernode || _hg.partID(hn) != unassigned_part) {
 						hn = InitialPartitionerBase::getUnassignedNode(
 								unassigned_part);
 						in_queue[i][hn] = true;
@@ -131,7 +122,7 @@ private:
 					ASSERT(_hg.partID(hn) == unassigned_part,
 							"Hypernode " << hn << " isn't a node from an unassigned part.");
 
-					pushIncidentHyperedgesIntoQueue(q[i], hn, in_queue[i],
+					pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i],
 							unassigned_part);
 
 					ASSERT(
@@ -163,51 +154,12 @@ private:
 		_config.initial_partitioning.k = k;
 	}
 
-	// TODO(heuer): What about the implementation that grows from both sides?
-	/*void bisectionPartitionImpl() final {
-	 PartitionID unassigned_part = 1;
-	 std::queue<HypernodeID> bfs;
-	 // TODO(heuer): Again, vector<bool> should be faster
-	 std::unordered_map<HypernodeID, bool> in_queue;
-
-	 //Calculate Startnode and push them into the queues.
-	 std::vector<HypernodeID> startNode;
-	 StartNodeSelection::calculateStartNodes(startNode, _hg,
-	 static_cast<PartitionID>(2));
-	 bfs.push(startNode[0]);
-	 InitialPartitionerBase::resetPartitioning(unassigned_part);
-	 in_queue[startNode[0]] = true;
-
-	 // TODO(heuer): Why outside the loop? Can be moved into the loop and made const.
-	 // Compiler should be smart enough to realize that it will need the variable in
-	 // every iteration.
-	 HypernodeID hn;
-	 do {
-
-	 //Searching for an unassigned hypernode in the queue.
-	 if (!bfs.empty()) {
-	 hn = bfs.front();
-	 bfs.pop();
-	 }
-	 //If no unassigned hypernode was found we have to select a new startnode.
-	 else {
-	 // TODO(heuer): I would expect this method to be part of the StartNodeSelection Policy
-	 hn = InitialPartitionerBase::getUnassignedNode(unassigned_part);
-	 in_queue[hn] = true;
-	 }
-
-	 ASSERT(_hg.partID(hn) == unassigned_part,
-	 "Hypernode " << hn << " isn't a node from an unassigned part.");
-
-	 pushIncidentHyperedgesIntoQueue(bfs, hn, in_queue, unassigned_part);
-	 } while (assignHypernodeToPartition(hn, 0));
-
-	 InitialPartitionerBase::rollbackToBestCut();
-	 InitialPartitionerBase::performFMRefinement();
-	 }*/
 
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
+
+	const HypernodeID invalid_hypernode = std::numeric_limits<HypernodeID>::max();
+	std::vector<std::queue<HypernodeID>> q;
 
 };
 
