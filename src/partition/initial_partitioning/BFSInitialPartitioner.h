@@ -36,8 +36,7 @@ public:
 	}
 
 private:
-	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
-	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
+	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
 	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
 			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
@@ -61,10 +60,9 @@ private:
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
-
 		//Initialize a vector of queues for each partition
 		q.clear();
-		q.assign(_config.initial_partitioning.k,std::queue<HypernodeID>());
+		q.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
 		//Initialize a vector for each partition, which indicate if a partition is ready to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
@@ -113,28 +111,34 @@ private:
 					}
 
 					//If no unassigned hypernode was found we have to select a new startnode.
-					if (hn == invalid_hypernode || _hg.partID(hn) != unassigned_part) {
+					if (hn == invalid_hypernode
+							|| _hg.partID(hn) != unassigned_part) {
 						hn = InitialPartitionerBase::getUnassignedNode(
 								unassigned_part);
-						in_queue[i][hn] = true;
 					}
 
-					ASSERT(_hg.partID(hn) == unassigned_part,
-							"Hypernode " << hn << " isn't a node from an unassigned part.");
+					if (hn != invalid_hypernode) {
+						in_queue[i][hn] = true;
+						ASSERT(_hg.partID(hn) == unassigned_part,
+								"Hypernode " << hn << " isn't a node from an unassigned part.");
 
-					pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i],
-							unassigned_part);
+						pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i],
+								unassigned_part);
 
-					ASSERT(
-							[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
-							"Some hypernodes are missing into the queue!");
+						ASSERT(
+								[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
+								"Some hypernodes are missing into the queue!");
 
-					if (assignHypernodeToPartition(hn, i)) {
-						assigned_nodes_weight += _hg.nodeWeight(hn);
-					} else {
-						if (q[i].empty()) {
-							partEnable[i] = false;
+						if (assignHypernodeToPartition(hn, i)) {
+							assigned_nodes_weight += _hg.nodeWeight(hn);
+						} else {
+							if (q[i].empty()) {
+								partEnable[i] = false;
+							}
 						}
+					}
+					else {
+						partEnable[i] = false;
 					}
 				}
 			}
@@ -154,11 +158,11 @@ private:
 		_config.initial_partitioning.k = k;
 	}
 
-
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 
-	const HypernodeID invalid_hypernode = std::numeric_limits<HypernodeID>::max();
+	const HypernodeID invalid_hypernode =
+			std::numeric_limits<HypernodeID>::max();
 	std::vector<std::queue<HypernodeID>> q;
 
 };

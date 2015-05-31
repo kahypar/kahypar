@@ -158,9 +158,7 @@ public:
 				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 				HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
-				// TODO(heuer): Please use PartitionID from = ...;
-				// PartitionID to = ...;
-				PartitionID from, to;
+				PartitionID from = kInvalidPartition, to = kInvalidPartition;
 				while (current_node != _best_cut_node
 						&& !_bisection_assignment_history.empty()) {
 					if(current_node != std::numeric_limits<HypernodeID>::max()) {
@@ -186,7 +184,7 @@ public:
 	bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
 		HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
 		+ _hg.nodeWeight(hn);
-		PartitionID source_part = _hg.partID(hn);
+		const PartitionID source_part = _hg.partID(hn);
 		// TODO(heuer): Why do you need the second condition: && hn < _hg.numNodes()?
 		if (assign_partition_weight
 				<= _config.initial_partitioning.upper_allowed_partition_weight[target_part] && hn < _hg.numNodes()) {
@@ -212,7 +210,7 @@ public:
 	}
 
 	HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
-		HypernodeID unassigned_node = 0;
+		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
 		for(HypernodeID hn : _hg.nodes()) {
 			if(_hg.partID(hn) == unassigned_part) {
 				unassigned_node = hn;
@@ -334,14 +332,10 @@ private:
 		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 		for(HyperedgeID he : _hg.incidentEdges(hn)) {
 			HyperedgeID pins_in_source_part_before = 0;
-			// TODO(heuer): If from == -1, then pins_in_source_part should be sth like _hg.pinCountInPart(he,from)?
-			// This might not be relevant right now for determining whether or not the hyperedge is a
-			// cut hyperedge, however the current version only works for cut objective.
 			if(from != -1) {
 				pins_in_source_part_before = _hg.pinCountInPart(he,from) + 1;
 			}
-			// TODO(heuer): Make variables that are not intended to be modified const.
-			HyperedgeID pins_in_target_part_after = _hg.pinCountInPart(he,to);
+			const HyperedgeID pins_in_target_part_after = _hg.pinCountInPart(he,to);
 			HyperedgeID connectivity_before = _hg.connectivity(he);
 			if(pins_in_source_part_before == 1) {
 				connectivity_before++;
@@ -399,6 +393,7 @@ private:
 	HyperedgeWeight _current_cut = 0;
 	std::stack<node_assignment> _bisection_assignment_history;
 	bool _record_assignment_history;
+	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
 
 	std::vector<HyperedgeID> _removed_hyperedges;
 

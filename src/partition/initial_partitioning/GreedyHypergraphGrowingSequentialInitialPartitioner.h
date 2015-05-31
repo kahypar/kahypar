@@ -126,19 +126,14 @@ private:
 							}
 						}
 					}
-					// TODO(heuer): Isn't it possible that you create an endless loop in
-					// getUnassignedNode? Assume a call to newStartNode returns the last not
-					// which is unassigned. It is then inserted into the pq, hn is set to that node
-					// then you perform the assignment, delete the node, delta-gain and the
-					// other loops do nothing. The PQ is now empty again. You search for a new unassigned
-					// node.... and this call will never ever return. BOOOM! :)
-					// Even if this case is unlikely, the code should be built in such way, that this
-					// won't happen.
+
 					if (bq[i]->empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						// TODO(heuer): Here, you have the behavior I would expect.
+						if(hn == invalid_node) {
+							break;;
+						}
 						greedy_base.processNodeForBucketPQ(*bq[i], newStartNode,
 								i);
 					}
@@ -146,19 +141,22 @@ private:
 					ASSERT(!bq[i]->empty(),
 							"Bucket queue of partition " << i << " shouldn't be empty!");
 					hn = bq[i]->max();
-
 				}
 			}
 		}
-		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
 		assignAllUnassignedHypernodesAccordingToTheirGain(bq);
+
+		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
+			delete bq[k];
+		}
 
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	// TODO(heuer): Same comments apply as in GHG-RR.
 	void bisectionPartitionImpl() final {
 		PartitionID k = _config.initial_partitioning.k;
 		_config.initial_partitioning.k = 2;
@@ -176,7 +174,7 @@ private:
 			PartitionID best_part = best_move.second;
 			if (best_part != -1) {
 				if (assignHypernodeToPartition(best_node, best_part)) {
-					greedy_base.deleteAssignedNodeInBucketPQ(bq, best_node);
+					greedy_base.deleteNodeInAllBucketQueues(bq, best_node);
 					GainComputation::deltaGainUpdate(_hg, bq, best_node,
 							_config.initial_partitioning.unassigned_part,
 							best_part);
@@ -206,7 +204,7 @@ private:
 		for (HypernodeID hn : _hg.nodes()) {
 			if (_hg.partID(hn)
 					== _config.initial_partitioning.unassigned_part) {
- 				unassigned_nodes.push_back(hn);
+				unassigned_nodes.push_back(hn);
 				part_weight += _hg.nodeWeight(hn);
 			}
 		}
@@ -235,7 +233,7 @@ private:
 									_config.initial_partitioning.k - 1));
 				}
 			}
-			greedy_base.deleteAssignedNodeInBucketPQ(bq, best_node);
+			greedy_base.deleteNodeInAllBucketQueues(bq, best_node);
 		}
 	}
 

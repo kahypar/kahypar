@@ -61,7 +61,7 @@ public:
 		}
 	}
 
-	void deleteAssignedNodeInBucketPQ(std::vector<PrioQueue*>& bq,
+	void deleteNodeInAllBucketQueues(std::vector<PrioQueue*>& bq,
 			HypernodeID hn) {
 		for (int i = 0; i < bq.size(); i++) {
 			if (bq[i]->contains(hn)) {

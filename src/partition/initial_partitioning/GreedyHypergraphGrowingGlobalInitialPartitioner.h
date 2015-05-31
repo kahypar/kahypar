@@ -38,7 +38,6 @@ using PrioQueue = PriorityQueue<TwoWayFMHeap>;
 
 namespace partition {
 
-// TODO(heuer): Just a reminder: Also try other GainComputationPolicies :-p
 template<class StartNodeSelection = StartNodeSelectionPolicy,
 		class GainComputation = GainComputationPolicy>
 class GreedyHypergraphGrowingGlobalInitialPartitioner: public IInitialPartitioner,
@@ -50,11 +49,6 @@ public:
 			InitialPartitionerBase(hypergraph, config), greedy_base(hypergraph,
 					config) {
 
-		/*max_net_size = 0.0;
-		 for(HyperedgeID he : hypergraph.edges()) {
-		 if(hypergraph.edgeSize(he) > max_net_size)
-		 max_net_size = static_cast<double>(hypergraph.edgeSize(he));
-		 }*/
 	}
 
 	~GreedyHypergraphGrowingGlobalInitialPartitioner() {
@@ -68,10 +62,9 @@ private:
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
 
 		Gain init_pq = _hg.numNodes();
-		// TODO(heuer): Memoryleak? Will these PQs get deleted appropriately?
 		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
-		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-			bq[i] = new PrioQueue(init_pq);
+		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
+			bq[k] = new PrioQueue(init_pq);
 		}
 
 		//Enable parts are allowed to receive further hypernodes.
@@ -84,7 +77,7 @@ private:
 		std::vector<HypernodeID> startNodes;
 		StartNodeSelection::calculateStartNodes(startNodes, _hg,
 				_config.initial_partitioning.k);
-		for (PartitionID i = 0; i < startNodes.size(); i++) {
+		for (PartitionID i = 0; i < startNodes.size(); ++i) {
 			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
@@ -101,8 +94,7 @@ private:
 		bool is_upper_bound_released = false;
 
 		std::vector<PartitionID> part_shuffle(_config.initial_partitioning.k);
-		// TODO(heuer): Use ++i instead of i++. This applies to all for-loops ;)
-		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+		for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
 			part_shuffle[i] = i;
 		}
 
@@ -111,11 +103,9 @@ private:
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
 			std::random_shuffle(part_shuffle.begin(), part_shuffle.end());
 			//Searching for the highest gain value
-			Gain best_gain = initial_gain;
-			// TODO(heuer): Using invalid values would be better, otherwise
-			// your really have to make sure that you to the right things..
-			PartitionID best_part = -1;
-			HypernodeID best_node = 0;
+			Gain best_gain = kInitialGain;
+			PartitionID best_part = kInvalidPartition;
+			HypernodeID best_node = kInvalidNode;
 			bool is_every_part_disable = true;
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
 				const PartitionID current_part = part_shuffle[i];
@@ -127,6 +117,9 @@ private:
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
+						if(newStartNode == kInvalidNode) {
+							continue;
+						}
 						greedy_base.processNodeForBucketPQ(*bq[current_part],
 								newStartNode, current_part);
 					}
@@ -155,8 +148,8 @@ private:
 					}
 				}
 				is_every_part_disable = false;
-			} else if (best_part != -1) {
-				ASSERT(best_gain != initial_gain,
+			} else if (best_part != kInvalidPartition) {
+				ASSERT(best_gain != kInitialGain,
 						"No hypernode found to assign!");
 
 				if (!assignHypernodeToPartition(best_node, best_part)) {
@@ -173,7 +166,7 @@ private:
 						return metrics::hyperedgeCut(_hg) == (cut_before-gain);
 					}(), "Gain calculation failed!");
 
-					greedy_base.deleteAssignedNodeInBucketPQ(bq, best_node);
+					greedy_base.deleteNodeInAllBucketQueues(bq, best_node);
 
 					GainComputation::deltaGainUpdate(_hg, bq, best_node,
 							unassigned_part, best_part);
@@ -201,7 +194,11 @@ private:
 				break;
 			}
 		}
-		// TODO(heuer): Do you ensure that _config.epsilon is reset to its original value?
+
+		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
+			delete bq[k];
+		}
+
 		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
@@ -221,10 +218,9 @@ private:
 
 	GreedyHypergraphGrowingBaseFunctions<GainComputation> greedy_base;
 
-	// TODO(heuer): Again naming convention for member variables... since this is a constant
-	// it should be named sth. like kInitialGain
-	static const Gain initial_gain = std::numeric_limits<Gain>::min();
-	static const HypernodeID invalid_node =
+	static const Gain kInitialGain = std::numeric_limits<Gain>::min();
+	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
+	static const HypernodeID kInvalidNode =
 			std::numeric_limits<HypernodeID>::max();
 
 };

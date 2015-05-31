@@ -102,11 +102,11 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 	base->processNodeForBucketPQ(*pq[0],6,0,false);
 
 	hypergraph.changeNodePart(2,1,0);
-	base->deleteAssignedNodeInBucketPQ(pq,2);
+	base->deleteNodeInAllBucketQueues(pq,2);
 	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,2,1,0);
 
 	hypergraph.changeNodePart(4,1,0);
-	base->deleteAssignedNodeInBucketPQ(pq,4);
+	base->deleteNodeInAllBucketQueues(pq,4);
 	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,4,1,0);
 
 	ASSERT_TRUE(pq[0]->max() == 6 && pq[0]->maxKey() == 0);
@@ -158,7 +158,7 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPr
 	base->processNodeForBucketPQ(*pq[0],2,0,false);
 	base->processNodeForBucketPQ(*pq[0],4,0,false);
 	base->processNodeForBucketPQ(*pq[0],6,0,false);
-	base->deleteAssignedNodeInBucketPQ(pq,0);
+	base->deleteNodeInAllBucketQueues(pq,0);
 	ASSERT_EQ(pq[0]->size(),3);
 	ASSERT_EQ(pq[1]->size(),0);
 }
