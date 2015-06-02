@@ -16,7 +16,6 @@
 #include "partition/initial_partitioning/InitialPartitioningStats.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
-#include "partition/initial_partitioning/TestInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/HMetisInitialPartitioner.h"
 #include "partition/initial_partitioning/PaToHInitialPartitioner.h"
@@ -47,7 +46,6 @@ using partition::InitialStatManager;
 using partition::InitialPartitioningStats;
 using partition::IInitialPartitioner;
 using partition::RandomInitialPartitioner;
-using partition::TestInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::HMetisInitialPartitioner;
 using partition::PaToHInitialPartitioner;

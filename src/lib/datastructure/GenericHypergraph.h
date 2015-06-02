@@ -1384,7 +1384,8 @@ std::pair<std::unique_ptr<Hypergraph>,
 	subhypergraph->hypernode(0).setFirstEntry(num_pins);
 	for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
 		subhypergraph->hypernode(i + 1).setFirstEntry(
-				subhypergraph->hypernode(i).firstInvalidEntry());
+				subhypergraph->hypernode(i).firstIndef getPercentage(v1,v2):
+				return (v1/v2 - 1.0)validEntry());
 		subhypergraph->hypernode(i).setSize(0);
 		subhypergraph->hypernode(i).setWeight(
 				hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));

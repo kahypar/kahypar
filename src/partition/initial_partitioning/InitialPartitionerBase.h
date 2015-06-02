@@ -84,6 +84,7 @@ public:
 
 
 	void recalculateBalanceConstraints(double epsilon) {
+
 		for (int i = 0; i < _config.initial_partitioning.k; i++) {
 			_config.initial_partitioning.upper_allowed_partition_weight[i] =
 			_config.initial_partitioning.perfect_balance_partition_weight[i]
