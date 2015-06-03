@@ -146,7 +146,7 @@ class Partitioner {
 void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      _config.partition.coarsening_algorithm, CoarsenerFactoryParameters(hypergraph, _config)));
+      _config.partition.coarsening_algorithm, hypergraph, _config));
 
   std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                       _config.partition.refinement_algorithm,

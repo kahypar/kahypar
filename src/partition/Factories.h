@@ -39,21 +39,11 @@ using partition::nGPRandomWalkStopsSearch;
 using partition::EdgeWeightDivMultPinWeight;
 
 namespace partition {
-struct CoarsenerFactoryParameters {
-  CoarsenerFactoryParameters(Hypergraph& hgr, Configuration& conf) :
-    hypergraph(hgr),
-    config(conf) { }
-  Hypergraph& hypergraph;
-  Configuration& config;
-};
+using CoarsenerFactory = Factory<CoarseningAlgorithm,
+                                 ICoarsener* (*)(Hypergraph&, const Configuration&)>;
 
-using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                 ICoarsener* (*)(const CoarsenerFactoryParameters&),
-                                 CoarsenerFactoryParameters>;
-
-using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
-                               IRefiner* (*)(const RefinerParameters&),
-                               RefinerParameters>;
+using RefinerFactory = Factory<RefinementAlgorithm,
+                               IRefiner* (*)(const RefinerParameters&)>;
 
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
 using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
@@ -83,13 +73,6 @@ using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFac
                                                                      nGPRandomWalkStopsSearch>,
                                                             Typelist<NullPolicy>,
                                                             IRefiner*>;
-using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                 ICoarsener* (*)(const CoarsenerFactoryParameters&),
-                                 CoarsenerFactoryParameters>;
-
-using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
-                               IRefiner* (*)(const RefinerParameters&),
-                               RefinerParameters>;
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;

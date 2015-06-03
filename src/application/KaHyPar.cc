@@ -13,7 +13,6 @@
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
-#include "partition/Factories.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "tools/RandomFunctions.h"
@@ -30,7 +29,6 @@ using partition::RefinementAlgorithm;
 
 using partition::RefinementStoppingRule;
 using partition::CoarsenerFactory;
-using partition::CoarsenerFactoryParameters;
 using partition::RefinerFactory;
 using partition::RefinerParameters;
 using partition::RandomWinsFullCoarsener;
@@ -225,8 +223,8 @@ void setDefaults(Configuration& config) {
 int main(int argc, char* argv[]) {
   static bool reg_heavy_lazy_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_lazy,
-    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
+    [](Hypergraph& hypergraph, const Configuration& config) {
+    return static_cast<ICoarsener*>(new RandomWinsLazyUpdateCoarsener(hypergraph, config));
   });
   static bool reg_simple_stopping =
     PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
@@ -242,20 +240,20 @@ int main(int argc, char* argv[]) {
 
   static bool reg_hyperedge_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::hyperedge,
-    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new HyperedgeCoarsener2(p.hypergraph, p.config);
+    [](Hypergraph& hypergraph, const Configuration& config) {
+    return static_cast<ICoarsener*>(new HyperedgeCoarsener2(hypergraph, config));
   });
 
   static bool reg_heavy_partial_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_partial,
-    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
+    [](Hypergraph& hypergraph, const Configuration& config) {
+    return static_cast<ICoarsener*>(new RandomWinsHeuristicCoarsener(hypergraph, config));
   });
 
   static bool reg_heavy_full_coarsener = CoarsenerFactory::getInstance().registerObject(
     CoarseningAlgorithm::heavy_full,
-    [](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-    return new RandomWinsFullCoarsener(p.hypergraph, p.config);
+    [](Hypergraph& hypergraph, const Configuration& config) {
+    return static_cast<ICoarsener*>(new RandomWinsFullCoarsener(hypergraph, config));
   });
 
 

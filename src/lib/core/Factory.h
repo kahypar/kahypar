@@ -7,6 +7,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "lib/core/FunctionTraits.h"
 #include "lib/core/Mandatory.h"
 #include "lib/core/Parameters.h"
 #include "lib/macros.h"
@@ -15,14 +16,15 @@
 using partition::toString;
 
 namespace core {
-template <class AbstractProduct = Mandatory,
-          typename IdentifierType = Mandatory,
-          typename ProductCreator = AbstractProduct* (*)(NullParameters&),
-          class Parameters = NullParameters>
+template <typename IdentifierType = Mandatory,
+          typename ProductCreator = Mandatory>
 class Factory {
  private:
+  using AbstractProduct = typename std::remove_pointer_t<
+          typename FunctionTraits<ProductCreator>::result_type>;
   using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
-  using CallbackMap = std::unordered_map<UnderlyingIdentifierType, ProductCreator>;
+  using CallbackMap = std::unordered_map<UnderlyingIdentifierType,
+                                         ProductCreator>;
   using FactoryPtr = std::unique_ptr<Factory>;
 
  public:
@@ -39,10 +41,11 @@ class Factory {
     return _callbacks.erase(static_cast<UnderlyingIdentifierType>(id)) == 1;
   }
 
-  AbstractProduct* createObject(const IdentifierType& id, const Parameters& parameters) {
+  template <typename I, typename ... ProductParameters>
+  AbstractProduct* createObject(const I& id, ProductParameters&& ... params) {
     const auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
     if (creator != _callbacks.end()) {
-      return (creator->second)(parameters);
+      return (creator->second)(params ...);
     }
     throw std::invalid_argument(toString(id));
   }
@@ -62,7 +65,7 @@ class Factory {
 };
 
 
-template <class A, typename I, typename P, class Pms>
-std::unique_ptr<Factory<A, I, P, Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
+template <typename I, typename P>
+std::unique_ptr<Factory<I, P> > Factory<I, P>::_factory_instance = nullptr;
 }  // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_
