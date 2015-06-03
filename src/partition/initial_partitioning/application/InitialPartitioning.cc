@@ -26,6 +26,7 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
 #include "partition/initial_partitioning/nLevelInitialPartitioner.h"
+#include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
@@ -58,6 +59,7 @@ using partition::IterativeLocalSearchPartitioner;
 using partition::SimulatedAnnealingPartitioner;
 using partition::RecursiveBisection;
 using partition::nLevelInitialPartitioner;
+using partition::PoolInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
 using partition::FMGainComputationPolicy;
@@ -128,8 +130,9 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::PaToH;
 	} else if (mode.compare("nLevel") == 0) {
 		return InitialPartitionerAlgorithm::nLevel;
+	} else if (mode.compare("pool") == 0) {
+		return InitialPartitionerAlgorithm::pool;
 	}
-
 	return InitialPartitionerAlgorithm::rb_greedy_global;
 }
 
@@ -409,6 +412,12 @@ void createInitialPartitioningFactory() {
 					InitialPartitionerAlgorithm::nLevel,
 					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 						return new RecursiveBisection<nLevelInitialPartitioner>(p.hypergraph,p.config);
+					});
+	static bool reg_pool =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::pool,
+					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new PoolInitialPartitioner(p.hypergraph,p.config);
 					});
 }
 

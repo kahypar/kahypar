@@ -329,7 +329,6 @@ private:
 			// instantiate the partitioner only _once_ and have the partition
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
-			std::cout << _config.initial_partitioning.mode << ": " << i << std::endl;
 			InitialPartitioner partitioner(hyper, _config);
 			partitioner.partition(2);
 

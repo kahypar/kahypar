@@ -186,9 +186,6 @@ private:
 		prepareConfiguration();
 		Partitioner partitioner(_config);
 		partitioner.performDirectKwayPartitioning(_hg);
-		std::cout << _hg.partWeight(0) << " - " << _hg.partWeight(1) << std::endl;
-		std::cout << _config.partition.total_graph_weight << std::endl;
-		std::cout << metrics::imbalance(_hg) << std::endl;
 	}
 
 	void bisectionPartitionImpl() final {
