@@ -321,11 +321,15 @@ private:
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 
 		int runs = calculateRuns(_config.initial_partitioning.alpha, 2, k);
-		for (int i = 0; i < runs; i++) {
+		if(_config.initial_partitioning.mode.compare("nLevel") == 0) {
+			runs = 1;
+		}
+		for (int i = 0; i < runs; ++i) {
 			// TODO(heuer): In order to improve running time, you really should
 			// instantiate the partitioner only _once_ and have the partition
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
+			std::cout << _config.initial_partitioning.mode << ": " << i << std::endl;
 			InitialPartitioner partitioner(hyper, _config);
 			partitioner.partition(2);
 

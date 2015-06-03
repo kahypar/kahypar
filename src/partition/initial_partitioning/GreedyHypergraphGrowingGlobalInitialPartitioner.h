@@ -60,7 +60,6 @@ private:
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
-
 		Gain init_pq = _hg.numNodes();
 		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);
 		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
@@ -97,6 +96,7 @@ private:
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
 			part_shuffle[i] = i;
 		}
+
 
 		// TODO(heuer): Why do you use assigned_nodes_weight instead of counting
 		// the number of assigned hypernodes?
@@ -194,6 +194,7 @@ private:
 				break;
 			}
 		}
+
 
 		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
 			delete bq[k];

@@ -97,13 +97,9 @@ private:
 				// TODO(heuer): Is there a reason why it is a while loop here and a do-while in
 				// the other GHG variants?
 				while (InitialPartitionerBase::assignHypernodeToPartition(hn, i)) {
-					ASSERT([&]() {
-						Gain gain = bq[i]->maxKey();
-						_hg.changeNodePart(hn,i,unassigned_part);
-						HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-						_hg.changeNodePart(hn,unassigned_part,i);
-						return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-					}(), "Gain calculation of hypernode " << hn << " failed!");
+					ASSERT(
+							[&]() { if(unassigned_part != -1) { Gain gain = bq[i]->maxKey(); _hg.changeNodePart(hn,i,unassigned_part); HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg); _hg.changeNodePart(hn,unassigned_part,i); return metrics::hyperedgeCut(_hg) == (cut_before-gain); } else { return true; } }(),
+							"Gain calculation of hypernode " << hn << " failed!");
 
 					bq[i]->deleteMax();
 
@@ -131,7 +127,7 @@ private:
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						if(hn == invalid_node) {
+						if (hn == invalid_node) {
 							break;;
 						}
 						greedy_base.processNodeForBucketPQ(*bq[i], newStartNode,

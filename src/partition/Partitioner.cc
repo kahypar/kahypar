@@ -135,10 +135,16 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
       case InitialPartitioner::KaHyPar:
         initial_partitioner_call = _config.partition.initial_partitioner_path + " --hgr="
                                    + _config.partition.coarse_graph_filename
-                                   + " --k=" + std::to_string(_config.partition.k)
+                                   + " --k=" + std::to_string(_config.initial_partitioning.k)
                                    + " --seed=" + std::to_string(seed)
-                                   + " --epsilon=" + std::to_string(_config.partition.epsilon)
-                                   + " --mode=" + _config.initial_partitioning.mode
+                                   + " --epsilon=" + std::to_string(_config.initial_partitioning.epsilon)
+        						   + " --nruns=" + std::to_string(_config.initial_partitioning.nruns)
+        						   + " --refinement=" +std::to_string(_config.initial_partitioning.refinement)
+        						   + " --rollback=" + std::to_string(_config.initial_partitioning.rollback)
+        						   + " --algo=" + _config.initial_partitioning.algorithm
+                                   + " --mode=direct"
+								   + " --unassigned-part=" + std::to_string(_config.initial_partitioning.unassigned_part)
+        						   + " --stats=true"
                                    + " --output=" + _config.partition.coarse_graph_partition_filename;
         break;
     }

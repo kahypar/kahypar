@@ -25,6 +25,7 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
+#include "partition/initial_partitioning/nLevelInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
@@ -56,6 +57,7 @@ using partition::LabelPropagationInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
 using partition::SimulatedAnnealingPartitioner;
 using partition::RecursiveBisection;
+using partition::nLevelInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
 using partition::FMGainComputationPolicy;
@@ -124,6 +126,8 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::hMetis;
 	} else if (mode.compare("PaToH") == 0) {
 		return InitialPartitionerAlgorithm::PaToH;
+	} else if (mode.compare("nLevel") == 0) {
+		return InitialPartitionerAlgorithm::nLevel;
 	}
 
 	return InitialPartitionerAlgorithm::rb_greedy_global;
@@ -145,17 +149,21 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			/*- vm["epsilon"].as<double>() / 4*/;
 			config.partition.epsilon = vm["epsilon"].as<double>();
 		}
-		if (vm.count("mode")) {
-			config.initial_partitioning.mode = vm["mode"].as<std::string>();
+		if (vm.count("algo")) {
+			config.initial_partitioning.algorithm =
+					vm["algo"].as<std::string>();
 			config.initial_partitioning.algo =
 					stringToInitialPartitionerAlgorithm(
-							config.initial_partitioning.mode);
-			if (config.initial_partitioning.mode.compare("ils") == 0) {
+							config.initial_partitioning.algorithm);
+			if (config.initial_partitioning.algorithm.compare("ils") == 0) {
 				if (vm.count("ils_iterations")) {
 					config.initial_partitioning.ils_iterations =
 							vm["ils_iterations"].as<int>();
 				}
 			}
+		}
+		if (vm.count("mode")) {
+			config.initial_partitioning.mode = vm["mode"].as<std::string>();
 		}
 		if (vm.count("seed")) {
 			config.initial_partitioning.seed = vm["seed"].as<int>();
@@ -204,7 +212,9 @@ void setDefaults(Configuration& config) {
 	config.partition.k = 2;
 	config.initial_partitioning.epsilon = 0.03;
 	config.initial_partitioning.epsilon = 0.03;
-	config.initial_partitioning.mode = "random";
+	config.initial_partitioning.algorithm = "random";
+	config.initial_partitioning.algo = InitialPartitionerAlgorithm::random;
+	config.initial_partitioning.mode = "direct";
 	config.initial_partitioning.seed = -1;
 	config.initial_partitioning.ils_iterations = 50;
 	config.initial_partitioning.nruns = 1;
@@ -213,8 +223,8 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.beta = 1.0;
 	config.initial_partitioning.rollback = true;
 	config.initial_partitioning.refinement = true;
-	config.initial_partitioning.erase_components = true;
-	config.initial_partitioning.balance = true;
+	config.initial_partitioning.erase_components = false;
+	config.initial_partitioning.balance = false;
 	config.initial_partitioning.stats = true;
 	config.initial_partitioning.styles = true;
 
@@ -394,6 +404,12 @@ void createInitialPartitioningFactory() {
 					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 						return new IterativeLocalSearchPartitioner<LooseStableNetRemoval, RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>>(p.hypergraph,p.config);
 					});
+	static bool reg_nlevel =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::nLevel,
+					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new RecursiveBisection<nLevelInitialPartitioner>(p.hypergraph,p.config);
+					});
 }
 
 std::vector<HyperedgeID> removeLargeHyperedges(Hypergraph& hg,
@@ -451,7 +467,8 @@ int main(int argc, char* argv[]) {
 			"Filename of the hypergraph to be partitioned")("output",
 			po::value<std::string>(), "Output partition file")("k",
 			po::value<PartitionID>(), "Number of partitions")("epsilon",
-			po::value<double>(), "Imbalance ratio")("mode",
+			po::value<double>(), "Imbalance ratio")("algo",
+			po::value<std::string>(), "Initial partitioning algorithm")("mode",
 			po::value<std::string>(), "Initial partitioning variant")("seed",
 			po::value<int>(), "Seed for randomization")("nruns",
 			po::value<int>(),
@@ -527,9 +544,6 @@ int main(int argc, char* argv[]) {
 	//Initialize the InitialPartitioner
 	createInitialPartitioningFactory();
 	const InitialPartitioningFactoryParameters parameters(hypergraph, config);
-	std::unique_ptr<IInitialPartitioner> partitioner(
-			InitialPartitioningFactory::getInstance().createObject(
-					config.initial_partitioning.algo, parameters));
 	end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 	InitialStatManager::getInstance().addStat("Time Measurements",
@@ -540,7 +554,17 @@ int main(int argc, char* argv[]) {
 			hypergraph, config);
 
 	start = std::chrono::high_resolution_clock::now();
-	(*partitioner).partition(config.initial_partitioning.k);
+	if (config.initial_partitioning.mode.compare("direct") == 0) {
+		std::unique_ptr<IInitialPartitioner> partitioner(
+				InitialPartitioningFactory::getInstance().createObject(
+						config.initial_partitioning.algo, parameters));
+		(*partitioner).partition(config.initial_partitioning.k);
+	} else if (config.initial_partitioning.mode.compare("nLevel") == 0) {
+		std::unique_ptr<IInitialPartitioner> partitioner(
+				InitialPartitioningFactory::getInstance().createObject(
+						InitialPartitionerAlgorithm::nLevel, parameters));
+		(*partitioner).partition(config.initial_partitioning.k);
+	}
 	end = std::chrono::high_resolution_clock::now();
 
 	restoreLargeHyperedges(hypergraph, removed_hyperedges);
@@ -585,9 +609,13 @@ int main(int argc, char* argv[]) {
 	InitialStatManager::getInstance().setGraphName(
 			config.initial_partitioning.coarse_graph_filename);
 	InitialStatManager::getInstance().setMode(config.initial_partitioning.mode);
-	InitialStatManager::getInstance().printStats(result_file,
-			config.initial_partitioning.styles);
-	InitialStatManager::getInstance().printResultLine(result_file);
+	InitialStatManager::getInstance().setAlgo(
+			config.initial_partitioning.algorithm);
+	if (config.initial_partitioning.stats) {
+		InitialStatManager::getInstance().printStats(result_file,
+				config.initial_partitioning.styles);
+		InitialStatManager::getInstance().printResultLine(result_file);
+	}
 
 }
 

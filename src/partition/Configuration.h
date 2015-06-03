@@ -69,7 +69,8 @@ enum class InitialPartitionerAlgorithm : std::uint8_t {
   rb_random,
   rb_lp,
   ils,
-  sa
+  sa,
+  nLevel
 
 };
 
@@ -177,6 +178,8 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
       return std::string("ils");
     case InitialPartitionerAlgorithm::sa:
       return std::string("sa");
+    case InitialPartitionerAlgorithm::nLevel:
+      return std::string("nLevel");
   }
   return std::string("UNDEFINED");
 }
@@ -215,6 +218,7 @@ struct Configuration {
 		  coarse_graph_partition_filename(),
 		  k(2),
 		  epsilon(0.05),
+		  algorithm(),
 	  	  mode(),
 		  algo(InitialPartitionerAlgorithm::rb_greedy_global),
 		  upper_allowed_partition_weight(),
@@ -236,6 +240,7 @@ struct Configuration {
 	  std::string coarse_graph_partition_filename;
 	  PartitionID k;
 	  double epsilon;
+	  std::string algorithm;
 	  std::string mode;
 	  InitialPartitionerAlgorithm algo;
 	  HypernodeWeightVector upper_allowed_partition_weight;

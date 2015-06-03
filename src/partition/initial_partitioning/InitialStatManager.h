@@ -126,10 +126,13 @@ public:
 	void setMode(std::string m) {
 		mode = m;
 	}
+	void setAlgo(std::string a) {
+		algo = a;
+	}
 
 	void printResultLine(std::string filename) {
 		std::ostringstream oss;
-		oss << "RESULT graph=" << graphname << " mode=" << mode;
+		oss << "RESULT graph=" << graphname << " mode=" << mode << " algo=" << algo;
 		for (auto s : stats) {
 
 			for (int i = 0; i < s.second.size(); i++) {
@@ -155,6 +158,7 @@ public:
 
 	std::string graphname;
 	std::string mode;
+	std::string algo;
 
 	std::vector<std::string> groups;
 	std::map<std::string, std::vector<std::pair<std::string, double>>>stats;
