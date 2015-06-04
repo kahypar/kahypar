@@ -30,10 +30,6 @@ using Gain = HyperedgeWeight;
 
 namespace partition {
 
-// TODO(heuer): This has _nothing_ to do with a LabelPropagationInitialPartitioner
-// I assume that you know this as well :)
-// However, using LP as a very fast greedy refiner in the InitialPartitioner BaseClass
-// might actually be worth a try.
 template<class StartNodeSelection = StartNodeSelectionPolicy,
 		class GainComputation = GainComputationPolicy>
 class LabelPropagationInitialPartitioner: public IInitialPartitioner,
@@ -70,52 +66,25 @@ public:
 
 		bool converged = false;
 		int iterations = 0;
+		int changes = 0;
 		while (!converged && iterations < MAX_ITERATIONS) {
 			converged = true;
+			changes = 0;
 
 			Randomize::shuffleVector(nodes, nodes.size());
 			for (HypernodeID v : nodes) {
 
-				std::vector<double> tmp_scores(_config.initial_partitioning.k,
-						invalid_score_value);
+				std::pair<PartitionID,Gain> max_move = computeMaxGainMove(v);
+				PartitionID max_part = max_move.first;
+				Gain max_gain = max_move.second;
+				if(_hg.partID(v) != max_part)
 
-				for (HyperedgeID he : _hg.incidentEdges(v)) {
-					for (HypernodeID p : _hg.pins(he)) {
-
-						if (p != v && _hg.partID(p) != -1) {
-							if (_hg.nodeWeight(v)
-									+ _hg.partWeight(_hg.partID(p))
-									<= _config.initial_partitioning.upper_allowed_partition_weight[_hg.partID(
-											p)]) {
-								if (tmp_scores[_hg.partID(p)]
-										== invalid_score_value) {
-									Gain gain = GainComputation::calculateGain(
-											_hg, v, _hg.partID(p));
-									tmp_scores[_hg.partID(p)] = gain;
-								}
-							}
-						}
-
-					}
-				}
-
-				PartitionID max_part = _hg.partID(v);
-				double max_score =
-						(_hg.partID(v) == -1) ? invalid_score_value : 0;
-				for (PartitionID p = 0; p < _config.initial_partitioning.k;
-						p++) {
-					HypernodeWeight new_partition_weight = _hg.partWeight(p)
-							+ _hg.nodeWeight(v);
-					if (tmp_scores[p] > max_score) {
-						max_score = tmp_scores[p];
-						max_part = p;
-					}
-				}
 
 				if (max_part != _hg.partID(v)) {
 					PartitionID source_part = _hg.partID(v);
 					if (InitialPartitionerBase::assignHypernodeToPartition(v,
 							max_part)) {
+						changes++;
 						if (source_part == -1) {
 							assigned_nodes++;
 						}
@@ -130,7 +99,8 @@ public:
 			if (converged && assigned_nodes < _hg.numNodes()) {
 				for (HypernodeID hn : nodes) {
 					if (_hg.partID(hn) == -1) {
-						assignHypernodeToPartitionWithMinimumPartitionWeight(hn);
+						assignHypernodeToPartitionWithMinimumPartitionWeight(
+								hn);
 						converged = false;
 						assigned_nodes++;
 						assign_unassigned_node_count--;
@@ -141,9 +111,10 @@ public:
 				}
 			}
 
+
 		}
 
-		for(HypernodeID hn : _hg.nodes()) {
+		for (HypernodeID hn : _hg.nodes()) {
 			if (_hg.partID(hn) == -1) {
 				assignHypernodeToPartitionWithMinimumPartitionWeight(hn);
 			}
@@ -151,6 +122,58 @@ public:
 
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
+
+	}
+
+	std::pair<PartitionID,Gain> computeMaxGainMove(const HypernodeID& hn) {
+
+		std::vector<double> tmp_scores(_config.initial_partitioning.k, 0);
+
+		PartitionID source_part = _hg.partID(hn);
+		HyperedgeWeight internal_weight = 0;
+
+		for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+
+			if (_hg.connectivity(he) == 1) {
+				const PartitionID partition_in_edge =
+						*_hg.connectivitySet(he).begin();
+				internal_weight += _hg.edgeWeight(he);
+				tmp_scores[partition_in_edge] += _hg.edgeWeight(he);
+			} else {
+				for (const PartitionID target_part : _hg.connectivitySet(he)) {
+					if (_hg.connectivity(he) > 1 && source_part != -1
+							&& source_part != target_part) {
+						const HypernodeID pins_in_source_part =
+								_hg.pinCountInPart(he, source_part);
+						const HypernodeID pins_in_target_part =
+								_hg.pinCountInPart(he, target_part);
+						if (pins_in_source_part == 1
+								&& pins_in_target_part
+										== _hg.edgeSize(he) - 1) {
+							tmp_scores[target_part] += _hg.edgeWeight(he);
+						}
+					}
+				}
+			}
+		}
+
+		PartitionID max_part = _hg.partID(hn);
+		double max_score = (_hg.partID(hn) == -1) ? invalid_score_value : 0;
+		for (PartitionID p = 0; p < _config.initial_partitioning.k; ++p) {
+			tmp_scores[p] -= internal_weight;
+			HypernodeWeight new_partition_weight = _hg.partWeight(p)
+					+ _hg.nodeWeight(hn);
+			if (new_partition_weight
+					<= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
+				if (tmp_scores[p] > max_score) {
+					max_score = tmp_scores[p];
+					max_part = p;
+				}
+			}
+
+		}
+
+		return std::make_pair(max_part,static_cast<Gain>(max_score));
 
 	}
 
@@ -173,7 +196,8 @@ public:
 	}
 
 	void assignHypernodeToPartitionWithMinimumPartitionWeight(HypernodeID hn) {
-		ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << " isn't part from partition -1!");
+		ASSERT(_hg.partID(hn) == -1,
+				"Hypernode " << hn << " isn't part from partition -1!");
 		PartitionID p = -1;
 		HypernodeWeight min_partition_weight = std::numeric_limits<
 				HypernodeWeight>::max();
@@ -230,7 +254,8 @@ protected:
 
 	const double invalid_score_value = std::numeric_limits<double>::lowest();
 
-};
+}
+;
 
 }
 
