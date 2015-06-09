@@ -73,6 +73,8 @@ using defs::HighResClockTimepoint;
 
 using partition::InitialPartitioningFactoryParameters;
 using partition::InitialPartitioningFactory;
+using partition::CoarseningAlgorithm;
+using partition::RefinementAlgorithm;
 
 InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		std::string mode) {
@@ -132,6 +134,10 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::nLevel;
 	} else if (mode.compare("pool") == 0) {
 		return InitialPartitionerAlgorithm::pool;
+	} else if (mode.compare("ils") == 0) {
+		return InitialPartitionerAlgorithm::ils;
+	} else if (mode.compare("sa") == 0) {
+		return InitialPartitionerAlgorithm::sa;
 	}
 	return InitialPartitionerAlgorithm::rb_greedy_global;
 }
@@ -159,9 +165,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					stringToInitialPartitionerAlgorithm(
 							config.initial_partitioning.algorithm);
 			if (config.initial_partitioning.algorithm.compare("ils") == 0) {
-				if (vm.count("ils_iterations")) {
-					config.initial_partitioning.ils_iterations =
-							vm["ils_iterations"].as<int>();
+				if (vm.count("min_ils_iterations")) {
+					config.initial_partitioning.min_ils_iterations =
+							vm["min_ils_iterations"].as<int>();
+				}
+				if (vm.count("max_stable_net_removals")) {
+					config.initial_partitioning.max_stable_net_removals =
+							vm["max_stable_net_removals"].as<int>();
 				}
 			}
 		}
@@ -204,6 +214,49 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("styles")) {
 			config.initial_partitioning.styles = vm["styles"].as<bool>();
 		}
+		if (vm.count("rtype")) {
+			if (vm["rtype"].as<std::string>() == "twoway_fm") {
+				config.partition.refinement_algorithm =
+						RefinementAlgorithm::twoway_fm;
+			} else if (vm["rtype"].as<std::string>() == "kway_fm") {
+				config.partition.refinement_algorithm =
+						RefinementAlgorithm::kway_fm;
+			} else if (vm["rtype"].as<std::string>() == "kway_fm_maxgain") {
+				config.partition.refinement_algorithm =
+						RefinementAlgorithm::kway_fm_maxgain;
+			} else if (vm["rtype"].as<std::string>() == "hyperedge") {
+				config.partition.refinement_algorithm =
+						RefinementAlgorithm::hyperedge;
+			} else if (vm["rtype"].as<std::string>() == "label_propagation") {
+				config.partition.refinement_algorithm =
+						RefinementAlgorithm::label_propagation;
+			} else {
+				std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+				exit(0);
+			}
+		}
+		if (vm.count("ctype")) {
+			if (vm["ctype"].as<std::string>() == "heavy_full") {
+				config.partition.coarsening_algorithm =
+						CoarseningAlgorithm::heavy_full;
+			} else if (vm["ctype"].as<std::string>() == "heavy_partial") {
+				config.partition.coarsening_algorithm =
+						CoarseningAlgorithm::heavy_partial;
+			} else if (vm["ctype"].as<std::string>() == "heavy_lazy") {
+				config.partition.coarsening_algorithm =
+						CoarseningAlgorithm::heavy_lazy;
+			} else if (vm["ctype"].as<std::string>() == "hyperedge") {
+				config.partition.coarsening_algorithm =
+						CoarseningAlgorithm::hyperedge;
+			} else {
+				std::cout << "Illegal ctype option! Exiting..." << std::endl;
+				exit(0);
+			}
+		}
+		if (vm.count("t")) {
+			config.coarsening.contraction_limit_multiplier = vm["t"].as<
+					HypernodeID>();
+		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);
@@ -219,7 +272,8 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.algo = InitialPartitionerAlgorithm::random;
 	config.initial_partitioning.mode = "direct";
 	config.initial_partitioning.seed = -1;
-	config.initial_partitioning.ils_iterations = 50;
+	config.initial_partitioning.min_ils_iterations = 400;
+	config.initial_partitioning.max_stable_net_removals = 100;
 	config.initial_partitioning.nruns = 1;
 	config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.alpha = 1.0;
@@ -231,6 +285,10 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.stats = true;
 	config.initial_partitioning.styles = true;
 
+	config.coarsening.contraction_limit_multiplier = 160;
+	config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_partial;
+	config.partition.refinement_algorithm =
+			RefinementAlgorithm::label_propagation;
 	config.fm_local_search.num_repetitions = -1;
 	config.fm_local_search.max_number_of_fruitless_moves = 150;
 	config.fm_local_search.alpha = 8;
@@ -484,9 +542,11 @@ int main(int argc, char* argv[]) {
 			"Runs of the initial partitioner during bisection")(
 			"unassigned-part", po::value<PartitionID>(),
 			"Part, which all nodes are assigned before partitioning")(
-			"ils_iterations", po::value<int>(),
-			"Iterations of the iterative local search partitioner")("alpha",
-			po::value<double>(),
+			"min_ils_iterations", po::value<int>(),
+			"Iterations of the iterative local search partitioner")(
+			"max_stable_net_removals", po::value<int>(),
+			"Maximum amount of stable nets which should be removed during the iterative local search partitioner")(
+			"alpha", po::value<double>(),
 			"There are alpha * nruns initial partitioning attempts on the highest level of recursive bisection")(
 			"beta", po::value<double>(),
 			"Every hyperedge, which has an edge size of beta*max_hyperedge_size, were removed before initial partitioning")(
@@ -501,7 +561,13 @@ int main(int argc, char* argv[]) {
 			"Enables/Disable initial partitioning statistic output")("styles",
 			po::value<bool>(),
 			"Enables/Disable initial partitioning statistic output with styles")(
-			"file", po::value<std::string>(), "filename of result file");
+			"file", po::value<std::string>(), "filename of result file")(
+			"ctype", po::value<std::string>(),
+			"Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")(
+			"rtype", po::value<std::string>(),
+			"Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")(
+			"t", po::value<HypernodeID>(),
+			"Coarsening: Coarsening stops when there are no more than t * k hypernodes left");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);

@@ -19,6 +19,7 @@
 #include "partition/initial_partitioning/InitialStatManager.h"
 #include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
 #include "partition/Configuration.h"
+#include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
@@ -43,6 +44,7 @@ using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
 using partition::KWayFMRefiner;
+using partition::IRefiner;
 
 namespace partition {
 

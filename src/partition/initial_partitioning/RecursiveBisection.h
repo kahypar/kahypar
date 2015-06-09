@@ -111,7 +111,6 @@ private:
 						RecursiveBisectionState::unpartition));
 		partition_stack.push_back(std::make_pair(0, k - 1));
 
-
 		while (!hypergraph_stack.empty()) {
 			Hypergraph& h = *hypergraph_stack.back().first;
 			RecursiveBisectionState state = hypergraph_stack.back().second;
@@ -138,12 +137,12 @@ private:
 			if (k2 - k1 == 0) {
 				for (HypernodeID hn : h.nodes()) {
 					PartitionID source = hypergraph.partID(
-							projectHypernodeToBaseHypergraph(hn, mapping_stack));
-					if (source
-							!= k1) {
+							projectHypernodeToBaseHypergraph(hn,
+									mapping_stack));
+					if (source != k1) {
 						hypergraph.changeNodePart(
 								projectHypernodeToBaseHypergraph(hn,
-										mapping_stack),source, k1);
+										mapping_stack), source, k1);
 					}
 				}
 				delete hypergraph_stack.back().first;
@@ -154,7 +153,7 @@ private:
 			}
 
 			if (state == RecursiveBisectionState::finish) {
-				if(hypergraph_stack.size() != 1) {
+				if (hypergraph_stack.size() != 1) {
 					delete hypergraph_stack.back().first;
 				}
 				hypergraph_stack.pop_back();
@@ -198,6 +197,11 @@ private:
 				mapping_stack.push_back(mapping_0);
 				partition_stack.push_back(std::make_pair(k1, k1 + km - 1));
 			}
+		}
+
+		for (int i = 0; i < _config.initial_partitioning.k; i++) {
+			_config.initial_partitioning.perfect_balance_partition_weight[i] =
+					ceil(_hg.totalWeight() / static_cast<double>(_hg.k()));
 		}
 
 	}
@@ -321,7 +325,7 @@ private:
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 
 		int runs = calculateRuns(_config.initial_partitioning.alpha, 2, k);
-		if(_config.initial_partitioning.mode.compare("nLevel") == 0) {
+		if (_config.initial_partitioning.mode.compare("nLevel") == 0) {
 			runs = 1;
 		}
 		for (int i = 0; i < runs; ++i) {

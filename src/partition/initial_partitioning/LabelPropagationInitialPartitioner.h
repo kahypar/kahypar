@@ -77,8 +77,6 @@ public:
 				std::pair<PartitionID,Gain> max_move = computeMaxGainMove(v);
 				PartitionID max_part = max_move.first;
 				Gain max_gain = max_move.second;
-				if(_hg.partID(v) != max_part)
-
 
 				if (max_part != _hg.partID(v)) {
 					PartitionID source_part = _hg.partID(v);

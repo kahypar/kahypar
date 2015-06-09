@@ -147,7 +147,6 @@ private:
 						+ std::to_string(_config.initial_partitioning.k);
 		_config.partition.total_graph_weight = _hg.totalWeight();
 
-		_config.coarsening.contraction_limit_multiplier = 160;
 		_config.coarsening.max_allowed_weight_multiplier = 3.5;
 		_config.coarsening.contraction_limit =
 				_config.coarsening.contraction_limit_multiplier * _config.initial_partitioning.k;
@@ -173,7 +172,7 @@ private:
 		_config.her_fm.num_repetitions = 1;
 		_config.her_fm.max_number_of_fruitless_moves = 10;
 		_config.lp_refiner.max_number_iterations = 3;
-		_config.partition.refinement_algorithm = RefinementAlgorithm::label_propagation;
+
 		_config.partition.initial_partitioning_attempts = 1;
 		_config.partition.global_search_iterations = 10;
 		_config.partition.hyperedge_size_threshold = -1;
@@ -186,6 +185,8 @@ private:
 		prepareConfiguration();
 		Partitioner partitioner(_config);
 		partitioner.performDirectKwayPartitioning(_hg);
+		std::remove(_config.partition.coarse_graph_filename.c_str());
+		std::remove(_config.partition.coarse_graph_partition_filename.c_str());
 	}
 
 	void bisectionPartitionImpl() final {

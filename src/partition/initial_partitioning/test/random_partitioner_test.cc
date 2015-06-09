@@ -30,7 +30,7 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 	config.initial_partitioning.epsilon = 0.05;
 	config.partition.epsilon = 0.05;
 	config.initial_partitioning.seed = 1;
-	config.initial_partitioning.ils_iterations = 30;
+	config.initial_partitioning.min_ils_iterations = 30;
 	config.initial_partitioning.rollback = false;
 	config.initial_partitioning.refinement = false;
 	config.initial_partitioning.erase_components = false;

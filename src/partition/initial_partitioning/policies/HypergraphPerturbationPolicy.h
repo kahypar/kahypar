@@ -1,5 +1,5 @@
 /*
-.t * HypergraphPerturbationPolicy.h
+ .t * HypergraphPerturbationPolicy.h
  *
  *  Created on: Apr 21, 2015
  *      Author: theuer
@@ -34,10 +34,9 @@ struct HypergraphPerturbationPolicy {
 
 struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 
-	static const int max_stable_net_removals = 100;
 
 	static inline void perturbation(Hypergraph& hg, const Configuration& config,
-			std::vector<PartitionID>& last_partition) noexcept {
+			std::vector<bool>& last_partition) noexcept {
 		std::vector<PartitionID> new_partition(hg.numNodes(), -1);
 		std::vector<bool> locked(hg.numNodes(), false);
 
@@ -55,27 +54,19 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 		Randomize::shuffleVector(cut_edges, cut_edges.size());
 
 		int count = 0;
+		std::set<HyperedgeID> removed_edges;
 		for (HyperedgeID he : cut_edges) {
-			if (hg.connectivity(he) > 1) {
-				PartitionID last_seen_partition = -1;
-				bool was_cut_edge_before = false;
-				for (HypernodeID hn : hg.pins(he)) {
-					PartitionID part = last_partition[hn];
-					if (last_seen_partition != -1
-							&& last_seen_partition != part) {
-						was_cut_edge_before = true;
-						break;
-					}
-					last_seen_partition = part;
+			PartitionID last_seen_partition = -1;
+			bool was_cut_edge_before = last_partition[he];
+			if (was_cut_edge_before) {
+				if(removeEdgeFromCut(hg, he, config, part_weight, new_partition,
+						locked)) {
+					count++;
+					removed_edges.insert(he);
 				}
-				if (was_cut_edge_before) {
-					if (removeEdgeFromCut(hg, he, config, part_weight,
-							new_partition, locked))
-						count++;
-				}
-				if (count == max_stable_net_removals) {
-					break;
-				}
+			}
+			if (count == config.initial_partitioning.max_stable_net_removals) {
+				break;
 			}
 		}
 
@@ -93,34 +84,46 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 			std::vector<bool>& locked) {
 		PartitionID target_part = -1;
 
-		std::vector<PartitionID> target_parts;
-		std::vector<bool> seen(hg.k(), false);
 		bool lock = false;
+		PartitionID possible_part = -1;
+		std::vector<HypernodeWeight> edge_part_weight(hg.k(),0);
 		for (HypernodeID hn : hg.pins(he)) {
-			if (!locked[hn] && !seen[hg.partID(hn)] && !lock) {
-				target_parts.push_back(hg.partID(hn));
-				seen[hg.partID(hn)] = true;
-			} else if (locked[hn] && !lock) {
-				target_parts.clear();
-				seen.assign(hg.k(), false);
-				target_parts.push_back(hg.partID(hn));
-				seen[hg.partID(hn)] = true;
+			PartitionID part = hg.partID(hn);
+			if(locked[hn] && !lock) {
+				possible_part = part;
 				lock = true;
-			} else if (locked[hn] && lock) {
-				target_parts.clear();
+			} else if(locked[hn] && lock && part != possible_part) {
+				possible_part = -1;
 				break;
+			}
+			edge_part_weight[part] += hg.nodeWeight(hn);
+		}
+
+		if(lock && possible_part == -1) {
+			return false;
+		}
+
+		std::vector<HypernodeWeight> new_partition_weights(hg.k(),0);
+		for (PartitionID i : hg.connectivitySet(he)) {
+			for (PartitionID j : hg.connectivitySet(he)) {
+				if(i != j) {
+					new_partition_weights[i] += edge_part_weight[j];
+				}
 			}
 		}
 
-		for (int i = 0; i < target_parts.size(); i++) {
-			HypernodeWeight partWeight = part_weight[target_parts[i]];
-			for (HypernodeID hn : hg.pins(he)) {
-				if (hg.partID(hn) != target_parts[i])
-					partWeight += hg.nodeWeight(hn);
+		for(PartitionID i = 0; i < config.initial_partitioning.k; i++) {
+			new_partition_weights[i] += part_weight[i];
+		}
+
+		for (PartitionID i : hg.connectivitySet(he)) {
+			if(possible_part != -1 && i != possible_part) {
+				continue;
 			}
-			if (partWeight
-					< config.initial_partitioning.upper_allowed_partition_weight[target_parts[i]]) {
-				target_part = target_parts[i];
+			HypernodeWeight part_weight = new_partition_weights[i];
+			if (part_weight
+					<= config.initial_partitioning.upper_allowed_partition_weight[i]) {
+				target_part = i;
 				break;
 			}
 		}
@@ -132,6 +135,7 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 				}
 				locked[hn] = true;
 			}
+			part_weight[target_part] = new_partition_weights[target_part];
 			return true;
 		}
 
