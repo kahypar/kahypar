@@ -180,7 +180,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm_maxgain;
       } else if (vm["rtype"].as<std::string>() == "hyperedge") {
         config.partition.refinement_algorithm = RefinementAlgorithm::hyperedge;
-      } else if (vm["rtype"].as<std::string>() == "label_propagation") {
+      } else if (vm["rtype"].as<std::string>() == "sclap") {
         config.partition.refinement_algorithm = RefinementAlgorithm::label_propagation;
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
