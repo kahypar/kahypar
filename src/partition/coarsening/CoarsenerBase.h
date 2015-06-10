@@ -58,7 +58,7 @@ class CoarsenerBase {
     _history(),
     _max_hn_weights(),
     _stats(),
-    _hypergraph_pruner(_hg, _config, _stats) {
+    _hypergraph_pruner(_hg, _stats) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
     _max_hn_weights.emplace_back(_hg.numNodes(), 1);
@@ -68,15 +68,21 @@ class CoarsenerBase {
 
  protected:
   void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
-    _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
-                                                  _history.back().one_pin_hes_begin,
-                                                  _history.back().one_pin_hes_size);
+    HyperedgeWeight removed_he_weight =
+        _hypergraph_pruner.removeSingleNodeHyperedges(rep_node,
+                                                      _history.back().one_pin_hes_begin,
+                                                      _history.back().one_pin_hes_size);
+    _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
+               removed_he_weight);
   }
 
   void removeParallelHyperedges(const HypernodeID rep_node) noexcept {
-    _hypergraph_pruner.removeParallelHyperedges(rep_node,
-                                                _history.back().parallel_hes_begin,
-                                                _history.back().parallel_hes_size);
+
+    HyperedgeID removed_parallel_hes =
+        _hypergraph_pruner.removeParallelHyperedges(rep_node,
+                                                    _history.back().parallel_hes_begin,
+                                                    _history.back().parallel_hes_size);
+    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle, removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() noexcept {
