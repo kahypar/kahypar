@@ -392,10 +392,10 @@ int main(int argc, char* argv[]) {
   LOG("*******************************");
 #endif
 
-  Partitioner partitioner(config);
+  Partitioner partitioner;
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  partitioner.performDirectKwayPartitioning(hypergraph);
+  partitioner.performDirectKwayPartitioning(hypergraph, config);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG

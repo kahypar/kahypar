@@ -79,14 +79,15 @@ class Partitioner {
   Partitioner& operator= (const Partitioner&) = delete;
   Partitioner& operator= (Partitioner&&) = delete;
 
-  explicit Partitioner(Configuration& config) :
-    _config(config),
+  explicit Partitioner() :
     _stats(),
     _timings(),
     _internals() { }
 
-  inline void performDirectKwayPartitioning(Hypergraph& hypergraph);
+  inline void performDirectKwayPartitioning(Hypergraph& hypergraph, const Configuration& config);
 
+  inline void performRecursiveBisectionPartitioning(Hypergraph& hypergraph,
+                                                    const Configuration& config);
 
   const std::array<std::chrono::duration<double>, 7> & timings() const {
     return _timings;
@@ -121,53 +122,54 @@ class Partitioner {
   friend class metrics::APartitionedHypergraph;
 
   void performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                     IRefiner& refiner);
+                                     IRefiner& refiner,
+                                     const Configuration& config);
 
-  inline void removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges);
+  inline void removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
+                                    const Configuration& config);
   inline void restoreLargeHyperedges(Hypergraph& hg, const Hyperedges& removed_hyperedges);
   inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                                    CoarsenedToHmetisMapping& hg_to_hmetis,
                                                    const Hypergraph& hg);
-  void performInitialPartitioning(Hypergraph& hg);
-  inline void removeParallelHyperedges(Hypergraph& hypergraph);
+  void performInitialPartitioning(Hypergraph& hg, const Configuration& config);
+  inline void removeParallelHyperedges(Hypergraph& hypergraph, const Configuration& config);
   inline void restoreParallelHyperedges(Hypergraph& hypergraph);
   inline void partition(Hypergraph& hypergraph, ICoarsener& coarsener,
-                        IRefiner& refiner);
+                        IRefiner& refiner, const Configuration& config);
 
   inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
-                              IRefiner& refiner);
+                              IRefiner& refiner, const Configuration& config);
 
-  Configuration& _config;
   Stats _stats;
   std::array<std::chrono::duration<double>, 7> _timings;
   std::string _internals;
 };
 
-void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph) {
+void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph, const Configuration& config) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      _config.partition.coarsening_algorithm, hypergraph, _config));
+      config.partition.coarsening_algorithm, hypergraph, config));
 
   std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
-                                      _config.partition.refinement_algorithm,
-                                      hypergraph, _config));
+                                      config.partition.refinement_algorithm,
+                                      hypergraph, config));
 
   // TODO(schlag): fix this
   _internals.append(coarsener->policyString());
   _internals.append(" ");
   _internals.append(refiner->policyString());
-  performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
+  performDirectKwayPartitioning(hypergraph, *coarsener, *refiner, config);
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                   IRefiner& refiner) {
+                                   IRefiner& refiner, const Configuration& config) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  coarsener.coarsen(_config.coarsening.contraction_limit);
+  coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   _timings[kCoarsening] += end - start;
 
   start = std::chrono::high_resolution_clock::now();
-  performInitialPartitioning(hypergraph);
+  performInitialPartitioning(hypergraph, config);
   end = std::chrono::high_resolution_clock::now();
   _timings[kInitialPartitioning] = end - start;
 
@@ -178,9 +180,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
 }
 
 inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                         IRefiner& refiner) {
+                                         IRefiner& refiner, const Configuration& config) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  coarsener.coarsen(_config.coarsening.contraction_limit);
+  coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   _timings[kCoarsening] += end - start;
 
@@ -204,22 +206,23 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
   }
 }
 
-inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges) {
-  if (_config.partition.hyperedge_size_threshold != -1) {
+inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
+                                               const Configuration& config) {
+  if (config.partition.hyperedge_size_threshold != -1) {
     for (const HyperedgeID he : hg.edges()) {
-      if (hg.edgeSize(he) > _config.partition.hyperedge_size_threshold) {
+      if (hg.edgeSize(he) > config.partition.hyperedge_size_threshold) {
         DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
             << hg.edgeSize(he) << ")   exceeds threshold: "
-            << _config.partition.hyperedge_size_threshold);
+            << config.partition.hyperedge_size_threshold);
         removed_hyperedges.push_back(he);
         hg.removeEdge(he, false);
       }
     }
   }
-  _stats.add("numInitiallyRemovedLargeHEs", _config.partition.current_v_cycle,
+  _stats.add("numInitiallyRemovedLargeHEs", config.partition.current_v_cycle,
              removed_hyperedges.size());
   LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
-      << _config.partition.hyperedge_size_threshold << " pins");
+      << config.partition.hyperedge_size_threshold << " pins");
 }
 
 inline void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
@@ -230,7 +233,7 @@ inline void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
   }
 }
 
-inline void Partitioner::removeParallelHyperedges(Hypergraph&) {
+inline void Partitioner::removeParallelHyperedges(Hypergraph&, const Configuration&) {
   // HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   throw std::runtime_error("Not Implemented");
   // HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
