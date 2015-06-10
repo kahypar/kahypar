@@ -50,56 +50,58 @@ class HypergraphPruner {
   HypergraphPruner& operator= (const HypergraphPruner&) = delete;
   HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
-  HypergraphPruner(Hypergraph& hypergraph, Stats& stats) noexcept :
-    _hg(hypergraph),
+  HypergraphPruner(HypernodeID max_num_nodes, Stats& stats) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
-    _contained_hypernodes(_hg.initialNumNodes()),
+    _contained_hypernodes(max_num_nodes),
     _stats(stats) { }
 
   ~HypergraphPruner() { }
 
-  void restoreSingleNodeHyperedges(const int begin, const int size) noexcept {
+  void restoreSingleNodeHyperedges(Hypergraph& hypergraph,
+                                   const int begin, const int size) noexcept {
     for (int i = begin + size - 1; i >= begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_single_node_hyperedges.size(),
              "Index out of bounds " << i);
       DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
           << _removed_single_node_hyperedges[i]);
-      _hg.restoreEdge(_removed_single_node_hyperedges[i]);
+      hypergraph.restoreEdge(_removed_single_node_hyperedges[i]);
       _removed_single_node_hyperedges.pop_back();
     }
   }
 
-  void restoreParallelHyperedges(const int begin, const int size) noexcept {
+  void restoreParallelHyperedges(Hypergraph& hypergraph,
+                                 const int begin, const int size) noexcept {
     for (int i = begin + size - 1; i >= begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_parallel_hyperedges.size(),
              "Index out of bounds: " << i);
       DBG(dbg_coarsening_parallel_he_removal, "restore HE "
           << _removed_parallel_hyperedges[i].removed_id << " which is parallel to "
           << _removed_parallel_hyperedges[i].representative_id);
-      _hg.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
-      _hg.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
-                        _hg.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
-                        _hg.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
+      hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id);
+      hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
+                               hypergraph.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
+                               hypergraph.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
       _removed_parallel_hyperedges.pop_back();
     }
   }
 
-  HyperedgeWeight removeSingleNodeHyperedges(const HypernodeID u, int& begin, int& size) noexcept {
+  HyperedgeWeight removeSingleNodeHyperedges(Hypergraph& hypergraph,
+                                             const HypernodeID u, int& begin, int& size) noexcept {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
     begin = _removed_single_node_hyperedges.size();
-    auto begin_it = _hg.incidentEdges(u).first;
-    auto end_it = _hg.incidentEdges(u).second;
+    auto begin_it = hypergraph.incidentEdges(u).first;
+    auto end_it = hypergraph.incidentEdges(u).second;
     HyperedgeWeight removed_he_weight = 0;
     for (auto he_it = begin_it; he_it != end_it; ++he_it) {
-      if (_hg.edgeSize(*he_it) == 1) {
+      if (hypergraph.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
-        removed_he_weight += _hg.edgeWeight(*he_it);
+        removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
-        _hg.removeEdge(*he_it, false);
+        hypergraph.removeEdge(*he_it, false);
         --he_it;
         --end_it;
       }
@@ -119,12 +121,13 @@ class HypergraphPruner {
   // HEs from the graph during this process, we have to ensure that both i and j point to finger-
   // prints that correspond to enabled HEs. This is necessary because we currently do not delete a
   // fingerprint after the corresponding hyperedge is removed.
-  HyperedgeID removeParallelHyperedges(const HypernodeID u, int& begin, int& size) noexcept {
+  HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph,
+                                       const HypernodeID u, int& begin, int& size) noexcept {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
     begin = _removed_parallel_hyperedges.size();
 
-    createFingerprints(u);
+    createFingerprints(hypergraph, u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
@@ -142,19 +145,19 @@ class HypergraphPruner {
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
       DBG(dbg_coarsening_fingerprinting, "i=" << i << ", j=" << j);
-      if (j < _fingerprints.size() && _hg.edgeIsEnabled(_fingerprints[i].id) &&
+      if (j < _fingerprints.size() && hypergraph.edgeIsEnabled(_fingerprints[i].id) &&
           _fingerprints[i].hash == _fingerprints[j].hash) {
-        fillProbeBitset(_fingerprints[i].id);
+        fillProbeBitset(hypergraph, _fingerprints[i].id);
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
           DBG(dbg_coarsening_fingerprinting,
               _fingerprints[i].hash << "==" << _fingerprints[j].hash);
           DBG(dbg_coarsening_fingerprinting,
               "Size:" << _fingerprints[i].size << "==" << _fingerprints[j].size);
           if (_fingerprints[i].size == _fingerprints[j].size &&
-              _hg.edgeIsEnabled(_fingerprints[j].id) &&
-              isParallelHyperedge(_fingerprints[j].id)) {
+              hypergraph.edgeIsEnabled(_fingerprints[j].id) &&
+              isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
             removed_parallel_hes += 1;
-            removeParallelHyperedge(_fingerprints[i].id, _fingerprints[j].id);
+            removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
             ++size;
           }
           ++j;
@@ -165,9 +168,9 @@ class HypergraphPruner {
     return removed_parallel_hes;
   }
 
-  bool isParallelHyperedge(const HyperedgeID he) const noexcept {
+  bool isParallelHyperedge(Hypergraph& hypergraph, const HyperedgeID he) const noexcept {
     bool is_parallel = true;
-    for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       if (!_contained_hypernodes[pin]) {
         is_parallel = false;
         break;
@@ -177,36 +180,37 @@ class HypergraphPruner {
     return is_parallel;
   }
 
-  void fillProbeBitset(const HyperedgeID he) noexcept {
+  void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) noexcept {
     _contained_hypernodes.assign(_contained_hypernodes.size(), false);
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
-    for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
       _contained_hypernodes[pin] = 1;
     }
   }
 
-  void removeParallelHyperedge(const HyperedgeID representative,
+  void removeParallelHyperedge(Hypergraph& hypergraph,
+                               const HyperedgeID representative,
                                const HyperedgeID to_remove) noexcept {
-    _hg.setEdgeWeight(representative,
-                      _hg.edgeWeight(representative)
-                      + _hg.edgeWeight(to_remove));
+    hypergraph.setEdgeWeight(representative,
+                             hypergraph.edgeWeight(representative)
+                             + hypergraph.edgeWeight(to_remove));
     DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
         << representative);
-    _hg.removeEdge(to_remove, false);
+    hypergraph.removeEdge(to_remove, false);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
   }
 
-  void createFingerprints(const HypernodeID u) noexcept {
+  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) noexcept {
     _fingerprints.clear();
-    for (const HyperedgeID he : _hg.incidentEdges(u)) {
+    for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
       HyperedgeID hash =  /* seed */ 42;
-      for (const HypernodeID pin : _hg.pins(he)) {
+      for (const HypernodeID pin : hypergraph.pins(he)) {
         hash ^= pin;
       }
       DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
-          << "= {" << he << "," << hash << "," << _hg.edgeSize(he) << "}");
-      _fingerprints.emplace_back(he, hash, _hg.edgeSize(he));
+          << "= {" << he << "," << hash << "," << hypergraph.edgeSize(he) << "}");
+      _fingerprints.emplace_back(he, hash, hypergraph.edgeSize(he));
     }
   }
 
@@ -219,7 +223,6 @@ class HypergraphPruner {
   }
 
  private:
-  Hypergraph& _hg;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
