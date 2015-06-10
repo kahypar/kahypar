@@ -96,6 +96,7 @@ class HyperedgeFMRefiner : public IRefiner,
     _movement_indices(),
     _performed_moves(),
     _is_initialized(false),
+    _stopping_policy(),
     _stats() {
     _movement_indices.reserve(_hg.initialNumEdges() + 1);
     _movement_indices[0] = 0;
@@ -156,11 +157,11 @@ class HyperedgeFMRefiner : public IRefiner,
 
     int step = 0;
     int num_moves_since_last_improvement = 0;
-    StoppingPolicy::resetStatistics();
+    _stopping_policy.resetStatistics();
     const double beta = log(_hg.numNodes());
     while (!queuesAreEmpty() && (best_cut == cut ||
-                                 !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
-                                                                   _config, beta, best_cut, cut))) {
+                                 !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+                                                                    _config, beta, best_cut, cut))) {
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
@@ -198,7 +199,7 @@ class HyperedgeFMRefiner : public IRefiner,
 
       cut -= max_gain;
       imbalance = calculateImbalance();
-      StoppingPolicy::updateStatistics(max_gain);
+      _stopping_policy.updateStatistics(max_gain);
 
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Calculated cut (" << cut << ") and cut induced by hypergraph ("
@@ -223,7 +224,7 @@ class HyperedgeFMRefiner : public IRefiner,
         best_imbalance = imbalance;
         best_cut = cut;
         min_cut_index = step;
-        StoppingPolicy::resetStatistics();
+        _stopping_policy.resetStatistics();
         num_moves_since_last_improvement = 0;
       }
       ++step;
@@ -542,6 +543,7 @@ class HyperedgeFMRefiner : public IRefiner,
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
+  StoppingPolicy _stopping_policy;
   Stats _stats;
 };
 #pragma GCC diagnostic pop

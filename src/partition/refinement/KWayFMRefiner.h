@@ -84,6 +84,7 @@ class KWayFMRefiner : public IRefiner,
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
+    _stopping_policy(),
     _stats() {
     _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
@@ -141,11 +142,11 @@ class KWayFMRefiner : public IRefiner,
     int min_cut_index = -1;
     int num_moves = 0;
     int num_moves_since_last_improvement = 0;
-    StoppingPolicy::resetStatistics();
+    _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.numNodes());
-    while (!_pq.empty() && !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
-                                                             _config, beta, best_cut, current_cut)) {
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+                                                              _config, beta, best_cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -192,7 +193,7 @@ class KWayFMRefiner : public IRefiner,
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
       current_cut -= max_gain;
-      StoppingPolicy::updateStatistics(max_gain);
+      _stopping_policy.updateStatistics(max_gain);
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
@@ -222,7 +223,7 @@ class KWayFMRefiner : public IRefiner,
             "KWayFM improved cut from " << best_cut << " to " << current_cut);
         best_cut = current_cut;
         best_imbalance = current_imbalance;
-        StoppingPolicy::resetStatistics();
+        _stopping_policy.resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
       }
@@ -231,8 +232,8 @@ class KWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
-                                             best_cut, current_cut)
+        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+                                              best_cut, current_cut)
             == true ? "policy" : "empty queue"));
 
     rollback(num_moves - 1, min_cut_index);
@@ -933,6 +934,7 @@ class KWayFMRefiner : public IRefiner,
 
   FastResetVector<PartitionID> _locked_hes;
   KWayRefinementPQ _pq;
+  StoppingPolicy _stopping_policy;
   Stats _stats;
 };
 
