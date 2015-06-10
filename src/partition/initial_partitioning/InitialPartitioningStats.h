@@ -80,6 +80,10 @@ public:
 				_config.initial_partitioning.alpha, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "beta",
 				_config.initial_partitioning.beta, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "min_ils_iterations",
+				_config.initial_partitioning.min_ils_iterations, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "max_stable_net_removals",
+				_config.initial_partitioning.max_stable_net_removals, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",
 				"perfectBalancedPartitionWeight",
 				_config.initial_partitioning.perfect_balance_partition_weight[0],
