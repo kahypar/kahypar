@@ -28,7 +28,7 @@ class PolicyRegistry {
   PolicyRegistry() : _policies() { }
 
  public:
-  bool registerPolicy(const IDType& name, PolicyBase* policy) {
+  bool registerObject(const IDType& name, PolicyBase* policy) {
     return _policies.emplace(
       static_cast<UnderlyingIDType>(name), PolicyBasePtr(policy)).second;
   }

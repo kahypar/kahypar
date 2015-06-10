@@ -22,6 +22,7 @@ class Factory {
  private:
   using AbstractProduct = typename std::remove_pointer_t<
           typename FunctionTraits<ProductCreator>::result_type>;
+  using AbstractProductPtr = std::unique_ptr<AbstractProduct>;
   using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
   using CallbackMap = std::unordered_map<UnderlyingIdentifierType,
                                          ProductCreator>;
@@ -42,30 +43,23 @@ class Factory {
   }
 
   template <typename I, typename ... ProductParameters>
-  AbstractProduct* createObject(const I& id, ProductParameters&& ... params) {
+  AbstractProductPtr createObject(const I& id, ProductParameters&& ... params) {
     const auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
     if (creator != _callbacks.end()) {
-      return (creator->second)(params ...);
+      return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
     throw std::invalid_argument(toString(id));
   }
 
   static Factory & getInstance() {
-    if (_factory_instance.get() == nullptr) {
-      _factory_instance.reset(new Factory());
-    }
-    return *(_factory_instance.get());
+    static FactoryPtr _factory_instance(new Factory());
+    return *_factory_instance.get();
   }
 
  private:
   Factory() :
     _callbacks() { }
   CallbackMap _callbacks;
-  static FactoryPtr _factory_instance;
 };
-
-
-template <typename I, typename P>
-std::unique_ptr<Factory<I, P> > Factory<I, P>::_factory_instance = nullptr;
 }  // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_

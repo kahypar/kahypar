@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "lib/core/Registrar.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
@@ -21,16 +22,15 @@
 
 namespace po = boost::program_options;
 
+using core::Registrar;
 using partition::Partitioner;
 using partition::InitialPartitioner;
 using partition::Configuration;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
-
 using partition::RefinementStoppingRule;
 using partition::CoarsenerFactory;
 using partition::RefinerFactory;
-using partition::RefinerParameters;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
@@ -44,9 +44,7 @@ using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
-
 using serializer::SQLPlotToolsSerializer;
-
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HypernodeWeight;
@@ -220,94 +218,86 @@ void setDefaults(Configuration& config) {
   config.lp_refiner.max_number_iterations = 3;
 }
 
+static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
+  CoarseningAlgorithm::heavy_lazy,
+  [](Hypergraph& hypergraph, const Configuration& config)  -> ICoarsener* {
+  return new RandomWinsLazyUpdateCoarsener(hypergraph, config);
+});
+
+static Registrar<CoarsenerFactory> reg_heavy_partial_coarsener(
+  CoarseningAlgorithm::heavy_partial,
+  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
+  return new RandomWinsHeuristicCoarsener(hypergraph, config);
+});
+
+static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
+  CoarseningAlgorithm::heavy_full,
+  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
+  return new RandomWinsFullCoarsener(hypergraph, config);
+});
+
+static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
+  CoarseningAlgorithm::hyperedge,
+  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
+  return new HyperedgeCoarsener2(hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_twoway_fm_local_search(
+  RefinementAlgorithm::twoway_fm,
+  [](Hypergraph& hypergraph, const Configuration& config) {
+  return TwoWayFMFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.fm_local_search.stopping_rule),
+    NullPolicy(),
+    TwoWayFMFactoryExecutor(), hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
+  RefinementAlgorithm::kway_fm_maxgain,
+  [](Hypergraph& hypergraph, const Configuration& config) {
+  return MaxGainNodeKWayFMFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.fm_local_search.stopping_rule),
+    NullPolicy(),
+    MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_kway_fm_local_search(
+  RefinementAlgorithm::kway_fm,
+  [](Hypergraph& hypergraph, const Configuration& config) {
+  return KWayFMFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.fm_local_search.stopping_rule),
+    NullPolicy(),
+    KWayFMFactoryExecutor(), hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_lp_local_search(
+  RefinementAlgorithm::label_propagation,
+  [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
+  return new LPRefiner(hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_hyperedge_local_search(
+  RefinementAlgorithm::hyperedge,
+  [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
+  return HyperedgeFMFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.her_fm.stopping_rule),
+    NullPolicy(),
+    HyperedgeFMFactoryExecutor(), hypergraph, config);
+});
+
+static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_simple_stopping(
+  RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
+
+static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive1_stopping(
+  RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
+
+static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping(
+  RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
+
 int main(int argc, char* argv[]) {
-  static bool reg_heavy_lazy_coarsener = CoarsenerFactory::getInstance().registerObject(
-    CoarseningAlgorithm::heavy_lazy,
-    [](Hypergraph& hypergraph, const Configuration& config) {
-    return static_cast<ICoarsener*>(new RandomWinsLazyUpdateCoarsener(hypergraph, config));
-  });
-  static bool reg_simple_stopping =
-    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-      RefinementStoppingRule::simple, new NumberOfFruitlessMovesStopsSearch());
-
-  static bool reg_adaptive1_stopping =
-    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-      RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
-
-  static bool reg_adaptive2_stopping =
-    PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-      RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
-
-  static bool reg_hyperedge_coarsener = CoarsenerFactory::getInstance().registerObject(
-    CoarseningAlgorithm::hyperedge,
-    [](Hypergraph& hypergraph, const Configuration& config) {
-    return static_cast<ICoarsener*>(new HyperedgeCoarsener2(hypergraph, config));
-  });
-
-  static bool reg_heavy_partial_coarsener = CoarsenerFactory::getInstance().registerObject(
-    CoarseningAlgorithm::heavy_partial,
-    [](Hypergraph& hypergraph, const Configuration& config) {
-    return static_cast<ICoarsener*>(new RandomWinsHeuristicCoarsener(hypergraph, config));
-  });
-
-  static bool reg_heavy_full_coarsener = CoarsenerFactory::getInstance().registerObject(
-    CoarseningAlgorithm::heavy_full,
-    [](Hypergraph& hypergraph, const Configuration& config) {
-    return static_cast<ICoarsener*>(new RandomWinsFullCoarsener(hypergraph, config));
-  });
-
-
-  static bool reg_twoway_fm_local_search = RefinerFactory::getInstance().registerObject(
-    RefinementAlgorithm::twoway_fm,
-    [](const RefinerParameters& parameters) -> IRefiner* {
-    NullPolicy x;
-    return TwoWayFMFactoryDispatcher::go(
-      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-        parameters.config.fm_local_search.stopping_rule),
-      x,
-      TwoWayFMFactoryExecutor(), parameters);
-  });
-
-  static bool reg_kway_fm_maxgain_local_search = RefinerFactory::getInstance().registerObject(
-    RefinementAlgorithm::kway_fm_maxgain,
-    [](const RefinerParameters& parameters) -> IRefiner* {
-    NullPolicy* x = new NullPolicy;
-    return MaxGainNodeKWayFMFactoryDispatcher::go(
-      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-        parameters.config.fm_local_search.stopping_rule),
-      *x,
-      MaxGainNodeKWayFMFactoryExecutor(), parameters);
-  });
-
-  static bool reg_kway_fm_local_search = RefinerFactory::getInstance().registerObject(
-    RefinementAlgorithm::kway_fm,
-    [](const RefinerParameters& parameters) -> IRefiner* {
-    NullPolicy x;
-    return KWayFMFactoryDispatcher::go(
-      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-        parameters.config.fm_local_search.stopping_rule),
-      x,
-      KWayFMFactoryExecutor(), parameters);
-  });
-
-  static bool reg_lp_local_search = RefinerFactory::getInstance().registerObject(
-    RefinementAlgorithm::label_propagation,
-    [](const RefinerParameters& parameters) -> IRefiner* {
-    return new LPRefiner(parameters.hypergraph, parameters.config);
-  });
-
-  static bool reg_hyperedge_local_search = RefinerFactory::getInstance().registerObject(
-    RefinementAlgorithm::hyperedge,
-    [](const RefinerParameters& parameters) -> IRefiner* {
-    NullPolicy x;
-    return HyperedgeFMFactoryDispatcher::go(
-      PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-        parameters.config.her_fm.stopping_rule),
-      x,
-      HyperedgeFMFactoryExecutor(), parameters);
-  });
-
-
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "show help message")

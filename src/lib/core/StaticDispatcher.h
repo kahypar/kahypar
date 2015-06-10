@@ -22,29 +22,37 @@ class StaticDispatcher {
 
  public:
   template <typename BaseTypeLhs,
-            typename BaseTypeRhs>
-  static ResultType go(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
-                       const Parameters& parameters) {
+            typename BaseTypeRhs,
+            typename ... Parameters>
+  static ResultType go(BaseTypeLhs&& lhs, BaseTypeRhs&& rhs, Executor exec,
+                       Parameters&& ... parameters) {
     if (Head* p1 = dynamic_cast<Head*>(&lhs)) {
       return StaticDispatcher<Executor, TypesLhs, TypesRhs,
-                              ResultType>::dispatchRhs(*p1, rhs, exec, parameters);
+                              ResultType>::dispatchRhs(
+        *p1, rhs, exec,
+        std::forward<Parameters>(parameters) ...);
     } else {
       return StaticDispatcher<Executor, Tail, TypesRhs,
-                              ResultType>::go(lhs, rhs, exec, parameters);
+                              ResultType>::go(
+        lhs, rhs, exec,
+        std::forward<Parameters>(parameters) ...);
     }
   }
 
   template <class SomeLhs,
-            typename BaseTypeRhs>
-  static ResultType dispatchRhs(SomeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
-                                const Parameters& parameters) {
+            typename BaseTypeRhs,
+            typename ... Parameters>
+  static ResultType dispatchRhs(SomeLhs&& lhs, BaseTypeRhs&& rhs, Executor exec,
+                                Parameters&& ... parameters) {
     using Head = typename TypesRhs::Head;
     using Tail = typename TypesRhs::Tail;
     if (Head* p2 = dynamic_cast<Head*>(&rhs)) {
-      return exec.fire(lhs, *p2, parameters);
+      return exec.fire(lhs, *p2, std::forward<Parameters>(parameters) ...);
     } else {
       return StaticDispatcher<Executor, TypesLhs, Tail,
-                              ResultType>::dispatchRhs(lhs, rhs, exec, parameters);
+                              ResultType>::dispatchRhs(
+        lhs, rhs, exec,
+        std::forward<Parameters>(parameters) ...);
     }
   }
 };
@@ -56,10 +64,11 @@ template <
 class StaticDispatcher<Executor, NullType, TypesRhs, ResultType>{
  public:
   template <typename BaseTypeLhs,
-            typename BaseTypeRhs>
-  static ResultType go(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
-                       const Parameters& parameters) {
-    return exec.onError(lhs, rhs, parameters);
+            typename BaseTypeRhs,
+            typename ... Parameters>
+  static ResultType go(BaseTypeLhs&& lhs, BaseTypeRhs&& rhs, Executor exec,
+                       Parameters&& ... parameters) {
+    return exec.onError(lhs, rhs, std::forward<Parameters>(parameters) ...);
   }
 };
 
@@ -70,10 +79,11 @@ template <
 class StaticDispatcher<Executor, TypesLhs, NullType, ResultType>{
  public:
   template <typename BaseTypeLhs,
-            typename BaseTypeRhs>
+            typename BaseTypeRhs,
+            typename ... Parameters>
   static ResultType dispatchRhs(BaseTypeLhs& lhs, BaseTypeRhs& rhs, Executor exec,
-                                const Parameters& parameters) {
-    return exec.onError(lhs, rhs, parameters);
+                                Parameters&& ... parameters) {
+    return exec.onError(lhs, rhs, std::forward<Parameters>(parameters) ...);
   }
 };
 }  // namespace core

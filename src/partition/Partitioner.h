@@ -150,7 +150,7 @@ void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph) {
 
   std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                       _config.partition.refinement_algorithm,
-                                      RefinerParameters(hypergraph, _config)));
+                                      hypergraph, _config));
 
   // TODO(schlag): fix this
   _internals.append(coarsener->policyString());
