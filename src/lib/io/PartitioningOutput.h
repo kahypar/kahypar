@@ -68,7 +68,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "Imbalance       = " << metrics::imbalance(hypergraph) << std::endl;
+  std::cout << "Imbalance       = " << metrics::imbalance(hypergraph, hypergraph.k()) << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;
   }

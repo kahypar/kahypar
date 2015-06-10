@@ -89,7 +89,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   }
 
   bool doUncoarsen(IRefiner& refiner) noexcept {
-    double current_imbalance = metrics::imbalance(_hg);
+    double current_imbalance = metrics::imbalance(_hg, _config.partition.k);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
 
@@ -127,7 +127,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       _history.pop_back();
     }
     ASSERT(current_imbalance <= _config.partition.epsilon,
-           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg)
+           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
            << " > " << _config.partition.epsilon);
     return current_cut < initial_cut;
   }

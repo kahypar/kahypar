@@ -152,7 +152,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   // should be large enough to act as upper bound for both bucket- and heap-based PQ
   refiner->initialize(100);
 
-  double old_imbalance = metrics::imbalance(*hypergraph);
+  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 

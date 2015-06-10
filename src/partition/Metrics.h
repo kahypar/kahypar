@@ -90,21 +90,22 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
   return cut;
 }
 
-static inline double imbalance(const Hypergraph& hypergraph) {
+static inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight total_weight = 0;
   HypernodeWeight max_weight = 0;
-  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+  for (PartitionID i = 0; i != k; ++i) {
     total_weight += hypergraph.partWeight(i);
     max_weight = std::max(max_weight, hypergraph.partWeight(i));
   }
   return static_cast<double>(max_weight) /
-         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / k) - 1.0;
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
 static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMapping&
-                               hg_to_hmetis, const Partition& partitioning) {
-  std::vector<HypernodeWeight> part_weights(hypergraph.k(), 0);
+                               hg_to_hmetis, const Partition& partitioning,
+                               const PartitionID k) {
+  std::vector<HypernodeWeight> part_weights(k, 0);
 
   for (const HypernodeID hn : hypergraph.nodes()) {
     part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
@@ -112,12 +113,12 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
 
   HypernodeWeight total_weight = 0;
   HypernodeWeight max_weight = 0;
-  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+  for (PartitionID i = 0; i != k; ++i) {
     total_weight += part_weights[i];
     max_weight = std::max(max_weight, part_weights[i]);
   }
   return static_cast<double>(max_weight) /
-         ceil(static_cast<double>(total_weight) / hypergraph.k()) - 1.0;
+         ceil(static_cast<double>(total_weight) / k) - 1.0;
 }
 
 static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {

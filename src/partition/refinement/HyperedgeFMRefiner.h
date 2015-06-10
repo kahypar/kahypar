@@ -350,7 +350,7 @@ class HyperedgeFMRefiner : public IRefiner,
     double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
                        (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
+        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
     return imbalance;
   }

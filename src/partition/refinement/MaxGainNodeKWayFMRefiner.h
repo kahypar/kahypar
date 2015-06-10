@@ -121,9 +121,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
+        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg));
+           << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
     _marked.assign(_marked.size(), false);
@@ -207,8 +207,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg),
-             V(current_imbalance) << V(metrics::imbalance(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
+             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
 
       updateNeighbours(max_gain_node, max_allowed_part_weight);
 

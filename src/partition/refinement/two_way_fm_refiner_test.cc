@@ -83,14 +83,14 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 }
 
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
-  double old_imbalance = metrics::imbalance(*hypergraph);
+  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
-  EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph),
+  EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config.partition.k),
                       old_imbalance);
 }
 
@@ -108,7 +108,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
 TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
-  double old_imbalance = metrics::imbalance(*hypergraph);
+  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
@@ -125,7 +125,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   refiner->initialize();
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
-  double old_imbalance = metrics::imbalance(*hypergraph);
+  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
@@ -137,7 +137,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 }
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
-  double old_imbalance = metrics::imbalance(*hypergraph);
+  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 

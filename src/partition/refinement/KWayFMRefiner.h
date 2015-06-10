@@ -115,9 +115,9 @@ class KWayFMRefiner : public IRefiner,
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
+        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg));
+           << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
     _marked.assign(_marked.size(), false);
@@ -197,8 +197,8 @@ class KWayFMRefiner : public IRefiner,
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg),
-             V(current_imbalance) << V(metrics::imbalance(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
+             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
 
       // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
