@@ -69,7 +69,6 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 			std::queue<HypernodeWeight> cut_queue;
 			bool converged = false;
 			bool first_loop = true;
-			int iterations = 0;
 			while(!converged) {
 				if(first_loop) {
  					Perturbation::perturbation(_hg,_config,last_partition);
@@ -77,13 +76,9 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 				else {
 					first_loop = false;
 				}
-				HypernodeWeight cut = metrics::hyperedgeCut(_hg);
-				std::cout << cut << std::endl;
 				refine();
 
-				cut = metrics::hyperedgeCut(_hg);
-				std::cout << cut << std::endl;
-				std::cout << "-------------------" << std::endl;
+				HypernodeWeight cut = metrics::hyperedgeCut(_hg);
 				if(cut < best_cut) {
 					savePartition(best_partition);
 					best_cut = cut;
@@ -100,15 +95,11 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 					}
 					double cut_decrease_percentage = static_cast<double>(past_cut)/static_cast<double>(cut) - 1.0;
 					if(cut_decrease_percentage < 0.001) {
-						std::cout << cut_decrease_percentage << std::endl;
 						converged = true;
 					}
 				}
-				iterations++;
 
 			}
-
-			std::cout << "ILS iterations: " << iterations << std::endl;
 
 			for(HypernodeID hn : _hg.nodes()) {
 				if(best_partition[hn] != _hg.partID(hn)) {
@@ -139,7 +130,6 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 
 		void refine() {
 			if(_config.initial_partitioning.refinement) {
-				_config.partition.total_graph_weight = total_hypergraph_weight;
 				LPRefiner _lp_refiner(_hg,_config);
 				_lp_refiner.initialize();
 
@@ -162,7 +152,7 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 					// another idea is to restart the refiner as long as it finds an improvement on the current
 					// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
 					//for.
-					_lp_refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+					_lp_refiner.refine(refinement_nodes,_hg.numNodes(),_config.partition.max_part_weight,cut,imbalance);
 					HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 					std::chrono::duration<double> elapsed_seconds = end - start;
 					InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
@@ -170,7 +160,6 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 				}
 			}
 		}
-
 
 		HypergraphPartitionBalancer _balancer;
 		using InitialPartitionerBase::_hg;

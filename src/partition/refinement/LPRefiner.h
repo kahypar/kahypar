@@ -241,12 +241,14 @@ class LPRefiner : public IRefiner {
       assert(_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition ||
              _tmp_target_parts[target_part] == target_part);
 
+
       // assure that target_part is incident to us
       if (_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition) continue;
 
       const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
       const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
+
 
       if (target_part_weight + node_weight <= _config.partition.max_part_weight) {
         if (target_part_gain > max_gain) {
