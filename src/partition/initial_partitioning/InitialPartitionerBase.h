@@ -24,6 +24,7 @@
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
+#include "partition/Factories.h"
 
 using partition::Configuration;
 using defs::Hypergraph;
@@ -43,6 +44,7 @@ using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
+using partition::RefinerFactory;
 using partition::KWayFMRefiner;
 using partition::IRefiner;
 
@@ -62,7 +64,6 @@ public:
 	_hg(hypergraph),
 	_config(config),
 	_bisection_assignment_history(),
-	_refiner(_hg, _config),
 	_balancer(_hg, _config),
 	_record_assignment_history(false),
 	_removed_hyperedges() {
@@ -82,8 +83,6 @@ public:
 	}
 
 	virtual ~InitialPartitionerBase() {}
-
-
 
 	void recalculateBalanceConstraints(double epsilon) {
 
@@ -110,6 +109,16 @@ public:
 		}
 	}
 
+	void adaptPartitionConfigForRBAndCallFunction(std::function<void()> f) {
+		double epsilon = _config.partition.epsilon;
+		PartitionID k = _config.initial_partitioning.k;
+		_config.partition.epsilon = _config.initial_partitioning.epsilon;
+		_config.partition.k = 2;
+		f();
+		_config.partition.epsilon = epsilon;
+		_config.partition.k = k;
+	}
+
 	void resetPartitioning(PartitionID unassigned_part) {
 		_hg.resetPartitioning();
 		// TODO(heuer): For efficiency: Do you want a reset-Method where you
@@ -125,7 +134,10 @@ public:
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
-			_refiner.initialize();
+			std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
+							_config.partition.refinement_algorithm,
+							RefinerParameters(_hg, _config)));
+			refiner->initialize();
 
 			std::vector<HypernodeID> refinement_nodes;
 			for(HypernodeID hn : _hg.nodes()) {
@@ -140,13 +152,14 @@ public:
 			// However, if I'm correct, the condition always evaluates to true if k=2^x right?
 			//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
 			if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
+				_config.partition.max_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
 				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
 				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				// TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
 				// another idea is to restart the refiner as long as it finds an improvement on the current
 				// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
 				//for.
-				_refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+				refiner->refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
 				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<double> elapsed_seconds = end - start;
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
@@ -399,9 +412,6 @@ private:
 	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
 
 	std::vector<HyperedgeID> _removed_hyperedges;
-
-	KWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-	CutDecreasedOrInfeasibleImbalanceDecreased> _refiner;
 
 };
 

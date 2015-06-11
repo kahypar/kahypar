@@ -35,26 +35,13 @@ public:
 private:
 
 	void registrateObjectsAndPolicies() {
+
 		static bool reg_heavy_lazy_coarsener =
 				CoarsenerFactory::getInstance().registerObject(
 						CoarseningAlgorithm::heavy_lazy,
 						[](const CoarsenerFactoryParameters& p) -> ICoarsener* {
 							return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
 						});
-		static bool reg_simple_stopping =
-				PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
-						RefinementStoppingRule::simple,
-						new NumberOfFruitlessMovesStopsSearch());
-
-		static bool reg_adaptive1_stopping = PolicyRegistry<
-				RefinementStoppingRule>::getInstance().registerPolicy(
-				RefinementStoppingRule::adaptive1,
-				new RandomWalkModelStopsSearch());
-
-		static bool reg_adaptive2_stopping = PolicyRegistry<
-				RefinementStoppingRule>::getInstance().registerPolicy(
-				RefinementStoppingRule::adaptive2,
-				new nGPRandomWalkStopsSearch());
 
 		static bool reg_hyperedge_coarsener =
 				CoarsenerFactory::getInstance().registerObject(
@@ -89,48 +76,7 @@ private:
 									TwoWayFMFactoryExecutor(), parameters);
 						});
 
-		static bool reg_kway_fm_maxgain_local_search =
-				RefinerFactory::getInstance().registerObject(
-						RefinementAlgorithm::kway_fm_maxgain,
-						[](const RefinerParameters& parameters) -> IRefiner* {
-							NullPolicy* x = new NullPolicy;
-							return MaxGainNodeKWayFMFactoryDispatcher::go(
-									PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-											parameters.config.fm_local_search.stopping_rule),
-									*x,
-									MaxGainNodeKWayFMFactoryExecutor(), parameters);
-						});
 
-		static bool reg_kway_fm_local_search =
-				RefinerFactory::getInstance().registerObject(
-						RefinementAlgorithm::kway_fm,
-						[](const RefinerParameters& parameters) -> IRefiner* {
-							NullPolicy x;
-							return KWayFMFactoryDispatcher::go(
-									PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-											parameters.config.fm_local_search.stopping_rule),
-									x,
-									KWayFMFactoryExecutor(), parameters);
-						});
-
-		static bool reg_lp_local_search =
-				RefinerFactory::getInstance().registerObject(
-						RefinementAlgorithm::label_propagation,
-						[](const RefinerParameters& parameters) -> IRefiner* {
-							return new LPRefiner(parameters.hypergraph, parameters.config);
-						});
-
-		static bool reg_hyperedge_local_search =
-				RefinerFactory::getInstance().registerObject(
-						RefinementAlgorithm::hyperedge,
-						[](const RefinerParameters& parameters) -> IRefiner* {
-							NullPolicy x;
-							return HyperedgeFMFactoryDispatcher::go(
-									PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-											parameters.config.her_fm.stopping_rule),
-									x,
-									HyperedgeFMFactoryExecutor(), parameters);
-						});
 	}
 
 	void prepareConfiguration() {
@@ -191,6 +137,7 @@ private:
 		prepareConfiguration();
 		Partitioner partitioner(_config);
 		partitioner.performDirectKwayPartitioning(_hg);
+
 		std::remove(_config.partition.coarse_graph_filename.c_str());
 		std::remove(_config.partition.coarse_graph_partition_filename.c_str());
 	}

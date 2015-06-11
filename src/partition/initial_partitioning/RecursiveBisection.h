@@ -36,7 +36,7 @@ class RecursiveBisection: public IInitialPartitioner,
 
 public:
 	RecursiveBisection(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), balancer(_hg, _config) {
+			InitialPartitionerBase(hypergraph, config) {
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -117,7 +117,7 @@ private:
 			PartitionID k2 = partition_stack.back().second;
 			PartitionID k = k2 - k1 + 1;
 			PartitionID km = floor(static_cast<double>(k) / 2.0);
-			;
+
 			HypernodeWeight hypergraph_weight = 0;
 			for (const HypernodeID hn : h.nodes()) {
 				hypergraph_weight += h.nodeWeight(hn);
@@ -133,6 +133,7 @@ private:
 							/ static_cast<double>(k);
 			InitialPartitionerBase::recalculateBalanceConstraints(
 					_config.initial_partitioning.epsilon);
+
 			if (k2 - k1 == 0) {
 				for (HypernodeID hn : h.nodes()) {
 					PartitionID source = hypergraph.partID(
@@ -333,10 +334,9 @@ private:
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
 			InitialPartitioner partitioner(hyper, _config);
-			k = _config.partition.k;
-			_config.partition.k = 2;
-			partitioner.partition(2);
-			_config.partition.k = k;
+			InitialPartitionerBase::adaptPartitionConfigForRBAndCallFunction([&]() {
+				partitioner.partition(2);
+			});
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
 			if (current_cut < best_cut) {
@@ -358,7 +358,6 @@ private:
 	using InitialPartitionerBase::_config;
 
 	HypernodeWeight total_hypergraph_weight = 0;
-	HypergraphPartitionBalancer balancer;
 
 };
 

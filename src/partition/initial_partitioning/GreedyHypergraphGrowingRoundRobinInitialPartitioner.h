@@ -98,7 +98,7 @@ private:
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						if(newStartNode == invalid_node) {
+						if (newStartNode == invalid_node) {
 							continue;
 						}
 						greedy_base.processNodeForBucketPQ(*bq[i], newStartNode,
@@ -120,11 +120,13 @@ private:
 
 						ASSERT(
 								[&]() {
-									Gain gain = bq[i]->maxKey();
-									_hg.changeNodePart(hn,i,unassigned_part);
-									HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-									_hg.changeNodePart(hn,unassigned_part,i);
-									return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+									if(_config.initial_partitioning.unassigned_part != -1) {
+										Gain gain = bq[i]->maxKey();
+										_hg.changeNodePart(hn,i,unassigned_part);
+										HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+										_hg.changeNodePart(hn,unassigned_part,i);
+										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+									}
 								}(), "Gain calculation failed!");
 
 						bq[i]->deleteMax();
@@ -176,7 +178,6 @@ private:
 		kwayPartitionImpl();
 		_config.initial_partitioning.k = k;
 	}
-
 
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;

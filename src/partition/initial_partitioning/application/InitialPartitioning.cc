@@ -35,6 +35,14 @@
 #include "partition/Metrics.h"
 #include "tools/RandomFunctions.h"
 #include "partition/Factories.h"
+#include "partition/refinement/HyperedgeFMRefiner.h"
+#include "partition/refinement/IRefiner.h"
+#include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/LPRefiner.h"
+#include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
+#include "partition/refinement/TwoWayFMRefiner.h"
+#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
+#include "partition/refinement/policies/FMStopPolicies.h"
 namespace po = boost::program_options;
 
 using partition::InitialPartitionerAlgorithm;
@@ -75,6 +83,21 @@ using partition::InitialPartitioningFactoryParameters;
 using partition::InitialPartitioningFactory;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
+using partition::RefinementStoppingRule;
+using partition::RefinerFactory;
+using partition::RefinerParameters;
+using partition::TwoWayFMFactoryDispatcher;
+using partition::HyperedgeFMFactoryDispatcher;
+using partition::KWayFMFactoryDispatcher;
+using partition::MaxGainNodeKWayFMFactoryDispatcher;
+using partition::TwoWayFMFactoryExecutor;
+using partition::HyperedgeFMFactoryExecutor;
+using partition::KWayFMFactoryExecutor;
+using partition::MaxGainNodeKWayFMFactoryExecutor;
+using partition::LPRefiner;
+using partition::NumberOfFruitlessMovesStopsSearch;
+using partition::RandomWalkModelStopsSearch;
+using partition::nGPRandomWalkStopsSearch;
 
 InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		std::string mode) {
@@ -300,9 +323,70 @@ void setDefaults(Configuration& config) {
 	config.fm_local_search.alpha = 8;
 	config.her_fm.num_repetitions = -1;
 	config.her_fm.max_number_of_fruitless_moves = 150;
+	config.lp_refiner.max_number_iterations = 3;
 }
 
 void createInitialPartitioningFactory() {
+
+
+	static bool reg_simple_stopping =
+			PolicyRegistry<RefinementStoppingRule>::getInstance().registerPolicy(
+					RefinementStoppingRule::simple,
+					new NumberOfFruitlessMovesStopsSearch());
+
+	static bool reg_adaptive1_stopping = PolicyRegistry<
+			RefinementStoppingRule>::getInstance().registerPolicy(
+			RefinementStoppingRule::adaptive1,
+			new RandomWalkModelStopsSearch());
+
+	static bool reg_adaptive2_stopping = PolicyRegistry<
+			RefinementStoppingRule>::getInstance().registerPolicy(
+			RefinementStoppingRule::adaptive2,
+			new nGPRandomWalkStopsSearch());
+
+	static bool reg_kway_fm_maxgain_local_search =
+			RefinerFactory::getInstance().registerObject(
+					RefinementAlgorithm::kway_fm_maxgain,
+					[](const RefinerParameters& parameters) -> IRefiner* {
+						NullPolicy* x = new NullPolicy;
+						return MaxGainNodeKWayFMFactoryDispatcher::go(
+								PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+										parameters.config.fm_local_search.stopping_rule),
+								*x,
+								MaxGainNodeKWayFMFactoryExecutor(), parameters);
+					});
+
+	static bool reg_kway_fm_local_search =
+			RefinerFactory::getInstance().registerObject(
+					RefinementAlgorithm::kway_fm,
+					[](const RefinerParameters& parameters) -> IRefiner* {
+						NullPolicy x;
+						return KWayFMFactoryDispatcher::go(
+								PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+										parameters.config.fm_local_search.stopping_rule),
+								x,
+								KWayFMFactoryExecutor(), parameters);
+					});
+
+	static bool reg_lp_local_search =
+			RefinerFactory::getInstance().registerObject(
+					RefinementAlgorithm::label_propagation,
+					[](const RefinerParameters& parameters) -> IRefiner* {
+						return new LPRefiner(parameters.hypergraph, parameters.config);
+					});
+
+	static bool reg_hyperedge_local_search =
+			RefinerFactory::getInstance().registerObject(
+					RefinementAlgorithm::hyperedge,
+					[](const RefinerParameters& parameters) -> IRefiner* {
+						NullPolicy x;
+						return HyperedgeFMFactoryDispatcher::go(
+								PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+										parameters.config.her_fm.stopping_rule),
+								x,
+								HyperedgeFMFactoryExecutor(), parameters);
+					});
+
 	static bool reg_random =
 			InitialPartitioningFactory::getInstance().registerObject(
 					InitialPartitionerAlgorithm::random,
@@ -629,6 +713,7 @@ int main(int argc, char* argv[]) {
 								/ static_cast<double>(config.initial_partitioning.k))
 						* (1.0 + config.initial_partitioning.epsilon));
 	}
+	config.partition.max_part_weight = config.initial_partitioning.upper_allowed_partition_weight[0];
 
 	//Initialize the InitialPartitioner
 	createInitialPartitioningFactory();
