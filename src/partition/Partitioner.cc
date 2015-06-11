@@ -143,6 +143,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg) {
         						   + " --rollback=" + std::to_string(_config.initial_partitioning.rollback)
         						   + " --algo=" + _config.initial_partitioning.algorithm
                                    + " --mode=direct"
+								   + " --min_ils_iterations=" + std::to_string(_config.initial_partitioning.min_ils_iterations)
 								   + " --unassigned-part=" + std::to_string(_config.initial_partitioning.unassigned_part)
         						   + " --stats=false"
                                    + " --output=" + _config.partition.coarse_graph_partition_filename;

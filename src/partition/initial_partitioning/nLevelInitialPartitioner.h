@@ -149,11 +149,11 @@ private:
 
 		_config.coarsening.max_allowed_weight_multiplier = 3.5;
 		_config.coarsening.contraction_limit =
-				_config.coarsening.contraction_limit_multiplier * _config.initial_partitioning.k;
+				_config.coarsening.contraction_limit_multiplier
+						* _config.initial_partitioning.k;
 		_config.coarsening.hypernode_weight_fraction =
 				_config.coarsening.max_allowed_weight_multiplier
 						/ _config.coarsening.contraction_limit;
-
 
 		_config.partition.max_part_weight =
 				(1 + _config.initial_partitioning.epsilon)
@@ -181,6 +181,12 @@ private:
 	void kwayPartitionImpl() final {
 		InitialPartitionerBase::resetPartitioning(-1);
 		_config.partition.initial_partitioner = InitialPartitioner::KaHyPar;
+
+		if (_config.initial_partitioning.k > 2) {
+			_config.coarsening.contraction_limit_multiplier = _hg.initialNumNodes()
+					/ (static_cast<double>(_config.initial_partitioning.k) * _config.initial_partitioning.direct_nlevel_contraction_divider);
+		}
+
 		registrateObjectsAndPolicies();
 		prepareConfiguration();
 		Partitioner partitioner(_config);

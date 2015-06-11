@@ -66,6 +66,7 @@ enum class InitialPartitionerAlgorithm
 	ils,
 	sa,
 	nLevel,
+	direct_nLevel,
 	pool
 
 };
@@ -175,6 +176,8 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
 		return std::string("sa");
 	case InitialPartitionerAlgorithm::nLevel:
 		return std::string("nLevel");
+	case InitialPartitionerAlgorithm::direct_nLevel:
+		return std::string("direct_nLevel");
 	case InitialPartitionerAlgorithm::pool:
 		return std::string("pool");
 	}
@@ -213,7 +216,7 @@ struct Configuration {
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
 						2), epsilon(0.05), algorithm(), mode(), algo(
 						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						-1), nruns(1), alpha(1), beta(1), unassigned_part(0), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
+						-1), nruns(1), direct_nlevel_contraction_divider(2.0), alpha(1), beta(1), unassigned_part(0), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
 		}
 
 		std::string coarse_graph_filename;
@@ -226,6 +229,7 @@ struct Configuration {
 		HypernodeWeightVector upper_allowed_partition_weight;
 		HypernodeWeightVector perfect_balance_partition_weight;
 		int nruns;
+		double direct_nlevel_contraction_divider;
 		PartitionID unassigned_part;
 		double alpha;
 		double beta;

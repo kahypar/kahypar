@@ -132,6 +132,8 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::PaToH;
 	} else if (mode.compare("nLevel") == 0) {
 		return InitialPartitionerAlgorithm::nLevel;
+	} else if (mode.compare("direct_nLevel") == 0) {
+		return InitialPartitionerAlgorithm::direct_nLevel;
 	} else if (mode.compare("pool") == 0) {
 		return InitialPartitionerAlgorithm::pool;
 	} else if (mode.compare("ils") == 0) {
@@ -183,6 +185,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		}
 		if (vm.count("nruns")) {
 			config.initial_partitioning.nruns = vm["nruns"].as<int>();
+		}
+		if (vm.count("direct_nlevel_contraction_divider")) {
+			config.initial_partitioning.direct_nlevel_contraction_divider = vm["direct_nlevel_contraction_divider"].as<double>();
 		}
 		if (vm.count("unassigned-part")) {
 			config.initial_partitioning.unassigned_part =
@@ -275,6 +280,7 @@ void setDefaults(Configuration& config) {
 	config.initial_partitioning.min_ils_iterations = 400;
 	config.initial_partitioning.max_stable_net_removals = 100;
 	config.initial_partitioning.nruns = 1;
+	config.initial_partitioning.direct_nlevel_contraction_divider = 2;
 	config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.alpha = 1.0;
 	config.initial_partitioning.beta = 1.0;
@@ -471,6 +477,12 @@ void createInitialPartitioningFactory() {
 					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
 						return new RecursiveBisection<nLevelInitialPartitioner>(p.hypergraph,p.config);
 					});
+	static bool reg_direct_nlevel =
+			InitialPartitioningFactory::getInstance().registerObject(
+					InitialPartitionerAlgorithm::direct_nLevel,
+					[](const InitialPartitioningFactoryParameters& p) -> IInitialPartitioner* {
+						return new nLevelInitialPartitioner(p.hypergraph,p.config);
+					});
 	static bool reg_pool =
 			InitialPartitioningFactory::getInstance().registerObject(
 					InitialPartitionerAlgorithm::pool,
@@ -539,7 +551,9 @@ int main(int argc, char* argv[]) {
 			po::value<std::string>(), "Initial partitioning variant")("seed",
 			po::value<int>(), "Seed for randomization")("nruns",
 			po::value<int>(),
-			"Runs of the initial partitioner during bisection")(
+			"Runs of the initial partitioner during bisection")("direct_nlevel_contraction_divider",
+					po::value<double>(),
+					"Direct nLevel contraction limit multiplier divider")(
 			"unassigned-part", po::value<PartitionID>(),
 			"Part, which all nodes are assigned before partitioning")(
 			"min_ils_iterations", po::value<int>(),
@@ -639,6 +653,11 @@ int main(int argc, char* argv[]) {
 				InitialPartitioningFactory::getInstance().createObject(
 						InitialPartitionerAlgorithm::nLevel, parameters));
 		(*partitioner).partition(config.initial_partitioning.k);
+	} else if (config.initial_partitioning.mode.compare("direct_nLevel") == 0) {
+			std::unique_ptr<IInitialPartitioner> partitioner(
+					InitialPartitioningFactory::getInstance().createObject(
+							InitialPartitionerAlgorithm::direct_nLevel, parameters));
+			(*partitioner).partition(config.initial_partitioning.k);
 	}
 	end = std::chrono::high_resolution_clock::now();
 

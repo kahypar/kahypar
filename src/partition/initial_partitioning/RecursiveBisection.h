@@ -333,10 +333,10 @@ private:
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
 			InitialPartitioner partitioner(hyper, _config);
-			k = _config.initial_partitioning.k;
-			_config.initial_partitioning.k = 2;
+			k = _config.partition.k;
+			_config.partition.k = 2;
 			partitioner.partition(2);
-			_config.initial_partitioning.k = k;
+			_config.partition.k = k;
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
 			if (current_cut < best_cut) {

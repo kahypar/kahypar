@@ -71,7 +71,11 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 			bool first_loop = true;
 			while(!converged) {
 				if(first_loop) {
+					HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
  					Perturbation::perturbation(_hg,_config,last_partition);
+					HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+					std::chrono::duration<double> elapsed_seconds = end - start;
+					InitialStatManager::getInstance().updateStat("Time Measurements", "Perturbation time",InitialStatManager::getInstance().getStat("Time Measurements", "Perturbation time") + static_cast<double>(elapsed_seconds.count()));
 				}
 				else {
 					first_loop = false;
