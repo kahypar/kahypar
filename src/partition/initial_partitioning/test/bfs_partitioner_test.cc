@@ -228,7 +228,7 @@ TEST_F(AKWayBFSInitialPartitionerTest, HasValidImbalance) {
 
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph),config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k),config.partition.epsilon);
 
 }
 
@@ -279,7 +279,7 @@ TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph), config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k), config.partition.epsilon);
 
 }
 

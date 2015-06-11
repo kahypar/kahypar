@@ -52,10 +52,9 @@ private:
 
 		for(InitialPartitionerAlgorithm algo : _partitioner_pool) {
 			std::cout << "Starting initial partitioner algorithm: " << partition::toString(algo) << std::endl;
-			const InitialPartitioningFactoryParameters parameters(_hg, _config);
 			std::unique_ptr<IInitialPartitioner> partitioner(
-							InitialPartitioningFactory::getInstance().createObject(
-									algo, parameters));
+					InitialPartitioningFactory::getInstance().createObject(
+							algo, _hg, _config));
 			(*partitioner).partition(_config.initial_partitioning.k);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 			std::cout << "HyperedgeCut: " << current_cut << std::endl;

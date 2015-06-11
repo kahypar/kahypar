@@ -43,12 +43,26 @@ namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
                                  ICoarsener* (*)(Hypergraph&, const Configuration&)>;
 
+<<<<<<< HEAD
+struct InitialPartitioningFactoryParameters {
+	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
+			hypergraph(hgr), config(conf) {
+	}
+	Hypergraph& hypergraph;
+	Configuration& config;
+};
 
+using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
+                                 ICoarsener* (*)(const CoarsenerFactoryParameters&),
+                                 CoarsenerFactoryParameters>;
+
+using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
+                               IRefiner* (*)(const RefinerParameters&),
+                               RefinerParameters>;
+=======
 using RefinerFactory = Factory<RefinementAlgorithm,
                                IRefiner* (*)(Hypergraph&, const Configuration&)>;
-
-using InitialPartitioningFactory = Factory<InitialPartitionerAlgorithm,
-										IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
+>>>>>>> master
 
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
 using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
@@ -80,7 +94,9 @@ using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFac
                                                             Typelist<NullPolicy>,
                                                             IRefiner*>;
 
-
+using InitialPartitioningFactory = Factory<IInitialPartitioner, InitialPartitionerAlgorithm,
+										IInitialPartitioner* (*)(const InitialPartitioningFactoryParameters&),
+										InitialPartitioningFactoryParameters>;
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;

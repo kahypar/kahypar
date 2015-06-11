@@ -105,13 +105,13 @@ public:
 				metrics::kMinus1(_hg), "", true);
 		InitialStatManager::getInstance().addStat("Metrics", "absorption",
 				metrics::absorption(_hg), "", true);
-		double imbalance = metrics::imbalance(_hg);
+		double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
 		if (imbalance <= _config.partition.epsilon + 0.0001) {
 			InitialStatManager::getInstance().addStat("Metrics", "imbalance",
-					metrics::imbalance(_hg), BOLDGREEN, true);
+					metrics::imbalance(_hg,_config.initial_partitioning.k), BOLDGREEN, true);
 		} else {
 			InitialStatManager::getInstance().addStat("Metrics", "imbalance",
-					metrics::imbalance(_hg), BOLDRED, true);
+					metrics::imbalance(_hg,_config.initial_partitioning.k), BOLDRED, true);
 		}
 	}
 

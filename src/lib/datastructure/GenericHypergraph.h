@@ -1319,7 +1319,7 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
 
 template<typename Hypergraph>
 std::pair<std::unique_ptr<Hypergraph>,
-		std::vector<typename Hypergraph::HypernodeID> > extractPartitionAsUnpartitionedHypergraphForBisection(
+		std::vector<typename Hypergraph::HypernodeID> >
 extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const typename Hypergraph::PartitionID part) {
 	using HypernodeID = typename Hypergraph::HypernodeID;

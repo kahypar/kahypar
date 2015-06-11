@@ -46,7 +46,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
                                               hg_to_hmetis);
       break;
     case InitialPartitioner::KaHyPar:
-      io::writeHypergraphForhMetisPartitioning(hg, _config.partition.coarse_graph_filename,
+      io::writeHypergraphForhMetisPartitioning(hg, config.partition.coarse_graph_filename,
                                                hg_to_hmetis);
       break;
   }
@@ -87,20 +87,20 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
                                    + (config.partition.verbose_output ? " OD=2" : " > /dev/null");
         break;
       case InitialPartitioner::KaHyPar:
-        initial_partitioner_call = _config.partition.initial_partitioner_path + " --hgr="
-                                   + _config.partition.coarse_graph_filename
-                                   + " --k=" + std::to_string(_config.initial_partitioning.k)
+        initial_partitioner_call = config.partition.initial_partitioner_path + " --hgr="
+                                   + config.partition.coarse_graph_filename
+                                   + " --k=" + std::to_string(config.initial_partitioning.k)
                                    + " --seed=" + std::to_string(seed)
-                                   + " --epsilon=" + std::to_string(_config.initial_partitioning.epsilon)
-        						   + " --nruns=" + std::to_string(_config.initial_partitioning.nruns)
-        						   + " --refinement=" +std::to_string(_config.initial_partitioning.refinement)
-        						   + " --rollback=" + std::to_string(_config.initial_partitioning.rollback)
-        						   + " --algo=" + _config.initial_partitioning.algorithm
+                                   + " --epsilon=" + std::to_string(config.initial_partitioning.epsilon)
+        						   + " --nruns=" + std::to_string(config.initial_partitioning.nruns)
+        						   + " --refinement=" +std::to_string(config.initial_partitioning.refinement)
+        						   + " --rollback=" + std::to_string(config.initial_partitioning.rollback)
+        						   + " --algo=" + config.initial_partitioning.algorithm
                                    + " --mode=direct"
-								   + " --min_ils_iterations=" + std::to_string(_config.initial_partitioning.min_ils_iterations)
-								   + " --unassigned-part=" + std::to_string(_config.initial_partitioning.unassigned_part)
+								   + " --min_ils_iterations=" + std::to_string(config.initial_partitioning.min_ils_iterations)
+								   + " --unassigned-part=" + std::to_string(config.initial_partitioning.unassigned_part)
         						   + " --stats=false"
-                                   + " --output=" + _config.partition.coarse_graph_partition_filename;
+                                   + " --output=" + config.partition.coarse_graph_partition_filename;
         break;
     }
 

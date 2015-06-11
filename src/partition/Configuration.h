@@ -21,11 +21,14 @@ using defs::HypernodeWeightVector;
 
 namespace partition {
 
-enum class Mode : std::uint8_t {
-  recursive_bisection,
-  direct_kway
+enum class Mode
+	: std::uint8_t {
+		recursive_bisection, direct_kway
 };
 
+enum class InitialPartitioner
+	: std::uint8_t {
+		hMetis, PaToH, KaHyPar
 };
 
 enum class CoarseningAlgorithm
@@ -80,13 +83,13 @@ enum class RefinementStoppingRule
 };
 
 static std::string toString(const Mode& mode) {
-  switch (mode) {
-    case Mode::recursive_bisection:
-      return std::string("rb");
-    case Mode::direct_kway:
-      return std::string("direct");
-  }
-  return std::string("UNDEFINED");
+	switch (mode) {
+	case Mode::recursive_bisection:
+		return std::string("rb");
+	case Mode::direct_kway:
+		return std::string("direct");
+	}
+	return std::string("UNDEFINED");
 }
 
 static std::string toString(const InitialPartitioner& algo) {
@@ -229,7 +232,8 @@ struct Configuration {
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
 						2), epsilon(0.05), algorithm(), mode(), algo(
 						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						-1), nruns(1), direct_nlevel_contraction_divider(2.0), alpha(1), beta(1), unassigned_part(0), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
+						-1), nruns(1), direct_nlevel_contraction_divider(2.0), alpha(
+						1), beta(1), unassigned_part(0), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
 		}
 
 		std::string coarse_graph_filename;
@@ -261,7 +265,7 @@ struct Configuration {
 		PartitioningParameters() :
 				k(2), seed(0), initial_partitioning_attempts(1), global_search_iterations(
 						1), current_v_cycle(0), epsilon(1.0), hmetis_ub_factor(
-						-1.0), max_part_weight(
+						-1.0), 		mode(Mode::direct_kway), max_part_weight(
 						std::numeric_limits<HypernodeWeight>::max()), total_graph_weight(
 						0), hyperedge_size_threshold(-1), initial_parallel_he_removal(
 						false), verbose_output(false), coarsening_algorithm(
@@ -269,7 +273,6 @@ struct Configuration {
 						InitialPartitioner::hMetis), refinement_algorithm(
 						RefinementAlgorithm::kway_fm), graph_filename(), graph_partition_filename(), coarse_graph_filename(), coarse_graph_partition_filename(), initial_partitioner_path() {
 		}
-      mode(Mode::direct_kway),
 
 		PartitionID k;
 		int seed;
@@ -283,7 +286,7 @@ struct Configuration {
 		HyperedgeID hyperedge_size_threshold;
 		bool initial_parallel_he_removal;
 		bool verbose_output;
-    Mode mode;
+		Mode mode;
 		CoarseningAlgorithm coarsening_algorithm;
 		InitialPartitioner initial_partitioner;
 		RefinementAlgorithm refinement_algorithm;
@@ -365,7 +368,8 @@ inline std::string toString(const Configuration& config) {
 			<< config.partition.total_graph_weight << std::endl;
 	oss << std::setw(35) << "  L_max: " << config.partition.max_part_weight
 			<< std::endl;
-  oss << std::setw(35) << " Mode: " << toString(config.partition.mode) << std::endl;
+	oss << std::setw(35) << " Mode: " << toString(config.partition.mode)
+			<< std::endl;
 	oss << std::setw(35) << "  Coarsening Algorithm: "
 			<< toString(config.partition.coarsening_algorithm) << std::endl;
 	oss << std::setw(35) << "  Initial Partition Algorithm: "

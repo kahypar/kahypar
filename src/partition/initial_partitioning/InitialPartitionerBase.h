@@ -134,9 +134,9 @@ public:
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
-			std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
-							_config.partition.refinement_algorithm,
-							RefinerParameters(_hg, _config)));
+	          std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
+	                                              _config.partition.refinement_algorithm,
+	                                              _hg, _config));
 			refiner->initialize();
 
 			std::vector<HypernodeID> refinement_nodes;
@@ -145,7 +145,7 @@ public:
 			}
 			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 			HyperedgeWeight cut = cut_before;
-			double imbalance = metrics::imbalance(_hg);
+			double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
 
 			// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
 			// not possible to give more than one upper bound to the refiner.

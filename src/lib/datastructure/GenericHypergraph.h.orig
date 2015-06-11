@@ -222,7 +222,6 @@ private:
 	};
 #pragma GCC diagnostic pop
 
-<<<<<<< HEAD
 	template <typename ContainerType>
 	class VertexIterator {
 		using IDType = typename ContainerType::value_type::IDType;
@@ -748,7 +747,7 @@ public:
 	//     the number of hypernodes that have been contracted with it. Thus is achieved
 	//     by setting the flag to _false_.
 	// 2.) In order to avoid tedious reevaluation of ratings for really large hyperedges
-	//     we want to provide an option do _really_ delte these edges from the graph before
+  //     we want to provide an option do _really_ delete these edges from the graph before
 	//     starting the actual n-level partitioning. In this case, we _do_ want unconnected
 	//     hypernodes to disappear from the graph. After the partitioning is finished, we then
 	//     reintegrate these edges into the graph. As we sacrificed theses edges in the beginning
@@ -772,7 +771,8 @@ public:
 	// hypernodes (i.e. pins). Since the removal of the internal edge (HN_Vertex,HE_Vertex)
 	// was done by swapping the HyperedgeID to the end of the edgelist of the hypernode and
 	// decrementing the size, it is necessary to perform the restore operations __in reverse__
-	// order as the removal operations occured!
+  // order as the removal operations occurred!
+<<<<<<< HEAD
 	void restoreEdge(const HyperedgeID he) noexcept {
 		ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
 		enableEdge(he);
@@ -1249,556 +1249,6 @@ private:
 	friend bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
 			const Hypergraph& actual);
 =======
-  template <typename ContainerType>
-  class VertexIterator {
-    using IDType = typename ContainerType::value_type::IDType;
-
- public:
-    VertexIterator(const VertexIterator& other) = delete;
-    VertexIterator& operator= (const VertexIterator& other) = delete;
-    VertexIterator& operator= (VertexIterator&& other) = default;
-
-    VertexIterator() noexcept :
-      _id(0),
-      _max_id(0),
-      _container(nullptr) { }
-
-    VertexIterator(const ContainerType* container, IDType id, IDType max_id) noexcept :
-      _id(id),
-      _max_id(max_id),
-      _container(container) {
-      if (_id != _max_id && (*_container)[_id].isDisabled()) {
-        operator++ ();
-      }
-    }
-
-    VertexIterator(VertexIterator&& other) noexcept :
-      _id(std::move(other._id)),
-      _max_id(std::move(other._max_id)),
-      _container(std::move(other._container)) { }
-
-    IDType operator* () const noexcept {
-      return _id;
-    }
-
-    VertexIterator& operator++ () noexcept {
-      ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
-      do {
-        ++_id;
-      } while (_id < _max_id && (*_container)[_id].isDisabled());
-      return *this;
-    }
-
-    VertexIterator operator++ (int) noexcept {
-      VertexIterator copy = *this;
-      operator++ ();
-      return copy;
-    }
-
-    friend VertexIterator end<>(std::pair<VertexIterator, VertexIterator>& x);
-    friend VertexIterator begin<>(std::pair<VertexIterator, VertexIterator>& x);
-
-    VertexIterator& operator-- () noexcept {
-      ASSERT(_id > 0, "Hypernode iterator out of bounds");
-      do {
-        --_id;
-      } while (_id > 0 && (*_container)[_id].isDisabled());
-      return *this;
-    }
-
-    VertexIterator operator-- (int) noexcept {
-      VertexIterator copy = *this;
-      operator-- ();
-      return copy;
-    }
-
-    bool operator!= (const VertexIterator& rhs) noexcept {
-      return _id != rhs._id;
-    }
-
- private:
-    IDType _id;
-    const IDType _max_id;
-    const ContainerType* _container;
-  };
-
-  struct Memento {
-    Memento(const Memento& other) = delete;
-    Memento& operator= (const Memento& other) = delete;
-    Memento& operator= (Memento&& other) = default;
-
-    Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
-            HypernodeID v_) noexcept :
-      u(u_),
-      u_first_entry(u_first_entry_),
-      u_size(u_size_),
-      v(v_) { }
-
-    Memento(Memento&& other) noexcept :
-      u(std::move(other.u)),
-      u_first_entry(std::move(other.u_first_entry)),
-      u_size(std::move(other.u_size)),
-      v(std::move(other.v)) { }
-
-    const HypernodeID u;
-    const HypernodeID u_first_entry;
-    const HypernodeID u_size;
-    const HypernodeID v;
-  };
-
-  struct PartInfo {
-    HypernodeWeight weight;
-    HypernodeID size;
-
-    bool operator== (const PartInfo& other) const {
-      return weight == other.weight && size == other.size;
-    }
-  };
-
-  struct HypernodeTraits {
-    using WeightType = HypernodeWeight;
-    using IDType = HypernodeID;
-  };
-
-  struct HyperedgeTraits {
-    using WeightType = HyperedgeWeight;
-    using IDType = HyperedgeID;
-  };
-
- public:
-  GenericHypergraph(const GenericHypergraph&) = delete;
-  GenericHypergraph(GenericHypergraph&&) = delete;
-  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
-  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
-
-  GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
-                    const HyperedgeIndexVector& index_vector,
-                    const HyperedgeVector& edge_vector,
-                    PartitionID k = 2,
-                    const HyperedgeWeightVector* hyperedge_weights = nullptr,
-                    const HypernodeWeightVector* hypernode_weights = nullptr) noexcept :
-    _num_hypernodes(num_hypernodes),
-    _num_hyperedges(num_hyperedges),
-    _num_pins(edge_vector.size()),
-    _total_weight(0),
-    _k(k),
-    _type(Type::Unweighted),
-    _current_num_hypernodes(_num_hypernodes),
-    _current_num_hyperedges(_num_hyperedges),
-    _current_num_pins(_num_pins),
-    _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
-    _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
-    _incidence_array(2 * _num_pins, 0),
-    _part_ids(_num_hypernodes, kInvalidPartition),
-    _part_info(_k),
-    _pins_in_part(_num_hyperedges * k),
-    _connectivity_sets(_num_hyperedges),
-    _processed_hyperedges(_num_hyperedges),
-    _active_hyperedges_u(_num_hyperedges),
-    _active_hyperedges_v(_num_hyperedges) {
-    VertexID edge_vector_index = 0;
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      hyperedge(i).setFirstEntry(edge_vector_index);
-      for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
-        hyperedge(i).increaseSize();
-        _incidence_array[pin_index] = edge_vector[pin_index];
-        hypernode(edge_vector[pin_index]).increaseSize();
-        ++edge_vector_index;
-      }
-      // _pins_in_part[i].resize(_k);
-    }
-
-    hypernode(0).setFirstEntry(_num_pins);
-    for (HypernodeID i = 0; i < _num_hypernodes - 1; ++i) {
-      hypernode(i + 1).setFirstEntry(hypernode(i).firstInvalidEntry());
-      hypernode(i).setSize(0);
-    }
-    hypernode(num_hypernodes - 1).setSize(0);
-
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
-        const HypernodeID pin = edge_vector[pin_index];
-        _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
-        hypernode(pin).increaseSize();
-      }
-    }
-
-    bool has_hyperedge_weights = false;
-    if (hyperedge_weights != NULL) {
-      has_hyperedge_weights = true;
-      for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-        hyperedge(i).setWeight((*hyperedge_weights)[i]);
-      }
-    }
-
-    bool has_hypernode_weights = false;
-    if (hypernode_weights != NULL) {
-      has_hypernode_weights = true;
-      for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-        hypernode(i).setWeight((*hypernode_weights)[i]);
-        _total_weight += (*hypernode_weights)[i];
-      }
-    } else {
-      _total_weight = _num_hypernodes;
-    }
-
-    if (has_hyperedge_weights && has_hypernode_weights) {
-      _type = Type::EdgeAndNodeWeights;
-    } else if (has_hyperedge_weights) {
-      _type = Type::EdgeWeights;
-    } else if (has_hypernode_weights) {
-      _type = Type::NodeWeights;
-    }
-  }
-
-  void printHyperedgeInfo() const {
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isDisabled()) {
-        std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
-        << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
-      }
-    }
-  }
-
-  void printHypernodeInfo() const {
-    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isDisabled()) {
-        std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
-        << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
-      }
-    }
-  }
-
-  void printIncidenceArray() const {
-    for (VertexID i = 0; i < _incidence_array.size(); ++i) {
-      std::cout << "_incidence_array[" << i << "]=" << _incidence_array[i] << std::endl;
-    }
-  }
-
-  void printHyperedges() const {
-    std::cout << "Hyperedges:" << std::endl;
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isDisabled()) {
-        printEdgeState(i);
-      }
-    }
-  }
-
-  void printHypernodes() const {
-    std::cout << "Hypernodes:" << std::endl;
-    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isDisabled()) {
-        printNodeState(i);
-      }
-    }
-  }
-
-  void printGraphState() const {
-    printHypernodeInfo();
-    printHyperedgeInfo();
-    printHypernodes();
-    printHyperedges();
-    // printIncidenceArray();
-  }
-
-  void printEdgeState(const HyperedgeID e) const {
-    if (!hyperedge(e).isDisabled()) {
-      std::cout << "HE " << e << " w= " << edgeWeight(e) << "c=" << connectivity(e) << ": ";
-      for (const HypernodeID pin : pins(e)) {
-        std::cout << pin << " ";
-      }
-      for (PartitionID i = 0; i != _k; ++i) {
-        std::cout << " Part[" << i << "] =" << pinCountInPart(e, i);
-      }
-    } else {
-      std::cout << e << " -- invalid --";
-    }
-    std::cout << std::endl;
-  }
-
-  void printNodeState(const HypernodeID u) const {
-    if (!hypernode(u).isDisabled()) {
-      std::cout << "HN " << u << " (" << _part_ids[u] << "): ";
-      for (const HyperedgeID he : incidentEdges(u)) {
-        std::cout << he << " ";
-      }
-    } else {
-      std::cout << u << " -- invalid --";
-    }
-    std::cout << std::endl;
-  }
-
-  std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const noexcept {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    return std::move(std::make_pair(_incidence_array.cbegin() + hypernode(u).firstEntry(),
-                                    _incidence_array.cbegin() + hypernode(u).firstInvalidEntry()));
-  }
-
-  std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e) const noexcept {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
-    return std::move(std::make_pair(_incidence_array.cbegin() + hyperedge(e).firstEntry(),
-                                    _incidence_array.cbegin() + hyperedge(e).firstInvalidEntry()));
-  }
-
-  std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
-    return std::move(std::make_pair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
-                                    HypernodeIterator(&_hypernodes, _num_hypernodes,
-                                                      _num_hypernodes)));
-  }
-
-  std::pair<HyperedgeIterator, HyperedgeIterator> edges() const noexcept {
-    return std::move(std::make_pair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
-                                    HyperedgeIterator(&_hyperedges, _num_hyperedges,
-                                                      _num_hyperedges)));
-  }
-
-  const ConnectivitySet & connectivitySet(const HyperedgeID he) const noexcept {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return _connectivity_sets[he];
-  }
-
-  Memento contract(const HypernodeID u, const HypernodeID v) noexcept {
-    using std::swap;
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << v << " is disabled");
-    ASSERT(partID(u) == partID(v), "Hypernodes " << u << " & " << v << " are in different parts: "
-           << partID(u) << " & " << partID(v));
-
-    DBG(dbg_hypergraph_contraction, "contracting (" << u << "," << v << ")");
-
-    hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
-    const HypernodeID u_offset = hypernode(u).firstEntry();
-    const HypernodeID u_size = hypernode(u).size();
-
-    // The first call to connectHyperedgeToRepresentative copies the old incidence array of the
-    // representative u to the end of the _incidence_array (even in the case that the old entries
-    // are already located at the end, as the result of a previous contraction operation) and then
-    // appends the new hyperedge. The variable is then set to false and succesive calls within the
-    // same contraction operation just append at the end of the _incidence_array.
-    // This behavior is necessary in order to be able to use the old entries during uncontraction.
-    bool first_call = true;
-
-    PinHandleIterator slot_of_u, last_pin_slot;
-    PinHandleIterator pins_begin, pins_end;
-    // Use index-based iteration because case 2 might lead to reallocation!
-    for (HyperedgeID he_it = hypernode(v).firstEntry(); he_it != hypernode(v).firstInvalidEntry();
-         ++he_it) {
-      std::tie(pins_begin, pins_end) = pinHandles(_incidence_array[he_it]);
-      ASSERT(pins_begin != pins_end, "Hyperedge " << _incidence_array[he_it] << " is empty");
-      slot_of_u = last_pin_slot = pins_end - 1;
-      for (PinHandleIterator pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
-        if (*pin_iter == v) {
-          swap(*pin_iter, *last_pin_slot);
-          --pin_iter;
-        } else if (*pin_iter == u) {
-          slot_of_u = pin_iter;
-        }
-      }
-
-      ASSERT(*last_pin_slot == v, "v is not last entry in adjacency array!");
-
-      if (slot_of_u != last_pin_slot) {
-        // Case 1:
-        // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
-        // can just cut off the last entry in the edge array of e that now contains v.
-        hyperedge(_incidence_array[he_it]).decreaseSize();
-        if (partID(v) != kInvalidPartition) {
-          decreasePinCountInPart(_incidence_array[he_it], partID(v));
-        }
-        --_current_num_pins;
-      } else {
-        // Case 2:
-        // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
-        // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
-        connectHyperedgeToRepresentative(_incidence_array[he_it], u, first_call);
-      }
-    }
-    hypernode(v).disable();
-    --_current_num_hypernodes;
-    return Memento(u, u_offset, u_size, v);
-  }
-
-  void uncontract(const Memento& memento) noexcept {
-    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
-    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
-
-    DBG(dbg_hypergraph_uncontraction, "uncontracting (" << memento.u << "," << memento.v << ")");
-
-    hypernode(memento.v).enable();
-    ++_current_num_hypernodes;
-    _part_ids[memento.v] = _part_ids[memento.u];
-    ++_part_info[partID(memento.u)].size;
-
-    ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID " << partID(memento.u) << " of representative HN " << memento.u <<
-           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-           << memento.v);
-
-    _active_hyperedges_v.assign(_active_hyperedges_v.size(), false);
-    for (const HyperedgeID he : incidentEdges(memento.v)) {
-      _active_hyperedges_v[he] = 1;
-    }
-
-    _active_hyperedges_u.assign(_active_hyperedges_u.size(), false);
-    for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
-      _active_hyperedges_u[_incidence_array[i]] = 1;
-    }
-
-    if (hypernode(memento.u).size() - memento.u_size > 0) {
-      // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
-      // Set incidence entry containing u for this HE e back to v, because this slot was used
-      // to store the new edge to representative u during contraction as u was not a pin of e.
-      for (const HyperedgeID he : incidentEdges(memento.u)) {
-        if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
-          DBG(dbg_hypergraph_uncontraction, "resetting reused Pinslot of HE " << he << " from "
-              << memento.u << " to " << memento.v);
-          resetReusedPinSlotToOriginalValue(he, memento);
-
-          // Remember that this hyperedge is processed. The state of this hyperedge now resembles
-          // the state before contraction. Thus we don't need to process them any further.
-          _processed_hyperedges[he] = 1;
-        }
-      }
-
-      // Check if we can remove the dynamically added incidence entries for u:
-      // If the old incidence entries are located before the current ones, than the
-      // contraction we are currently undoing was responsible moving the incidence entries
-      // of u to the end of the incidence array. Thus we can remove these entries now.
-      // Otherwise these entries will still be needed by upcoming uncontract operations.
-      if (memento.u_first_entry < hypernode(memento.u).firstEntry()) {
-        _incidence_array.erase(_incidence_array.begin() + hypernode(memento.u).firstEntry(),
-                               _incidence_array.end());
-      }
-    }
-
-    restoreRepresentative(memento);
-
-    // Undo case 1 operations (i.e. Pin v was just cut off by decreasing size of HE e):
-    // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
-    for (const HyperedgeID he : incidentEdges(memento.v)) {
-      if (!_processed_hyperedges[he]) {
-        DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
-        ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-        hyperedge(he).increaseSize();
-        increasePinCountInPart(he, partID(memento.v));
-        ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
-               "Incorrect case 1 restore of HE " << he << ": "
-               << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
-               << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
-        ++_current_num_pins;
-      }
-      _processed_hyperedges[he] = false;
-    }
-  }
-
-  void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) noexcept {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
-    ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
-    ASSERT(from != to, "from part " << from << " == " << to << " part");
-    updatePartInfo(hn, from, to);
-    for (const HyperedgeID he : incidentEdges(hn)) {
-      decreasePinCountInPart(he, from);
-      increasePinCountInPart(he, to);
-
-      ASSERT([&]() -> bool {
-          HypernodeID num_pins = 0;
-          for (PartitionID i = 0; i < _k; ++i) {
-            num_pins += pinCountInPart(he, i);
-          }
-          return num_pins == edgeSize(he);
-        } (),
-             "Incorrect calculation of pin counts");
-    }
-  }
-
-  // Used to initially set the partition ID of a HN after initial partitioning
-  void setNodePart(const HypernodeID hn, const PartitionID id) noexcept {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: "
-           << partID(hn));
-    ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
-    updatePartInfo(hn, id);
-    for (const HyperedgeID he : incidentEdges(hn)) {
-      increasePinCountInPart(he, id);
-    }
-  }
-
-  // Deleting a hypernode amounts to removing the undirected internal edge between
-  // the hypernode vertex and each of its incident hyperedge vertices as well as
-  // disabling the hypernode vertex.
-  // Since disabling the vertex ensures that it won't be visible/accessible from
-  // the outside, we do NOT explicitely remove the directed internal edges
-  // (HypernodeVertex,HyperedgeVertex). Instead we only remove the directed
-  // internal edges (HyperedgeVertex,HypernodeVertex) to indicate that the hypernode
-  // is no longer associated with the corresponding Hyperedge.
-  // This _partial_ deletion of the internal incidence information allows us to
-  // efficiently restore a removed Hypernode (currently not implemented):
-  // After re-enabling the hypernode, we can directly access the information about the
-  // hyperedges it was incident to (since we did not delete this information in the first
-  // place): Thus it is possible to iterate over the incident hyperedges and just restore
-  // the corresponding internal edge (HyperedgeVertex, HypernodeVertex) which was cut off
-  // the hyperedge-vertex.
-  // ATTENTION: In order for this implementation produce correct restore results, it is
-  //            necessary that the restoreNode calls have to replay the removeNode calls
-  //            in __reversed__ order.
-  void removeNode(const HypernodeID u) noexcept  {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
-    for (const HyperedgeID e : incidentEdges(u)) {
-      removeInternalEdge(e, u, _hyperedges);
-      if (partID(u) != kInvalidPartition) {
-        decreasePinCountInPart(e, partID(u));
-      }
-      --_current_num_pins;
-    }
-    hypernode(u).disable();
-    --_current_num_hypernodes;
-  }
-
-  // Deleting a hyperedge amounts to removing the undirected internal edge between
-  // the hypernode vertex and each of its incident hyperedge vertices as well as
-  // disabling the hypernode vertex itself.
-  // Since disabling the vertex ensures that it won't be visible/accessible from
-  // the outside, we do NOT explicitely remove the directed internal edges
-  // (HyperedgeVertex,HypernodeVertex). Instead we only remove the directed
-  // internal edges (HypernodeVertex,HyperedgeVertex) to indicate that the hyperedge
-  // is no longer associated with the corresponding hypernode.
-  // This _partial_ deletion of the internal incidence information allows us to
-  // efficiently restore a removed hyperedge (see restoreEdge(HyperedgeID he)).
-  // The flag "disable_unconnected_hypernodes" can be used to differentiate between two
-  // following two intentions / use-cases of removeEdge:
-  // 1.) During coarsening, we want do remove the hyperedge, but leave hypernodes
-  //     intact. This is used to remove any single-node hyperedges. The hypernode
-  //     which was the only pin of this hyperedge has to stay in the graph, because
-  //     it contains information about the graph structure (i.e. its weight represents)
-  //     the number of hypernodes that have been contracted with it. Thus is achieved
-  //     by setting the flag to _false_.
-  // 2.) In order to avoid tedious reevaluation of ratings for really large hyperedges
-  //     we want to provide an option do _really_ delete these edges from the graph before
-  //     starting the actual n-level partitioning. In this case, we _do_ want unconnected
-  //     hypernodes to disappear from the graph. After the partitioning is finished, we then
-  //     reintegrate these edges into the graph. As we sacrificed theses edges in the beginning
-  //     we are willing to pay the price that these edges now inevitably will become cut-edges.
-  //     Setting the flag to _true_ removes any hypernode that is unconntected after the removal
-  //     of the hyperedge.
-  void removeEdge(const HyperedgeID he, const bool disable_unconnected_hypernodes) noexcept {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
-    for (const HypernodeID pin : pins(he)) {
-      removeInternalEdge(pin, he, _hypernodes);
-      disableHypernodeIfUnconnected(pin, disable_unconnected_hypernodes);
-      --_current_num_pins;
-    }
-    hyperedge(he).disable();
-    invalidatePartitionPinCounts(he);
-    --_current_num_hyperedges;
-  }
-
-  // Restores the deleted Hyperedge. Since the hyperedge information is left intact on the
-  // hyperedge vertex, we reuse this information to restore the information on the incident
-  // hypernodes (i.e. pins). Since the removal of the internal edge (HN_Vertex,HE_Vertex)
-  // was done by swapping the HyperedgeID to the end of the edgelist of the hypernode and
-  // decrementing the size, it is necessary to perform the restore operations __in reverse__
-  // order as the removal operations occurred!
   void restoreEdge(const HyperedgeID he) noexcept {
     ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
     enableEdge(he);
@@ -2264,9 +1714,8 @@ private:
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> >
-  extractPartitionAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                        const typename Hypergraph::PartitionID part);
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    const typename Hypergraph::PartitionID part);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2349,6 +1798,7 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
 
 template<typename Hypergraph>
 std::pair<std::unique_ptr<Hypergraph>,
+<<<<<<< HEAD
 		std::vector<typename Hypergraph::HypernodeID> > extractPartitionAsUnpartitionedHypergraphForBisection(
 		const Hypergraph& hypergraph,
 		const typename Hypergraph::PartitionID part) {
@@ -2435,6 +1885,86 @@ std::pair<std::unique_ptr<Hypergraph>,
 	}
 
 	return std::make_pair(std::move(subhypergraph), subhypergraph_to_hypergraph);
+=======
+          std::vector<typename Hypergraph::HypernodeID> >
+extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                 const typename Hypergraph::PartitionID part) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
+  std::vector<HypernodeID> subhypergraph_to_hypergraph;
+  std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
+
+  HypernodeID num_hypernodes = 0;
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    if (hypergraph.partID(hn) == part) {
+      hypergraph_to_subhypergraph[hn] = subhypergraph_to_hypergraph.size();
+      subhypergraph_to_hypergraph.push_back(hn);
+      ++num_hypernodes;
+    }
+  }
+
+  subhypergraph->_hypernodes.resize(num_hypernodes);
+  subhypergraph->_num_hypernodes = num_hypernodes;
+
+  HyperedgeID num_hyperedges = 0;
+  HypernodeID pin_index = 0;
+  for (const HyperedgeID he : hypergraph.edges()) {
+    if (hypergraph.connectivity(he) > 1) {
+      continue;
+    }
+    if (*hypergraph.connectivitySet(he).begin() == part) {
+      subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+      ++subhypergraph->_num_hyperedges;
+      subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+      for (const HypernodeID pin : hypergraph.pins(he)) {
+        subhypergraph->hyperedge(num_hyperedges).increaseSize();
+        subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+        subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
+        ++pin_index;
+      }
+      ++num_hyperedges;
+    }
+  }
+
+  const HypernodeID num_pins = pin_index;
+  subhypergraph->_num_pins = num_pins;
+  subhypergraph->_current_num_hypernodes = num_hypernodes;
+  subhypergraph->_current_num_hyperedges = num_hyperedges;
+  subhypergraph->_current_num_pins = num_pins;
+  subhypergraph->_type = hypergraph.type();
+
+  subhypergraph->_incidence_array.resize(2 * num_pins);
+  subhypergraph->_part_ids.resize(num_hypernodes, Hypergraph::kInvalidPartition);
+  subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
+  subhypergraph->_connectivity_sets.resize(num_hyperedges);
+  subhypergraph->_processed_hyperedges.resize(num_hyperedges);
+  subhypergraph->_active_hyperedges_u.resize(num_hyperedges);
+  subhypergraph->_active_hyperedges_v.resize(num_hyperedges);
+
+  subhypergraph->hypernode(0).setFirstEntry(num_pins);
+  for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+    subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
+    subhypergraph->hypernode(i).setSize(0);
+    subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
+    subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
+  }
+  subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
+  subhypergraph->hypernode(num_hypernodes - 1).setWeight(
+    hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
+  subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
+
+  for (const HyperedgeID he : subhypergraph->edges()) {
+    for (const HypernodeID pin : subhypergraph->pins(he)) {
+      subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
+      subhypergraph->hypernode(pin).increaseSize();
+    }
+  }
+
+  return std::make_pair(std::move(subhypergraph),
+                        subhypergraph_to_hypergraph);
+>>>>>>> master
 }
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_

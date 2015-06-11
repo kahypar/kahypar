@@ -143,7 +143,7 @@ class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 				}
 				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 				HyperedgeWeight cut = cut_before;
-				double imbalance = metrics::imbalance(_hg);
+				double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
 
 				// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
 				// not possible to give more than one upper bound to the refiner.

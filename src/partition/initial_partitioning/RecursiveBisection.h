@@ -20,7 +20,7 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeID;
-
+using datastructure::extractPartAsUnpartitionedHypergraphForBisection;
 using partition::InitialStatManager;
 
 namespace partition {
@@ -165,9 +165,7 @@ private:
 			} else if (state == RecursiveBisectionState::unpartition) {
 				performMultipleRunsOnHypergraph(h, k);
 
-				auto extractedHypergraph_1 =
-						datastructure::extractPartitionAsUnpartitionedHypergraphForBisection(
-								h, 1);
+				auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(h, 1);
 				std::vector<HypernodeID> mapping_1(
 						extractedHypergraph_1.second);
 
@@ -181,9 +179,7 @@ private:
 				mapping_stack.push_back(mapping_1);
 				partition_stack.push_back(std::make_pair(k1 + km, k2));
 			} else if (state == RecursiveBisectionState::first_extraction) {
-				auto extractedHypergraph_0 =
-						datastructure::extractPartitionAsUnpartitionedHypergraphForBisection(
-								h, 0);
+				auto extractedHypergraph_0 = extractPartAsUnpartitionedHypergraphForBisection(h, 0);
 				std::vector<HypernodeID> mapping_0(
 						extractedHypergraph_0.second);
 

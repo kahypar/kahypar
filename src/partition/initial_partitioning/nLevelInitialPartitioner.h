@@ -34,51 +34,6 @@ public:
 
 private:
 
-	void registrateObjectsAndPolicies() {
-
-		static bool reg_heavy_lazy_coarsener =
-				CoarsenerFactory::getInstance().registerObject(
-						CoarseningAlgorithm::heavy_lazy,
-						[](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-							return new RandomWinsLazyUpdateCoarsener(p.hypergraph, p.config);
-						});
-
-		static bool reg_hyperedge_coarsener =
-				CoarsenerFactory::getInstance().registerObject(
-						CoarseningAlgorithm::hyperedge,
-						[](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-							return new HyperedgeCoarsener2(p.hypergraph, p.config);
-						});
-
-		static bool reg_heavy_partial_coarsener =
-				CoarsenerFactory::getInstance().registerObject(
-						CoarseningAlgorithm::heavy_partial,
-						[](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-							return new RandomWinsHeuristicCoarsener(p.hypergraph, p.config);
-						});
-
-		static bool reg_heavy_full_coarsener =
-				CoarsenerFactory::getInstance().registerObject(
-						CoarseningAlgorithm::heavy_full,
-						[](const CoarsenerFactoryParameters& p) -> ICoarsener* {
-							return new RandomWinsFullCoarsener(p.hypergraph, p.config);
-						});
-
-		static bool reg_twoway_fm_local_search =
-				RefinerFactory::getInstance().registerObject(
-						RefinementAlgorithm::twoway_fm,
-						[](const RefinerParameters& parameters) -> IRefiner* {
-							NullPolicy x;
-							return TwoWayFMFactoryDispatcher::go(
-									PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-											parameters.config.fm_local_search.stopping_rule),
-									x,
-									TwoWayFMFactoryExecutor(), parameters);
-						});
-
-
-	}
-
 	void prepareConfiguration() {
 		_config.partition.initial_partitioner_path =
 				"/home/theuer/Dokumente/hypergraph/release/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
@@ -122,6 +77,8 @@ private:
 		_config.partition.initial_partitioning_attempts = 1;
 		_config.partition.global_search_iterations = 10;
 		_config.partition.hyperedge_size_threshold = -1;
+
+		_config.partition.mode = Mode::direct_kway;
 	}
 
 	void kwayPartitionImpl() final {
@@ -133,10 +90,9 @@ private:
 					/ (static_cast<double>(_config.initial_partitioning.k) * _config.initial_partitioning.direct_nlevel_contraction_divider);
 		}
 
-		registrateObjectsAndPolicies();
 		prepareConfiguration();
-		Partitioner partitioner(_config);
-		partitioner.performDirectKwayPartitioning(_hg);
+		Partitioner partitioner;
+		partitioner.partition(_hg, _config);
 
 		std::remove(_config.partition.coarse_graph_filename.c_str());
 		std::remove(_config.partition.coarse_graph_partition_filename.c_str());
