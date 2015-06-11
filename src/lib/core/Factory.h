@@ -7,6 +7,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "lib/core/FunctionTraits.h"
 #include "lib/core/Mandatory.h"
 #include "lib/core/Parameters.h"
 #include "lib/macros.h"
@@ -15,14 +16,16 @@
 using partition::toString;
 
 namespace core {
-template <class AbstractProduct = Mandatory,
-          typename IdentifierType = Mandatory,
-          typename ProductCreator = AbstractProduct* (*)(NullParameters&),
-          class Parameters = NullParameters>
+template <typename IdentifierType = Mandatory,
+          typename ProductCreator = Mandatory>
 class Factory {
  private:
+  using AbstractProduct = typename std::remove_pointer_t<
+          typename FunctionTraits<ProductCreator>::result_type>;
+  using AbstractProductPtr = std::unique_ptr<AbstractProduct>;
   using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
-  using CallbackMap = std::unordered_map<UnderlyingIdentifierType, ProductCreator>;
+  using CallbackMap = std::unordered_map<UnderlyingIdentifierType,
+                                         ProductCreator>;
   using FactoryPtr = std::unique_ptr<Factory>;
 
  public:
@@ -39,30 +42,24 @@ class Factory {
     return _callbacks.erase(static_cast<UnderlyingIdentifierType>(id)) == 1;
   }
 
-  AbstractProduct* createObject(const IdentifierType& id, const Parameters& parameters) {
+  template <typename I, typename ... ProductParameters>
+  AbstractProductPtr createObject(const I& id, ProductParameters&& ... params) {
     const auto creator = _callbacks.find(static_cast<UnderlyingIdentifierType>(id));
     if (creator != _callbacks.end()) {
-      return (creator->second)(parameters);
+      return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
     throw std::invalid_argument(toString(id));
   }
 
   static Factory & getInstance() {
-    if (_factory_instance.get() == nullptr) {
-      _factory_instance.reset(new Factory());
-    }
-    return *(_factory_instance.get());
+    static FactoryPtr _factory_instance(new Factory());
+    return *_factory_instance.get();
   }
 
  private:
   Factory() :
     _callbacks() { }
   CallbackMap _callbacks;
-  static FactoryPtr _factory_instance;
 };
-
-
-template <class A, typename I, typename P, class Pms>
-std::unique_ptr<Factory<A, I, P, Pms> > Factory<A, I, P, Pms>::_factory_instance = nullptr;
 }  // namespace core
 #endif  // SRC_LIB_CORE_FACTORY_H_

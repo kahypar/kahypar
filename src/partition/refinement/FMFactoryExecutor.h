@@ -7,38 +7,28 @@
 
 #include <iostream>
 
-#include "lib/core/Parameters.h"
-#include "lib/definitions.h"
-#include "partition/Configuration.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 
-using core::Parameters;
-
 namespace partition {
-struct RefinerParameters : public Parameters {
-  RefinerParameters(Hypergraph& hgr, Configuration& conf) :
-    hypergraph(hgr),
-    config(conf) { }
-  Hypergraph& hypergraph;
-  Configuration& config;
-};
-
 template <template <class,
                     template <class> class,
                     class
                     > class Refiner>
 class FMFactoryExecutor {
  public:
-  template <typename sP, typename cP>
-  IRefiner* fire(sP&, cP&, const Parameters& parameters) {
-    const RefinerParameters& p = static_cast<const RefinerParameters&>(parameters);
-    return new Refiner<sP, EligibleTopGain, cP>(p.hypergraph, p.config);
+  template <typename StoppingPolicy, typename CloggingPolicy,
+            typename ... Parameters>
+  IRefiner* fire(StoppingPolicy&, CloggingPolicy&, Parameters&& ... parameters) {
+    return new Refiner<StoppingPolicy,
+                       EligibleTopGain,
+                       CloggingPolicy>(std::forward<Parameters>(parameters) ...);
   }
 
-  template <class sP, class cP>
-  IRefiner* onError(sP&, cP&, const Parameters&) {
+  template <typename StoppingPolicy, typename Dummy,
+            typename ... Parameters>
+  IRefiner* onError(StoppingPolicy&, Dummy&, Parameters&& ...) {
     std::cout << "error" << std::endl;
     return nullptr;
   }
@@ -49,14 +39,15 @@ template <
             class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased> class Refiner>
 class KFMFactoryExecutor {
  public:
-  template <typename StoppingPolicy, typename Dummy>
-  IRefiner* fire(StoppingPolicy&, Dummy&, const Parameters& parameters) {
-    const RefinerParameters& p = static_cast<const RefinerParameters&>(parameters);
-    return new Refiner<StoppingPolicy>(p.hypergraph, p.config);
+  template <typename StoppingPolicy, typename Dummy,
+            typename ... Parameters>
+  IRefiner* fire(StoppingPolicy&, Dummy&, Parameters&& ... parameters) {
+    return new Refiner<StoppingPolicy>(std::forward<Parameters>(parameters) ...);
   }
 
-  template <typename StoppingPolicy, typename Dummy>
-  IRefiner* onError(StoppingPolicy&, Dummy&, const Parameters&) {
+  template <typename StoppingPolicy, typename Dummy,
+            typename ... Parameters>
+  IRefiner* onError(StoppingPolicy&, Dummy&, Parameters&& ...) {
     std::cout << "error" << std::endl;
     return nullptr;
   }

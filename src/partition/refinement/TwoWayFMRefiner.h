@@ -73,6 +73,7 @@ class TwoWayFMRefiner : public IRefiner,
     _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
     _locked_hes(_hg.initialNumEdges(), kFree),
+    _stopping_policy(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
@@ -146,9 +147,9 @@ class TwoWayFMRefiner : public IRefiner,
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
+             FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg));
+           << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
     _marked.assign(_marked.size(), false);
@@ -168,11 +169,11 @@ class TwoWayFMRefiner : public IRefiner,
     int min_cut_index = -1;
     int num_moves = 0;
     int num_moves_since_last_improvement = 0;
-    StoppingPolicy::resetStatistics();
+    _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.numNodes());
-    while (!_pq.empty() && !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
-                                                             _config, beta, best_cut, current_cut)) {
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+                                                              _config, beta, best_cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -212,12 +213,12 @@ class TwoWayFMRefiner : public IRefiner,
 
 
       current_cut -= max_gain;
-      StoppingPolicy::updateStatistics(max_gain);
+      _stopping_policy.updateStatistics(max_gain);
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg),
-             V(current_imbalance) << V(metrics::imbalance(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
+             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
 
       // TODO(schlag):
       // [ ] what about zero-gain updates?
@@ -237,7 +238,7 @@ class TwoWayFMRefiner : public IRefiner,
             "2WayFM improved cut from " << best_cut << " to " << current_cut);
         best_cut = current_cut;
         best_imbalance = current_imbalance;
-        StoppingPolicy::resetStatistics();
+        _stopping_policy.resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
       }
@@ -246,8 +247,8 @@ class TwoWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
-                                             best_cut, current_cut)
+        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+                                              best_cut, current_cut)
             == true ? "policy" : "empty queue"));
 
     rollback(num_moves - 1, min_cut_index);
@@ -480,6 +481,7 @@ class TwoWayFMRefiner : public IRefiner,
   std::vector<bool> _he_fully_active;
   std::vector<HypernodeID> _performed_moves;
   FastResetVector<char> _locked_hes;
+  StoppingPolicy _stopping_policy;
   Stats _stats;
 };
 

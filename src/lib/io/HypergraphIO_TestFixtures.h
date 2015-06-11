@@ -197,7 +197,7 @@ class APartitionOfAHypergraph : public Test {
     _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _config(),
-    _partitioner(_config),
+    _partitioner(),
     _coarsener(new FirstWinsCoarsener(_hypergraph, _config)),
     _refiner(new Refiner(_hypergraph, _config)) {
     _config.partition.k = 2;

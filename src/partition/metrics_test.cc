@@ -62,7 +62,7 @@ class APartitionedHypergraph : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
-    partitioner(config),
+    partitioner(),
     coarsener(new FirstWinsCoarsener(hypergraph, config)),
     refiner(new Refiner(hypergraph, config)) {
     config.partition.k = 2;
@@ -81,7 +81,7 @@ class APartitionedHypergraph : public Test {
       50.0 * (2 * pow((1 + config.partition.epsilon), exp)
               * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
                          / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
-    partitioner.performDirectKwayPartitioning(hypergraph, *coarsener, *refiner);
+    partitioner.partition(hypergraph, *coarsener, *refiner, config);
   }
 
   Hypergraph hypergraph;

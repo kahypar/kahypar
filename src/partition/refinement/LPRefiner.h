@@ -48,7 +48,7 @@ class LPRefiner : public IRefiner {
                   const HypernodeWeight __attribute__ ((unused)) max_allowed_part_weight,
                   HyperedgeWeight& best_cut,
                   double __attribute__ ((unused))& best_imbalance) noexcept final {
-    assert(metrics::imbalance(_hg) < _config.partition.epsilon);
+    assert(metrics::imbalance(_hg, _config.partition.k) < _config.partition.epsilon);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -81,7 +81,7 @@ class LPRefiner : public IRefiner {
           assert(best_cut <= in_cut);
           assert(gain_pair.first >= 0);
           assert(best_cut == metrics::hyperedgeCut(_hg));
-          assert(metrics::imbalance(_hg) <= _config.partition.epsilon);
+          assert(metrics::imbalance(_hg, _config.partition.k) <= _config.partition.epsilon);
 
           // add adjacent pins to next iteration
           for (const auto& he : _hg.incidentEdges(hn)) {

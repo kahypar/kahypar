@@ -39,6 +39,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " numVCycles=" << config.partition.global_search_iterations
   << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
   << " initiallyRemoveParallelHEs=" << std::boolalpha << config.partition.initial_parallel_he_removal
+  << " mode=" << toString(config.partition.mode)
   << " coarseningAlgo=" << toString(config.partition.coarsening_algorithm)
   << " coarseningMaxAllowedWeightMultiplier=" << config.coarsening.max_allowed_weight_multiplier
   << " coarseningContractionLimitMultiplier=" << config.coarsening.contraction_limit_multiplier
@@ -68,7 +69,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " soed=" << metrics::soed(hypergraph)
   << " kMinusOne=" << metrics::kMinus1(hypergraph)
   << " absorption=" << metrics::absorption(hypergraph)
-  << " imbalance=" << metrics::imbalance(hypergraph)
+      << " imbalance=" << metrics::imbalance(hypergraph,config.partition.k)
   << " totalPartitionTime=" << elapsed_seconds.count()
   << " initialParallelHEremovalTime=" << timings[0].count()
   << " initialLargeHEremovalTime=" << timings[1].count()

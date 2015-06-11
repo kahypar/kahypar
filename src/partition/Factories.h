@@ -40,14 +40,8 @@ using partition::nGPRandomWalkStopsSearch;
 using partition::EdgeWeightDivMultPinWeight;
 
 namespace partition {
-struct CoarsenerFactoryParameters {
-  CoarsenerFactoryParameters(Hypergraph& hgr, Configuration& conf) :
-    hypergraph(hgr),
-    config(conf) { }
-  Hypergraph& hypergraph;
-  Configuration& config;
-};
-
+using CoarsenerFactory = Factory<CoarseningAlgorithm,
+                                 ICoarsener* (*)(Hypergraph&, const Configuration&)>;
 struct InitialPartitioningFactoryParameters {
 	InitialPartitioningFactoryParameters(Hypergraph& hgr, Configuration& conf) :
 			hypergraph(hgr), config(conf) {
@@ -56,49 +50,39 @@ struct InitialPartitioningFactoryParameters {
 	Configuration& config;
 };
 
-using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                 ICoarsener* (*)(const CoarsenerFactoryParameters&),
-                                 CoarsenerFactoryParameters>;
 
-using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
-                               IRefiner* (*)(const RefinerParameters&),
-                               RefinerParameters>;
+using RefinerFactory = Factory<RefinementAlgorithm,
+                               IRefiner* (*)(Hypergraph&, const Configuration&)>;
 
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
-using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
-using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
-using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
 using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
                                                    Typelist<NumberOfFruitlessMovesStopsSearch,
                                                             RandomWalkModelStopsSearch,
                                                             nGPRandomWalkStopsSearch>,
                                                    Typelist<NullPolicy>,
                                                    IRefiner*>;
+using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
 using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                       Typelist<NumberOfFruitlessMovesStopsSearch,
                                                                RandomWalkModelStopsSearch,
                                                                nGPRandomWalkStopsSearch>,
                                                       Typelist<OnlyRemoveIfBothQueuesClogged>,
                                                       IRefiner*>;
+
+using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
 using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
                                                  Typelist<NumberOfFruitlessMovesStopsSearch,
                                                           RandomWalkModelStopsSearch,
                                                           nGPRandomWalkStopsSearch>,
                                                  Typelist<NullPolicy>,
                                                  IRefiner*>;
+using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
 using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
                                                             Typelist<NumberOfFruitlessMovesStopsSearch,
                                                                      RandomWalkModelStopsSearch,
                                                                      nGPRandomWalkStopsSearch>,
                                                             Typelist<NullPolicy>,
                                                             IRefiner*>;
-using CoarsenerFactory = Factory<ICoarsener, CoarseningAlgorithm,
-                                 ICoarsener* (*)(const CoarsenerFactoryParameters&),
-                                 CoarsenerFactoryParameters>;
-
-using RefinerFactory = Factory<IRefiner, RefinementAlgorithm,
-                               IRefiner* (*)(const RefinerParameters&),
-                               RefinerParameters>;
 
 using InitialPartitioningFactory = Factory<IInitialPartitioner, InitialPartitionerAlgorithm,
 										IInitialPartitioner* (*)(const InitialPartitioningFactoryParameters&),

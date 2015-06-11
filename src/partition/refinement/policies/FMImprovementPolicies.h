@@ -11,10 +11,10 @@ using core::PolicyBase;
 
 namespace partition {
 struct ImprovementPolicy : PolicyBase {
-  virtual ~ImprovementPolicy() { }
 };
 
-struct CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
+class CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
+ public:
   static inline bool improvementFound(const HyperedgeWeight best_cut,
                                       const HyperedgeWeight initial_cut,
                                       const double best_imbalance,

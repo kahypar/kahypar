@@ -1236,9 +1236,8 @@ private:
 
 	template <typename Hypergraph>
 	friend std::pair<std::unique_ptr<Hypergraph>,
-	std::vector<typename Hypergraph::HypernodeID> >
-	extractPartitionAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-			const typename Hypergraph::PartitionID part);
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    const typename Hypergraph::PartitionID part);
 
 	template <typename Hypergraph>
 	friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -1321,8 +1320,8 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
 template<typename Hypergraph>
 std::pair<std::unique_ptr<Hypergraph>,
 		std::vector<typename Hypergraph::HypernodeID> > extractPartitionAsUnpartitionedHypergraphForBisection(
-		const Hypergraph& hypergraph,
-		const typename Hypergraph::PartitionID part) {
+extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                 const typename Hypergraph::PartitionID part) {
 	using HypernodeID = typename Hypergraph::HypernodeID;
 	using HyperedgeID = typename Hypergraph::HyperedgeID;
 

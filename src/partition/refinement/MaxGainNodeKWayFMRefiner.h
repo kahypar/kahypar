@@ -80,6 +80,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated(_hg.initialNumNodes()),
     _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
+    _stopping_policy(),
     _stats() {
     _performed_moves.reserve(_hg.initialNumNodes());
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
@@ -120,9 +121,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg))),
+        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg));
+           << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
     _marked.assign(_marked.size(), false);
@@ -144,11 +145,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     int min_cut_index = -1;
     int num_moves = 0;
     int num_moves_since_last_improvement = 0;
-    StoppingPolicy::resetStatistics();
+    _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.numNodes());
-    while (!_pq.empty() && !StoppingPolicy::searchShouldStop(num_moves_since_last_improvement,
-                                                             _config, beta, best_cut, current_cut)) {
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+                                                              _config, beta, best_cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -202,12 +203,12 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
       current_cut -= max_gain;
-      StoppingPolicy::updateStatistics(max_gain);
+      _stopping_policy.updateStatistics(max_gain);
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg),
-             V(current_imbalance) << V(metrics::imbalance(_hg)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
+             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
 
       updateNeighbours(max_gain_node, max_allowed_part_weight);
 
@@ -226,7 +227,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << current_cut);
         best_cut = current_cut;
         best_imbalance = current_imbalance;
-        StoppingPolicy::resetStatistics();
+        _stopping_policy.resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
       }
@@ -237,8 +238,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "MaxGainKWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (StoppingPolicy::searchShouldStop(num_moves_since_last_improvement, _config, beta,
-                                             best_cut, current_cut)
+        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+                                              best_cut, current_cut)
             == true ? "policy " : "empty queue ") << V(num_moves_since_last_improvement));
 
     rollback(num_moves - 1, min_cut_index);
@@ -609,6 +610,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<bool> _just_updated;
   std::vector<bool> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
+  StoppingPolicy _stopping_policy;
   Stats _stats;
 };
 #pragma GCC diagnostic pop

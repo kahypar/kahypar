@@ -33,7 +33,7 @@ class APartitioner : public Test {
                                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
-    partitioner(config),
+    partitioner(),
     coarsener(new FirstWinsCoarsener(*hypergraph, config)),
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.contraction_limit = 2;
@@ -71,13 +71,13 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 };
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
-  partitioner.performDirectKwayPartitioning(*hypergraph, *coarsener, *refiner);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(3), Eq(1));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.performDirectKwayPartitioning(*hypergraph, *coarsener, *refiner);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
   ASSERT_THAT(hypergraph->partID(0), Eq(0));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(2), Eq(0));
@@ -92,7 +92,7 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
-  partitioner.performDirectKwayPartitioning(*hypergraph, *coarsener, *refiner);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
@@ -102,7 +102,7 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        RemovesHyperedgesExceedingThreshold) {
   std::vector<HyperedgeID> removed_hyperedges;
-  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges);
+  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges, config);
 
   ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(false));
 }
@@ -110,7 +110,7 @@ TEST_F(APartitionerWithHyperedgeSizeThreshold,
 TEST_F(APartitionerWithHyperedgeSizeThreshold,
        RestoresHyperedgesExceedingThreshold) {
   std::vector<HyperedgeID> removed_hyperedges;
-  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges);
+  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges, config);
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(2, 1);
   hypergraph->setNodePart(3, 0);
@@ -126,7 +126,7 @@ TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;
   DBG(true, metrics::hyperedgeCut(*hypergraph));
-  partitioner.performDirectKwayPartitioning(*hypergraph, *coarsener, *refiner);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
   hypergraph->printGraphState();
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   metrics::hyperedgeCut(*hypergraph);
