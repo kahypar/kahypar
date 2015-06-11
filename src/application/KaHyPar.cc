@@ -26,6 +26,7 @@ using core::Registrar;
 using partition::Partitioner;
 using partition::InitialPartitioner;
 using partition::Configuration;
+using partition::Mode;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
 using partition::RefinementStoppingRule;
@@ -86,6 +87,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.partition.initial_partitioner = InitialPartitioner::hMetis;
       } else if (vm["part"].as<std::string>() == "PaToH") {
         config.partition.initial_partitioner = InitialPartitioner::PaToH;
+      }
+    }
+    if (vm.count("mode")) {
+      if (vm["mode"].as<std::string>() == "rb") {
+        config.partition.mode = Mode::recursive_bisection;
+      } else if (vm["mode"].as<std::string>() == "direct") {
+        config.partition.mode = Mode::direct_kway;
       }
     }
     if (vm.count("part-path")) {
@@ -306,6 +314,7 @@ int main(int argc, char* argv[]) {
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
+      ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
@@ -395,7 +404,14 @@ int main(int argc, char* argv[]) {
   Partitioner partitioner;
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  partitioner.performDirectKwayPartitioning(hypergraph, config);
+  switch (config.partition.mode) {
+    case Mode::recursive_bisection:
+      partitioner.performRecursiveBisectionPartitioning(hypergraph, config);
+      break;
+    case Mode::direct_kway :
+      partitioner.performDirectKwayPartitioning(hypergraph, config);
+      break;
+  }
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
