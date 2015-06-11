@@ -129,6 +129,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
            << " > " << _config.partition.epsilon);
+    LOG("cut after refinement: " << current_cut);
+    LOG("imbalance after refinement: " << current_imbalance);
     return current_cut < initial_cut;
   }
 

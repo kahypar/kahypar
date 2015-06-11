@@ -668,8 +668,8 @@ TEST_F(AHypergraph, MaintainsItsTotalWeight) {
 }
 
 TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
-  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
-  auto extr_part1 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 1);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  auto extr_part1 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 1);
   Hypergraph& part0_hypergraph = *extr_part0.first;
   Hypergraph& part1_hypergraph = *extr_part1.first;
 
@@ -697,7 +697,7 @@ TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartiti
   hypergraph.setNodePart(4, 0);
   hypergraph.setNodePart(5, 0);
   hypergraph.setNodePart(6, 0);
-  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, *extr_part0.first), Eq(true));
 }
 
@@ -709,7 +709,7 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
   hypergraph.setNodePart(4, 0);
   hypergraph.setNodePart(5, 0);
   hypergraph.setNodePart(6, 0);
-  auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
 
   ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
   ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));

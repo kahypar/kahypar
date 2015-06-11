@@ -17,52 +17,6 @@
 using defs::HighResClockTimepoint;
 
 namespace partition {
-void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                                IRefiner& refiner, const Configuration& config) {
-  if (config.partition.initial_parallel_he_removal) {
-    removeParallelHyperedges(hypergraph, config);
-  }
-
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  std::vector<HyperedgeID> removed_hyperedges;
-  removeLargeHyperedges(hypergraph, removed_hyperedges, config);
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialLargeHEremoval] = end - start;
-
-#ifndef NDEBUG
-  HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
-#endif
-
-  partition(hypergraph, coarsener, refiner, config);
-  DBG(dbg_partition_vcycles, "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
-
-  for (int vcycle = 0; vcycle < config.partition.global_search_iterations; ++vcycle) {
-    const bool found_improved_cut = partitionVCycle(hypergraph, coarsener, refiner, config);
-
-    DBG(dbg_partition_vcycles, "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
-    if (!found_improved_cut) {
-      LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
-      break;
-    }
-
-    ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut, "Uncoarsening worsened cut:"
-           << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
-    // ++config.partition.current_v_cycle; // TODO(schlag): FIX THIS
-#ifndef NDEBUG
-    initial_cut = metrics::hyperedgeCut(hypergraph);
-#endif
-  }
-
-  start = std::chrono::high_resolution_clock::now();
-  restoreLargeHyperedges(hypergraph, removed_hyperedges);
-  end = std::chrono::high_resolution_clock::now();
-  _timings[kInitialLargeHErestore] = end - start;
-
-  if (config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph);
-  }
-}
-
 void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
   io::printHypergraphInfo(hg, config.partition.coarse_graph_filename.substr(
                             config.partition.coarse_graph_filename.find_last_of("/") + 1));

@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
-      ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
+    ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
@@ -404,14 +404,7 @@ int main(int argc, char* argv[]) {
   Partitioner partitioner;
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  switch (config.partition.mode) {
-    case Mode::recursive_bisection:
-      partitioner.performRecursiveBisectionPartitioning(hypergraph, config);
-      break;
-    case Mode::direct_kway :
-      partitioner.performDirectKwayPartitioning(hypergraph, config);
-      break;
-  }
+  partitioner.partition(hypergraph, config);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
 #ifndef NDEBUG
