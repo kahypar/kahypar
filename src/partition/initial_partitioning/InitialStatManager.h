@@ -129,10 +129,14 @@ public:
 	void setAlgo(std::string a) {
 		algo = a;
 	}
+	void setRefinementCoarseningType(std::string r, std::string c) {
+		rtype = r;
+		ctype = c;
+	}
 
 	void printResultLine(std::string filename) {
 		std::ostringstream oss;
-		oss << "RESULT graph=" << graphname << " mode=" << mode << " algo=" << algo;
+		oss << "RESULT graph=" << graphname << " mode=" << mode << " algo=" << algo << " rtype=" << rtype << " ctype=" << ctype;
 		for (auto s : stats) {
 
 			for (int i = 0; i < s.second.size(); i++) {
@@ -159,6 +163,8 @@ public:
 	std::string graphname;
 	std::string mode;
 	std::string algo;
+	std::string rtype;
+	std::string ctype;
 
 	std::vector<std::string> groups;
 	std::map<std::string, std::vector<std::pair<std::string, double>>>stats;
