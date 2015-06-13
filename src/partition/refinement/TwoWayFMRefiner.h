@@ -345,19 +345,19 @@ class TwoWayFMRefiner : public IRefiner,
     if (!_he_fully_active[he] || moveAffectsGainUpdate(pin_count_from_part_after_move,
                                                        pin_count_to_part_after_move,
                                                        he_size)) {
-      Gain factor = 0;
+      Gain he_induced_factor = 0;
       if (he_size == 2) {
-        factor = (_hg.pinCountInPart(he, 0) == 1 ? 2 : -2);
+        he_induced_factor = (_hg.pinCountInPart(he, to_part) == 1 ? 2 : -2);
       } else if (pin_count_to_part_after_move == 1) {
         // HE was an internal edge before move and is a cut HE now.
         // Before the move, all pins had gain -w(e). Now after the move,
         // these pins have gain 0 (since all of them are in from_part).
-        factor = 1;
+        he_induced_factor = 1;
       } else if (pin_count_from_part_after_move == 0) {
         // HE was cut HE before move and is internal HE now.
         // Since the HE is now internal, moving a pin incurs gain -w(e)
         // and make it a cut HE again.
-        factor = -1;
+        he_induced_factor = -1;
       }
 
       HypernodeID num_active_pins = 0;
@@ -366,6 +366,7 @@ class TwoWayFMRefiner : public IRefiner,
           continue;
         }
 
+        Gain pin_specific_factor = he_induced_factor;
         const PartitionID target_part = _hg.partID(pin) ^ 1;
         if (!_marked[pin]) {
           if (!_pq.contains(pin, target_part)) {
@@ -378,23 +379,23 @@ class TwoWayFMRefiner : public IRefiner,
                 _pq.remove(pin, target_part);
               }
             } else {
-              if (factor == 0) {
+              if (pin_specific_factor == 0) {
                 if (pin_count_from_part_after_move == 1 && _hg.partID(pin) == from_part) {
                   // Before move, there were two pins (moved_node and the current pin) in from_part.
                   // After moving moved_node to to_part, the gain of the remaining pin in
                   // from_part increases by w(he).
-                  factor = 1;  // after all pins are activated, one could break here
+                  pin_specific_factor = 1;  // after all pins are activated, one could break here
                 }
                 if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
                   // Before move, pin was the only HN in to_part. It thus had a
                   // positive gain, because moving it to from_part would have removed
                   // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
                   // because now there are pins in both parts.
-                  factor = -1;  // after all pins are activated, one could break here
+                  pin_specific_factor = -1;  // after all pins are activated, one could break here
                 }
               }
-              if (factor != 0) {
-                updatePin(he, pin, factor, max_allowed_part_weight);
+              if (pin_specific_factor != 0) {
+                updatePin(he, pin, pin_specific_factor, max_allowed_part_weight);
               }
               // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
               // See for example [CadKaMa99]
@@ -443,7 +444,7 @@ class TwoWayFMRefiner : public IRefiner,
       DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
           << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
           << target_part);
-      _pq.updateKey(pin, target_part, computeGain(pin));
+      _pq.updateKey(pin, target_part, old_gain + gain_delta);
     }
   }
 
