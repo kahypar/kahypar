@@ -84,6 +84,14 @@ public:
 
 	virtual ~InitialPartitionerBase() {}
 
+	void measureTimeOfFunction(std::string name, std::function<void()> f) {
+		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+		f();
+		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		InitialStatManager::getInstance().updateStat("Time Measurements", name,InitialStatManager::getInstance().getStat("Time Measurements", name) + static_cast<double>(elapsed_seconds.count()));
+	}
+
 	void recalculateBalanceConstraints(double epsilon) {
 
 		for (int i = 0; i < _config.initial_partitioning.k; i++) {
@@ -95,11 +103,9 @@ public:
 
 	void eraseConnectedComponents() {
 		if(_config.initial_partitioning.erase_components) {
-			HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-			_balancer.eraseSmallConnectedComponents();
-			HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double> elapsed_seconds = end - start;
-			InitialStatManager::getInstance().updateStat("Time Measurements", "Erasing Connected Components time",InitialStatManager::getInstance().getStat("Time Measurements", "Erasing Connected Components time") + static_cast<double>(elapsed_seconds.count()));
+			measureTimeOfFunction("Erasing Connected Components time",[&]() {
+						_balancer.eraseSmallConnectedComponents();
+					});
 		}
 	}
 
@@ -109,14 +115,14 @@ public:
 		}
 	}
 
-	void adaptPartitionConfigForRBAndCallFunction(std::function<void()> f) {
-		double epsilon = _config.partition.epsilon;
-		PartitionID k = _config.initial_partitioning.k;
-		_config.partition.epsilon = _config.initial_partitioning.epsilon;
-		_config.partition.k = 2;
+	void adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(Configuration& config, std::function<void()> f) {
+		double epsilon = config.partition.epsilon;
+		PartitionID k = config.partition.k;
+		config.partition.epsilon = config.initial_partitioning.epsilon;
+		config.partition.k = _config.initial_partitioning.k;
 		f();
-		_config.partition.epsilon = epsilon;
-		_config.partition.k = k;
+		config.partition.epsilon = epsilon;
+		config.partition.k = k;
 	}
 
 	void resetPartitioning(PartitionID unassigned_part) {
@@ -134,9 +140,9 @@ public:
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
-	          std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
-	                                              _config.partition.refinement_algorithm,
-	                                              _hg, _config));
+			std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
+							_config.partition.refinement_algorithm,
+							_hg, _config));
 			refiner->initialize();
 
 			std::vector<HypernodeID> refinement_nodes;
@@ -147,6 +153,7 @@ public:
 			HyperedgeWeight cut = cut_before;
 			double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
 
+
 			// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
 			// not possible to give more than one upper bound to the refiner.
 			// However, if I'm correct, the condition always evaluates to true if k=2^x right?
@@ -154,16 +161,16 @@ public:
 			if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
 				_config.partition.max_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
 				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-				HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 				// TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
 				// another idea is to restart the refiner as long as it finds an improvement on the current
 				// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
 				//for.
-				refiner->refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
-				HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-				std::chrono::duration<double> elapsed_seconds = end - start;
+				adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(_config, [&]() {
+						measureTimeOfFunction("Refinement time",[&]() {
+										refiner->refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+									});
+						});
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
-				InitialStatManager::getInstance().updateStat("Time Measurements", "Refinement time",InitialStatManager::getInstance().getStat("Time Measurements", "Refinement time") + static_cast<double>(elapsed_seconds.count()));
 			}
 		}
 	}

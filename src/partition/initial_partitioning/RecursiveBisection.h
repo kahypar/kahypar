@@ -15,6 +15,7 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "tools/RandomFunctions.h"
+#include "partition/initial_partitioning/ConfigurationManager.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -22,6 +23,7 @@ using defs::HypernodeWeight;
 using defs::HyperedgeID;
 using datastructure::extractPartAsUnpartitionedHypergraphForBisection;
 using partition::InitialStatManager;
+using partition::ConfigurationManager;
 
 namespace partition {
 
@@ -59,7 +61,7 @@ private:
 	}
 
 	void bisectionPartitionImpl() final {
-		performMultipleRunsOnHypergraph(_hg, 2);
+		performMultipleRunsOnHypergraph(_hg, _config, 2);
 		_config.initial_partitioning.epsilon = _config.partition.epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
@@ -122,17 +124,26 @@ private:
 			for (const HypernodeID hn : h.nodes()) {
 				hypergraph_weight += h.nodeWeight(hn);
 			}
-			_config.initial_partitioning.epsilon = calculateEpsilon(h,
-					hypergraph_weight, k);
 
-			_config.initial_partitioning.perfect_balance_partition_weight[0] =
-					static_cast<double>(km) * hypergraph_weight
-							/ static_cast<double>(k);
-			_config.initial_partitioning.perfect_balance_partition_weight[1] =
-					static_cast<double>(k - km) * hypergraph_weight
-							/ static_cast<double>(k);
-			InitialPartitionerBase::recalculateBalanceConstraints(
-					_config.initial_partitioning.epsilon);
+			Configuration current_config =
+					ConfigurationManager::copyConfigAndSetValues(_config,
+							[&](Configuration& config) {
+								config.initial_partitioning.k = 2;
+								config.initial_partitioning.epsilon = calculateEpsilon(h,
+										hypergraph_weight, k);
+
+								config.initial_partitioning.perfect_balance_partition_weight[0] =
+								static_cast<double>(km) * hypergraph_weight
+								/ static_cast<double>(k);
+								config.initial_partitioning.perfect_balance_partition_weight[1] =
+								static_cast<double>(k - km) * hypergraph_weight
+								/ static_cast<double>(k);
+
+								for(PartitionID i = 0; i < 2; i++) {
+									config.initial_partitioning.upper_allowed_partition_weight[i] = config.initial_partitioning.perfect_balance_partition_weight[i]
+									* (1.0 + config.initial_partitioning.epsilon);
+								}
+							});
 
 			if (k2 - k1 == 0) {
 				for (HypernodeID hn : h.nodes()) {
@@ -163,9 +174,10 @@ private:
 				}
 				continue;
 			} else if (state == RecursiveBisectionState::unpartition) {
-				performMultipleRunsOnHypergraph(h, k);
+				performMultipleRunsOnHypergraph(h, current_config, k);
 
-				auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(h, 1);
+				auto extractedHypergraph_1 =
+						extractPartAsUnpartitionedHypergraphForBisection(h, 1);
 				std::vector<HypernodeID> mapping_1(
 						extractedHypergraph_1.second);
 
@@ -179,7 +191,8 @@ private:
 				mapping_stack.push_back(mapping_1);
 				partition_stack.push_back(std::make_pair(k1 + km, k2));
 			} else if (state == RecursiveBisectionState::first_extraction) {
-				auto extractedHypergraph_0 = extractPartAsUnpartitionedHypergraphForBisection(h, 0);
+				auto extractedHypergraph_0 =
+						extractPartAsUnpartitionedHypergraphForBisection(h, 0);
 				std::vector<HypernodeID> mapping_0(
 						extractedHypergraph_0.second);
 
@@ -316,12 +329,13 @@ private:
 
 	 }*/
 
-	void performMultipleRunsOnHypergraph(Hypergraph& hyper, PartitionID k) {
+	void performMultipleRunsOnHypergraph(Hypergraph& hyper,
+			Configuration& config, PartitionID k) {
 		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 
 		int runs = calculateRuns(_config.initial_partitioning.alpha, 2, k);
-		if (_config.initial_partitioning.mode.compare("nLevel") == 0) {
+		if (config.initial_partitioning.mode.compare("nLevel") == 0) {
 			runs = 1;
 		}
 		for (int i = 0; i < runs; ++i) {
@@ -329,10 +343,11 @@ private:
 			// instantiate the partitioner only _once_ and have the partition
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
-			InitialPartitioner partitioner(hyper, _config);
-			InitialPartitionerBase::adaptPartitionConfigForRBAndCallFunction([&]() {
-				partitioner.partition(2);
-			});
+			InitialPartitioner partitioner(hyper, config);
+			InitialPartitionerBase::adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(config,
+					[&]() {
+						partitioner.partition(2);
+					});
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
 			if (current_cut < best_cut) {

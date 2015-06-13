@@ -64,6 +64,15 @@ public:
 					connected_nodes);
 		}
 
+		ASSERT([&]() {
+			for(PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+				if(_hg.partSize(i) != connected_nodes) {
+					return false;
+				}
+			}
+			return true;
+		}(), "Size of a partition is not equal " << connected_nodes << "!");
+
 		bool converged = false;
 		int iterations = 0;
 		int changes = 0;
@@ -82,6 +91,17 @@ public:
 					PartitionID source_part = _hg.partID(v);
 					if (InitialPartitionerBase::assignHypernodeToPartition(v,
 							max_part)) {
+						ASSERT(
+								[&]() {
+									if(source_part != -1) {
+										Gain gain = max_gain;
+										_hg.changeNodePart(v,max_part,source_part);
+										HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+										_hg.changeNodePart(v,source_part,max_part);
+										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+									}
+									return true;
+								}(), "Gain calculation failed!");
 						changes++;
 						if (source_part == -1) {
 							assigned_nodes++;
@@ -233,6 +253,8 @@ public:
 			}
 			if (assigned_nodes == count) {
 				break;
+			} else if(q.empty()) {
+				q.push(InitialPartitionerBase::getUnassignedNode(-1));
 			}
 		}
 		return assigned_nodes;

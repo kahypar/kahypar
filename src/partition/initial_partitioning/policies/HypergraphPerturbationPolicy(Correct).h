@@ -1,3 +1,5 @@
+
+
 /*
  .t * HypergraphPerturbationPolicy.h
  *
@@ -46,33 +48,36 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 
 		std::vector<HyperedgeID> cut_edges;
 		for (HyperedgeID he : hg.edges()) {
-			if (hg.connectivity(he) > 1 && last_partition[he]) {
+			if (hg.connectivity(he) > 1) {
 				cut_edges.push_back(he);
 			}
 		}
 
-		std::sort(cut_edges.begin(), cut_edges.end(),
-				[&](const HyperedgeID& he1, const HyperedgeID& he2) {
-					return hg.edgeSize(he1) < hg.edgeSize(he2);
-				});
+		std::sort(cut_edges.begin(),cut_edges.end(),[&](const HyperedgeID& he1, const HyperedgeID& he2) {
+			return hg.edgeSize(he1) < hg.edgeSize(he2);
+		});
 
 		int shuffle_node_count = 0;
-		for (; shuffle_node_count < cut_edges.size(); shuffle_node_count++) {
-			if (hg.edgeSize(cut_edges[shuffle_node_count]) > 10) {
+		for(; shuffle_node_count < cut_edges.size(); shuffle_node_count++) {
+			if(hg.edgeSize(cut_edges[shuffle_node_count]) > 10) {
 				break;
 			}
 		}
 
-		Randomize::shuffleVector(cut_edges, shuffle_node_count);
+		Randomize::shuffleVector(cut_edges,shuffle_node_count);
 
 		int count = 0;
 		std::set<HyperedgeID> removed_edges;
 		for (HyperedgeID he : cut_edges) {
-			if (removeEdgeFromCut(hg, he, config, part_weight, new_partition,
-					locked)) {
-				count++;
-				std::cout << hg.edgeSize(he) << ", ";
-				removed_edges.insert(he);
+			PartitionID last_seen_partition = -1;
+			bool was_cut_edge_before = last_partition[he];
+			if (was_cut_edge_before) {
+				if (removeEdgeFromCut(hg, he, config, part_weight,
+						new_partition, locked)) {
+					count++;
+					std::cout << hg.edgeSize(he) << ", ";
+					removed_edges.insert(he);
+				}
 			}
 			if (count == config.initial_partitioning.max_stable_net_removals) {
 				break;
@@ -153,13 +158,10 @@ struct LooseStableNetRemoval: public HypergraphPerturbationPolicy {
 			}
 			new_partition_weights[i] += part_weight[i];
 			//If we found a feasible part, we take them to push all hypernodes from he to them.
-			if ((target_part == -1
-					&& new_partition_weights[i]
-							<= config.initial_partitioning.upper_allowed_partition_weight[i])
-					|| (target_part != -1
-							&& new_partition_weights[i]
-									< new_partition_weights[target_part])) {
+			if (new_partition_weights[i]
+					<= config.initial_partitioning.upper_allowed_partition_weight[i]) {
 				target_part = i;
+				break;
 			}
 		}
 

@@ -8,8 +8,6 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_ITERATIVELOCALSEARCHPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_ITERATIVELOCALSEARCHPARTITIONER_H_
 
-
-
 #include <algorithm>
 #include <vector>
 
@@ -20,156 +18,163 @@
 #include "partition/initial_partitioning/policies/HypergraphPerturbationPolicy.h"
 #include "partition/refinement/LPRefiner.h"
 #include "tools/RandomFunctions.h"
+#include "partition/initial_partitioning/ConfigurationManager.h"
 
 using defs::HypernodeID;
 using defs::HypernodeWeight;
 using partition::HypergraphPerturbationPolicy;
 using partition::LPRefiner;
+using partition::ConfigurationManager;
 
 namespace partition {
 
-template<class Perturbation = HypergraphPerturbationPolicy, class InitialPartitioner = IInitialPartitioner>
+template<class Perturbation = HypergraphPerturbationPolicy,
+		class InitialPartitioner = IInitialPartitioner>
 class IterativeLocalSearchPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
-	public:
+public:
 	IterativeLocalSearchPartitioner(Hypergraph& hypergraph,
-				Configuration& config) :
-				InitialPartitionerBase(hypergraph, config),
-				_balancer(hypergraph, config) {
-		}
+			Configuration& config) :
+			InitialPartitionerBase(hypergraph, config) {
+	}
 
-		~IterativeLocalSearchPartitioner() {
-		}
+	~IterativeLocalSearchPartitioner() {
+	}
 
-	private:
+private:
 
+	void kwayPartitionImpl() final {
 
-		void kwayPartitionImpl() final {
+		Configuration ils_config = ConfigurationManager::copyConfigAndSetValues(
+				_config, [&](Configuration& config) {
+					config.partition.k = _hg.k();
+					config.partition.max_part_weight =
+					(1 + config.partition.epsilon)
+					* ceil(
+							config.partition.total_graph_weight
+							/ static_cast<double>(config.partition.k));
+				});
 
-			_config.lp_refiner.max_number_iterations = 3;
-			_config.partition.k = _hg.k();
-			_config.partition.max_part_weight =
-					(1 + _config.partition.epsilon)
-							* ceil(
-									_config.partition.total_graph_weight
-											/ static_cast<double>(_config.partition.k));
+		InitialPartitioner partitioner(_hg, ils_config);
+		partitioner.partition(ils_config.initial_partitioning.k);
 
-			InitialPartitioner partitioner(_hg, _config);
-			partitioner.partition(_config.initial_partitioning.k);
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				ils_config.partition.epsilon);
 
-	    	InitialPartitionerBase::recalculateBalanceConstraints(_config.partition.epsilon);
+		std::vector<bool> last_partition(_hg.numEdges());
+		std::vector<PartitionID> best_partition(_hg.numNodes());
+		HyperedgeWeight best_cut = metrics::hyperedgeCut(_hg);
+		saveEdgeConnectivity(last_partition);
+		savePartition(best_partition);
 
-			std::vector<bool> last_partition(_hg.numEdges());
-			std::vector<PartitionID> best_partition(_hg.numNodes());
-			HyperedgeWeight best_cut = metrics::hyperedgeCut(_hg);
+		std::queue<HypernodeWeight> cut_queue;
+		bool converged = false;
+		bool first_loop = true;
+		while (!converged) {
+			if (first_loop) {
+				InitialPartitionerBase::measureTimeOfFunction(
+						"Perturbation time",
+						[&]() {
+							Perturbation::perturbation(_hg,ils_config,last_partition);
+						});
+			} else {
+				first_loop = false;
+			}
+			std::cout << "Cut before: " << metrics::hyperedgeCut(_hg) << std::endl;
+			refine(ils_config);
+			std::cout << "Cut after: " << metrics::hyperedgeCut(_hg) << std::endl;
+
+			HypernodeWeight cut = metrics::hyperedgeCut(_hg);
+			if (cut < best_cut) {
+				savePartition(best_partition);
+				best_cut = cut;
+			}
 			saveEdgeConnectivity(last_partition);
-			savePartition(best_partition);
 
-			std::queue<HypernodeWeight> cut_queue;
-			bool converged = false;
-			bool first_loop = true;
-			while(!converged) {
-				if(first_loop) {
-					HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
- 					Perturbation::perturbation(_hg,_config,last_partition);
-					HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-					std::chrono::duration<double> elapsed_seconds = end - start;
-					InitialStatManager::getInstance().updateStat("Time Measurements", "Perturbation time",InitialStatManager::getInstance().getStat("Time Measurements", "Perturbation time") + static_cast<double>(elapsed_seconds.count()));
+			cut_queue.push(cut);
+			if (cut_queue.size()
+					> ils_config.initial_partitioning.min_ils_iterations) {
+				HypernodeWeight past_cut = cut_queue.front();
+				cut_queue.pop();
+				if (cut == 0) {
+					converged = true;
+					continue;
 				}
-				else {
-					first_loop = false;
-				}
-				refine();
-
-				HypernodeWeight cut = metrics::hyperedgeCut(_hg);
-				if(cut < best_cut) {
-					savePartition(best_partition);
-					best_cut = cut;
-				}
-				saveEdgeConnectivity(last_partition);
-
-				cut_queue.push(cut);
-				if(cut_queue.size() > _config.initial_partitioning.min_ils_iterations) {
-					HypernodeWeight past_cut = cut_queue.front();
-					cut_queue.pop();
-					if(cut == 0) {
-						converged = true;
-						continue;
-					}
-					double cut_decrease_percentage = static_cast<double>(past_cut)/static_cast<double>(cut) - 1.0;
-					if(cut_decrease_percentage < 0.001) {
-						converged = true;
-					}
-				}
-
-			}
-
-			for(HypernodeID hn : _hg.nodes()) {
-				if(best_partition[hn] != _hg.partID(hn)) {
-					_hg.changeNodePart(hn,_hg.partID(hn), best_partition[hn]);
+				double cut_decrease_percentage = static_cast<double>(past_cut)
+						/ static_cast<double>(cut) - 1.0;
+				if (cut_decrease_percentage < 0.001) {
+					converged = true;
 				}
 			}
 
-			InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
-			_balancer.balancePartitions();
-
 		}
 
-		void bisectionPartitionImpl() final {
-			kwayPartitionImpl();
-		}
-
-		void savePartition(std::vector<PartitionID>& partition) {
-			for(HypernodeID hn : _hg.nodes()) {
-				partition[hn] = _hg.partID(hn);
+		for (HypernodeID hn : _hg.nodes()) {
+			if (best_partition[hn] != _hg.partID(hn)) {
+				_hg.changeNodePart(hn, _hg.partID(hn), best_partition[hn]);
 			}
 		}
 
-		void saveEdgeConnectivity(std::vector<bool>& partition) {
-			for(HypernodeID he : _hg.edges()) {
-				partition[he] = _hg.connectivity(he) > 1;
+	}
+
+	void bisectionPartitionImpl() final {
+		kwayPartitionImpl();
+	}
+
+	void savePartition(std::vector<PartitionID>& partition) {
+		for (HypernodeID hn : _hg.nodes()) {
+			partition[hn] = _hg.partID(hn);
+		}
+	}
+
+	void saveEdgeConnectivity(std::vector<bool>& partition) {
+		for (HypernodeID he : _hg.edges()) {
+			partition[he] = _hg.connectivity(he) > 1;
+		}
+	}
+
+	void refine(Configuration& config) {
+		if (config.initial_partitioning.refinement) {
+			LPRefiner _lp_refiner(_hg, config);
+			_lp_refiner.initialize();
+
+			std::vector<HypernodeID> refinement_nodes;
+			for (HypernodeID hn : _hg.nodes()) {
+				refinement_nodes.push_back(hn);
+			}
+			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+			HyperedgeWeight cut = cut_before;
+			double imbalance = metrics::imbalance(_hg,
+					config.initial_partitioning.k);
+
+			if (config.initial_partitioning.upper_allowed_partition_weight[0]
+					== config.initial_partitioning.upper_allowed_partition_weight[1]) {
+				HypernodeWeight max_allowed_part_weight =
+						config.initial_partitioning.upper_allowed_partition_weight[0];
+				adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(
+						_config,
+						[&]() {
+							measureTimeOfFunction("Refinement time",[&]() {
+										_lp_refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+									});
+						});
+				InitialStatManager::getInstance().updateStat(
+						"Partitioning Results",
+						"Cut increase during refinement",
+						InitialStatManager::getInstance().getStat(
+								"Partitioning Results",
+								"Cut increase during refinement")
+								+ (cut_before - metrics::hyperedgeCut(_hg)));
+
 			}
 		}
+	}
 
-		void refine() {
-			if(_config.initial_partitioning.refinement) {
-				LPRefiner _lp_refiner(_hg,_config);
-				_lp_refiner.initialize();
+	using InitialPartitionerBase::_hg;
+	using InitialPartitionerBase::_config;
 
-				std::vector<HypernodeID> refinement_nodes;
-				for(HypernodeID hn : _hg.nodes()) {
-					refinement_nodes.push_back(hn);
-				}
-				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-				HyperedgeWeight cut = cut_before;
-				double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
-
-				// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
-				// not possible to give more than one upper bound to the refiner.
-				// However, if I'm correct, the condition always evaluates to true if k=2^x right?
-				//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
-				if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
-					HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-					HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-					// TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
-					// another idea is to restart the refiner as long as it finds an improvement on the current
-					// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
-					//for.
-					_lp_refiner.refine(refinement_nodes,_hg.numNodes(),_config.partition.max_part_weight,cut,imbalance);
-					HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-					std::chrono::duration<double> elapsed_seconds = end - start;
-					InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
-					InitialStatManager::getInstance().updateStat("Time Measurements", "Refinement time",InitialStatManager::getInstance().getStat("Time Measurements", "Refinement time") + static_cast<double>(elapsed_seconds.count()));
-				}
-			}
-		}
-
-		HypergraphPartitionBalancer _balancer;
-		using InitialPartitionerBase::_hg;
-		using InitialPartitionerBase::_config;
-
-	};
+};
 
 }
 

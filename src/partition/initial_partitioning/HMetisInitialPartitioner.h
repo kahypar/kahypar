@@ -42,8 +42,6 @@ public:
 			total_graph_weight += _hg.nodeWeight(hn);
 		}
 
-		_config.partition.initial_partitioner_path =
-				"/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
 
 		double exp = 1.0 / log2(_config.initial_partitioning.k);
 		_config.partition.hmetis_ub_factor =
@@ -64,7 +62,7 @@ public:
 				+ std::to_string(_config.initial_partitioning.k);
 
 		std::string initial_partitioner_call =
-				_config.partition.initial_partitioner_path + " "
+				"/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1 "
 						+ _config.initial_partitioning.coarse_graph_filename
 						+ " " + std::to_string(_config.initial_partitioning.k)
 						+ " -seed="

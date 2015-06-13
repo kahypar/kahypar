@@ -98,6 +98,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
         						   + " --algo=" + config.initial_partitioning.algorithm
                                    + " --mode=direct"
 								   + " --min_ils_iterations=" + std::to_string(config.initial_partitioning.min_ils_iterations)
+        						   + " --max_stable_net_removals=" + std::to_string(config.initial_partitioning.max_stable_net_removals)
 								   + " --unassigned-part=" + std::to_string(config.initial_partitioning.unassigned_part)
         						   + " --stats=false"
                                    + " --output=" + config.partition.coarse_graph_partition_filename;

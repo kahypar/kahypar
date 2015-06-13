@@ -44,6 +44,7 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/initial_partitioning/ConfigurationManager.h"
 namespace po = boost::program_options;
 
 using partition::InitialPartitionerAlgorithm;
@@ -102,6 +103,7 @@ using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
 using partition::HyperedgeCoarsener2;
+using partition::ConfigurationManager;
 
 InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		std::string mode) {
@@ -296,40 +298,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 	}
 }
 
-void setDefaults(Configuration& config) {
-	config.initial_partitioning.k = 2;
-	config.partition.k = 2;
-	config.initial_partitioning.epsilon = 0.03;
-	config.initial_partitioning.epsilon = 0.03;
-	config.initial_partitioning.algorithm = "random";
-	config.initial_partitioning.algo = InitialPartitionerAlgorithm::random;
-	config.initial_partitioning.mode = "direct";
-	config.initial_partitioning.seed = -1;
-	config.initial_partitioning.min_ils_iterations = 400;
-	config.initial_partitioning.max_stable_net_removals = 100;
-	config.initial_partitioning.nruns = 1;
-	config.initial_partitioning.direct_nlevel_contraction_divider = 2;
-	config.initial_partitioning.unassigned_part = 1;
-	config.initial_partitioning.alpha = 1.0;
-	config.initial_partitioning.beta = 1.0;
-	config.initial_partitioning.rollback = true;
-	config.initial_partitioning.refinement = true;
-	config.initial_partitioning.erase_components = false;
-	config.initial_partitioning.balance = false;
-	config.initial_partitioning.stats = true;
-	config.initial_partitioning.styles = true;
-
-	config.coarsening.contraction_limit_multiplier = 160;
-	config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_partial;
-	config.partition.refinement_algorithm =
-			RefinementAlgorithm::label_propagation;
-	config.fm_local_search.num_repetitions = -1;
-	config.fm_local_search.max_number_of_fruitless_moves = 150;
-	config.fm_local_search.alpha = 8;
-	config.her_fm.num_repetitions = -1;
-	config.her_fm.max_number_of_fruitless_moves = 150;
-	config.lp_refiner.max_number_iterations = 3;
-}
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
 		RefinementAlgorithm::twoway_fm,
@@ -670,7 +638,7 @@ int main(int argc, char* argv[]) {
 
 	//Load command line input into Configuration
 	Configuration config;
-	setDefaults(config);
+	ConfigurationManager::setDefaults(config);
 	configurePartitionerFromCommandLineInput(config, vm);
 
 	Randomize::setSeed(config.initial_partitioning.seed);
@@ -689,6 +657,8 @@ int main(int argc, char* argv[]) {
 	Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
 			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
 			&hypernode_weights);
+
+	ConfigurationManager::setHypergraphDependingParameters(config,hypergraph);
 
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {

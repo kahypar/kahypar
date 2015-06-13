@@ -127,6 +127,7 @@ private:
 										_hg.changeNodePart(hn,unassigned_part,i);
 										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
 									}
+									return true;
 								}(), "Gain calculation failed!");
 
 						bq[i]->deleteMax();
