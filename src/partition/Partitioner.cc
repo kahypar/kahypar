@@ -101,6 +101,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
         						   + " --max_stable_net_removals=" + std::to_string(config.initial_partitioning.max_stable_net_removals)
 								   + " --unassigned-part=" + std::to_string(config.initial_partitioning.unassigned_part)
         						   + " --stats=false"
+								   + " --rtype=" + partition::toString(config.partition.refinement_algorithm)
                                    + " --output=" + config.partition.coarse_graph_partition_filename;
         break;
     }
@@ -110,7 +111,6 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
 
     io::readPartitionFile(config.partition.coarse_graph_partition_filename, partitioning);
     ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
-
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
     DBG(dbg_partition_initial_partitioning, "attempt " << attempt << " seed("
         << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg,

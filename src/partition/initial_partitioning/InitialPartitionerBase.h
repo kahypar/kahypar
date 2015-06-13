@@ -119,7 +119,7 @@ public:
 		double epsilon = config.partition.epsilon;
 		PartitionID k = config.partition.k;
 		config.partition.epsilon = config.initial_partitioning.epsilon;
-		config.partition.k = _config.initial_partitioning.k;
+		config.partition.k = config.initial_partitioning.k;
 		f();
 		config.partition.epsilon = epsilon;
 		config.partition.k = k;
@@ -140,9 +140,17 @@ public:
 	void performFMRefinement() {
 		if(_config.initial_partitioning.refinement) {
 			_config.partition.total_graph_weight = total_hypergraph_weight;
-			std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
-							_config.partition.refinement_algorithm,
-							_hg, _config));
+			std::unique_ptr<IRefiner> refiner;
+			if(_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
+				refiner = (RefinerFactory::getInstance().createObject(
+															RefinementAlgorithm::kway_fm,
+															_hg, _config));
+			}
+			else {
+				refiner = (RefinerFactory::getInstance().createObject(
+											_config.partition.refinement_algorithm,
+											_hg, _config));
+			}
 			refiner->initialize();
 
 			std::vector<HypernodeID> refinement_nodes;

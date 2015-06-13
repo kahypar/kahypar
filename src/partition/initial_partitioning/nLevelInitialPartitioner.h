@@ -42,13 +42,15 @@ private:
 
 		Configuration nlevel_config =
 				ConfigurationManager::copyConfigAndSetValues(_config,
-						[&](Configuration config) {
+						[&](Configuration& config) {
 							if (_config.initial_partitioning.k > 2) {
 								config.coarsening.contraction_limit_multiplier = _hg.initialNumNodes()
 								/ (static_cast<double>(_config.initial_partitioning.k) * _config.initial_partitioning.direct_nlevel_contraction_divider);
 							}
+							config.fm_local_search.max_number_of_fruitless_moves = 20;
 							ConfigurationManager::setHypergraphDependingParameters(config,_hg);
 						});
+
 		Partitioner partitioner;
 		partitioner.partition(_hg, nlevel_config);
 

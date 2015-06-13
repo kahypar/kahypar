@@ -67,13 +67,14 @@ public:
 		config.coarsening.max_allowed_weight_multiplier = 3.5;
 
 		//Refinement-Parameters
+		config.partition.global_search_iterations = 1;
 		config.partition.refinement_algorithm =
 				RefinementAlgorithm::label_propagation;
 		config.fm_local_search.num_repetitions = -1;
 		config.fm_local_search.max_number_of_fruitless_moves = 150;
 		config.fm_local_search.alpha = 8;
 		config.her_fm.num_repetitions = -1;
-		config.her_fm.max_number_of_fruitless_moves = 150;
+		config.her_fm.max_number_of_fruitless_moves = 10;
 		config.lp_refiner.max_number_iterations = 3;
 	}
 
