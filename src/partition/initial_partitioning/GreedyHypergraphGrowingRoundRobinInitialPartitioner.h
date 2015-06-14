@@ -110,11 +110,11 @@ private:
 							"Hypernode " << hn << "should be unassigned!");
 
 					if (!assignHypernodeToPartition(hn, i)) {
+						if(!bq[i]->empty()) {
+							bq[i]->deleteMax();
+						}
 						if (bq[i]->empty()) {
 							partEnable[i] = false;
-						}
-						else {
-							bq[i]->deleteMax();
 						}
 					} else {
 
@@ -169,18 +169,6 @@ private:
 			delete bq[k];
 		}
 
-		InitialPartitionerBase::recalculateBalanceConstraints(
-				_config.initial_partitioning.epsilon);
-		InitialPartitionerBase::rollbackToBestCut();
-		InitialPartitionerBase::eraseConnectedComponents();
-		InitialPartitionerBase::performFMRefinement();
-	}
-
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
 		for(HypernodeID hn : _hg.nodes()) {
 			if(_hg.partID(hn) == -1) {
 				Gain gain0 = GainComputation::calculateGain(_hg, hn,
@@ -195,6 +183,19 @@ private:
 				}
 			}
 		}
+
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::rollbackToBestCut();
+		InitialPartitionerBase::eraseConnectedComponents();
+		InitialPartitionerBase::performFMRefinement();
+	}
+
+	void bisectionPartitionImpl() final {
+		PartitionID k = _config.initial_partitioning.k;
+		_config.initial_partitioning.k = 2;
+		kwayPartitionImpl();
+		_config.initial_partitioning.k = k;
 	}
 
 	//double max_net_size;
