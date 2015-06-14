@@ -211,6 +211,20 @@ private:
 		_config.initial_partitioning.k = 2;
 		kwayPartitionImpl();
 		_config.initial_partitioning.k = k;
+		for(HypernodeID hn : _hg.nodes()) {
+			if(_hg.partID(hn) == -1) {
+				Gain gain0 = GainComputation::calculateGain(_hg, hn,
+						0);
+				Gain gain1 = GainComputation::calculateGain(_hg, hn,
+						1);
+				if(gain0 > gain1) {
+					_hg.setNodePart(hn,0);
+				}
+				else {
+					_hg.setNodePart(hn,1);
+				}
+			}
+		}
 	}
 
 	//double max_net_size;
