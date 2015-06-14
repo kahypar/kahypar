@@ -54,7 +54,7 @@ public:
 		config.partition.k = 2;
 		config.partition.epsilon = 0.03;
 		config.partition.initial_partitioner_path =
-				"/home/heuer/Dokumente/hypergraph/release/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
+				"/home/theuer/Dokumente/hypergraph/release/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
 		config.partition.initial_partitioning_attempts = 1;
 		config.partition.global_search_iterations = 10;
 		config.partition.hyperedge_size_threshold = -1;

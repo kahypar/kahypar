@@ -192,9 +192,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("algo")) {
 			config.initial_partitioning.algorithm =
 					vm["algo"].as<std::string>();
+			std::cout << vm["algo"].as<std::string>() << std::endl;
 			config.initial_partitioning.algo =
 					stringToInitialPartitionerAlgorithm(
 							config.initial_partitioning.algorithm);
+			std::cout << partition::toString(config.initial_partitioning.algo) << std::endl;
 			if (config.initial_partitioning.algorithm.compare("ils") == 0) {
 				if (vm.count("min_ils_iterations")) {
 					config.initial_partitioning.min_ils_iterations =
@@ -471,7 +473,7 @@ static Registrar<InitialPartitioningFactory> reg_rb_greedy_global(
 			return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
 		});
 static Registrar<InitialPartitioningFactory> reg_rb_greedy_round(
-		InitialPartitionerAlgorithm::greedy_round,
+		InitialPartitionerAlgorithm::rb_greedy_round,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
 		});
@@ -481,7 +483,7 @@ static Registrar<InitialPartitioningFactory> reg_rb_lp(
 			return new RecursiveBisection<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
 		});
 static Registrar<InitialPartitioningFactory> reg_rb_greedy_maxpin(
-		InitialPartitionerAlgorithm::rb_greedy_global_maxpin,
+		InitialPartitionerAlgorithm::rb_greedy_maxpin,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(hypergraph,config);
 		});
