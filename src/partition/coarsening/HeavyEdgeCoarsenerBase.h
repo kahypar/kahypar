@@ -114,14 +114,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       if (_hg.numNodes() > _max_hn_weights.back().num_nodes) {
         _max_hn_weights.pop_back();
       }
-      ASSERT([&]() {
-          for (const HypernodeID hn : _hg.nodes()) {
-            if (_hg.nodeWeight(hn) == _max_hn_weights.back().max_weight) {
-              return true;
-            }
-          }
-          return false;
-        } (), "No HN of weight " << _max_hn_weights.back().max_weight << " found");
+
 
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop_back();

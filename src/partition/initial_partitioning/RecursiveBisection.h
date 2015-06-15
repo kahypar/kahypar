@@ -125,8 +125,6 @@ private:
 				hypergraph_weight += h.nodeWeight(hn);
 			}
 
-			std::cout << h.numNodes() << " - " << h.numEdges() << std::endl;
-
 			Configuration current_config =
 					ConfigurationManager::copyConfigAndSetValues(_config,
 							[&](Configuration& config) {
