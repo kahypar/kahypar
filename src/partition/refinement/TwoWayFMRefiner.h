@@ -73,8 +73,7 @@ class TwoWayFMRefiner : public IRefiner,
     _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
     _locked_hes(_hg.initialNumEdges(), kFree),
-    _stopping_policy(),
-    _stats() {
+    _stopping_policy() {
     _performed_moves.reserve(_hg.initialNumNodes());
   }
 
@@ -423,10 +422,6 @@ class TwoWayFMRefiner : public IRefiner,
                        );
   }
 
-  const Stats & statsImpl() const noexcept final {
-    return _stats;
-  }
-
   void updatePin(const HyperedgeID he, const HypernodeID pin, const Gain factor,
                  const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(max_allowed_part_weight);
@@ -483,7 +478,6 @@ class TwoWayFMRefiner : public IRefiner,
   std::vector<HypernodeID> _performed_moves;
   FastResetVector<char> _locked_hes;
   StoppingPolicy _stopping_policy;
-  Stats _stats;
 };
 
 template <class T, class U>

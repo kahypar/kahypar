@@ -47,7 +47,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
   << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
   << " coarseningContractionLimit=" << config.coarsening.contraction_limit
-  << partitioner.stats().toString()
+      << Stats::instance().toString()
   << " refinementAlgo=" << toString(config.partition.refinement_algorithm);
   if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
       config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm) {

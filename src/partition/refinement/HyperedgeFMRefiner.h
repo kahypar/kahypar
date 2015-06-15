@@ -96,8 +96,7 @@ class HyperedgeFMRefiner : public IRefiner,
     _movement_indices(),
     _performed_moves(),
     _is_initialized(false),
-    _stopping_policy(),
-    _stats() {
+    _stopping_policy() {
     _movement_indices.reserve(_hg.initialNumEdges() + 1);
     _movement_indices[0] = 0;
     _performed_moves.reserve(_hg.initialNumPins());
@@ -303,10 +302,6 @@ class HyperedgeFMRefiner : public IRefiner,
     return std::string(templateToString<QueueSelectionPolicy<Gain> >()
                        + templateToString<QueueCloggingPolicy>()
                        + templateToString<StoppingPolicy>());
-  }
-
-  const Stats & statsImpl() const noexcept final {
-    return _stats;
   }
 
  private:
@@ -544,7 +539,6 @@ class HyperedgeFMRefiner : public IRefiner,
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   StoppingPolicy _stopping_policy;
-  Stats _stats;
 };
 #pragma GCC diagnostic pop
 }   // namespace partition

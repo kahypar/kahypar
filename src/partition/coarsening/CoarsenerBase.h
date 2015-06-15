@@ -58,8 +58,7 @@ class CoarsenerBase {
     _config(config),
     _history(),
     _max_hn_weights(),
-    _stats(),
-    _hypergraph_pruner(_hg.initialNumNodes(), _stats) {
+    _hypergraph_pruner(_hg.initialNumNodes()) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
     _max_hn_weights.emplace_back(_hg.numNodes(), weight_of_heaviest_node);
@@ -67,13 +66,14 @@ class CoarsenerBase {
 
   virtual ~CoarsenerBase() { }
 
+
  protected:
   void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
     HyperedgeWeight removed_he_weight =
       _hypergraph_pruner.removeSingleNodeHyperedges(_hg, rep_node,
                                                     _history.back().one_pin_hes_begin,
                                                     _history.back().one_pin_hes_size);
-    _stats.add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
+    Stats::instance().add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
                removed_he_weight);
   }
 
@@ -82,7 +82,7 @@ class CoarsenerBase {
       _hypergraph_pruner.removeParallelHyperedges(_hg, rep_node,
                                                   _history.back().parallel_hes_begin,
                                                   _history.back().parallel_hes_size);
-    _stats.add("numRemovedParalellHEs", _config.partition.current_v_cycle, removed_parallel_hes);
+    Stats::instance().add("numRemovedParalellHEs", _config.partition.current_v_cycle, removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() noexcept {
@@ -139,100 +139,10 @@ class CoarsenerBase {
     } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }
 
-  void gatherCoarseningStats() noexcept {
-#ifdef GATHER_STATS
-    std::map<HyperedgeID, HypernodeID> node_degree_map;
-    std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
-    std::map<HyperedgeWeight, HypernodeID> edge_weight_map;
-    std::map<HypernodeID, HyperedgeID> edge_size_map;
-    HyperedgeWeight sum_exposed_he_weight = 0;
-    for (HypernodeID hn : _hg.nodes()) {
-      node_degree_map[_hg.nodeDegree(hn)] += 1;
-      node_weight_map.emplace(std::pair<HypernodeWeight, HypernodeID>(_hg.nodeWeight(hn), hn));
-    }
-    for (HyperedgeID he : _hg.edges()) {
-      edge_weight_map[_hg.edgeWeight(he)] += 1;
-      sum_exposed_he_weight += _hg.edgeWeight(he);
-      edge_size_map[_hg.edgeSize(he)] += 1;
-    }
-    // LOG("Hypernode weights:");
-    // for (auto& entry : node_weight_map) {
-    //   std::cout << "w(" << std::setw(10) << std::left << entry.second << "):";
-    //   HypernodeWeight percent = ceil(entry.first * 100.0 / _config.coarsening.max_allowed_node_weight);
-    //   for (HypernodeWeight i = 0; i < percent; ++i) {
-    //     std::cout << "#";
-    //   }
-    //   std::cout << " " << entry.first << std::endl;
-    // }
-    // LOG("Hypernode degrees:");
-    // for (auto& entry : node_degree_map) {
-    //   std::cout << "deg=" << std::setw(4) << std::left << entry.first << ":";
-    //   for (HyperedgeID i = 0; i < entry.second; ++i) {
-    //     std::cout << "#";
-    //   }
-    //   std::cout << " " << entry.second << std::endl;
-    // }
-    // LOG("Hyperedge weights:");
-    // for (auto& entry : edge_weight_map) {
-    //   std::cout << "w=" << std::setw(4) << std::left << entry.first << ":";
-    //   for (HyperedgeID i = 0; i < entry.second && i < 100; ++i) {
-    //     std::cout << "#";
-    //   }
-    //   if (entry.second > 100) {
-    //     std::cout << " ";
-    //     for (HyperedgeID i = 0; i < (entry.second - 100) / 100; ++i) {
-    //       std::cout << ".";
-    //     }
-    //   }
-    //   std::cout << " " << entry.second << std::endl;
-    // }
-    // LOG("Hyperedge sizes:");
-    // for (auto& entry : edge_size_map) {
-    //   std::cout << "|he|=" << std::setw(4) << std::left << entry.first << ":";
-    //   for (HyperedgeID i = 0; i < entry.second && i < 100; ++i) {
-    //     std::cout << "#";
-    //   }
-    //   if (entry.second > 100) {
-    //     std::cout << " ";
-    //     for (HyperedgeID i = 0; i < entry.second / 100; ++i) {
-    //       std::cout << ".";
-    //     }
-    //   }
-    //   std::cout << " " << entry.second << std::endl;
-    // }
-    _stats.add("numCoarseHNs", _config.partition.current_v_cycle, _hg.numNodes());
-    _stats.add("numCoarseHEs", _config.partition.current_v_cycle, _hg.numEdges());
-    _stats.add("SumExposedHEWeight", _config.partition.current_v_cycle, sum_exposed_he_weight);
-    _stats.add("NumHNsToInitialNumHNsRATIO", _config.partition.current_v_cycle,
-               static_cast<double>(_hg.numNodes()) / _hg.initialNumNodes());
-    _stats.add("NumHEsToInitialNumHEsRATIO", _config.partition.current_v_cycle,
-               static_cast<double>(_hg.numEdges()) / _hg.initialNumEdges());
-    _stats.add("ExposedHEWeightToInitialExposedHEWeightRATIO", _config.partition.current_v_cycle,
-               static_cast<double>(sum_exposed_he_weight) / _hg.initialNumEdges());
-    _stats.add("HEsizeMIN", _config.partition.current_v_cycle,
-               (edge_size_map.size() > 0 ? edge_size_map.begin()->first : 0));
-    _stats.add("HEsizeMAX", _config.partition.current_v_cycle,
-               (edge_size_map.size() > 0 ? edge_size_map.rbegin()->first : 0));
-    _stats.add("HEsizeAVG", _config.partition.current_v_cycle,
-               metrics::avgHyperedgeDegree(_hg));
-    _stats.add("HNdegreeMIN", _config.partition.current_v_cycle,
-               (node_degree_map.size() > 0 ? node_degree_map.begin()->first : 0));
-    _stats.add("HNdegreeMAX", _config.partition.current_v_cycle,
-               (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
-    _stats.add("HNdegreeAVG", _config.partition.current_v_cycle,
-               metrics::avgHypernodeDegree(_hg));
-    _stats.add("HNweightMIN", _config.partition.current_v_cycle,
-               (node_weight_map.size() > 0 ? node_weight_map.begin()->first : 0));
-    _stats.add("HNweightMAX", _config.partition.current_v_cycle,
-               (node_weight_map.size() > 0 ? node_weight_map.rbegin()->first : 0));
-#endif
-  }
-
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<CoarseningMemento> _history;
   std::vector<CurrentMaxNodeWeight> _max_hn_weights;
-  Stats _stats;
   HypergraphPruner _hypergraph_pruner;
 };
 }  // namespace partition

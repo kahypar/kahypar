@@ -80,8 +80,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated(_hg.initialNumNodes()),
     _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
-    _stopping_policy(),
-    _stats() {
+    _stopping_policy() {
     _performed_moves.reserve(_hg.initialNumNodes());
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
@@ -262,10 +261,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                        "false"
 #endif
                        );
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   void rollback(int last_index, const int min_cut_index) noexcept {
@@ -611,7 +606,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<bool> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
   StoppingPolicy _stopping_policy;
-  Stats _stats;
 };
 #pragma GCC diagnostic pop
 }             // namespace partition

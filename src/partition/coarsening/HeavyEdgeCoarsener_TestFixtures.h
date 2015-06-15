@@ -32,8 +32,7 @@ using defs::HyperedgeWeight;
 namespace partition {
 class DummyRefiner : public IRefiner {
  public:
-  DummyRefiner() :
-    _stats() { }
+  DummyRefiner() { }
   void initializeImpl() noexcept {
     _is_initialized = true;
   }
@@ -41,8 +40,6 @@ class DummyRefiner : public IRefiner {
                   HyperedgeWeight&, double&) noexcept final { return true; }
   int numRepetitionsImpl() const noexcept final { return 1; }
   std::string policyStringImpl() const noexcept final { return std::string(""); }
-  const Stats & statsImpl() const noexcept final { return _stats; }
-  Stats _stats;
 };
 
 template <class CoarsenerType>

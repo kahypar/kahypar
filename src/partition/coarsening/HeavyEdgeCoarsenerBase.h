@@ -56,7 +56,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base::_config;
   using Base::_history;
   using Base::_max_hn_weights;
-  using Base::_stats;
   using Base::CurrentMaxNodeWeight;
   using Base::restoreSingleNodeHyperedges;
   using Base::restoreParallelHyperedges;
@@ -94,8 +93,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
 
-    _stats.add("initialCut", _config.partition.current_v_cycle, initial_cut);
-    _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
+    Stats::instance().add("initialCut", _config.partition.current_v_cycle, initial_cut);
+    Stats::instance().add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
     DBG(true, "initial cut =" << current_cut);
     DBG(true, "initial imbalance=" << current_imbalance);
 

@@ -420,7 +420,7 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 
-  // io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
+  io::printPartitioningStatistics();
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 

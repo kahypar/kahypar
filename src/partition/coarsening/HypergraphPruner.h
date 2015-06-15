@@ -50,12 +50,11 @@ class HypergraphPruner {
   HypergraphPruner& operator= (const HypergraphPruner&) = delete;
   HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
-  HypergraphPruner(HypernodeID max_num_nodes, Stats& stats) noexcept :
+  HypergraphPruner(HypernodeID max_num_nodes) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
-    _contained_hypernodes(max_num_nodes),
-    _stats(stats) { }
+    _contained_hypernodes(max_num_nodes) { }
 
   ~HypergraphPruner() { }
 
@@ -227,7 +226,6 @@ class HypergraphPruner {
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
   std::vector<bool> _contained_hypernodes;
-  Stats& _stats;
 };
 }  // namespace partition
 

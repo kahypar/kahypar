@@ -57,7 +57,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::restoreSingleNodeHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
-  using Base::gatherCoarseningStats;
   using Rating = HyperedgeRating;
   using ContractionMemento = typename Hypergraph::ContractionMemento;
 
@@ -120,7 +119,6 @@ class HyperedgeCoarsener : public ICoarsener,
 
       reRateHyperedgesAffectedByContraction(rep_node);
     }
-    gatherCoarseningStats();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept final {
@@ -145,10 +143,6 @@ class HyperedgeCoarsener : public ICoarsener,
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
     //        << " > " << _config.partition.epsilon);
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   void removeHyperedgeFromPQ(const HyperedgeID he) noexcept {
@@ -263,7 +257,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_hg;
   using Base::_config;
   using Base::_history;
-  using Base::_stats;
   using Base::_hypergraph_pruner;
   PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;

@@ -84,8 +84,7 @@ class KWayFMRefiner : public IRefiner,
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
-    _stopping_policy(),
-    _stats() {
+    _stopping_policy() {
     _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
   }
@@ -257,10 +256,6 @@ class KWayFMRefiner : public IRefiner,
                        "false"
 #endif
                        );
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   void rollback(int last_index, const int min_cut_index) noexcept {
@@ -935,7 +930,6 @@ class KWayFMRefiner : public IRefiner,
   FastResetVector<PartitionID> _locked_hes;
   KWayRefinementPQ _pq;
   StoppingPolicy _stopping_policy;
-  Stats _stats;
 };
 
 template <class T, class U>

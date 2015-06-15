@@ -39,8 +39,7 @@ class LPRefiner : public IRefiner {
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
-    _bitset_he(hg.initialNumEdges(), false),
-    _stats()
+    _bitset_he(hg.initialNumEdges(), false)
   { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -116,10 +115,6 @@ class LPRefiner : public IRefiner {
 
   std::string policyStringImpl() const noexcept final {
     return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
-  }
-
-  const Stats & statsImpl() const noexcept final {
-    return _stats;
   }
 
  private:
@@ -317,7 +312,6 @@ class LPRefiner : public IRefiner {
 
   std::vector<bool> _bitset_he;
 
-  Stats _stats;
 };
 }
 #endif  // SRC_PARTITION_REFINEMENT_LPREFINER_H_

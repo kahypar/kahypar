@@ -32,7 +32,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
   using Rating = typename Rater::Rating;
   using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
@@ -93,15 +92,10 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
 
       reRateHypernodesAffectedByParallelHyperedgeRemoval();
     }
-    gatherCoarseningStats();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     return Base::doUncoarsen(refiner);
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   std::string policyStringImpl() const noexcept final {
@@ -170,7 +164,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");
-      _stats.add("numHNsWithoutValidContractionPartner", _config.partition.current_v_cycle, 1);
+      Stats::instance().add("numHNsWithoutValidContractionPartner", _config.partition.current_v_cycle, 1);
     }
   }
 
@@ -185,7 +179,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::_config;
   using Base::_rater;
   using Base::_history;
-  using Base::_stats;
   using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
