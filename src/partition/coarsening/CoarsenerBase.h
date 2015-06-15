@@ -52,7 +52,8 @@ class CoarsenerBase {
   CoarsenerBase& operator= (const CoarsenerBase&) = delete;
   CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
-  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
+  CoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
+                const HypernodeWeight weight_of_heaviest_node) noexcept :
     _hg(hypergraph),
     _config(config),
     _history(),
@@ -61,7 +62,7 @@ class CoarsenerBase {
     _hypergraph_pruner(_hg.initialNumNodes(), _stats) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
-    _max_hn_weights.emplace_back(_hg.numNodes(), 1);
+    _max_hn_weights.emplace_back(_hg.numNodes(), weight_of_heaviest_node);
   }
 
   virtual ~CoarsenerBase() { }

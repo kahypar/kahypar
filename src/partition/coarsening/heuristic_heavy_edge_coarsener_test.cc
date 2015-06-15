@@ -83,7 +83,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
   ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));

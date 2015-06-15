@@ -53,7 +53,7 @@ class ACoarsenerBase : public Test {
                                            HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
-    coarsener(*hypergraph, config),
+    coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
     refiner(new DummyRefiner()) {
     refiner->initialize();
     config.coarsening.max_allowed_node_weight = 5;
@@ -173,7 +173,7 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   Configuration config;
   config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
   refiner->initialize();
 
@@ -207,7 +207,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
 
   Configuration config;
   config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
   refiner->initialize();
 

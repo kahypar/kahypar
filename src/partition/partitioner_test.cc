@@ -34,7 +34,7 @@ class APartitioner : public Test {
     hypergraph(graph),
     config(),
     partitioner(),
-    coarsener(new FirstWinsCoarsener(*hypergraph, config)),
+    coarsener(new FirstWinsCoarsener(*hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.contraction_limit = 2;
     config.coarsening.max_allowed_node_weight = 5;

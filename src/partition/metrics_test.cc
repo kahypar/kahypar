@@ -63,7 +63,7 @@ class APartitionedHypergraph : public Test {
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
     partitioner(),
-    coarsener(new FirstWinsCoarsener(hypergraph, config)),
+    coarsener(new FirstWinsCoarsener(hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(hypergraph, config)) {
     config.partition.k = 2;
     config.coarsening.contraction_limit = 2;
@@ -96,7 +96,7 @@ class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedH
   TheHyperedgeCutCalculationForInitialPartitioning() :
     AnUnPartitionedHypergraph(),
     config(),
-    coarsener(hypergraph, config),
+    coarsener(hypergraph, config,  /* heaviest_node_weight */ 1),
     hg_to_hmetis(),
     partition() {
     config.coarsening.contraction_limit = 2;

@@ -47,8 +47,9 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
   LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
-  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+                               const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _outdated_rating(hypergraph.initialNumNodes(), false),
     _target(_hg.initialNumNodes())
   { }

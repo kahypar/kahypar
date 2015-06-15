@@ -71,8 +71,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
+                         const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
 

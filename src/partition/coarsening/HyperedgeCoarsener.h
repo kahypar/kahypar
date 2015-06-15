@@ -67,8 +67,9 @@ class HyperedgeCoarsener : public ICoarsener,
   HyperedgeCoarsener& operator= (const HyperedgeCoarsener&) = delete;
   HyperedgeCoarsener& operator= (HyperedgeCoarsener&&) = delete;
 
-  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+                     const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 

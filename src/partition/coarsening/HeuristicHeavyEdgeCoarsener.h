@@ -42,8 +42,9 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
   HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
 
-  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config),
+  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+                              const HypernodeWeight weight_of_heaviest_node) noexcept :
+    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()) { }

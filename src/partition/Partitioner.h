@@ -256,9 +256,8 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
 }
 
-inline Configuration Partitioner::createConfigurationForCurrentBisection(
-    const Configuration& original_config, const Hypergraph& original_hypergraph,
-    const Hypergraph& current_hypergraph, const PartitionID current_k) const {
+inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config, const Hypergraph& original_hypergraph,
+                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
   current_config.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -273,27 +272,27 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(
                                                     static_cast<double>(current_config.partition.k));
 
   current_config.coarsening.contraction_limit =
-      current_config.coarsening.contraction_limit_multiplier * current_config.partition.k;
+    current_config.coarsening.contraction_limit_multiplier * current_config.partition.k;
 
   current_config.coarsening.hypernode_weight_fraction =
-      current_config.coarsening.max_allowed_weight_multiplier
-      / current_config.coarsening.contraction_limit;
+    current_config.coarsening.max_allowed_weight_multiplier
+    / current_config.coarsening.contraction_limit;
 
   current_config.coarsening.max_allowed_node_weight =
-      current_config.coarsening.hypernode_weight_fraction *
-      current_config.partition.total_graph_weight;
+    current_config.coarsening.hypernode_weight_fraction *
+    current_config.partition.total_graph_weight;
 
   current_config.fm_local_search.beta = log(current_hypergraph.numNodes());
 
   current_config.partition.hmetis_ub_factor =
     100.0 * ((1 + current_config.partition.epsilon)
              * (ceil(static_cast<double>(current_config.partition.total_graph_weight)
-                        / current_config.partition.k)
+                     / current_config.partition.k)
                 / current_config.partition.total_graph_weight) - 0.5);
 
   current_config.partition.coarse_graph_partition_filename =
-      current_config.partition.coarse_graph_filename + ".part."
-      + std::to_string(current_config.partition.k);
+    current_config.partition.coarse_graph_filename + ".part."
+    + std::to_string(current_config.partition.k);
   return current_config;
 }
 
@@ -351,35 +350,36 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                                                 current_hypergraph,
                                                                                 k);
           std::unique_ptr<ICoarsener> coarsener(CoarsenerFactory::getInstance().createObject(
-              current_config.partition.coarsening_algorithm, current_hypergraph, current_config));
+                                                  current_config.partition.coarsening_algorithm, current_hypergraph, current_config,
+                                                  /* weight of heaviest node */ 1));
           std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                               current_config.partition.refinement_algorithm,
                                               current_hypergraph, current_config));
 
-          //TODO(schlag): Policy strings of coarsener and refiner are still missing
+          // TODO(schlag): Policy strings of coarsener and refiner are still missing
           partition(current_hypergraph, *coarsener, *refiner, current_config);
 
           std::cout << "-------------------------------------------------------------------------------------------" << std::endl;
           auto extractedHypergraph_1 =
-              extractPartAsUnpartitionedHypergraphForBisection(current_hypergraph, 1);
+            extractPartAsUnpartitionedHypergraphForBisection(current_hypergraph, 1);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state = RBHypergraphState::partitionedAndPart1Extracted;
           hypergraph_stack.emplace_back(
-              HypergraphPtr(extractedHypergraph_1.first.release(), delete_hypergraph),
-              RBHypergraphState::unpartitioned,
-              k1 + km, k2);
+            HypergraphPtr(extractedHypergraph_1.first.release(), delete_hypergraph),
+            RBHypergraphState::unpartitioned,
+            k1 + km, k2);
         }
         break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
-              extractPartAsUnpartitionedHypergraphForBisection(current_hypergraph, 0);
+            extractPartAsUnpartitionedHypergraphForBisection(current_hypergraph, 0);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(
-              HypergraphPtr(extractedHypergraph_0.first.release(), delete_hypergraph),
-              RBHypergraphState::unpartitioned,
-              k1, k1 + km - 1);
+            HypergraphPtr(extractedHypergraph_0.first.release(), delete_hypergraph),
+            RBHypergraphState::unpartitioned,
+            k1, k1 + km - 1);
         }
         break;
     }
@@ -390,7 +390,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
                                                        const Configuration& config) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      config.partition.coarsening_algorithm, hypergraph, config));
+      config.partition.coarsening_algorithm, hypergraph, config,  /* weight of heaviest node */ 1));
 
   std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                       config.partition.refinement_algorithm,
