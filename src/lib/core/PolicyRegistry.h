@@ -33,8 +33,8 @@ class PolicyRegistry {
       static_cast<UnderlyingIDType>(name), PolicyBasePtr(policy)).second;
   }
   static PolicyRegistry & getInstance() {
-    static std::unique_ptr<PolicyRegistry> instance(new PolicyRegistry());
-    return *(instance.get());
+    static PolicyRegistry instance;
+    return instance;
   }
 
   PolicyBase & getPolicy(const IDType& name) {

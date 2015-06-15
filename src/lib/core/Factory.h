@@ -26,7 +26,6 @@ class Factory {
   using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
   using CallbackMap = std::unordered_map<UnderlyingIdentifierType,
                                          ProductCreator>;
-  using FactoryPtr = std::unique_ptr<Factory>;
 
  public:
   Factory(const Factory&) = delete;
@@ -52,8 +51,8 @@ class Factory {
   }
 
   static Factory & getInstance() {
-    static FactoryPtr _factory_instance(new Factory());
-    return *_factory_instance.get();
+    static Factory _factory_instance;
+    return _factory_instance;
   }
 
  private:
