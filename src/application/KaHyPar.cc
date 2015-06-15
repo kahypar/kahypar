@@ -358,15 +358,8 @@ int main(int argc, char* argv[]) {
 
   Randomize::setSeed(config.partition.seed);
 
-  HypernodeID num_hypernodes;
-  HyperedgeID num_hyperedges;
-  HyperedgeIndexVector index_vector;
-  HyperedgeVector edge_vector;
-
-  io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
-                         index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
-                        config.partition.k);
+  Hypergraph hypergraph(io::createHypergraphFromFile(config.partition.graph_filename,
+                                                     config.partition.k));
 
   config.partition.total_graph_weight = hypergraph.totalWeight();
 
@@ -383,7 +376,7 @@ int main(int argc, char* argv[]) {
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
                                               config.partition.total_graph_weight;
-  config.fm_local_search.beta = log(num_hypernodes);
+  config.fm_local_search.beta = log(hypergraph.numNodes());
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
   // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
