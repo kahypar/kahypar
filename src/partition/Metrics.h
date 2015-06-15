@@ -135,6 +135,7 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
   for (auto he : hypergraph.edges()) {
     he_sizes.push_back(hypergraph.edgeSize(he));
   }
+  ASSERT(!he_sizes.empty(), "Hypergraph does not contain any hyperedges");
   std::sort(he_sizes.begin(), he_sizes.end());
 
   size_t rank = ceil(static_cast<double>(percentile) / 100 * (he_sizes.size() - 1));
@@ -148,6 +149,7 @@ static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph
   for (auto hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
   }
+  ASSERT(!hn_degrees.empty(), "Hypergraph does not contain any hypernodes");
   std::sort(hn_degrees.begin(), hn_degrees.end());
 
   size_t rank = ceil(static_cast<double>(percentile) / 100 * (hn_degrees.size() - 1));
