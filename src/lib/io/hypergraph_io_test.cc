@@ -85,6 +85,59 @@ TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergra
                         2, &hyperedge_weights, &hypernode_weights);
 }
 
+TEST_F(AHypergraphFileWithoutHyperedges, CanBeParsedIntoAHypergraphIfFileContainesHypernodeWeights) {
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  HypernodeWeightVector hypernode_weights;
+  HyperedgeWeightVector hyperedge_weights;
+  readHypergraphFile(_filename, _num_hypernodes, _num_hyperedges, index_vector, edge_vector,
+                     &hyperedge_weights, &hypernode_weights);
+  ASSERT_THAT(index_vector.size(), Eq(1));
+  ASSERT_THAT(edge_vector.empty(), Eq(true));
+  ASSERT_THAT(_num_hypernodes, Eq(3));
+  ASSERT_THAT(_num_hyperedges, Eq(0));
+  ASSERT_THAT(hypernode_weights, ::testing::ContainerEq(_control_hypernode_weights));
+  ASSERT_THAT(hyperedge_weights.empty(), Eq(true));
+
+  Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
+                        2, &hyperedge_weights, &hypernode_weights);
+  ASSERT_THAT(hypergraph.numNodes(), Eq(3));
+  ASSERT_THAT(hypergraph.numEdges(), Eq(0));
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    ASSERT_THAT(hypergraph.nodeWeight(hn), Eq(_control_hypernode_weights[hn]));
+  }
+}
+
+TEST(AHypergraphWithoutHyperedges, CanBeWrittenToFile) {
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+  HypernodeWeightVector hypernode_weights;
+  HyperedgeWeightVector hyperedge_weights;
+  std::string input_filename("test_instances/hypergraph_without_hyperedges.hgr");
+  std::string output_filename("test_instances/hypergraph_without_hyperedges.hgr.out");
+  readHypergraphFile(input_filename, num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                     &hyperedge_weights, &hypernode_weights);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                        2, &hyperedge_weights, &hypernode_weights);
+  num_hypernodes = 0;
+  num_hyperedges = 0;
+  index_vector.clear();
+  edge_vector.clear();
+  hypernode_weights.clear();
+  hyperedge_weights.clear();
+
+
+  writeHypergraphFile(hypergraph, output_filename);
+  readHypergraphFile(output_filename, num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                     &hyperedge_weights, &hypernode_weights);
+  Hypergraph hypergraph_from_file(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                                  2, &hyperedge_weights, &hypernode_weights);
+
+  ASSERT_THAT(verifyEquivalenceWithPartitionInfo(hypergraph, hypergraph_from_file), Eq(true));
+}
+
 TEST_F(AnUnweightedHypergraph, CanBeWrittenToFile) {
   writeHypergraphFile(*_hypergraph, _filename);
 

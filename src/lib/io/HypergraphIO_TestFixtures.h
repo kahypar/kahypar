@@ -81,6 +81,19 @@ class AHypergraphFileWithHypernodeWeights : public AnUnweightedHypergraphFile {
   HyperedgeWeightVector _control_hypernode_weights;
 };
 
+class AHypergraphFileWithoutHyperedges : public AnUnweightedHypergraphFile {
+ public:
+  AHypergraphFileWithoutHyperedges() :
+    AnUnweightedHypergraphFile(),
+    _control_hypernode_weights({ 23, 42, 11 }) { }
+
+  void SetUp() {
+    _filename = "test_instances/hypergraph_without_hyperedges.hgr";
+  }
+
+  HypernodeWeightVector _control_hypernode_weights;
+};
+
 class AHypergraphFileWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergraphFile {
  public:
   AHypergraphFileWithHypernodeAndHyperedgeWeights() :

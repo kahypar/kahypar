@@ -42,14 +42,18 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
-  << "\t HE size:   [min:" << std::setw(10) << std::left << he_sizes[0]
+  << "\t HE size:   [min:" << std::setw(10) << std::left
+  << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
   << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
-  << "max:" << std::setw(10) << std::left << he_sizes[he_sizes.size() - 1]
+  << "max:" << std::setw(10) << std::left
+  << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
   << "]" << std::endl;
   std::cout << "# HNs: " << hypergraph.numNodes()
-  << "\t HN degree: [min:" << std::setw(10) << std::left << hn_degrees[0]
+  << "\t HN degree: [min:" << std::setw(10) << std::left
+  << (hn_degrees.empty() ? 0 : hn_degrees[0])
   << "avg:" << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
-  << "max:" << std::setw(10) << std::left << hn_degrees[hn_degrees.size() - 1]
+  << "max:" << std::setw(10) << std::left
+  << (hn_degrees.empty() ? 0 : hn_degrees[hn_degrees.size() - 1])
   << "]" << std::endl;
 }
 
