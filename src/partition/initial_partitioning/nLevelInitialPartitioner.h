@@ -51,8 +51,18 @@ private:
 							ConfigurationManager::setHypergraphDependingParameters(config,_hg);
 						});
 
-		Partitioner partitioner;
-		partitioner.partition(_hg, nlevel_config);
+
+
+		if(_hg.numEdges() != 0) {
+			Partitioner partitioner;
+			partitioner.partition(_hg, nlevel_config);
+		}
+		else {
+			std::unique_ptr<IInitialPartitioner> partitioner(
+					InitialPartitioningFactory::getInstance().createObject(
+							_config.initial_partitioning.algo, _hg, _config));
+			(*partitioner).partition(_config.initial_partitioning.k);
+		}
 
 		std::remove(_config.partition.coarse_graph_filename.c_str());
 		std::remove(_config.partition.coarse_graph_partition_filename.c_str());

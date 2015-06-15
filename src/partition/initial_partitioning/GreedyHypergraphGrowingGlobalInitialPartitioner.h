@@ -200,6 +200,7 @@ private:
 			delete bq[k];
 		}
 
+
 		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();

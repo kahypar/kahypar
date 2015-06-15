@@ -192,11 +192,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		if (vm.count("algo")) {
 			config.initial_partitioning.algorithm =
 					vm["algo"].as<std::string>();
-			std::cout << vm["algo"].as<std::string>() << std::endl;
 			config.initial_partitioning.algo =
 					stringToInitialPartitionerAlgorithm(
 							config.initial_partitioning.algorithm);
-			std::cout << partition::toString(config.initial_partitioning.algo) << std::endl;
 			if (config.initial_partitioning.algorithm.compare("ils") == 0) {
 				if (vm.count("min_ils_iterations")) {
 					config.initial_partitioning.min_ils_iterations =
