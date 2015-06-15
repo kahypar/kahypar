@@ -397,7 +397,7 @@ class GenericHypergraph {
     }
 
     bool has_hyperedge_weights = false;
-    if (hyperedge_weights != NULL) {
+    if (hyperedge_weights != nullptr && !hyperedge_weights->empty()) {
       has_hyperedge_weights = true;
       for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
         hyperedge(i).setWeight((*hyperedge_weights)[i]);
@@ -405,7 +405,7 @@ class GenericHypergraph {
     }
 
     bool has_hypernode_weights = false;
-    if (hypernode_weights != NULL) {
+    if (hypernode_weights != nullptr && !hypernode_weights->empty()) {
       has_hypernode_weights = true;
       for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
         hypernode(i).setWeight((*hypernode_weights)[i]);
@@ -834,6 +834,10 @@ class GenericHypergraph {
     }
   }
 
+  std::string typeAsString() const noexcept {
+    return typeToString(type());
+  }
+
   // Accessors and mutators.
   HyperedgeID nodeDegree(const HypernodeID u) const noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
@@ -942,6 +946,14 @@ class GenericHypergraph {
 
   PartitionID k() const noexcept {
     return _k;
+  }
+
+  HypernodeWeight weightOfHeaviestNode() const noexcept {
+    HypernodeWeight max_weight = std::numeric_limits<HypernodeWeight>::min();
+    for(const HypernodeID hn : nodes()) {
+      max_weight = std::max(nodeWeight(hn), max_weight);
+    }
+    return max_weight;
   }
 
   HypernodeID pinCountInPart(const HyperedgeID he, const PartitionID id) const noexcept {
@@ -1198,6 +1210,25 @@ class GenericHypergraph {
     ASSERT(begin < _incidence_array.begin() + vertex.firstInvalidEntry(), "Iterator out of bounds");
     swap(*begin, *last_entry);
     vertex.decreaseSize();
+  }
+
+  std::string typeToString(Type hypergraph_type) const noexcept {
+    std::string typestring;
+    switch (hypergraph_type) {
+      case Type::Unweighted:
+        typestring = "edgeWeights=false nodeWeights=false";
+        break;
+      case Type::EdgeWeights:
+        typestring = "edgeWeights=true nodeWeights=false";
+        break;
+      case Type::NodeWeights:
+        typestring = "edgeWeights=false nodeWeights=true";
+        break;
+      case Type::EdgeAndNodeWeights:
+        typestring = "edgeWeights=true nodeWeights=true";
+        break;
+    }
+    return typestring;
   }
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)

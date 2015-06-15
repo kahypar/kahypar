@@ -41,6 +41,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
+  std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
   << "\t HE size:   [min:" << std::setw(10) << std::left
   << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
@@ -72,9 +73,11 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "Imbalance       = " << metrics::imbalance(hypergraph, hypergraph.k()) << std::endl;
+  std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, hypergraph.k())
+  << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;
+    std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
+    << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
   }
   std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
   std::cout << "     | initial parallel HE removal time  = " << timings[0].count() << " s" << std::endl;

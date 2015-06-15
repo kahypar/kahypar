@@ -350,8 +350,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                                                 current_hypergraph,
                                                                                 k);
           std::unique_ptr<ICoarsener> coarsener(CoarsenerFactory::getInstance().createObject(
-                                                  current_config.partition.coarsening_algorithm, current_hypergraph, current_config,
-                                                  /* weight of heaviest node */ 1));
+                                                  current_config.partition.coarsening_algorithm,
+                                                  current_hypergraph, current_config,
+                                                  current_hypergraph.weightOfHeaviestNode()));
           std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                               current_config.partition.refinement_algorithm,
                                               current_hypergraph, current_config));
@@ -390,7 +391,8 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
                                                        const Configuration& config) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      config.partition.coarsening_algorithm, hypergraph, config,  /* weight of heaviest node */ 1));
+      config.partition.coarsening_algorithm, hypergraph, config,
+      hypergraph.weightOfHeaviestNode()));
 
   std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(
                                       config.partition.refinement_algorithm,

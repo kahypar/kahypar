@@ -27,6 +27,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     config.partition.graph_filename.find_last_of("/") + 1)
   << " numHNs=" << hypergraph.initialNumNodes()
   << " numHEs=" << hypergraph.initialNumEdges()
+  << " " << hypergraph.typeAsString()
   << " k=" << config.partition.k
   << " epsilon=" << config.partition.epsilon
   << " totalGraphWeight=" << config.partition.total_graph_weight
@@ -63,13 +64,16 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   }
   oss << partitioner.internals();
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    oss << " part" << i << "=" << hypergraph.partWeight(i);
+    oss << " partSize" << i << "=" << hypergraph.partSize(i);
+  }
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    oss << " partWeight" << i << "=" << hypergraph.partWeight(i);
   }
   oss << " cut=" << metrics::hyperedgeCut(hypergraph)
   << " soed=" << metrics::soed(hypergraph)
   << " kMinusOne=" << metrics::kMinus1(hypergraph)
   << " absorption=" << metrics::absorption(hypergraph)
-      << " imbalance=" << metrics::imbalance(hypergraph,config.partition.k)
+  << " imbalance=" << metrics::imbalance(hypergraph, config.partition.k)
   << " totalPartitionTime=" << elapsed_seconds.count()
   << " initialParallelHEremovalTime=" << timings[0].count()
   << " initialLargeHEremovalTime=" << timings[1].count()
