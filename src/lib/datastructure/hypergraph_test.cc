@@ -723,6 +723,31 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
                 std::vector<PartitionID>{ -1, -1, -1, -1, -1, -1, -1 }));
 }
 
+
+TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHyperedges) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  ASSERT_THAT(extr_part0.first->numEdges(), Eq(2));
+}
+
+TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHypernodes) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  ASSERT_THAT(extr_part0.first->numNodes(), Eq(5));
+}
+
 TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
   hypergraph.resetPartitioning();
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(hypergraph, original_hypergraph), Eq(true));

@@ -1395,6 +1395,8 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       continue;
     }
     if (*hypergraph.connectivitySet(he).begin() == part) {
+      ASSERT(hypergraph.connectivitySet(he).size() == 1,
+                    V(hypergraph.connectivitySet(he).size()));
       subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
       ++subhypergraph->_num_hyperedges;
       subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
