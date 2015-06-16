@@ -13,16 +13,12 @@
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "partition/Partitioner.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;
-using partition::IRefiner;
-using partition::ICoarsener;
-using partition::Partitioner;
+using utils::Stats;
 
 namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {

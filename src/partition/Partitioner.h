@@ -20,6 +20,7 @@
 #include "gtest/gtest_prod.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
+#include "lib/io/PartitioningOutput.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
@@ -364,6 +365,8 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           if (_internals.empty()) {
             _internals.append(coarsener->policyString() + " " + refiner->policyString());
           }
+
+          io::printHypergraphInfo(current_hypergraph, "---");
 
           partition(current_hypergraph, *coarsener, *refiner, current_config, k1, k2);
 
