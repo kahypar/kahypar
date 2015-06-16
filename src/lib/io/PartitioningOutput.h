@@ -75,11 +75,12 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, hypergraph.k())
   << std::endl;
+  std::cout << "partition time            = " << elapsed_seconds.count() << " s" << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
     << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
   }
-  std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
+
   std::cout << "     | initial parallel HE removal time  = " << timings[0].count() << " s" << std::endl;
   std::cout << "     | initial large HE removal time     = " << timings[1].count() << " s" << std::endl;
   std::cout << "     | coarsening time                   = " << timings[2].count() << " s" << std::endl;
