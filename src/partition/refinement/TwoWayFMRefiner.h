@@ -69,6 +69,7 @@ class TwoWayFMRefiner : public IRefiner,
     FMRefinerBase(hypergraph, config),
     _pq(2),
     _marked(_hg.initialNumNodes()),
+    _active(_hg.initialNumNodes(), false),
     _just_activated(_hg.initialNumNodes(), false),
     _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
@@ -93,6 +94,7 @@ class TwoWayFMRefiner : public IRefiner,
       }
       // mark HN as just activated to prevent delta-gain updates in current
       // updateNeighbours call, because we just calculated the correct gain values.
+      _active[hn] = true;
       _just_activated[hn] = true;
     }
   }
@@ -152,6 +154,7 @@ class TwoWayFMRefiner : public IRefiner,
 
     _pq.clear();
     _marked.assign(_marked.size(), false);
+    _active.assign(_active.size(), false);
     _he_fully_active.assign(_he_fully_active.size(), false);
     _locked_hes.resetUsedEntries();
 
@@ -177,7 +180,7 @@ class TwoWayFMRefiner : public IRefiner,
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
-      PartitionID from_part = _hg.partID(max_gain_node);
+      const PartitionID from_part = _hg.partID(max_gain_node);
 
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
@@ -199,6 +202,7 @@ class TwoWayFMRefiner : public IRefiner,
 
       moveHypernode(max_gain_node, from_part, to_part);
       _marked[max_gain_node] = true;
+      _active[max_gain_node] = false;
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
@@ -293,13 +297,14 @@ class TwoWayFMRefiner : public IRefiner,
             const PartitionID other_part = _hg.partID(pin) ^ 1;
             if (!isBorderNode(pin)) {
               // The pin is an internal HN
-              if (_pq.contains(pin, other_part)) {
+              if (_pq.contains(pin, other_part) || _active[pin]) {
                 LOG("HN " << pin << " should not be contained in PQ");
                 return false;
               }
             } else {
               // HN is border HN
               if (_pq.contains(pin, other_part)) {
+                ASSERT(_active[pin], "HN " << pin << " is in PQ but not active");
                 ASSERT(!_marked[pin],
                        "HN " << pin << " should not be in PQ, because it is already marked");
                 if (_pq.key(pin, other_part) != computeGain(pin)) {
@@ -362,20 +367,24 @@ class TwoWayFMRefiner : public IRefiner,
       HypernodeID num_active_pins = 0;
       for (const HypernodeID pin : _hg.pins(he)) {
         if (pin == moved_hn) {
+          num_active_pins += 1; //moved_hn was active
           continue;
         }
 
         Gain pin_specific_factor = he_induced_factor;
         const PartitionID target_part = _hg.partID(pin) ^ 1;
         if (!_marked[pin]) {
-          if (!_pq.contains(pin, target_part)) {
+          if (!_active[pin]) {
+            ASSERT(!_pq.contains(pin, target_part), V(pin) << V(target_part));
             activate(pin, max_allowed_part_weight);
           } else {
             if (!isBorderNode(pin)) {
               DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
                   << to_part);
-              if (_pq.contains(pin, target_part)) {
+              if (_active[pin]) {
+                ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
                 _pq.remove(pin, target_part);
+                _active[pin] = false;
               }
             } else {
               if (pin_specific_factor == 0) {
@@ -384,8 +393,7 @@ class TwoWayFMRefiner : public IRefiner,
                   // After moving moved_node to to_part, the gain of the remaining pin in
                   // from_part increases by w(he).
                   pin_specific_factor = 1;  // after all pins are activated, one could break here
-                }
-                if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
+                } else if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
                   // Before move, pin was the only HN in to_part. It thus had a
                   // positive gain, because moving it to from_part would have removed
                   // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
@@ -401,7 +409,7 @@ class TwoWayFMRefiner : public IRefiner,
             }
           }
         }
-        num_active_pins += _pq.contains(pin, _hg.partID(pin) ^ 1);
+        num_active_pins += _active[pin];
       }
       _he_fully_active[he] = num_active_pins == he_size;
     }
@@ -426,6 +434,7 @@ class TwoWayFMRefiner : public IRefiner,
                  const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(max_allowed_part_weight);
     const PartitionID target_part = _hg.partID(pin) ^ 1;
+    ASSERT(_active[pin], V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
     ASSERT(factor != 0, V(factor));
     ASSERT(!_marked[pin],
@@ -473,6 +482,7 @@ class TwoWayFMRefiner : public IRefiner,
   using FMRefinerBase::_config;
   KWayRefinementPQ _pq;
   std::vector<bool> _marked;
+  std::vector<bool> _active;
   std::vector<bool> _just_activated;
   std::vector<bool> _he_fully_active;
   std::vector<HypernodeID> _performed_moves;
