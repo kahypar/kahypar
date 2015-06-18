@@ -388,12 +388,15 @@ class TwoWayFMRefiner : public IRefiner,
               }
             } else {
               if (pin_specific_factor == 0) {
-                if (pin_count_from_part_after_move == 1 && _hg.partID(pin) == from_part) {
-                  // Before move, there were two pins (moved_node and the current pin) in from_part.
-                  // After moving moved_node to to_part, the gain of the remaining pin in
-                  // from_part increases by w(he).
-                  pin_specific_factor = 1;  // after all pins are activated, one could break here
-                } else if (pin_count_to_part_after_move == 2 && _hg.partID(pin) == to_part) {
+                if (source_part == from_part) {
+                  if (pin_count_from_part_after_move == 1) {
+                    // Before move, there were two pins (moved_node and the current pin) in from_part.
+                    // After moving moved_node to to_part, the gain of the remaining pin in
+                    // from_part increases by w(he).
+                    pin_specific_factor = 1;  // after all pins are activated, one could break here
+                  }
+                }else if (pin_count_to_part_after_move == 2) {
+                  ASSERT(source_part == to_part, V(source_part) << V(to_part));
                   // Before move, pin was the only HN in to_part. It thus had a
                   // positive gain, because moving it to from_part would have removed
                   // the HE from the cut. Now, after the move, pin becomes a 0-gain HN

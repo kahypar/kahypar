@@ -52,6 +52,17 @@ class FastResetVector : public std::vector<T>{
     }
   }
 
+  template< class Container>
+  void resetUsedEntries(Container& container) {
+    while (!_used_entries.empty()) {
+      if (container[_used_entries.back()] != std::numeric_limits<typename Container::value_type>::max()) {
+        container[_used_entries.back()] += std::vector<T>::operator[] (_used_entries.back());
+      }
+      std::vector<T>::operator[] (_used_entries.back()) = _initial_value;
+      _used_entries.pop_back();
+    }
+  }
+
  private:
   const value_type _initial_value;
   std::vector<size_type> _used_entries;
