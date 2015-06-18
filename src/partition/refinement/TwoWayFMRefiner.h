@@ -372,7 +372,8 @@ class TwoWayFMRefiner : public IRefiner,
         }
 
         Gain pin_specific_factor = he_induced_factor;
-        const PartitionID target_part = _hg.partID(pin) ^ 1;
+        const PartitionID source_part = _hg.partID(pin);
+        const PartitionID target_part = source_part ^ 1;
         if (!_marked[pin]) {
           if (!_active[pin]) {
             ASSERT(!_pq.contains(pin, target_part), V(pin) << V(target_part));
