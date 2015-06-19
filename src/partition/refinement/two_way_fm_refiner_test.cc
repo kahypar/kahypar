@@ -154,8 +154,10 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._active[0] = true;
   refiner._active[1] = true;
-  refiner._pq.insert(0, 1, refiner.computeGain(0));
-  refiner._pq.insert(1, 1, refiner.computeGain(1));
+  refiner._gain_cache[0] = refiner.computeGain(0);
+  refiner._gain_cache[1] = refiner.computeGain(1);
+  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
+  refiner._pq.insert(1, 1, refiner._gain_cache[0]);
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -207,10 +209,14 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner._active[1] = true;
   refiner._active[2] = true;
   refiner._active[3] = true;
-  refiner._pq.insert(0, 1, refiner.computeGain(0));
-  refiner._pq.insert(1, 1, refiner.computeGain(1));
-  refiner._pq.insert(2, 1, refiner.computeGain(2));
-  refiner._pq.insert(3, 1, refiner.computeGain(3));
+  refiner._gain_cache[0] = refiner.computeGain(0);
+  refiner._gain_cache[1] = refiner.computeGain(1);
+  refiner._gain_cache[2] = refiner.computeGain(2);
+  refiner._gain_cache[3] = refiner.computeGain(3);
+  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
+  refiner._pq.insert(1, 1, refiner._gain_cache[1]);
+  refiner._pq.insert(2, 1, refiner._gain_cache[2]);
+  refiner._pq.insert(3, 1, refiner._gain_cache[3]);
   refiner._pq.enablePart(1);
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
@@ -239,16 +245,21 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._active[0] = true;
-  refiner._active[1] = true;
-  refiner._active[2] = true;
-  refiner._active[3] = true;
-  refiner._active[4] = true;
+  refiner._gain_cache[0] = refiner.computeGain(0);
+  refiner._gain_cache[1] = refiner.computeGain(1);
+  refiner._gain_cache[2] = refiner.computeGain(2);
+  refiner._gain_cache[3] = refiner.computeGain(3);
+  refiner._gain_cache[4] = refiner.computeGain(4);
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   refiner.activate(2,  /* dummy max-part-weight */ 42);
   refiner.activate(3,  /* dummy max-part-weight */ 42);
   refiner.activate(4,  /* dummy max-part-weight */ 42);
+  refiner._active[0] = true;
+  refiner._active[1] = true;
+  refiner._active[2] = true;
+  refiner._active[3] = true;
+  refiner._active[4] = true;
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(2, 1), Eq(0));
@@ -378,8 +389,10 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._pq.insert(0, 1, refiner.computeGain(0));
-  refiner._pq.insert(1, 1, refiner.computeGain(1));
+  refiner._gain_cache[0] = refiner.computeGain(0);
+  refiner._gain_cache[1] = refiner.computeGain(1);
+  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
+  refiner._pq.insert(1, 1, refiner._gain_cache[1]);
   refiner._active[0] = true;
   refiner._active[1] = true;
   refiner._pq.enablePart(1);
