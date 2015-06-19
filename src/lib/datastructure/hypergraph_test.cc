@@ -752,4 +752,16 @@ TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
   hypergraph.resetPartitioning();
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(hypergraph, original_hypergraph), Eq(true));
 }
+
+
+TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
+  ASSERT_THAT(hypergraph.isBorderNode(0), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(1), Eq(false));
+  ASSERT_THAT(hypergraph.isBorderNode(2), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(3), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(4), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(5), Eq(false));
+  ASSERT_THAT(hypergraph.isBorderNode(6), Eq(true));
+}
+
 }  // namespace datastructure

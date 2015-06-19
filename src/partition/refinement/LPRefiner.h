@@ -59,7 +59,7 @@ class LPRefiner : public IRefiner {
 
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       const auto& cur_node = refinement_nodes[i];
-      if (!_contained_cur_queue[cur_node] && isBorderNode(cur_node)) {
+      if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
         assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weight);
 
         _cur_queue.push_back(cur_node);
@@ -287,16 +287,6 @@ class LPRefiner : public IRefiner {
 
     _hg.changeNodePart(hn, from_part, to_part);
     return true;
-  }
-
-
-  bool isBorderNode(HypernodeID hn) const noexcept {
-    for (auto && he : _hg.incidentEdges(hn)) {
-      if (isCutHyperedge(he)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   Hypergraph& _hg;

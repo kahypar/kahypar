@@ -38,24 +38,6 @@ class FMRefinerBase {
 
   ~FMRefinerBase() { }
 
-  bool isBorderNode(const HypernodeID hn) const noexcept {
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      if (isCutHyperedge(he)) {
-        DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is a border node");
-        return true;
-      }
-    }
-    DBG(dbg_refinement_fm_border_node_check, "HN " << hn << " is NO border node");
-    return false;
-  }
-
-  bool isCutHyperedge(const HyperedgeID he) const noexcept {
-    if (_hg.connectivity(he) > 1) {
-      return true;
-    }
-    return false;
-  }
-
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(pin)) {
       if (_hg.pinCountInPart(he, part) > 0) {
@@ -73,7 +55,7 @@ class FMRefinerBase {
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part,
                      const PartitionID to_part) noexcept {
-    ASSERT(isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
+    ASSERT(_hg.isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
     DBG(dbg_refinement_kway_fm_move, "moving HN" << hn << " from " << from_part
         << " to " << to_part << " (weight=" << _hg.nodeWeight(hn) << ")");
     _hg.changeNodePart(hn, from_part, to_part);

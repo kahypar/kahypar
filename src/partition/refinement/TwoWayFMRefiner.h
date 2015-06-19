@@ -81,7 +81,7 @@ class TwoWayFMRefiner : public IRefiner,
   ~TwoWayFMRefiner() { }
 
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
-    if (isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn)) {
       const PartitionID target_part = _hg.partID(hn) ^ 1;
       ASSERT(!_marked[hn], "Hypernode" << hn << " is already marked");
       ASSERT(!_pq.contains(hn, target_part),
@@ -190,7 +190,7 @@ class TwoWayFMRefiner : public IRefiner,
       ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation: " <<
              "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
              " - got g(" << max_gain_node << ")=" << max_gain);
-      ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+      ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
       ASSERT([&]() {
           _hg.changeNodePart(max_gain_node, from_part, to_part);
           ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
@@ -295,7 +295,7 @@ class TwoWayFMRefiner : public IRefiner,
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
             const PartitionID other_part = _hg.partID(pin) ^ 1;
-            if (!isBorderNode(pin)) {
+            if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
               if (_pq.contains(pin, other_part) || _active[pin]) {
                 LOG("HN " << pin << " should not be contained in PQ");
@@ -379,7 +379,7 @@ class TwoWayFMRefiner : public IRefiner,
             ASSERT(!_pq.contains(pin, target_part), V(pin) << V(target_part));
             activate(pin, max_allowed_part_weight);
           } else {
-            if (!isBorderNode(pin)) {
+            if (!_hg.isBorderNode(pin)) {
               DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
                   << to_part);
               if (_active[pin]) {
@@ -443,7 +443,7 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(factor != 0, V(factor));
     ASSERT(!_marked[pin],
            " Trying to update marked HN " << pin << " in PQ " << target_part);
-    ASSERT(isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
+    ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
     ASSERT((_hg.partWeight(target_part) < max_allowed_part_weight ?
             _pq.isEnabled(target_part) : !_pq.isEnabled(target_part)), V(target_part));
     if (!_just_activated[pin]) {

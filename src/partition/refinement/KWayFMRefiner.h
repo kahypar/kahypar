@@ -159,7 +159,7 @@ class KWayFMRefiner : public IRefiner,
       ASSERT(!_marked[max_gain_node],
              "HN " << max_gain_node << "is marked and not eligable to be moved");
       ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part), "Inconsistent gain caculation");
-      ASSERT(isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+      ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
       ASSERT([&]() {
           _hg.changeNodePart(max_gain_node, from_part, to_part);
           ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
@@ -397,7 +397,7 @@ class KWayFMRefiner : public IRefiner,
           if (!_active[pin]) {
             activate(pin, max_allowed_part_weight);
           } else {
-            if (!isBorderNode(pin)) {
+            if (!_hg.isBorderNode(pin)) {
               removeHypernodeMovementsFromPQ(pin);
             } else {
               connectivityUpdate(pin, from_part, to_part, he,
@@ -440,7 +440,7 @@ class KWayFMRefiner : public IRefiner,
 
       for (const HypernodeID pin : _hg.pins(he)) {
         if (pin != moved_hn && !_marked[pin]) {
-          if (!isBorderNode(pin)) {
+          if (!_hg.isBorderNode(pin)) {
             removeHypernodeMovementsFromPQ(pin);
           } else {
             connectivityUpdate(pin, from_part, to_part, he,
@@ -467,7 +467,7 @@ class KWayFMRefiner : public IRefiner,
       for (const HypernodeID pin : _hg.pins(he)) {
         if (pin != moved_hn && !_marked[pin]) {
           ASSERT(_active[pin], V(pin));
-          ASSERT(isBorderNode(pin), V(pin));
+          ASSERT(_hg.isBorderNode(pin), V(pin));
           connectivityUpdate(pin, from_part, to_part, he,
                              move_decreased_connectivity,
                              move_increased_connectivity,
@@ -499,7 +499,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT([&]() {
         // all border HNs are active
         for (const HypernodeID pin : _hg.pins(he)) {
-          if (isBorderNode(pin) && !_active[pin]) {
+          if (_hg.isBorderNode(pin) && !_active[pin]) {
             return false;
           }
         }
@@ -527,7 +527,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT([&]() {
         // Loose HEs remaining loose should have only active border HNs
         for (const HypernodeID pin : _hg.pins(he)) {
-          if (isBorderNode(pin) && !_active[pin]) {
+          if (_hg.isBorderNode(pin) && !_active[pin]) {
             return false;
           }
         }
@@ -543,13 +543,13 @@ class KWayFMRefiner : public IRefiner,
           // - All border HNs are active
           // - At least two pins of the HE are marked
           // - No internal HNs have moves in PQ
-          if (isBorderNode(pin) && !_active[pin]) {
+          if (_hg.isBorderNode(pin) && !_active[pin]) {
             return false;
           }
           if (_marked[pin]) {
             ++count;
           }
-          if (!isBorderNode(pin)) {
+          if (!_hg.isBorderNode(pin)) {
             for (PartitionID part = 0; part < _config.partition.k; ++part) {
               if (_pq.contains(pin, part)) {
                 return false;
@@ -639,7 +639,7 @@ class KWayFMRefiner : public IRefiner,
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           bool valid = true;
           for (const HypernodeID pin : _hg.pins(he)) {
-            if (!isBorderNode(pin)) {
+            if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
 
               // If the pin is active, but not marked as moved, we forgot to reset
@@ -670,7 +670,7 @@ class KWayFMRefiner : public IRefiner,
                 if (_pq.contains(pin, part)) {
                   // if the move to target.part is in the PQ, it has to have the correct gain
                   ASSERT(_active[pin], "Pin is not active");
-                  ASSERT(isBorderNode(pin), "BorderFail");
+                  ASSERT(_hg.isBorderNode(pin), "BorderFail");
                   const Gain expected_gain = gainInducedByHypergraph(pin, part);
                   valid = (_pq.key(pin, part) == expected_gain);
                   if (!valid) {
@@ -751,7 +751,7 @@ class KWayFMRefiner : public IRefiner,
     ASSERT([&]() {
         for (const HypernodeID hn : _hg.nodes()) {
           if (_active[hn]) {
-            bool valid = _marked[hn] || !isBorderNode(hn);
+            bool valid = _marked[hn] || !_hg.isBorderNode(hn);
             for (PartitionID part = 0; part < _config.partition.k; ++part) {
               if (_pq.contains(hn, part)) {
                 valid = true;
@@ -776,7 +776,7 @@ class KWayFMRefiner : public IRefiner,
         !_just_activated[pin] && _already_processed_part.get(pin) != part) {
       ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
       ASSERT(_active[pin], "Trying to update inactive HN " << pin << " part=" << part);
-      ASSERT(isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
+      ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
       ASSERT((_hg.partWeight(part) < max_allowed_part_weight ?
               _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
       // Assert that we only perform delta-gain updates on moves that are not stale!
@@ -809,7 +809,7 @@ class KWayFMRefiner : public IRefiner,
         return true;
       } (),
            "HN " << hn << " is already contained in PQ ");
-    if (isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn)) {
       insertHNintoPQ(hn, max_allowed_part_weight);
       // mark HN as active for this round.
       _active[hn] = true;
@@ -840,7 +840,7 @@ class KWayFMRefiner : public IRefiner,
 
   void insertHNintoPQ(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(!_marked[hn], " Trying to insertHNintoPQ for  marked HN " << hn);
-    ASSERT(isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
+    ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT([&]() {
         for (Gain gain : _tmp_gains) {
           if (gain != 0) {

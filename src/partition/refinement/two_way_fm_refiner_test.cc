@@ -55,12 +55,6 @@ class AGainUpdateMethod : public Test {
   Configuration config;
 };
 
-TEST_F(ATwoWayFMRefiner, IdentifiesBorderHypernodes) {
-  ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(1), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(5), Eq(false));
-}
-
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
   ASSERT_THAT(refiner->computeGain(6), Eq(0));
   ASSERT_THAT(refiner->computeGain(1), Eq(1));

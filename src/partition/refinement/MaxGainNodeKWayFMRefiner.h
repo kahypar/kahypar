@@ -163,7 +163,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       ASSERT(!_marked[max_gain_node], V(max_gain_node));
       ASSERT(max_gain == computeMaxGainMove(max_gain_node).first,
              V(max_gain) << V(computeMaxGainMove(max_gain_node).first));
-      ASSERT(isBorderNode(max_gain_node), V(max_gain_node));
+      ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
       // to_part cannot be double-checked, since tie-breaking might lead to a different to_part
       // current implementation breaks ties in favor of best connectivity decrease (this value
       // remains the same) and in favor of best rebalancing if source_part is imbalanced (this
@@ -284,7 +284,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           if (!_active[pin]) {
             activate(pin, max_allowed_part_weight);
           } else {
-            if (isBorderNode(pin)) {
+            if (_hg.isBorderNode(pin)) {
               updatePin(pin, max_allowed_part_weight);
             } else {
               ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
@@ -299,7 +299,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
-            if (!isBorderNode(pin)) {
+            if (!_hg.isBorderNode(pin)) {
               if (_pq.contains(pin)) {
                 LOG("HN " << pin << " should not be contained in PQ");
                 return false;
@@ -307,7 +307,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             } else {
               if (_pq.contains(pin)) {
                 ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
-                ASSERT(isBorderNode(pin), "BorderFail");
+                ASSERT(_hg.isBorderNode(pin), "BorderFail");
                 const PartitionID target_part = _target_parts[pin];
                 const GainPartitionPair pair = computeMaxGainMove(pin);
                 // target_part currently cannot be validated that way, because of connectivity-
@@ -383,7 +383,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
     ASSERT(!_just_updated[pin], V(pin));
     ASSERT(!_marked[pin], V(pin));
-    ASSERT(isBorderNode(pin), V(pin));
+    ASSERT(_hg.isBorderNode(pin), V(pin));
     ASSERT(_active[pin], V(pin));
 
     const GainPartitionPair pair = computeMaxGainMove(pin);
@@ -412,7 +412,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(!_pq.contains(hn), V(hn) << V(_target_parts[hn]));
     ASSERT(!_active[hn], V(hn));
-    if (isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn)) {
       const GainPartitionPair pair = computeMaxGainMove(hn);
       DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
           << pair.first << " sourcePart=" << _hg.partID(hn)
@@ -428,7 +428,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   }
 
   GainPartitionPair computeMaxGainMove(const HypernodeID hn) noexcept {
-    ASSERT(isBorderNode(hn), V(hn));
+    ASSERT(_hg.isBorderNode(hn), V(hn));
     _seen_as_max_part.assign(_seen_as_max_part.size(), false);
     _tmp_max_gain_target_parts.clear();
 

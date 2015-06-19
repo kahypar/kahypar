@@ -49,12 +49,6 @@ class AMaxGainNodeKWayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
-TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
-  ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(6), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(7), Eq(false));
-}
-
 TEST_F(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes) {
   refiner->activate(1, 42);
 

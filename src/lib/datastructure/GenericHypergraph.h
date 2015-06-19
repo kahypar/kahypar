@@ -706,6 +706,16 @@ class GenericHypergraph {
     }
   }
 
+  bool isBorderNode(const HypernodeID hn) const {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
+    for (const HyperedgeID he : incidentEdges(hn)) {
+      if (connectivity(he) > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Used to initially set the partition ID of a HN after initial partitioning
   void setNodePart(const HypernodeID hn, const PartitionID id) noexcept {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
