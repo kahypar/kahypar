@@ -1243,8 +1243,8 @@ class GenericHypergraph {
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
   std::pair<PinHandleIterator, PinHandleIterator> pinHandles(const HyperedgeID he) noexcept {
-    return std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
-                          _incidence_array.begin() + hyperedge(he).firstInvalidEntry());
+    return std::move(std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
+                                    _incidence_array.begin() + hyperedge(he).firstInvalidEntry()));
   }
 
   // Accessor for hypernode-related information
