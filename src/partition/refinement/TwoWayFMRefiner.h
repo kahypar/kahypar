@@ -174,6 +174,18 @@ class TwoWayFMRefiner : public IRefiner,
       activate(refinement_nodes[i], max_allowed_part_weight);
     }
 
+    ASSERT([&]() {
+        for (const HypernodeID hn : _hg.nodes()) {
+          if (_gain_cache[hn] != kNotCached && _gain_cache[hn] != computeGain(hn)) {
+            LOGVAR(hn);
+            LOGVAR(_gain_cache[hn]);
+            LOGVAR(computeGain(hn));
+            return false;
+          }
+        }
+        return true;
+      } (), "GainCache Invalid");
+
     const HyperedgeWeight initial_cut = best_cut;
     const double initial_imbalance = best_imbalance;
     HyperedgeWeight current_cut = best_cut;
@@ -288,7 +300,6 @@ class TwoWayFMRefiner : public IRefiner,
     return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
                                                  initial_imbalance, _config.partition.epsilon);
   }
-
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part, const HypernodeWeight max_allowed_part_weight) {
