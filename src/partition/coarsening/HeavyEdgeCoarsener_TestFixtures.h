@@ -92,6 +92,7 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
     hypergraph->setNodePart(5, 0);
   }
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
@@ -150,6 +151,7 @@ void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergra
     hypergraph->setNodePart(5, 0);
   }
   hypergraph->setNodePart(4, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
@@ -183,7 +185,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   } else {
     hypergraph.setNodePart(2, 1);
   }
-
+  hypergraph.initializeNumCutHyperedges();
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`

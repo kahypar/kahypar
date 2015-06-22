@@ -132,6 +132,7 @@ class LPRefiner : public IRefiner {
     _contained_cur_queue.reserve(_hg.initialNumNodes());
     _contained_next_queue.clear();
     _contained_next_queue.reserve(_hg.initialNumNodes());
+    _hg.initializeNumCutHyperedges();
   }
 
 
@@ -301,7 +302,6 @@ class LPRefiner : public IRefiner {
   std::vector<PartitionID> _tmp_target_parts;
 
   std::vector<bool> _bitset_he;
-
 };
 }
 #endif  // SRC_PARTITION_REFINEMENT_LPREFINER_H_

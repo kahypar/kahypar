@@ -37,7 +37,6 @@ class ATwoWayFMRefiner : public Test {
     hypergraph->setNodePart(6, 1);
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, config);
-    refiner->initialize();
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -56,12 +55,14 @@ class AGainUpdateMethod : public Test {
 };
 
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
+  refiner->initialize();
   ASSERT_THAT(refiner->computeGain(6), Eq(0));
   ASSERT_THAT(refiner->computeGain(1), Eq(1));
   ASSERT_THAT(refiner->computeGain(5), Eq(-1));
 }
 
 TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
+  refiner->initialize();
   refiner->activate(1,  /* dummy max-part-weight */ 42);
   HypernodeID hn;
   HyperedgeWeight gain;
@@ -72,6 +73,7 @@ TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
 }
 
 TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
+  refiner->initialize();
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 }
@@ -82,6 +84,7 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  refiner->initialize();
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config.partition.k),
@@ -93,6 +96,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 
+  refiner->initialize();
   refiner->moveHypernode(1, 1, 0);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
@@ -107,6 +111,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  refiner->initialize();
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
@@ -114,9 +119,9 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 }
 
 TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
-  hypergraph->changeNodePart(1, 1, 0);
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
-  refiner->initialize();
+  refiner->initialize();  // already done above
+  hypergraph->changeNodePart(1, 1, 0);
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
   double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
@@ -136,6 +141,7 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  refiner->initialize();
   refiner->refine(refinement_nodes, 2, 42, cut, old_imbalance);
 
   ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(*hypergraph)));

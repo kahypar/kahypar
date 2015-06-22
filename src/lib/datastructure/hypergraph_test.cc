@@ -584,6 +584,7 @@ TEST_F(AHypergraph, RemovesPartFromConnectivitySetIfHEDoesNotConnectThatPart) {
   hypergraph.setNodePart(4, 0);
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
   ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
 
   hypergraph.changeNodePart(2, 1, 0);
@@ -599,6 +600,7 @@ TEST_F(AHypergraph, AddsPartToConnectivitySetIfHEConnectsThatPart) {
   hypergraph.setNodePart(4, 0);
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
 
   hypergraph.changeNodePart(2, 0, 1);
@@ -643,6 +645,7 @@ TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
   mementos.push(hypergraph.contract(2, 6));
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(2, 1);
+  hypergraph.initializeNumCutHyperedges();
   ASSERT_THAT(hypergraph.partSize(0), Eq(1));
   ASSERT_THAT(hypergraph.partSize(1), Eq(1));
 
@@ -755,6 +758,7 @@ TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
 
 
 TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
+  hypergraph.initializeNumCutHyperedges();
   ASSERT_THAT(hypergraph.isBorderNode(0), Eq(true));
   ASSERT_THAT(hypergraph.isBorderNode(1), Eq(false));
   ASSERT_THAT(hypergraph.isBorderNode(2), Eq(true));
@@ -763,5 +767,4 @@ TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
   ASSERT_THAT(hypergraph.isBorderNode(5), Eq(false));
   ASSERT_THAT(hypergraph.isBorderNode(6), Eq(true));
 }
-
 }  // namespace datastructure

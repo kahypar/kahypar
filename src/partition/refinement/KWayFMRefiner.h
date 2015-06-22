@@ -96,6 +96,7 @@ class KWayFMRefiner : public IRefiner,
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
+      _hg.initializeNumCutHyperedges();
     }
     _is_initialized = true;
   }
@@ -103,6 +104,7 @@ class KWayFMRefiner : public IRefiner,
   void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
     if (!_is_initialized) {
       _pq.initialize(max_gain);
+      _hg.initializeNumCutHyperedges();
     }
     _is_initialized = true;
   }
@@ -114,7 +116,7 @@ class KWayFMRefiner : public IRefiner,
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
+             FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 

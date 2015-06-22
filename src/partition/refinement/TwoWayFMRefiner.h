@@ -140,6 +140,7 @@ class TwoWayFMRefiner : public IRefiner,
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
+      _hg.initializeNumCutHyperedges();
     }
     _is_initialized = true;
   }
@@ -147,6 +148,7 @@ class TwoWayFMRefiner : public IRefiner,
   void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
     if (!_is_initialized) {
       _pq.initialize(max_gain);
+      _hg.initializeNumCutHyperedges();
     }
     _is_initialized = true;
   }
@@ -403,9 +405,6 @@ class TwoWayFMRefiner : public IRefiner,
     if (!_he_fully_active[he] || moveAffectsGainUpdate(pin_count_from_part_after_move,
                                                        pin_count_to_part_after_move,
                                                        he_size)) {
-      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-      const bool potential_single_pin_gain_increase = (pin_count_from_part_after_move == 1);
-      const bool potential_single_pin_gain_decrease = (pin_count_to_part_after_move == 2);
       Gain he_induced_factor = 0;
       if (he_size == 2) {
         he_induced_factor = (pin_count_to_part_after_move == 1 ? 2 : -2);
@@ -420,21 +419,27 @@ class TwoWayFMRefiner : public IRefiner,
         // and make it a cut HE again.
         he_induced_factor = -1;
       }
-
+      ASSERT(he_size != 1, V(he));
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+      const bool potential_single_pin_gain_increase = (pin_count_from_part_after_move == 1);
+      const bool potential_single_pin_gain_decrease = (pin_count_to_part_after_move == 2);
       HypernodeID num_active_pins = 1;  // because moved_hn was active
       for (const HypernodeID pin : _hg.pins(he)) {
         Gain pin_specific_factor = he_induced_factor;
-        // Before move, there were two pins (moved_node and the current pin) in from_part.
-        // After moving moved_node to to_part, the gain of the remaining pin in
-        // from_part increases by w(he).
-        pin_specific_factor = (pin_specific_factor == 0 && potential_single_pin_gain_increase
-                               && _hg.partID(pin) == from_part ? 1 : pin_specific_factor);
-        // Before move, pin was the only HN in to_part. It thus had a
-        // positive gain, because moving it to from_part would have removed
-        // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
-        // because now there are pins in both parts.
-        pin_specific_factor = (pin_specific_factor == 0 && potential_single_pin_gain_decrease
-                               && _hg.partID(pin) == to_part ? -1 : pin_specific_factor);
+        if (pin_specific_factor == 0) {
+          if (potential_single_pin_gain_increase && _hg.partID(pin) == from_part) {
+            // Before move, there were two pins (moved_node and the current pin) in from_part.
+            // After moving moved_node to to_part, the gain of the remaining pin in
+            // from_part increases by w(he).
+            pin_specific_factor = 1;
+          } else if (potential_single_pin_gain_decrease && _hg.partID(pin) == to_part) {
+            // Before move, pin was the only HN in to_part. It thus had a
+            // positive gain, because moving it to from_part would have removed
+            // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
+            // because now there are pins in both parts.
+            pin_specific_factor = -1;
+          }
+        }
         if (!_marked[pin]) {
           if (!_active[pin]) {
             ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));

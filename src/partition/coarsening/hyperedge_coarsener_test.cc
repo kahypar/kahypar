@@ -125,6 +125,7 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
 }
@@ -140,6 +141,7 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
@@ -153,6 +155,7 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
 
   coarsener.coarsen(1);
   hypergraph->setNodePart(0, 0);
+  hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
 
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(*hypergraph, input_hypergraph), Eq(true));
@@ -170,6 +173,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.restoreSingleNodeHyperedges();
 
   coarsener.performUncontraction(coarsener._history.back(), refinement_nodes,
