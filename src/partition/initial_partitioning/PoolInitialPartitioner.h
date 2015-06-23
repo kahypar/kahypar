@@ -49,6 +49,7 @@ private:
 
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 		std::vector<PartitionID> best_partition(_hg.numNodes());
+		std::string best_algorithm = "";
 
 		for(InitialPartitionerAlgorithm algo : _partitioner_pool) {
 			std::cout << "Starting initial partitioner algorithm: " << partition::toString(algo) << std::endl;
@@ -63,9 +64,12 @@ private:
 					best_partition[hn] = _hg.partID(hn);
 				}
 				best_cut = current_cut;
+				best_algorithm = partition::toString(algo);
 			}
+			std::cout << "-----------------------------------------" << std::endl;
 		}
 
+		std::cout << "Pool partitioner results: [min: " << best_cut << ",  algo: " << best_algorithm << "]"<<  std::endl;
 		InitialPartitionerBase::resetPartitioning(-1);
 		for(HypernodeID i = 0; i < best_partition.size(); ++i) {
 			_hg.setNodePart(i,best_partition[i]);

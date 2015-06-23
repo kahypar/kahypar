@@ -332,12 +332,16 @@ private:
 	void performMultipleRunsOnHypergraph(Hypergraph& hyper,
 			Configuration& config, PartitionID k) {
 		std::vector<PartitionID> best_partition(hyper.numNodes(), 0);
+		HyperedgeWeight max_cut = std::numeric_limits<HyperedgeWeight>::min();
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+		int best_cut_iteration = -1;
 
 		int runs = calculateRuns(_config.initial_partitioning.alpha, 2, k);
 		if (config.initial_partitioning.mode.compare("nLevel") == 0) {
 			runs = 1;
 		}
+
+		std::cout << "Starting " << runs << " runs of initial partitioner..." << std::endl;
 		for (int i = 0; i < runs; ++i) {
 			// TODO(heuer): In order to improve running time, you really should
 			// instantiate the partitioner only _once_ and have the partition
@@ -351,12 +355,17 @@ private:
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);
 			if (current_cut < best_cut) {
+				best_cut_iteration = i;
 				best_cut = current_cut;
 				for (HypernodeID hn : hyper.nodes()) {
 					best_partition[hn] = hyper.partID(hn);
 				}
 			}
+			if(current_cut > max_cut) {
+				max_cut = current_cut;
+			}
 		}
+		std::cout << "Multiple runs results: [max: " << max_cut << ",  min:" << best_cut << ",  iteration:" << best_cut_iteration << "]"<< std::endl;
 
 		for (HypernodeID hn : hyper.nodes()) {
 			if (hyper.partID(hn) != best_partition[hn]) {

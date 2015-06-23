@@ -33,23 +33,35 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
+		PartitionID unassigned_part =
+				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(-1);
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			PartitionID p = -1;
-			std::vector<bool> has_try_partition(_config.initial_partitioning.k,false);
+			std::vector<bool> has_try_partition(_config.initial_partitioning.k,
+					false);
 			int partition_sum = 0;
 			do {
-				if(p != -1 && !has_try_partition[p]) {
-					partition_sum += (p+1);
+				if (p != -1 && !has_try_partition[p]) {
+					partition_sum += (p + 1);
 					has_try_partition[p] = true;
-					if(partition_sum == (_config.initial_partitioning.k*(_config.initial_partitioning.k+1))/2) {
-						_hg.setNodePart(hn,p);
+					if (partition_sum
+							== (_config.initial_partitioning.k
+									* (_config.initial_partitioning.k + 1))
+									/ 2) {
+						if (unassigned_part == -1) {
+							_hg.setNodePart(hn, p);
+						}
+						else {
+							_hg.changeNodePart(hn,unassigned_part,p);
+						}
+						_config.initial_partitioning.rollback = false;
 						break;
 					}
 				}
 				p = Randomize::getRandomInt(0,
-				 		_config.initial_partitioning.k - 1);
+						_config.initial_partitioning.k - 1);
 			} while (!assignHypernodeToPartition(hn, p));
 		}
 		InitialPartitionerBase::rollbackToBestCut();

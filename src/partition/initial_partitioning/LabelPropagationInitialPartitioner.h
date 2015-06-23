@@ -238,9 +238,8 @@ public:
 		while (!q.empty()) {
 			HypernodeID node = q.front();
 			q.pop();
-			if (_hg.partID(node) == -1
-					&& InitialPartitionerBase::assignHypernodeToPartition(node,
-							p)) {
+			if (_hg.partID(node) == -1) {
+				_hg.setNodePart(node,p);
 				assigned_nodes++;
 				for (HyperedgeID he : _hg.incidentEdges(node)) {
 					for (HypernodeID pin : _hg.pins(he)) {
