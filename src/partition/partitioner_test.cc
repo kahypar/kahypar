@@ -34,7 +34,7 @@ class APartitioner : public Test {
     hypergraph(graph),
     config(),
     partitioner(),
-    coarsener(new FirstWinsCoarsener(*hypergraph, config)),
+    coarsener(new FirstWinsCoarsener(*hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.contraction_limit = 2;
     config.coarsening.max_allowed_node_weight = 5;
@@ -71,13 +71,14 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 };
 
 TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(3), Eq(1));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config,
+                        0, (config.partition.k - 1));
   ASSERT_THAT(hypergraph->partID(0), Eq(0));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(2), Eq(0));
@@ -92,7 +93,8 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config,
+                        0, (config.partition.k - 1));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
@@ -126,7 +128,8 @@ TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;
   DBG(true, metrics::hyperedgeCut(*hypergraph));
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.partition(*hypergraph, *coarsener, *refiner, config,
+                        0, (config.partition.k - 1));
   hypergraph->printGraphState();
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   metrics::hyperedgeCut(*hypergraph);

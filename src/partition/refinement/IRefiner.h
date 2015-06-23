@@ -49,10 +49,6 @@ class IRefiner {
     return policyStringImpl();
   }
 
-  const Stats & stats() const noexcept {
-    return statsImpl();
-  }
-
   virtual ~IRefiner() { }
 
  protected:
@@ -69,7 +65,6 @@ class IRefiner {
   virtual void initializeImpl(const HyperedgeWeight) noexcept { }
   virtual int numRepetitionsImpl() const noexcept = 0;
   virtual std::string policyStringImpl() const noexcept = 0;
-  virtual const Stats & statsImpl() const noexcept = 0;
 };
 }  // namespace partition
 

@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #include "lib/definitions.h"
+#include "lib/io/HypergraphIO.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 
@@ -75,7 +76,7 @@ public:
 	    std::system(initial_partitioner_call.c_str());
 
 	    std::vector<PartitionID> partitioning;
-	    io::readPartitionFile(partition_output, partitioning);
+	    io::readPartitionFile(partition_output,partitioning);
 	    for(HypernodeID hn : _hg.nodes()) {
 	    	_hg.setNodePart(hn,partitioning[hn]);
 	    }

@@ -607,6 +607,7 @@ TEST_F(AHypergraph, MaintainsAConnectivitySetForEachHyperedge) {
 }
 
 TEST_F(AHypergraph, RemovesPartFromConnectivitySetIfHEDoesNotConnectThatPart) {
+<<<<<<< HEAD
 	hypergraph.setNodePart(0, 0);
 	hypergraph.setNodePart(1, 0);
 	hypergraph.setNodePart(2, 1);
@@ -615,6 +616,17 @@ TEST_F(AHypergraph, RemovesPartFromConnectivitySetIfHEDoesNotConnectThatPart) {
 	hypergraph.setNodePart(5, 1);
 	hypergraph.setNodePart(6, 1);
 	ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+=======
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
+>>>>>>> master
 
 	hypergraph.changeNodePart(2, 1, 0);
 
@@ -622,6 +634,7 @@ TEST_F(AHypergraph, RemovesPartFromConnectivitySetIfHEDoesNotConnectThatPart) {
 }
 
 TEST_F(AHypergraph, AddsPartToConnectivitySetIfHEConnectsThatPart) {
+<<<<<<< HEAD
 	hypergraph.setNodePart(0, 0);
 	hypergraph.setNodePart(1, 0);
 	hypergraph.setNodePart(2, 0);
@@ -630,6 +643,17 @@ TEST_F(AHypergraph, AddsPartToConnectivitySetIfHEConnectsThatPart) {
 	hypergraph.setNodePart(5, 1);
 	hypergraph.setNodePart(6, 1);
 	ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+=======
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
+  ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
+>>>>>>> master
 
 	hypergraph.changeNodePart(2, 0, 1);
 
@@ -664,6 +688,7 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
 }
 
 TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
+<<<<<<< HEAD
 	std::stack<Memento> mementos;
 	mementos.push(hypergraph.contract(0, 1));
 	mementos.push(hypergraph.contract(0, 3));
@@ -690,6 +715,35 @@ TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
 	hypergraph.uncontract(mementos.top());
 	mementos.pop();
 	ASSERT_THAT(hypergraph.partSize(0), Eq(4));
+=======
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 1));
+  mementos.push(hypergraph.contract(0, 3));
+  mementos.push(hypergraph.contract(0, 4));
+  mementos.push(hypergraph.contract(2, 5));
+  mementos.push(hypergraph.contract(2, 6));
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.initializeNumCutHyperedges();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(1));
+  ASSERT_THAT(hypergraph.partSize(1), Eq(1));
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(1), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(2));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(3));
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_THAT(hypergraph.partSize(0), Eq(4));
+>>>>>>> master
 }
 
 TEST_F(AHypergraph, MaintainsItsTotalWeight) {
@@ -697,19 +751,12 @@ TEST_F(AHypergraph, MaintainsItsTotalWeight) {
 }
 
 TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
-<<<<<<< HEAD
-	auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(
+	auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(
 			hypergraph, 0);
-	auto extr_part1 = extractPartitionAsUnpartitionedHypergraphForBisection(
+	auto extr_part1 = extractPartAsUnpartitionedHypergraphForBisection(
 			hypergraph, 1);
 	Hypergraph& part0_hypergraph = *extr_part0.first;
 	Hypergraph& part1_hypergraph = *extr_part1.first;
-=======
-  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
-  auto extr_part1 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 1);
-  Hypergraph& part0_hypergraph = *extr_part0.first;
-  Hypergraph& part1_hypergraph = *extr_part1.first;
->>>>>>> master
 
 	ASSERT_THAT(part0_hypergraph.numNodes(), Eq(4));
 	ASSERT_THAT(part1_hypergraph.numNodes(), Eq(3));
@@ -729,7 +776,6 @@ TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
 }
 
 TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartitionRelatedInfos) {
-<<<<<<< HEAD
 	hypergraph.setNodePart(0, 0);
 	hypergraph.setNodePart(1, 0);
 	hypergraph.setNodePart(2, 0);
@@ -737,7 +783,7 @@ TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartiti
 	hypergraph.setNodePart(4, 0);
 	hypergraph.setNodePart(5, 0);
 	hypergraph.setNodePart(6, 0);
-	auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(
+	auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(
 			hypergraph, 0);
 	ASSERT_THAT(
 			verifyEquivalenceWithoutPartitionInfo(hypergraph,
@@ -752,30 +798,8 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
 	hypergraph.setNodePart(4, 0);
 	hypergraph.setNodePart(5, 0);
 	hypergraph.setNodePart(6, 0);
-	auto extr_part0 = extractPartitionAsUnpartitionedHypergraphForBisection(
+	auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(
 			hypergraph, 0);
-=======
-  hypergraph.setNodePart(0, 0);
-  hypergraph.setNodePart(1, 0);
-  hypergraph.setNodePart(2, 0);
-  hypergraph.setNodePart(3, 0);
-  hypergraph.setNodePart(4, 0);
-  hypergraph.setNodePart(5, 0);
-  hypergraph.setNodePart(6, 0);
-  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
-  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, *extr_part0.first), Eq(true));
-}
-
-TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation) {
-  hypergraph.setNodePart(0, 0);
-  hypergraph.setNodePart(1, 0);
-  hypergraph.setNodePart(2, 0);
-  hypergraph.setNodePart(3, 0);
-  hypergraph.setNodePart(4, 0);
-  hypergraph.setNodePart(5, 0);
-  hypergraph.setNodePart(6, 0);
-  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
->>>>>>> master
 
 	ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
 	ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
@@ -790,10 +814,47 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
 					std::vector<PartitionID> { -1, -1, -1, -1, -1, -1, -1 }));
 }
 
+
+TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHyperedges) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  ASSERT_THAT(extr_part0.first->numEdges(), Eq(2));
+}
+
+TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHypernodes) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 0);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
+  ASSERT_THAT(extr_part0.first->numNodes(), Eq(5));
+}
+
 TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
 	hypergraph.resetPartitioning();
 	ASSERT_THAT(
 			verifyEquivalenceWithPartitionInfo(hypergraph, original_hypergraph),
 			Eq(true));
+}
+
+
+TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
+  hypergraph.initializeNumCutHyperedges();
+  ASSERT_THAT(hypergraph.isBorderNode(0), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(1), Eq(false));
+  ASSERT_THAT(hypergraph.isBorderNode(2), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(3), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(4), Eq(true));
+  ASSERT_THAT(hypergraph.isBorderNode(5), Eq(false));
+  ASSERT_THAT(hypergraph.isBorderNode(6), Eq(true));
 }
 }  // namespace datastructure

@@ -211,7 +211,7 @@ class APartitionOfAHypergraph : public Test {
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _config(),
     _partitioner(),
-    _coarsener(new FirstWinsCoarsener(_hypergraph, _config)),
+    _coarsener(new FirstWinsCoarsener(_hypergraph, _config,  /* heaviest_node_weight */ 1)),
     _refiner(new Refiner(_hypergraph, _config)) {
     _config.partition.k = 2;
     _config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";

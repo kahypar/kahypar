@@ -24,17 +24,14 @@ class PolicyRegistry {
   using PolicyBasePtr = std::unique_ptr<PolicyBase>;
   using UnderlyingIDType = typename std::underlying_type_t<IDType>;
   using PolicyMap = std::unordered_map<UnderlyingIDType, PolicyBasePtr>;
-
-  PolicyRegistry() : _policies() { }
-
  public:
   bool registerObject(const IDType& name, PolicyBase* policy) {
     return _policies.emplace(
       static_cast<UnderlyingIDType>(name), PolicyBasePtr(policy)).second;
   }
   static PolicyRegistry & getInstance() {
-    static std::unique_ptr<PolicyRegistry> instance(new PolicyRegistry());
-    return *(instance.get());
+    static PolicyRegistry instance;
+    return instance;
   }
 
   PolicyBase & getPolicy(const IDType& name) {
@@ -46,6 +43,7 @@ class PolicyRegistry {
   }
 
  private:
+  PolicyRegistry() : _policies() { }
   PolicyMap _policies;
 };
 }  // namespace core

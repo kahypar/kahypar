@@ -41,7 +41,8 @@ using partition::EdgeWeightDivMultPinWeight;
 
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
-                                 ICoarsener* (*)(Hypergraph&, const Configuration&)>;
+                                 ICoarsener* (*)(Hypergraph&, const Configuration&,
+                                                 const HypernodeWeight)>;
 
 
 using RefinerFactory = Factory<RefinementAlgorithm,

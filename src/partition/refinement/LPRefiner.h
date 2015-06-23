@@ -39,8 +39,7 @@ class LPRefiner : public IRefiner {
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
-    _bitset_he(hg.initialNumEdges(), false),
-    _stats()
+    _bitset_he(hg.initialNumEdges(), false)
   { }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -56,15 +55,15 @@ class LPRefiner : public IRefiner {
     auto in_cut = best_cut;
 
     // Each hyperedge with only be considered once in a refinement run
-    std::fill(std::begin(_bitset_he), std::end(_bitset_he), false);
+    _bitset_he.resetAllBitsToFalse();
 
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       const auto& cur_node = refinement_nodes[i];
-      if (!_contained_cur_queue[cur_node] && isBorderNode(cur_node)) {
+      if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
         assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weight);
 
         _cur_queue.push_back(cur_node);
-        _contained_cur_queue[cur_node] = true;
+        _contained_cur_queue.setBit(cur_node, true);
       }
     }
 
@@ -86,10 +85,10 @@ class LPRefiner : public IRefiner {
           // add adjacent pins to next iteration
           for (const auto& he : _hg.incidentEdges(hn)) {
             if (_bitset_he[he] || _hg.connectivity(he) == 1) continue;
-            _bitset_he[he] = true;
+            _bitset_he.setBit(he, true);
             for (const auto& pin : _hg.pins(he)) {
               if (!_contained_next_queue[pin]) {
-                _contained_next_queue[pin] = true;
+                _contained_next_queue.setBit(pin, true);
                 _next_queue.push_back(pin);
               }
             }
@@ -98,9 +97,7 @@ class LPRefiner : public IRefiner {
       }
 
       // clear the current queue data structures
-      std::fill(std::begin(_contained_cur_queue),
-                std::end(_contained_cur_queue),
-                false);
+      _contained_cur_queue.resetAllBitsToFalse();
       _cur_queue.clear();
 
       _cur_queue.swap(_next_queue);
@@ -118,10 +115,6 @@ class LPRefiner : public IRefiner {
     return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
   }
 
-  const Stats & statsImpl() const noexcept final {
-    return _stats;
-  }
-
  private:
   inline bool isCutHyperedge(HyperedgeID he) const noexcept {
     return _hg.connectivity(he) > 1;
@@ -133,10 +126,7 @@ class LPRefiner : public IRefiner {
     _cur_queue.reserve(_hg.initialNumNodes());
     _next_queue.clear();
     _next_queue.reserve(_hg.initialNumNodes());
-    _contained_cur_queue.clear();
-    _contained_cur_queue.reserve(_hg.initialNumNodes());
-    _contained_next_queue.clear();
-    _contained_next_queue.reserve(_hg.initialNumNodes());
+    _hg.initializeNumCutHyperedges();
   }
 
 
@@ -195,11 +185,11 @@ class LPRefiner : public IRefiner {
         auto compute_connectivity = [&]() {
                                       PartitionID connectivity = 0;
                                       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-                                        std::vector<bool> connectivity_superset(_config.partition.k);
+                                        FastResetBitVector<> connectivity_superset(_config.partition.k, false);
                                         for (const PartitionID part : _hg.connectivitySet(he)) {
                                           if (!connectivity_superset[part]) {
                                             connectivity += 1;
-                                            connectivity_superset[part] = true;
+                                            connectivity_superset.setBit(part, true);
                                           }
                                         }
                                       }
@@ -296,30 +286,18 @@ class LPRefiner : public IRefiner {
     return true;
   }
 
-
-  bool isBorderNode(HypernodeID hn) const noexcept {
-    for (auto && he : _hg.incidentEdges(hn)) {
-      if (isCutHyperedge(he)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   Hypergraph& _hg;
   const Configuration& _config;
   std::vector<HypernodeID> _cur_queue;
   std::vector<HypernodeID> _next_queue;
-  std::vector<bool> _contained_cur_queue;
-  std::vector<bool> _contained_next_queue;
+  FastResetBitVector<> _contained_cur_queue;
+  FastResetBitVector<> _contained_next_queue;
 
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_connectivity_decrease_;
   std::vector<PartitionID> _tmp_target_parts;
 
-  std::vector<bool> _bitset_he;
-
-  Stats _stats;
+  FastResetBitVector<> _bitset_he;
 };
-}
+}  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_LPREFINER_H_

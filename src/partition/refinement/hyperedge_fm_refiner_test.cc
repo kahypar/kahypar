@@ -92,6 +92,7 @@ class RollBackInformation : public AHyperedgeFMRefiner {
     hypergraph->setNodePart(8, 1);
     config.partition.epsilon = 1;
     hyperedge_fm_refiner.reset(new HyperedgeFMRefinerSimpleStopping(*hypergraph, config));
+    hyperedge_fm_refiner->initialize();
     hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
     hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
@@ -156,7 +157,9 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainValuesOnModifiedHypergraph) {
   hypergraph->setNodePart(4, 1);
   hypergraph->setNodePart(5, 1);
   hypergraph->setNodePart(6, 1);
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
+  hyperedge_fm_refiner.initializeImpl();
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(1));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(0));
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(2, 0, 1), Eq(0));
@@ -559,7 +562,6 @@ TEST_F(RollBackInformation, StoresIDsOfMovedPins) {
 }
 
 TEST_F(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex) {
-  hyperedge_fm_refiner->initialize();
   hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
   hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
   hyperedge_fm_refiner->activateIncidentCutHyperedges(8);
@@ -583,7 +585,6 @@ TEST_F(RollBackInformation, IsUsedToRollBackMovementsToGivenIndex) {
 }
 
 TEST_F(RollBackInformation, IsUsedToRollBackMovementsToInitialStateIfNoImprovementWasFound) {
-  hyperedge_fm_refiner->initialize();
   hyperedge_fm_refiner->activateIncidentCutHyperedges(0);
   hyperedge_fm_refiner->activateIncidentCutHyperedges(5);
   hyperedge_fm_refiner->activateIncidentCutHyperedges(8);

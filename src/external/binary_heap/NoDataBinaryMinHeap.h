@@ -9,6 +9,7 @@
 #include <atomic>
 #include <vector>
 #include <map>
+#include <limits>
 #include <unordered_map>
 
 #include <limits>
@@ -21,7 +22,9 @@ namespace external {
 //id_slot : ID Type for stored elements
 //key_slot: type of key_slot used
 //Meta key slot: min/max values for key_slot accessible via static functions ::max() / ::min()
-template< typename id_slot, typename key_slot, typename meta_key_slot, typename storage_slot = ArrayStorage< id_slot > >
+template< typename id_slot, typename key_slot,
+          typename meta_key_slot = std::numeric_limits<key_slot>,
+          typename storage_slot = ArrayStorage< id_slot > >
 class NoDataBinaryMinHeap{
  private:
   void operator=( const NoDataBinaryMinHeap& ){}	//really, do not copy

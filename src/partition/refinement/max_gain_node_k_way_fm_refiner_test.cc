@@ -49,12 +49,6 @@ class AMaxGainNodeKWayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
-TEST_F(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes) {
-  ASSERT_THAT(refiner->isBorderNode(0), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(6), Eq(true));
-  ASSERT_THAT(refiner->isBorderNode(7), Eq(false));
-}
-
 TEST_F(AMaxGainNodeKWayFMRefiner, ActivatesBorderNodes) {
   refiner->activate(1, 42);
 
@@ -82,6 +76,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   hypergraph->setNodePart(6, 2);
   hypergraph->setNodePart(7, 2);
   hypergraph->setNodePart(8, 1);
+  refiner->initialize();
 
   // positive gain
   ASSERT_THAT(refiner->computeMaxGainMove(1).first, Eq(2));
@@ -114,6 +109,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  refiner->initialize();
 
   refiner->moveHypernode(7, 3, 2);
   ASSERT_THAT(hypergraph->partID(7), Eq(2));
@@ -182,6 +178,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  refiner->initialize();
 
   ASSERT_THAT(refiner->computeMaxGainMove(2).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(2).second, Eq(0));
@@ -208,7 +205,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-
+  refiner->initialize();
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(0));
 }
@@ -237,6 +234,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   hypergraph->setNodePart(9, 0);
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  refiner->initialize();
 
   ASSERT_THAT(refiner->computeMaxGainMove(3).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(3).second, Eq(2));
@@ -256,6 +254,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
   hypergraph->setNodePart(1, 1);
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+  refiner->initialize();
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
   ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));

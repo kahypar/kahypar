@@ -36,10 +36,6 @@ class ICoarsener {
     return policyStringImpl();
   }
 
-  const Stats & stats() const noexcept {
-    return statsImpl();
-  }
-
   virtual ~ICoarsener() { }
 
  protected:
@@ -49,7 +45,6 @@ class ICoarsener {
   virtual void coarsenImpl(const HypernodeID limit) noexcept = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) noexcept = 0;
   virtual std::string policyStringImpl() const noexcept = 0;
-  virtual const Stats & statsImpl() const noexcept = 0;
 };
 }  // namespace partition
 

@@ -14,6 +14,7 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -23,6 +24,7 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
+using datastructure::FastResetBitVector;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -60,12 +62,12 @@ class HyperedgeFMRefiner : public IRefiner,
   class HyperedgeEvalIndicator {
  public:
     explicit HyperedgeEvalIndicator(HyperedgeID size) noexcept :
-      _bitvector(size) { }
+      _bitvector(size, false) { }
 
     void markAsEvaluated(HyperedgeID id) noexcept {
       ASSERT(!_bitvector[id], "HE " << id << " is already marked as evaluated");
       DBG(false, "Marking HE " << id << " as evaluated");
-      _bitvector[id] = 1;
+      _bitvector.setBit(id, true);
     }
 
     bool isAlreadyEvaluated(HyperedgeID id) const {
@@ -73,11 +75,11 @@ class HyperedgeFMRefiner : public IRefiner,
     }
 
     void reset() noexcept {
-      _bitvector.assign(_bitvector.size(), false);
+      _bitvector.resetAllBitsToFalse();
     }
 
  private:
-    std::vector<bool> _bitvector;
+    FastResetBitVector<> _bitvector;
   };
 
  public:
@@ -89,15 +91,14 @@ class HyperedgeFMRefiner : public IRefiner,
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
-    _marked_HEs(_hg.initialNumEdges()),
+    _marked_HEs(_hg.initialNumEdges(), false),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
-    _contained_hypernodes(_hg.initialNumNodes()),
+    _contained_hypernodes(_hg.initialNumNodes(), false),
     _movement_indices(),
     _performed_moves(),
     _is_initialized(false),
-    _stopping_policy(),
-    _stats() {
+    _stopping_policy() {
     _movement_indices.reserve(_hg.initialNumEdges() + 1);
     _movement_indices[0] = 0;
     _performed_moves.reserve(_hg.initialNumPins());
@@ -110,10 +111,12 @@ class HyperedgeFMRefiner : public IRefiner,
 
   void initializeImpl(HyperedgeWeight) noexcept final {
     _is_initialized = true;
+    _hg.initializeNumCutHyperedges();
   }
 
   void initializeImpl() noexcept final {
     _is_initialized = true;
+    _hg.initializeNumCutHyperedges();
   }
 
   void activateIncidentCutHyperedges(HypernodeID hn) noexcept {
@@ -305,10 +308,6 @@ class HyperedgeFMRefiner : public IRefiner,
                        + templateToString<StoppingPolicy>());
   }
 
-  const Stats & statsImpl() const noexcept final {
-    return _stats;
-  }
-
  private:
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
@@ -350,7 +349,7 @@ class HyperedgeFMRefiner : public IRefiner,
     double imbalance = (2.0 * std::max(_hg.partWeight(0), _hg.partWeight(1))) /
                        (_hg.partWeight(0) + _hg.partWeight(1)) - 1.0;
     ASSERT(FloatingPoint<double>(imbalance).AlmostEquals(
-        FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
+             FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
            "imbalance calculation inconsistent beween fm-refiner and hypergraph");
     return imbalance;
   }
@@ -510,7 +509,7 @@ class HyperedgeFMRefiner : public IRefiner,
 
   void markAsContained(HypernodeID hn) noexcept {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
-    _contained_hypernodes[hn] = 1;
+    _contained_hypernodes.setBit(hn, true);
   }
 
   bool isContained(HypernodeID hn) const noexcept {
@@ -518,7 +517,7 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void resetContainedHypernodes() noexcept {
-    _contained_hypernodes.assign(_contained_hypernodes.size(), false);
+    _contained_hypernodes.resetAllBitsToFalse();
   }
 
   bool isMarkedAsMoved(HyperedgeID he) const noexcept {
@@ -526,25 +525,24 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void markAsMoved(HyperedgeID he) noexcept {
-    _marked_HEs[he] = 1;
+    _marked_HEs.setBit(he, true);
   }
 
   void resetMarkedHyperedges() noexcept {
-    _marked_HEs.assign(_marked_HEs.size(), false);
+    _marked_HEs.resetAllBitsToFalse();
   }
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   std::array<HyperedgeFMPQ*, K> _pq;
-  std::vector<bool> _marked_HEs;
+  FastResetBitVector<> _marked_HEs;
   HyperedgeEvalIndicator _gain_indicator;
   HyperedgeEvalIndicator _update_indicator;
-  std::vector<bool> _contained_hypernodes;
+  FastResetBitVector<> _contained_hypernodes;
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
   bool _is_initialized;
   StoppingPolicy _stopping_policy;
-  Stats _stats;
 };
 #pragma GCC diagnostic pop
 }   // namespace partition

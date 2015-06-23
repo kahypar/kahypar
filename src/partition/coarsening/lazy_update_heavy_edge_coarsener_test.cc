@@ -70,7 +70,7 @@ TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
                         HyperedgeVector { 0, 1, 0, 1, 2, 3, 4 });
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
 
   coarsener.coarsen(4);
   hypergraph.printGraphState();

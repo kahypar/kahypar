@@ -228,26 +228,31 @@ void setDefaults(Configuration& config) {
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
   CoarseningAlgorithm::heavy_lazy,
-  [](Hypergraph& hypergraph, const Configuration& config)  -> ICoarsener* {
-  return new RandomWinsLazyUpdateCoarsener(hypergraph, config);
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node)  -> ICoarsener* {
+  return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
 });
 
 static Registrar<CoarsenerFactory> reg_heavy_partial_coarsener(
   CoarseningAlgorithm::heavy_partial,
-  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-  return new RandomWinsHeuristicCoarsener(hypergraph, config);
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new RandomWinsHeuristicCoarsener(hypergraph, config,
+                                          weight_of_heaviest_node);
 });
 
 static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
   CoarseningAlgorithm::heavy_full,
-  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-  return new RandomWinsFullCoarsener(hypergraph, config);
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
 });
 
 static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
   CoarseningAlgorithm::hyperedge,
-  [](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-  return new HyperedgeCoarsener2(hypergraph, config);
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
 });
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
@@ -353,15 +358,8 @@ int main(int argc, char* argv[]) {
 
   Randomize::setSeed(config.partition.seed);
 
-  HypernodeID num_hypernodes;
-  HyperedgeID num_hyperedges;
-  HyperedgeIndexVector index_vector;
-  HyperedgeVector edge_vector;
-
-  io::readHypergraphFile(config.partition.graph_filename, num_hypernodes, num_hyperedges,
-                         index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
-                        config.partition.k);
+  Hypergraph hypergraph(io::createHypergraphFromFile(config.partition.graph_filename,
+                                                     config.partition.k));
 
   config.partition.total_graph_weight = hypergraph.totalWeight();
 
@@ -378,7 +376,7 @@ int main(int argc, char* argv[]) {
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
                                               config.partition.total_graph_weight;
-  config.fm_local_search.beta = log(num_hypernodes);
+  config.fm_local_search.beta = log(hypergraph.numNodes());
 
   // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
   // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
@@ -422,7 +420,7 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 
-  // io::printPartitioningStatistics(partitioner, *coarsener, *refiner);
+  io::printPartitioningStatistics();
   io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 

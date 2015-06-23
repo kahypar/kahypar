@@ -22,7 +22,6 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -47,8 +46,8 @@ struct CoarseningMemento {
 template <class Rater = Mandatory,
           class PrioQueue = PriorityQueue<
             NoDataBinaryMaxHeap<HypernodeID,
-                                typename Rater::RatingType,
-                                MetaKeyDouble> > >
+                                typename Rater::RatingType>
+            > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  protected:
   using Base = CoarsenerBase<CoarseningMemento>;
@@ -56,7 +55,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base::_config;
   using Base::_history;
   using Base::_max_hn_weights;
-  using Base::_stats;
   using Base::CurrentMaxNodeWeight;
   using Base::restoreSingleNodeHyperedges;
   using Base::restoreParallelHyperedges;
@@ -71,8 +69,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
   HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
+                         const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
 
@@ -93,8 +92,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
 
-    _stats.add("initialCut", _config.partition.current_v_cycle, initial_cut);
-    _stats.add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
+    Stats::instance().add("initialCut", _config.partition.current_v_cycle, initial_cut);
+    Stats::instance().add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
     DBG(true, "initial cut =" << current_cut);
     DBG(true, "initial imbalance=" << current_imbalance);
 

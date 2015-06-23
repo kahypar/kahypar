@@ -23,7 +23,6 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -57,7 +56,6 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::restoreSingleNodeHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
-  using Base::gatherCoarseningStats;
   using Rating = HyperedgeRating;
   using ContractionMemento = typename Hypergraph::ContractionMemento;
 
@@ -67,8 +65,9 @@ class HyperedgeCoarsener : public ICoarsener,
   HyperedgeCoarsener& operator= (const HyperedgeCoarsener&) = delete;
   HyperedgeCoarsener& operator= (HyperedgeCoarsener&&) = delete;
 
-  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+                     const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
 
@@ -119,7 +118,6 @@ class HyperedgeCoarsener : public ICoarsener,
 
       reRateHyperedgesAffectedByContraction(rep_node);
     }
-    gatherCoarseningStats();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept final {
@@ -144,10 +142,6 @@ class HyperedgeCoarsener : public ICoarsener,
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
     //        << " > " << _config.partition.epsilon);
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   void removeHyperedgeFromPQ(const HyperedgeID he) noexcept {
@@ -262,9 +256,8 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_hg;
   using Base::_config;
   using Base::_history;
-  using Base::_stats;
   using Base::_hypergraph_pruner;
-  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
+  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };
 }  // namespace partition

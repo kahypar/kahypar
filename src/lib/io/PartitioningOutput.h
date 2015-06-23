@@ -13,16 +13,12 @@
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
+#include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
-#include "partition/Partitioner.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;
-using partition::IRefiner;
-using partition::ICoarsener;
-using partition::Partitioner;
+using utils::Stats;
 
 namespace io {
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
@@ -41,6 +37,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
+  std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
   << "\t HE size:   [min:" << std::setw(10) << std::left
   << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
@@ -72,11 +69,14 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "Imbalance       = " << metrics::imbalance(hypergraph, hypergraph.k()) << std::endl;
+  std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, hypergraph.k())
+  << std::endl;
+  std::cout << "partition time            = " << elapsed_seconds.count() << " s" << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    std::cout << "| part" << i << " | = " << hypergraph.partWeight(i) << std::endl;
+    std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
+    << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
   }
-  std::cout << "partition time  = " << elapsed_seconds.count() << " s" << std::endl;
+
   std::cout << "     | initial parallel HE removal time  = " << timings[0].count() << " s" << std::endl;
   std::cout << "     | initial large HE removal time     = " << timings[1].count() << " s" << std::endl;
   std::cout << "     | coarsening time                   = " << timings[2].count() << " s" << std::endl;
@@ -86,15 +86,12 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "     | initial parallel HE restore time  = " << timings[6].count() << " s" << std::endl;
 }
 
-inline void printPartitioningStatistics(const Partitioner& partitioner, const ICoarsener& coarsener,
-                                        const IRefiner& refiner) {
+inline void printPartitioningStatistics() {
   std::cout << "*****************************Statistics******************************" << std::endl;
   std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
   std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
   << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
-  std::cout << partitioner.stats().toConsoleString();
-  std::cout << coarsener.stats().toConsoleString();
-  std::cout << refiner.stats().toConsoleString();
+  std::cout << Stats::instance().toConsoleString();
 }
 
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {

@@ -115,7 +115,7 @@ class KWayPriorityQueue {
     if (isUnused(part)) {
       ASSERT(_part[_num_nonempty_pqs] == kInvalidPart, V(_part[_num_nonempty_pqs]));
       _part[_num_nonempty_pqs] = part;
-      _queues[_num_nonempty_pqs].clear();  // lazy clear
+      _queues[_num_nonempty_pqs].clear();  // lazy clear, NOOP in case of ArrayStorage
       _index[part] = _num_nonempty_pqs++;
     }
     _queues[_index[part]].push(id, key);

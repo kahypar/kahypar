@@ -104,6 +104,7 @@ using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
 using partition::HyperedgeCoarsener2;
 using partition::ConfigurationManager;
+using partition::ICoarsener;
 
 InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		std::string mode) {
@@ -356,28 +357,33 @@ static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping
 		RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
-		CoarseningAlgorithm::heavy_lazy,
-		[](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-			return new RandomWinsLazyUpdateCoarsener(hypergraph, config);
-		});
+  CoarseningAlgorithm::heavy_lazy,
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node)  -> ICoarsener* {
+  return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
+});
 
 static Registrar<CoarsenerFactory> reg_heavy_partial_coarsener(
-		CoarseningAlgorithm::heavy_partial,
-		[](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-			return new RandomWinsHeuristicCoarsener(hypergraph, config);
-		});
+  CoarseningAlgorithm::heavy_partial,
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new RandomWinsHeuristicCoarsener(hypergraph, config,
+                                          weight_of_heaviest_node);
+});
 
 static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
-		CoarseningAlgorithm::heavy_full,
-		[](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-			return new RandomWinsFullCoarsener(hypergraph, config);
-		});
+  CoarseningAlgorithm::heavy_full,
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
+});
 
 static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
-		CoarseningAlgorithm::hyperedge,
-		[](Hypergraph& hypergraph, const Configuration& config) -> ICoarsener* {
-			return new HyperedgeCoarsener2(hypergraph, config);
-		});
+  CoarseningAlgorithm::hyperedge,
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
+});
 
 static Registrar<InitialPartitioningFactory> reg_random(
 		InitialPartitionerAlgorithm::random,

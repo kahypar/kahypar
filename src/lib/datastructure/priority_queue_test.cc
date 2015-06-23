@@ -19,8 +19,7 @@ class APriorityQueue : public Test {
   APriorityQueue() :
     prio_queue(3) { }
 
-  PriorityQueue<NoDataBinaryMaxHeap<defs::HypernodeID, defs::RatingType,
-                                    MetaKeyDouble> > prio_queue;
+  PriorityQueue<NoDataBinaryMaxHeap<defs::HypernodeID, defs::RatingType> > prio_queue;
 };
 
 TEST_F(APriorityQueue, IsEmptyWhenCreated) {

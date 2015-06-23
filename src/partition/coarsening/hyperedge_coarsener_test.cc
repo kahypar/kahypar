@@ -27,7 +27,7 @@ class AHyperedgeCoarsener : public Test {
                                                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
-    coarsener(*hypergraph, config),
+    coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
     refiner(new DummyRefiner()) {
     config.coarsening.max_allowed_node_weight = 5;
   }
@@ -65,7 +65,7 @@ TEST(HyperedgeCoarsener, RemoveNestedHyperedgesAsPartOfTheContractionRoutine) {
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
 
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(false));
@@ -79,7 +79,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedSingleNodeHyperedgesFromPQ) {
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
 
   coarsener.coarsen(1);
 
@@ -93,7 +93,7 @@ TEST(HyperedgeCoarsener, DeleteRemovedParallelHyperedgesFromPQ) {
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
 
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(false));
@@ -119,12 +119,13 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
 }
@@ -135,11 +136,12 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph.edgeIsEnabled(1), Eq(true));
   ASSERT_THAT(hypergraph.edgeIsEnabled(0), Eq(true));
@@ -153,6 +155,7 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
 
   coarsener.coarsen(1);
   hypergraph->setNodePart(0, 0);
+  hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
 
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(*hypergraph, input_hypergraph), Eq(true));
@@ -162,7 +165,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
   Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 3 },
                         HyperedgeVector { 0, 1, 2 });
   Configuration config;
-  HyperedgeCoarsenerType coarsener(hypergraph, config);
+  HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::vector<HypernodeID> refinement_nodes = { 42, 42, 42 };
   size_t num_refinement_nodes = 0;
   refinement_nodes.reserve(hypergraph.initialNumNodes());
@@ -170,6 +173,7 @@ TEST(HyperedgeCoarsener, AddRepresentativeOnlyOnceToRefinementNodes) {
 
   coarsener.coarsen(1);
   hypergraph.setNodePart(0, 0);
+  hypergraph.initializeNumCutHyperedges();
   coarsener.restoreSingleNodeHyperedges();
 
   coarsener.performUncontraction(coarsener._history.back(), refinement_nodes,

@@ -32,8 +32,7 @@ using defs::HyperedgeWeight;
 namespace partition {
 class DummyRefiner : public IRefiner {
  public:
-  DummyRefiner() :
-    _stats() { }
+  DummyRefiner() { }
   void initializeImpl() noexcept {
     _is_initialized = true;
   }
@@ -41,8 +40,6 @@ class DummyRefiner : public IRefiner {
                   HyperedgeWeight&, double&) noexcept final { return true; }
   int numRepetitionsImpl() const noexcept final { return 1; }
   std::string policyStringImpl() const noexcept final { return std::string(""); }
-  const Stats & statsImpl() const noexcept final { return _stats; }
-  Stats _stats;
 };
 
 template <class CoarsenerType>
@@ -53,7 +50,7 @@ class ACoarsenerBase : public Test {
                                            HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
-    coarsener(*hypergraph, config),
+    coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
     refiner(new DummyRefiner()) {
     refiner->initialize();
     config.coarsening.max_allowed_node_weight = 5;
@@ -95,6 +92,7 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
     hypergraph->setNodePart(5, 0);
   }
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
@@ -153,6 +151,7 @@ void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergra
     hypergraph->setNodePart(5, 0);
   }
   hypergraph->setNodePart(4, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
@@ -173,7 +172,7 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   Configuration config;
   config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
   refiner->initialize();
 
@@ -186,7 +185,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   } else {
     hypergraph.setNodePart(2, 1);
   }
-
+  hypergraph.initializeNumCutHyperedges();
 
   // The following assertion is thrown if parallel hyperedges are restored in the order in which
   // they were removed: Assertion `_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == e`
@@ -207,7 +206,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
 
   Configuration config;
   config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
   refiner->initialize();
 

@@ -11,6 +11,7 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
@@ -18,10 +19,10 @@
 #include "partition/coarsening/ICoarsener.h"
 
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using utils::Stats;
+using datastructure::FastResetBitVector;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -33,7 +34,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Base::performContraction;
   using Base::removeSingleNodeHyperedges;
   using Base::removeParallelHyperedges;
-  using Base::gatherCoarseningStats;
   using Rating = typename Rater::Rating;
 
   class NullMap {
@@ -47,8 +47,9 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
   LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
-  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config) noexcept :
-    Base(hypergraph, config),
+  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+                               const HypernodeWeight weight_of_heaviest_node) noexcept :
+    Base(hypergraph, config, weight_of_heaviest_node),
     _outdated_rating(hypergraph.initialNumNodes(), false),
     _target(_hg.initialNumNodes())
   { }
@@ -99,15 +100,10 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
       }
     }
-    gatherCoarseningStats();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept final {
     return Base::doUncoarsen(refiner);
-  }
-
-  const Stats & statsImpl() const noexcept {
-    return _stats;
   }
 
   std::string policyStringImpl() const noexcept final {
@@ -117,13 +113,13 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   void invalidateAffectedHypernodes(const HypernodeID rep_node) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
-        _outdated_rating[pin] = true;
+        _outdated_rating.setBit(pin, true);
       }
     }
   }
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) noexcept {
-    _outdated_rating[hn] = false;
+    _outdated_rating.setBit(hn, false);
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
@@ -139,7 +135,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");
-      _stats.add("numHNsWithoutValidContractionPartner", _config.partition.current_v_cycle, 1);
+      Stats::instance().add("numHNsWithoutValidContractionPartner", _config.partition.current_v_cycle, 1);
     }
   }
 
@@ -148,8 +144,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   using Base::_config;
   using Base::_rater;
   using Base::_history;
-  using Base::_stats;
-  std::vector<bool> _outdated_rating;
+  FastResetBitVector<> _outdated_rating;
   std::vector<HypernodeID> _target;
 };
 }              // namespace partition
