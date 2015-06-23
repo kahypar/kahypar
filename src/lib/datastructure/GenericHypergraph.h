@@ -227,6 +227,7 @@ class GenericHypergraph {
   template <typename ContainerType>
   class VertexIterator {
     using IDType = typename ContainerType::value_type::IDType;
+    using ConstPointer = typename ContainerType::const_pointer;
 
  public:
     VertexIterator(const VertexIterator& other) = delete;
@@ -236,13 +237,13 @@ class GenericHypergraph {
     VertexIterator() noexcept :
       _id(0),
       _max_id(0),
-      _container(nullptr) { }
+      _vertex(nullptr) { }
 
-    VertexIterator(const ContainerType* container, IDType id, IDType max_id) noexcept :
+    VertexIterator(ConstPointer start_vertex, IDType id, IDType max_id) noexcept :
       _id(id),
       _max_id(max_id),
-      _container(container) {
-      if (_id != _max_id && (*_container)[_id].isDisabled()) {
+      _vertex(start_vertex) {
+      if (_id != _max_id && _vertex->isDisabled()) {
         operator++ ();
       }
     }
@@ -250,7 +251,7 @@ class GenericHypergraph {
     VertexIterator(VertexIterator&& other) noexcept :
       _id(std::move(other._id)),
       _max_id(std::move(other._max_id)),
-      _container(std::move(other._container)) { }
+      _vertex(std::move(other._vertex)) { }
 
     IDType operator* () const noexcept {
       return _id;
@@ -260,7 +261,8 @@ class GenericHypergraph {
       ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
       do {
         ++_id;
-      } while (_id < _max_id && (*_container)[_id].isDisabled());
+        ++_vertex;
+      } while (_id < _max_id && _vertex->isDisabled());
       return *this;
     }
 
@@ -277,7 +279,8 @@ class GenericHypergraph {
       ASSERT(_id > 0, "Hypernode iterator out of bounds");
       do {
         --_id;
-      } while (_id > 0 && (*_container)[_id].isDisabled());
+        --_vertex;
+      } while (_id > 0 && _vertex->isDisabled());
       return *this;
     }
 
@@ -294,7 +297,7 @@ class GenericHypergraph {
  private:
     IDType _id;
     const IDType _max_id;
-    const ContainerType* _container;
+    ConstPointer _vertex;
   };
 
   struct Memento {
@@ -538,14 +541,14 @@ class GenericHypergraph {
   }
 
   std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
-    return std::move(std::make_pair(HypernodeIterator(&_hypernodes, 0, _num_hypernodes),
-                                    HypernodeIterator(&_hypernodes, _num_hypernodes,
+    return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(),0 , _num_hypernodes),
+                                    HypernodeIterator((_hypernodes.data() + _num_hypernodes), _num_hypernodes,
                                                       _num_hypernodes)));
   }
 
   std::pair<HyperedgeIterator, HyperedgeIterator> edges() const noexcept {
-    return std::move(std::make_pair(HyperedgeIterator(&_hyperedges, 0, _num_hyperedges),
-                                    HyperedgeIterator(&_hyperedges, _num_hyperedges,
+    return std::move(std::make_pair(HyperedgeIterator(_hyperedges.data(), 0, _num_hyperedges),
+                                    HyperedgeIterator((_hyperedges.data() + _num_hyperedges), _num_hyperedges,
                                                       _num_hyperedges)));
   }
 
