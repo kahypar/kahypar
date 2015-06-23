@@ -22,7 +22,6 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -47,8 +46,8 @@ struct CoarseningMemento {
 template <class Rater = Mandatory,
           class PrioQueue = PriorityQueue<
             NoDataBinaryMaxHeap<HypernodeID,
-                                typename Rater::RatingType,
-                                MetaKeyDouble> > >
+                                typename Rater::RatingType>
+            > >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  protected:
   using Base = CoarsenerBase<CoarseningMemento>;

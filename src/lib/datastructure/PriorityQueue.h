@@ -9,15 +9,6 @@
 #include "lib/macros.h"
 
 namespace datastructure {
-// ToDo: We need a more robust solution for min and max values!
-struct MetaKeyDouble {
-  static double max() {
-    return 12345.6789;
-  }
-  static double min() {
-    return -12345.6789;
-  }
-};
 
 template <class BinaryHeap>
 class PriorityQueue {

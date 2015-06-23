@@ -19,7 +19,6 @@
 #include "partition/coarsening/ICoarsener.h"
 
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using utils::Stats;

@@ -23,7 +23,6 @@
 
 using external::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
-using datastructure::MetaKeyDouble;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -258,7 +257,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_config;
   using Base::_history;
   using Base::_hypergraph_pruner;
-  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType, MetaKeyDouble> > _pq;
+  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType> > _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };
 }  // namespace partition
