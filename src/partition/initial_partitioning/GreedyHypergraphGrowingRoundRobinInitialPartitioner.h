@@ -86,6 +86,9 @@ private:
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
 
+		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
+				std::vector<bool>(_hg.numEdges()));
+
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
 
 			bool every_part_disable = true;
@@ -110,7 +113,7 @@ private:
 							"Hypernode " << hn << "should be unassigned!");
 
 					if (!assignHypernodeToPartition(hn, i)) {
-						if(!bq[i]->empty()) {
+						if (!bq[i]->empty()) {
 							bq[i]->deleteMax();
 						}
 						if (bq[i]->empty()) {
@@ -122,16 +125,8 @@ private:
 								"Bucket queue of partition " << i << " shouldn't be empty!");
 
 						ASSERT(
-								[&]() {
-									if(_config.initial_partitioning.unassigned_part != -1) {
-										Gain gain = bq[i]->maxKey();
-										_hg.changeNodePart(hn,i,unassigned_part);
-										HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-										_hg.changeNodePart(hn,unassigned_part,i);
-										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
-									}
-									return true;
-								}(), "Gain calculation failed!");
+								[&]() { if(_config.initial_partitioning.unassigned_part != -1) { Gain gain = bq[i]->maxKey(); _hg.changeNodePart(hn,i,unassigned_part); HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg); _hg.changeNodePart(hn,unassigned_part,i); return metrics::hyperedgeCut(_hg) == (cut_before-gain); } return true; }(),
+								"Gain calculation failed!");
 
 						bq[i]->deleteMax();
 						greedy_base.deleteNodeInAllBucketQueues(bq, hn);
@@ -145,11 +140,14 @@ private:
 						GainComputation::deltaGainUpdate(_hg, bq, hn,
 								unassigned_part, i);
 						for (HyperedgeID he : _hg.incidentEdges(hn)) {
-							for (HypernodeID hnode : _hg.pins(he)) {
-								if (_hg.partID(hnode) == unassigned_part) {
-									greedy_base.processNodeForBucketPQ(*bq[i],
-											hnode, i);
+							if (!hyperedge_already_process[i][he]) {
+								for (HypernodeID hnode : _hg.pins(he)) {
+									if (_hg.partID(hnode) == unassigned_part) {
+										greedy_base.processNodeForBucketPQ(
+												*bq[i], hnode, i);
+									}
 								}
+								hyperedge_already_process[i][he] = true;
 							}
 						}
 					}
@@ -169,17 +167,14 @@ private:
 			delete bq[k];
 		}
 
-		for(HypernodeID hn : _hg.nodes()) {
-			if(_hg.partID(hn) == -1) {
-				Gain gain0 = GainComputation::calculateGain(_hg, hn,
-						0);
-				Gain gain1 = GainComputation::calculateGain(_hg, hn,
-						1);
-				if(gain0 > gain1) {
-					_hg.setNodePart(hn,0);
-				}
-				else {
-					_hg.setNodePart(hn,1);
+		for (HypernodeID hn : _hg.nodes()) {
+			if (_hg.partID(hn) == -1) {
+				Gain gain0 = GainComputation::calculateGain(_hg, hn, 0);
+				Gain gain1 = GainComputation::calculateGain(_hg, hn, 1);
+				if (gain0 > gain1) {
+					_hg.setNodePart(hn, 0);
+				} else {
+					_hg.setNodePart(hn, 1);
 				}
 			}
 		}

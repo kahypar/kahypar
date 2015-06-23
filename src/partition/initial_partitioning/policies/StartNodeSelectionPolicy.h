@@ -12,6 +12,7 @@
 #include <queue>
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include <algorithm>
 
 using defs::HypernodeID;
@@ -32,8 +33,8 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 			const Hypergraph& hg, const PartitionID k) noexcept {
 
 		start_nodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
-		std::vector<bool> visited(hg.numNodes(), false);
-		std::vector<bool> in_queue(hg.numNodes(), false);
+		FastResetBitVector<> in_queue(hg.numNodes(), false);
+		FastResetBitVector<> hyperedge_in_queue(hg.numEdges(), false);
 
 		while(start_nodes.size() != k) {
 			std::queue<HypernodeID> bfs;
@@ -41,35 +42,37 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 			int visited_nodes = 0;
 			for (const HypernodeID start_node : start_nodes) {
 				bfs.push(start_node);
-				in_queue[start_node] = true;
+				in_queue.setBit(start_node,true);
 			}
 
 			while (!bfs.empty()) {
 				HypernodeID hn = bfs.front();
 				bfs.pop();
 				lastHypernode = hn;
-				visited[hn] = true;
 				visited_nodes++;
 				for (const HyperedgeID he : hg.incidentEdges(lastHypernode)) {
-					for (const HypernodeID pin : hg.pins(he)) {
-						if (!in_queue[pin]) {
-							bfs.push(pin);
-							in_queue[pin] = true;
+					if(!hyperedge_in_queue[he]) {
+						for (const HypernodeID pin : hg.pins(he)) {
+							if (!in_queue[pin]) {
+								bfs.push(pin);
+								in_queue.setBit(pin,true);
+							}
 						}
+						hyperedge_in_queue.setBit(he,true);
 					}
 				}
 				if(bfs.empty() && visited_nodes != hg.numNodes()) {
 					for(HypernodeID hn : hg.nodes()) {
 						if(!in_queue[hn]) {
 							bfs.push(hn);
-							in_queue[hn] = true;
+							in_queue.setBit(hn,true);
 						}
 					}
 				}
 			}
 			start_nodes.push_back(lastHypernode);
-			visited.assign(hg.numNodes(),false);
-			in_queue.assign(hg.numNodes(),false);
+			in_queue.resetAllBitsToFalse();
+			hyperedge_in_queue.resetAllBitsToFalse();
 		}
 	}
 };

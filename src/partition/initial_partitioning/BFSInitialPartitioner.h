@@ -39,16 +39,19 @@ private:
 	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
 	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
-			HypernodeID hn, std::unordered_map<HypernodeID, bool>& in_queue,
+			HypernodeID hn, std::vector<bool>& in_queue, std::vector<bool>& hyperedge_in_queue,
 			const PartitionID& unassigned_part) {
 		// TODO(heuer): Make he und hnodes const
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
-			for (HypernodeID hnodes : _hg.pins(he)) {
-				if (_hg.partID(hnodes) == unassigned_part
-						&& !in_queue[hnodes]) {
-					q.push(hnodes);
-					in_queue[hnodes] = true;
+			if(!hyperedge_in_queue[he]) {
+				for (HypernodeID hnodes : _hg.pins(he)) {
+					if (_hg.partID(hnodes) == unassigned_part
+							&& !in_queue[hnodes]) {
+						q.push(hnodes);
+						in_queue[hnodes] = true;
+					}
 				}
+				hyperedge_in_queue[he] = true;
 			}
 		}
 	}
@@ -79,7 +82,8 @@ private:
 
 		//Initialize a vector for each partition, which indicates the hypernodes which are and were already in the queue.
 		//TODO(heuer): This can be done more efficiently. Why not use vector<bool> instead of unordered maps?
-		std::vector<std::unordered_map<HypernodeID, bool>> in_queue(_hg.k());
+		std::vector<std::vector<bool>> in_queue(_hg.k(), std::vector<bool>(_hg.numNodes(),false));
+		std::vector<std::vector<bool>> hyperedge_in_queue(_hg.k(), std::vector<bool>(_hg.numEdges(),false));
 
 		//Calculate Startnodes and push them into the queues.
 		std::vector<HypernodeID> startNodes;
@@ -122,7 +126,7 @@ private:
 						ASSERT(_hg.partID(hn) == unassigned_part,
 								"Hypernode " << hn << " isn't a node from an unassigned part.");
 
-						pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i],
+						pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i], hyperedge_in_queue[i],
 								unassigned_part);
 
 						ASSERT(

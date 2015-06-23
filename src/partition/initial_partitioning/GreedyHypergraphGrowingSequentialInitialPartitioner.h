@@ -83,6 +83,9 @@ private:
 			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
+		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
+				std::vector<bool>(_hg.numEdges()));
+
 		// TODO(heuer): This does not seem to be fair. In other variants you
 		// (1) have a less tight bound, (2) you unlock the upper bound later on...
 		// Why don't you also perform an unlock here?
@@ -108,18 +111,22 @@ private:
 							unassigned_part, i);
 					//Pushing incident hypernode into bucket queue or update gain value
 					for (HyperedgeID he : _hg.incidentEdges(hn)) {
-						for (HypernodeID hnode : _hg.pins(he)) {
-							if (_hg.partID(hnode) == unassigned_part) {
-								// TODO(heuer): why? if you find this node via bfs, it might as well
-								// be a candidate for this part. It it becomes assigned to part i,
-								// you just have to find a new start node for the other part.
-								auto startNode = std::find(startNodes.begin(),
-										startNodes.end(), hnode);
-								if (startNode == startNodes.end()) {
-									greedy_base.processNodeForBucketPQ(*bq[i],
-											hnode, i);
+						if (!hyperedge_already_process[i][he]) {
+							for (HypernodeID hnode : _hg.pins(he)) {
+								if (_hg.partID(hnode) == unassigned_part) {
+									// TODO(heuer): why? if you find this node via bfs, it might as well
+									// be a candidate for this part. It it becomes assigned to part i,
+									// you just have to find a new start node for the other part.
+									auto startNode = std::find(
+											startNodes.begin(),
+											startNodes.end(), hnode);
+									if (startNode == startNodes.end()) {
+										greedy_base.processNodeForBucketPQ(
+												*bq[i], hnode, i);
+									}
 								}
 							}
+							hyperedge_already_process[i][he] = true;
 						}
 					}
 

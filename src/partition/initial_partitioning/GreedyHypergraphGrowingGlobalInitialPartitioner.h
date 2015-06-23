@@ -97,6 +97,8 @@ private:
 			part_shuffle[i] = i;
 		}
 
+		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
+				std::vector<bool>(_hg.numEdges()));
 
 		// TODO(heuer): Why do you use assigned_nodes_weight instead of counting
 		// the number of assigned hypernodes?
@@ -117,7 +119,7 @@ private:
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
 										unassigned_part);
-						if(newStartNode == kInvalidNode) {
+						if (newStartNode == kInvalidNode) {
 							continue;
 						}
 						greedy_base.processNodeForBucketPQ(*bq[current_part],
@@ -172,11 +174,14 @@ private:
 							unassigned_part, best_part);
 					//Pushing incident hypernode into bucket queue or update gain value
 					for (HyperedgeID he : _hg.incidentEdges(best_node)) {
-						for (HypernodeID hnode : _hg.pins(he)) {
-							if (_hg.partID(hnode) == unassigned_part) {
-								greedy_base.processNodeForBucketPQ(
-										*bq[best_part], hnode, best_part);
+						if (!hyperedge_already_process[best_part][he]) {
+							for (HypernodeID hnode : _hg.pins(he)) {
+								if (_hg.partID(hnode) == unassigned_part) {
+									greedy_base.processNodeForBucketPQ(
+											*bq[best_part], hnode, best_part);
+								}
 							}
+							hyperedge_already_process[best_part][he] = true;
 						}
 					}
 
@@ -195,13 +200,12 @@ private:
 			}
 		}
 
-
 		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
 			delete bq[k];
 		}
 
-
-		InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::recalculateBalanceConstraints(
+				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
@@ -221,7 +225,8 @@ private:
 	GreedyHypergraphGrowingBaseFunctions<GainComputation> greedy_base;
 
 	static const Gain kInitialGain = std::numeric_limits<Gain>::min();
-	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
+	static const PartitionID kInvalidPartition =
+			std::numeric_limits<PartitionID>::max();
 	static const HypernodeID kInvalidNode =
 			std::numeric_limits<HypernodeID>::max();
 
