@@ -1,0 +1,1 @@
+/usr/bin/g++   -O3 -DNDEBUG -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG -g3 -DENABLE_PROFILE -fno-omit-frame-pointer    CMakeFiles/rater_test.dir/rater_test.cc.o ../../../CMakeFiles/RandomFunctions.dir/src/tools/RandomFunctions.cc.o  -o rater_test -rdynamic ../../../gmock-prefix/src/gmock-build/libgmock_main.a -lpthread 

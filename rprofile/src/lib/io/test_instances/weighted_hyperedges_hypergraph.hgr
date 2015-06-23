@@ -1,0 +1,6 @@
+% hypergraph with hyperedge and without hypernode weights
+4 7 1
+2 1 2
+3 1 7 5 6
+8 5 6 4
+7 2 3 4

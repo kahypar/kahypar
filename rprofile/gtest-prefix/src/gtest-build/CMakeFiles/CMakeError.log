@@ -1,0 +1,57 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec769556851/fast"
+make[3]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird betreten
+/usr/bin/make -f CMakeFiles/cmTryCompileExec769556851.dir/build.make CMakeFiles/cmTryCompileExec769556851.dir/build
+make[4]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird betreten
+/usr/bin/cmake -E cmake_progress_report /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec769556851.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTryCompileExec769556851.dir/CheckSymbolExists.c.o   -c /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec769556851
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec769556851.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTryCompileExec769556851.dir/CheckSymbolExists.c.o  -o cmTryCompileExec769556851 -rdynamic 
+CMakeFiles/cmTryCompileExec769556851.dir/CheckSymbolExists.c.o: In Funktion `main':
+CheckSymbolExists.c:(.text+0x16): Nicht definierter Verweis auf `pthread_create'
+collect2: error: ld returned 1 exit status
+make[4]: *** [cmTryCompileExec769556851] Fehler 1
+make[4]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird verlassen
+make[3]: *** [cmTryCompileExec769556851/fast] Fehler 2
+make[3]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird verlassen
+
+File /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec59695168/fast"
+make[3]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird betreten
+/usr/bin/make -f CMakeFiles/cmTryCompileExec59695168.dir/build.make CMakeFiles/cmTryCompileExec59695168.dir/build
+make[4]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird betreten
+/usr/bin/cmake -E cmake_progress_report /home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec59695168.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec59695168.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.8/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec59695168
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec59695168.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec59695168.dir/CheckFunctionExists.c.o  -o cmTryCompileExec59695168 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[4]: *** [cmTryCompileExec59695168] Fehler 1
+make[4]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird verlassen
+make[3]: *** [cmTryCompileExec59695168/fast] Fehler 2
+make[3]: Verzeichnis »/home/theuer/Dokumente/hypergraph/rprofile/gtest-prefix/src/gtest-build/CMakeFiles/CMakeTmp« wird verlassen
+
+

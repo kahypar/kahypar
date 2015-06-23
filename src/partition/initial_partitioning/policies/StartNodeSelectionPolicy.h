@@ -28,53 +28,49 @@ struct StartNodeSelectionPolicy {
 
 struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 
-	// TODO(heuer): this way, you might end up with the same start node multiple times
-	// Wouldn't it be better to ensure that each node is contained at most once in startNodes?
-	// Btw: naming convention: start_nodes ... not java-style startNodes...
-	static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
+	static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes,
 			const Hypergraph& hg, const PartitionID k) noexcept {
-		// TODO(heuer): BUG: all start nodes are not marked as in_queue!
-		if (startNodes.size() == k) {
-			return;
-		} else if (startNodes.size() == 0) {
-			startNodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
-			calculateStartNodes(startNodes, hg, k);
-			return;
-		}
 
+		start_nodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
 		std::vector<bool> visited(hg.numNodes(), false);
 		std::vector<bool> in_queue(hg.numNodes(), false);
-		std::queue<HypernodeID> bfs;
-		HypernodeID lastHypernode = -1;
-		// TODO(heuer): code-style: code would look more pretty with range-based for
-		// loops: for (const HypernodeID start_node : start_nodes) { ...}
-		for (unsigned int i = 0; i < startNodes.size(); i++) {
-			bfs.push(startNodes[i]);
-		}
 
-		while (!bfs.empty()) {
-			HypernodeID hn = bfs.front();
-			bfs.pop();
-			// TODO(heuer): codestyle!
-			if (visited[hn])
-				continue;
-			lastHypernode = hn;
-			visited[hn] = true;
-			// TODO(heuer): make he and hnodes const if you don't need to modify it.
-			for (HyperedgeID he : hg.incidentEdges(lastHypernode)) {
-				//TODO(heuer): a more natural name would be pin instead of hnodes.
-				for (HypernodeID hnodes : hg.pins(he)) {
-					// TODO(heuer): You miss all start nodes with the second check,
-					// because they are never marked as in_queue!
-					if (!visited[hnodes] && !in_queue[hnodes]) {
-						bfs.push(hnodes);
-						in_queue[hnodes] = true;
+		while(start_nodes.size() != k) {
+			std::queue<HypernodeID> bfs;
+			HypernodeID lastHypernode = -1;
+			int visited_nodes = 0;
+			for (const HypernodeID start_node : start_nodes) {
+				bfs.push(start_node);
+				in_queue[start_node] = true;
+			}
+
+			while (!bfs.empty()) {
+				HypernodeID hn = bfs.front();
+				bfs.pop();
+				lastHypernode = hn;
+				visited[hn] = true;
+				visited_nodes++;
+				for (const HyperedgeID he : hg.incidentEdges(lastHypernode)) {
+					for (const HypernodeID pin : hg.pins(he)) {
+						if (!in_queue[pin]) {
+							bfs.push(pin);
+							in_queue[pin] = true;
+						}
+					}
+				}
+				if(bfs.empty() && visited_nodes != hg.numNodes()) {
+					for(HypernodeID hn : hg.nodes()) {
+						if(!in_queue[hn]) {
+							bfs.push(hn);
+							in_queue[hn] = true;
+						}
 					}
 				}
 			}
+			start_nodes.push_back(lastHypernode);
+			visited.assign(hg.numNodes(),false);
+			in_queue.assign(hg.numNodes(),false);
 		}
-		startNodes.push_back(lastHypernode);
-		calculateStartNodes(startNodes, hg, k);
 	}
 };
 
