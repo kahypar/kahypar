@@ -9,7 +9,6 @@
 #include "lib/macros.h"
 
 namespace datastructure {
-
 template <class BinaryHeap>
 class PriorityQueue {
  private:
