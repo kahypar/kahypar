@@ -86,12 +86,14 @@ class Rater {
         return true;
       } (), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
+    const HypernodeWeight weight_u = _hg.nodeWeight(u);
+    const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (const HypernodeID v : _hg.pins(he)) {
         if (v != u &&
-            belowThresholdNodeWeight(v, u) &&
-            (_hg.partID(u) == _hg.partID(v))) {
+            belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
+            (part_u == _hg.partID(v))) {
           _tmp_ratings[v] += score;
           if (!_visited_hypernodes[v]) {
             _visited_hypernodes.setBit(v, true);
@@ -107,7 +109,7 @@ class Rater {
       const HypernodeID tmp_target = _used_entries.back();
       _used_entries.pop_back();
       const RatingType tmp = _tmp_ratings[tmp_target] /
-                             (_hg.nodeWeight(u) * _hg.nodeWeight(tmp_target));
+                             (weight_u * _hg.nodeWeight(tmp_target));
       _tmp_ratings[tmp_target] = 0.0;
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
       if (acceptRating(tmp, max_rating)) {
@@ -141,8 +143,9 @@ class Rater {
   }
 
  private:
-  bool belowThresholdNodeWeight(const HypernodeID u, const HypernodeID v) const noexcept {
-    return _hg.nodeWeight(v) + _hg.nodeWeight(u) <= _config.coarsening.max_allowed_node_weight;
+  bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
+                                const HypernodeWeight weight_v) const noexcept {
+    return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 
   bool acceptRating(const RatingType tmp, const RatingType max_rating) const noexcept {
