@@ -1,1 +1,0 @@
-/usr/bin/g++   -O3 -DNDEBUG -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG -g3 -DENABLE_PROFILE -fno-omit-frame-pointer    CMakeFiles/HypergraphStats.dir/HypergraphStats.cc.o  -o HypergraphStats -rdynamic 

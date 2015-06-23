@@ -1,1 +1,0 @@
-cmd='/usr/bin/cmake;-GUnix Makefiles;/home/theuer/Dokumente/hypergraph/external_tools/gmock'

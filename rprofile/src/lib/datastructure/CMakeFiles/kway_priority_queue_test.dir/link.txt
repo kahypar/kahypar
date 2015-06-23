@@ -1,1 +1,0 @@
-/usr/bin/g++   -O3 -DNDEBUG -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG -g3 -DENABLE_PROFILE -fno-omit-frame-pointer    CMakeFiles/kway_priority_queue_test.dir/kway_priority_queue_test.cc.o  -o kway_priority_queue_test -rdynamic ../../../gmock-prefix/src/gmock-build/libgmock_main.a -lpthread 
