@@ -11,6 +11,7 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
@@ -18,6 +19,7 @@
 
 using defs::Hypergraph;
 using defs::HypernodeID;
+using datastructure::FastResetBitVector;
 using utils::Stats;
 
 namespace partition {
@@ -46,7 +48,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
-    _just_updated(_hg.initialNumNodes()) { }
+    _just_updated(_hg.initialNumNodes(), false) { }
 
   ~HeuristicHeavyEdgeCoarsener() { }
 
@@ -114,7 +116,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() noexcept {
-    _just_updated.assign(_just_updated.size(), false);
+    _just_updated.resetAllBitsToFalse();
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
          _history.back().parallel_hes_size; ++i) {
@@ -122,7 +124,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
         if (!_just_updated[pin]) {
           const Rating rating = _rater.rate(pin);
           updatePQandMappings(pin, rating);
-          _just_updated[pin] = true;
+          _just_updated.setBit(pin, true);
         }
       }
     }
@@ -182,7 +184,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using Base::_hypergraph_pruner;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
-  std::vector<bool> _just_updated;
+  FastResetBitVector<> _just_updated;
 };
 }  // namespace partition
 

@@ -16,6 +16,7 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -29,6 +30,7 @@
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
+using datastructure::FastResetBitVector;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -69,7 +71,7 @@ class TwoWayFMRefiner : public IRefiner,
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq(2),
-    _marked(_hg.initialNumNodes()),
+    _marked(_hg.initialNumNodes(), false),
     _active(_hg.initialNumNodes(), false),
     _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
@@ -105,7 +107,7 @@ class TwoWayFMRefiner : public IRefiner,
       }
       // mark HN as just activated to prevent delta-gain updates in current
       // updateNeighbours call, because we just calculated the correct gain values.
-      _active[hn] = true;
+      _active.setBit(hn, true);
     }
   }
 
@@ -165,9 +167,9 @@ class TwoWayFMRefiner : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
-    _marked.assign(_marked.size(), false);
-    _active.assign(_active.size(), false);
-    _he_fully_active.assign(_he_fully_active.size(), false);
+    _marked.resetAllBitsToFalse();
+    _active.resetAllBitsToFalse();
+    _he_fully_active.resetAllBitsToFalse();
     _locked_hes.resetUsedEntries();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
@@ -226,8 +228,8 @@ class TwoWayFMRefiner : public IRefiner,
              , "max_gain move does not correspond to expected cut!");
 
       moveHypernode(max_gain_node, from_part, to_part);
-      _marked[max_gain_node] = true;
-      _active[max_gain_node] = false;
+      _marked.setBit(max_gain_node, true);
+      _active.setBit(max_gain_node, false);
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
@@ -454,7 +456,7 @@ class TwoWayFMRefiner : public IRefiner,
                 // This invalidation is not necessary since the cached gain will stay up-to-date
                 // _gain_cache[pin] = kNotCached;
                 _pq.remove(pin, (_hg.partID(pin) ^ 1));
-                _active[pin] = false;
+                _active.setBit(pin, false);
               }
             } else {
               if (pin_specific_factor != 0) {
@@ -474,7 +476,7 @@ class TwoWayFMRefiner : public IRefiner,
           _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
         }
       }
-      _he_fully_active[he] = (he_size == num_active_pins);
+      _he_fully_active.setBit(he, (he_size == num_active_pins));
     }
   }
 
@@ -546,9 +548,9 @@ class TwoWayFMRefiner : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   KWayRefinementPQ _pq;
-  std::vector<bool> _marked;
-  std::vector<bool> _active;
-  std::vector<bool> _he_fully_active;
+  FastResetBitVector<> _marked;
+  FastResetBitVector<> _active;
+  FastResetBitVector<> _he_fully_active;
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<Gain> _gain_cache;

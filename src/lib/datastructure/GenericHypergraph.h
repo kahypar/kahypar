@@ -19,6 +19,7 @@
 #include "gtest/gtest_prod.h"
 #include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
@@ -367,9 +368,9 @@ class GenericHypergraph {
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges),
     _num_incident_cut_hes(num_hypernodes, 0),
-    _processed_hyperedges(_num_hyperedges),
-    _active_hyperedges_u(_num_hyperedges),
-    _active_hyperedges_v(_num_hyperedges) {
+    _processed_hyperedges(_num_hyperedges, false),
+    _active_hyperedges_u(_num_hyperedges, false),
+    _active_hyperedges_v(_num_hyperedges, false) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).setFirstEntry(edge_vector_index);
@@ -630,14 +631,14 @@ class GenericHypergraph {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    _active_hyperedges_v.assign(_active_hyperedges_v.size(), false);
+    _active_hyperedges_v.resetAllBitsToFalse();
     for (const HyperedgeID he : incidentEdges(memento.v)) {
-      _active_hyperedges_v[he] = 1;
+      _active_hyperedges_v.setBit(he, 1);
     }
 
-    _active_hyperedges_u.assign(_active_hyperedges_u.size(), false);
+    _active_hyperedges_u.resetAllBitsToFalse();
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
-      _active_hyperedges_u[_incidence_array[i]] = 1;
+      _active_hyperedges_u.setBit(_incidence_array[i], 1);
     }
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
@@ -657,7 +658,7 @@ class GenericHypergraph {
 
           // Remember that this hyperedge is processed. The state of this hyperedge now resembles
           // the state before contraction. Thus we don't need to process them any further.
-          _processed_hyperedges[he] = 1;
+          _processed_hyperedges.setBit(he, 1);
         }
       }
 
@@ -693,7 +694,7 @@ class GenericHypergraph {
 
         ++_current_num_pins;
       }
-      _processed_hyperedges[he] = false;
+      _processed_hyperedges.setBit(he, false);
     }
 
     ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
@@ -1400,11 +1401,11 @@ class GenericHypergraph {
   std::vector<HyperedgeID> _num_incident_cut_hes;
 
   // Used during uncontraction to remember which hyperedges have already been processed
-  std::vector<bool> _processed_hyperedges;
+  FastResetBitVector<> _processed_hyperedges;
 
   // Used during uncontraction to decide how to perform the uncontraction operation
-  std::vector<bool> _active_hyperedges_u;
-  std::vector<bool> _active_hyperedges_v;
+  FastResetBitVector<> _active_hyperedges_u;
+  FastResetBitVector<> _active_hyperedges_v;
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,

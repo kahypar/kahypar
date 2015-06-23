@@ -12,6 +12,7 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
@@ -20,6 +21,7 @@
 using defs::Hypergraph;
 using defs::HypernodeID;
 using utils::Stats;
+using datastructure::FastResetBitVector;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -60,10 +62,10 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     NullMap null_map;
     rateAllHypernodes(_target, null_map);
 
-    std::vector<bool> rerated_hypernodes(_hg.initialNumNodes());
+    FastResetBitVector<> rerated_hypernodes(_hg.initialNumNodes(), false);
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
-    std::vector<bool> invalid_hypernodes(_hg.initialNumNodes());
+    FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes(), false);
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
       const HypernodeID rep_node = _pq.max();
@@ -91,7 +93,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       // We re-rate the representative HN here, because it might not have any incident HEs left.
       // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
       updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
-      rerated_hypernodes[rep_node] = 1;
+      rerated_hypernodes.setBit(rep_node, true);
 
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
@@ -107,23 +109,23 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
-                                std::vector<bool>& rerated_hypernodes,
-                                std::vector<bool>& invalid_hypernodes) noexcept {
+                                FastResetBitVector<>& rerated_hypernodes,
+                                FastResetBitVector<>& invalid_hypernodes) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           const Rating rating = _rater.rate(pin);
-          rerated_hypernodes[pin] = 1;
+          rerated_hypernodes.setBit(pin, true);
           updatePQandContractionTarget(pin, rating, invalid_hypernodes);
         }
       }
     }
-    rerated_hypernodes.assign(rerated_hypernodes.size(), false);
+    rerated_hypernodes.resetAllBitsToFalse();
   }
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    std::vector<bool>& invalid_hypernodes) noexcept {
+                                    FastResetBitVector<>& invalid_hypernodes) noexcept {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
@@ -136,7 +138,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       // all hypernodes will be inserted into the PQ at the beginning, because of the
       // restriction that only hypernodes within the same part can be contracted.
       _pq.remove(hn);
-      invalid_hypernodes[hn] = 1;
+      invalid_hypernodes.setBit(hn, true);
       _target[hn] = std::numeric_limits<HypernodeID>::max();
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn

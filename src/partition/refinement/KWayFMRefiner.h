@@ -17,6 +17,7 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -30,6 +31,7 @@
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
+using datastructure::FastResetBitVector;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -121,9 +123,9 @@ class KWayFMRefiner : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
-    _marked.assign(_marked.size(), false);
-    _active.assign(_active.size(), false);
-    _he_fully_active.assign(_he_fully_active.size(), false);
+    _marked.resetAllBitsToFalse();
+    _active.resetAllBitsToFalse();
+    _he_fully_active.resetAllBitsToFalse();
 
     _locked_hes.resetUsedEntries();
 
@@ -178,7 +180,7 @@ class KWayFMRefiner : public IRefiner,
              << " to " << to_part << " is stale!");
 
       moveHypernode(max_gain_node, from_part, to_part);
-      _marked[max_gain_node] = true;
+      _marked.setBit(max_gain_node, true);
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
@@ -278,7 +280,7 @@ class KWayFMRefiner : public IRefiner,
         _pq.remove(hn, part);
       }
     }
-    _active[hn] = false;
+    _active.setBit(hn, false);
   }
 
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
@@ -415,7 +417,7 @@ class KWayFMRefiner : public IRefiner,
         }
         num_active_pins += _active[pin];
       }
-      _he_fully_active[he] = num_active_pins == he_size;
+      _he_fully_active.setBit(he, (num_active_pins == he_size));
     }
   }
 
@@ -604,7 +606,7 @@ class KWayFMRefiner : public IRefiner,
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part, const HypernodeWeight max_allowed_part_weight)
   noexcept {
-    _just_activated.assign(_just_activated.size(), false);
+    _just_activated.resetAllBitsToFalse();
     _already_processed_part.resetUsedEntries();
 
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
@@ -814,10 +816,10 @@ class KWayFMRefiner : public IRefiner,
     if (_hg.isBorderNode(hn)) {
       insertHNintoPQ(hn, max_allowed_part_weight);
       // mark HN as active for this round.
-      _active[hn] = true;
+      _active.setBit(hn, true);
       // mark HN as just activated to prevent delta-gain updates in current
       // updateNeighbours call, because we just calculated the correct gain values.
-      _just_activated[hn] = true;
+      _just_activated.setBit(hn, true);
     }
   }
 
@@ -856,7 +858,7 @@ class KWayFMRefiner : public IRefiner,
     HyperedgeWeight internal_weight = 0;
 
     _tmp_target_parts.clear();
-    _seen.assign(_seen.size(), false);
+    _seen.resetAllBitsToFalse();
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -871,7 +873,7 @@ class KWayFMRefiner : public IRefiner,
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!_seen[part]) {
-              _seen[part] = true;
+              _seen.setBit(part, true);
               _tmp_target_parts.push_back(part);
             }
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
@@ -882,7 +884,7 @@ class KWayFMRefiner : public IRefiner,
         default:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (likely(!_seen[part])) {
-              _seen[part] = true;
+              _seen.setBit(part, true);
               _tmp_target_parts.push_back(part);
             }
           }
@@ -908,12 +910,12 @@ class KWayFMRefiner : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  std::vector<bool> _active;
-  std::vector<bool> _just_activated;
-  std::vector<bool> _marked;
-  std::vector<bool> _seen;
+  FastResetBitVector<> _active;
+  FastResetBitVector<> _just_activated;
+  FastResetBitVector<> _marked;
+  FastResetBitVector<> _seen;
 
-  std::vector<bool> _he_fully_active;
+  FastResetBitVector<> _he_fully_active;
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;

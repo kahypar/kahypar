@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 
@@ -18,6 +19,7 @@ using defs::HyperedgeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using utils::Stats;
+using datastructure::FastResetBitVector;
 
 namespace partition {
 static const bool dbg_coarsening_single_node_he_removal = false;
@@ -50,11 +52,11 @@ class HypergraphPruner {
   HypergraphPruner& operator= (const HypergraphPruner&) = delete;
   HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
-  HypergraphPruner(HypernodeID max_num_nodes) noexcept :
+  explicit HypergraphPruner(const HypernodeID max_num_nodes) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
-    _contained_hypernodes(max_num_nodes) { }
+    _contained_hypernodes(max_num_nodes, false) { }
 
   ~HypergraphPruner() { }
 
@@ -180,11 +182,11 @@ class HypergraphPruner {
   }
 
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) noexcept {
-    _contained_hypernodes.assign(_contained_hypernodes.size(), false);
+    _contained_hypernodes.resetAllBitsToFalse();
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
     for (const HypernodeID pin : hypergraph.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
-      _contained_hypernodes[pin] = 1;
+      _contained_hypernodes.setBit(pin, 1);
     }
   }
 
@@ -225,7 +227,7 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  std::vector<bool> _contained_hypernodes;
+  FastResetBitVector<> _contained_hypernodes;
 };
 }  // namespace partition
 

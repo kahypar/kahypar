@@ -17,6 +17,7 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -27,6 +28,7 @@
 #include "tools/RandomFunctions.h"
 
 using datastructure::KWayPriorityQueue;
+using datastructure::FastResetBitVector;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -75,9 +77,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _tmp_max_gain_target_parts(),
     _pq(_config.partition.k),
-    _marked(_hg.initialNumNodes()),
-    _active(_hg.initialNumNodes()),
-    _just_updated(_hg.initialNumNodes()),
+    _marked(_hg.initialNumNodes(), false),
+    _active(_hg.initialNumNodes(), false),
+    _just_updated(_hg.initialNumNodes(), false),
     _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
     _stopping_policy() {
@@ -127,8 +129,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
 
     _pq.clear();
-    _marked.assign(_marked.size(), false);
-    _active.assign(_active.size(), false);
+    _marked.resetAllBitsToFalse();
+    _active.resetAllBitsToFalse();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -188,7 +190,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
              , "max_gain move does not correspond to expected cut!");
 
       moveHypernode(max_gain_node, from_part, to_part);
-      _marked[max_gain_node] = true;
+      _marked.setBit(max_gain_node, true);
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
         _pq.disablePart(to_part);
@@ -279,7 +281,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   void updateNeighbours(const HypernodeID moved_hn,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
-    _just_updated.assign(_just_updated.size(), false);
+    _just_updated.resetAllBitsToFalse();
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_marked[pin] && !_just_updated[pin]) {
@@ -291,7 +293,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             } else {
               ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
               _pq.remove(pin, _target_parts[pin]);
-              _active[pin] = false;
+              _active.setBit(pin, false);
             }
           }
         }
@@ -408,7 +410,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
         _pq.enablePart(pair.second);
       }
     }
-    _just_updated[pin] = true;
+    _just_updated.setBit(pin, true);
   }
 
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
@@ -421,8 +423,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
           << " targetPart= " << pair.second);
       _pq.insert(hn, pair.second, pair.first);
       _target_parts[hn] = pair.second;
-      _just_updated[hn] = true;
-      _active[hn] = true;
+      _just_updated.setBit(hn, true);
+      _active.setBit(hn, true);
       if (_hg.partWeight(pair.second) < max_allowed_part_weight) {
         _pq.enablePart(pair.second);
       }
@@ -431,7 +433,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   GainPartitionPair computeMaxGainMove(const HypernodeID hn) noexcept {
     ASSERT(_hg.isBorderNode(hn), V(hn));
-    _seen_as_max_part.assign(_seen_as_max_part.size(), false);
+    _seen_as_max_part.resetAllBitsToFalse();
     _tmp_max_gain_target_parts.clear();
 
     // slightly faster than lazy reset in inner loop;
@@ -477,13 +479,13 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                 _tmp_gains[part].gain += he_weight;
                 if (_tmp_gains[part].gain > max_gain) {
                   max_gain = _tmp_gains[part].gain;
-                  _seen_as_max_part.assign(_seen_as_max_part.size(), false);
-                  _seen_as_max_part[part] = true;
+                  _seen_as_max_part.resetAllBitsToFalse();
+                  _seen_as_max_part.setBit(part, true);
                   _tmp_max_gain_target_parts.clear();
                   _tmp_max_gain_target_parts.push_back(part);
                 }
               } else if (_tmp_gains[part].gain == max_gain && !_seen_as_max_part[part]) {
-                _seen_as_max_part[part] = true;
+                _seen_as_max_part.setBit(part, true);
                 _tmp_max_gain_target_parts.push_back(part);
               }
             }
@@ -507,7 +509,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               _tmp_gains[part].connectivity_decrease += 1;
 
               if (!_seen_as_max_part[part] && _tmp_gains[part].gain == max_gain) {
-                _seen_as_max_part[part] = true;
+                _seen_as_max_part.setBit(part, true);
                 _tmp_max_gain_target_parts.push_back(part);
               }
             }
@@ -517,14 +519,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
     // Validate the connectivity decrease
     ASSERT([&]() {
-        std::vector<bool> connectivity_superset(_config.partition.k);
+        FastResetBitVector<> connectivity_superset(_config.partition.k, false);
         PartitionID old_connectivity = 0;
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-          connectivity_superset.assign(connectivity_superset.size(), false);
+          connectivity_superset.resetAllBitsToFalse();
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!connectivity_superset[part]) {
               old_connectivity += 1;
-              connectivity_superset[part] = true;
+              connectivity_superset.setBit(part, true);
             }
           }
         }
@@ -534,11 +536,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             _hg.changeNodePart(hn, source_part, target_part);
             PartitionID new_connectivity = 0;
             for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-              connectivity_superset.assign(connectivity_superset.size(), false);
+              connectivity_superset.resetAllBitsToFalse();
               for (const PartitionID part : _hg.connectivitySet(he)) {
                 if (!connectivity_superset[part]) {
                   new_connectivity += 1;
-                  connectivity_superset[part] = true;
+                  connectivity_superset.setBit(part, true);
                 }
               }
             }
@@ -602,10 +604,10 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<PartitionID> _target_parts;
   std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
-  std::vector<bool> _marked;
-  std::vector<bool> _active;
-  std::vector<bool> _just_updated;
-  std::vector<bool> _seen_as_max_part;
+  FastResetBitVector<> _marked;
+  FastResetBitVector<> _active;
+  FastResetBitVector<> _just_updated;
+  FastResetBitVector<> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
   StoppingPolicy _stopping_policy;
 };
