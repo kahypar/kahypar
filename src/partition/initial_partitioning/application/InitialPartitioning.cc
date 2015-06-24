@@ -73,7 +73,7 @@ using partition::PoolInitialPartitioner;
 using partition::BFSStartNodeSelectionPolicy;
 using partition::RandomStartNodeSelectionPolicy;
 using partition::FMGainComputationPolicy;
-using partition::FMLocalyGainComputationPolicy;
+using partition::FMModifyGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
 using partition::MaxNetGainComputationPolicy;
 using partition::CutHyperedgeRemovalNeighborPolicy;
@@ -144,7 +144,11 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::rb_greedy_global_maxnet;
 	} else if (mode.compare("recursive-greedy-round-maxnet") == 0) {
 		return InitialPartitionerAlgorithm::rb_greedy_round_maxnet;
-	} else if (mode.compare("lp") == 0) {
+	} else if (mode.compare("greedy-global-modify") == 0) {
+		return InitialPartitionerAlgorithm::greedy_global_modify;
+	}  else if (mode.compare("recursive-greedy-global-modify") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_global_modify;
+	}  else if (mode.compare("lp") == 0) {
 		return InitialPartitionerAlgorithm::lp;
 	} else if (mode.compare("bfs") == 0) {
 		return InitialPartitionerAlgorithm::bfs;
@@ -426,6 +430,16 @@ static Registrar<InitialPartitioningFactory> reg_greedy_global(
 		InitialPartitionerAlgorithm::greedy_global,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_global_modify(
+		InitialPartitionerAlgorithm::greedy_global_modify,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMModifyGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_global_modify(
+		InitialPartitionerAlgorithm::rb_greedy_global_modify,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMModifyGainComputationPolicy>>(hypergraph,config);
 		});
 static Registrar<InitialPartitioningFactory> reg_greedy_round(
 		InitialPartitionerAlgorithm::greedy_round,

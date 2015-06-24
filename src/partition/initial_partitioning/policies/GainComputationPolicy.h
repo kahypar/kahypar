@@ -133,36 +133,43 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 
 };
 
-struct FMLocalyGainComputationPolicy: public GainComputationPolicy {
-
-	static const int gain_factor = 5;
+struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
-		Gain gain = 0;
-		for (const HyperedgeID he : hg.incidentEdges(hn)) {
-			ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
-			if (hg.connectivity(he) == 1) {
-				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
-						target_part);
-				if (pins_in_target_part == 0) {
-					gain -= hg.edgeWeight(he);
-				}
-			} else {
-				const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
-						source_part);
-				const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
-						target_part);
-				if (pins_in_source_part == 1
-						&& pins_in_target_part == hg.edgeSize(he) - 1) {
-					gain += hg.edgeWeight(he);
-				}
-				gain += (gain_factor * hg.edgeWeight(he)) / pins_in_source_part;
+		double gain = 0.0;
+		for (HyperedgeID he : hg.incidentEdges(hn)) {
+			const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
+					source_part);
+			const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
+					target_part);
+			if (hg.edgeSize(he) != 1) {
+				double hyperedge_gain = (static_cast<double>(hg.edgeWeight(he))
+						/ (hg.edgeSize(he) - 1))
+						* (1 + static_cast<double>(pins_in_target_part) - static_cast<double>(pins_in_source_part));
+				gain += hyperedge_gain;
 			}
 		}
 		return gain;
 	}
+
+	static inline void deltaGainUpdate(Hypergraph& _hg,
+			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
+			PartitionID to) {
+
+		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+			for (HypernodeID pin : _hg.pins(he)) {
+				for (PartitionID i = 0; i < bq.size(); i++) {
+					if (bq[i]->contains(pin)) {
+						bq[i]->updateKey(pin, calculateGain(_hg, pin, i));
+					}
+				}
+			}
+		}
+
+	}
+
 };
 
 struct MaxPinGainComputationPolicy: public GainComputationPolicy {

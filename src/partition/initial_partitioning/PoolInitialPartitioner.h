@@ -8,8 +8,6 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
 
-
-
 #include <vector>
 
 #include "lib/definitions.h"
@@ -30,10 +28,13 @@ class PoolInitialPartitioner: public IInitialPartitioner,
 public:
 	PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
 			InitialPartitionerBase(hypergraph, config), _partitioner_pool() {
-		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy_global);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::rb_greedy_global);
 		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
 		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
 		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
 		_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
@@ -44,36 +45,55 @@ public:
 
 private:
 
-
 	void kwayPartitionImpl() final {
 
-		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+		HyperedgeWeight best_cut = max_cut;
+		double best_imbalance = _config.initial_partitioning.epsilon;
 		std::vector<PartitionID> best_partition(_hg.numNodes());
 		std::string best_algorithm = "";
 
-		for(InitialPartitionerAlgorithm algo : _partitioner_pool) {
-			std::cout << "Starting initial partitioner algorithm: " << partition::toString(algo) << std::endl;
+		for (InitialPartitionerAlgorithm algo : _partitioner_pool) {
+			std::cout << "Starting initial partitioner algorithm: "
+					<< partition::toString(algo) << std::endl;
 			std::unique_ptr<IInitialPartitioner> partitioner(
-					InitialPartitioningFactory::getInstance().createObject(
-							algo, _hg, _config));
+					InitialPartitioningFactory::getInstance().createObject(algo,
+							_hg, _config));
 			(*partitioner).partition(_config.initial_partitioning.k);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
-			std::cout << "HyperedgeCut: " << current_cut << std::endl;
-			if(current_cut < best_cut) {
-				for(HypernodeID hn : _hg.nodes()) {
-					best_partition[hn] = _hg.partID(hn);
+			double current_imbalance = metrics::imbalance(_hg,
+					_config.initial_partitioning.k);
+			std::cout << "[Cut: " << current_cut << " - Imbalance: "
+					<< current_imbalance << "]" << std::endl;
+			if (current_cut <= best_cut) {
+				bool apply_best_partition = true;
+				if (best_cut != max_cut) {
+					if (current_imbalance
+							> _config.initial_partitioning.epsilon) {
+						if (current_imbalance > best_imbalance) {
+							apply_best_partition = false;
+						}
+					}
 				}
-				best_cut = current_cut;
-				best_algorithm = partition::toString(algo);
+				if (apply_best_partition) {
+					for (HypernodeID hn : _hg.nodes()) {
+						best_partition[hn] = _hg.partID(hn);
+					}
+					best_cut = current_cut;
+					best_imbalance = current_imbalance;
+					best_algorithm = partition::toString(algo);
+				}
 			}
-			std::cout << "-----------------------------------------" << std::endl;
+			std::cout << "-----------------------------------------"
+					<< std::endl;
 		}
 
-		std::cout << "Pool partitioner results: [min: " << best_cut << ",  algo: " << best_algorithm << "]"<<  std::endl;
+		std::cout << "Pool partitioner results: [min: " << best_cut
+				<< ",  algo: " << best_algorithm << "]" << std::endl;
 		InitialPartitionerBase::resetPartitioning(-1);
-		for(HypernodeID hn : _hg.nodes()) {
-			_hg.setNodePart(hn,best_partition[hn]);
+		for (HypernodeID hn : _hg.nodes()) {
+			_hg.setNodePart(hn, best_partition[hn]);
 		}
+
 		_hg.initializeNumCutHyperedges();
 
 	}
@@ -89,10 +109,11 @@ private:
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 
+	const HyperedgeWeight max_cut = std::numeric_limits<HyperedgeWeight>::max();
+
 }
 ;
 
 }
-
 
 #endif /* SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_ */

@@ -341,15 +341,16 @@ private:
 			runs = 1;
 		}
 
-		std::cout << "Starting " << runs << " runs of initial partitioner..." << std::endl;
+		std::cout << "Starting " << runs << " runs of initial partitioner..."
+				<< std::endl;
 		for (int i = 0; i < runs; ++i) {
 			// TODO(heuer): In order to improve running time, you really should
 			// instantiate the partitioner only _once_ and have the partition
 			// method clear the interal state of the partitioner at the beginning.
 			// I think this will remove a lot of memory management overhead.
 			InitialPartitioner partitioner(hyper, config);
-			InitialPartitionerBase::adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(config,
-					[&]() {
+			InitialPartitionerBase::adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(
+					config, [&]() {
 						partitioner.partition(2);
 					});
 
@@ -361,11 +362,13 @@ private:
 					best_partition[hn] = hyper.partID(hn);
 				}
 			}
-			if(current_cut > max_cut) {
+			if (current_cut > max_cut) {
 				max_cut = current_cut;
 			}
 		}
-		std::cout << "Multiple runs results: [max: " << max_cut << ",  min:" << best_cut << ",  iteration:" << best_cut_iteration << "]"<< std::endl;
+		std::cout << "Multiple runs results: [max: " << max_cut << ",  min:"
+				<< best_cut << ",  iteration:" << best_cut_iteration << "]"
+				<< std::endl;
 
 		for (HypernodeID hn : hyper.nodes()) {
 			if (hyper.partID(hn) != best_partition[hn]) {

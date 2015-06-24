@@ -66,6 +66,8 @@ enum class InitialPartitionerAlgorithm
 	rb_greedy_maxnet,
 	rb_greedy_global_maxnet,
 	rb_greedy_round_maxnet,
+	rb_greedy_global_modify,
+	greedy_global_modify,
 	rb_bfs,
 	rb_random,
 	rb_lp,
@@ -98,6 +100,8 @@ static std::string toString(const InitialPartitioner& algo) {
 		return std::string("hMetis");
 	case InitialPartitioner::PaToH:
 		return std::string("PaToH");
+	case InitialPartitioner::KaHyPar:
+		return std::string("KaHyPar");
 	}
 	return std::string("UNDEFINED");
 }
@@ -178,10 +182,14 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
 		return std::string("recursive-greedy-round-maxnet");
 	case InitialPartitionerAlgorithm::rb_bfs:
 		return std::string("recursive-bfs");
-	case InitialPartitionerAlgorithm::rb_random:
-		return std::string("recursive-random");
 	case InitialPartitionerAlgorithm::rb_lp:
 		return std::string("recursive-lp");
+	case InitialPartitionerAlgorithm::rb_random:
+		return std::string("recursive-random");
+	case InitialPartitionerAlgorithm::greedy_global_modify:
+		return std::string("greedy-global-modify");
+	case InitialPartitionerAlgorithm::rb_greedy_global_modify:
+		return std::string("recursive-greedy-global-modify");
 	case InitialPartitionerAlgorithm::hMetis:
 		return std::string("hMetis");
 	case InitialPartitionerAlgorithm::PaToH:
