@@ -481,4 +481,24 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
 
   ASSERT_THAT(refiner->computeGain(0), Eq(1));
 }
+
+TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
+  hypergraph.reset(new Hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 3 },
+                                  HyperedgeVector { 0, 1, 2 }, 2));
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setNodePart(1, 0);
+  hypergraph->setNodePart(2, 0);
+
+  refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
+  refiner->initialize(100);
+
+  refiner->_active.setBit(0, true);
+  hypergraph->changeNodePart(0, 0, 1);
+  refiner->_marked.setBit(0, true);
+
+  refiner->fullUpdate(0,1,0,42);
+  ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
+}
+
+
 }                // namespace partition

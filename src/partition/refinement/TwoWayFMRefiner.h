@@ -139,6 +139,7 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
   FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
+  FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
