@@ -98,6 +98,7 @@ class KWayFMRefiner : public IRefiner,
  private:
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
+  FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
@@ -404,6 +405,7 @@ class KWayFMRefiner : public IRefiner,
         if (pin != moved_hn && !_marked[pin]) {
           if (!_active[pin]) {
             _hns_to_activate.push_back(pin);
+            ++num_active_pins;
           } else {
             if (!_hg.isBorderNode(pin)) {
               removeHypernodeMovementsFromPQ(pin);
