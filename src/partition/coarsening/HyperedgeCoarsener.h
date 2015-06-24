@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
@@ -21,7 +21,7 @@
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;

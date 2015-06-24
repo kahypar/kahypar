@@ -10,9 +10,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -20,7 +20,7 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;

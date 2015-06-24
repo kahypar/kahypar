@@ -1,8 +1,11 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
 #ifndef NO_DATA_BINARY_MAX_HEAP_H_
 #define NO_DATA_BINARY_MAX_HEAP_H_
 
-#include "exception.h"
-#include "QueueStorages.hpp"
+#include "external/binary_heap/exception.h"
+#include "external/binary_heap/QueueStorages.hpp"
 
 #include "lib/macros.h"
 
@@ -15,7 +18,9 @@
 #include <limits>
 #include <cstring>
 
-namespace external {
+using external::ArrayStorage;
+
+namespace datastructure {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -51,15 +56,6 @@ class NoDataBinaryMaxHeap{
   using meta_key_type = meta_key_slot;
   using data_type = void;
 
-  NoDataBinaryMaxHeap( const NoDataBinaryMaxHeap & other) noexcept :
-      handles(other.max_size - 1 /* no storage for sentinel */),
-      max_size(other.max_size) {
-    next_slot = 0;
-    heap.reserve(max_size);
-    heap[next_slot] = HeapElement( meta_key_slot::max() ); //insert the sentinel element
-    ++next_slot;
-  }
-
   NoDataBinaryMaxHeap( const id_slot & storage_initializer) noexcept
       : handles( storage_initializer ),
         max_size(storage_initializer + 1) {
@@ -69,8 +65,11 @@ class NoDataBinaryMaxHeap{
     ++next_slot;
   }
 
-  ~NoDataBinaryMaxHeap(){
-  }
+  NoDataBinaryMaxHeap(const NoDataBinaryMaxHeap&) = delete;
+  NoDataBinaryMaxHeap& operator= (const NoDataBinaryMaxHeap&) = delete;
+
+  NoDataBinaryMaxHeap(NoDataBinaryMaxHeap&&) = default;
+  NoDataBinaryMaxHeap& operator= (NoDataBinaryMaxHeap&&) = default;
 
   void swap(NoDataBinaryMaxHeap& other) noexcept {
     using std::swap;
@@ -325,6 +324,6 @@ void swap(NoDataBinaryMaxHeap<id_slot,key_slot,meta_key_slot,storage_slot>& a,
   a.swap(b);
 }
 
-} // namespace external
+} // namespace datastructure
 
 #endif /* NO_DATA_BINARY_MAX_HEAP_H_ */

@@ -9,15 +9,15 @@
 #include <limits>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/BucketQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
 using defs::PartitionID;
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using external::ArrayStorage;
 
 namespace datastructure {

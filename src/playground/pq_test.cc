@@ -8,16 +8,16 @@
 
 #include "lib/definitions.h"
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 
 using::testing::Test;
 using::testing::Eq;
 
-using external::NoDataBinaryMaxHeap;
 using defs::HypernodeID;
 using defs::HyperedgeWeight;
+using datastructure::NoDataBinaryMaxHeap;
 using datastructure::BucketQueue;
 using datastructure::PriorityQueue;
 
