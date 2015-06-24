@@ -71,9 +71,10 @@ private:
 
 		std::cout << "Pool partitioner results: [min: " << best_cut << ",  algo: " << best_algorithm << "]"<<  std::endl;
 		InitialPartitionerBase::resetPartitioning(-1);
-		for(HypernodeID i = 0; i < best_partition.size(); ++i) {
-			_hg.setNodePart(i,best_partition[i]);
+		for(HypernodeID hn : _hg.nodes()) {
+			_hg.setNodePart(hn,best_partition[hn]);
 		}
+		_hg.initializeNumCutHyperedges();
 
 	}
 

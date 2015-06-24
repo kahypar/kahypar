@@ -115,6 +115,7 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainComputation) {
 }
 
 TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdate) {
+	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<FMGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);
@@ -138,6 +139,7 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainComputation) {
 }
 
 TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainsAfterDeltaGainUpdate) {
+	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);
@@ -161,6 +163,7 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainComputation) {
 }
 
 TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainsAfterDeltaGainUpdate) {
+	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);

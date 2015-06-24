@@ -76,6 +76,7 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectGainValueAfterUpda
 			hypergraph.setNodePart(hn,0);
 		}
 	}
+	hypergraph.initializeNumCutHyperedges();
 	base->processNodeForBucketPQ(*pq[1],0,1,true);
 	ASSERT_EQ(pq[1]->max(),0);
 	ASSERT_EQ(pq[1]->maxKey(),2);
@@ -95,7 +96,7 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 			hypergraph.setNodePart(hn,0);
 		}
 	}
-
+	hypergraph.initializeNumCutHyperedges();
 	base->processNodeForBucketPQ(*pq[1],0,1,false);
 	base->processNodeForBucketPQ(*pq[0],2,0,false);
 	base->processNodeForBucketPQ(*pq[0],4,0,false);

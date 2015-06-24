@@ -204,6 +204,10 @@ private:
 			delete bq[k];
 		}
 
+		if(unassigned_part == -1) {
+			_hg.initializeNumCutHyperedges();
+		}
+
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();

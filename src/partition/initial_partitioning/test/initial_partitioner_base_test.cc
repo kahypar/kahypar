@@ -80,6 +80,7 @@ TEST_F(InitialPartitionerBaseTest, AssignHypernodesToPartition) {
 	ASSERT_EQ(hypergraph.partID(5), 1);
 	ASSERT_EQ(hypergraph.partID(6), 1);
 
+	hypergraph.initializeNumCutHyperedges();
 	//Changing hypernode partition id
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(3, 1));
 	ASSERT_FALSE(partitioner->assignHypernodeToPartition(3, 1));
@@ -94,6 +95,7 @@ TEST_F(InitialPartitionerBaseTest, CheckHyperedgeCutAfterRollbackToBestCut) {
 	hypergraph.setNodePart(4, 1);
 	hypergraph.setNodePart(5, 1);
 	hypergraph.setNodePart(6, 1);
+	hypergraph.initializeNumCutHyperedges();
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(0, 0));
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(1, 0));
 	ASSERT_TRUE(partitioner->assignHypernodeToPartition(2, 0));

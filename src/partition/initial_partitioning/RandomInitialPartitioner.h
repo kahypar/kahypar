@@ -50,12 +50,7 @@ private:
 							== (_config.initial_partitioning.k
 									* (_config.initial_partitioning.k + 1))
 									/ 2) {
-						if (unassigned_part == -1) {
-							_hg.setNodePart(hn, p);
-						}
-						else {
-							_hg.changeNodePart(hn,unassigned_part,p);
-						}
+						_hg.setNodePart(hn, p);
 						_config.initial_partitioning.rollback = false;
 						break;
 					}
@@ -64,6 +59,7 @@ private:
 						_config.initial_partitioning.k - 1);
 			} while (!assignHypernodeToPartition(hn, p));
 		}
+		_hg.initializeNumCutHyperedges();
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}

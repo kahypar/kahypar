@@ -155,6 +155,10 @@ private:
 			delete bq[k];
 		}
 
+		if(unassigned_part == -1) {
+			_hg.initializeNumCutHyperedges();
+		}
+
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();

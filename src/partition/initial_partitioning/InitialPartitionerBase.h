@@ -127,13 +127,11 @@ public:
 
 	void resetPartitioning(PartitionID unassigned_part) {
 		_hg.resetPartitioning();
-		// TODO(heuer): For efficiency: Do you want a reset-Method where you
-		// can choose what unassigned means, i.e. reset everything and move
-		// all nodes into a predefined part?
 		if(unassigned_part != -1) {
 			for(HypernodeID hn : _hg.nodes()) {
 				_hg.setNodePart(hn, unassigned_part);
 			}
+			_hg.initializeNumCutHyperedges();
 		}
 	}
 

@@ -138,6 +138,8 @@ public:
 			}
 		}
 
+		_hg.initializeNumCutHyperedges();
+
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 

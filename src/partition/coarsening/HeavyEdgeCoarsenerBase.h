@@ -118,9 +118,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop_back();
     }
-    ASSERT(current_imbalance <= _config.partition.epsilon,
+    /**ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
-           << " > " << _config.partition.epsilon);
+           << " > " << _config.partition.epsilon);*/
     LOG("cut after refinement: " << current_cut);
     LOG("imbalance after refinement: " << current_imbalance);
     return current_cut < initial_cut;

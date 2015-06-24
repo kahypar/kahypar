@@ -86,6 +86,10 @@ public:
 				_config.initial_partitioning.max_stable_net_removals, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "t",
 				_config.coarsening.contraction_limit_multiplier, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "s",
+				_config.coarsening.max_allowed_weight_multiplier, "", true);
+		InitialStatManager::getInstance().addStat("Configuration", "fruitless",
+				_config.fm_local_search.max_number_of_fruitless_moves, "", true);
 		InitialStatManager::getInstance().addStat("Configuration", "direct_nlevel_contraction_divider",
 				_config.initial_partitioning.direct_nlevel_contraction_divider, "", true);
 		InitialStatManager::getInstance().addStat("Configuration",

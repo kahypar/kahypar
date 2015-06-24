@@ -47,7 +47,6 @@ private:
 								config.coarsening.contraction_limit_multiplier = _hg.initialNumNodes()
 								/ (static_cast<double>(_config.initial_partitioning.k) * _config.initial_partitioning.direct_nlevel_contraction_divider);
 							}
-							config.fm_local_search.max_number_of_fruitless_moves = 20;
 							ConfigurationManager::setHypergraphDependingParameters(config,_hg);
 						});
 

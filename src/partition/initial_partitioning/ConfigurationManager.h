@@ -73,6 +73,7 @@ public:
 				RefinementAlgorithm::label_propagation;
 		config.fm_local_search.num_repetitions = -1;
 		config.fm_local_search.max_number_of_fruitless_moves = 150;
+		config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
 		config.fm_local_search.alpha = 8;
 		config.her_fm.num_repetitions = -1;
 		config.her_fm.max_number_of_fruitless_moves = 10;

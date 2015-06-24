@@ -293,12 +293,18 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			config.coarsening.contraction_limit_multiplier = vm["t"].as<
 					HypernodeID>();
 		}
+		if (vm.count("s")) {
+			config.coarsening.max_allowed_weight_multiplier =
+					vm["s"].as<double>();
+		}
+		if (vm.count("fruitless")) {
+			config.fm_local_search.max_number_of_fruitless_moves = vm["fruitless"].as<int>();
+		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
 		exit(0);
 	}
 }
-
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
 		RefinementAlgorithm::twoway_fm,
@@ -357,33 +363,33 @@ static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping
 		RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
-  CoarseningAlgorithm::heavy_lazy,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node)  -> ICoarsener* {
-  return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
+		CoarseningAlgorithm::heavy_lazy,
+		[](Hypergraph& hypergraph, const Configuration& config,
+				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+			return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
+		});
 
 static Registrar<CoarsenerFactory> reg_heavy_partial_coarsener(
-  CoarseningAlgorithm::heavy_partial,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsHeuristicCoarsener(hypergraph, config,
-                                          weight_of_heaviest_node);
-});
+		CoarseningAlgorithm::heavy_partial,
+		[](Hypergraph& hypergraph, const Configuration& config,
+				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+			return new RandomWinsHeuristicCoarsener(hypergraph, config,
+					weight_of_heaviest_node);
+		});
 
 static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
-  CoarseningAlgorithm::heavy_full,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
+		CoarseningAlgorithm::heavy_full,
+		[](Hypergraph& hypergraph, const Configuration& config,
+				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+			return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
+		});
 
 static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
-  CoarseningAlgorithm::hyperedge,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
-});
+		CoarseningAlgorithm::hyperedge,
+		[](Hypergraph& hypergraph, const Configuration& config,
+				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+			return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
+		});
 
 static Registrar<InitialPartitioningFactory> reg_random(
 		InitialPartitionerAlgorithm::random,
@@ -632,7 +638,11 @@ int main(int argc, char* argv[]) {
 			"rtype", po::value<std::string>(),
 			"Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")(
 			"t", po::value<HypernodeID>(),
-			"Coarsening: Coarsening stops when there are no more than t * k hypernodes left");
+			"Coarsening: Coarsening stops when there are no more than t * k hypernodes left")(
+			"s", po::value<double>(),
+			"Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")(
+			"fruitless", po::value<int>(),
+			"maximum number of fruitless moves");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -664,7 +674,7 @@ int main(int argc, char* argv[]) {
 			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
 			&hypernode_weights);
 
-	ConfigurationManager::setHypergraphDependingParameters(config,hypergraph);
+	ConfigurationManager::setHypergraphDependingParameters(config, hypergraph);
 
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {
