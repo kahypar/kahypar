@@ -63,11 +63,6 @@ class TwoWayFMRefiner : public IRefiner,
   static constexpr Gain kNotCached = std::numeric_limits<Gain>::max();
 
  public:
-  TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
-  TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
-  TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;
-  TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
-
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq(2),
@@ -84,7 +79,13 @@ class TwoWayFMRefiner : public IRefiner,
     _hns_to_activate.reserve(_hg.initialNumNodes());
   }
 
-  ~TwoWayFMRefiner() { }
+  virtual ~TwoWayFMRefiner() { }
+
+  TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
+  TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;
+
+  TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
+  TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
 
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     if (_hg.isBorderNode(hn)) {

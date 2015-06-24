@@ -36,11 +36,6 @@ class KWayPriorityQueue {
   static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
 
  public:
-  KWayPriorityQueue(const KWayPriorityQueue&) = delete;
-  KWayPriorityQueue(KWayPriorityQueue&&) = delete;
-  KWayPriorityQueue& operator= (const KWayPriorityQueue&) = delete;
-  KWayPriorityQueue& operator= (KWayPriorityQueue&&) = delete;
-
   explicit KWayPriorityQueue(const PartitionID k) noexcept :
     _queues(),
     _index(k, kInvalidIndex),
@@ -48,6 +43,12 @@ class KWayPriorityQueue {
     _num_entries(0),
     _num_nonempty_pqs(0),
     _num_enabled_pqs(0) { }
+
+  KWayPriorityQueue(const KWayPriorityQueue&) = delete;
+  KWayPriorityQueue& operator= (const KWayPriorityQueue&) = delete;
+
+  KWayPriorityQueue(KWayPriorityQueue&&) = default;
+  KWayPriorityQueue& operator= (KWayPriorityQueue&&) = delete;
 
   // Used to initialize binary heaps
   void initialize(const IDType heap_size) noexcept {

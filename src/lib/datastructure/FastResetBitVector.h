@@ -19,10 +19,6 @@ namespace datastructure {
 template <typename UnderlyingType = std::uint16_t>
 class FastResetBitVector {
  public:
-  FastResetBitVector(const FastResetBitVector&) = delete;
-  FastResetBitVector& operator= (const FastResetBitVector&) = delete;
-  FastResetBitVector& operator= (FastResetBitVector&&) = delete;
-
   FastResetBitVector(const size_t size, const bool initialiser) :
     _v(size, initialiser ? 1 : 0),
     _threshold(1) { }
@@ -31,10 +27,11 @@ class FastResetBitVector {
     _v(),
     _threshold(1) { }
 
-  FastResetBitVector(FastResetBitVector&& other) :
-    _v(std::move(other._v)),
-    _threshold(std::move(other._threshold)) { }
+  FastResetBitVector(const FastResetBitVector&) = delete;
+  FastResetBitVector& operator= (const FastResetBitVector&) = delete;
 
+  FastResetBitVector(FastResetBitVector&&) = default;
+  FastResetBitVector& operator= (FastResetBitVector&&) = default;
 
   void swap(FastResetBitVector& other) noexcept {
     using std::swap;

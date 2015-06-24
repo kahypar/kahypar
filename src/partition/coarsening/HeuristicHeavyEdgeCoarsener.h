@@ -38,11 +38,6 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
   using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
  public:
-  HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
-  HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
-
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                               const HypernodeWeight weight_of_heaviest_node) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
@@ -50,7 +45,13 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     _sources(hypergraph.initialNumNodes()),
     _just_updated(_hg.initialNumNodes(), false) { }
 
-  ~HeuristicHeavyEdgeCoarsener() { }
+  virtual ~HeuristicHeavyEdgeCoarsener() { }
+
+  HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
+
+  HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

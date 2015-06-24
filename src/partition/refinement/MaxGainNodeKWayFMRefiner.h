@@ -66,11 +66,6 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   };
 
  public:
-  MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
-  MaxGainNodeKWayFMRefiner(MaxGainNodeKWayFMRefiner&&) = delete;
-  MaxGainNodeKWayFMRefiner& operator= (const MaxGainNodeKWayFMRefiner&) = delete;
-  MaxGainNodeKWayFMRefiner& operator= (MaxGainNodeKWayFMRefiner&&) = delete;
-
   MaxGainNodeKWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, { kInvalidGain, 0 }),
@@ -86,6 +81,14 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _performed_moves.reserve(_hg.initialNumNodes());
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
+
+  virtual ~MaxGainNodeKWayFMRefiner() { }
+
+  MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
+  MaxGainNodeKWayFMRefiner& operator= (const MaxGainNodeKWayFMRefiner&) = delete;
+
+  MaxGainNodeKWayFMRefiner(MaxGainNodeKWayFMRefiner&&) = delete;
+  MaxGainNodeKWayFMRefiner& operator= (MaxGainNodeKWayFMRefiner&&) = delete;
 
  private:
   FRIEND_TEST(AMaxGainNodeKWayFMRefiner, IdentifiesBorderHypernodes);

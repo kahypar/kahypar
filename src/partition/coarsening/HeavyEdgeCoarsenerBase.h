@@ -64,18 +64,19 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using RatingType = typename Rater::RatingType;
 
  public:
-  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
-
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
 
-  virtual ~HeavyEdgeCoarsenerBase() { }
+  ~HeavyEdgeCoarsenerBase() { }
+
+  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
+
+  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

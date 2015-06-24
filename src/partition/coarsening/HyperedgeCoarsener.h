@@ -60,16 +60,19 @@ class HyperedgeCoarsener : public ICoarsener,
   using ContractionMemento = typename Hypergraph::ContractionMemento;
 
  public:
-  HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
-  HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
-  HyperedgeCoarsener& operator= (const HyperedgeCoarsener&) = delete;
-  HyperedgeCoarsener& operator= (HyperedgeCoarsener&&) = delete;
-
   HyperedgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                      const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumEdges()),
     _contraction_mementos() { }
+
+  virtual ~HyperedgeCoarsener() { }
+
+  HyperedgeCoarsener(const HyperedgeCoarsener&) = delete;
+  HyperedgeCoarsener& operator= (const HyperedgeCoarsener&) = delete;
+
+  HyperedgeCoarsener(HyperedgeCoarsener&&) = delete;
+  HyperedgeCoarsener& operator= (HyperedgeCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(AHyperedgeCoarsener, RemembersMementosOfNodeContractionsDuringOneCoarseningStep);

@@ -41,17 +41,18 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
   };
 
  public:
-  FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
-  FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
-  FullHeavyEdgeCoarsener& operator= (const FullHeavyEdgeCoarsener&) = delete;
-  FullHeavyEdgeCoarsener& operator= (FullHeavyEdgeCoarsener&&) = delete;
-
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
     _target(hypergraph.initialNumNodes()) { }
 
-  ~FullHeavyEdgeCoarsener() { }
+  virtual ~FullHeavyEdgeCoarsener() { }
+
+  FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
+  FullHeavyEdgeCoarsener& operator= (const FullHeavyEdgeCoarsener&) = delete;
+
+  FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
+  FullHeavyEdgeCoarsener& operator= (FullHeavyEdgeCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

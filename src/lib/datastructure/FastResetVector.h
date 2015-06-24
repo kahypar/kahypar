@@ -5,6 +5,7 @@
 #ifndef SRC_LIB_DATASTRUCTURE_FASTRESETVECTOR_H_
 #define SRC_LIB_DATASTRUCTURE_FASTRESETVECTOR_H_
 
+#include <limits>
 #include <vector>
 
 #include "lib/core/Mandatory.h"
@@ -26,9 +27,10 @@ class FastResetVector : public std::vector<T>{
   }
 
   FastResetVector(const FastResetVector&) = delete;
-  FastResetVector(FastResetVector&&) = delete;
   FastResetVector& operator= (const FastResetVector&) = delete;
-  FastResetVector& operator= (FastResetVector&&) = delete;
+
+  FastResetVector(FastResetVector&&) = default;
+  FastResetVector& operator= (FastResetVector&&) = default;
 
   // prevent usage of standard accessors
   reference operator[] (size_type n) = delete;
@@ -52,7 +54,7 @@ class FastResetVector : public std::vector<T>{
     }
   }
 
-  template< class Container>
+  template <class Container>
   void resetUsedEntries(Container& container) {
     while (!_used_entries.empty()) {
       if (container[_used_entries.back()] != std::numeric_limits<typename Container::value_type>::max()) {

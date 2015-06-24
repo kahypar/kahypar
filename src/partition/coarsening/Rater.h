@@ -36,15 +36,6 @@ class Rater {
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
-    HeavyEdgeRating(const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator= (const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
-
-    HeavyEdgeRating(HeavyEdgeRating&& other) noexcept :
-      target(std::move(other.target)),
-      value(std::move(other.value)),
-      valid(std::move(other.valid)) { }
-
     HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) noexcept :
       target(trgt),
       value(val),
@@ -54,18 +45,21 @@ class Rater {
       target(std::numeric_limits<HypernodeID>::max()),
       value(std::numeric_limits<RatingType>::min()),
       valid(false) { }
+
+    HeavyEdgeRating(const HeavyEdgeRating&) = delete;
+    HeavyEdgeRating& operator= (const HeavyEdgeRating&) = delete;
+
+    HeavyEdgeRating(HeavyEdgeRating&&) = default;
+    HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
+
     HypernodeID target;
     RatingType value;
     bool valid;
   };
 
  public:
-  Rater(const Rater&) = delete;
-  Rater(Rater&&) = delete;
-  Rater& operator= (const Rater&) = delete;
-  Rater& operator= (Rater&&) = delete;
-
   using Rating = HeavyEdgeRating;
+
   Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
@@ -74,6 +68,12 @@ class Rater {
     _visited_hypernodes(_hg.initialNumNodes(), false) {
     _used_entries.reserve(_hg.initialNumNodes());
   }
+
+  Rater(const Rater&) = delete;
+  Rater& operator= (const Rater&) = delete;
+
+  Rater(Rater&&) = delete;
+  Rater& operator= (Rater&&) = delete;
 
   HeavyEdgeRating rate(const HypernodeID u) noexcept {
     ASSERT(_used_entries.empty(), "Stack is not empty");

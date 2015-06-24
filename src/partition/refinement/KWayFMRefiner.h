@@ -68,11 +68,6 @@ class KWayFMRefiner : public IRefiner,
   static const PartitionID kFree = -1;
 
  public:
-  KWayFMRefiner(const KWayFMRefiner&) = delete;
-  KWayFMRefiner(KWayFMRefiner&&) = delete;
-  KWayFMRefiner& operator= (const KWayFMRefiner&) = delete;
-  KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
-
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _active(_hg.initialNumNodes(), false),
@@ -90,6 +85,14 @@ class KWayFMRefiner : public IRefiner,
     _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
   }
+
+  virtual ~KWayFMRefiner() { }
+
+  KWayFMRefiner(const KWayFMRefiner&) = delete;
+  KWayFMRefiner& operator= (const KWayFMRefiner&) = delete;
+
+  KWayFMRefiner(KWayFMRefiner&&) = delete;
+  KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
 
  private:
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);

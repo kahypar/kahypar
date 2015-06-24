@@ -20,11 +20,6 @@ static const bool dbg_refinement_kway_fm_move = false;
 
 class FMRefinerBase {
  public:
-  FMRefinerBase(const FMRefinerBase&) = delete;
-  FMRefinerBase(FMRefinerBase&&) = delete;
-  FMRefinerBase& operator= (const FMRefinerBase&) = delete;
-  FMRefinerBase& operator= (FMRefinerBase&&) = delete;
-
   using Gain = HyperedgeWeight;
 
  protected:
@@ -37,6 +32,12 @@ class FMRefinerBase {
     _config(config) { }
 
   ~FMRefinerBase() { }
+
+  FMRefinerBase(const FMRefinerBase&) = delete;
+  FMRefinerBase& operator= (const FMRefinerBase&) = delete;
+
+  FMRefinerBase(FMRefinerBase&&) = delete;
+  FMRefinerBase& operator= (FMRefinerBase&&) = delete;
 
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(pin)) {

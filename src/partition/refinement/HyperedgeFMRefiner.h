@@ -83,11 +83,6 @@ class HyperedgeFMRefiner : public IRefiner,
   };
 
  public:
-  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
-  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
-  HyperedgeFMRefiner& operator= (const HyperedgeFMRefiner&) = delete;
-  HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
-
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
@@ -108,6 +103,12 @@ class HyperedgeFMRefiner : public IRefiner,
     delete _pq[0];
     delete _pq[1];
   }
+
+  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner& operator= (const HyperedgeFMRefiner&) = delete;
+
+  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
+  HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
 
   void initializeImpl(HyperedgeWeight) noexcept final {
     _is_initialized = true;

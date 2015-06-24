@@ -42,6 +42,12 @@ class LPRefiner : public IRefiner {
     _bitset_he(hg.initialNumEdges(), false)
   { }
 
+  LPRefiner(const LPRefiner&) = delete;
+  LPRefiner& operator= (const LPRefiner&) = delete;
+
+  LPRefiner(LPRefiner&&) = delete;
+  LPRefiner& operator= (LPRefiner&&) = delete;
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const size_t num_refinement_nodes,
                   const HypernodeWeight __attribute__ ((unused)) max_allowed_part_weight,

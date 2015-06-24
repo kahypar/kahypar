@@ -27,14 +27,11 @@ class BucketQueue {
     _queue_index(),
     _buckets(std::make_unique<std::vector<id_slot>[]>(2 * _key_span + 1)) { }
 
-  explicit BucketQueue(const BucketQueue& other) noexcept :
-    _elements(other._elements),
-    _key_span(other._key_span),
-    _max_idx(other._max_idx),
-    _queue_index(),
-    _buckets(std::make_unique<std::vector<id_slot>[]>(2 * _key_span + 1)) { }
+  BucketQueue(const BucketQueue&) = delete;
+  BucketQueue& operator= (const BucketQueue&) = delete;
 
-  ~BucketQueue() { }
+  BucketQueue(BucketQueue&&) = default;
+  BucketQueue& operator= (BucketQueue&&) = default;
 
   id_slot size() const noexcept {
     return _elements;
