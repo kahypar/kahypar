@@ -879,12 +879,10 @@ class GenericHypergraph {
   }
 
   void resetPartitioning() noexcept {
-    _part_ids.clear();
-    _part_ids.resize(_num_hypernodes, kInvalidPartition);
-    _part_info.clear();
-    _part_info.resize(_k);
-    _pins_in_part.clear();
-    _pins_in_part.resize(_num_hyperedges * _k);
+    std::fill(_part_ids.begin(), _part_ids.end(), kInvalidPartition);
+    std::fill(_part_info.begin(), _part_info.end(), PartInfo());
+    std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
+    std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
     _connectivity_sets.clear();
     _connectivity_sets.resize(_num_hyperedges);
   }
