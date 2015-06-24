@@ -40,7 +40,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
   << "\t HE size:   [min:" << std::setw(10) << std::left
-  << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
+  << (he_sizes.empty() ? 0 : he_sizes[0])
   << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
   << "max:" << std::setw(10) << std::left
   << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
