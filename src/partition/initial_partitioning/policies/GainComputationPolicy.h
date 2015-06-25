@@ -13,7 +13,7 @@
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
 #include <algorithm>
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 
 using defs::HypernodeID;

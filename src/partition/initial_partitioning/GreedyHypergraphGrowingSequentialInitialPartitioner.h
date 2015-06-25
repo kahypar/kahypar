@@ -21,10 +21,10 @@
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "tools/RandomFunctions.h"
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using defs::HypernodeWeight;
 using partition::HypergraphPartitionBalancer;
 using partition::StartNodeSelectionPolicy;

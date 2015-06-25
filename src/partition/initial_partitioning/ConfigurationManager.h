@@ -68,7 +68,7 @@ public:
 		config.coarsening.max_allowed_weight_multiplier = 3.5;
 
 		//Refinement-Parameters
-		config.partition.global_search_iterations = 1;
+		config.partition.global_search_iterations = 0;
 		config.partition.refinement_algorithm =
 				RefinementAlgorithm::label_propagation;
 		config.fm_local_search.num_repetitions = -1;

@@ -18,7 +18,7 @@
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/test/greedy_hypergraph_growing_TestFixtures.h"
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 
@@ -26,7 +26,7 @@
 using ::testing::Eq;
 using ::testing::Test;
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;

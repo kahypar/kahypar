@@ -20,10 +20,10 @@
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingBaseFunctions.h"
 #include "tools/RandomFunctions.h"
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 using datastructure::PriorityQueue;
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 
 using defs::HypernodeWeight;
 

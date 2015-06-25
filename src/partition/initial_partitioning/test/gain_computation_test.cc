@@ -20,7 +20,7 @@
 
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 
 using ::testing::Eq;
