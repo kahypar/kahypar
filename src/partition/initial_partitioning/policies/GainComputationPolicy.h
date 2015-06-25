@@ -148,6 +148,8 @@ struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 				double hyperedge_gain = (static_cast<double>(hg.edgeWeight(he))
 						/ (hg.edgeSize(he) - 1))
 						* (1 + static_cast<double>(pins_in_target_part) - static_cast<double>(pins_in_source_part));
+				if(hg.connectivity(he) > 2)
+					hyperedge_gain /= hg.connectivity(he);
 				gain += hyperedge_gain;
 			}
 		}
