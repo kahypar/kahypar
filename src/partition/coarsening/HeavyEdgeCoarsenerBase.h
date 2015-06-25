@@ -10,9 +10,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -20,7 +20,7 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -64,18 +64,19 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using RatingType = typename Rater::RatingType;
 
  public:
-  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
-
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
 
-  virtual ~HeavyEdgeCoarsenerBase() { }
+  ~HeavyEdgeCoarsenerBase() { }
+
+  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
+
+  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
+  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
 
  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

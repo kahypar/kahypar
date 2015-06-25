@@ -4,14 +4,15 @@
 
 #include "gmock/gmock.h"
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 
-using external::NoDataBinaryMaxHeap;
 using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
+
+using datastructure::NoDataBinaryMaxHeap;
 
 namespace datastructure {
 class APriorityQueue : public Test {

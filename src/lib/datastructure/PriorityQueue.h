@@ -17,13 +17,14 @@ class PriorityQueue {
   using DataType = typename BinaryHeap::data_type;
 
  public:
-  PriorityQueue(const PriorityQueue&) = delete;
-  PriorityQueue(PriorityQueue&&) = delete;
-  PriorityQueue& operator= (const PriorityQueue&) = delete;
-  PriorityQueue& operator= (PriorityQueue&&) = delete;
-
   explicit PriorityQueue(IDType size) noexcept :
     _heap(size) { }
+
+  PriorityQueue(const PriorityQueue&) = delete;
+  PriorityQueue& operator= (const PriorityQueue&) = delete;
+
+  PriorityQueue(PriorityQueue&&) = default;
+  PriorityQueue& operator= (PriorityQueue&&) = delete;
 
   size_t size() const noexcept {
     return _heap.size();

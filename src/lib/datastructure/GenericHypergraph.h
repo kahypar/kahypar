@@ -344,10 +344,6 @@ class GenericHypergraph {
   };
 
  public:
-  GenericHypergraph(const GenericHypergraph&) = delete;
-  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
-  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
-
   GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
                     const HyperedgeIndexVector& index_vector,
                     const HyperedgeVector& edge_vector,
@@ -429,27 +425,11 @@ class GenericHypergraph {
     }
   }
 
-  GenericHypergraph(GenericHypergraph&& other) noexcept :
-    _num_hypernodes(std::move(other._num_hypernodes)),
-    _num_hyperedges(std::move(other._num_hyperedges)),
-    _num_pins(std::move(other._num_pins)),
-    _total_weight(std::move(other._total_weight)),
-    _k(std::move(other._k)),
-    _type(std::move(other._type)),
-    _current_num_hypernodes(std::move(other._current_num_hypernodes)),
-    _current_num_hyperedges(std::move(other._current_num_hyperedges)),
-    _current_num_pins(std::move(other._current_num_pins)),
-    _hypernodes(std::move(other._hypernodes)),
-    _hyperedges(std::move(other._hyperedges)),
-    _incidence_array(std::move(other._incidence_array)),
-    _part_ids(std::move(other._part_ids)),
-    _part_info(std::move(other._part_info)),
-    _pins_in_part(std::move(other._pins_in_part)),
-    _connectivity_sets(std::move(other._connectivity_sets)),
-    _num_incident_cut_hes(std::move(other._num_incident_cut_hes)),
-    _processed_hyperedges(std::move(other._processed_hyperedges)),
-    _active_hyperedges_u(std::move(other._active_hyperedges_u)),
-    _active_hyperedges_v(std::move(other._active_hyperedges_v)) { }
+  GenericHypergraph(const GenericHypergraph&) = delete;
+  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
+
+  GenericHypergraph(GenericHypergraph&&) = default;
+  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
 
   void printHyperedgeInfo() const {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -541,7 +521,7 @@ class GenericHypergraph {
   }
 
   std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
-    return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(),0 , _num_hypernodes),
+    return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(), 0, _num_hypernodes),
                                     HypernodeIterator((_hypernodes.data() + _num_hypernodes), _num_hypernodes,
                                                       _num_hypernodes)));
   }
@@ -899,12 +879,10 @@ class GenericHypergraph {
   }
 
   void resetPartitioning() noexcept {
-    _part_ids.clear();
-    _part_ids.resize(_num_hypernodes, kInvalidPartition);
-    _part_info.clear();
-    _part_info.resize(_k);
-    _pins_in_part.clear();
-    _pins_in_part.resize(_num_hyperedges * _k);
+    std::fill(_part_ids.begin(), _part_ids.end(), kInvalidPartition);
+    std::fill(_part_info.begin(), _part_info.end(), PartInfo());
+    std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
+    std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
     _connectivity_sets.clear();
     _connectivity_sets.resize(_num_hyperedges);
   }

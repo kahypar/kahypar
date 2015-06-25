@@ -47,18 +47,17 @@ class HypergraphPruner {
   };
 
  public:
-  HypergraphPruner(const HypergraphPruner&) = delete;
-  HypergraphPruner(HypergraphPruner&&) = delete;
-  HypergraphPruner& operator= (const HypergraphPruner&) = delete;
-  HypergraphPruner& operator= (HypergraphPruner&&) = delete;
-
   explicit HypergraphPruner(const HypernodeID max_num_nodes) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
     _contained_hypernodes(max_num_nodes, false) { }
 
-  ~HypergraphPruner() { }
+  HypergraphPruner(const HypergraphPruner&) = delete;
+  HypergraphPruner& operator= (const HypergraphPruner&) = delete;
+
+  HypergraphPruner(HypergraphPruner&&) = delete;
+  HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
   void restoreSingleNodeHyperedges(Hypergraph& hypergraph,
                                    const int begin, const int size) noexcept {

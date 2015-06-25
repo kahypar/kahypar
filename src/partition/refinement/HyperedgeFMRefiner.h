@@ -10,19 +10,19 @@
 #include <string>
 #include <vector>
 
-#include "external/binary_heap/NoDataBinaryMaxHeap.h"
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
 #include "tools/RandomFunctions.h"
 
-using external::NoDataBinaryMaxHeap;
+using datastructure::NoDataBinaryMaxHeap;
 using datastructure::PriorityQueue;
 using datastructure::FastResetBitVector;
 using defs::Hypergraph;
@@ -83,11 +83,6 @@ class HyperedgeFMRefiner : public IRefiner,
   };
 
  public:
-  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
-  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
-  HyperedgeFMRefiner& operator= (const HyperedgeFMRefiner&) = delete;
-  HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
-
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
@@ -108,6 +103,12 @@ class HyperedgeFMRefiner : public IRefiner,
     delete _pq[0];
     delete _pq[1];
   }
+
+  HyperedgeFMRefiner(const HyperedgeFMRefiner&) = delete;
+  HyperedgeFMRefiner& operator= (const HyperedgeFMRefiner&) = delete;
+
+  HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
+  HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
 
   void initializeImpl(HyperedgeWeight) noexcept final {
     _is_initialized = true;

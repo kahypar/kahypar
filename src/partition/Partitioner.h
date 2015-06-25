@@ -96,14 +96,15 @@ class Partitioner {
   };
 
  public:
-  Partitioner(const Partitioner&) = delete;
-  Partitioner(Partitioner&&) = delete;
-  Partitioner& operator= (const Partitioner&) = delete;
-  Partitioner& operator= (Partitioner&&) = delete;
-
   explicit Partitioner() :
     _timings(),
     _internals() { }
+
+  Partitioner(const Partitioner&) = delete;
+  Partitioner& operator= (const Partitioner&) = delete;
+
+  Partitioner(Partitioner&&) = delete;
+  Partitioner& operator= (Partitioner&&) = delete;
 
   inline void partition(Hypergraph& hypergraph, const Configuration& config);
 
@@ -361,7 +362,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                               current_config.partition.refinement_algorithm,
                                               current_hypergraph, current_config));
 
-          //TODO(schlag): find better solution
+          // TODO(schlag): find better solution
           if (_internals.empty()) {
             _internals.append(coarsener->policyString() + " " + refiner->policyString());
           }
@@ -408,7 +409,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
                                       config.partition.refinement_algorithm,
                                       hypergraph, config));
 
-  //TODO(schlag): find better solution
+  // TODO(schlag): find better solution
   _internals.append(coarsener->policyString() + " " + refiner->policyString());
 
   partition(hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
@@ -461,7 +462,7 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& remov
     }
   }
   Stats::instance().add("numInitiallyRemovedLargeHEs", config.partition.current_v_cycle,
-             removed_hyperedges.size());
+                        removed_hyperedges.size());
   LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
       << config.partition.hyperedge_size_threshold << " pins");
 }

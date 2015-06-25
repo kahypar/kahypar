@@ -42,11 +42,6 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
   };
 
  public:
-  LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
-  LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
-
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                                const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
@@ -54,7 +49,13 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     _target(_hg.initialNumNodes())
   { }
 
-  ~LazyUpdateHeavyEdgeCoarsener() { }
+  virtual ~LazyUpdateHeavyEdgeCoarsener() { }
+
+  LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+
+  LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);

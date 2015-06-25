@@ -47,11 +47,6 @@ class CoarsenerBase {
   };
 
  public:
-  CoarsenerBase(const CoarsenerBase&) = delete;
-  CoarsenerBase(CoarsenerBase&&) = delete;
-  CoarsenerBase& operator= (const CoarsenerBase&) = delete;
-  CoarsenerBase& operator= (CoarsenerBase&&) = delete;
-
   CoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                 const HypernodeWeight weight_of_heaviest_node) noexcept :
     _hg(hypergraph),
@@ -66,6 +61,11 @@ class CoarsenerBase {
 
   virtual ~CoarsenerBase() { }
 
+  CoarsenerBase(const CoarsenerBase&) = delete;
+  CoarsenerBase& operator= (const CoarsenerBase&) = delete;
+
+  CoarsenerBase(CoarsenerBase&&) = delete;
+  CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
  protected:
   void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
@@ -74,7 +74,7 @@ class CoarsenerBase {
                                                     _history.back().one_pin_hes_begin,
                                                     _history.back().one_pin_hes_size);
     Stats::instance().add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
-               removed_he_weight);
+                          removed_he_weight);
   }
 
   void removeParallelHyperedges(const HypernodeID rep_node) noexcept {

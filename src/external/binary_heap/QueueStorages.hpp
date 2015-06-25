@@ -3,6 +3,9 @@
  *
  *  Created on: 17.02.2012
  *      Author: kobitzsch
+ *
+ *  Modified on 24.06.2015
+ *      Author: schlag
  */
 
 #ifndef QUEUESTORAGES_HPP_
@@ -15,6 +18,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <memory>
 #include <unordered_map>
 
 namespace external {
@@ -25,26 +29,25 @@ namespace external {
 template< typename id_slot >
 class ArrayStorage{
  public:
-  ArrayStorage( id_slot size_, bool store_data = false )
-      : size( size_ ),
-        positions( new size_t[size_] )
-  {
-    (void) store_data;
-    memset( positions, 0, sizeof(size_t) * size );
-  }
+  explicit ArrayStorage( id_slot size_) :
+      size( size_ ),
+      positions( new size_t[size_] ) {}
 
-  ~ArrayStorage(){
-    if( positions )
-      delete[] positions, positions = NULL;
-  }
+  ArrayStorage(const ArrayStorage&) = delete;
+  ArrayStorage& operator= (const ArrayStorage&) = delete;
+
+  ArrayStorage(ArrayStorage&&) = default;
+  ArrayStorage& operator= (ArrayStorage&&) = default;
 
   inline const size_t & operator[]( id_slot node ) const {
-    GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
+    GUARANTEE( static_cast<size_t>(node) < size,
+               std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
         return positions[node];
   }
 
   inline size_t & operator[]( id_slot node ){
-    GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
+    GUARANTEE(  static_cast<size_t>(node) < size,
+                std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
         return positions[node];
   }
 
@@ -58,7 +61,7 @@ class ArrayStorage{
 
  protected:
   size_t size;
-  size_t* positions;
+  std::unique_ptr<size_t[]> positions;
 };
 
 template < typename id_slot >
@@ -69,25 +72,26 @@ void swap(ArrayStorage<id_slot>& a, ArrayStorage<id_slot>& b) {
 template< typename id_slot, typename data_slot >
 class DataArrayStorage{
  public:
-  DataArrayStorage( id_slot size_ )
-      : size( size_ ),
-        data( new data_slot[size_] )
-  {
-    memset( data, 0, sizeof(data_slot) * size );
-  }
 
-  ~DataArrayStorage(){
-    if( data )
-      delete[] data, data = NULL;
-  }
+  explicit DataArrayStorage( id_slot size_ ) :
+      size( size_ ),
+      data( new data_slot[size_] ){}
+
+  DataArrayStorage(const DataArrayStorage&) = delete;
+  DataArrayStorage& operator= (const DataArrayStorage&) = delete;
+
+  DataArrayStorage(DataArrayStorage&&) = default;
+  DataArrayStorage& operator= (DataArrayStorage&&) = default;
 
   const data_slot & operator[]( id_slot node ) const {
-    GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
+    GUARANTEE( static_cast<size_t>(node) < size,
+               std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
         return data[node];
   }
 
   data_slot & operator[]( id_slot node ){
-    GUARANTEE( (size_t) node < size, std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
+    GUARANTEE( static_cast<size_t>(node) < size,
+               std::runtime_error, "[error] ArrayStorage::accessing non-existing element." )
         return data[node];
   }
 
@@ -100,7 +104,7 @@ class DataArrayStorage{
   }
  protected:
   size_t size;
-  data_slot* data;
+  std::unique_ptr<data_slot[]> data;
 };
 
 template< typename id_slot, typename data_slot >
@@ -111,7 +115,13 @@ void swap(DataArrayStorage<id_slot, data_slot>& a, DataArrayStorage<id_slot, dat
 template< typename id_slot >
 class MapStorage{
  public:
-  MapStorage( id_slot size = 0 ){ /* do nothing */ }
+  explicit MapStorage( id_slot size = 0 ){ /* do nothing */ }
+
+  MapStorage(const MapStorage&) = delete;
+  MapStorage& operator= (const MapStorage&) = delete;
+
+  MapStorage(MapStorage&&) = default;
+  MapStorage& operator= (MapStorage&&) = default;
 
   const size_t & operator[]( id_slot node ) const {
     return node_positions[node];
@@ -142,7 +152,13 @@ void swap(MapStorage<id_slot>& a, MapStorage<id_slot>& b) {
 template< typename id_slot >
 class UnorderedMapStorage{
  public:
-  UnorderedMapStorage( id_slot size = 0 ){ /* do nothing */ }
+  explicit UnorderedMapStorage( id_slot size = 0 ){ /* do nothing */ }
+
+  UnorderedMapStorage(const UnorderedMapStorage&) = delete;
+  UnorderedMapStorage& operator= (const UnorderedMapStorage&) = delete;
+
+  UnorderedMapStorage(UnorderedMapStorage&&) = default;
+  UnorderedMapStorage& operator= (UnorderedMapStorage&&) = default;
 
   const size_t & operator[]( id_slot node ) const {
     return node_positions[node];
@@ -179,6 +195,12 @@ class DenseHashStorage{
     node_positions.set_empty_key( std::numeric_limits< id_slot >::max() );
     node_positions.set_deleted_key(std::numeric_limits< id_slot >::max() -1);
   }
+
+  DenseHashStorage(const DenseHashStorage&) = delete;
+  DenseHashStorage& operator= (const DenseHashStorage&) = delete;
+
+  DenseHashStorage(DenseHashStorage&&) = default;
+  DenseHashStorage& operator= (DenseHashStorage&&) = default;
 
   const size_t & operator[]( id_slot node ) const {
     return node_positions.find(node)->second;
