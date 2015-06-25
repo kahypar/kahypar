@@ -61,9 +61,9 @@ endif(KAHYPAR_VERSION_GIT_REFSPEC)
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
 add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-a")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined -fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -std=c++14 -Weffc++ -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14 -fsanitize=undefined -fsanitize=address") 
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -std=c++14") 
 
 if(ENABLE_PROFILE MATCHES ON)
   message(STATUS "Profiling activated")
