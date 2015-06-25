@@ -74,6 +74,7 @@ class KWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes(), false),
     _seen(_config.partition.k, false),
     _he_fully_active(_hg.initialNumEdges(), false),
+    _pq_contains(_hg.initialNumNodes() * _config.partition.k, false),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(),
     _performed_moves(),
@@ -130,6 +131,7 @@ class KWayFMRefiner : public IRefiner,
     _marked.resetAllBitsToFalse();
     _active.resetAllBitsToFalse();
     _he_fully_active.resetAllBitsToFalse();
+    _pq_contains.resetAllBitsToFalse();
 
     _locked_hes.resetUsedEntries();
 
@@ -158,6 +160,7 @@ class KWayFMRefiner : public IRefiner,
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
+      _pq_contains.setBit(max_gain_node * _config.partition.k + to_part, false);
       PartitionID from_part = _hg.partID(max_gain_node);
 
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
@@ -209,8 +212,9 @@ class KWayFMRefiner : public IRefiner,
 
       // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
-        if (_pq.contains(max_gain_node, part)) {
+        if (_pq_contains[max_gain_node * _config.partition.k + part]) {
           _pq.remove(max_gain_node, part);
+          _pq_contains.setBit(max_gain_node * _config.partition.k + part, false);
         }
       }
 
@@ -280,8 +284,9 @@ class KWayFMRefiner : public IRefiner,
 
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) noexcept {
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
-      if (_pq.contains(hn, part)) {
-        _pq.remove(hn, part);
+      if (_pq_contains[hn * _config.partition.k + part]) {
+          _pq.remove(hn, part);
+          _pq_contains.setBit(hn * _config.partition.k + part, false);
       }
     }
     _active.setBit(hn, false);
@@ -351,9 +356,10 @@ class KWayFMRefiner : public IRefiner,
                           const bool move_increased_connectivity,
                           const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
-    if (move_decreased_connectivity && _pq.contains(pin, from_part) &&
+    if (move_decreased_connectivity && _pq_contains[pin * _config.partition.k + from_part] &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
       _pq.remove(pin, from_part);
+      _pq_contains.setBit(pin * _config.partition.k + from_part, false);
       // Now pq might actually not contain any moves for HN pin.
       // We do not need to set _active to false however, because in this case
       // the move not only decreased but also increased the connectivity and we
@@ -362,11 +368,12 @@ class KWayFMRefiner : public IRefiner,
       // internal and the "other" pin of the border HE (which has size 2) is
       // moved from one part to another.
     }
-    if (move_increased_connectivity && !_pq.contains(pin, to_part)) {
+    if (move_increased_connectivity && !_pq_contains[pin * _config.partition.k + to_part]) {
       ASSERT(_hg.connectivity(he) >= 2, V(_hg.connectivity(he)));
       ASSERT(_already_processed_part.get(pin) == Hypergraph::kInvalidPartition,
              V(_already_processed_part.get(pin)));
       _pq.insert(pin, to_part, gainInducedByHypergraph(pin, to_part));
+         _pq_contains.setBit(pin * _config.partition.k + to_part, true);
       _already_processed_part.set(pin, to_part);
       if (_hg.partWeight(to_part) < max_allowed_part_weight) {
         _pq.enablePart(to_part);
@@ -794,7 +801,7 @@ class KWayFMRefiner : public IRefiner,
                  const Gain delta, const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     ONLYDEBUG(max_allowed_part_weight);
-    if (delta != 0 && _pq.contains(pin, part) && _already_processed_part.get(pin) != part) {
+    if (delta != 0 && _pq_contains[pin * _config.partition.k + part] && _already_processed_part.get(pin) != part) {
       ASSERT(!_marked[pin], " Trying to update marked HN " << pin << " part=" << part);
       ASSERT(_active[pin], "Trying to update inactive HN " << pin << " part=" << part);
       ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
@@ -915,6 +922,7 @@ class KWayFMRefiner : public IRefiner,
           << (_tmp_gains[target_part] - internal_weight) << " sourcePart=" << _hg.partID(hn)
           << " targetPart= " << target_part);
       _pq.insert(hn, target_part, _tmp_gains[target_part] - internal_weight);
+      _pq_contains.setBit(hn * _config.partition.k + target_part, true);
       _tmp_gains[target_part] = 0;
       if (_hg.partWeight(target_part) < max_allowed_part_weight) {
         _pq.enablePart(target_part);
@@ -929,6 +937,7 @@ class KWayFMRefiner : public IRefiner,
   FastResetBitVector<> _seen;
 
   FastResetBitVector<> _he_fully_active;
+  FastResetBitVector<> _pq_contains;
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;
