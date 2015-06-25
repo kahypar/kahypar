@@ -35,6 +35,7 @@ class ATwoWayFMRefiner : public Test {
     hypergraph->setNodePart(4, 0);
     hypergraph->setNodePart(5, 1);
     hypergraph->setNodePart(6, 1);
+    hypergraph->initializeNumCutHyperedges();
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, config);
   }
@@ -154,6 +155,7 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   Hypergraph hypergraph(2, 1, HyperedgeIndexVector { 0, 2 }, HyperedgeVector { 0, 1 });
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 0);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -183,6 +185,7 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
   hypergraph.setNodePart(2, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -207,6 +210,7 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 0);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -247,6 +251,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 1);
   hypergraph.setNodePart(4, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -287,6 +292,7 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 1);
   hypergraph.setNodePart(3, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -315,6 +321,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -342,6 +349,7 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -366,6 +374,7 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
   hypergraph.setNodePart(2, 0);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -391,6 +400,7 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 0);
+  hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
@@ -425,6 +435,8 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 1);
   hypergraph.setNodePart(4, 0);
+  hypergraph.initializeNumCutHyperedges();
+
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   refiner.initialize();
 
@@ -448,6 +460,7 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 0);
   hypergraph.setNodePart(3, 1);
+  hypergraph.initializeNumCutHyperedges();
 
   Configuration config;
   config.partition.epsilon = 0.02;
@@ -475,6 +488,7 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
 
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
   refiner->initialize();
@@ -488,6 +502,7 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 0);
+  hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
   refiner->initialize(100);

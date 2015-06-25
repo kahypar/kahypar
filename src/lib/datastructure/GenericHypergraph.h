@@ -1012,8 +1012,7 @@ class GenericHypergraph {
   // Needs to be called after initial partitioning in order to provide
   // correct borderNode checks.
   void initializeNumCutHyperedges() {
-    ASSERT(std::all_of(_num_incident_cut_hes.cbegin(), _num_incident_cut_hes.cend(),
-                       [](HyperedgeID i) { return i == 0; }), "Already initialized");
+    std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
     for (const HyperedgeID he : edges()) {
       if (connectivity(he) > 1) {
         for (const HypernodeID pin : pins(he)) {

@@ -38,6 +38,7 @@ class AKwayFMRefiner : public Test {
 
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 1);
+    hypergraph->initializeNumCutHyperedges();
 
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
     refiner->initialize(100);
@@ -64,6 +65,7 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 0);
+  hypergraph->initializeNumCutHyperedges();
 
   refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
   refiner->initialize(100);

@@ -49,6 +49,7 @@ class AHyperedgeMovementOperation : public AHyperedgeFMRefiner {
     hypergraph->setNodePart(2, 0);
     hypergraph->setNodePart(3, 0);
     hypergraph->setNodePart(4, 1);
+    hypergraph->initializeNumCutHyperedges();
   }
 };
 
@@ -69,6 +70,7 @@ class TheUpdateGainsMethod : public AHyperedgeFMRefiner {
     hypergraph->setNodePart(6, 1);
     hypergraph->setNodePart(7, 1);
     hypergraph->setNodePart(8, 1);
+    hypergraph->initializeNumCutHyperedges();
   }
 };
 
@@ -90,6 +92,7 @@ class RollBackInformation : public AHyperedgeFMRefiner {
     hypergraph->setNodePart(6, 1);
     hypergraph->setNodePart(7, 0);
     hypergraph->setNodePart(8, 1);
+    hypergraph->initializeNumCutHyperedges();
     config.partition.epsilon = 1;
     hyperedge_fm_refiner.reset(new HyperedgeFMRefinerSimpleStopping(*hypergraph, config));
     hyperedge_fm_refiner->initialize();
@@ -107,6 +110,7 @@ TEST_F(AHyperedgeFMRefiner, DetectsNestedHyperedgesViaBitvectorProbing) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 0);
+  hypergraph->initializeNumCutHyperedges();
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(0, 1, 0), Eq(false));
@@ -120,6 +124,7 @@ TEST_F(AHyperedgeFMRefiner, OnlyConsidersPinsInRelevantPartitionWhenDetectingNes
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 1);
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   ASSERT_THAT(hyperedge_fm_refiner.isNestedIntoInPartition(1, 0, 1), Eq(true));
@@ -136,6 +141,7 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainOfMovingAllPinsFromOneToAnotherPartition
   hypergraph->setNodePart(4, 1);
   hypergraph->setNodePart(5, 1);
   hypergraph->setNodePart(6, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
@@ -157,6 +163,7 @@ TEST_F(AHyperedgeFMRefiner, ComputesGainValuesOnModifiedHypergraph) {
   hypergraph->setNodePart(4, 1);
   hypergraph->setNodePart(5, 1);
   hypergraph->setNodePart(6, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initializeImpl();
@@ -179,6 +186,8 @@ TEST_F(AHyperedgeFMRefiner, ConsidersEachHyperedgeOnlyOnceDuringGainComputation)
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 1);
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(1, 1, 0), Eq(2));
@@ -193,6 +202,8 @@ TEST_F(AHyperedgeFMRefiner, IncreasesGainOfHyperedgeMovementByOneWhenNestedCutHy
   hypergraph->setNodePart(3, 1);
   hypergraph->setNodePart(4, 1);
   hypergraph->setNodePart(5, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(3));
@@ -207,6 +218,8 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNonNestedCutH
   hypergraph->setNodePart(2, 1);
   hypergraph->setNodePart(3, 1);
   hypergraph->setNodePart(4, 0);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
@@ -218,6 +231,8 @@ TEST_F(AHyperedgeFMRefiner, DoesNotChangeGainOfHyperedgeMovementForNestedNonCutH
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);
   hypergraph->setNodePart(2, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 1, 0), Eq(1));
@@ -230,6 +245,8 @@ TEST_F(AHyperedgeFMRefiner, DecreasesGainOfHyperedgeMovementByOneWhenNonNestedNo
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 0);
   hypergraph->setNodePart(3, 0);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   ASSERT_THAT(hyperedge_fm_refiner.computeGain(0, 0, 1), Eq(-1));
@@ -242,6 +259,7 @@ TEST_F(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallin
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   hyperedge_fm_refiner.initialize();
   ASSERT_THAT(hyperedge_fm_refiner._hg.partWeight(0), Eq(4));
@@ -255,6 +273,7 @@ TEST_F(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(1), Eq(true));
@@ -269,6 +288,8 @@ TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
 
   hyperedge_fm_refiner.activateIncidentCutHyperedges(0);
@@ -282,6 +303,8 @@ TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
   hypergraph->setNodePart(1, 1);
   hypergraph->setNodePart(2, 0);
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   hypergraph->setEdgeWeight(0, 1);
   hypergraph->setEdgeWeight(1, 5);
   config.partition.max_part_weight = (1 + config.partition.epsilon)
@@ -320,6 +343,8 @@ TEST_F(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint) {
   hypergraph->setNodePart(3, 1);
   hypergraph->setNodePart(4, 0);
   hypergraph->setNodePart(5, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
 
@@ -338,6 +363,8 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   hypergraph->setNodePart(5, 1);
   hypergraph->setNodePart(6, 1);
   hypergraph->setNodePart(7, 0);
+  hypergraph->initializeNumCutHyperedges();
+
   config.partition.epsilon = 0.02;
   config.partition.max_part_weight = (1 + config.partition.epsilon)
                                      * ceil(hypergraph->initialNumNodes() /
@@ -398,6 +425,7 @@ TEST_F(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQ
   hypergraph->setNodePart(1, 0);
   hypergraph->setNodePart(2, 1);
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
@@ -486,6 +514,8 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
   hypergraph->setNodePart(1, 1);
   hypergraph->setNodePart(2, 0);
   hypergraph->setNodePart(3, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   hypergraph->setEdgeWeight(1, 5);
   HyperedgeFMRefinerSimpleStopping hyperedge_fm_refiner(*hypergraph, config);
   hyperedge_fm_refiner.initialize();
@@ -519,6 +549,8 @@ TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ) {
   hypergraph->setNodePart(9, 1);
   hypergraph->setNodePart(10, 1);
   hypergraph->setNodePart(11, 1);
+  hypergraph->initializeNumCutHyperedges();
+
   config.partition.epsilon = 0.02;
   config.partition.max_part_weight = (1 + config.partition.epsilon)
                                      * ceil(12 / static_cast<double>(config.partition.k));

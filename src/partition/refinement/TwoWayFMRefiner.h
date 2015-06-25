@@ -144,17 +144,17 @@ class TwoWayFMRefiner : public IRefiner,
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
-      _hg.initializeNumCutHyperedges();
+      _is_initialized = true;
     }
-    _is_initialized = true;
+    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
   }
 
   void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
     if (!_is_initialized) {
       _pq.initialize(max_gain);
-      _hg.initializeNumCutHyperedges();
+      _is_initialized = true;
     }
-    _is_initialized = true;
+    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,

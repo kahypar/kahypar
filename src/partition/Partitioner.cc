@@ -111,7 +111,6 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
   for (size_t i = 0; i < best_partitioning.size(); ++i) {
     hg.setNodePart(hmetis_to_hg[i], best_partitioning[i]);
   }
-  hg.sortConnectivitySets();
   ASSERT(metrics::hyperedgeCut(hg) == best_cut, "Cut induced by hypergraph does not equal "
          << "best initial cut");
 }

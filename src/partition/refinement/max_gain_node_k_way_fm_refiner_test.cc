@@ -37,6 +37,7 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     hypergraph->setNodePart(5, 3);
     hypergraph->setNodePart(6, 3);
     hypergraph->setNodePart(7, 1);
+    hypergraph->initializeNumCutHyperedges();
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
@@ -76,6 +77,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   hypergraph->setNodePart(6, 2);
   hypergraph->setNodePart(7, 2);
   hypergraph->setNodePart(8, 1);
+  hypergraph->initializeNumCutHyperedges();
   refiner->initialize();
 
   // positive gain
@@ -102,6 +104,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   hypergraph->setNodePart(5, 2);
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
+  hypergraph->initializeNumCutHyperedges();
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
   config.partition.max_part_weight =
@@ -126,6 +129,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   hypergraph->setNodePart(5, 2);
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 3);
+  hypergraph->initializeNumCutHyperedges();
 
   Hypergraph orig_hgr(8, 6, HyperedgeIndexVector { 0, 2, 5, 7, 9, 11,  /*sentinel*/ 13 },
                       HyperedgeVector { 0, 1, 0, 1, 6, 1, 6, 2, 3, 4, 5, 6, 7 }, 4);
@@ -137,6 +141,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   orig_hgr.setNodePart(5, 2);
   orig_hgr.setNodePart(6, 3);
   orig_hgr.setNodePart(7, 3);
+  hypergraph->initializeNumCutHyperedges();
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
@@ -170,6 +175,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph->setNodePart(7, 3);
   hypergraph->setNodePart(8, 1);
   hypergraph->setNodePart(9, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
@@ -197,6 +203,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
   hypergraph->setNodePart(5, 3);
   hypergraph->setNodePart(6, 3);
   hypergraph->setNodePart(7, 0);
+  hypergraph->initializeNumCutHyperedges();
   hypergraph->printGraphState();
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
@@ -232,6 +239,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   hypergraph->setNodePart(7, 0);
   hypergraph->setNodePart(8, 2);
   hypergraph->setNodePart(9, 0);
+  hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
   refiner->initialize();
@@ -252,6 +260,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
 
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);
+  hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
   refiner->initialize();

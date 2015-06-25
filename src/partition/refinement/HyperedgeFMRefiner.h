@@ -111,13 +111,15 @@ class HyperedgeFMRefiner : public IRefiner,
   HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
 
   void initializeImpl(HyperedgeWeight) noexcept final {
-    _is_initialized = true;
-    _hg.initializeNumCutHyperedges();
+    if (!_is_initialized) {
+      _is_initialized = true;
+    }
   }
 
   void initializeImpl() noexcept final {
-    _is_initialized = true;
-    _hg.initializeNumCutHyperedges();
+    if (!_is_initialized) {
+      _is_initialized = true;
+    }
   }
 
   void activateIncidentCutHyperedges(HypernodeID hn) noexcept {

@@ -132,7 +132,6 @@ class LPRefiner : public IRefiner {
     _cur_queue.reserve(_hg.initialNumNodes());
     _next_queue.clear();
     _next_queue.reserve(_hg.initialNumNodes());
-    _hg.initializeNumCutHyperedges();
   }
 
 
