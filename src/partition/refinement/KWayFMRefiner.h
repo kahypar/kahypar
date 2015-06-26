@@ -408,7 +408,8 @@ class KWayFMRefiner : public IRefiner,
 
       HypernodeID num_active_pins = 0;
       for (const HypernodeID pin : _hg.pins(he)) {
-        if (pin != moved_hn && !_marked[pin]) {
+        if (!_marked[pin]) {
+          ASSERT(pin != moved_hn, V(pin));
           if (!_active[pin]) {
             _hns_to_activate.push_back(pin);
             ++num_active_pins;
@@ -455,7 +456,8 @@ class KWayFMRefiner : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       for (const HypernodeID pin : _hg.pins(he)) {
-        if (pin != moved_hn && !_marked[pin]) {
+        if (!_marked[pin]) {
+          ASSERT(pin != moved_hn, V(pin));
           if (!_hg.isBorderNode(pin)) {
             removeHypernodeMovementsFromPQ(pin);
           } else {
@@ -481,7 +483,8 @@ class KWayFMRefiner : public IRefiner,
     const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
     if (move_decreased_connectivity || move_increased_connectivity) {
       for (const HypernodeID pin : _hg.pins(he)) {
-        if (pin != moved_hn && !_marked[pin]) {
+        if (!_marked[pin]) {
+          ASSERT(pin != moved_hn, V(pin));
           ASSERT(_active[pin], V(pin));
           ASSERT(_hg.isBorderNode(pin), V(pin));
           connectivityUpdate(pin, from_part, to_part, he,
