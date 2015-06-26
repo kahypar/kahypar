@@ -106,7 +106,6 @@ class KWayFMRefiner : public IRefiner,
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
     }
-
   }
 
   void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
@@ -285,8 +284,8 @@ class KWayFMRefiner : public IRefiner,
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) noexcept {
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       if (_pq_contains[hn * _config.partition.k + part]) {
-          _pq.remove(hn, part);
-          _pq_contains.setBit(hn * _config.partition.k + part, false);
+        _pq.remove(hn, part);
+        _pq_contains.setBit(hn * _config.partition.k + part, false);
       }
     }
     _active.setBit(hn, false);
@@ -373,7 +372,7 @@ class KWayFMRefiner : public IRefiner,
       ASSERT(_already_processed_part.get(pin) == Hypergraph::kInvalidPartition,
              V(_already_processed_part.get(pin)));
       _pq.insert(pin, to_part, gainInducedByHypergraph(pin, to_part));
-         _pq_contains.setBit(pin * _config.partition.k + to_part, true);
+      _pq_contains.setBit(pin * _config.partition.k + to_part, true);
       _already_processed_part.set(pin, to_part);
       if (_hg.partWeight(to_part) < max_allowed_part_weight) {
         _pq.enablePart(to_part);
@@ -391,6 +390,7 @@ class KWayFMRefiner : public IRefiner,
   void fullUpdate(const HypernodeID moved_hn, const PartitionID from_part,
                   const PartitionID to_part, const HyperedgeID he,
                   const HypernodeWeight max_allowed_part_weight) noexcept {
+    ONLYDEBUG(moved_hn);
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
     const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
@@ -441,6 +441,7 @@ class KWayFMRefiner : public IRefiner,
                                                           const HyperedgeID he,
                                                           const HypernodeWeight max_allowed_part_weight)
   noexcept {
+    ONLYDEBUG(moved_hn);
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
     const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
@@ -479,6 +480,7 @@ class KWayFMRefiner : public IRefiner,
   void connectivityUpdate(const HypernodeID moved_hn, const PartitionID from_part,
                           const PartitionID to_part, const HyperedgeID he,
                           const HypernodeWeight max_allowed_part_weight) noexcept {
+    ONLYDEBUG(moved_hn);
     const bool move_decreased_connectivity = _hg.pinCountInPart(he, from_part) == 0;
     const bool move_increased_connectivity = _hg.pinCountInPart(he, to_part) - 1 == 0;
     if (move_decreased_connectivity || move_increased_connectivity) {
