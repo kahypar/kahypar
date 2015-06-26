@@ -367,9 +367,7 @@ class GenericHypergraph {
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges),
     _num_incident_cut_hes(num_hypernodes, 0),
-    _processed_hyperedges(_num_hyperedges, false),
-    _active_hyperedges_u(_num_hyperedges, false),
-    _active_hyperedges_v(_num_hyperedges, false) {
+    _hes_not_containing_u(_num_hyperedges, false) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).setFirstEntry(edge_vector_index);
@@ -614,14 +612,15 @@ class GenericHypergraph {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    _active_hyperedges_v.resetAllBitsToFalse();
+    _hes_not_containing_u.resetAllBitsToFalse();
+    // Assume all HEs did not contain u and we have to undo Case 2 operations.
     for (const HyperedgeID he : incidentEdges(memento.v)) {
-      _active_hyperedges_v.setBit(he, 1);
+      _hes_not_containing_u.setBit(he, true);
     }
 
-    _active_hyperedges_u.resetAllBitsToFalse();
+    // Those HEs actually contained u and therefore will result in a Case 1 undo operation.
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
-      _active_hyperedges_u.setBit(_incidence_array[i], 1);
+      _hes_not_containing_u.setBit(_incidence_array[i], false);
     }
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
@@ -629,7 +628,7 @@ class GenericHypergraph {
       // Set incidence entry containing u for this HE e back to v, because this slot was used
       // to store the new edge to representative u during contraction as u was not a pin of e.
       for (const HyperedgeID he : incidentEdges(memento.u)) {
-        if (_active_hyperedges_v[he] && !_active_hyperedges_u[he]) {
+        if (_hes_not_containing_u[he]) {
           DBG(dbg_hypergraph_uncontraction, "resetting reused Pinslot of HE " << he << " from "
               << memento.u << " to " << memento.v);
           resetReusedPinSlotToOriginalValue(he, memento);
@@ -639,9 +638,8 @@ class GenericHypergraph {
             ++_num_incident_cut_hes[memento.v];  // because v is connected to that cut HE
           }
 
-          // Remember that this hyperedge is processed. The state of this hyperedge now resembles
-          // the state before contraction. Thus we don't need to process them any further.
-          _processed_hyperedges.setBit(he, 1);
+          // The state of this hyperedge now resembles the state before contraction.
+          // Thus we don't need to process them any further.
         }
       }
 
@@ -661,7 +659,7 @@ class GenericHypergraph {
     // Undo case 1 operations (i.e. Pin v was just cut off by decreasing size of HE e):
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     for (const HyperedgeID he : incidentEdges(memento.v)) {
-      if (!_processed_hyperedges[he]) {
+      if (!_hes_not_containing_u[he]) {
         DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
         ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
         hyperedge(he).increaseSize();
@@ -677,7 +675,6 @@ class GenericHypergraph {
 
         ++_current_num_pins;
       }
-      _processed_hyperedges.setBit(he, false);
     }
 
     ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
@@ -1109,9 +1106,7 @@ class GenericHypergraph {
     _pins_in_part(),
     _connectivity_sets(),
     _num_incident_cut_hes(),
-    _processed_hyperedges(),
-    _active_hyperedges_u(),
-    _active_hyperedges_v() { }
+    _hes_not_containing_u() { }
 
   bool isBorderNodeInternal(const HypernodeID hn) const {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
@@ -1380,12 +1375,12 @@ class GenericHypergraph {
   // of cut hyperedges per hypernode after initial partitioning.
   std::vector<HyperedgeID> _num_incident_cut_hes;
 
-  // Used during uncontraction to remember which hyperedges have already been processed
-  FastResetBitVector<> _processed_hyperedges;
-
-  // Used during uncontraction to decide how to perform the uncontraction operation
-  FastResetBitVector<> _active_hyperedges_u;
-  FastResetBitVector<> _active_hyperedges_v;
+  // Used during uncontraction to decide how to perform the uncontraction operation.
+  // Incident HEs of the representative either already contained u and v before the contraction
+  // or only contained v. In the latter case, we use _hes_not_containing_u[he]=true, to
+  // indicate that he have to undo a "Case 2" Operation, i.e. one, where the pin slot of
+  // v was re-used during contraction.
+  FastResetBitVector<> _hes_not_containing_u;
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
@@ -1521,9 +1516,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   subhypergraph->_part_ids.resize(num_hypernodes, Hypergraph::kInvalidPartition);
   subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
   subhypergraph->_connectivity_sets.resize(num_hyperedges);
-  subhypergraph->_processed_hyperedges.resize(num_hyperedges);
-  subhypergraph->_active_hyperedges_u.resize(num_hyperedges);
-  subhypergraph->_active_hyperedges_v.resize(num_hyperedges);
+  subhypergraph->_hes_not_containing_u.resize(num_hyperedges);
 
   subhypergraph->hypernode(0).setFirstEntry(num_pins);
   for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
