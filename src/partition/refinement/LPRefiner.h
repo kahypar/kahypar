@@ -148,7 +148,7 @@ class LPRefiner : public IRefiner {
     PartitionID num_hes_with_only_hn_in_source_part = 0;
     for (const auto& he : _hg.incidentEdges(hn)) {
       if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1) {
-        assert((*_hg.connectivitySet(he).begin()) == source_part);
+        assert((*_hg.connectivitySet(he).first) == source_part);
         internal_weight += _hg.edgeWeight(he);
       } else {
         const bool move_decreases_connectivity = _hg.pinCountInPart(he, source_part) == 1;
@@ -162,7 +162,7 @@ class LPRefiner : public IRefiner {
         // for the max-gain-move & thus never consider the source_part-related values.
         num_hes_with_only_hn_in_source_part += move_decreases_connectivity;
 
-        for (const auto& con : _hg.connectivitySet(he)) {
+        for (const PartitionID con : _hg.connectivitySet(he)) {
           const auto& target_part = con;
           _tmp_target_parts[target_part] = target_part;
 

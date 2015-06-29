@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <bitset>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -71,11 +72,17 @@ class GenericHypergraph {
   struct HypernodeTraits;
   struct HyperedgeTraits;
 
+  struct AddidionalHyperedgeData : public HyperedgeData {
+    PartitionID connectivity = 0;
+    PartitionID* connectivity_set_begin = nullptr;
+  };
+
+
   // internal
   using VertexID = unsigned int;
   using ConnectivitySet = std::vector<PartitionID>;
   using HypernodeVertex = InternalVertex<HypernodeTraits, HypernodeData>;
-  using HyperedgeVertex = InternalVertex<HyperedgeTraits, HyperedgeData>;
+  using HyperedgeVertex = InternalVertex<HyperedgeTraits, AddidionalHyperedgeData>;
   using PinHandleIterator = typename std::vector<VertexID>::iterator;
 
  public:
@@ -365,7 +372,7 @@ class GenericHypergraph {
     _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
-    _connectivity_sets(_num_hyperedges),
+    _connectivity_sets(std::make_unique<PartitionID[]>(_num_hyperedges * _k)),
     _num_incident_cut_hes(num_hypernodes, 0),
     _hes_not_containing_u(_num_hyperedges, false) {
     VertexID edge_vector_index = 0;
@@ -393,6 +400,7 @@ class GenericHypergraph {
         _incidence_array[hypernode(pin).firstInvalidEntry()] = i;
         hypernode(pin).increaseSize();
       }
+      hyperedge(i).connectivity_set_begin = _connectivity_sets.get() + i * _k;
     }
 
     bool has_hyperedge_weights = false;
@@ -530,9 +538,11 @@ class GenericHypergraph {
                                                       _num_hyperedges)));
   }
 
-  const ConnectivitySet & connectivitySet(const HyperedgeID he) const noexcept {
+  const std::pair<PartitionID*, PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return _connectivity_sets[he];
+    return std::move(std::make_pair(hyperedge(he).connectivity_set_begin,
+                                    hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity)
+                     );
   }
 
   Memento contract(const HypernodeID u, const HypernodeID v) noexcept {
@@ -634,8 +644,8 @@ class GenericHypergraph {
           resetReusedPinSlotToOriginalValue(he, memento);
 
           if (connectivity(he) > 1) {
-            --_num_incident_cut_hes[memento.u];  // because u is not connected to that cut HE anymore
-            ++_num_incident_cut_hes[memento.v];  // because v is connected to that cut HE
+            --_num_incident_cut_hes[memento.u];    // because u is not connected to that cut HE anymore
+            ++_num_incident_cut_hes[memento.v];    // because v is connected to that cut HE
           }
 
           // The state of this hyperedge now resembles the state before contraction.
@@ -670,7 +680,7 @@ class GenericHypergraph {
                << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
 
         if (connectivity(he) > 1) {
-          ++_num_incident_cut_hes[memento.v];   // because v is connected to that cut HE
+          ++_num_incident_cut_hes[memento.v];     // because v is connected to that cut HE
         }
 
         ++_current_num_pins;
@@ -880,8 +890,9 @@ class GenericHypergraph {
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
     std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
-    _connectivity_sets.clear();
-    _connectivity_sets.resize(_num_hyperedges);
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      hyperedge(i).connectivity = 0;
+    }
   }
 
   Type type() const noexcept {
@@ -1036,7 +1047,7 @@ class GenericHypergraph {
 
   PartitionID connectivity(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return _connectivity_sets[he].size();
+    return hyperedge(he).connectivity;
   }
 
   const std::vector<PartInfo> & partInfos() const noexcept {
@@ -1069,7 +1080,8 @@ class GenericHypergraph {
 
   void sortConnectivitySets() noexcept {
     for (HyperedgeID he = 0; he < _num_hyperedges; ++he) {
-      std::sort(_connectivity_sets[he].begin(), _connectivity_sets[he].end());
+      std::sort(hyperedge(he).connectivity_set_begin,
+                hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity);
     }
   }
 
@@ -1104,7 +1116,7 @@ class GenericHypergraph {
     _part_ids(),
     _part_info(_k),
     _pins_in_part(),
-    _connectivity_sets(),
+    _connectivity_sets(nullptr),
     _num_incident_cut_hes(),
     _hes_not_containing_u() { }
 
@@ -1158,12 +1170,15 @@ class GenericHypergraph {
     ASSERT(_pins_in_part[he * _k + id] > 0, "invalid decrease");
     _pins_in_part[he * _k + id] -= 1;
     if (_pins_in_part[he * _k + id] == 0) {
-      auto it = std::find(_connectivity_sets[he].begin(), _connectivity_sets[he].end(), id);
-      ASSERT(it != _connectivity_sets[he].end(), "Part not found:" << id);
-      std::iter_swap(it, _connectivity_sets[he].end() - 1);
-      _connectivity_sets[he].pop_back();
-      std::sort(it, _connectivity_sets[he].end());
-      ASSERT(std::is_sorted(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend()),
+      PartitionID* end = hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity;
+      auto it = std::find(hyperedge(he).connectivity_set_begin,
+                          end, id);
+      ASSERT(it != end, "Part not found:" << id);
+      std::iter_swap(it, end - 1);
+      --hyperedge(he).connectivity;
+      std::sort(it, hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity);
+      ASSERT(std::is_sorted(hyperedge(he).connectivity_set_begin,
+                            hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity),
              V(he));
     }
   }
@@ -1176,19 +1191,25 @@ class GenericHypergraph {
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     _pins_in_part[he * _k + id] += 1;
     if (_pins_in_part[he * _k + id] == 1) {
-      ASSERT(std::find(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend(), id)
-             == _connectivity_sets[he].end(), "Part " << id << " already contained");
-      _connectivity_sets[he].insert(std::find_if(_connectivity_sets[he].cbegin(),
-                                                 _connectivity_sets[he].cend(),
-                                                 [&](const PartitionID i) { return id < i; }),
-                                    id);
+      ASSERT(std::find(hyperedge(he).connectivity_set_begin,
+                       hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity, id)
+             == hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity,
+             "Part " << id << " already contained");
+      PartitionID* it = std::find_if(hyperedge(he).connectivity_set_begin,
+                                     hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity,
+                                     [&](const PartitionID i) { return id < i; });
+      memmove(it + 1, it, ((hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity) - it) * sizeof(PartitionID));
+      *it = id;
+      ++hyperedge(he).connectivity;
     }
-    ASSERT(std::is_sorted(_connectivity_sets[he].cbegin(), _connectivity_sets[he].cend()),
+    ASSERT(std::is_sorted(hyperedge(he).connectivity_set_begin,
+                          hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity),
            V(he));
     ASSERT([&]() {
         for (PartitionID i = 0; i < _k; ++i) {
-          if (std::count(_connectivity_sets[he].cbegin(),
-                         _connectivity_sets[he].cend(), i) > 1) {
+          if (std::count(hyperedge(he).connectivity_set_begin,
+                         hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity,
+                         i) > 1) {
             return false;
           }
         }
@@ -1202,7 +1223,7 @@ class GenericHypergraph {
     for (PartitionID part = 0; part < _k; ++part) {
       _pins_in_part[he * _k + part] = kInvalidCount;
     }
-    _connectivity_sets[he].clear();
+    hyperedge(he).connectivity = 0;
   }
 
   void resetPartitionPinCounts(const HyperedgeID he) noexcept {
@@ -1369,7 +1390,7 @@ class GenericHypergraph {
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
   std::vector<HypernodeID> _pins_in_part;
-  std::vector<ConnectivitySet> _connectivity_sets;
+  std::unique_ptr<PartitionID[]> _connectivity_sets;
 
   // To allow O(1) border node check, we keep track of the number
   // of cut hyperedges per hypernode after initial partitioning.
@@ -1439,14 +1460,16 @@ bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hyp
 
 template <typename Hypergraph>
 bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hypergraph& actual) {
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
   ASSERT(expected._part_ids == actual._part_ids, "Error");
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
 
   bool connectivity_sets_valid = true;
-  for (const typename Hypergraph::HyperedgeID he : actual.edges()) {
-    ASSERT(expected._connectivity_sets[he] == actual._connectivity_sets[he], V(he));
-    if (expected._connectivity_sets[he] != actual._connectivity_sets[he]) {
+  for (const HyperedgeID he : actual.edges()) {
+    ASSERT(expected.hyperedge(he).connectivity == actual.hyperedge(he).connectivity, V(he));
+    if (expected.hyperedge(he).connectivity != actual.hyperedge(he).connectivity) {
       connectivity_sets_valid = false;
       break;
     }
@@ -1466,6 +1489,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const typename Hypergraph::PartitionID part) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
 
   std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
   std::vector<HypernodeID> subhypergraph_to_hypergraph;
@@ -1489,9 +1513,9 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     if (hypergraph.connectivity(he) > 1) {
       continue;
     }
-    if (*hypergraph.connectivitySet(he).begin() == part) {
-      ASSERT(hypergraph.connectivitySet(he).size() == 1,
-             V(hypergraph.connectivitySet(he).size()));
+    if (*hypergraph.connectivitySet(he).first == part) {
+      ASSERT(hypergraph.hyperedge(he).connectivity == 1,
+             V(he) << V(hypergraph.hyperedge(he).connectivity));
       subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
       ++subhypergraph->_num_hyperedges;
       subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
@@ -1515,7 +1539,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   subhypergraph->_incidence_array.resize(2 * num_pins);
   subhypergraph->_part_ids.resize(num_hypernodes, Hypergraph::kInvalidPartition);
   subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
-  subhypergraph->_connectivity_sets.resize(num_hyperedges);
+  subhypergraph->_connectivity_sets = std::make_unique<PartitionID[]>(num_hyperedges * 2);
   subhypergraph->_hes_not_containing_u.resize(num_hyperedges);
 
   subhypergraph->hypernode(0).setFirstEntry(num_pins);
@@ -1535,6 +1559,8 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
       subhypergraph->hypernode(pin).increaseSize();
     }
+    subhypergraph->hyperedge(he).connectivity_set_begin = subhypergraph->_connectivity_sets.get()
+                                                          + he * 2;
   }
 
   subhypergraph->_num_incident_cut_hes.resize(num_hypernodes, 0);

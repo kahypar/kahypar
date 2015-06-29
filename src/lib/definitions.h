@@ -6,8 +6,8 @@
 #define SRC_LIB_DEFINITIONS_H_
 
 #include <chrono>
-#include <utility>
 #include <cstdint>
+#include <utility>
 
 #include "lib/datastructure/GenericHypergraph.h"
 
@@ -53,5 +53,13 @@ static defs::IncidenceIterator begin(std::pair<defs::IncidenceIterator, defs::In
 static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::IncidenceIterator>& x) {
   return std::move(x.second);
 }
+
+static defs::PartitionID* begin(const std::pair<defs::PartitionID*, defs::PartitionID*>& x) {
+  return std::move(x.first);
 }
+
+static defs::PartitionID* end(const std::pair<defs::PartitionID*, defs::PartitionID*>& x) {
+  return std::move(x.second);
+}
+}  // namespace std
 #endif  // SRC_LIB_DEFINITIONS_H_
