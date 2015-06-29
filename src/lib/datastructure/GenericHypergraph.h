@@ -538,7 +538,7 @@ class GenericHypergraph {
                                                       _num_hyperedges)));
   }
 
-  const std::pair<PartitionID*, PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
+  std::pair<const PartitionID*, const PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     return std::move(std::make_pair(hyperedge(he).connectivity_set_begin,
                                     hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity)

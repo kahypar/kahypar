@@ -54,11 +54,11 @@ static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::Inci
   return std::move(x.second);
 }
 
-static defs::PartitionID* begin(const std::pair<defs::PartitionID*, defs::PartitionID*>& x) {
+static const defs::PartitionID* begin(std::pair<const defs::PartitionID*, const defs::PartitionID*>& x) {
   return std::move(x.first);
 }
 
-static defs::PartitionID* end(const std::pair<defs::PartitionID*, defs::PartitionID*>& x) {
+static const defs::PartitionID* end(std::pair<const defs::PartitionID*, const defs::PartitionID*>& x) {
   return std::move(x.second);
 }
 }  // namespace std
