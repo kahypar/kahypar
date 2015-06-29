@@ -721,8 +721,9 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
     ASSERT_THAT(extr_part0.first->connectivity(he), Eq(0));
   }
 
-  ASSERT_THAT(extr_part0.first->_part_ids, ContainerEq(
-                std::vector<PartitionID>{ -1, -1, -1, -1, -1, -1, -1 }));
+  for (const HypernodeID hn : extr_part0.first->nodes()) {
+    ASSERT_THAT(extr_part0.first->partID(hn), Eq(-1));
+  }
 }
 
 

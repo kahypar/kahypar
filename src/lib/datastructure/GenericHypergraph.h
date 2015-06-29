@@ -72,17 +72,20 @@ class GenericHypergraph {
   struct HypernodeTraits;
   struct HyperedgeTraits;
 
-  struct AddidionalHyperedgeData : public HyperedgeData {
+  struct AdditionalHyperedgeData : public HyperedgeData {
     PartitionID connectivity = 0;
     PartitionID* connectivity_set_begin = nullptr;
   };
 
+  struct AdditionalHypernodeData : public HypernodeData {
+    PartitionID part_id = -1;
+  };
 
   // internal
   using VertexID = unsigned int;
   using ConnectivitySet = std::vector<PartitionID>;
-  using HypernodeVertex = InternalVertex<HypernodeTraits, HypernodeData>;
-  using HyperedgeVertex = InternalVertex<HyperedgeTraits, AddidionalHyperedgeData>;
+  using HypernodeVertex = InternalVertex<HypernodeTraits, AdditionalHypernodeData>;
+  using HyperedgeVertex = InternalVertex<HyperedgeTraits, AdditionalHyperedgeData>;
   using PinHandleIterator = typename std::vector<VertexID>::iterator;
 
  public:
@@ -369,7 +372,6 @@ class GenericHypergraph {
     _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
     _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
-    _part_ids(_num_hypernodes, kInvalidPartition),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(std::make_unique<PartitionID[]>(_num_hyperedges * _k)),
@@ -504,7 +506,7 @@ class GenericHypergraph {
 
   void printNodeState(const HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
-      std::cout << "HN " << u << " (" << _part_ids[u] << "): ";
+      std::cout << "HN " << u << " (" << hypernode(u).part_id << "): ";
       for (const HyperedgeID he : incidentEdges(u)) {
         std::cout << he << " ";
       }
@@ -614,7 +616,7 @@ class GenericHypergraph {
 
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
-    _part_ids[memento.v] = _part_ids[memento.u];
+    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
 
     ASSERT(partID(memento.v) != kInvalidPartition,
@@ -886,7 +888,9 @@ class GenericHypergraph {
   }
 
   void resetPartitioning() noexcept {
-    std::fill(_part_ids.begin(), _part_ids.end(), kInvalidPartition);
+    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+      hypernode(i).part_id = -1;
+    }
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
     std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
@@ -940,7 +944,7 @@ class GenericHypergraph {
 
   PartitionID partID(const HypernodeID u) const noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    return _part_ids[u];
+    return hypernode(u).part_id;
   }
 
   bool nodeIsEnabled(const HypernodeID u) const noexcept {
@@ -1113,7 +1117,6 @@ class GenericHypergraph {
     _hypernodes(),
     _hyperedges(),
     _incidence_array(),
-    _part_ids(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(nullptr),
@@ -1144,8 +1147,8 @@ class GenericHypergraph {
   void updatePartInfo(const HypernodeID u, const PartitionID id) noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    ASSERT(_part_ids[u] == kInvalidPartition, "HN " << u << " is already assigned to part " << id);
-    _part_ids[u] = id;
+    ASSERT(hypernode(u).part_id == kInvalidPartition, "HN " << u << " is already assigned to part " << id);
+    hypernode(u).part_id = id;
     _part_info[id].weight += nodeWeight(u);
     ++_part_info[id].size;
   }
@@ -1154,8 +1157,8 @@ class GenericHypergraph {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     ASSERT(from < _k && from != kInvalidPartition, "Part ID" << from << " out of bounds!");
     ASSERT(to < _k && to != kInvalidPartition, "Part ID" << to << " out of bounds!");
-    ASSERT(_part_ids[u] == from, "HN " << u << " is not in part " << from);
-    _part_ids[u] = to;
+    ASSERT(hypernode(u).part_id == from, "HN " << u << " is not in part " << from);
+    hypernode(u).part_id = to;
     _part_info[from].weight -= nodeWeight(u);
     --_part_info[from].size;
     _part_info[to].weight += nodeWeight(u);
@@ -1385,7 +1388,6 @@ class GenericHypergraph {
   std::vector<HyperedgeVertex> _hyperedges;
   std::vector<VertexID> _incidence_array;
 
-  std::vector<PartitionID> _part_ids;
   std::vector<PartInfo> _part_info;
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
@@ -1462,7 +1464,6 @@ template <typename Hypergraph>
 bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hypergraph& actual) {
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
-  ASSERT(expected._part_ids == actual._part_ids, "Error");
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
 
@@ -1476,7 +1477,6 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   }
 
   return verifyEquivalenceWithoutPartitionInfo(expected, actual) &&
-         expected._part_ids == actual._part_ids &&
          expected._part_info == actual._part_info &&
          expected._pins_in_part == actual._pins_in_part &&
          connectivity_sets_valid;
@@ -1537,7 +1537,6 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   subhypergraph->_type = hypergraph.type();
 
   subhypergraph->_incidence_array.resize(2 * num_pins);
-  subhypergraph->_part_ids.resize(num_hypernodes, Hypergraph::kInvalidPartition);
   subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
   subhypergraph->_connectivity_sets = std::make_unique<PartitionID[]>(num_hyperedges * 2);
   subhypergraph->_hes_not_containing_u.resize(num_hyperedges);
