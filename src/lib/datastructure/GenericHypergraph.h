@@ -61,6 +61,16 @@ class GenericHypergraph {
   using HypernodeData = HypernodeData_;
   using HyperedgeData = HyperedgeData_;
 
+  enum { kInvalidPartition = -1,
+         kDeletedPartition = -2 };
+
+  enum class Type : int8_t {
+    Unweighted = 0,
+    EdgeWeights = 1,
+    NodeWeights = 10,
+    EdgeAndNodeWeights = 11,
+  };
+
  private:
   // forward delarations
   class Memento;
@@ -78,7 +88,7 @@ class GenericHypergraph {
   };
 
   struct AdditionalHypernodeData : public HypernodeData {
-    PartitionID part_id = -1;
+    PartitionID part_id = kInvalidPartition;
   };
 
   // internal
@@ -97,16 +107,6 @@ class GenericHypergraph {
   using IncidenceIterator = typename std::vector<VertexID>::const_iterator;
   using HypernodeIterator = VertexIterator<const std::vector<HypernodeVertex> >;
   using HyperedgeIterator = VertexIterator<const std::vector<HyperedgeVertex> >;
-
-  enum { kInvalidPartition = -1,
-         kDeletedPartition = -2 };
-
-  enum class Type : int8_t {
-    Unweighted = 0,
-    EdgeWeights = 1,
-    NodeWeights = 10,
-    EdgeAndNodeWeights = 11,
-  };
 
  private:
   static const HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
@@ -889,7 +889,7 @@ class GenericHypergraph {
 
   void resetPartitioning() noexcept {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      hypernode(i).part_id = -1;
+      hypernode(i).part_id = kInvalidPartition;
     }
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
