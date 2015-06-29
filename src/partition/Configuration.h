@@ -241,7 +241,7 @@ struct Configuration {
 						2), epsilon(0.05), algorithm(), mode(), algo(
 						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
 						-1), nruns(1), direct_nlevel_contraction_divider(2.0), alpha(
-						1), beta(1), unassigned_part(0), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
+						1), beta(1), unassigned_part(0), pool_type("basic"), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
 		}
 
 		std::string coarse_graph_filename;
@@ -261,6 +261,7 @@ struct Configuration {
 		int seed;
 		int min_ils_iterations;
 		int max_stable_net_removals;
+		std::string pool_type;
 		bool rollback;
 		bool refinement;
 		bool erase_components;

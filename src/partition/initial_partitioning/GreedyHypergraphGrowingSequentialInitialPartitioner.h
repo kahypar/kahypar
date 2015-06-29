@@ -65,6 +65,8 @@ private:
 	FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue);FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeIntoBucketQueue);
 
 	void kwayPartitionImpl() final {
+
+
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning(unassigned_part);
@@ -159,6 +161,8 @@ private:
 			_hg.initializeNumCutHyperedges();
 		}
 
+
+
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
@@ -238,6 +242,7 @@ private:
 					_hg.setNodePart(best_node,
 							Randomize::getRandomInt(0,
 									_config.initial_partitioning.k - 1));
+					part_weight -= _hg.nodeWeight(best_node);
 				}
 			}
 			greedy_base.deleteNodeInAllBucketQueues(bq, best_node);

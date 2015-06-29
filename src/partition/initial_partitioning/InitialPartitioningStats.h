@@ -101,6 +101,7 @@ public:
 				_config.initial_partitioning.upper_allowed_partition_weight[0],
 				"", true);
 		InitialStatManager::getInstance().setRefinementCoarseningType(partition::toString(_config.partition.refinement_algorithm),partition::toString(_config.partition.coarsening_algorithm));
+		InitialStatManager::getInstance().setPoolType(_config.initial_partitioning.pool_type);
 
 	}
 

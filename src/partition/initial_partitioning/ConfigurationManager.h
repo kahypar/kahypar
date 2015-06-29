@@ -33,11 +33,13 @@ public:
 		config.initial_partitioning.k = 2;
 		config.initial_partitioning.epsilon = 0.03;
 		config.initial_partitioning.algorithm = "random";
+		config.initial_partitioning.pool_type = "basic";
 		config.initial_partitioning.algo = InitialPartitionerAlgorithm::random;
 		config.initial_partitioning.mode = "direct";
 		config.initial_partitioning.seed = -1;
 		config.initial_partitioning.min_ils_iterations = 400;
 		config.initial_partitioning.max_stable_net_removals = 100;
+		config.initial_partitioning.pool_type = "basic";
 		config.initial_partitioning.nruns = 1;
 		config.initial_partitioning.direct_nlevel_contraction_divider = 2;
 		config.initial_partitioning.unassigned_part = 1;
@@ -63,16 +65,16 @@ public:
 
 
 		//Coarsening-Parameters
-		config.coarsening.contraction_limit_multiplier = 160;
+		config.coarsening.contraction_limit_multiplier = 150;
 		config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_partial;
-		config.coarsening.max_allowed_weight_multiplier = 3.5;
+		config.coarsening.max_allowed_weight_multiplier = 2.5;
 
 		//Refinement-Parameters
 		config.partition.global_search_iterations = 0;
 		config.partition.refinement_algorithm =
 				RefinementAlgorithm::label_propagation;
 		config.fm_local_search.num_repetitions = -1;
-		config.fm_local_search.max_number_of_fruitless_moves = 150;
+		config.fm_local_search.max_number_of_fruitless_moves = 20;
 		config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
 		config.fm_local_search.alpha = 8;
 		config.her_fm.num_repetitions = -1;

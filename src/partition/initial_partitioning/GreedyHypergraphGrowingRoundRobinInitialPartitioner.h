@@ -46,7 +46,6 @@ public:
 			InitialPartitionerBase(hypergraph, config), greedy_base(hypergraph,
 					config) {
 
-		_config.initial_partitioning.unassigned_part = -1;
 	}
 
 	~GreedyHypergraphGrowingRoundRobinInitialPartitioner() {
@@ -55,9 +54,8 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		PartitionID unassigned_part =
-				_config.initial_partitioning.unassigned_part;
-		InitialPartitionerBase::resetPartitioning(unassigned_part);
+		PartitionID unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning(-1);
 
 		Gain init_pq = _hg.numNodes();
 		std::vector<PrioQueue*> bq(_config.initial_partitioning.k);

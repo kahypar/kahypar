@@ -209,6 +209,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					config.initial_partitioning.max_stable_net_removals =
 							vm["max_stable_net_removals"].as<int>();
 				}
+			} else if(config.initial_partitioning.algorithm.compare("pool") == 0) {
+				if (vm.count("pool_type")) {
+					config.initial_partitioning.pool_type =
+							vm["pool_type"].as<std::string>();
+				}
 			}
 		}
 		if (vm.count("mode")) {
@@ -216,6 +221,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 		}
 		if (vm.count("seed")) {
 			config.initial_partitioning.seed = vm["seed"].as<int>();
+			config.partition.seed = config.initial_partitioning.seed;
 		}
 		if (vm.count("nruns")) {
 			config.initial_partitioning.nruns = vm["nruns"].as<int>();
@@ -619,7 +625,8 @@ int main(int argc, char* argv[]) {
 			po::value<PartitionID>(), "Number of partitions")("epsilon",
 			po::value<double>(), "Imbalance ratio")("algo",
 			po::value<std::string>(), "Initial partitioning algorithm")("mode",
-			po::value<std::string>(), "Initial partitioning variant")("seed",
+			po::value<std::string>(), "Initial partitioning variant")("pool_type",
+					po::value<std::string>(), "Variant of the pool initial partitioner")("seed",
 			po::value<int>(), "Seed for randomization")("nruns",
 			po::value<int>(),
 			"Runs of the initial partitioner during bisection")(

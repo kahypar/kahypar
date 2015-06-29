@@ -39,11 +39,12 @@ private:
 	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
 	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
-			HypernodeID hn, std::vector<bool>& in_queue, std::vector<bool>& hyperedge_in_queue,
+			HypernodeID hn, std::vector<bool>& in_queue,
+			std::vector<bool>& hyperedge_in_queue,
 			const PartitionID& unassigned_part) {
 		// TODO(heuer): Make he und hnodes const
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
-			if(!hyperedge_in_queue[he]) {
+			if (!hyperedge_in_queue[he]) {
 				for (HypernodeID hnodes : _hg.pins(he)) {
 					if (_hg.partID(hnodes) == unassigned_part
 							&& !in_queue[hnodes]) {
@@ -82,8 +83,10 @@ private:
 
 		//Initialize a vector for each partition, which indicates the hypernodes which are and were already in the queue.
 		//TODO(heuer): This can be done more efficiently. Why not use vector<bool> instead of unordered maps?
-		std::vector<std::vector<bool>> in_queue(_hg.k(), std::vector<bool>(_hg.numNodes(),false));
-		std::vector<std::vector<bool>> hyperedge_in_queue(_hg.k(), std::vector<bool>(_hg.numEdges(),false));
+		std::vector<std::vector<bool>> in_queue(_hg.k(),
+				std::vector<bool>(_hg.numNodes(), false));
+		std::vector<std::vector<bool>> hyperedge_in_queue(_hg.k(),
+				std::vector<bool>(_hg.numEdges(), false));
 
 		//Calculate Startnodes and push them into the queues.
 		std::vector<HypernodeID> startNodes;
@@ -126,22 +129,22 @@ private:
 						ASSERT(_hg.partID(hn) == unassigned_part,
 								"Hypernode " << hn << " isn't a node from an unassigned part.");
 
-						pushIncidentHypernodesIntoQueue(q[i], hn, in_queue[i], hyperedge_in_queue[i],
-								unassigned_part);
-
-						ASSERT(
-								[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
-								"Some hypernodes are missing into the queue!");
-
 						if (assignHypernodeToPartition(hn, i)) {
 							assigned_nodes_weight += _hg.nodeWeight(hn);
+
+							pushIncidentHypernodesIntoQueue(q[i], hn,
+									in_queue[i], hyperedge_in_queue[i],
+									unassigned_part);
+
+							ASSERT(
+									[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
+									"Some hypernodes are missing into the queue!");
 						} else {
 							if (q[i].empty()) {
 								partEnable[i] = false;
 							}
 						}
-					}
-					else {
+					} else {
 						partEnable[i] = false;
 					}
 				}

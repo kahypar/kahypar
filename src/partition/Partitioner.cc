@@ -96,6 +96,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
         						   + " --refinement=" +std::to_string(config.initial_partitioning.refinement)
         						   + " --rollback=" + std::to_string(config.initial_partitioning.rollback)
         						   + " --algo=" + config.initial_partitioning.algorithm
+								   + " --pool_type=" +config.initial_partitioning.pool_type
                                    + " --mode=direct"
 								   + " --min_ils_iterations=" + std::to_string(config.initial_partitioning.min_ils_iterations)
         						   + " --max_stable_net_removals=" + std::to_string(config.initial_partitioning.max_stable_net_removals)
