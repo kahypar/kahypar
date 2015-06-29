@@ -1539,7 +1539,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   subhypergraph->_incidence_array.resize(2 * num_pins);
   subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
   subhypergraph->_connectivity_sets = std::make_unique<PartitionID[]>(num_hyperedges * 2);
-  subhypergraph->_hes_not_containing_u.resize(num_hyperedges);
+  subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
   subhypergraph->hypernode(0).setFirstEntry(num_pins);
   for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
