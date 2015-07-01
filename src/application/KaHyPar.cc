@@ -7,8 +7,9 @@
 #include <memory>
 #include <string>
 
-#include "lib/core/Registrar.h"
 #include "lib/definitions.h"
+
+#include "lib/core/Registrar.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"

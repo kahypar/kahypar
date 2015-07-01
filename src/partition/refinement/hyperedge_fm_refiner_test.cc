@@ -373,10 +373,10 @@ TEST_F(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible)
   hyperedge_fm_refiner.initialize();
 
   // bypass activation because current version would not insert HEs in the first place
-  hyperedge_fm_refiner._pq[0]->reInsert(0, hyperedge_fm_refiner.computeGain(0, 0, 1));
-  hyperedge_fm_refiner._pq[1]->reInsert(0, hyperedge_fm_refiner.computeGain(0, 1, 0));
-  hyperedge_fm_refiner._pq[0]->reInsert(1, hyperedge_fm_refiner.computeGain(1, 0, 1));
-  hyperedge_fm_refiner._pq[1]->reInsert(1, hyperedge_fm_refiner.computeGain(1, 1, 0));
+  hyperedge_fm_refiner._pq[0]->insert(0, hyperedge_fm_refiner.computeGain(0, 0, 1));
+  hyperedge_fm_refiner._pq[1]->insert(0, hyperedge_fm_refiner.computeGain(0, 1, 0));
+  hyperedge_fm_refiner._pq[0]->insert(1, hyperedge_fm_refiner.computeGain(1, 0, 1));
+  hyperedge_fm_refiner._pq[1]->insert(1, hyperedge_fm_refiner.computeGain(1, 1, 0));
   hypergraph->setEdgeWeight(0, 10);
 
   ASSERT_THAT(hyperedge_fm_refiner._pq[0]->contains(0), Eq(true));

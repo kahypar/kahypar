@@ -66,19 +66,8 @@
     }                                                  \
   } while (0)
 
-// http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
 #define ONLYDEBUG(x) ((void)x)
-#ifdef NDEBUG
-#ifdef __GNUC__
-#define UNUSED(x) UNUSED_ ## x __attribute__ ((__unused__))
-#define UNUSED_FUNCTION(x) __attribute__ ((__unused__)) UNUSED_ ## x
-#else
-#define UNUSED(x) UNUSED_ ## x
-#define UNUSED_FUNCTION(x) UNUSED_ ## x
-#endif
-#else
-#define UNUSED(x) ((void)x)
-#define UNUSED_FUNCTION(x) x
-#endif
+#define UNUSED(x)  ((void)x)
+#define UNUSED_FUNCTION(x) ((void)x)
 
 #endif  // SRC_LIB_MACROS_H_

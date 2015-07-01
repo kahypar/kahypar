@@ -98,7 +98,7 @@ class CoarsenerBase {
   }
 
   void initializeRefiner(IRefiner& refiner) noexcept {
-  #ifdef USE_BUCKET_PQ
+#ifdef USE_BUCKET_PQ
     HyperedgeID max_degree = 0;
     for (const HypernodeID hn : _hg.nodes()) {
       max_degree = std::max(max_degree, _hg.nodeDegree(hn));

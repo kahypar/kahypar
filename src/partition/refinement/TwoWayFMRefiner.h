@@ -141,6 +141,15 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
+#ifdef USE_BUCKET_PQ
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+    if (!_is_initialized) {
+      _pq.initialize(_hg.initialNumNodes(), max_gain);
+      _is_initialized = true;
+    }
+    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
+  }
+#else
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
@@ -148,14 +157,7 @@ class TwoWayFMRefiner : public IRefiner,
     }
     std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
   }
-
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
-    if (!_is_initialized) {
-      _pq.initialize(max_gain);
-      _is_initialized = true;
-    }
-    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
-  }
+#endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,

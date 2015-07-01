@@ -56,14 +56,22 @@ class AGainUpdateMethod : public Test {
 };
 
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   ASSERT_THAT(refiner->computeGain(6), Eq(0));
   ASSERT_THAT(refiner->computeGain(1), Eq(1));
   ASSERT_THAT(refiner->computeGain(5), Eq(-1));
 }
 
 TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   refiner->activate(1,  /* dummy max-part-weight */ 42);
   HypernodeID hn;
   HyperedgeWeight gain;
@@ -74,7 +82,11 @@ TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
 }
 
 TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 }
@@ -85,7 +97,11 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config.partition.k),
@@ -97,7 +113,11 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   refiner->moveHypernode(1, 1, 0);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
@@ -112,7 +132,11 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
@@ -121,7 +145,11 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 
 TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
-  refiner->initialize();  // already done above
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
+  refiner->initialize();
+#endif  // already done above
   hypergraph->changeNodePart(1, 1, 0);
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
@@ -142,7 +170,11 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
   refiner->refine(refinement_nodes, 2, 42, cut, old_imbalance);
 
   ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(*hypergraph)));
@@ -158,7 +190,11 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._active.setBit(0, true);
   refiner._active.setBit(1, true);
@@ -188,7 +224,11 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(2));
@@ -213,7 +253,11 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._active.setBit(0, true);
   refiner._active.setBit(1, true);
@@ -254,7 +298,11 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
@@ -295,7 +343,11 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   refiner.activate(2,  /* dummy max-part-weight */ 42);
@@ -324,7 +376,11 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   refiner.activate(2,  /* dummy max-part-weight */ 42);
@@ -352,7 +408,11 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   refiner.activate(2,  /* dummy max-part-weight */ 42);
@@ -377,7 +437,11 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   refiner.activate(0,  /* dummy max-part-weight */ 42);
   refiner.activate(1,  /* dummy max-part-weight */ 42);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -403,7 +467,11 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
@@ -438,7 +506,11 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   hypergraph.initializeNumCutHyperedges();
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
 
   // bypassing activate
   refiner._pq.insert(2, 1, refiner.computeGain(2));
@@ -469,7 +541,11 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
                                             / static_cast<double>(config.partition.k));
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
+  #ifdef USE_BUCKET_PQ
+  refiner.initialize(100);
+#else
   refiner.initialize();
+#endif
   ASSERT_THAT(refiner.moveIsFeasible(1, 0, 1), Eq(true));
   ASSERT_THAT(refiner.moveIsFeasible(3, 1, 0), Eq(false));
 }
@@ -491,7 +567,11 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
+  #ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   ASSERT_THAT(refiner->computeGain(0), Eq(1));
 }
@@ -505,15 +585,18 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
+
+#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
+#else
+  refiner->initialize();
+#endif
 
   refiner->_active.setBit(0, true);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_marked.setBit(0, true);
 
-  refiner->fullUpdate(0,1,0,42);
+  refiner->fullUpdate(0, 1, 0, 42);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
-
-
 }                // namespace partition

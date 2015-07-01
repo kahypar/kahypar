@@ -156,6 +156,11 @@ TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   coarsener.coarsen(1);
   hypergraph->setNodePart(0, 0);
   hypergraph->initializeNumCutHyperedges();
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
+  refiner->initialize();
+#endif
   coarsener.uncoarsen(*refiner);
 
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(*hypergraph, input_hypergraph), Eq(true));

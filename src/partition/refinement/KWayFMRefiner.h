@@ -101,19 +101,22 @@ class KWayFMRefiner : public IRefiner,
   FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
   FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
+#ifdef USE_BUCKET_PQ
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+    if (!_is_initialized) {
+      _pq.initialize(_hg.initialNumNodes(), max_gain);
+      // _pq.initialize(_hg.initialNumNodes());
+      _is_initialized = true;
+    }
+  }
+#else
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
     }
   }
-
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
-    if (!_is_initialized) {
-      _pq.initialize(max_gain);
-      _is_initialized = true;
-    }
-  }
+#endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
