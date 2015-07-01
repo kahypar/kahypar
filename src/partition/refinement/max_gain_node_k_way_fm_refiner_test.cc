@@ -41,8 +41,11 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-    // should be large enough to act as upper bound for both bucket- and heap-based PQ
+#ifdef USE_BUCKET_PQ
     refiner->initialize(100);
+#else
+    refiner->initialize();
+#endif
   }
 
   Configuration config;
@@ -78,7 +81,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   hypergraph->setNodePart(7, 2);
   hypergraph->setNodePart(8, 1);
   hypergraph->initializeNumCutHyperedges();
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   // positive gain
   ASSERT_THAT(refiner->computeMaxGainMove(1).first, Eq(2));
@@ -112,7 +119,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   refiner->moveHypernode(7, 3, 2);
   ASSERT_THAT(hypergraph->partID(7), Eq(2));
@@ -150,8 +161,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-  // should be large enough to act as upper bound for both bucket- and heap-based PQ
+#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
+#else
+  refiner->initialize();
+#endif
 
   double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
@@ -184,7 +198,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(2).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(2).second, Eq(0));
@@ -212,7 +230,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(0));
 }
@@ -242,7 +264,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(3).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(3).second, Eq(2));
@@ -263,7 +289,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
+#ifdef USE_BUCKET_PQ
+  refiner->initialize(100);
+#else
   refiner->initialize();
+#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
   ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));

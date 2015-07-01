@@ -9,15 +9,17 @@
 #include <limits>
 #include <vector>
 
+#include "lib/definitions.h"
+
 #include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/BucketQueue.h"
+#include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/definitions.h"
 #include "lib/macros.h"
 
 using defs::PartitionID;
 using datastructure::NoDataBinaryMaxHeap;
+using datastructure::EnhancedBucketQueue;
 using external::ArrayStorage;
 
 namespace datastructure {
@@ -27,7 +29,7 @@ template <typename IDType = Mandatory,
           typename Storage = ArrayStorage<IDType> >
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
-  using Queue = BucketQueue<IDType, KeyType>;
+  using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
 #else
   using Queue = NoDataBinaryMaxHeap<IDType, KeyType, MetaKey, Storage>;
 #endif
@@ -50,17 +52,11 @@ class KWayPriorityQueue {
   KWayPriorityQueue(KWayPriorityQueue&&) = default;
   KWayPriorityQueue& operator= (KWayPriorityQueue&&) = delete;
 
-  // Used to initialize binary heaps
-  void initialize(const IDType heap_size) noexcept {
+  // PQ implementation might need different parameters for construction
+  template <typename ... PQParameters>
+  void initialize(PQParameters&& ... parameters) noexcept {
     for (size_t i = 0; i < _part.size(); ++i) {
-      _queues.emplace_back(heap_size);
-    }
-  }
-
-  // Used to initialize bucket_pqs
-  void initialize(const KeyType gain_span) noexcept {
-    for (size_t i = 0; i < _part.size(); ++i) {
-      _queues.emplace_back(gain_span);
+      _queues.emplace_back(std::forward<PQParameters>(parameters) ...);
     }
   }
 
@@ -174,6 +170,12 @@ class KWayPriorityQueue {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     _queues[_index[part]].updateKey(id, key);
+  }
+
+  void updateKeyBy(const IDType id, const PartitionID part, const KeyType key_delta) noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(_index[part] < _num_nonempty_pqs, V(part));
+    _queues[_index[part]].updateKeyBy(id, key_delta);
   }
 
   void remove(const IDType id, const PartitionID part) noexcept {

@@ -19,8 +19,11 @@ class AKWayPriorityQueue : public Test {
  public:
   AKWayPriorityQueue() :
     prio_queue(4) {
-    // should be large enough to act as upper bound for both bucket- and heap-based PQ
+#ifdef USE_BUCKET_PQ
+    prio_queue.initialize(100, 200);
+#else
     prio_queue.initialize(100);
+#endif
   }
 
   KWayPriorityQueue<HypernodeID, HyperedgeWeight,

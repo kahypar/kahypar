@@ -14,7 +14,6 @@
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -23,7 +22,6 @@
 #include "tools/RandomFunctions.h"
 
 using datastructure::NoDataBinaryMaxHeap;
-using datastructure::PriorityQueue;
 using datastructure::FastResetBitVector;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -55,7 +53,7 @@ class HyperedgeFMRefiner : public IRefiner,
  private:
   using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
                                               std::numeric_limits<HyperedgeWeight> >;
-  using HyperedgeFMPQ = PriorityQueue<HyperedgeFMHeap>;
+  using HyperedgeFMPQ = HyperedgeFMHeap;
 
   static const int K = 2;
 
@@ -132,8 +130,9 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  const HypernodeWeight UNUSED(max_allowed_part_weight),
+                  const HypernodeWeight max_allowed_part_weight,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+    ONLYDEBUG(max_allowed_part_weight);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -189,8 +188,8 @@ class HyperedgeFMRefiner : public IRefiner,
       // TODO(schlag):
       // [ ] think about selection strategies and tiebreaking
       bool chosen_pq_index = selectQueue(pq0_eligible, pq1_eligible);
-      Gain max_gain = _pq[chosen_pq_index]->maxKey();
-      HyperedgeID max_gain_hyperedge = _pq[chosen_pq_index]->max();
+      Gain max_gain = _pq[chosen_pq_index]->getMaxKey();
+      HyperedgeID max_gain_hyperedge = _pq[chosen_pq_index]->getMax();
       _pq[chosen_pq_index]->deleteMax();
       PartitionID from_partition = chosen_pq_index;
       PartitionID to_partition = chosen_pq_index ^ 1;
@@ -247,7 +246,8 @@ class HyperedgeFMRefiner : public IRefiner,
     return false;
   }
 
-  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) noexcept {
+  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) noexcept {
+    ONLYDEBUG(to);
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != Hypergraph::kInvalidPartition) && (to != Hypergraph::kInvalidPartition),
            "Trying to compute gain for invalid partition");
@@ -358,17 +358,17 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   void checkPQsForEligibleMoves(bool& pq0_eligible, bool& pq1_eligible) const noexcept {
-    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->max(), 0, 1);
-    pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->max(), 1, 0);
+    pq0_eligible = !_pq[0]->empty() && movePreservesBalanceConstraint(_pq[0]->getMax(), 0, 1);
+    pq1_eligible = !_pq[1]->empty() && movePreservesBalanceConstraint(_pq[1]->getMax(), 1, 0);
   }
 
   bool selectQueue(bool pq0_eligible, bool pq1_eligible) noexcept {
     ASSERT(!_pq[0]->empty() || !_pq[1]->empty(), "Trying to choose next move with empty PQs");
     ASSERT(pq0_eligible || pq1_eligible, "Both PQs contain non-eligible moves!");
-    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[0]->max() << " is "
-        << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->maxKey());
-    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[1]->max() << " is "
-        << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->maxKey());
+    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[0]->getMax() << " is "
+        << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->getMaxKey());
+    DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[1]->getMax() << " is "
+        << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->getMaxKey());
     return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
@@ -394,16 +394,16 @@ class HyperedgeFMRefiner : public IRefiner,
   void activateHyperedge(HyperedgeID he) noexcept {
     ASSERT(!isMarkedAsMoved(he),
            "HE " << he << " has already been moved and cannot be activated again");
-    // we have to use reInsert because PQs will be reused during each uncontraction
+    // we have to use insert because PQs will be reused during each uncontraction
     if (!_pq[0]->contains(he) && movePreservesBalanceConstraint(he, 0, 1)) {
-      _pq[0]->reInsert(he, computeGain(he, 0, 1));
+      _pq[0]->push(he, computeGain(he, 0, 1));
       DBG(dbg_refinement_he_fm_he_activation,
-          "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
+          "inserting HE " << he << " with gain " << _pq[0]->getKey(he) << " in PQ " << 0);
     }
     if (!_pq[1]->contains(he) && movePreservesBalanceConstraint(he, 1, 0)) {
-      _pq[1]->reInsert(he, computeGain(he, 1, 0));
+      _pq[1]->push(he, computeGain(he, 1, 0));
       DBG(dbg_refinement_he_fm_he_activation,
-          "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
+          "inserting HE " << he << " with gain " << _pq[1]->getKey(he) << " in PQ " << 1);
     }
   }
 
@@ -416,7 +416,7 @@ class HyperedgeFMRefiner : public IRefiner,
       }
     }
     if (_pq[to]->contains(he)) {
-      _pq[to]->remove(he);
+      _pq[to]->deleteNode(he);
     }
     markAsMoved(he);
     // set sentinel
@@ -479,12 +479,12 @@ class HyperedgeFMRefiner : public IRefiner,
     if (_pq[0]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
           " Removing HE " << he << " from PQ 0 because it is no longer a cut hyperedge");
-      _pq[0]->remove(he);
+      _pq[0]->deleteNode(he);
     }
     if (_pq[1]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
           " Removing HE " << he << " from PQ 1 because it is no longer a cut hyperedge");
-      _pq[1]->remove(he);
+      _pq[1]->deleteNode(he);
     }
   }
 
@@ -499,13 +499,13 @@ class HyperedgeFMRefiner : public IRefiner,
     if (_pq[0]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
           " Recomputing Gain for HE PQ0 " << he << " which still is a cut hyperedge: "
-          << _pq[0]->key(he) << " --> " << computeGain(he, 0, 1));
+          << _pq[0]->getKey(he) << " --> " << computeGain(he, 0, 1));
       _pq[0]->updateKey(he, computeGain(he, 0, 1));
     }
     if (_pq[1]->contains(he)) {
       DBG(dbg_refinement_he_fm_update_cases,
           " Recomputing Gain for HE PQ1 " << he << " which still is a cut hyperedge: "
-          << _pq[1]->key(he) << " --> " << computeGain(he, 1, 0));
+          << _pq[1]->getKey(he) << " --> " << computeGain(he, 1, 0));
       _pq[1]->updateKey(he, computeGain(he, 1, 0));
     }
   }

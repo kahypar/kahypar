@@ -25,13 +25,13 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
                                          std::vector<bool>& indicator) noexcept {
     if (!pq0_eligible && !pq1_eligible) {
       if (!pq0->empty()) {
-        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
-        indicator[pq0->max()] = 1;
+        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->getMax() << " from PQ 0");
+        indicator[pq0->getMax()] = 1;
         pq0->deleteMax();
       }
       if (!pq1->empty()) {
-        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
-        indicator[pq1->max()] = 1;
+        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->getMax() << " from PQ 1");
+        indicator[pq1->getMax()] = 1;
         pq1->deleteMax();
       }
       return true;
@@ -44,11 +44,11 @@ struct OnlyRemoveIfBothQueuesClogged : public CloggingPolicy {
                                          Queue& pq0, Queue& pq1) noexcept {
     if (!pq0_eligible && !pq1_eligible) {
       if (!pq0->empty()) {
-        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
+        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->getMax() << " from PQ 0");
         pq0->deleteMax();
       }
       if (!pq1->empty()) {
-        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
+        DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->getMax() << " from PQ 1");
         pq1->deleteMax();
       }
       return true;
@@ -67,14 +67,14 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
                                          std::vector<bool>& indicator) noexcept {
     bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
-      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
-      indicator[pq0->max()] = 1;
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->getMax() << " from PQ 0");
+      indicator[pq0->getMax()] = 1;
       pq0->deleteMax();
       removed_a_node = true;
     }
     if (!pq1_eligible && !pq1->empty()) {
-      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
-      indicator[pq1->max()] = 1;
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->getMax() << " from PQ 1");
+      indicator[pq1->getMax()] = 1;
       pq1->deleteMax();
       removed_a_node = true;
     }
@@ -85,12 +85,12 @@ struct RemoveOnlyTheCloggingEntry : public CloggingPolicy {
                                          Queue& pq0, Queue& pq1) noexcept {
     bool removed_a_node = false;
     if (!pq0_eligible && !pq0->empty()) {
-      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->max() << " from PQ 0");
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq0->getMax() << " from PQ 0");
       pq0->deleteMax();
       removed_a_node = true;
     }
     if (!pq1_eligible && !pq1->empty()) {
-      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->max() << " from PQ 1");
+      DBG(dbg_refinement_queue_clogging, " Removing HE/HN " << pq1->getMax() << " from PQ 1");
       pq1->deleteMax();
       removed_a_node = true;
     }

@@ -41,7 +41,11 @@ class AKwayFMRefiner : public Test {
     hypergraph->initializeNumCutHyperedges();
 
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
+#ifdef USE_BUCKET_PQ
     refiner->initialize(100);
+#else
+    refiner->initialize();
+#endif
   }
 
   Configuration config;
@@ -74,8 +78,7 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_marked.setBit(0, true);
 
-  refiner->fullUpdate(0,0,1,0,42);
+  refiner->fullUpdate(0, 0, 1, 0, 42);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
-
 }  // namespace partition

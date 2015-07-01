@@ -67,7 +67,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
                                    + config.partition.coarse_graph_filename
                                    + " " + std::to_string(config.partition.k)
                                    + " -seed=" + std::to_string(seed)
-                                   + " -ufactor=" + std::to_string(config.partition.hmetis_ub_factor)
+                                   + " -ufactor=" + std::to_string(config.partition.hmetis_ub_factor < 0.1 ? 0.1 : config.partition.hmetis_ub_factor)
                                    + (config.partition.verbose_output ? "" : " > /dev/null");
         break;
       case InitialPartitioner::PaToH:
@@ -85,6 +85,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
     }
 
     LOG(initial_partitioner_call);
+    LOGVAR(config.partition.hmetis_ub_factor);
     std::system(initial_partitioner_call.c_str());
 
     io::readPartitionFile(config.partition.coarse_graph_partition_filename, partitioning);
