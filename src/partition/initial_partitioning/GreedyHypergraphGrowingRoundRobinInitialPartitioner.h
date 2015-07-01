@@ -22,6 +22,7 @@
 #include "tools/RandomFunctions.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/FastResetBitVector.h"
 using datastructure::PriorityQueue;
 using datastructure::NoDataBinaryMaxHeap;
 
@@ -84,6 +85,7 @@ private:
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
 
+		FastResetBitVector<> visit(_hg.numNodes(),false);
 		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
 				std::vector<bool>(_hg.numEdges()));
 
@@ -95,6 +97,9 @@ private:
 				if (partEnable[i]) {
 					every_part_disable = false;
 					HypernodeID hn;
+					while(!bq[i]->empty() && _hg.partID(bq[i]->max()) != unassigned_part) {
+						bq[i]->deleteMax();
+					}
 					if (bq[i]->empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
@@ -136,7 +141,7 @@ private:
 						// instead of 2 separate loops. This also holds true for GHG-Global
 						// and might even be true for BFS.
 						GainComputation::deltaGainUpdate(_hg, bq, hn,
-								unassigned_part, i);
+								unassigned_part, i, visit);
 						for (HyperedgeID he : _hg.incidentEdges(hn)) {
 							if (!hyperedge_already_process[i][he]) {
 								for (HypernodeID hnode : _hg.pins(he)) {

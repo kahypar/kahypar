@@ -61,6 +61,7 @@ class FastResetBitVector {
     _v.resize(size, initialiser);
   }
 
+
  private:
   bool isSet(size_t i) const {
     return _v[i] == _threshold;

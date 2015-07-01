@@ -22,6 +22,7 @@
 #include "tools/RandomFunctions.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/FastResetBitVector.h"
 
 using defs::HypernodeWeight;
 using partition::StartNodeSelectionPolicy;
@@ -80,12 +81,14 @@ private:
 			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
+
 		HypernodeID assigned_nodes_weight = 0;
 		if (unassigned_part != -1) {
 			assigned_nodes_weight =
 					_config.initial_partitioning.perfect_balance_partition_weight[unassigned_part]
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
+
 
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
 		InitialPartitionerBase::recalculateBalanceConstraints(
@@ -97,6 +100,7 @@ private:
 			part_shuffle[i] = i;
 		}
 
+		FastResetBitVector<> visit(_hg.numNodes(),false);
 		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
 				std::vector<bool>(_hg.numEdges()));
 
@@ -115,6 +119,9 @@ private:
 						&& !partEnable[current_part];
 				if (partEnable[current_part]) {
 					HypernodeID hn;
+					while(!bq[current_part]->empty() && _hg.partID(bq[current_part]->max()) != unassigned_part) {
+						bq[current_part]->deleteMax();
+					}
 					if (bq[current_part]->empty()) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode(
@@ -171,7 +178,7 @@ private:
 					greedy_base.deleteNodeInAllBucketQueues(bq, best_node);
 
 					GainComputation::deltaGainUpdate(_hg, bq, best_node,
-							unassigned_part, best_part);
+							unassigned_part, best_part, visit);
 					//Pushing incident hypernode into bucket queue or update gain value
 					for (HyperedgeID he : _hg.incidentEdges(best_node)) {
 						if (!hyperedge_already_process[best_part][he]) {

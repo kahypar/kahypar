@@ -20,6 +20,7 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingBaseFunctions.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "lib/datastructure/FastResetBitVector.h"
 #include "tools/RandomFunctions.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
@@ -85,6 +86,7 @@ private:
 			greedy_base.processNodeForBucketPQ(*bq[i], startNodes[i], i);
 		}
 
+		FastResetBitVector<> visit(_hg.numNodes(),false);
 		std::vector<std::vector<bool>> hyperedge_already_process(_hg.k(),
 				std::vector<bool>(_hg.numEdges()));
 
@@ -110,7 +112,7 @@ private:
 
 					// TODO(heuer): Performance improvement if you only loop once
 					GainComputation::deltaGainUpdate(_hg, bq, hn,
-							unassigned_part, i);
+							unassigned_part, i, visit);
 					//Pushing incident hypernode into bucket queue or update gain value
 					for (HyperedgeID he : _hg.incidentEdges(hn)) {
 						if (!hyperedge_already_process[i][he]) {
@@ -151,7 +153,7 @@ private:
 		}
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
-		assignAllUnassignedHypernodesAccordingToTheirGain(bq);
+		assignAllUnassignedHypernodesAccordingToTheirGain(bq, visit);
 
 		for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
 			delete bq[k];
@@ -176,7 +178,7 @@ private:
 	}
 
 	void assignAllUnassignedHypernodesAccordingToTheirGain(
-			std::vector<PrioQueue*>& bq) {
+			std::vector<PrioQueue*>& bq, FastResetBitVector<>& visit) {
 		//Assign first all possible unassigned nodes, which are still left in the priority queue.
 		while (true) {
 			std::pair<HypernodeID, PartitionID> best_move =
@@ -188,7 +190,7 @@ private:
 					greedy_base.deleteNodeInAllBucketQueues(bq, best_node);
 					GainComputation::deltaGainUpdate(_hg, bq, best_node,
 							_config.initial_partitioning.unassigned_part,
-							best_part);
+							best_part, visit);
 					if (_config.initial_partitioning.unassigned_part != -1) {
 						if (_hg.partWeight(
 								_config.initial_partitioning.unassigned_part)

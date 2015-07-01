@@ -22,6 +22,7 @@
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/FastResetBitVector.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -119,7 +120,8 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdate) {
 	pushAllHypernodesIntoQueue<FMGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0);
+	FastResetBitVector<> visit(hypergraph.numNodes(),false);
+	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
 	ASSERT_EQ(pq[1]->key(0),-1);
 	ASSERT_EQ(pq[1]->key(1),0);
 	ASSERT_EQ(pq[1]->key(2),0);
@@ -143,7 +145,8 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainsAfterDeltaGainUpdate) {
 	pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);
-	MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0);
+	FastResetBitVector<> visit(hypergraph.numNodes(),false);
+	MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
 	ASSERT_EQ(pq[1]->key(0),1);
 	ASSERT_EQ(pq[1]->key(1),1);
 	ASSERT_EQ(pq[1]->key(2),2);
@@ -167,7 +170,8 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainsAfterDeltaGainUpdate) {
 	pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
 	pq[0]->remove(3);
-	MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0);
+	FastResetBitVector<> visit(hypergraph.numNodes(),false);
+	MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
 	ASSERT_EQ(pq[1]->key(0),1);
 	ASSERT_EQ(pq[1]->key(1),1);
 	ASSERT_EQ(pq[1]->key(2),1);

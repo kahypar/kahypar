@@ -14,7 +14,7 @@
 #include "tools/RandomFunctions.h"
 #include <algorithm>
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/datastructure/PriorityQueue.h"
+#include "lib/datastructure/FastResetBitVector.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -67,7 +67,7 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 
 	static inline void deltaGainUpdate(Hypergraph& _hg,
 			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
-			PartitionID to) {
+			PartitionID to, FastResetBitVector<>& visit) {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
@@ -158,7 +158,7 @@ struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 
 	static inline void deltaGainUpdate(Hypergraph& _hg,
 			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
-			PartitionID to) {
+			PartitionID to, FastResetBitVector<>& visit) {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 			for (HypernodeID pin : _hg.pins(he)) {
@@ -193,30 +193,28 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 
 	static inline void deltaGainUpdate(Hypergraph& _hg,
 			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
-			PartitionID to) {
+			PartitionID to, FastResetBitVector<>& visit) {
 
-		std::set<HypernodeID> delta_increment_nodes;
-		std::set<HypernodeID> delta_decrement_nodes;
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 
 			for (HypernodeID node : _hg.pins(he)) {
-				if (bq[to]->contains(node)) {
-					delta_increment_nodes.insert(node);
-				}
-
-				if (from != -1) {
-					if (bq[from]->contains(node)) {
-						delta_decrement_nodes.insert(node);
+				if(!visit[node]) {
+					if (bq[to]->contains(node)) {
+						deltaNodeUpdate(*bq[to], node, 1);
 					}
+
+					if (from != -1) {
+						if (bq[from]->contains(node)) {
+							deltaNodeUpdate(*bq[from], node, -1);
+						}
+					}
+					visit.setBit(node,true);
 				}
 			}
 		}
-		for (HypernodeID node : delta_increment_nodes) {
-			deltaNodeUpdate(*bq[to], node, 1);
-		}
-		for (HypernodeID node : delta_decrement_nodes) {
-			deltaNodeUpdate(*bq[from], node, -1);
-		}
+
+		visit.resetAllBitsToFalse();
+
 	}
 
 	static inline void deltaNodeUpdate(PrioQueue& bq, HypernodeID hn,
@@ -226,6 +224,8 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 			bq.updateKey(hn, old_gain + delta_gain);
 		}
 	}
+
+
 
 };
 
@@ -246,7 +246,7 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 
 	static inline void deltaGainUpdate(Hypergraph& _hg,
 			std::vector<PrioQueue*>& bq, HypernodeID hn, PartitionID from,
-			PartitionID to) {
+			PartitionID to, FastResetBitVector<>& visit) {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 			Gain pins_in_source_part = -1;

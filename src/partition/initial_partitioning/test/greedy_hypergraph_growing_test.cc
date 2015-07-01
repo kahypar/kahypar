@@ -21,6 +21,7 @@
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/datastructure/PriorityQueue.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "lib/datastructure/FastResetBitVector.h"
 
 
 using ::testing::Eq;
@@ -104,11 +105,12 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 
 	hypergraph.changeNodePart(2,1,0);
 	base->deleteNodeInAllBucketQueues(pq,2);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,2,1,0);
+	FastResetBitVector<> visit(hypergraph.numNodes(),false);
+	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,2,1,0,visit);
 
 	hypergraph.changeNodePart(4,1,0);
 	base->deleteNodeInAllBucketQueues(pq,4);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,4,1,0);
+	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,4,1,0,visit);
 
 	ASSERT_TRUE(pq[0]->max() == 6 && pq[0]->maxKey() == 0);
 	ASSERT_EQ(pq[0]->size(), 1);

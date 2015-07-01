@@ -146,9 +146,9 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::rb_greedy_round_maxnet;
 	} else if (mode.compare("greedy-global-modify") == 0) {
 		return InitialPartitionerAlgorithm::greedy_global_modify;
-	}  else if (mode.compare("recursive-greedy-global-modify") == 0) {
+	} else if (mode.compare("recursive-greedy-global-modify") == 0) {
 		return InitialPartitionerAlgorithm::rb_greedy_global_modify;
-	}  else if (mode.compare("lp") == 0) {
+	} else if (mode.compare("lp") == 0) {
 		return InitialPartitionerAlgorithm::lp;
 	} else if (mode.compare("bfs") == 0) {
 		return InitialPartitionerAlgorithm::bfs;
@@ -209,10 +209,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					config.initial_partitioning.max_stable_net_removals =
 							vm["max_stable_net_removals"].as<int>();
 				}
-			} else if(config.initial_partitioning.algorithm.compare("pool") == 0) {
+			} else if (config.initial_partitioning.algorithm.compare("pool")
+					== 0) {
 				if (vm.count("pool_type")) {
-					config.initial_partitioning.pool_type =
-							vm["pool_type"].as<std::string>();
+					config.initial_partitioning.pool_type = vm["pool_type"].as<
+							std::string>();
 				}
 			}
 		}
@@ -308,7 +309,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					vm["s"].as<double>();
 		}
 		if (vm.count("fruitless")) {
-			config.fm_local_search.max_number_of_fruitless_moves = vm["fruitless"].as<int>();
+			config.fm_local_search.max_number_of_fruitless_moves =
+					vm["fruitless"].as<int>();
 		}
 	} else {
 		std::cout << "Parameter error! Exiting..." << std::endl;
@@ -625,10 +627,10 @@ int main(int argc, char* argv[]) {
 			po::value<PartitionID>(), "Number of partitions")("epsilon",
 			po::value<double>(), "Imbalance ratio")("algo",
 			po::value<std::string>(), "Initial partitioning algorithm")("mode",
-			po::value<std::string>(), "Initial partitioning variant")("pool_type",
-					po::value<std::string>(), "Variant of the pool initial partitioner")("seed",
-			po::value<int>(), "Seed for randomization")("nruns",
-			po::value<int>(),
+			po::value<std::string>(), "Initial partitioning variant")(
+			"pool_type", po::value<std::string>(),
+			"Variant of the pool initial partitioner")("seed", po::value<int>(),
+			"Seed for randomization")("nruns", po::value<int>(),
 			"Runs of the initial partitioner during bisection")(
 			"direct_nlevel_contraction_divider", po::value<double>(),
 			"Direct nLevel contraction limit multiplier divider")(
@@ -662,8 +664,7 @@ int main(int argc, char* argv[]) {
 			"Coarsening: Coarsening stops when there are no more than t * k hypernodes left")(
 			"s", po::value<double>(),
 			"Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")(
-			"fruitless", po::value<int>(),
-			"maximum number of fruitless moves");
+			"fruitless", po::value<int>(), "maximum number of fruitless moves");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -755,21 +756,24 @@ int main(int argc, char* argv[]) {
 			"initialPartitioningTime",
 			static_cast<double>(elapsed_seconds.count()), "\033[32;1m", true);
 
+	InitialPartitioningStats* stats = new InitialPartitioningStats(hypergraph,
+			config);
+	stats->createConfiguration();
+	stats->createMetrics();
 	if (config.initial_partitioning.stats) {
-		InitialPartitioningStats* stats = new InitialPartitioningStats(
-				hypergraph, config);
-		stats->createConfiguration();
-		stats->createMetrics();
 		stats->createHypergraphInformation();
 		stats->createPartitioningResults();
-		InitialStatManager::getInstance().pushGroupToEndOfOutput(
-				"Partitioning Results");
-		InitialStatManager::getInstance().pushGroupToEndOfOutput(
-				"Configuration");
-		InitialStatManager::getInstance().pushGroupToEndOfOutput(
-				"Time Measurements");
-		InitialStatManager::getInstance().pushGroupToEndOfOutput("Metrics");
 	}
+	else {
+		stats->createPartitioningResults(true,false);
+	}
+
+	InitialStatManager::getInstance().pushGroupToEndOfOutput(
+			"Partitioning Results");
+	InitialStatManager::getInstance().pushGroupToEndOfOutput("Configuration");
+	InitialStatManager::getInstance().pushGroupToEndOfOutput(
+			"Time Measurements");
+	InitialStatManager::getInstance().pushGroupToEndOfOutput("Metrics");
 
 	if (vm.count("output")) {
 		start = std::chrono::high_resolution_clock::now();
@@ -795,8 +799,8 @@ int main(int argc, char* argv[]) {
 	if (config.initial_partitioning.stats) {
 		InitialStatManager::getInstance().printStats(result_file,
 				config.initial_partitioning.styles);
-		InitialStatManager::getInstance().printResultLine(result_file);
 	}
+	InitialStatManager::getInstance().printResultLine(result_file);
 
 }
 
