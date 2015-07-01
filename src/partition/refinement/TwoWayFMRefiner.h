@@ -510,12 +510,11 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
     ASSERT((_hg.partWeight(target_part) < max_allowed_part_weight ?
             _pq.isEnabled(target_part) : !_pq.isEnabled(target_part)), V(target_part));
-    const Gain old_gain = _pq.key(pin, target_part);
     const Gain gain_delta = factor * he_weight;
     DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
-        << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
-        << target_part);
-    _pq.updateKey(pin, target_part, old_gain + gain_delta);
+        << " from gain " << _pq.key(pin, target_part) << " to "
+        << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
+    _pq.updateKeyBy(pin, target_part, gain_delta);
     ASSERT(_gain_cache[pin] != kNotCached, "Error");
     _rollback_delta_cache.set(pin, _rollback_delta_cache.get(pin) - gain_delta);
     _gain_cache[pin] += gain_delta;

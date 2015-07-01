@@ -822,12 +822,11 @@ class KWayFMRefiner : public IRefiner,
           return false;
         } (), V(pin));
 
-      const Gain old_gain = _pq.key(pin, part);
       DBG(dbg_refinement_kway_fm_gain_update,
           "updating gain of HN " << pin
-          << " from gain " << old_gain << " to " << old_gain + delta << " (to_part="
+          << " from gain " << _pq.key(pin, part) << " to " << _pq.key(pin, part) + delta << " (to_part="
           << part << ")");
-      _pq.updateKey(pin, part, old_gain + delta);
+      _pq.updateKeyBy(pin, part, delta);
     }
   }
 

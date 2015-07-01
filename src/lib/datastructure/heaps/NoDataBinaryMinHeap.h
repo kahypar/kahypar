@@ -1,22 +1,19 @@
 /***************************************************************************
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
-#ifndef NO_DATA_BINARY_MIN_HEAP_H_
-#define NO_DATA_BINARY_MIN_HEAP_H_
+#ifndef SRC_LIB_DATASTRUCTURE_HEAPS_NODATABINARYMINHEAP_H_
+#define SRC_LIB_DATASTRUCTURE_HEAPS_NODATABINARYMINHEAP_H_
 
-#include "external/binary_heap/QueueStorages.hpp"
-#include "external/binary_heap/exception.h"
-
-#include "lib/macros.h"
-
-#include <atomic>
+#include <algorithm>
 #include <limits>
 #include <map>
 #include <unordered_map>
 #include <vector>
 
-#include <cstring>
-#include <limits>
+#include "external/binary_heap/QueueStorages.hpp"
+#include "external/binary_heap/exception.h"
+
+#include "lib/macros.h"
 
 using external::ArrayStorage;
 
@@ -231,6 +228,57 @@ class NoDataBinaryMinHeap {
            heap[handles[id]].id << "!=" << id);
   }
 
+  inline void decreaseKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
+    GUARANTEE(contains(id), std::runtime_error,
+              "[error] BinaryHeap::decreaseKeyBy - Calling decreaseKey for element not contained in Queue. Check with \"contains(id)\"")
+#ifndef NDEBUG
+    const key_slot old_key = heap[handles[id]].key;
+#endif
+    const size_t handle = handles[id];
+    heap[handle].key -= key_delta;
+    upHeap(handle);
+    ASSERT(heap[handles[id]].key == old_key - key_delta, "wrong key:" <<
+           heap[handles[id]].key << "!=" << old_key + key_delta);
+    ASSERT(heap[handles[id]].id == id, "wrong id" <<
+           heap[handles[id]].id << "!=" << id);
+  }
+
+  inline void increaseKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
+    GUARANTEE(contains(id), std::runtime_error,
+              "[error] BinaryHeap::increaseKey - Calling increaseKey for element not contained in Queue. Check with \"contains(id)\"")
+#ifndef NDEBUG
+    const key_slot old_key = heap[handles[id]].key;
+#endif
+    const size_t handle = handles[id];
+    heap[handle].key += key_delta;
+    downHeap(handle);
+    ASSERT(heap[handles[id]].key == old_key + key_delta, "wrong key:" <<
+           heap[handles[id]].key << "!=" << old_key + key_delta);
+    ASSERT(heap[handles[id]].id == id, "wrong id" <<
+           heap[handles[id]].id << "!=" << id);
+  }
+
+  inline void updateKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
+    GUARANTEE(contains(id), std::runtime_error,
+              "[error] BinaryHeap::updateKey - Calling updateKey for element not contained in Queue. Check with \"contains(id)\"")
+#ifndef NDEBUG
+    const key_slot old_key = heap[handles[id]].key;
+#endif
+
+    const size_t handle = handles[id];
+    heap[handle].key += key_delta;
+    if (key_delta > 0) {
+      downHeap(handle);
+    } else {
+      upHeap(handle);
+    }
+    ASSERT(heap[handles[id]].key == old_key + key_delta, "wrong key:" <<
+           heap[handles[id]].key << "!=" << old_key + key_delta);
+    ASSERT(heap[handles[id]].id == id, "wrong id" <<
+           heap[handles[id]].id << "!=" << id);
+  }
+
+
   inline void clear() noexcept {
     handles.clear();
     next_slot = 1;  // remove anything but the sentinel
@@ -325,4 +373,4 @@ void swap(NoDataBinaryMinHeap<id_slot, key_slot, meta_key_slot, storage_slot>& a
 }
 }  // namespace datastructure
 
-#endif  /* NO_DATA_BINARY_MIN_HEAP_H_ */
+#endif  // SRC_LIB_DATASTRUCTURE_HEAPS_NODATABINARYMINHEAP_H_

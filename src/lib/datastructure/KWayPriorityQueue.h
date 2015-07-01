@@ -9,11 +9,11 @@
 #include <limits>
 #include <vector>
 
+#include "lib/definitions.h"
 #include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/BucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/definitions.h"
 #include "lib/macros.h"
 
 using defs::PartitionID;
@@ -174,6 +174,12 @@ class KWayPriorityQueue {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     _queues[_index[part]].updateKey(id, key);
+  }
+
+  void updateKeyBy(const IDType id, const PartitionID part, const KeyType key_delta) noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(_index[part] < _num_nonempty_pqs, V(part));
+    _queues[_index[part]].updateKeyBy(id, key_delta);
   }
 
   void remove(const IDType id, const PartitionID part) noexcept {
