@@ -38,16 +38,6 @@ class PriorityQueue {
     _heap.push(id, key);
   }
 
-  void reInsert(const IDType id, const KeyType key) noexcept {
-    _heap.reinsertingPush(id, key);
-  }
-
-  template <typename T>
-  void reInsert(const IDType id, const KeyType key, T data,
-                typename std::enable_if<std::is_same<T, DataType>::value>::type* = 0) noexcept {
-    _heap.reinsertingPush(id, key, data);
-  }
-
   void deleteMax() noexcept {
     _heap.deleteMax();
   }

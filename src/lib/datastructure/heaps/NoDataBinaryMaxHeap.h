@@ -99,15 +99,10 @@ class NoDataBinaryMaxHeap {
            << heap[handles[id]].id << "!=" << id);
   }
 
-  //  only to temporarily satisfy PQ interface
-  inline void reinsertingPush( const id_slot & id, const key_slot & key ) noexcept {
-    push(id, key);
-  }
-
-  //reinserts an element into the queue or updates the key if the element has been reached
-  inline void update( const id_slot & id, const key_slot & key ) noexcept {
-    GUARANTEE( isReached(id), std::runtime_error,
-               "[error] BinaryHeap::update - trying to update an element not reached yet")
+  // reinserts an element into the queue or updates the key if the element has been reached
+  inline void update(const id_slot& id, const key_slot& key) noexcept {
+    GUARANTEE(isReached(id), std::runtime_error,
+              "[error] BinaryHeap::update - trying to update an element not reached yet")
     if (contains(id)) {
       updateKey(id, key);
     } else {
