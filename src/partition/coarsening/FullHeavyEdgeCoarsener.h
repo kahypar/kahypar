@@ -69,16 +69,16 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes(), false);
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      const HypernodeID rep_node = _pq.max();
+      const HypernodeID rep_node = _pq.getMax();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.maxKey());
+          << _target[rep_node] << ") prio: " << _pq.getMaxKey());
 
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
-      ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
-             "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+      ASSERT(_pq.getMaxKey() == _rater.rate(rep_node).value,
+             "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
              << _rater.rate(rep_node).value);
       ASSERT(!invalid_hypernodes[rep_node], "Representative HN " << rep_node << " is invalid");
       ASSERT(!invalid_hypernodes[contracted_node], "Contract HN " << contracted_node << " is invalid");
@@ -86,7 +86,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       performContraction(rep_node, contracted_node);
 
       ASSERT(_pq.contains(contracted_node), V(contracted_node));
-      _pq.remove(contracted_node);
+      _pq.deleteNode(contracted_node);
 
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
@@ -130,7 +130,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
-      DBG(false, "Updating prio of HN " << hn << ": " << _pq.key(hn) << " (target=" << _target[hn]
+      DBG(false, "Updating prio of HN " << hn << ": " << _pq.getKey(hn) << " (target=" << _target[hn]
           << ") --- >" << rating.value << "(target" << rating.target << ")");
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
@@ -138,7 +138,7 @@ class FullHeavyEdgeCoarsener : public ICoarsener,
       // explicit containment check is necessary because of V-cycles. In this case, not
       // all hypernodes will be inserted into the PQ at the beginning, because of the
       // restriction that only hypernodes within the same part can be contracted.
-      _pq.remove(hn);
+      _pq.deleteNode(hn);
       invalid_hypernodes.setBit(hn, true);
       _target[hn] = std::numeric_limits<HypernodeID>::max();
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"

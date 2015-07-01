@@ -19,7 +19,6 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"

@@ -63,10 +63,10 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     rateAllHypernodes(_target, _sources);
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      const HypernodeID rep_node = _pq.max();
+      const HypernodeID rep_node = _pq.getMax();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.maxKey());
+          << _target[rep_node] << ") prio: " << _pq.getMaxKey());
 
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
@@ -75,14 +75,14 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
       // that should be updated. It only updates those nodes, which have the
       // contracted hypernode as target. Therefore this assertion does __not__
       // hold for the heuristic coarsener!
-      // ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
-      //        "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+      // ASSERT(_pq.getMaxKey() == _rater.rate(rep_node).value,
+      //        "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
       //        << _rater.rate(rep_node).value);
 
       performContraction(rep_node, contracted_node);
 
       ASSERT(_pq.contains(contracted_node), V(contracted_node));
-      _pq.remove(contracted_node);
+      _pq.deleteNode(contracted_node);
       removeMappingEntryOfNode(contracted_node, _target[contracted_node]);
 
       removeSingleNodeHyperedges(rep_node);
@@ -161,7 +161,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
       // explicit containment check is necessary because of V-cycles. In this case, not
       // all hypernodes will be inserted into the PQ at the beginning, because of the
       // restriction that only hypernodes within the same part can be contracted.
-      _pq.remove(hn);
+      _pq.deleteNode(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
