@@ -77,7 +77,7 @@
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 #else
-#define UNUSED(x) x
+#define UNUSED(x) ((void)x)
 #define UNUSED_FUNCTION(x) x
 #endif
 

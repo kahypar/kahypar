@@ -52,9 +52,11 @@ class NoDataBinaryMaxHeap {
   using meta_key_type = meta_key_slot;
   using data_type = void;
 
-  explicit NoDataBinaryMaxHeap(const id_slot& storage_initializer) noexcept
+  explicit NoDataBinaryMaxHeap(const id_slot& storage_initializer,
+                               const key_slot unused = 0) noexcept
     : handles(storage_initializer),
     max_size(storage_initializer + 1) {
+    UNUSED(unused);  // only to satisfy test interface
     next_slot = 0;
     heap.reserve(max_size);
     heap[next_slot] = HeapElement(meta_key_slot::max());  // insert the sentinel element
@@ -97,17 +99,6 @@ class NoDataBinaryMaxHeap {
            << heap[handles[id]].key << "!=" << key);
     ASSERT(heap[handles[id]].id == id, "Push failed - wrong id:"
            << heap[handles[id]].id << "!=" << id);
-  }
-
-  // reinserts an element into the queue or updates the key if the element has been reached
-  inline void update(const id_slot& id, const key_slot& key) noexcept {
-    GUARANTEE(isReached(id), std::runtime_error,
-              "[error] BinaryHeap::update - trying to update an element not reached yet")
-    if (contains(id)) {
-      updateKey(id, key);
-    } else {
-      push(id, key);
-    }
   }
 
   inline void deleteMax() noexcept {

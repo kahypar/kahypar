@@ -132,8 +132,9 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  const HypernodeWeight UNUSED(max_allowed_part_weight),
+                  const HypernodeWeight max_allowed_part_weight,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+    ONLYDEBUG(max_allowed_part_weight);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -247,7 +248,8 @@ class HyperedgeFMRefiner : public IRefiner,
     return false;
   }
 
-  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID UNUSED(to)) noexcept {
+  Gain computeGain(HyperedgeID he, PartitionID from, PartitionID to) noexcept {
+    ONLYDEBUG(to);
     ASSERT((from < 2) && (to < 2), "Trying to compute gain for PartitionIndex >= 2");
     ASSERT((from != Hypergraph::kInvalidPartition) && (to != Hypergraph::kInvalidPartition),
            "Trying to compute gain for invalid partition");
@@ -394,14 +396,14 @@ class HyperedgeFMRefiner : public IRefiner,
   void activateHyperedge(HyperedgeID he) noexcept {
     ASSERT(!isMarkedAsMoved(he),
            "HE " << he << " has already been moved and cannot be activated again");
-    // we have to use reInsert because PQs will be reused during each uncontraction
+    // we have to use insert because PQs will be reused during each uncontraction
     if (!_pq[0]->contains(he) && movePreservesBalanceConstraint(he, 0, 1)) {
-      _pq[0]->reInsert(he, computeGain(he, 0, 1));
+      _pq[0]->insert(he, computeGain(he, 0, 1));
       DBG(dbg_refinement_he_fm_he_activation,
           "inserting HE " << he << " with gain " << _pq[0]->key(he) << " in PQ " << 0);
     }
     if (!_pq[1]->contains(he) && movePreservesBalanceConstraint(he, 1, 0)) {
-      _pq[1]->reInsert(he, computeGain(he, 1, 0));
+      _pq[1]->insert(he, computeGain(he, 1, 0));
       DBG(dbg_refinement_he_fm_he_activation,
           "inserting HE " << he << " with gain " << _pq[1]->key(he) << " in PQ " << 1);
     }
