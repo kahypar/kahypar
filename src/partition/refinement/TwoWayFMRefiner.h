@@ -454,13 +454,12 @@ class TwoWayFMRefiner : public IRefiner,
             if (!_hg.isBorderNode(pin)) {
               DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
                   << to_part);
-              if (_active[pin]) {
-                ASSERT(_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
-                // This invalidation is not necessary since the cached gain will stay up-to-date
-                // _gain_cache[pin] = kNotCached;
-                _pq.remove(pin, (_hg.partID(pin) ^ 1));
-                _active.setBit(pin, false);
-              }
+              ASSERT(_active[pin], V(pin));
+              ASSERT(_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+              // This invalidation is not necessary since the cached gain will stay up-to-date
+              // _gain_cache[pin] = kNotCached;
+              _pq.remove(pin, (_hg.partID(pin) ^ 1));
+              _active.setBit(pin, false);
             } else {
               if (pin_specific_factor != 0) {
                 updatePin(pin, pin_specific_factor, max_allowed_part_weight, he_weight);
