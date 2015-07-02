@@ -91,6 +91,10 @@ class GenericHypergraph {
     PartitionID part_id = kInvalidPartition;
   };
 
+  struct Dummy {
+    void push_back(HypernodeID) { }
+  };
+
   // internal
   using VertexID = unsigned int;
   using ConnectivitySet = std::vector<PartitionID>;
@@ -696,6 +700,15 @@ class GenericHypergraph {
   }
 
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) noexcept {
+    Dummy dummy;  // smart compiler hopefully optimizes this away
+    changeNodePart(hn, from, to, dummy);
+  }
+
+  // Special version for FM algorithm that identifies hypernodes that became non-border
+  // hypernodes because of the move.
+  template <typename Container>
+  void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to,
+                      Container& non_border_hns_to_remove) noexcept {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
     ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
@@ -709,6 +722,13 @@ class GenericHypergraph {
         if (pinCountInPart(he, to) == edgeSize(he)) {
           for (const HypernodeID pin : pins(he)) {
             --_num_incident_cut_hes[pin];
+            if (_num_incident_cut_hes[pin] == 0) {
+              // ASSERT(std::find(non_border_hns_to_remove.cbegin(),
+              //                  non_border_hns_to_remove.cend(), pin) ==
+              //        non_border_hns_to_remove.end(),
+              //        V(pin));
+              non_border_hns_to_remove.push_back(pin);
+            }
           }
         }
       } else if (!no_pins_left_in_source_part && only_one_pin_in_to_part) {

@@ -70,10 +70,12 @@ class TwoWayFMRefiner : public IRefiner,
     _he_fully_active(_hg.initialNumEdges(), false),
     _performed_moves(),
     _hns_to_activate(),
+    _non_border_hns_to_remove(),
     _gain_cache(_hg.initialNumNodes(), kNotCached),
     _rollback_delta_cache(_hg.initialNumNodes(), 0),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _stopping_policy() {
+    _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
     _performed_moves.reserve(_hg.initialNumNodes());
     _hns_to_activate.reserve(_hg.initialNumNodes());
   }
@@ -230,7 +232,12 @@ class TwoWayFMRefiner : public IRefiner,
         } ()
              , "max_gain move does not correspond to expected cut!");
 
-      moveHypernode(max_gain_node, from_part, to_part);
+
+      ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
+      DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
+          << " to " << to_part << " (weight=" << _hg.nodeWeight(max_gain_node) << ")");
+
+      _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
       _marked.setBit(max_gain_node, true);
       _active.setBit(max_gain_node, false);
 
@@ -346,6 +353,27 @@ class TwoWayFMRefiner : public IRefiner,
     }
     _hns_to_activate.clear();
 
+    // changeNodePart collects all pins that become non-border hns after the move
+    // Previously, these nodes were removed directly in fullUpdate. While this is
+    // certainly the correct place to do so, it lead to a significant overhead, because
+    // each time we looked at at pin, it was necessary to check whether or not it still
+    // is a border hypernode. By delaying the removal until all updates are performed
+    // (and therefore doing some unnecessary updates) we get rid of the border node check
+    // in fullUpdate, which significantly reduces the running time for large hypergraphs like
+    // kkt_power.
+    for (const HypernodeID hn : _non_border_hns_to_remove) {
+      DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << hn << " from PQ "
+          << to_part);
+      if (_active[hn]) {
+        ASSERT(_pq.contains(hn, (_hg.partID(hn) ^ 1)), V(hn) << V((_hg.partID(hn) ^ 1)));
+        // This invalidation is not necessary since the cached gain will stay up-to-date
+        // _gain_cache[pin] = kNotCached;
+        _pq.remove(hn, (_hg.partID(hn) ^ 1));
+        _active.setBit(hn, false);
+      }
+    }
+    _non_border_hns_to_remove.clear();
+
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
@@ -451,24 +479,13 @@ class TwoWayFMRefiner : public IRefiner,
             ++num_active_pins;  // since we do lazy activation!
             _hns_to_activate.push_back(pin);
           } else {
-            if (!_hg.isBorderNode(pin)) {
-              DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << pin << " from PQ "
-                  << to_part);
-              ASSERT(_active[pin], V(pin));
-              ASSERT(_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
-              // This invalidation is not necessary since the cached gain will stay up-to-date
-              // _gain_cache[pin] = kNotCached;
-              _pq.remove(pin, (_hg.partID(pin) ^ 1));
-              _active.setBit(pin, false);
-            } else {
-              if (pin_specific_factor != 0) {
-                updatePin(pin, pin_specific_factor, max_allowed_part_weight, he_weight);
-              }
+            if (pin_specific_factor != 0) {
               // Otherwise delta-gain would be zero and zero delta-gain updates are bad.
               // See for example [CadKaMa99]
-              ++num_active_pins;
-              continue;  // caching is done in updatePin in this case
+              updatePin(pin, pin_specific_factor, max_allowed_part_weight, he_weight);
             }
+            ++num_active_pins;
+            continue;    // caching is done in updatePin in this case
           }
         }
         // Caching
@@ -507,7 +524,8 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(factor != 0, V(factor));
     ASSERT(!_marked[pin],
            " Trying to update marked HN " << pin << " in PQ " << target_part);
-    ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
+    // New version actually updates them but removes them afterwards at the end of updateNeighbours
+    // ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
     ASSERT((_hg.partWeight(target_part) < max_allowed_part_weight ?
             _pq.isEnabled(target_part) : !_pq.isEnabled(target_part)), V(target_part));
     const Gain gain_delta = factor * he_weight;
@@ -554,6 +572,7 @@ class TwoWayFMRefiner : public IRefiner,
   FastResetBitVector<> _he_fully_active;
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
+  std::vector<HypernodeID> _non_border_hns_to_remove;
   std::vector<Gain> _gain_cache;
   FastResetVector<Gain> _rollback_delta_cache;
   FastResetVector<char> _locked_hes;
