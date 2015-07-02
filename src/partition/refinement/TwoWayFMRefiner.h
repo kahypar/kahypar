@@ -452,14 +452,12 @@ class TwoWayFMRefiner : public IRefiner,
                              const Gain he_induced_factor) const {
     Gain pin_specific_factor = he_induced_factor;
     if (pin_specific_factor == 0) {
-      const bool potential_single_pin_gain_increase = (pin_count_from_part_after_move == 1);
-      const bool potential_single_pin_gain_decrease = (pin_count_to_part_after_move == 2);
-      if (potential_single_pin_gain_increase && _hg.partID(pin) == from_part) {
+      if ((pin_count_from_part_after_move == 1) && (_hg.partID(pin) == from_part)) {
         // Before move, there were two pins (moved_node and the current pin) in from_part.
         // After moving moved_node to to_part, the gain of the remaining pin in
         // from_part increases by w(he).
         pin_specific_factor = 1;
-      } else if (potential_single_pin_gain_decrease && _hg.partID(pin) == to_part) {
+      } else if ((pin_count_to_part_after_move == 2) && (_hg.partID(pin) == to_part)) {
         // Before move, pin was the only HN in to_part. It thus had a
         // positive gain, because moving it to from_part would have removed
         // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
