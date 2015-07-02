@@ -327,7 +327,7 @@ class TwoWayFMRefiner : public IRefiner,
         } else {
           // he is loose and becomes locked after the move
           fullUpdate(from_part, to_part, he, max_allowed_part_weight);
-          _locked_hes.set(he, kLocked);
+          _locked_hes.uncheckedSet(he, kLocked);
           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
         }
       } else {
@@ -475,7 +475,7 @@ class TwoWayFMRefiner : public IRefiner,
         // Caching
         if (pin_specific_factor != 0) {
           const Gain gain_delta = pin_specific_factor * he_weight;
-          _rollback_delta_cache.set(pin, _rollback_delta_cache.get(pin) - gain_delta);
+          _rollback_delta_cache.update(pin, -gain_delta);
           _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
         }
       }
@@ -517,7 +517,7 @@ class TwoWayFMRefiner : public IRefiner,
         << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
     _pq.updateKeyBy(pin, target_part, gain_delta);
     ASSERT(_gain_cache[pin] != kNotCached, "Error");
-    _rollback_delta_cache.set(pin, _rollback_delta_cache.get(pin) - gain_delta);
+    _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += gain_delta;
   }
 

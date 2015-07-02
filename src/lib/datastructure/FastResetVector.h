@@ -47,6 +47,19 @@ class FastResetVector : public std::vector<T>{
     std::vector<T>::operator[] (n) = value;
   }
 
+  void uncheckedSet(const size_type n, const value_type value) {
+    ASSERT(std::vector<T>::operator[] (n) != _initial_value,
+           "Index " << n << " is still unused and not tracked for reset!");
+    std::vector<T>::operator[] (n) = value;
+  }
+
+  void update(const size_type n, const value_type delta) {
+    if (std::vector<T>::operator[] (n) == _initial_value) {
+      _used_entries.push_back(n);
+    }
+    std::vector<T>::operator[] (n) += delta;
+  }
+
   void resetUsedEntries() {
     while (!_used_entries.empty()) {
       std::vector<T>::operator[] (_used_entries.back()) = _initial_value;

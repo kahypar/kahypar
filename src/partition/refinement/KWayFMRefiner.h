@@ -649,7 +649,7 @@ class KWayFMRefiner : public IRefiner,
           // he is loose and becomes locked after the move
           updatePinsOfLooseHyperedgeBecomingLocked(moved_hn, from_part, to_part, he,
                                                    max_allowed_part_weight);
-          _locked_hes.set(he, kLocked);
+          _locked_hes.uncheckedSet(he, kLocked);
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
         }
       } else {
