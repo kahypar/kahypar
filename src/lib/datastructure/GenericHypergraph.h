@@ -246,6 +246,8 @@ class GenericHypergraph {
  public:
     VertexIterator(const VertexIterator& other) = delete;
     VertexIterator& operator= (const VertexIterator& other) = delete;
+
+    VertexIterator(VertexIterator&& other) = default;
     VertexIterator& operator= (VertexIterator&& other) = default;
 
     VertexIterator() noexcept :
@@ -261,11 +263,6 @@ class GenericHypergraph {
         operator++ ();
       }
     }
-
-    VertexIterator(VertexIterator&& other) noexcept :
-      _id(std::move(other._id)),
-      _max_id(std::move(other._max_id)),
-      _vertex(std::move(other._vertex)) { }
 
     IDType operator* () const noexcept {
       return _id;
@@ -317,6 +314,8 @@ class GenericHypergraph {
   struct Memento {
     Memento(const Memento& other) = delete;
     Memento& operator= (const Memento& other) = delete;
+
+    Memento(Memento&& other) = default;
     Memento& operator= (Memento&& other) = default;
 
     Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
@@ -325,12 +324,6 @@ class GenericHypergraph {
       u_first_entry(u_first_entry_),
       u_size(u_size_),
       v(v_) { }
-
-    Memento(Memento&& other) noexcept :
-      u(std::move(other.u)),
-      u_first_entry(std::move(other.u_first_entry)),
-      u_size(std::move(other.u_size)),
-      v(std::move(other.v)) { }
 
     const HypernodeID u;
     const HypernodeID u_first_entry;
@@ -534,21 +527,22 @@ class GenericHypergraph {
 
   std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
     return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(), 0, _num_hypernodes),
-                                    HypernodeIterator((_hypernodes.data() + _num_hypernodes), _num_hypernodes,
-                                                      _num_hypernodes)));
+                                    HypernodeIterator((_hypernodes.data() + _num_hypernodes),
+                                                      _num_hypernodes,_num_hypernodes)));
   }
 
   std::pair<HyperedgeIterator, HyperedgeIterator> edges() const noexcept {
     return std::move(std::make_pair(HyperedgeIterator(_hyperedges.data(), 0, _num_hyperedges),
-                                    HyperedgeIterator((_hyperedges.data() + _num_hyperedges), _num_hyperedges,
-                                                      _num_hyperedges)));
+                                    HyperedgeIterator((_hyperedges.data() + _num_hyperedges),
+                                                      _num_hyperedges, _num_hyperedges)));
   }
 
-  std::pair<const PartitionID*, const PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
+  std::pair<const PartitionID*, const PartitionID*> connectivitySet(const HyperedgeID he)
+      const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     return std::move(std::make_pair(hyperedge(he).connectivity_set_begin,
-                                    hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity)
-                     );
+                                    hyperedge(he).connectivity_set_begin
+                                    + hyperedge(he).connectivity));
   }
 
   Memento contract(const HypernodeID u, const HypernodeID v) noexcept {
