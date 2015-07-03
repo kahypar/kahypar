@@ -739,7 +739,17 @@ class GenericHypergraph {
         }
       }
 
-      ASSERT([&]() {
+      ASSERT([&]() -> bool {
+          HypernodeID num_pins = 0;
+          for (PartitionID i = 0; i < _k; ++i) {
+            num_pins += pinCountInPart(he, i);
+          }
+          return num_pins == edgeSize(he);
+        } (),
+             "Incorrect calculation of pin counts");
+    }
+
+    ASSERT([&]() {
           for (const HyperedgeID he : incidentEdges(hn)) {
             for (const HypernodeID pin : pins(he)) {
               if (_num_incident_cut_hes[pin] != numIncidentCutHEs(pin)) {
@@ -753,15 +763,6 @@ class GenericHypergraph {
           return true;
         } (), "Inconsisten #CutHEs state");
 
-      ASSERT([&]() -> bool {
-          HypernodeID num_pins = 0;
-          for (PartitionID i = 0; i < _k; ++i) {
-            num_pins += pinCountInPart(he, i);
-          }
-          return num_pins == edgeSize(he);
-        } (),
-             "Incorrect calculation of pin counts");
-    }
   }
 
   bool isBorderNode(const HypernodeID hn) const {
