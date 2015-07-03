@@ -626,14 +626,14 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
                         HyperedgeVector { 0 });
   hypergraph.setNodePart(0, 0);
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
-  ASSERT_THAT(*hypergraph.connectivitySet(0).begin(), Eq(0));
+  ASSERT_THAT(*hypergraph.connectivitySet(0).first, Eq(0));
 
   hypergraph.removeEdge(0, false);
   hypergraph.changeNodePart(0, 0, 1);
   hypergraph.restoreEdge(0);
 
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
-  ASSERT_THAT(*hypergraph.connectivitySet(0).begin(), Eq(1));
+  ASSERT_THAT(*hypergraph.connectivitySet(0).first, Eq(1));
 }
 
 TEST_F(AHypergraph, MaintainsCorrectPartSizesDuringUncontraction) {
@@ -716,14 +716,14 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
 
   ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
   ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
-  ASSERT_THAT(extr_part0.first->_connectivity_sets.size(), Eq(4));
 
   for (const HyperedgeID he: extr_part0.first->edges()) {
-    ASSERT_THAT(extr_part0.first->connectivitySet(he).size(), Eq(0));
+    ASSERT_THAT(extr_part0.first->connectivity(he), Eq(0));
   }
 
-  ASSERT_THAT(extr_part0.first->_part_ids, ContainerEq(
-                std::vector<PartitionID>{ -1, -1, -1, -1, -1, -1, -1 }));
+  for (const HypernodeID hn : extr_part0.first->nodes()) {
+    ASSERT_THAT(extr_part0.first->partID(hn), Eq(-1));
+  }
 }
 
 

@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -21,7 +20,6 @@
 #include "partition/refinement/IRefiner.h"
 
 using datastructure::NoDataBinaryMaxHeap;
-using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -44,10 +42,8 @@ struct CoarseningMemento {
 };
 
 template <class Rater = Mandatory,
-          class PrioQueue = PriorityQueue<
-            NoDataBinaryMaxHeap<HypernodeID,
-                                typename Rater::RatingType>
-            > >
+          class PrioQueue = NoDataBinaryMaxHeap<HypernodeID,
+                                                typename Rater::RatingType>>
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  protected:
   using Base = CoarsenerBase<CoarseningMemento>;
@@ -134,7 +130,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     for (size_t i = 0; i < permutation.size(); ++i) {
       const Rating rating = _rater.rate(permutation[i]);
       if (rating.valid) {
-        _pq.insert(permutation[i], rating.value);
+        _pq.push(permutation[i], rating.value);
         target[permutation[i]] = rating.target;
         sources.insert({ rating.target, permutation[i] });
       }

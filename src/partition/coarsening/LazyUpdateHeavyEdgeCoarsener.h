@@ -12,13 +12,11 @@
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
 #include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
 
-using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using utils::Stats;
@@ -67,11 +65,11 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
     rateAllHypernodes(_target, null_map);
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      const HypernodeID rep_node = _pq.max();
+      const HypernodeID rep_node = _pq.getMax();
 
       if (_outdated_rating[rep_node]) {
         DBG(dbg_coarsening_coarsen,
-            "Rating for HN" << rep_node << " is invalid: " << _pq.maxKey() << "--->"
+            "Rating for HN" << rep_node << " is invalid: " << _pq.getMaxKey() << "--->"
             << _rater.rate(rep_node).value << " target=" << _rater.rate(rep_node).target
             << " valid= " << _rater.rate(rep_node).valid);
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
@@ -79,17 +77,17 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
         const HypernodeID contracted_node = _target[rep_node];
 
         DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-            << _target[rep_node] << ") prio: " << _pq.maxKey());
+            << _target[rep_node] << ") prio: " << _pq.getMaxKey());
         ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
                <= _rater.thresholdNodeWeight(),
                "Trying to contract nodes violating maximum node weight");
-        ASSERT(_pq.maxKey() == _rater.rate(rep_node).value,
-               "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+        ASSERT(_pq.getMaxKey() == _rater.rate(rep_node).value,
+               "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
                << _rater.rate(rep_node).value);
 
         performContraction(rep_node, contracted_node);
         ASSERT(_pq.contains(contracted_node), V(contracted_node));
-        _pq.remove(contracted_node);
+        _pq.deleteNode(contracted_node);
 
         removeSingleNodeHyperedges(rep_node);
         removeParallelHyperedges(rep_node);
@@ -131,7 +129,7 @@ class LazyUpdateHeavyEdgeCoarsener : public ICoarsener,
       // method is only called on rep_node, which is definetly in the PQ.
       ASSERT(_pq.contains(hn),
              "Trying to remove rating of HN " << hn << " which is not in PQ");
-      _pq.remove(hn);
+      _pq.deleteNode(hn);
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)

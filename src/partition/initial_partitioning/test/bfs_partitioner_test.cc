@@ -12,8 +12,6 @@
 #include <queue>
 
 #include "lib/io/HypergraphIO.h"
-#include "lib/datastructure/BucketQueue.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
@@ -94,17 +92,17 @@ public:
 		HyperedgeID num_hyperedges;
 		HyperedgeIndexVector index_vector;
 		HyperedgeVector edge_vector;
-		HyperedgeWeightVector* hyperedge_weights = NULL;
-		HypernodeWeightVector* hypernode_weights = NULL;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
 
-		PartitionID k = 32;
+		PartitionID k = 4;
 		io::readHypergraphFile(
 				config.initial_partitioning.coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				hyperedge_weights, hypernode_weights);
+				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, hyperedge_weights,
-				hypernode_weights);
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph->nodes()) {
@@ -136,16 +134,16 @@ public:
 		HyperedgeID num_hyperedges;
 		HyperedgeIndexVector index_vector;
 		HyperedgeVector edge_vector;
-		HyperedgeWeightVector* hyperedge_weights = NULL;
-		HypernodeWeightVector* hypernode_weights = NULL;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
 
 		io::readHypergraphFile(
 				config.initial_partitioning.coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				hyperedge_weights, hypernode_weights);
+				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, hyperedge_weights,
-				hypernode_weights);
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph->nodes()) {
@@ -277,7 +275,7 @@ TEST_F(AKWayBFSInitialPartitionerTest, GrowPartitionOnPartitionMinus1) {
 
 TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -287,7 +285,7 @@ TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
 
 TEST_F(ABFSRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -310,7 +308,7 @@ TEST_F(ABFSRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(ABFSRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 

@@ -19,11 +19,11 @@ struct EligibleTopGain {
                           const PrioQueue& pq0, const PrioQueue& pq1) noexcept {
     Gain gain_pq0 = std::numeric_limits<Gain>::min();
     if (pq0_eligible) {
-      gain_pq0 = pq0->maxKey();
+      gain_pq0 = pq0->getMaxKey();
     }
     bool chosen_pq_index = 0;
-    if (pq1_eligible && ((pq1->maxKey() > gain_pq0) ||
-                         (pq1->maxKey() == gain_pq0 && Randomize::flipCoin()))) {
+    if (pq1_eligible && ((pq1->getMaxKey() > gain_pq0) ||
+                         (pq1->getMaxKey() == gain_pq0 && Randomize::flipCoin()))) {
       chosen_pq_index = 1;
     }
     return chosen_pq_index;

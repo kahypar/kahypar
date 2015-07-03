@@ -19,7 +19,6 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -141,21 +140,23 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
+#ifdef USE_BUCKET_PQ
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+    if (!_is_initialized) {
+      _pq.initialize(_hg.initialNumNodes(), max_gain);
+      _is_initialized = true;
+    }
+    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
+  }
+#else
   void initializeImpl() noexcept final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
-      _hg.initializeNumCutHyperedges();
+      _is_initialized = true;
     }
-    _is_initialized = true;
+    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
   }
-
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
-    if (!_is_initialized) {
-      _pq.initialize(max_gain);
-      _hg.initializeNumCutHyperedges();
-    }
-    _is_initialized = true;
-  }
+#endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const HypernodeWeight max_allowed_part_weight,
@@ -510,12 +511,11 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
     ASSERT((_hg.partWeight(target_part) < max_allowed_part_weight ?
             _pq.isEnabled(target_part) : !_pq.isEnabled(target_part)), V(target_part));
-    const Gain old_gain = _pq.key(pin, target_part);
     const Gain gain_delta = factor * he_weight;
     DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
-        << " from gain " << old_gain << " to " << old_gain + gain_delta << " in PQ "
-        << target_part);
-    _pq.updateKey(pin, target_part, old_gain + gain_delta);
+        << " from gain " << _pq.key(pin, target_part) << " to "
+        << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
+    _pq.updateKeyBy(pin, target_part, gain_delta);
     ASSERT(_gain_cache[pin] != kNotCached, "Error");
     _rollback_delta_cache.set(pin, _rollback_delta_cache.get(pin) - gain_delta);
     _gain_cache[pin] += gain_delta;

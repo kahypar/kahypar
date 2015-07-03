@@ -155,8 +155,10 @@ public:
 		for (const HyperedgeID he : _hg.incidentEdges(hn)) {
 
 			if (_hg.connectivity(he) == 1) {
-				const PartitionID partition_in_edge =
-						*_hg.connectivitySet(he).begin();
+				PartitionID partition_in_edge = 0;
+				for (const PartitionID part : _hg.connectivitySet(he)) {
+					partition_in_edge = part;
+				}
 				internal_weight += _hg.edgeWeight(he);
 				tmp_scores[partition_in_edge] += _hg.edgeWeight(he);
 			} else {

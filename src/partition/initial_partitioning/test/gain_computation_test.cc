@@ -21,8 +21,8 @@
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/datastructure/FastResetBitVector.h"
+#include "lib/datastructure/KWayPriorityQueue.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -32,12 +32,12 @@ using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;
 using defs::HyperedgeID;
 using partition::FMGainComputationPolicy;
+using datastructure::KWayPriorityQueue;
 
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+std::numeric_limits<HyperedgeWeight> >;
 using Gain = HyperedgeWeight;
 
-using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
-std::numeric_limits<HyperedgeWeight> >;
-using PrioQueue = PriorityQueue<TwoWayFMHeap>;
 
 namespace partition {
 
@@ -46,7 +46,7 @@ public:
 	AGainComputationTest() :
 			hypergraph(7, 4,
 					HyperedgeIndexVector { 0, 2, 6, 9, /*sentinel*/12 },
-					HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(),pq() {
+					HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(),pq(2) {
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph.nodes()) {
@@ -60,23 +60,20 @@ public:
 			hypergraph.setNodePart(hn,1);
 		}
 
+		pq.initialize(hypergraph.initialNumNodes());
 		initializeConfiguration(hypergraph_weight);
 
-		pq.resize(2);
-		for (PartitionID i = 0; i < 2; i++) {
-			pq[i] = new PrioQueue(hypergraph.numNodes());
-		}
 	}
 
 	template<class GainComputationPolicy>
 	void pushAllHypernodesIntoQueue() {
-		pq[1]->insert(0,GainComputationPolicy::calculateGain(hypergraph,0,1));
-		pq[1]->insert(1,GainComputationPolicy::calculateGain(hypergraph,1,1));
-		pq[1]->insert(2,GainComputationPolicy::calculateGain(hypergraph,2,1));
-		pq[0]->insert(3,GainComputationPolicy::calculateGain(hypergraph,3,0));
-		pq[0]->insert(4,GainComputationPolicy::calculateGain(hypergraph,4,0));
-		pq[0]->insert(5,GainComputationPolicy::calculateGain(hypergraph,5,0));
-		pq[0]->insert(6,GainComputationPolicy::calculateGain(hypergraph,6,0));
+		pq.insert(0,1,GainComputationPolicy::calculateGain(hypergraph,0,1));
+		pq.insert(1,1,GainComputationPolicy::calculateGain(hypergraph,1,1));
+		pq.insert(2,1,GainComputationPolicy::calculateGain(hypergraph,2,1));
+		pq.insert(3,0,GainComputationPolicy::calculateGain(hypergraph,3,0));
+		pq.insert(4,0,GainComputationPolicy::calculateGain(hypergraph,4,0));
+		pq.insert(5,0,GainComputationPolicy::calculateGain(hypergraph,5,0));
+		pq.insert(6,0,GainComputationPolicy::calculateGain(hypergraph,6,0));
 	}
 
 	void initializeConfiguration(HypernodeWeight hypergraph_weight) {
@@ -97,7 +94,7 @@ public:
 		}
 	}
 
-	std::vector<PrioQueue*> pq;
+	KWayRefinementPQ pq;
 	Hypergraph hypergraph;
 	Configuration config;
 
@@ -119,15 +116,15 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdate) {
 	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<FMGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
-	pq[0]->remove(3);
+	pq.remove(3,0);
 	FastResetBitVector<> visit(hypergraph.numNodes(),false);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
-	ASSERT_EQ(pq[1]->key(0),-1);
-	ASSERT_EQ(pq[1]->key(1),0);
-	ASSERT_EQ(pq[1]->key(2),0);
-	ASSERT_EQ(pq[0]->key(4),1);
-	ASSERT_EQ(pq[0]->key(5),0);
-	ASSERT_EQ(pq[0]->key(6),0);
+	FMGainComputationPolicy::deltaGainUpdate(hypergraph,config,pq,3,1,0,visit);
+	ASSERT_EQ(pq.key(0,1),-1);
+	ASSERT_EQ(pq.key(1,1),0);
+	ASSERT_EQ(pq.key(2,1),0);
+	ASSERT_EQ(pq.key(4,0),1);
+	ASSERT_EQ(pq.key(5,0),0);
+	ASSERT_EQ(pq.key(6,0),0);
 }
 
 TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainComputation) {
@@ -144,15 +141,15 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainsAfterDeltaGainUpdate) {
 	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
-	pq[0]->remove(3);
+	pq.remove(3,0);
 	FastResetBitVector<> visit(hypergraph.numNodes(),false);
-	MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
-	ASSERT_EQ(pq[1]->key(0),1);
-	ASSERT_EQ(pq[1]->key(1),1);
-	ASSERT_EQ(pq[1]->key(2),2);
-	ASSERT_EQ(pq[0]->key(4),3);
-	ASSERT_EQ(pq[0]->key(5),1);
-	ASSERT_EQ(pq[0]->key(6),2);
+	MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph,config,pq,3,1,0,visit);
+	ASSERT_EQ(pq.key(0,1),1);
+	ASSERT_EQ(pq.key(1,1),1);
+	ASSERT_EQ(pq.key(2,1),2);
+	ASSERT_EQ(pq.key(4,0),3);
+	ASSERT_EQ(pq.key(5,0),1);
+	ASSERT_EQ(pq.key(6,0),2);
 }
 
 TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainComputation) {
@@ -169,15 +166,15 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainsAfterDeltaGainUpdate) {
 	hypergraph.initializeNumCutHyperedges();
 	pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>();
 	hypergraph.changeNodePart(3,1,0);
-	pq[0]->remove(3);
+	pq.remove(3,0);
 	FastResetBitVector<> visit(hypergraph.numNodes(),false);
-	MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph,pq,3,1,0,visit);
-	ASSERT_EQ(pq[1]->key(0),1);
-	ASSERT_EQ(pq[1]->key(1),1);
-	ASSERT_EQ(pq[1]->key(2),1);
-	ASSERT_EQ(pq[0]->key(4),2);
-	ASSERT_EQ(pq[0]->key(5),1);
-	ASSERT_EQ(pq[0]->key(6),2);
+	MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph,config,pq,3,1,0,visit);
+	ASSERT_EQ(pq.key(0,1),1);
+	ASSERT_EQ(pq.key(1,1),1);
+	ASSERT_EQ(pq.key(2,1),1);
+	ASSERT_EQ(pq.key(4,0),2);
+	ASSERT_EQ(pq.key(5,0),1);
+	ASSERT_EQ(pq.key(6,0),2);
 }
 
 }

@@ -6,9 +6,6 @@
 #define SRC_LIB_CORE_EMPTY_H_
 
 namespace core {
-class Empty {
- protected:
-  ~Empty() { }
-};
+struct Empty {};
 }  // namespace core
 #endif  // SRC_LIB_CORE_EMPTY_H_

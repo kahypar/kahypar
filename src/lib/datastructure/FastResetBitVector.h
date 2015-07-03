@@ -10,6 +10,8 @@
 #include <limits>
 #include <vector>
 
+#include "lib/macros.h"
+
 // based on http://upcoder.com/9/fast-resettable-flag-vector/
 
 using std::size_t;
@@ -19,13 +21,17 @@ namespace datastructure {
 template <typename UnderlyingType = std::uint16_t>
 class FastResetBitVector {
  public:
-  FastResetBitVector(const size_t size, const bool initialiser) :
-    _v(size, initialiser ? 1 : 0),
-    _threshold(1) { }
+  FastResetBitVector(const size_t size, const bool initialiser = false) :
+    _v(std::make_unique<UnderlyingType[]>(size)),
+    _threshold(1),
+    _size(size) {
+    memset(_v.get(), (initialiser ? 1 : 0), size * sizeof(UnderlyingType));
+  }
 
   FastResetBitVector() :
-    _v(),
-    _threshold(1) { }
+    _v(nullptr),
+    _threshold(1),
+    _size(0) { }
 
   FastResetBitVector(const FastResetBitVector&) = delete;
   FastResetBitVector& operator= (const FastResetBitVector&) = delete;
@@ -49,7 +55,7 @@ class FastResetBitVector {
 
   void resetAllBitsToFalse() {
     if (_threshold == std::numeric_limits<UnderlyingType>::max()) {
-      for (size_t i = 0; i != _v.size(); ++i) {
+      for (size_t i = 0; i != _size; ++i) {
         _v[i] = 0;
       }
       _threshold = 0;
@@ -57,8 +63,11 @@ class FastResetBitVector {
     ++_threshold;
   }
 
-  void resize(const size_t size, const bool initialiser = false) {
-    _v.resize(size, initialiser);
+  void setSize(const size_t size, const bool initialiser = false) {
+    ASSERT(_v == nullptr, "Error");
+    _v = std::make_unique<UnderlyingType[]>(size);
+    _size = size;
+    memset(_v.get(), (initialiser ? 1 : 0), size * sizeof(UnderlyingType));
   }
 
 
@@ -67,8 +76,9 @@ class FastResetBitVector {
     return _v[i] == _threshold;
   }
 
-  std::vector<UnderlyingType> _v;
+  std::unique_ptr<UnderlyingType[]> _v;
   UnderlyingType _threshold;
+  size_t _size;
 };
 
 template <typename UnderlyingType>

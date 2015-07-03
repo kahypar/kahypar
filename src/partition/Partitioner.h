@@ -218,6 +218,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   end = std::chrono::high_resolution_clock::now();
   _timings[kInitialPartitioning] = end - start;
 
+  hypergraph.sortConnectivitySets();
+  hypergraph.initializeNumCutHyperedges();
+
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
@@ -234,6 +237,8 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   _timings[kCoarsening] += end - start;
 
   utils::gatherCoarseningStats(hypergraph, vcycle, k1, k2);
+
+  hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);

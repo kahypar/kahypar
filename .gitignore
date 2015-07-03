@@ -21,3 +21,4 @@ benchmark/build/*
 benchmark/results/notebooks/.ipynb_checkpoints/*
 benchmark/results/notebooks/*/
 benchmark_instances/
+/Debug/

@@ -10,7 +10,6 @@
 
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
@@ -22,7 +21,6 @@
 #include "tools/RandomFunctions.h"
 
 using datastructure::NoDataBinaryMaxHeap;
-using datastructure::PriorityQueue;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -88,8 +86,8 @@ class HyperedgeCoarsener : public ICoarsener,
     rateAllHyperedges();
 
     while (!_pq.empty() && _hg.numNodes() > limit) {
-      const HyperedgeID he_to_contract = _pq.max();
-      DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.maxKey());
+      const HyperedgeID he_to_contract = _pq.getMax();
+      DBG(dbg_coarsening_coarsen, "Contracting HE" << he_to_contract << " prio: " << _pq.getMaxKey());
       DBG(dbg_coarsening_coarsen, "w(" << he_to_contract << ")=" << _hg.edgeWeight(he_to_contract));
       DBG(dbg_coarsening_coarsen, "|" << he_to_contract << "|=" << _hg.edgeSize(he_to_contract));
 
@@ -101,9 +99,9 @@ class HyperedgeCoarsener : public ICoarsener,
           return total_weight;
         } () <= _config.coarsening.max_allowed_node_weight,
              "Contracting HE " << he_to_contract << "leads to violation of node weight threshold");
-      ASSERT(_pq.maxKey() == RatingPolicy::rate(he_to_contract, _hg,
+      ASSERT(_pq.getMaxKey() == RatingPolicy::rate(he_to_contract, _hg,
                                                 _config.coarsening.max_allowed_node_weight).value,
-             "Key in PQ != rating calculated by rater:" << _pq.maxKey() << "!="
+             "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
              << RatingPolicy::rate(he_to_contract, _hg, _config.coarsening.max_allowed_node_weight).value);
 
       // TODO(schlag): If contraction would lead to too few hypernodes, we are not allowed to contract
@@ -111,7 +109,7 @@ class HyperedgeCoarsener : public ICoarsener,
       //              Or do we just say we coarsen until there are no more than 150 nodes left?
 
       const HypernodeID rep_node = performContraction(he_to_contract);
-      _pq.remove(he_to_contract);
+      _pq.deleteNode(he_to_contract);
 
       removeSingleNodeHyperedges(rep_node);
       removeParallelHyperedges(rep_node);
@@ -149,7 +147,7 @@ class HyperedgeCoarsener : public ICoarsener,
 
   void removeHyperedgeFromPQ(const HyperedgeID he) noexcept {
     if (_pq.contains(he)) {
-      _pq.remove(he);
+      _pq.deleteNode(he);
     }
   }
 
@@ -189,7 +187,7 @@ class HyperedgeCoarsener : public ICoarsener,
         // HEs that would violate node_weight_treshold are not inserted
         // since their rating is set to invalid!
         DBG(dbg_coarsening_rating, "Inserting HE " << he << " rating=" << rating.value);
-        _pq.insert(he, rating.value);
+        _pq.push(he, rating.value);
       }
     }
   }
@@ -204,7 +202,7 @@ class HyperedgeCoarsener : public ICoarsener,
           DBG(false, "Updating HE " << he << " rating=" << rating.value);
           _pq.updateKey(he, rating.value);
         } else {
-          _pq.remove(he);
+          _pq.deleteNode(he);
         }
       }
     }
@@ -260,7 +258,7 @@ class HyperedgeCoarsener : public ICoarsener,
   using Base::_config;
   using Base::_history;
   using Base::_hypergraph_pruner;
-  PriorityQueue<NoDataBinaryMaxHeap<HyperedgeID, RatingType> > _pq;
+  NoDataBinaryMaxHeap<HyperedgeID, RatingType> _pq;
   std::vector<ContractionMemento> _contraction_mementos;
 };
 }  // namespace partition

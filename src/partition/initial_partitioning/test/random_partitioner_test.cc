@@ -4,8 +4,6 @@
 #include <queue>
 
 #include "lib/io/HypergraphIO.h"
-#include "lib/datastructure/BucketQueue.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
@@ -62,17 +60,17 @@ public:
 		HyperedgeID num_hyperedges;
 		HyperedgeIndexVector index_vector;
 		HyperedgeVector edge_vector;
-		HyperedgeWeightVector* hyperedge_weights = NULL;
-		HypernodeWeightVector* hypernode_weights = NULL;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
 
 		PartitionID k = 2;
 		io::readHypergraphFile(
 				config.initial_partitioning.coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				hyperedge_weights, hypernode_weights);
+				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, hyperedge_weights,
-				hypernode_weights);
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph->nodes()) {
@@ -104,16 +102,16 @@ public:
 		HyperedgeID num_hyperedges;
 		HyperedgeIndexVector index_vector;
 		HyperedgeVector edge_vector;
-		HyperedgeWeightVector* hyperedge_weights = NULL;
-		HypernodeWeightVector* hypernode_weights = NULL;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
 
 		io::readHypergraphFile(
 				config.initial_partitioning.coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				hyperedge_weights, hypernode_weights);
+				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, hyperedge_weights,
-				hypernode_weights);
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph->nodes()) {
@@ -144,16 +142,16 @@ public:
 		HyperedgeID num_hyperedges;
 		HyperedgeIndexVector index_vector;
 		HyperedgeVector edge_vector;
-		HyperedgeWeightVector* hyperedge_weights = NULL;
-		HypernodeWeightVector* hypernode_weights = NULL;
+		HyperedgeWeightVector hyperedge_weights;
+		HypernodeWeightVector hypernode_weights;
 
 		io::readHypergraphFile(
 				config.initial_partitioning.coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				hyperedge_weights, hypernode_weights);
+				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, hyperedge_weights,
-				hypernode_weights);
+				index_vector, edge_vector, k, &hyperedge_weights,
+				&hypernode_weights);
 
 		HypernodeWeight hypergraph_weight = 0;
 		for (HypernodeID hn : hypergraph->nodes()) {
@@ -191,7 +189,7 @@ TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -201,7 +199,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
 
 TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -224,7 +222,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -235,7 +233,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(ARandomRecursiveBisectionTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -245,7 +243,7 @@ TEST_F(ARandomRecursiveBisectionTest, HasValidImbalance) {
 
 TEST_F(ARandomRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -268,7 +266,7 @@ TEST_F(ARandomRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(ARandomRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 

@@ -11,15 +11,12 @@
 #include <queue>
 
 #include "lib/io/HypergraphIO.h"
-#include "lib/datastructure/BucketQueue.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/test/greedy_hypergraph_growing_TestFixtures.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "lib/datastructure/FastResetBitVector.h"
 
@@ -35,14 +32,8 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 
 
-using datastructure::BucketQueue;
-using datastructure::PriorityQueue;
-
-
 using Gain = HyperedgeWeight;
 
-using TwoWayFMHeap = NoDataBinaryMaxHeap<HypernodeID, Gain,
-                                         std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
 
@@ -57,12 +48,11 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAndHyp
 		}
 	}
 
-	PriorityQueue<TwoWayFMHeap>* bq = new PriorityQueue<TwoWayFMHeap>(2 * hypergraph.numNodes());
-	base->processNodeForBucketPQ(*bq,2,0,true);
-	base->processNodeForBucketPQ(*bq,4,0,true);
-	base->processNodeForBucketPQ(*bq,6,0,true);
-	ASSERT_EQ(bq->size(),3);
-	ASSERT_TRUE(bq->max() == 2 && bq->maxKey() == 0);
+	base->insertNodeIntoPQ(2,0,-1,true);
+	base->insertNodeIntoPQ(4,0,-1,true);
+	base->insertNodeIntoPQ(6,0,-1,true);
+	ASSERT_EQ(base->size(),3);
+	ASSERT_TRUE(base->maxFromPartition(0) == 2 && base->maxKeyFromPartition(0) == 0);
 }
 
 
@@ -78,13 +68,13 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectGainValueAfterUpda
 		}
 	}
 	hypergraph.initializeNumCutHyperedges();
-	base->processNodeForBucketPQ(*pq[1],0,1,true);
-	ASSERT_EQ(pq[1]->max(),0);
-	ASSERT_EQ(pq[1]->maxKey(),2);
+	base->insertNodeIntoPQ(0,1,-1,true);
+	ASSERT_EQ(base->maxFromPartition(1),0);
+	ASSERT_EQ(base->maxKeyFromPartition(1),2);
 	hypergraph.changeNodePart(2,1,0);
-	base->processNodeForBucketPQ(*pq[1],0,1,true);
-	ASSERT_EQ(pq[1]->max(),0);
-	ASSERT_EQ(pq[1]->maxKey(),0);
+	base->insertNodeIntoPQ(0,1,-1,true);
+	ASSERT_EQ(base->maxFromPartition(1),0);
+	ASSERT_EQ(base->maxKeyFromPartition(1),0);
 }
 
 TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdate) {
@@ -98,22 +88,19 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 		}
 	}
 	hypergraph.initializeNumCutHyperedges();
-	base->processNodeForBucketPQ(*pq[1],0,1,false);
-	base->processNodeForBucketPQ(*pq[0],2,0,false);
-	base->processNodeForBucketPQ(*pq[0],4,0,false);
-	base->processNodeForBucketPQ(*pq[0],6,0,false);
+	base->insertNodeIntoPQ(0,1,-1,false);
+	base->insertNodeIntoPQ(2,0,-1,false);
+	base->insertNodeIntoPQ(4,0,-1,false);
+	base->insertNodeIntoPQ(6,0,-1,false);
 
 	hypergraph.changeNodePart(2,1,0);
-	base->deleteNodeInAllBucketQueues(pq,2);
-	FastResetBitVector<> visit(hypergraph.numNodes(),false);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,2,1,0,visit);
+	base->insertAndUpdateNodesAfterMove(2,0,1,false);
 
 	hypergraph.changeNodePart(4,1,0);
-	base->deleteNodeInAllBucketQueues(pq,4);
-	FMGainComputationPolicy::deltaGainUpdate(hypergraph,pq,4,1,0,visit);
+	base->insertAndUpdateNodesAfterMove(4,0,1,false);
 
-	ASSERT_TRUE(pq[0]->max() == 6 && pq[0]->maxKey() == 0);
-	ASSERT_EQ(pq[0]->size(), 1);
+	ASSERT_TRUE(base->maxFromPartition(0) == 6 && base->maxKeyFromPartition(0) == 0);
+	ASSERT_EQ(base->size(), 2);
 
 }
 
@@ -128,18 +115,23 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, GetCorrectMaxGainHypernodeAndPa
 		}
 	}
 
+	std::vector<PartitionID> parts {0, 1};
+	std::vector<bool> enable {true, true};
 	config.initial_partitioning.unassigned_part = 0;
 	config.initial_partitioning.upper_allowed_partition_weight[0] = 7;
 	config.initial_partitioning.upper_allowed_partition_weight[1] = 7;
 
-	base->processNodeForBucketPQ(*pq[1],0,1,false);
-	base->processNodeForBucketPQ(*pq[0],2,0,false);
-	base->processNodeForBucketPQ(*pq[0],4,0,false);
-	base->processNodeForBucketPQ(*pq[0],6,0,false);
-	std::pair<HypernodeID,PartitionID> max_gain_move = base->getMaxGainHypernode(pq);
-	ASSERT_EQ(max_gain_move.first,0);
-	ASSERT_EQ(max_gain_move.second, 1);
-	ASSERT_EQ(pq[max_gain_move.second]->maxKey(),2);
+	base->insertNodeIntoPQ(0,1,-1,false);
+	base->insertNodeIntoPQ(2,0,-1,false);
+	base->insertNodeIntoPQ(4,0,-1,false);
+	base->insertNodeIntoPQ(6,0,-1,false);
+	HypernodeID best_node = 1000;
+	PartitionID best_part = -1;
+	Gain best_gain = -1;
+	base->getGlobalMaxGainMove(best_node, best_part, best_gain, enable, parts, -1);
+	ASSERT_EQ(best_node,0);
+	ASSERT_EQ(best_part, 1);
+	ASSERT_EQ(best_gain,2);
 }
 
 TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPriorityQueue) {
@@ -157,13 +149,12 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPr
 	config.initial_partitioning.upper_allowed_partition_weight[0] = 7;
 	config.initial_partitioning.upper_allowed_partition_weight[1] = 7;
 
-	base->processNodeForBucketPQ(*pq[1],0,1,false);
-	base->processNodeForBucketPQ(*pq[0],2,0,false);
-	base->processNodeForBucketPQ(*pq[0],4,0,false);
-	base->processNodeForBucketPQ(*pq[0],6,0,false);
-	base->deleteNodeInAllBucketQueues(pq,0);
-	ASSERT_EQ(pq[0]->size(),3);
-	ASSERT_EQ(pq[1]->size(),0);
+	base->insertNodeIntoPQ(0,1,-1,false);
+	base->insertNodeIntoPQ(2,0,-1,false);
+	base->insertNodeIntoPQ(4,0,-1,false);
+	base->insertNodeIntoPQ(6,0,-1,false);
+	base->deleteNodeInAllBucketQueues(0);
+	ASSERT_EQ(base->size(),3);
 }
 
 
@@ -199,8 +190,8 @@ TEST_F(AGreedyGlobalBisectionTest, ExpectedGreedyGlobalBisectionResult) {
 TEST_F(AGreedyRoundRobinBisectionTest, ExpectedGreedyRoundRobinBisectionResult) {
 
 	partitioner->partition(2);
-	std::vector<HypernodeID> partition_zero {0,1,2,4};
-	std::vector<HypernodeID> partition_one {3,5,6};
+	std::vector<HypernodeID> partition_zero {0,1,3,4};
+	std::vector<HypernodeID> partition_one {2,5,6};
 
 	for(unsigned int i = 0; i < partition_zero.size(); i++) {
 		ASSERT_EQ(hypergraph.partID(partition_zero[i]),0);
@@ -213,7 +204,7 @@ TEST_F(AGreedyRoundRobinBisectionTest, ExpectedGreedyRoundRobinBisectionResult) 
 
 TEST_F(AKWayGreedySequentialTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -223,7 +214,7 @@ TEST_F(AKWayGreedySequentialTest, HasValidImbalance) {
 
 TEST_F(AKWayGreedySequentialTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -245,7 +236,7 @@ TEST_F(AKWayGreedySequentialTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(AKWayGreedySequentialTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -256,7 +247,7 @@ TEST_F(AKWayGreedySequentialTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AKWayGreedyGlobalTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -266,7 +257,7 @@ TEST_F(AKWayGreedyGlobalTest, HasValidImbalance) {
 
 TEST_F(AKWayGreedyGlobalTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -287,7 +278,7 @@ TEST_F(AKWayGreedyGlobalTest, HasNoSignificantLowPartitionWeights) {
 }
 
 TEST_F(AKWayGreedyGlobalTest, LeavesNoHypernodeUnassigned) {
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -298,7 +289,7 @@ TEST_F(AKWayGreedyGlobalTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AKWayGreedyRoundRobinTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -308,7 +299,7 @@ TEST_F(AKWayGreedyRoundRobinTest, HasValidImbalance) {
 
 TEST_F(AKWayGreedyRoundRobinTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -330,7 +321,7 @@ TEST_F(AKWayGreedyRoundRobinTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(AKWayGreedyRoundRobinTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -341,7 +332,7 @@ TEST_F(AKWayGreedyRoundRobinTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AGreedyRecursiveBisectionTest, HasValidImbalance) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -351,7 +342,7 @@ TEST_F(AGreedyRecursiveBisectionTest, HasValidImbalance) {
 
 TEST_F(AGreedyRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
@@ -374,7 +365,7 @@ TEST_F(AGreedyRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(AGreedyRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
 
-	PartitionID k = 32;
+	PartitionID k = 4;
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 

@@ -14,7 +14,6 @@
 
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
-#include "lib/datastructure/PriorityQueue.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 
 using partition::Configuration;
