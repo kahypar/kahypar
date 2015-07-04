@@ -195,8 +195,8 @@ TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushing
 	std::vector<bool> hyperedge_in_queue(7,false);
 	in_queue[0] = true;
 	q.push(0);
-	PartitionID tmp = -1;
-	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue,tmp);
+	config.initial_partitioning.unassigned_part = -1;
+	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue);
 	for(HypernodeID hn = 0; hn < 5; hn++) {
 		ASSERT_TRUE(in_queue[hn]);
 	}
@@ -213,8 +213,8 @@ TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPush
 	std::vector<bool> hyperedge_in_queue(7,false);
 	in_queue[0] = true;
 	q.push(0);
-	PartitionID tmp = -1;
-	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue,tmp);
+	config.initial_partitioning.unassigned_part = -1;
+	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue);
 	std::vector<HypernodeID> expected_in_queue {0,2,1,3,4};
 	for(unsigned int i = 0; i < expected_in_queue.size(); i++) {
 		HypernodeID hn = q.front(); q.pop();

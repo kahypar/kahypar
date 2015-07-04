@@ -50,10 +50,10 @@ private:
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
-		InitialPartitionerBase::resetPartitioning(unassigned_part);
+		InitialPartitionerBase::resetPartitioning();
 
 		//Calculate Startnodes and push them into the queues.
-		greedy_base.calculateStartNodes(unassigned_part);
+		greedy_base.calculateStartNodes();
 
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
 
@@ -92,7 +92,7 @@ private:
 			}
 			if (!is_every_part_disable) {
 				greedy_base.getGlobalMaxGainMove(best_node, best_part,
-						best_gain, partEnable, part_shuffle,  unassigned_part);
+						best_gain, partEnable, part_shuffle);
 			}
 			//Release upper partition weight bound
 			if (is_every_part_disable && !is_upper_bound_released) {
@@ -107,24 +107,25 @@ private:
 				}
 				is_every_part_disable = false;
 			} else if (best_part != kInvalidPartition) {
-				ASSERT(best_gain != kInitialGain,
-						"No hypernode found to assign!");
 
-				Gain gain_before = GainComputation::calculateGain(_hg,best_node,best_part);
 				if (!assignHypernodeToPartition(best_node, best_part)) {
 					partEnable[best_part] = false;
 				} else {
-
+					ASSERT(_hg.partID(best_node) == best_part,
+							"Assignment of hypernode " << best_node << " to partition " << best_part << " failed!");
 					ASSERT(
 							[&]() {
-								_hg.changeNodePart(best_node,best_part,unassigned_part);
-								HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-								_hg.changeNodePart(best_node,unassigned_part,best_part);
-								return metrics::hyperedgeCut(_hg) == (cut_before-best_gain);
+								if(unassigned_part != -1) {
+									_hg.changeNodePart(best_node,best_part,unassigned_part);
+									HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+									_hg.changeNodePart(best_node,unassigned_part,best_part);
+									return metrics::hyperedgeCut(_hg) == (cut_before-best_gain);
+								}
+								return true;
 							}(), "Gain calculation failed!");
 
 					greedy_base.insertAndUpdateNodesAfterMove(best_node,
-							best_part, unassigned_part);
+							best_part);
 
 					// TODO(heuer): Either a big assertion or a corresponding test case is missing
 					// that verifies for all neighbors of best_node that they are contained in the
@@ -145,10 +146,18 @@ private:
 			_hg.initializeNumCutHyperedges();
 		}
 
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
+
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
-		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 
@@ -163,7 +172,7 @@ private:
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 
-	GreedyHypergraphGrowingBaseFunctions<StartNodeSelection,GainComputation> greedy_base;
+	GreedyHypergraphGrowingBaseFunctions<StartNodeSelection, GainComputation> greedy_base;
 
 	static const Gain kInitialGain = std::numeric_limits<Gain>::min();
 	static const PartitionID kInvalidPartition = -1;

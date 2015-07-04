@@ -60,10 +60,10 @@ private:
 
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
-		InitialPartitionerBase::resetPartitioning(unassigned_part);
+		InitialPartitionerBase::resetPartitioning();
 
 		//Calculate Startnodes and push them into the queues.
-		greedy_base.calculateStartNodes(unassigned_part);
+		greedy_base.calculateStartNodes();
 
 		// TODO(heuer): This does not seem to be fair. In other variants you
 		// (1) have a less tight bound, (2) you unlock the upper bound later on...
@@ -77,24 +77,30 @@ private:
 				HypernodeID hn = kInvalidNode;
 
 				do {
+					ASSERT([&]() {
+						if(hn != kInvalidNode) {
+							if(_hg.partID(hn) != i) {
+								return false;
+							}
+						}
+						return true;
+					}(),
+							"Assignment of hypernode " << hn << " to partition " << i << " failed!");
 					ASSERT(
 							[&]() {if(unassigned_part != -1 && hn != kInvalidNode) {Gain gain = greedy_base.maxKeyFromPartition(i); _hg.changeNodePart(hn,i,unassigned_part); HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg); _hg.changeNodePart(hn,unassigned_part,i); return metrics::hyperedgeCut(_hg) == (cut_before-gain);} else {return true;}}(),
 							"Gain calculation of hypernode " << hn << " failed!");
 
 					if (hn != kInvalidNode) {
-						greedy_base.insertAndUpdateNodesAfterMove(hn, i,
-								unassigned_part);
+						greedy_base.insertAndUpdateNodesAfterMove(hn, i);
 					}
 
 					if (greedy_base.empty(i)) {
 						HypernodeID newStartNode =
-								InitialPartitionerBase::getUnassignedNode(
-										unassigned_part);
+								InitialPartitionerBase::getUnassignedNode();
 						if (newStartNode == invalid_node) {
 							break;
 						}
-						greedy_base.insertNodeIntoPQ(newStartNode, i,
-								unassigned_part);
+						greedy_base.insertNodeIntoPQ(newStartNode, i);
 					}
 
 					ASSERT(!greedy_base.empty(i),
@@ -107,11 +113,20 @@ private:
 
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
-		assignAllUnassignedHypernodesAccordingToTheirGain(unassigned_part);
+		assignAllUnassignedHypernodesAccordingToTheirGain();
 
 		if (unassigned_part == -1) {
 			_hg.initializeNumCutHyperedges();
 		}
+
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
 
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::eraseConnectedComponents();
@@ -125,8 +140,7 @@ private:
 		_config.initial_partitioning.k = k;
 	}
 
-	void assignAllUnassignedHypernodesAccordingToTheirGain(
-			PartitionID unassigned_part) {
+	void assignAllUnassignedHypernodesAccordingToTheirGain() {
 		//Assign first all possible unassigned nodes, which are still left in the priority queue.
 		while (true) {
 			HypernodeID best_node = kInvalidNode;
@@ -137,9 +151,7 @@ private:
 				if (InitialPartitionerBase::assignHypernodeToPartition(
 						best_node, best_part)) {
 					greedy_base.insertAndUpdateNodesAfterMove(best_node,
-							best_part,
-							_config.initial_partitioning.unassigned_part,
-							false);
+							best_part, false);
 					if (_config.initial_partitioning.unassigned_part != -1) {
 						if (_hg.partWeight(
 								_config.initial_partitioning.unassigned_part)
@@ -176,7 +188,7 @@ private:
 			unassigned_nodes.pop_back();
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 				if (i != _config.initial_partitioning.unassigned_part) {
-					greedy_base.insertNodeIntoPQ(hn, i, unassigned_part);
+					greedy_base.insertNodeIntoPQ(hn, i);
 				}
 			}
 			HypernodeID best_node = kInvalidNode;

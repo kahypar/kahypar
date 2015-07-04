@@ -37,6 +37,37 @@ using Gain = HyperedgeWeight;
 
 namespace partition {
 
+TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, InsertionOfAHypernodeIntoPQ) {
+
+	for(HypernodeID hn : hypergraph.nodes()) {
+		if(hn != 0) {
+			hypergraph.setNodePart(hn,1);
+		}
+		else {
+			hypergraph.setNodePart(hn,0);
+		}
+	}
+	config.initial_partitioning.unassigned_part = 1;
+	base->insertNodeIntoPQ(2,0);
+	ASSERT_TRUE(base->contains(2,0) && base->isEnable(0));
+}
+
+TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, TryingToInsertAHypernodeIntoTheSamePQAsHisPartition) {
+
+	for(HypernodeID hn : hypergraph.nodes()) {
+		if(hn != 0) {
+			hypergraph.setNodePart(hn,1);
+		}
+		else {
+			hypergraph.setNodePart(hn,0);
+		}
+	}
+	config.initial_partitioning.unassigned_part = 1;
+	base->insertNodeIntoPQ(0,0);
+	ASSERT_TRUE(!base->contains(0,0) && !base->isEnable(0));
+}
+
+
 TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue) {
 
 	for(HypernodeID hn : hypergraph.nodes()) {
@@ -47,10 +78,10 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAndHyp
 			hypergraph.setNodePart(hn,0);
 		}
 	}
-
-	base->insertNodeIntoPQ(2,0,-1,true);
-	base->insertNodeIntoPQ(4,0,-1,true);
-	base->insertNodeIntoPQ(6,0,-1,true);
+	config.initial_partitioning.unassigned_part = 1;
+	base->insertNodeIntoPQ(2,0,true);
+	base->insertNodeIntoPQ(4,0,true);
+	base->insertNodeIntoPQ(6,0,true);
 	ASSERT_EQ(base->size(),3);
 	ASSERT_TRUE(base->maxFromPartition(0) == 2 && base->maxKeyFromPartition(0) == 0);
 }
@@ -67,12 +98,13 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectGainValueAfterUpda
 			hypergraph.setNodePart(hn,0);
 		}
 	}
+	config.initial_partitioning.unassigned_part = 0;
 	hypergraph.initializeNumCutHyperedges();
-	base->insertNodeIntoPQ(0,1,-1,true);
+	base->insertNodeIntoPQ(0,1,true);
 	ASSERT_EQ(base->maxFromPartition(1),0);
 	ASSERT_EQ(base->maxKeyFromPartition(1),2);
 	hypergraph.changeNodePart(2,1,0);
-	base->insertNodeIntoPQ(0,1,-1,true);
+	base->insertNodeIntoPQ(0,1,true);
 	ASSERT_EQ(base->maxFromPartition(1),0);
 	ASSERT_EQ(base->maxKeyFromPartition(1),0);
 }
@@ -87,20 +119,47 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 			hypergraph.setNodePart(hn,0);
 		}
 	}
+	config.initial_partitioning.unassigned_part = 1;
 	hypergraph.initializeNumCutHyperedges();
-	base->insertNodeIntoPQ(0,1,-1,false);
-	base->insertNodeIntoPQ(2,0,-1,false);
-	base->insertNodeIntoPQ(4,0,-1,false);
-	base->insertNodeIntoPQ(6,0,-1,false);
+	base->insertNodeIntoPQ(2,0,false);
+	base->insertNodeIntoPQ(4,0,false);
+	base->insertNodeIntoPQ(6,0,false);
 
 	hypergraph.changeNodePart(2,1,0);
-	base->insertAndUpdateNodesAfterMove(2,0,1,false);
+	base->insertAndUpdateNodesAfterMove(2,0,false);
 
 	hypergraph.changeNodePart(4,1,0);
-	base->insertAndUpdateNodesAfterMove(4,0,1,false);
+	base->insertAndUpdateNodesAfterMove(4,0,false);
 
 	ASSERT_TRUE(base->maxFromPartition(0) == 6 && base->maxKeyFromPartition(0) == 0);
-	ASSERT_EQ(base->size(), 2);
+	ASSERT_EQ(base->size(), 1);
+
+}
+
+TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdateWithUnassignedPartMinusOne) {
+
+	config.initial_partitioning.unassigned_part = -1;
+	base->insertNodeIntoPQ(2,0);
+	base->insertNodeIntoPQ(3,0);
+	base->insertNodeIntoPQ(4,0);
+	base->insertNodeIntoPQ(5,1);
+	base->insertNodeIntoPQ(6,0);
+
+	hypergraph.setNodePart(6,1);
+	base->insertAndUpdateNodesAfterMove(6,1,false);
+	ASSERT_TRUE(!base->contains(6,0));
+	ASSERT_EQ(base->key(2,0),-1);
+	ASSERT_EQ(base->key(3,0),-1);
+	ASSERT_EQ(base->key(4,0),-1);
+	ASSERT_EQ(base->key(5,1),0);
+
+
+	hypergraph.setNodePart(4,1);
+	base->insertAndUpdateNodesAfterMove(4,0,false);
+	ASSERT_TRUE(!base->contains(4,0));
+	ASSERT_EQ(base->key(2,0),-1);
+	ASSERT_EQ(base->key(3,0),-1);
+	ASSERT_EQ(base->key(5,1),0);
 
 }
 
@@ -116,22 +175,21 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, GetCorrectMaxGainHypernodeAndPa
 	}
 
 	std::vector<PartitionID> parts {0, 1};
-	std::vector<bool> enable {true, true};
-	config.initial_partitioning.unassigned_part = 0;
+	std::vector<bool> enable {true, false};
+	config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.upper_allowed_partition_weight[0] = 7;
 	config.initial_partitioning.upper_allowed_partition_weight[1] = 7;
 
-	base->insertNodeIntoPQ(0,1,-1,false);
-	base->insertNodeIntoPQ(2,0,-1,false);
-	base->insertNodeIntoPQ(4,0,-1,false);
-	base->insertNodeIntoPQ(6,0,-1,false);
+	base->insertNodeIntoPQ(2,0,false);
+	base->insertNodeIntoPQ(4,0,false);
+	base->insertNodeIntoPQ(6,0,false);
 	HypernodeID best_node = 1000;
 	PartitionID best_part = -1;
 	Gain best_gain = -1;
-	base->getGlobalMaxGainMove(best_node, best_part, best_gain, enable, parts, -1);
-	ASSERT_EQ(best_node,0);
-	ASSERT_EQ(best_part, 1);
-	ASSERT_EQ(best_gain,2);
+	base->getGlobalMaxGainMove(best_node, best_part, best_gain, enable, parts);
+	ASSERT_EQ(best_node,2);
+	ASSERT_EQ(best_part, 0);
+	ASSERT_EQ(best_gain,0);
 }
 
 TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPriorityQueue) {
@@ -145,16 +203,15 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPr
 		}
 	}
 
-	config.initial_partitioning.unassigned_part = 0;
+	config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.upper_allowed_partition_weight[0] = 7;
 	config.initial_partitioning.upper_allowed_partition_weight[1] = 7;
 
-	base->insertNodeIntoPQ(0,1,-1,false);
-	base->insertNodeIntoPQ(2,0,-1,false);
-	base->insertNodeIntoPQ(4,0,-1,false);
-	base->insertNodeIntoPQ(6,0,-1,false);
-	base->deleteNodeInAllBucketQueues(0);
-	ASSERT_EQ(base->size(),3);
+	base->insertNodeIntoPQ(2,0,false);
+	base->insertNodeIntoPQ(4,0,false);
+	base->insertNodeIntoPQ(6,0,false);
+	base->deleteNodeInAllBucketQueues(2);
+	ASSERT_EQ(base->size(),2);
 }
 
 

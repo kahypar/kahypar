@@ -125,11 +125,11 @@ public:
 		config.partition.k = k;
 	}
 
-	void resetPartitioning(PartitionID unassigned_part) {
+	void resetPartitioning() {
 		_hg.resetPartitioning();
-		if(unassigned_part != -1) {
+		if(_config.initial_partitioning.unassigned_part != -1) {
 			for(HypernodeID hn : _hg.nodes()) {
-				_hg.setNodePart(hn, unassigned_part);
+				_hg.setNodePart(hn, _config.initial_partitioning.unassigned_part);
 			}
 			_hg.initializeNumCutHyperedges();
 		}
@@ -238,10 +238,10 @@ public:
 		}
 	}
 
-	HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
+	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
 		for(HypernodeID hn : _hg.nodes()) {
-			if(_hg.partID(hn) == unassigned_part) {
+			if(_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;
 				break;
 			}
@@ -383,8 +383,6 @@ private:
 		ASSERT(_current_cut == metrics::hyperedgeCut(_hg),"Calculated hyperedge cut doesn't match with the real hyperedge cut!");
 
 		bool isFeasibleSolution = true;
-		// TODO(heuer): ??? Only to-part can become overloaded. It should not be necessary to check all parts
-		// What about your lower bound? Shouldn't it be checked here as well?
 		for(PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
 			if(_hg.partWeight(k) > _config.initial_partitioning.upper_allowed_partition_weight[k]) {
 				isFeasibleSolution = false;

@@ -40,13 +40,11 @@ private:
 
 	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
 			HypernodeID hn, std::vector<bool>& in_queue,
-			std::vector<bool>& hyperedge_in_queue,
-			const PartitionID& unassigned_part) {
-		// TODO(heuer): Make he und hnodes const
-		for (HyperedgeID he : _hg.incidentEdges(hn)) {
+			std::vector<bool>& hyperedge_in_queue) {
+		for (const HyperedgeID he : _hg.incidentEdges(hn)) {
 			if (!hyperedge_in_queue[he]) {
-				for (HypernodeID hnodes : _hg.pins(he)) {
-					if (_hg.partID(hnodes) == unassigned_part
+				for (const HypernodeID hnodes : _hg.pins(he)) {
+					if (_hg.partID(hnodes) == _config.initial_partitioning.unassigned_part
 							&& !in_queue[hnodes]) {
 						q.push(hnodes);
 						in_queue[hnodes] = true;
@@ -62,7 +60,7 @@ private:
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
-		InitialPartitionerBase::resetPartitioning(unassigned_part);
+		InitialPartitionerBase::resetPartitioning();
 
 		//Initialize a vector of queues for each partition
 		q.clear();
@@ -120,8 +118,7 @@ private:
 					//If no unassigned hypernode was found we have to select a new startnode.
 					if (hn == invalid_hypernode
 							|| _hg.partID(hn) != unassigned_part) {
-						hn = InitialPartitionerBase::getUnassignedNode(
-								unassigned_part);
+						hn = InitialPartitionerBase::getUnassignedNode();
 					}
 
 					if (hn != invalid_hypernode) {
@@ -133,8 +130,7 @@ private:
 							assigned_nodes_weight += _hg.nodeWeight(hn);
 
 							pushIncidentHypernodesIntoQueue(q[i], hn,
-									in_queue[i], hyperedge_in_queue[i],
-									unassigned_part);
+									in_queue[i], hyperedge_in_queue[i]);
 
 							ASSERT(
 									[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
@@ -154,6 +150,16 @@ private:
 				break;
 			}
 		}
+
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
+
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}

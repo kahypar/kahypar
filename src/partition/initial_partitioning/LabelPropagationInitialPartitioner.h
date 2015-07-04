@@ -45,8 +45,9 @@ public:
 	}
 
 	void kwayPartitionImpl() final {
-
-		InitialPartitionerBase::resetPartitioning(-1);
+		PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
+		_config.initial_partitioning.unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning();
 
 		std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
 		for (HypernodeID hn : _hg.nodes()) {
@@ -140,7 +141,19 @@ public:
 
 		_hg.initializeNumCutHyperedges();
 
-		InitialPartitionerBase::eraseConnectedComponents();
+		_config.initial_partitioning.unassigned_part = unassigned_part;
+
+
+
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
+
 		InitialPartitionerBase::performFMRefinement();
 
 	}
@@ -183,6 +196,15 @@ public:
 		double max_score = (_hg.partID(hn) == -1) ? invalid_score_value : 0;
 		for (PartitionID p = 0; p < _config.initial_partitioning.k; ++p) {
 			tmp_scores[p] -= internal_weight;
+
+			ASSERT([&]() {
+				Gain gain = GainComputation::calculateGain(_hg,hn,p);
+				if(tmp_scores[p] != gain) {
+					return false;
+				}
+				return true;
+			}(), "Calculated gain of hypernode " << hn << " is not " << tmp_scores[p] << ".");
+
 			HypernodeWeight new_partition_weight = _hg.partWeight(p)
 					+ _hg.nodeWeight(hn);
 			if (new_partition_weight
@@ -257,7 +279,7 @@ public:
 			if (assigned_nodes == count) {
 				break;
 			} else if(q.empty()) {
-				q.push(InitialPartitionerBase::getUnassignedNode(-1));
+				q.push(InitialPartitionerBase::getUnassignedNode());
 			}
 		}
 		return assigned_nodes;

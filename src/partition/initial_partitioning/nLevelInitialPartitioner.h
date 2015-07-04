@@ -37,7 +37,10 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		InitialPartitionerBase::resetPartitioning(-1);
+		PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
+		_config.initial_partitioning.unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning();
+		_config.initial_partitioning.unassigned_part = unassigned_part;
 		_config.partition.initial_partitioner = InitialPartitioner::KaHyPar;
 
 		Configuration nlevel_config =

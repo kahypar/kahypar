@@ -208,7 +208,8 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToMinusOne) {
 	hypergraph.setNodePart(5, 1);
 	hypergraph.setNodePart(6, 1);
 
-	partitioner->resetPartitioning(-1);
+	config.initial_partitioning.unassigned_part = -1;
+	partitioner->resetPartitioning();
 	for (HypernodeID hn : hypergraph.nodes()) {
 		ASSERT_EQ(hypergraph.partID(hn), -1);
 	}
@@ -224,7 +225,8 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
 	hypergraph.setNodePart(5, 1);
 	hypergraph.setNodePart(6, 1);
 
-	partitioner->resetPartitioning(0);
+	config.initial_partitioning.unassigned_part = 0;
+	partitioner->resetPartitioning();
 	for (HypernodeID hn : hypergraph.nodes()) {
 		ASSERT_EQ(hypergraph.partID(hn), 0);
 	}

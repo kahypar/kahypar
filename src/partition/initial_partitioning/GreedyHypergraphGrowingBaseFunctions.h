@@ -51,11 +51,11 @@ public:
 
 	virtual ~GreedyHypergraphGrowingBaseFunctions() {}
 
-	void calculateStartNodes(PartitionID unassigned_part) {
+	void calculateStartNodes() {
 		StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
 				_config.initial_partitioning.k);
 		for (PartitionID i = 0; i < _start_nodes.size(); i++) {
-			insertNodeIntoPQ(_start_nodes[i], i, unassigned_part);
+			insertNodeIntoPQ(_start_nodes[i], i);
 		}
 
 		ASSERT([&]() {
@@ -71,13 +71,13 @@ public:
 	}
 
 	void insertNodeIntoPQ(const HypernodeID hn,
-			const PartitionID target_part, PartitionID unassigned_part, bool updateGain = false) {
+			const PartitionID target_part, bool updateGain = false) {
 		if (_hg.partID(hn) != target_part) {
 			if (!_pq.contains(hn,target_part)) {
 				Gain gain = GainComputation::calculateGain(_hg, hn,
 						target_part);
 				_pq.insert(hn, target_part, gain);
-				if(!_pq.isEnabled(target_part) && target_part != unassigned_part) {
+				if(!_pq.isEnabled(target_part) && target_part != _config.initial_partitioning.unassigned_part) {
 					_pq.enablePart(target_part);
 				}
 
@@ -123,13 +123,13 @@ public:
 
 	}
 
-	void getGlobalMaxGainMove(HypernodeID& best_node, PartitionID& best_part, Gain& best_gain, std::vector<bool>& enable, std::vector<PartitionID>& parts, PartitionID unassigned_part) {
+	void getGlobalMaxGainMove(HypernodeID& best_node, PartitionID& best_part, Gain& best_gain, std::vector<bool>& enable, std::vector<PartitionID>& parts) {
 
 		for(PartitionID i : parts) {
 			if(enable[i]) {
 				if( _pq.empty(i)) {
-					HypernodeID hn = getUnassignedNode(unassigned_part);
-					insertNodeIntoPQ(hn,i,unassigned_part);
+					HypernodeID hn = getUnassignedNode();
+					insertNodeIntoPQ(hn,i);
 				}
 				ASSERT(_pq.isEnabled(i), "Partition " << i << " should be enable.");
 				ASSERT(!_pq.empty(i), "PQ of partition " << i << " shouldn't be empty!");
@@ -143,20 +143,19 @@ public:
 
 	}
 
-	void insertAndUpdateNodesAfterMove(HypernodeID hn, PartitionID target_part, PartitionID unassigned_part, bool insert = true, bool delete_nodes = true) {
+	void insertAndUpdateNodesAfterMove(HypernodeID hn, PartitionID target_part, bool insert = true, bool delete_nodes = true) {
 
 		if(delete_nodes) {
 			deleteNodeInAllBucketQueues(hn);
 		}
-		GainComputation::deltaGainUpdate(_hg, _config, _pq, hn,
-				unassigned_part, target_part, _visit);
+		GainComputation::deltaGainUpdate(_hg, _config, _pq, hn, _config.initial_partitioning.unassigned_part, target_part, _visit);
 		//Pushing incident hypernode into bucket queue or update gain value
 		if(insert) {
 			for (HyperedgeID he : _hg.incidentEdges(hn)) {
 				if (!_hyperedge_already_process[target_part][he]) {
 					for (HypernodeID hnode : _hg.pins(he)) {
-						if (_hg.partID(hnode) == unassigned_part) {
-							insertNodeIntoPQ(hnode, target_part, unassigned_part);
+						if (_hg.partID(hnode) == _config.initial_partitioning.unassigned_part) {
+							insertNodeIntoPQ(hnode, target_part);
 							ASSERT(_pq.contains(hnode,target_part), "PQ of partition " << target_part << " should contain hypernode " << hnode << "!");
 						}
 					}
@@ -203,6 +202,14 @@ public:
 		return _pq.empty(part);
 	}
 
+	Gain key(HypernodeID hn, PartitionID part) {
+		Gain gain = std::numeric_limits<Gain>::max();
+		if(_pq.contains(hn,part)) {
+			return _pq.key(hn,part);
+		}
+		return gain;
+	}
+
 	HypernodeID maxFromPartition(PartitionID part) {
 		return _pq.max(part);
 	}
@@ -215,6 +222,10 @@ public:
 		HypernodeID hn = 0;
 		Gain gain = 0;
 		_pq.deleteMaxFromPartition(hn,gain,part);
+	}
+
+	bool contains(HypernodeID hn, PartitionID part) {
+		return _pq.contains(hn,part);
 	}
 
 	void clearAllPQs() {
@@ -231,10 +242,10 @@ protected:
 
 private:
 
-	HypernodeID getUnassignedNode(PartitionID unassigned_part = -1) {
+	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
 		for(HypernodeID hn : _hg.nodes()) {
-			if(_hg.partID(hn) == unassigned_part) {
+			if(_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;
 				break;
 			}

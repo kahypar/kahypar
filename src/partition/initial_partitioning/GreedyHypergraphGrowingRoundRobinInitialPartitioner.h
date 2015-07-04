@@ -25,7 +25,6 @@ using defs::HypernodeWeight;
 
 using Gain = HyperedgeWeight;
 
-
 namespace partition {
 
 template<class StartNodeSelection = StartNodeSelectionPolicy,
@@ -47,26 +46,26 @@ public:
 private:
 
 	void kwayPartitionImpl() final {
-		PartitionID unassigned_part = -1;
-		InitialPartitionerBase::resetPartitioning(unassigned_part);
-
+		PartitionID unassigned_part =
+				_config.initial_partitioning.unassigned_part;
+		_config.initial_partitioning.unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning();
 
 		//Calculate Startnodes and push them into the queues.
-		greedy_base.calculateStartNodes(unassigned_part);
+		greedy_base.calculateStartNodes();
 
 		//Enable parts are allowed to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
-		if (unassigned_part != -1) {
-			partEnable[unassigned_part] = false;
+		if (_config.initial_partitioning.unassigned_part != -1) {
+			partEnable[_config.initial_partitioning.unassigned_part] = false;
 		}
 
 		HypernodeID assigned_nodes_weight = 0;
-		if (unassigned_part != -1) {
+		if (_config.initial_partitioning.unassigned_part != -1) {
 			assigned_nodes_weight =
-					_config.initial_partitioning.perfect_balance_partition_weight[unassigned_part]
+					_config.initial_partitioning.perfect_balance_partition_weight[_config.initial_partitioning.unassigned_part]
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
-
 
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
 
@@ -76,47 +75,50 @@ private:
 				if (partEnable[i]) {
 					every_part_disable = false;
 					HypernodeID hn;
-					while(!greedy_base.empty(i) && _hg.partID(greedy_base.maxFromPartition(i)) != unassigned_part) {
+					while (!greedy_base.empty(i)
+							&& _hg.partID(greedy_base.maxFromPartition(i))
+									!= _config.initial_partitioning.unassigned_part) {
 						greedy_base.deleteMaxFromPartition(i);
 					}
 					if (greedy_base.empty(i)) {
 						HypernodeID newStartNode =
-								InitialPartitionerBase::getUnassignedNode(
-										unassigned_part);
+								InitialPartitionerBase::getUnassignedNode();
 						if (newStartNode == invalid_node) {
 							continue;
 						}
-						greedy_base.insertNodeIntoPQ(newStartNode,
-								i, unassigned_part);
+						greedy_base.insertNodeIntoPQ(newStartNode, i);
 					}
+
+					ASSERT(!greedy_base.empty(i),
+							"PQ from partition " << i << "shouldn't be empty!");
+
 					hn = greedy_base.maxFromPartition(i);
 
-					ASSERT(_hg.partID(hn) == unassigned_part,
+					ASSERT(_hg.partID(hn) == _config.initial_partitioning.unassigned_part,
 							"Hypernode " << hn << "should be unassigned!");
 
 					if (!assignHypernodeToPartition(hn, i)) {
-							partEnable[i] = false;
+						partEnable[i] = false;
 					} else {
 
-						ASSERT(!greedy_base.empty(i),
-								"Bucket queue of partition " << i << " shouldn't be empty!");
+						ASSERT(_hg.partID(hn) == i,
+								"Assignment of hypernode " << hn << " to partition " << i << " failed!");
 
 						ASSERT(
 								[&]() {
-									if(unassigned_part != -1) {
+									if(_config.initial_partitioning.unassigned_part != -1) {
 										Gain gain = greedy_base.maxKeyFromPartition(i);
-										_hg.changeNodePart(hn,i,unassigned_part);
+										_hg.changeNodePart(hn,i,_config.initial_partitioning.unassigned_part);
 										HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-										_hg.changeNodePart(hn,unassigned_part,i);
+										_hg.changeNodePart(hn,_config.initial_partitioning.unassigned_part,i);
 										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
 									}
-									return true; }(),
+									return true;}(),
 								"Gain calculation failed!");
-
 
 						assigned_nodes_weight += _hg.nodeWeight(hn);
 
-						greedy_base.insertAndUpdateNodesAfterMove(hn,i,unassigned_part);
+						greedy_base.insertAndUpdateNodesAfterMove(hn, i);
 					}
 
 				}
@@ -130,7 +132,6 @@ private:
 			}
 		}
 
-
 		for (HypernodeID hn : _hg.nodes()) {
 			if (_hg.partID(hn) == -1) {
 				Gain gain0 = GainComputation::calculateGain(_hg, hn, 0);
@@ -143,14 +144,23 @@ private:
 			}
 		}
 
-		if(unassigned_part == -1) {
+		if (_config.initial_partitioning.unassigned_part == -1) {
 			_hg.initializeNumCutHyperedges();
 		}
 
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
+
+		_config.initial_partitioning.unassigned_part = unassigned_part;
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
-		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 

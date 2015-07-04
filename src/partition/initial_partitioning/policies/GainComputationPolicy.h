@@ -39,6 +39,8 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
+		if(target_part == source_part)
+			return 0;
 		Gain gain = 0;
 		for (const HyperedgeID he : hg.incidentEdges(hn)) {
 			ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");

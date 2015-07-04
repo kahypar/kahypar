@@ -35,7 +35,8 @@ private:
 	void kwayPartitionImpl() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
-		InitialPartitionerBase::resetPartitioning(-1);
+		_config.initial_partitioning.unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning();
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			PartitionID p = -1;
@@ -61,6 +62,16 @@ private:
 			ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p << ", but is actually in " << _hg.partID(hn) << ".");
 		}
 		_hg.initializeNumCutHyperedges();
+		_config.initial_partitioning.unassigned_part = unassigned_part;
+
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
 
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();

@@ -224,12 +224,24 @@ private:
 
 		std::cout << "Pool partitioner results: [min: " << best_cut
 				<< ",  algo: " << best_algorithm << "]" << std::endl;
-		InitialPartitionerBase::resetPartitioning(-1);
+		PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
+		_config.initial_partitioning.unassigned_part = -1;
+		InitialPartitionerBase::resetPartitioning();
+		_config.initial_partitioning.unassigned_part = unassigned_part;
 		for (HypernodeID hn : _hg.nodes()) {
 			_hg.setNodePart(hn, best_partition[hn]);
 		}
 
 		_hg.initializeNumCutHyperedges();
+
+		ASSERT([&]() {
+			for(HypernodeID hn : _hg.nodes()) {
+				if(_hg.partID(hn) == -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "There are unassigned hypernodes!");
 
 	}
 
