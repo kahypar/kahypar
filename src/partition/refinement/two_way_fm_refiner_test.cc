@@ -596,7 +596,7 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_marked.setBit(0, true);
 
-  refiner->fullUpdate(0, 1, 0, 42);
+  refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
 }                // namespace partition
