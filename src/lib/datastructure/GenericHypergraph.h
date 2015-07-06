@@ -1438,6 +1438,10 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected,
                                                  const Hypergraph& actual);
+
+  template <typename Hypergraph>
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
 };
 
 template <typename Hypergraph>
@@ -1503,6 +1507,89 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
          expected._pins_in_part == actual._pins_in_part &&
          expected._num_incident_cut_hes == actual._num_incident_cut_hes &&
          connectivity_sets_valid;
+}
+
+
+template <typename Hypergraph>
+std::pair<std::unique_ptr<Hypergraph>,
+          std::vector<typename Hypergraph::HypernodeID> >
+reindex(const Hypergraph& hypergraph) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
+
+  std::unordered_map<HypernodeID, HypernodeID> original_to_reindexed;
+  std::vector<HypernodeID> reindexed_to_original;
+  std::unique_ptr<Hypergraph> reindexed_hypergraph(new Hypergraph());
+
+  reindexed_hypergraph->_k = hypergraph._k;
+
+  HypernodeID num_hypernodes = 0;
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    original_to_reindexed[hn] = reindexed_to_original.size();
+    reindexed_to_original.push_back(hn);
+    ++num_hypernodes;
+  }
+
+  reindexed_hypergraph->_hypernodes.resize(num_hypernodes);
+  reindexed_hypergraph->_num_hypernodes = num_hypernodes;
+
+  HyperedgeID num_hyperedges = 0;
+  HypernodeID pin_index = 0;
+  for (const HyperedgeID he : hypergraph.edges()) {
+    LOGVAR(he);
+    reindexed_hypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+    ++reindexed_hypergraph->_num_hyperedges;
+    reindexed_hypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+    for (const HypernodeID pin : hypergraph.pins(he)) {
+      reindexed_hypergraph->hyperedge(num_hyperedges).increaseSize();
+      reindexed_hypergraph->_incidence_array.push_back(original_to_reindexed[pin]);
+      reindexed_hypergraph->hypernode(original_to_reindexed[pin]).increaseSize();
+      ++pin_index;
+    }
+    ++num_hyperedges;
+  }
+
+  const HypernodeID num_pins = pin_index;
+  reindexed_hypergraph->_num_pins = num_pins;
+  reindexed_hypergraph->_current_num_hypernodes = num_hypernodes;
+  reindexed_hypergraph->_current_num_hyperedges = num_hyperedges;
+  reindexed_hypergraph->_current_num_pins = num_pins;
+  reindexed_hypergraph->_type = hypergraph.type();
+
+  reindexed_hypergraph->_incidence_array.resize(hypergraph._k * num_pins);
+  reindexed_hypergraph->_pins_in_part.resize(num_hyperedges * hypergraph._k);
+  reindexed_hypergraph->_connectivity_sets =
+    std::make_unique<PartitionID[]>(num_hyperedges * hypergraph._k);
+  reindexed_hypergraph->_hes_not_containing_u.setSize(num_hyperedges);
+
+  reindexed_hypergraph->hypernode(0).setFirstEntry(num_pins);
+  for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+    reindexed_hypergraph->hypernode(i + 1).setFirstEntry(
+      reindexed_hypergraph->hypernode(i).firstInvalidEntry());
+    reindexed_hypergraph->hypernode(i).setSize(0);
+    reindexed_hypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(reindexed_to_original[i]));
+    reindexed_hypergraph->_total_weight += reindexed_hypergraph->hypernode(i).weight();
+  }
+  reindexed_hypergraph->hypernode(num_hypernodes - 1).setSize(0);
+  reindexed_hypergraph->hypernode(num_hypernodes - 1).setWeight(
+    hypergraph.nodeWeight(reindexed_to_original[num_hypernodes - 1]));
+  reindexed_hypergraph->_total_weight +=
+    reindexed_hypergraph->hypernode(num_hypernodes - 1).weight();
+
+  for (const HyperedgeID he : reindexed_hypergraph->edges()) {
+    for (const HypernodeID pin : reindexed_hypergraph->pins(he)) {
+      reindexed_hypergraph->_incidence_array[
+        reindexed_hypergraph->hypernode(pin).firstInvalidEntry()] = he;
+      reindexed_hypergraph->hypernode(pin).increaseSize();
+    }
+    reindexed_hypergraph->hyperedge(he).connectivity_set_begin =
+      reindexed_hypergraph->_connectivity_sets.get() + he * hypergraph._k;
+  }
+
+  reindexed_hypergraph->_num_incident_cut_hes.resize(num_hypernodes, 0);
+
+  return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
 }
 
 template <typename Hypergraph>

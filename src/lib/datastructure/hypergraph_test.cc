@@ -751,6 +751,23 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHyperno
   ASSERT_THAT(extr_part0.first->numNodes(), Eq(5));
 }
 
+TEST_F(AHypergraph, CreatedViaReindexingIsACopyOfTheOriginalHypergraph) {
+  verifyEquivalenceWithoutPartitionInfo(hypergraph, *reindex(hypergraph).first);
+}
+
+TEST_F(AHypergraph, WithContractedHypernodesCanBeReindexed) {
+  hypergraph.contract(1, 4);
+  hypergraph.contract(0, 2);
+  hypergraph.removeEdge(1, false);
+
+  auto reindexed = reindex(hypergraph);
+
+  ASSERT_THAT(reindexed.first->numNodes(), Eq(5));
+  ASSERT_THAT(reindexed.first->numEdges(), Eq(3));
+  ASSERT_THAT(reindexed.second.size(), Eq(5));
+  ASSERT_THAT(reindexed.second, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 5, 6 }));
+}
+
 TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
   hypergraph.resetPartitioning();
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(hypergraph, original_hypergraph), Eq(true));
