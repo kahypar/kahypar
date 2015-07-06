@@ -528,7 +528,7 @@ class GenericHypergraph {
   std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
     return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(), 0, _num_hypernodes),
                                     HypernodeIterator((_hypernodes.data() + _num_hypernodes),
-                                                      _num_hypernodes,_num_hypernodes)));
+                                                      _num_hypernodes, _num_hypernodes)));
   }
 
   std::pair<HyperedgeIterator, HyperedgeIterator> edges() const noexcept {
@@ -538,7 +538,7 @@ class GenericHypergraph {
   }
 
   std::pair<const PartitionID*, const PartitionID*> connectivitySet(const HyperedgeID he)
-      const noexcept {
+  const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     return std::move(std::make_pair(hyperedge(he).connectivity_set_begin,
                                     hyperedge(he).connectivity_set_begin
@@ -744,19 +744,18 @@ class GenericHypergraph {
     }
 
     ASSERT([&]() {
-          for (const HyperedgeID he : incidentEdges(hn)) {
-            for (const HypernodeID pin : pins(he)) {
-              if (_num_incident_cut_hes[pin] != numIncidentCutHEs(pin)) {
-                LOGVAR(pin);
-                LOGVAR(_num_incident_cut_hes[pin]);
-                LOGVAR(numIncidentCutHEs(pin));
-                return false;
-              }
+        for (const HyperedgeID he : incidentEdges(hn)) {
+          for (const HypernodeID pin : pins(he)) {
+            if (_num_incident_cut_hes[pin] != numIncidentCutHEs(pin)) {
+              LOGVAR(pin);
+              LOGVAR(_num_incident_cut_hes[pin]);
+              LOGVAR(numIncidentCutHEs(pin));
+              return false;
             }
           }
-          return true;
-        } (), "Inconsisten #CutHEs state");
-
+        }
+        return true;
+      } (), "Inconsisten #CutHEs state");
   }
 
   bool isBorderNode(const HypernodeID hn) const {
@@ -1479,7 +1478,8 @@ bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hyp
          expected._current_num_pins == actual._current_num_pins &&
          expected._hypernodes == actual._hypernodes &&
          expected._hyperedges == actual._hyperedges &&
-         expected_incidence_array == actual_incidence_array;
+         expected_incidence_array == actual_incidence_array &&
+         expected._num_incident_cut_hes == actual._num_incident_cut_hes;
 }
 
 template <typename Hypergraph>
@@ -1501,6 +1501,7 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   return verifyEquivalenceWithoutPartitionInfo(expected, actual) &&
          expected._part_info == actual._part_info &&
          expected._pins_in_part == actual._pins_in_part &&
+         expected._num_incident_cut_hes == actual._num_incident_cut_hes &&
          connectivity_sets_valid;
 }
 
