@@ -636,12 +636,11 @@ class TwoWayFMRefiner : public IRefiner,
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      // As we currently do not ensure that the hypergraph does not contain any
-      // single-node HEs, we explicitly have to check for |e| > 1
-      if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0 && _hg.edgeSize(he) > 1) {
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0) {
         gain -= _hg.edgeWeight(he);
       }
-      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1 && _hg.edgeSize(he) > 1) {
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
         gain += _hg.edgeWeight(he);
       }
     }

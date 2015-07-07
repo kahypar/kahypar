@@ -854,9 +854,8 @@ class KWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1) {
-        // As we currently do not ensure that the hypergraph does not contain any
-        // single-node HEs, we explicitly have to check for |e| > 1
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      if (_hg.connectivity(he) == 1) {
         gain -= _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
@@ -891,12 +890,9 @@ class KWayFMRefiner : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
         case 1:
-          if (_hg.edgeSize(he) != 1) {
-            // As we currently do not ensure that the hypergraph does not contain any
-            // single-node HEs, we explicitly have to have this check here
+            ASSERT(_hg.edgeSize(he) > 1, V(he));
             internal_weight += he_weight;
-          }
-          break;
+            break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!_seen[part]) {

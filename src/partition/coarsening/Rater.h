@@ -89,6 +89,7 @@ class Rater {
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (const HypernodeID v : _hg.pins(he)) {
         if (v != u &&

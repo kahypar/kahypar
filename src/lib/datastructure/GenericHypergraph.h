@@ -1626,6 +1626,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     if (*hypergraph.connectivitySet(he).first == part) {
       ASSERT(hypergraph.hyperedge(he).connectivity == 1,
              V(he) << V(hypergraph.hyperedge(he).connectivity));
+      ASSERT(hypergraph.edgeSize(he) > 1, V(he));
       subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
       ++subhypergraph->_num_hyperedges;
       subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
