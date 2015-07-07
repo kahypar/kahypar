@@ -95,11 +95,13 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
       ++num_empty_hyperedges;
     }
   }
-  std::cout << "WARNING: matrix contains " << num_empty_hyperedges << " empty hyperedges"
-            << std::endl;
-  std::cout << "Number of hyperedges in hypergraph will be adjusted!"
-            << std::endl;
-  info.num_rows -= num_empty_hyperedges;
+  if (num_empty_hyperedges > 0) {
+    std::cout << "WARNING: matrix contains " << num_empty_hyperedges << " empty hyperedges"
+              << std::endl;
+    std::cout << "Number of hyperedges in hypergraph will be adjusted!"
+              << std::endl;
+    info.num_rows -= num_empty_hyperedges;
+  }
 }
 
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
