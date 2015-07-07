@@ -229,4 +229,11 @@ TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
 
   ASSERT_THAT(serialized_lines, ::testing::ContainerEq(original_lines));
 }
+
+TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
+  EXPECT_EXIT(createHypergraphFromFile("test_instances/corrupted_hypergraph_with_empty_hyperedges.hgr", 2),
+              ::testing::ExitedWithCode(1),
+              "Error: Hyperedge 1 is empty");
+}
+
 }  // namespace io

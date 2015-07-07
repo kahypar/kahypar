@@ -76,6 +76,11 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
       std::getline(file, line);
       std::istringstream line_stream(line);
+      if (line_stream.peek() == EOF) {
+        std::cerr << "Error: Hyperedge " << i << " is empty" << std::endl;
+        exit(1);
+      }
+
       if (has_hyperedge_weights) {
         HyperedgeWeight edge_weight;
         line_stream >> edge_weight;

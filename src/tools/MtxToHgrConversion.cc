@@ -55,7 +55,7 @@ void parseDimensionInformation(std::ifstream& file, MatrixInfo& info) {
   LOG("num_entries=" << info.num_entries);
 }
 
-void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data) {
+void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data) {
   // row-net representation
   matrix_data.resize(info.num_rows);
 
@@ -66,7 +66,7 @@ void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData&
   }
 }
 
-void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info,
+void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
                                   MatrixData& matrix_data) {
   std::string line;
   int row = -1;
@@ -88,17 +88,28 @@ void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info,
       DBG(false, "_matrix_data[" << column << "].push_back(" << row << ")");
     }
   }
+
+  int num_empty_hyperedges = 0;
+  for (auto hyperedge : matrix_data) {
+    if (hyperedge.size() == 0) {
+      ++num_empty_hyperedges;
+    }
+  }
+  std::cout << "WARNING: matrix contains " << num_empty_hyperedges << " empty hyperedges"
+            << std::endl;
+  std::cout << "Number of hyperedges in hypergraph will be adjusted!"
+            << std::endl;
+  info.num_rows -= num_empty_hyperedges;
 }
 
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
                             const std::string& filename) {
+
+
   std::ofstream out_stream(filename.c_str());
   out_stream << info.num_rows << " " << info.num_columns << std::endl;
   for (auto hyperedge : matrix_data) {
-    if (hyperedge.size() == 0) {
-      std::cout << "Warning: Matrix contains an empty row" << std::endl;
-      out_stream << std::endl;
-    } else {
+    if (hyperedge.size() != 0) {
       for (auto pin_iter = hyperedge.begin(); pin_iter != hyperedge.end(); ++pin_iter) {
         // ids start at 1
         out_stream << *pin_iter + 1;
