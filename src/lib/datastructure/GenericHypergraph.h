@@ -1537,7 +1537,6 @@ reindex(const Hypergraph& hypergraph) {
   HyperedgeID num_hyperedges = 0;
   HypernodeID pin_index = 0;
   for (const HyperedgeID he : hypergraph.edges()) {
-    LOGVAR(he);
     reindexed_hypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
     ++reindexed_hypergraph->_num_hyperedges;
     reindexed_hypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
@@ -1587,6 +1586,7 @@ reindex(const Hypergraph& hypergraph) {
       reindexed_hypergraph->_connectivity_sets.get() + he * hypergraph._k;
   }
 
+  reindexed_hypergraph->_part_info.resize(reindexed_hypergraph->_k);
   reindexed_hypergraph->_num_incident_cut_hes.resize(num_hypernodes, 0);
 
   return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
