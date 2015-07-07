@@ -240,7 +240,7 @@ struct Configuration {
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
 						2), epsilon(0.05), algorithm(), mode(), algo(
 						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						-1), nruns(1), direct_nlevel_contraction_divider(2.0), alpha(
+						-1), nruns(1), direct_nlevel_contraction_divider(2.0), init_alpha(1.0), alpha(
 						1), beta(1), unassigned_part(0), pool_type("basic"), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
 		}
 
@@ -257,6 +257,7 @@ struct Configuration {
 		double direct_nlevel_contraction_divider;
 		PartitionID unassigned_part;
 		double alpha;
+		double init_alpha;
 		double beta;
 		int seed;
 		int min_ils_iterations;

@@ -213,7 +213,7 @@ class EnhancedBucketQueue {
       ASSERT(_repository[_buckets[_max_address].back()].second + _key_range == _max_address,
              V(_repository[_buckets[_max_address].back()].second + _key_range) << V(_max_address));
     } else {
-      _max_address = std::numeric_limits<KeyType>::min();
+      _max_address = kInvalidAddress;
     }
   }
 

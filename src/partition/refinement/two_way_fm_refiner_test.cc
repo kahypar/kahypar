@@ -449,7 +449,7 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   ASSERT_THAT(refiner._pq.contains(2, 1), Eq(false));
   ASSERT_THAT(refiner._pq.contains(0, 1), Eq(true));
 
-  hypergraph.changeNodePart(1, 1, 0);
+  hypergraph.changeNodePart(1, 1, 0, refiner._non_border_hns_to_remove);
   refiner._marked.setBit(1, true);
   refiner._active.setBit(1, false);
   refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ 42);
@@ -596,7 +596,7 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_marked.setBit(0, true);
 
-  refiner->fullUpdate(0, 1, 0, 42);
+  refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
 }                // namespace partition

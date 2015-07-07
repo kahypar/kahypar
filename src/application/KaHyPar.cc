@@ -196,6 +196,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     		  config.initial_partitioning.algorithm = vm["init-algo"].as<std::string>();
     		  config.initial_partitioning.algo = stringToInitialPartitionerAlgorithm(config.initial_partitioning.algorithm);
     	  }
+    	  if(vm.count("init-alpha")) {
+    	     		  config.initial_partitioning.init_alpha = vm["init-alpha"].as<double>();
+    	  }
       }
     }
     if (vm.count("mode")) {
@@ -314,20 +317,20 @@ void setDefaults(Configuration& config) {
   config.partition.k = 2;
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
-  config.partition.initial_partitioning_attempts = 10;
-  config.partition.global_search_iterations = 10;
+  config.partition.initial_partitioning_attempts = 1;
+  config.partition.global_search_iterations = 1;
   config.partition.hyperedge_size_threshold = -1;
-  config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_full;
+  config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
   config.coarsening.contraction_limit_multiplier = 160;
-  config.coarsening.max_allowed_weight_multiplier = 3.5;
+  config.coarsening.max_allowed_weight_multiplier = 2.5;
   config.coarsening.contraction_limit =
     config.coarsening.contraction_limit_multiplier * config.partition.k;
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
   config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
   config.fm_local_search.num_repetitions = -1;
-  config.fm_local_search.max_number_of_fruitless_moves = 150;
+  config.fm_local_search.max_number_of_fruitless_moves = 200;
   config.fm_local_search.alpha = 8;
   config.her_fm.stopping_rule = RefinementStoppingRule::simple;
   config.her_fm.num_repetitions = 1;
@@ -567,6 +570,7 @@ int main(int argc, char* argv[]) {
     ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
     ("init-mode", po::value<std::string>(), "If part=KaHyPar: direct or nLevel recursive-bisection Initial Partitioning")
     ("init-algo", po::value<std::string>(), "If part=KaHyPar, used initial partitioning algorithm")
+    ("init-alpha", po::value<double>(), "Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
