@@ -208,6 +208,9 @@ class TwoWayFMRefiner : public IRefiner,
     const double beta = log(_hg.numNodes());
     while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
                                                               _config, beta, best_cut, current_cut)) {
+
+      ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1), "No PQ enabled");
+
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
