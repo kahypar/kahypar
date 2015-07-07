@@ -50,9 +50,9 @@ private:
 								config.coarsening.contraction_limit_multiplier = _hg.initialNumNodes()
 								/ (static_cast<double>(_config.initial_partitioning.k) * _config.initial_partitioning.direct_nlevel_contraction_divider);
 							}
+							config.initial_partitioning.mode = "direct";
 							ConfigurationManager::setHypergraphDependingParameters(config,_hg);
 						});
-
 
 
 		if(_hg.numEdges() != 0) {

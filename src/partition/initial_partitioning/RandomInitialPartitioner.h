@@ -37,7 +37,6 @@ private:
 				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;
 		InitialPartitionerBase::resetPartitioning();
-
 		for (const HypernodeID hn : _hg.nodes()) {
 			PartitionID p = -1;
 			std::vector<bool> has_try_partition(_config.initial_partitioning.k,

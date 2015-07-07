@@ -155,10 +155,10 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, ChecksCorrectMaxGainValueAfterD
 
 
 	hypergraph.setNodePart(4,1);
-	base->insertAndUpdateNodesAfterMove(4,0,false);
+	base->insertAndUpdateNodesAfterMove(4,1,false);
 	ASSERT_TRUE(!base->contains(4,0));
 	ASSERT_EQ(base->key(2,0),-1);
-	ASSERT_EQ(base->key(3,0),-1);
+	ASSERT_EQ(base->key(3,0),-2);
 	ASSERT_EQ(base->key(5,1),0);
 
 }

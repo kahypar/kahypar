@@ -21,6 +21,7 @@
 
 using::testing::Test;
 
+using partition::InitialPartitioner;
 using partition::Rater;
 using partition::ICoarsener;
 using partition::IRefiner;
@@ -214,6 +215,7 @@ class APartitionOfAHypergraph : public Test {
     _coarsener(new FirstWinsCoarsener(_hypergraph, _config,  /* heaviest_node_weight */ 1)),
     _refiner(new Refiner(_hypergraph, _config)) {
     _config.partition.k = 2;
+    _config.partition.initial_partitioner = InitialPartitioner::hMetis;
     _config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     _config.partition.total_graph_weight = 7;
     _config.coarsening.contraction_limit = 2;

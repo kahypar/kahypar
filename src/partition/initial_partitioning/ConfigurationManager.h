@@ -39,18 +39,18 @@ public:
 		config.initial_partitioning.seed = -1;
 		config.initial_partitioning.min_ils_iterations = 400;
 		config.initial_partitioning.max_stable_net_removals = 100;
-		config.initial_partitioning.pool_type = "basic";
+		config.initial_partitioning.pool_type = "mix3";
 		config.initial_partitioning.nruns = 1;
 		config.initial_partitioning.direct_nlevel_contraction_divider = 2;
 		config.initial_partitioning.unassigned_part = 1;
 		config.initial_partitioning.alpha = 1.0;
 		config.initial_partitioning.beta = 1.0;
-		config.initial_partitioning.rollback = true;
+		config.initial_partitioning.rollback = false;
 		config.initial_partitioning.refinement = true;
 		config.initial_partitioning.erase_components = false;
 		config.initial_partitioning.balance = false;
-		config.initial_partitioning.stats = true;
-		config.initial_partitioning.styles = true;
+		config.initial_partitioning.stats = false;
+		config.initial_partitioning.styles = false;
 
 		//Partitioner-Parameters
 		config.partition.k = 2;
@@ -59,7 +59,6 @@ public:
 				"/home/theuer/Dokumente/hypergraph/release/src/partition/initial_partitioning/application/InitialPartitioningKaHyPar";
 		config.partition.initial_partitioner = InitialPartitioner::KaHyPar;
 		config.partition.initial_partitioning_attempts = 1;
-		config.partition.global_search_iterations = 10;
 		config.partition.hyperedge_size_threshold = -1;
 		config.partition.mode = Mode::direct_kway;
 
@@ -72,7 +71,7 @@ public:
 		//Refinement-Parameters
 		config.partition.global_search_iterations = 0;
 		config.partition.refinement_algorithm =
-				RefinementAlgorithm::label_propagation;
+				RefinementAlgorithm::twoway_fm;
 		config.fm_local_search.num_repetitions = -1;
 		config.fm_local_search.max_number_of_fruitless_moves = 20;
 		config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;

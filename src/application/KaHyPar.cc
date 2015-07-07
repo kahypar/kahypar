@@ -18,6 +18,18 @@
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"
 #include "tools/RandomFunctions.h"
+#include "partition/initial_partitioning/RandomInitialPartitioner.h"
+#include "partition/initial_partitioning/BFSInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
+#include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
+#include "partition/initial_partitioning/nLevelInitialPartitioner.h"
+#include "partition/initial_partitioning/PoolInitialPartitioner.h"
+#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "partition/initial_partitioning/RecursiveBisection.h"
+#include "partition/initial_partitioning/IInitialPartitioner.h"
 
 #include "lib/serializer/SQLPlotToolsSerializer.h"
 
@@ -30,9 +42,11 @@ using partition::Configuration;
 using partition::Mode;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
+using partition::InitialPartitionerAlgorithm;
 using partition::RefinementStoppingRule;
 using partition::CoarsenerFactory;
 using partition::RefinerFactory;
+using partition::InitialPartitioningFactory;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
@@ -46,6 +60,20 @@ using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
+using partition::IInitialPartitioner;
+using partition::BFSInitialPartitioner;
+using partition::LabelPropagationInitialPartitioner;
+using partition::RandomInitialPartitioner;
+using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
+using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
+using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
+using partition::PoolInitialPartitioner;
+using partition::nLevelInitialPartitioner;
+using partition::RecursiveBisection;
+using partition::FMGainComputationPolicy;
+using partition::MaxPinGainComputationPolicy;
+using partition::MaxNetGainComputationPolicy;
+using partition::BFSStartNodeSelectionPolicy;
 using serializer::SQLPlotToolsSerializer;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -57,6 +85,77 @@ using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
 
+InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
+		std::string mode) {
+	if (mode.compare("greedy") == 0) {
+		return InitialPartitionerAlgorithm::greedy;
+	} else if (mode.compare("greedy-global") == 0) {
+		return InitialPartitionerAlgorithm::greedy_global;
+	} else if (mode.compare("greedy-round") == 0) {
+		return InitialPartitionerAlgorithm::greedy_round;
+	} else if (mode.compare("greedy-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::greedy_maxpin;
+	} else if (mode.compare("greedy-global-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::greedy_global_maxpin;
+	} else if (mode.compare("greedy-round-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::greedy_round_maxpin;
+	} else if (mode.compare("greedy-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::greedy_maxnet;
+	} else if (mode.compare("greedy-global-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::greedy_global_maxnet;
+	} else if (mode.compare("greedy-round-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::greedy_round_maxnet;
+	} else if (mode.compare("recursive-greedy") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy;
+	} else if (mode.compare("recursive-greedy-global") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_global;
+	} else if (mode.compare("recursive-greedy-round") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_round;
+	} else if (mode.compare("recursive-greedy-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_maxpin;
+	} else if (mode.compare("recursive-greedy-global-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_global_maxpin;
+	} else if (mode.compare("recursive-greedy-round-maxpin") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_round_maxpin;
+	} else if (mode.compare("recursive-greedy-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_maxnet;
+	} else if (mode.compare("recursive-greedy-global-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_global_maxnet;
+	} else if (mode.compare("recursive-greedy-round-maxnet") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_round_maxnet;
+	} else if (mode.compare("greedy-global-modify") == 0) {
+		return InitialPartitionerAlgorithm::greedy_global_modify;
+	} else if (mode.compare("recursive-greedy-global-modify") == 0) {
+		return InitialPartitionerAlgorithm::rb_greedy_global_modify;
+	} else if (mode.compare("lp") == 0) {
+		return InitialPartitionerAlgorithm::lp;
+	} else if (mode.compare("bfs") == 0) {
+		return InitialPartitionerAlgorithm::bfs;
+	} else if (mode.compare("random") == 0) {
+		return InitialPartitionerAlgorithm::random;
+	} else if (mode.compare("recursive-lp") == 0) {
+		return InitialPartitionerAlgorithm::rb_lp;
+	} else if (mode.compare("recursive-bfs") == 0) {
+		return InitialPartitionerAlgorithm::rb_bfs;
+	} else if (mode.compare("recursive-random") == 0) {
+		return InitialPartitionerAlgorithm::rb_random;
+	} else if (mode.compare("hMetis") == 0) {
+		return InitialPartitionerAlgorithm::hMetis;
+	} else if (mode.compare("PaToH") == 0) {
+		return InitialPartitionerAlgorithm::PaToH;
+	} else if (mode.compare("nLevel") == 0) {
+		return InitialPartitionerAlgorithm::nLevel;
+	} else if (mode.compare("direct_nLevel") == 0) {
+		return InitialPartitionerAlgorithm::direct_nLevel;
+	} else if (mode.compare("pool") == 0) {
+		return InitialPartitionerAlgorithm::pool;
+	} else if (mode.compare("ils") == 0) {
+		return InitialPartitionerAlgorithm::ils;
+	} else if (mode.compare("sa") == 0) {
+		return InitialPartitionerAlgorithm::sa;
+	}
+	return InitialPartitionerAlgorithm::rb_greedy_global;
+}
 
 void configurePartitionerFromCommandLineInput(Configuration& config, const po::variables_map& vm) {
   if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
@@ -88,6 +187,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
         config.partition.initial_partitioner = InitialPartitioner::hMetis;
       } else if (vm["part"].as<std::string>() == "PaToH") {
         config.partition.initial_partitioner = InitialPartitioner::PaToH;
+      } else if(vm["part"].as<std::string>() == "KaHyPar") {
+    	  config.partition.initial_partitioner = InitialPartitioner::KaHyPar;
+    	  if(vm.count("init-mode")) {
+    		  config.initial_partitioning.mode = vm["init-mode"].as<std::string>();
+    	  }
+    	  if(vm.count("init-algo")) {
+    		  config.initial_partitioning.algorithm = vm["init-algo"].as<std::string>();
+    		  config.initial_partitioning.algo = stringToInitialPartitionerAlgorithm(config.initial_partitioning.algorithm);
+    	  }
       }
     }
     if (vm.count("mode")) {
@@ -311,6 +419,138 @@ static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive1_stopping
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping(
   RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
 
+static Registrar<InitialPartitioningFactory> reg_random(
+		InitialPartitionerAlgorithm::random,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RandomInitialPartitioner(hypergraph,config);
+		});
+
+static Registrar<InitialPartitioningFactory> reg_bfs(
+		InitialPartitionerAlgorithm::bfs,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_lp(
+		InitialPartitionerAlgorithm::lp,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy(
+		InitialPartitionerAlgorithm::greedy,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_global(
+		InitialPartitionerAlgorithm::greedy_global,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_round(
+		InitialPartitionerAlgorithm::greedy_round,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_maxpin(
+		InitialPartitionerAlgorithm::greedy_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_global_maxpin(
+		InitialPartitionerAlgorithm::greedy_global_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_round_maxpin(
+		InitialPartitionerAlgorithm::greedy_round_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_maxnet(
+		InitialPartitionerAlgorithm::greedy_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_global_maxnet(
+		InitialPartitionerAlgorithm::greedy_global_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_round_maxnet(
+		InitialPartitionerAlgorithm::greedy_round_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_random(
+		InitialPartitionerAlgorithm::rb_random,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<RandomInitialPartitioner>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_bfs(
+		InitialPartitionerAlgorithm::rb_bfs,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<BFSInitialPartitioner<BFSStartNodeSelectionPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy(
+		InitialPartitionerAlgorithm::rb_greedy,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_global(
+		InitialPartitionerAlgorithm::rb_greedy_global,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_round(
+		InitialPartitionerAlgorithm::rb_greedy_round,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_lp(
+		InitialPartitionerAlgorithm::rb_lp,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_maxpin(
+		InitialPartitionerAlgorithm::rb_greedy_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_global_maxpin(
+		InitialPartitionerAlgorithm::rb_greedy_global_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_round_maxpin(
+		InitialPartitionerAlgorithm::rb_greedy_round_maxpin,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxPinGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_maxnet(
+		InitialPartitionerAlgorithm::rb_greedy_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingSequentialInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_global_maxnet(
+		InitialPartitionerAlgorithm::rb_greedy_global_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingGlobalInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_rb_greedy_round_maxnet(
+		InitialPartitionerAlgorithm::rb_greedy_round_maxnet,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_nlevel(
+		InitialPartitionerAlgorithm::nLevel,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new RecursiveBisection<nLevelInitialPartitioner>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_pool(
+		InitialPartitionerAlgorithm::pool,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new PoolInitialPartitioner(hypergraph,config);
+		});
+
 int main(int argc, char* argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -324,7 +564,9 @@ int main(int argc, char* argv[]) {
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(),
     "# initial partition trials, the final bisection corresponds to the one with the smallest cut")
-    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH")
+    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
+    ("init-mode", po::value<std::string>(), "If part=KaHyPar: direct or nLevel recursive-bisection Initial Partitioning")
+    ("init-algo", po::value<std::string>(), "If part=KaHyPar, used initial partitioning algorithm")
     ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")

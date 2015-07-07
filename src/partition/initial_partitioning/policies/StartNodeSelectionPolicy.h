@@ -36,6 +36,7 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 		FastResetBitVector<> in_queue(hg.numNodes(), false);
 		FastResetBitVector<> hyperedge_in_queue(hg.numEdges(), false);
 
+
 		while(start_nodes.size() != k) {
 			std::queue<HypernodeID> bfs;
 			HypernodeID lastHypernode = -1;
@@ -44,6 +45,7 @@ struct BFSStartNodeSelectionPolicy: public StartNodeSelectionPolicy {
 				bfs.push(start_node);
 				in_queue.setBit(start_node,true);
 			}
+
 
 			while (!bfs.empty()) {
 				HypernodeID hn = bfs.front();

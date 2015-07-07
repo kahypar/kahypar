@@ -146,7 +146,7 @@ class KWayPriorityQueue {
 
   void deleteMaxFromPartition(IDType& max_id, KeyType& max_key, PartitionID part) noexcept {
     size_t part_index = _index[part];
-    ASSERT(part < _num_enabled_pqs, V(part_index));
+    ASSERT(part_index < _num_enabled_pqs, V(part_index));
 
     max_id = _queues[part_index].getMax();
     max_key = _queues[part_index].getMaxKey();

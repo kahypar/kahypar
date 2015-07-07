@@ -120,6 +120,7 @@ private:
 			PartitionID k = k2 - k1 + 1;
 			PartitionID km = floor(static_cast<double>(k) / 2.0);
 
+
 			HypernodeWeight hypergraph_weight = 0;
 			for (const HypernodeID hn : h.nodes()) {
 				hypergraph_weight += h.nodeWeight(hn);

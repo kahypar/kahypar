@@ -707,16 +707,13 @@ class GenericHypergraph {
           ++_num_incident_cut_hes[pin];
         }
       }
-
       decreasePinCountInPart(he, from);
       increasePinCountInPart(he, to);
-
       if (pinCountInPart(he, to) == edgeSize(he)) {
         for (const HypernodeID pin : pins(he)) {
           --_num_incident_cut_hes[pin];
         }
       }
-
       ASSERT([&]() {
           for (const HyperedgeID he : incidentEdges(hn)) {
             for (const HypernodeID pin : pins(he)) {
