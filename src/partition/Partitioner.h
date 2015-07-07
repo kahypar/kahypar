@@ -374,6 +374,8 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           io::printHypergraphInfo(current_hypergraph, "---");
 
+          // TODO(schlag): we could integrate v-cycles in a similar fashion as is
+          // performDirectKwayPartitioning
           partition(current_hypergraph, *coarsener, *refiner, current_config, k1, k2);
 
           std::cout << "-------------------------------------------------------------------------------------------" << std::endl;
