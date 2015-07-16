@@ -181,6 +181,8 @@ class TwoWayFMRefiner : public IRefiner,
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       _gain_cache[refinement_nodes[i]] = kNotCached;
       activate(refinement_nodes[i], max_allowed_part_weight);
+      ASSERT(!_hg.isBorderNode(refinement_nodes[i]) ||
+             _pq.isEnabled(_hg.partID(refinement_nodes[i]) ^ 1), V(refinement_nodes[i]));
     }
 
     ASSERT([&]() {
