@@ -111,6 +111,7 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
   hypergraph->contract(0, 2);
+  hypergraph->removeEdge(0, false); // since we cannot rate single-node HEs
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));

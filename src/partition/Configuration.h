@@ -10,6 +10,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <array>
 
 #include "lib/definitions.h"
 
@@ -138,7 +139,7 @@ struct Configuration {
       current_v_cycle(0),
       epsilon(1.0),
       hmetis_ub_factor(-1.0),
-      max_part_weight(std::numeric_limits<HypernodeWeight>::max()),
+      max_part_weights({std::numeric_limits<HypernodeWeight>::max(), std::numeric_limits<HypernodeWeight>::max()}),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
       initial_parallel_he_removal(false),
@@ -160,7 +161,7 @@ struct Configuration {
     int current_v_cycle;
     double epsilon;
     double hmetis_ub_factor;
-    HypernodeWeight max_part_weight;
+    std::array<HypernodeWeight, 2> max_part_weights;
     HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
     bool initial_parallel_he_removal;
@@ -247,7 +248,9 @@ inline std::string toString(const Configuration& config) {
   << config.partition.initial_parallel_he_removal << std::endl;
   oss << std::setw(35) << "  total_graph_weight: "
   << config.partition.total_graph_weight << std::endl;
-  oss << std::setw(35) << "  L_max: " << config.partition.max_part_weight
+  oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
+      << std::endl;
+  oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
   << std::endl;
   oss << std::setw(35) << " Mode: " << toString(config.partition.mode) << std::endl;
   oss << std::setw(35) << "  Coarsening Algorithm: "

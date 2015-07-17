@@ -167,7 +167,9 @@ class Partitioner {
   inline Configuration createConfigurationForCurrentBisection(const Configuration& original_config,
                                                               const Hypergraph& original_hypergraph,
                                                               const Hypergraph& current_hypergraph,
-                                                              const PartitionID current_k) const;
+                                                              const PartitionID current_k ,
+                                                              const PartitionID k0,
+                                                              const PartitionID k1) const;
 
   std::array<std::chrono::duration<double>, 7> _timings;
   std::string _internals;
@@ -266,8 +268,10 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
 }
 
-inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config, const Hypergraph& original_hypergraph,
-                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k) const {
+inline Configuration Partitioner::createConfigurationForCurrentBisection(
+    const Configuration& original_config, const Hypergraph& original_hypergraph,
+    const Hypergraph& current_hypergraph, const PartitionID current_k,
+    const PartitionID k0, const PartitionID k1) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
   current_config.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -277,9 +281,15 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
   LOG(V(current_config.partition.epsilon));
   current_config.partition.total_graph_weight = current_hypergraph.totalWeight();
 
-  current_config.partition.max_part_weight = (1 + current_config.partition.epsilon)
-                                             * ceil(current_config.partition.total_graph_weight /
-                                                    static_cast<double>(current_config.partition.k));
+  current_config.partition.max_part_weights[0] =
+      (1 + current_config.partition.epsilon)
+      * ceil( (k0 / static_cast<double>(current_k))
+              *static_cast<double>(current_config.partition.total_graph_weight));
+
+  current_config.partition.max_part_weights[1] =
+      (1 + current_config.partition.epsilon)
+      * ceil( (k1 / static_cast<double>(current_k))
+              *static_cast<double>(current_config.partition.total_graph_weight));
 
   current_config.coarsening.contraction_limit =
     current_config.coarsening.contraction_limit_multiplier * current_config.partition.k;
@@ -345,7 +355,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
     const PartitionID k2 = hypergraph_stack.back().upper_k;
     const RBHypergraphState state = hypergraph_stack.back().state;
     const PartitionID k = k2 - k1 + 1;
-    const PartitionID km = floor(k / 2.0);
+    const PartitionID km = k / 2;
 
     switch (state) {
       case RBHypergraphState::finished:
@@ -358,7 +368,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           Configuration current_config = createConfigurationForCurrentBisection(original_config,
                                                                                 input_hypergraph,
                                                                                 current_hypergraph,
-                                                                                k);
+                                                                                k, km, k -km);
           std::unique_ptr<ICoarsener> coarsener(CoarsenerFactory::getInstance().createObject(
                                                   current_config.partition.coarsening_algorithm,
                                                   current_hypergraph, current_config,

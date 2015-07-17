@@ -39,7 +39,7 @@ class DummyRefiner : public IRefiner {
   void initializeImpl(const HyperedgeWeight)  noexcept {
     _is_initialized = true;
   }
-  bool refineImpl(std::vector<HypernodeID>&, size_t, const HypernodeWeight,
+  bool refineImpl(std::vector<HypernodeID>&, size_t, const std::array<HypernodeWeight, 2>&,
                   HyperedgeWeight&, double&) noexcept final { return true; }
   int numRepetitionsImpl() const noexcept final { return 1; }
   std::string policyStringImpl() const noexcept final { return std::string(""); }

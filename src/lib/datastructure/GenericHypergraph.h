@@ -1493,6 +1493,9 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
 
+
+  ASSERT(expected._num_incident_cut_hes == actual._num_incident_cut_hes, "Error");
+
   bool connectivity_sets_valid = true;
   for (const HyperedgeID he : actual.edges()) {
     ASSERT(expected.hyperedge(he).connectivity == actual.hyperedge(he).connectivity, V(he));

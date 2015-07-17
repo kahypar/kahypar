@@ -383,9 +383,10 @@ int main(int argc, char* argv[]) {
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
 
-  config.partition.max_part_weight = (1 + config.partition.epsilon)
-                                     * ceil(config.partition.total_graph_weight /
-                                            static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * ceil(config.partition.total_graph_weight /
+                                                static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *

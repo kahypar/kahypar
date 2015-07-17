@@ -96,8 +96,8 @@ class KWayFMRefiner : public IRefiner,
   KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
 
  private:
-  FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
-  FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
+  FRIEND_TEST(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation);
+  FRIEND_TEST(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation);
   FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
@@ -118,7 +118,7 @@ class KWayFMRefiner : public IRefiner,
 #endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-                  const HypernodeWeight max_allowed_part_weight,
+                  const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -138,7 +138,7 @@ class KWayFMRefiner : public IRefiner,
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i], max_allowed_part_weight);
+      activate(refinement_nodes[i], max_allowed_part_weights[0]);
     }
 
     const HyperedgeWeight initial_cut = best_cut;
@@ -190,10 +190,10 @@ class KWayFMRefiner : public IRefiner,
       moveHypernode(max_gain_node, from_part, to_part);
       _marked.setBit(max_gain_node, true);
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
+      if (_hg.partWeight(to_part) >= max_allowed_part_weights[0]) {
         _pq.disablePart(to_part);
       }
-      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
+      if (_hg.partWeight(from_part) < max_allowed_part_weights[0]) {
         _pq.enablePart(from_part);
       }
 
@@ -219,7 +219,7 @@ class KWayFMRefiner : public IRefiner,
         }
       }
 
-      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
+      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights[0]);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
