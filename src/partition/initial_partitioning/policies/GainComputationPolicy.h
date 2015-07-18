@@ -39,7 +39,7 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 	static inline Gain calculateGain(const Hypergraph& hg,
 			const HypernodeID& hn, const PartitionID& target_part) noexcept {
 		const PartitionID source_part = hg.partID(hn);
-		if(target_part == source_part)
+		if (target_part == source_part)
 			return 0;
 		Gain gain = 0;
 		for (const HyperedgeID he : hg.incidentEdges(hn)) {
@@ -94,8 +94,8 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 
 					if (from == -1 && pin_count_in_target_part_after == 1
 							&& connectivity == 2) {
-						for(PartitionID i : _hg.connectivitySet(he)) {
-							if(i != to && pq.contains(node, i)) {
+						for (PartitionID i : _hg.connectivitySet(he)) {
+							if (i != to && pq.contains(node, i)) {
 								pq.updateKeyBy(node, i, -_hg.edgeWeight(he));
 							}
 						}
@@ -165,8 +165,6 @@ struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 						/ (hg.edgeSize(he) - 1))
 						* (1 + static_cast<double>(pins_in_target_part)
 								- static_cast<double>(pins_in_source_part));
-				if (hg.connectivity(he) > 2)
-					hyperedge_gain /= hg.connectivity(he);
 				gain += hyperedge_gain;
 			}
 		}
@@ -179,10 +177,29 @@ struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 
 		for (HyperedgeID he : _hg.incidentEdges(hn)) {
 			for (HypernodeID pin : _hg.pins(he)) {
-				for (PartitionID i = 0; i < config.initial_partitioning.k;
-						i++) {
-					if (pq.contains(pin, i)) {
-						pq.updateKey(pin, i, calculateGain(_hg, pin, i));
+				if (pq.contains(pin, to)) {
+					if (_hg.partID(pin) == from) {
+						pq.updateKeyBy(pin, to,
+								((Gain) (static_cast<double>(2
+										* _hg.edgeWeight(he))
+										/ (_hg.edgeSize(he) - 1))));
+					} else {
+						pq.updateKeyBy(pin, to,
+								((Gain) (static_cast<double>(_hg.edgeWeight(he))
+										/ (_hg.edgeSize(he) - 1))));
+					}
+				}
+
+				if (pq.contains(pin, from)) {
+					if (_hg.partID(pin) == to) {
+						pq.updateKeyBy(pin, from,
+								((Gain) (static_cast<double>(-2
+										* _hg.edgeWeight(he))
+										/ (_hg.edgeSize(he) - 1))));
+					} else {
+						pq.updateKeyBy(pin, to,
+								((Gain) (static_cast<double>(-_hg.edgeWeight(he))
+										/ (_hg.edgeSize(he) - 1))));
 					}
 				}
 			}

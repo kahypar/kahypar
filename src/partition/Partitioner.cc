@@ -132,53 +132,62 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			== InitialPartitioner::KaHyPar) {
 
 		auto extracted_init_hypergraph = reindex(hg);
-		std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
+		std::vector<HypernodeID> mapping(
+				std::move(extracted_init_hypergraph.second));
+		double init_alpha = config.initial_partitioning.init_alpha;
 
-		std::uniform_int_distribution<int> int_dist;
-		std::mt19937 generator(config.partition.seed);
-		int seed = int_dist(generator);
-		Configuration init_config =
-				ConfigurationManager::copyConfigAndSetValues(config,
-						[&](Configuration& new_config) {
-							ConfigurationManager::setDefaults(new_config);
-							ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
-							new_config.initial_partitioning.mode = config.initial_partitioning.mode;
-							new_config.initial_partitioning.algo = config.initial_partitioning.algo;
-							new_config.initial_partitioning.algorithm = config.initial_partitioning.algorithm;
-							new_config.initial_partitioning.k = config.partition.k;
-							new_config.partition.k = config.partition.k;
-							new_config.initial_partitioning.epsilon = (config.initial_partitioning.init_alpha*config.partition.epsilon);
-							new_config.partition.epsilon = (config.initial_partitioning.init_alpha*config.partition.epsilon);
-							new_config.initial_partitioning.seed = seed;
-							new_config.partition.seed = seed;
-							for (int i = 0; i < new_config.initial_partitioning.k; i++) {
-								new_config.initial_partitioning.perfect_balance_partition_weight.push_back(
-										ceil(
-												static_cast<double>(extracted_init_hypergraph.first->totalWeight())
-												/ static_cast<double>(new_config.initial_partitioning.k)));
-								new_config.initial_partitioning.upper_allowed_partition_weight.push_back(
-										ceil(
-												static_cast<double>(extracted_init_hypergraph.first->totalWeight())
-												/ static_cast<double>(new_config.initial_partitioning.k))
-										* (1.0 + config.initial_partitioning.epsilon));
-							}
-						});
+		do {
+			extracted_init_hypergraph.first->resetPartitioning();
+			std::uniform_int_distribution<int> int_dist;
+			std::mt19937 generator(config.partition.seed);
+			int seed = int_dist(generator);
+			Configuration init_config =
+					ConfigurationManager::copyConfigAndSetValues(config,
+							[&](Configuration& new_config) {
+								ConfigurationManager::setDefaults(new_config);
+								ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
+								new_config.initial_partitioning.mode = config.initial_partitioning.mode;
+								new_config.initial_partitioning.algo = config.initial_partitioning.algo;
+								new_config.initial_partitioning.algorithm = config.initial_partitioning.algorithm;
+								new_config.initial_partitioning.k = config.partition.k;
+								new_config.partition.k = config.partition.k;
+								new_config.initial_partitioning.epsilon = (init_alpha*config.partition.epsilon);
+								new_config.partition.epsilon = (init_alpha*config.partition.epsilon);
+								new_config.initial_partitioning.seed = seed;
+								new_config.partition.seed = seed;
+								for (int i = 0; i < new_config.initial_partitioning.k; i++) {
+									new_config.initial_partitioning.perfect_balance_partition_weight.push_back(
+											ceil(
+													static_cast<double>(extracted_init_hypergraph.first->totalWeight())
+													/ static_cast<double>(new_config.initial_partitioning.k)));
+									new_config.initial_partitioning.upper_allowed_partition_weight.push_back(
+											ceil(
+													static_cast<double>(extracted_init_hypergraph.first->totalWeight())
+													/ static_cast<double>(new_config.initial_partitioning.k))
+											* (1.0 + config.initial_partitioning.epsilon));
+								}
+							});
 
-		if (init_config.initial_partitioning.mode.compare("direct") == 0) {
-			std::unique_ptr<IInitialPartitioner> partitioner(
-					InitialPartitioningFactory::getInstance().createObject(
-							config.initial_partitioning.algo, *extracted_init_hypergraph.first, init_config));
-			(*partitioner).partition(init_config.initial_partitioning.k);
-		} else if (config.initial_partitioning.mode.compare("nLevel") == 0) {
-			std::unique_ptr<IInitialPartitioner> partitioner(
-					InitialPartitioningFactory::getInstance().createObject(
-							InitialPartitionerAlgorithm::nLevel, *extracted_init_hypergraph.first,
-							init_config));
-			(*partitioner).partition(init_config.initial_partitioning.k);
-		}
+			if (init_config.initial_partitioning.mode.compare("direct") == 0) {
+				std::unique_ptr<IInitialPartitioner> partitioner(
+						InitialPartitioningFactory::getInstance().createObject(
+								config.initial_partitioning.algo,
+								*extracted_init_hypergraph.first, init_config));
+				(*partitioner).partition(init_config.initial_partitioning.k);
+			} else if (config.initial_partitioning.mode.compare("nLevel")
+					== 0) {
+				std::unique_ptr<IInitialPartitioner> partitioner(
+						InitialPartitioningFactory::getInstance().createObject(
+								InitialPartitionerAlgorithm::nLevel,
+								*extracted_init_hypergraph.first, init_config));
+				(*partitioner).partition(init_config.initial_partitioning.k);
+			}
+			init_alpha -= 0.1;
+		} while (metrics::imbalance(*extracted_init_hypergraph.first,config.partition.k) > config.partition.epsilon);
 
-		for(HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
-			hg.setNodePart(mapping[hn], extracted_init_hypergraph.first->partID(hn));
+		for (HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+			hg.setNodePart(mapping[hn],
+					extracted_init_hypergraph.first->partID(hn));
 		}
 
 	}

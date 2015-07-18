@@ -42,10 +42,15 @@ public:
 	_start_nodes(),
 	_visit(_hg.initialNumNodes(),false),
 	_hyperedge_already_process(config.initial_partitioning.k,
-			std::vector<bool>(_hg.initialNumEdges()))
+			std::vector<bool>(_hg.initialNumEdges())),
+	_unassigned_nodes()
 	{
 
 		_pq.initialize(_hg.initialNumNodes());
+		for (const HypernodeID hn : _hg.nodes()) {
+			_unassigned_nodes.push_back(hn);
+		}
+		_un_pos = _unassigned_nodes.size();
 
 	}
 
@@ -182,6 +187,7 @@ public:
 
 	}
 
+
 	size_t size() {
 		return _pq.size();
 	}
@@ -244,14 +250,23 @@ private:
 
 	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-		for(HypernodeID hn : _hg.nodes()) {
+		for(int i = 0; i < _un_pos; i++) {
+			HypernodeID hn = _unassigned_nodes[i];
 			if(_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;
 				break;
 			}
+			else {
+				std::swap(_unassigned_nodes[i],_unassigned_nodes[_un_pos-1]);
+				_un_pos--;
+				i--;
+			}
 		}
 		return unassigned_node;
 	}
+
+	unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
+	std::vector<HypernodeID> _unassigned_nodes;
 
 };
 

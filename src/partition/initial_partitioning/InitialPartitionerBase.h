@@ -66,14 +66,17 @@ public:
 	_bisection_assignment_history(),
 	_balancer(_hg, _config),
 	_record_assignment_history(false),
-	_removed_hyperedges() {
+	_removed_hyperedges(),
+	_unassigned_nodes() {
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
 			if(_hg.nodeWeight(hn) > heaviest_node) {
 				heaviest_node = _hg.nodeWeight(hn);
 			}
+			_unassigned_nodes.push_back(hn);
 		}
+		_un_pos = _unassigned_nodes.size();
 
 		// TODO(heuer): This should be done in your application.
 		// In general, the partitioner should only use the config parameters, not
@@ -240,10 +243,16 @@ public:
 
 	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-		for(HypernodeID hn : _hg.nodes()) {
+		for(int i = 0; i < _un_pos; i++) {
+			HypernodeID hn = _unassigned_nodes[i];
 			if(_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;
 				break;
+			}
+			else {
+				std::swap(_unassigned_nodes[i],_unassigned_nodes[_un_pos-1]);
+				_un_pos--;
+				i--;
 			}
 		}
 		return unassigned_node;
@@ -421,7 +430,8 @@ private:
 	std::stack<node_assignment> _bisection_assignment_history;
 	bool _record_assignment_history;
 	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
-
+	unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
+	std::vector<HypernodeID> _unassigned_nodes;
 	std::vector<HyperedgeID> _removed_hyperedges;
 
 };

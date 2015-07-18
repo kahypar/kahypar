@@ -164,6 +164,8 @@ private:
 			return true;
 		}(), "There are unassigned hypernodes!");
 
+
+
 		_config.initial_partitioning.unassigned_part = unassigned_part;
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
