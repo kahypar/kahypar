@@ -322,6 +322,11 @@ void setDefaults(Configuration& config) {
   config.partition.hyperedge_size_threshold = -1;
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
+  config.initial_partitioning.algorithm = "pool";
+  config.initial_partitioning.pool_type = "mix3";
+  config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+  config.initial_partitioning.mode = "nLevel";
+  config.initial_partitioning.init_alpha = 1.0;
   config.coarsening.contraction_limit_multiplier = 160;
   config.coarsening.max_allowed_weight_multiplier = 2.5;
   config.coarsening.contraction_limit =
