@@ -24,8 +24,8 @@ using MatrixData = std::vector<std::vector<int> >;
 
 MatrixInfo parseHeader(std::ifstream& file);
 void parseDimensionInformation(std::ifstream& file, MatrixInfo& info);
-void parseMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data);
-void parseCoordinateMatrixEntries(std::ifstream& file, const MatrixInfo& info, MatrixData& matrix_data);
+void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
+void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data, const std::string& filename);
 void convertMtxToHgr(const std::string& matrix_filename, const std::string& hypergraph_filename);
 }  // namespace mtxconversion

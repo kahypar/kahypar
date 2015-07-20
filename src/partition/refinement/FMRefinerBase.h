@@ -50,8 +50,10 @@ class FMRefinerBase {
 
   bool moveIsFeasible(const HypernodeID max_gain_node, const PartitionID from_part,
                       const PartitionID to_part) const noexcept {
+    ASSERT(_config.partition.mode == Mode::direct_kway,
+           "Method should only be called in direct partitioning");
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-            <= _config.partition.max_part_weight) && (_hg.partSize(from_part) - 1 != 0);
+            <= _config.partition.max_part_weights[0]) && (_hg.partSize(from_part) - 1 != 0);
   }
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part,

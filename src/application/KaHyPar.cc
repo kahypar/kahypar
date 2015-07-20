@@ -608,6 +608,19 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(io::createHypergraphFromFile(config.partition.graph_filename,
                                                      config.partition.k));
 
+  // ensure that there are no single-node hyperedges
+  HyperedgeID num_single_node_hes = 0;
+  HyperedgeID num_unconnected_hns = 0;
+  for (const HyperedgeID he : hypergraph.edges()) {
+    if (hypergraph.edgeSize(he) == 1) {
+      ++num_single_node_hes;
+      if (hypergraph.nodeDegree(*hypergraph.pins(he).first) == 1) {
+        ++num_unconnected_hns;
+      }
+      hypergraph.removeEdge(he, false);
+    }
+  }
+
   config.partition.total_graph_weight = hypergraph.totalWeight();
 
   config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier
@@ -616,9 +629,10 @@ int main(int argc, char* argv[]) {
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
 
-  config.partition.max_part_weight = (1 + config.partition.epsilon)
-                                     * ceil(config.partition.total_graph_weight /
-                                            static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * ceil(config.partition.total_graph_weight /
+                                                static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
 
   config.coarsening.max_allowed_node_weight = config.coarsening.hypernode_weight_fraction *
@@ -637,6 +651,14 @@ int main(int argc, char* argv[]) {
                        / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
 
   io::printPartitionerConfiguration(config);
+
+  if (num_single_node_hes > 0) {
+    LOG("\033[1m\033[31m" << "Removed " << num_single_node_hes << " hyperedges with |e|=1"
+        << "\033[0m");
+    LOG("\033[1m\033[31m" << "===> " << num_unconnected_hns
+        << " unconnected HNs could have been removed" << "\033[0m");
+  }
+
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
                             config.partition.graph_filename.find_last_of("/") + 1));
 

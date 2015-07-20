@@ -168,7 +168,8 @@ public:
 			// However, if I'm correct, the condition always evaluates to true if k=2^x right?
 			//Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
 			if(_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
-				_config.partition.max_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
+				_config.partition.max_part_weights[0] = _config.initial_partitioning.upper_allowed_partition_weight[0];
+				_config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
 				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
 				// TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
 				// another idea is to restart the refiner as long as it finds an improvement on the current
@@ -176,7 +177,7 @@ public:
 				//for.
 				adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(_config, [&]() {
 						measureTimeOfFunction("Refinement time",[&]() {
-										refiner->refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+										refiner->refine(refinement_nodes,_hg.numNodes(),_config.partition.max_part_weights,cut,imbalance);
 									});
 						});
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));

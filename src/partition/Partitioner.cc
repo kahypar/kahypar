@@ -145,7 +145,6 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 					ConfigurationManager::copyConfigAndSetValues(config,
 							[&](Configuration& new_config) {
 								ConfigurationManager::setDefaults(new_config);
-								ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
 								new_config.initial_partitioning.mode = config.initial_partitioning.mode;
 								new_config.initial_partitioning.algo = config.initial_partitioning.algo;
 								new_config.initial_partitioning.algorithm = config.initial_partitioning.algorithm;
@@ -166,6 +165,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 													/ static_cast<double>(new_config.initial_partitioning.k))
 											* (1.0 + config.initial_partitioning.epsilon));
 								}
+								ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
 							});
 
 			if (init_config.initial_partitioning.mode.compare("direct") == 0) {

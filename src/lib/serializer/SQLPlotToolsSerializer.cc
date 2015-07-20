@@ -31,7 +31,8 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " k=" << config.partition.k
   << " epsilon=" << config.partition.epsilon
   << " totalGraphWeight=" << config.partition.total_graph_weight
-  << " L_max=" << config.partition.max_part_weight
+  << " L_max0=" << config.partition.max_part_weights[0]
+  << " L_max1=" << config.partition.max_part_weights[1]
   << " seed=" << config.partition.seed
   << " hmetisUBFactor=" << config.partition.hmetis_ub_factor
   << " numInitialPartitions=" << config.partition.initial_partitioning_attempts

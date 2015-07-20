@@ -1491,6 +1491,9 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
 
+
+  ASSERT(expected._num_incident_cut_hes == actual._num_incident_cut_hes, "Error");
+
   bool connectivity_sets_valid = true;
   for (const HyperedgeID he : actual.edges()) {
     ASSERT(expected.hyperedge(he).connectivity == actual.hyperedge(he).connectivity, V(he));
@@ -1624,6 +1627,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     if (*hypergraph.connectivitySet(he).first == part) {
       ASSERT(hypergraph.hyperedge(he).connectivity == 1,
              V(he) << V(hypergraph.hyperedge(he).connectivity));
+      ASSERT(hypergraph.edgeSize(he) > 1, V(he));
       subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
       ++subhypergraph->_num_hyperedges;
       subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);

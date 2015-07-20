@@ -88,7 +88,8 @@ class TwoWayFMRefiner : public IRefiner,
   TwoWayFMRefiner(TwoWayFMRefiner&&) = delete;
   TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
 
-  void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
+  void activate(const HypernodeID hn,
+                const std::array<HypernodeWeight, 2>& max_allowed_part_weights) noexcept {
     if (_hg.isBorderNode(hn)) {
       const PartitionID target_part = _hg.partID(hn) ^ 1;
       ASSERT(!_active[hn], V(hn));
@@ -104,7 +105,7 @@ class TwoWayFMRefiner : public IRefiner,
       ASSERT(_gain_cache[hn] == computeGain(hn),
              V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
       _pq.insert(hn, target_part, _gain_cache[hn]);
-      if (_hg.partWeight(target_part) < max_allowed_part_weight) {
+      if (_hg.partWeight(target_part) < max_allowed_part_weights[target_part]) {
         _pq.enablePart(target_part);
       }
       // mark HN as just activated to prevent delta-gain updates in current
@@ -139,7 +140,7 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes);
   FRIEND_TEST(ARefiner, DoesNotDeleteMaxGainNodeInPQ0IfItChoosesToUseMaxGainNodeInPQ1);
   FRIEND_TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint);
-  FRIEND_TEST(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
+  FRIEND_TEST(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
@@ -161,7 +162,7 @@ class TwoWayFMRefiner : public IRefiner,
 #endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-                  const HypernodeWeight max_allowed_part_weight,
+                  const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -180,7 +181,9 @@ class TwoWayFMRefiner : public IRefiner,
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
       _gain_cache[refinement_nodes[i]] = kNotCached;
-      activate(refinement_nodes[i], max_allowed_part_weight);
+      activate(refinement_nodes[i], max_allowed_part_weights);
+      ASSERT(!_hg.isBorderNode(refinement_nodes[i]) ||
+             _pq.isEnabled(_hg.partID(refinement_nodes[i]) ^ 1), V(refinement_nodes[i]));
     }
 
     ASSERT([&]() {
@@ -208,6 +211,9 @@ class TwoWayFMRefiner : public IRefiner,
     const double beta = log(_hg.numNodes());
     while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
                                                               _config, beta, best_cut, current_cut)) {
+
+      ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1), "No PQ enabled");
+
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -241,10 +247,10 @@ class TwoWayFMRefiner : public IRefiner,
       _marked.setBit(max_gain_node, true);
       _active.setBit(max_gain_node, false);
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
+      if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
         _pq.disablePart(to_part);
       }
-      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
+      if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
         _pq.enablePart(from_part);
       }
 
@@ -260,7 +266,7 @@ class TwoWayFMRefiner : public IRefiner,
       ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
              V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
 
-      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
+      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
@@ -314,7 +320,8 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
-                        const PartitionID to_part, const HypernodeWeight max_allowed_part_weight) {
+                        const PartitionID to_part,
+                        const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
     _gain_cache[moved_hn] = kNotCached;
 
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
@@ -346,7 +353,7 @@ class TwoWayFMRefiner : public IRefiner,
     // TODO(schlag): fix this!!!
     for (const HypernodeID hn : _hns_to_activate) {
       if (!_active[hn]) {
-        activate(hn, max_allowed_part_weight);
+        activate(hn, max_allowed_part_weights);
       }
     }
     _hns_to_activate.clear();
@@ -413,10 +420,9 @@ class TwoWayFMRefiner : public IRefiner,
         return true;
       } (), "UpdateNeighbors failed!");
 
-    ONLYDEBUG(max_allowed_part_weight);
-    ASSERT((!_pq.empty(0) && _hg.partWeight(0) < max_allowed_part_weight ?
+    ASSERT((!_pq.empty(0) && _hg.partWeight(0) < max_allowed_part_weights[0] ?
             _pq.isEnabled(0) : !_pq.isEnabled(0)), V(0));
-    ASSERT((!_pq.empty(1) && _hg.partWeight(1) < max_allowed_part_weight ?
+    ASSERT((!_pq.empty(1) && _hg.partWeight(1) < max_allowed_part_weights[1] ?
             _pq.isEnabled(1) : !_pq.isEnabled(1)), V(1));
   }
 
@@ -633,12 +639,11 @@ class TwoWayFMRefiner : public IRefiner,
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2, "Trying to do gain computation for k-way partitioning");
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      // As we currently do not ensure that the hypergraph does not contain any
-      // single-node HEs, we explicitly have to check for |e| > 1
-      if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0 && _hg.edgeSize(he) > 1) {
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0) {
         gain -= _hg.edgeWeight(he);
       }
-      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1 && _hg.edgeSize(he) > 1) {
+      if (_hg.pinCountInPart(he, _hg.partID(hn)) == 1) {
         gain += _hg.edgeWeight(he);
       }
     }

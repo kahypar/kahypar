@@ -35,23 +35,32 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   }
   std::sort(hn_degrees.begin(), hn_degrees.end());
 
+  double hn_degree_stdev = std::sqrt(metrics::hypernodeDegreeVariance(hypergraph));
+  double he_size_stdev = std::sqrt(metrics::hyperedgeSizeVariance(hypergraph));
+  double hn_weight_stdev = std::sqrt(metrics::hypernodeWeightVariance(hypergraph));
+
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.numEdges()
-  << "\t HE size:   [min:" << std::setw(10) << std::left
+  << "\t HE size:   [min: " << std::setw(5) << std::left
   << (he_sizes.empty() ? 0 : he_sizes[0])
-  << "avg:" << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
-  << "max:" << std::setw(10) << std::left
+  << "avg: " << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
+  << "max: " << std::setw(10) << std::left
   << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
+  << "sd: " << std::setw(10) << std::left << he_size_stdev
   << "]" << std::endl;
   std::cout << "# HNs: " << hypergraph.numNodes()
-  << "\t HN degree: [min:" << std::setw(10) << std::left
+  << "\t HN degree: [min: " << std::setw(5) << std::left
   << (hn_degrees.empty() ? 0 : hn_degrees[0])
-  << "avg:" << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
-  << "max:" << std::setw(10) << std::left
+  << "avg: " << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
+  << "max: " << std::setw(10) << std::left
   << (hn_degrees.empty() ? 0 : hn_degrees[hn_degrees.size() - 1])
+  << "sd: " << std::setw(10) << std::left << hn_degree_stdev
   << "]" << std::endl;
+  std::cout << "-->" << "HN weight: avg: " << std::setw(10) << std::left
+            << metrics::avgHypernodeWeight(hypergraph)
+            << "sd: " << std::setw(10) << std::left << hn_weight_stdev << std::endl;
 }
 
 template <class Configuration>

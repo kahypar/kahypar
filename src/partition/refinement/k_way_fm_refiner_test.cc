@@ -20,7 +20,6 @@ using defs::HypernodeID;
 namespace partition {
 using KWayFMRefinerSimpleStopping = KWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
-
 class AKwayFMRefiner : public Test {
  public:
   AKwayFMRefiner() :
@@ -32,7 +31,10 @@ class AKwayFMRefiner : public Test {
     config.partition.total_graph_weight = 2;
     config.partition.k = 2;
     config.partition.epsilon = 1.0;
-    config.partition.max_part_weight =
+    config.partition.max_part_weights[0] =
+      (1 + config.partition.epsilon)
+      * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+     config.partition.max_part_weights[1] =
       (1 + config.partition.epsilon)
       * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
@@ -53,14 +55,14 @@ class AKwayFMRefiner : public Test {
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
 
-TEST_F(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
-  refiner->insertHNintoPQ(0, 10);
+using AKwayFMRefinerDeathTest = AKwayFMRefiner;
 
-  ASSERT_THAT(refiner->_pq.key(0, 1), Eq(1));
+TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation) {
+  ASSERT_DEATH(refiner->insertHNintoPQ(0, 10), ".*");
 }
 
-TEST_F(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation) {
-  ASSERT_THAT(refiner->gainInducedByHypergraph(0, 0), Eq(1));
+TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation) {
+  ASSERT_DEATH(refiner->gainInducedByHypergraph(0, 0), ".*");
 }
 
 TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {

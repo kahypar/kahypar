@@ -96,8 +96,8 @@ class KWayFMRefiner : public IRefiner,
   KWayFMRefiner& operator= (KWayFMRefiner&&) = delete;
 
  private:
-  FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation);
-  FRIEND_TEST(AKwayFMRefiner, ConsidersSingleNodeHEsDuringInducedGainComputation);
+  FRIEND_TEST(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation);
+  FRIEND_TEST(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation);
   FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
@@ -118,7 +118,7 @@ class KWayFMRefiner : public IRefiner,
 #endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-                  const HypernodeWeight max_allowed_part_weight,
+                  const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -138,7 +138,7 @@ class KWayFMRefiner : public IRefiner,
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i], max_allowed_part_weight);
+      activate(refinement_nodes[i], max_allowed_part_weights[0]);
     }
 
     const HyperedgeWeight initial_cut = best_cut;
@@ -190,10 +190,10 @@ class KWayFMRefiner : public IRefiner,
       moveHypernode(max_gain_node, from_part, to_part);
       _marked.setBit(max_gain_node, true);
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weight) {
+      if (_hg.partWeight(to_part) >= max_allowed_part_weights[0]) {
         _pq.disablePart(to_part);
       }
-      if (_hg.partWeight(from_part) < max_allowed_part_weight) {
+      if (_hg.partWeight(from_part) < max_allowed_part_weights[0]) {
         _pq.enablePart(from_part);
       }
 
@@ -220,7 +220,7 @@ class KWayFMRefiner : public IRefiner,
         }
       }
 
-      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weight);
+      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights[0]);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
@@ -855,9 +855,8 @@ class KWayFMRefiner : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1) {
-        // As we currently do not ensure that the hypergraph does not contain any
-        // single-node HEs, we explicitly have to check for |e| > 1
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      if (_hg.connectivity(he) == 1) {
         gain -= _hg.edgeWeight(he);
       } else {
         const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
@@ -892,12 +891,9 @@ class KWayFMRefiner : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
         case 1:
-          if (_hg.edgeSize(he) != 1) {
-            // As we currently do not ensure that the hypergraph does not contain any
-            // single-node HEs, we explicitly have to have this check here
+            ASSERT(_hg.edgeSize(he) > 1, V(he));
             internal_weight += he_weight;
-          }
-          break;
+            break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!_seen[part]) {

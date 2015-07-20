@@ -55,6 +55,8 @@ class AGainUpdateMethod : public Test {
   Configuration config;
 };
 
+using ATwoWayFMRefinerDeathTest = ATwoWayFMRefiner;
+
 TEST_F(ATwoWayFMRefiner, ComputesGainOfHypernodeMovement) {
   #ifdef USE_BUCKET_PQ
   refiner->initialize(100);
@@ -72,7 +74,7 @@ TEST_F(ATwoWayFMRefiner, ActivatesBorderNodes) {
 #else
   refiner->initialize();
 #endif
-  refiner->activate(1,  /* dummy max-part-weight */ 42);
+  refiner->activate(1,  /* dummy max-part-weight */ {42,42});
   HypernodeID hn;
   HyperedgeWeight gain;
   PartitionID to_part;
@@ -102,7 +104,7 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, {42,42}, old_cut, old_imbalance);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config.partition.k),
                       old_imbalance);
@@ -137,7 +139,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, {42,42}, old_cut, old_imbalance);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
@@ -158,7 +160,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
-  refiner->refine(refinement_nodes, 2, 42, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, {42,42}, old_cut, old_imbalance);
 
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
@@ -175,7 +177,7 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, 2, 42, cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, {42,42}, cut, old_imbalance);
 
   ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(*hypergraph)));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
@@ -209,7 +211,7 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.changeNodePart(1, 0, 1);
   refiner._marked.setBit(1, true);
 
-  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(1));
   // updateNeighbours does not delete the current max_gain node, neither does it update its gain
@@ -229,8 +231,8 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
 #else
   refiner.initialize();
 #endif
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(2));
   ASSERT_THAT(refiner._pq.key(1, 0), Eq(1));
   refiner._pq.enablePart(0);
@@ -239,7 +241,7 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
   hypergraph.changeNodePart(1, 1, 0);
   refiner._marked.setBit(1, true);
   refiner._active.setBit(1, false);
-  refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
 }
@@ -281,7 +283,7 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   hypergraph.changeNodePart(3, 0, 1);
   refiner._marked.setBit(3, true);
   refiner._active.setBit(3, false);
-  refiner.updateNeighbours(3, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(3, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
@@ -309,11 +311,11 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   refiner._gain_cache[2] = refiner.computeGain(2);
   refiner._gain_cache[3] = refiner.computeGain(3);
   refiner._gain_cache[4] = refiner.computeGain(4);
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
-  refiner.activate(2,  /* dummy max-part-weight */ 42);
-  refiner.activate(3,  /* dummy max-part-weight */ 42);
-  refiner.activate(4,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */{42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(2,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(3,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(4,  /* dummy max-part-weight */ {42,42});
   refiner._active.setBit(0, true);
   refiner._active.setBit(1, true);
   refiner._active.setBit(2, true);
@@ -327,7 +329,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   hypergraph.changeNodePart(3, 1, 0);
   refiner._marked.setBit(3, true);
   refiner._active.setBit(3, false);
-  refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -348,10 +350,10 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
 #else
   refiner.initialize();
 #endif
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
-  refiner.activate(2,  /* dummy max-part-weight */ 42);
-  refiner.activate(3,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(2,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(3,  /* dummy max-part-weight */ {42,42});
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(2, 0), Eq(0));
@@ -360,7 +362,7 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
   hypergraph.changeNodePart(3, 1, 0);
   refiner._marked.setBit(3, true);
   refiner._active.setBit(3, false);
-  refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
@@ -381,10 +383,10 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
 #else
   refiner.initialize();
 #endif
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
-  refiner.activate(2,  /* dummy max-part-weight */ 42);
-  refiner.activate(3,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(2,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(3,  /* dummy max-part-weight */ {42,42});
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(2, 1), Eq(0));
@@ -393,7 +395,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
   hypergraph.changeNodePart(2, 0, 1);
   refiner._marked.setBit(2, true);
   refiner._active.setBit(2, false);
-  refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
@@ -413,9 +415,9 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
 #else
   refiner.initialize();
 #endif
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
-  refiner.activate(2,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(2,  /* dummy max-part-weight */ {42,42});
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(2, 0), Eq(1));
@@ -423,7 +425,7 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
   hypergraph.changeNodePart(1, 0, 1);
   refiner._marked.setBit(1, true);
   refiner._active.setBit(1, false);
-  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(1));
   ASSERT_THAT(refiner._pq.key(2, 0), Eq(0));
@@ -442,8 +444,8 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
 #else
   refiner.initialize();
 #endif
-  refiner.activate(0,  /* dummy max-part-weight */ 42);
-  refiner.activate(1,  /* dummy max-part-weight */ 42);
+  refiner.activate(0,  /* dummy max-part-weight */ {42,42});
+  refiner.activate(1,  /* dummy max-part-weight */ {42,42});
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 0), Eq(1));
   ASSERT_THAT(refiner._pq.contains(2, 1), Eq(false));
@@ -452,7 +454,7 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   hypergraph.changeNodePart(1, 1, 0, refiner._non_border_hns_to_remove);
   refiner._marked.setBit(1, true);
   refiner._active.setBit(1, false);
-  refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(1, 0), Eq(1));
   ASSERT_THAT(refiner._pq.contains(0), Eq(false));
@@ -487,7 +489,7 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   hypergraph.changeNodePart(1, 0, 1);
   refiner._marked.setBit(1, true);
   refiner._marked.setBit(0, false);
-  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -519,7 +521,7 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   refiner.moveHypernode(2, 0, 1);
   refiner._marked.setBit(2, true);
   refiner._active.setBit(2, false);
-  refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ 42);
+  refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ {42,42});
 
   ASSERT_THAT(refiner._pq.contains(4, 1), Eq(true));
   ASSERT_THAT(refiner._pq.contains(3, 0), Eq(true));
@@ -536,9 +538,13 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
 
   Configuration config;
   config.partition.epsilon = 0.02;
-  config.partition.max_part_weight = (1 + config.partition.epsilon)
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
                                      * ceil(hypergraph.initialNumNodes()
                                             / static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                     * ceil(hypergraph.initialNumNodes()
+                                            / static_cast<double>(config.partition.k));
+
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, config);
   #ifdef USE_BUCKET_PQ
@@ -550,7 +556,7 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   ASSERT_THAT(refiner.moveIsFeasible(3, 1, 0), Eq(false));
 }
 
-TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
+TEST_F(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation) {
   hypergraph.reset(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
                                   HyperedgeVector { 0, 1, 0 }, 2));
 
@@ -558,7 +564,10 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
   config.partition.total_graph_weight = 2;
   config.partition.k = 2;
   config.partition.epsilon = 1.0;
-  config.partition.max_part_weight =
+  config.partition.max_part_weights[0] =
+    (1 + config.partition.epsilon)
+    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+config.partition.max_part_weights[1] =
     (1 + config.partition.epsilon)
     * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
 
@@ -573,7 +582,7 @@ TEST_F(ATwoWayFMRefiner, ConsidersSingleNodeHEsDuringInitialGainComputation) {
   refiner->initialize();
 #endif
 
-  ASSERT_THAT(refiner->computeGain(0), Eq(1));
+  ASSERT_DEATH(refiner->computeGain(0),".*");
 }
 
 TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {

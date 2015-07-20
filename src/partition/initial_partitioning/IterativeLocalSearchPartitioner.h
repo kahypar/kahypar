@@ -49,11 +49,6 @@ private:
 		Configuration ils_config = ConfigurationManager::copyConfigAndSetValues(
 				_config, [&](Configuration& config) {
 					config.partition.k = _hg.k();
-					config.partition.max_part_weight =
-					(1 + config.partition.epsilon)
-					* ceil(
-							config.partition.total_graph_weight
-							/ static_cast<double>(config.partition.k));
 				});
 
 		InitialPartitioner partitioner(_hg, ils_config);
@@ -150,13 +145,15 @@ private:
 
 			if (config.initial_partitioning.upper_allowed_partition_weight[0]
 					== config.initial_partitioning.upper_allowed_partition_weight[1]) {
+				_config.partition.max_part_weights[0] = _config.initial_partitioning.upper_allowed_partition_weight[0];
+				_config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
 				HypernodeWeight max_allowed_part_weight =
 						config.initial_partitioning.upper_allowed_partition_weight[0];
 				adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(
 						_config,
 						[&]() {
 							measureTimeOfFunction("Refinement time",[&]() {
-										_lp_refiner.refine(refinement_nodes,_hg.numNodes(),max_allowed_part_weight,cut,imbalance);
+										_lp_refiner.refine(refinement_nodes,_hg.numNodes(),_config.partition.max_part_weights,cut,imbalance);
 									});
 						});
 				InitialStatManager::getInstance().updateStat(

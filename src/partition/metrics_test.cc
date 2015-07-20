@@ -75,7 +75,8 @@ class APartitionedHypergraph : public Test {
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
     config.partition.epsilon = 0.15;
-    config.partition.max_part_weight = (1 + config.partition.epsilon) * ceil(7.0 / 2);
+    config.partition.max_part_weights[0] = (1 + config.partition.epsilon) * ceil(7.0 / 2);
+    config.partition.max_part_weights[1] = (1 + config.partition.epsilon) * ceil(7.0 / 2);
     double exp = 1.0 / log2(config.partition.k);
     config.partition.hmetis_ub_factor =
       50.0 * (2 * pow((1 + config.partition.epsilon), exp)

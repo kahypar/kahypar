@@ -130,9 +130,9 @@ class HyperedgeFMRefiner : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
-                  const HypernodeWeight max_allowed_part_weight,
+                  const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
-    ONLYDEBUG(max_allowed_part_weight);
+    ONLYDEBUG(max_allowed_part_weights);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -380,7 +380,7 @@ class HyperedgeFMRefiner : public IRefiner,
         pins_to_move_weight += _hg.nodeWeight(pin);
       }
     }
-    return _hg.partWeight(to) + pins_to_move_weight <= _config.partition.max_part_weight;
+    return _hg.partWeight(to) + pins_to_move_weight <= _config.partition.max_part_weights[0];
   }
 
   bool queuesAreEmpty() const noexcept {

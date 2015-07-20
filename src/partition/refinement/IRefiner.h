@@ -26,10 +26,10 @@ class IRefiner {
   IRefiner& operator= (IRefiner&&) = delete;
 
   bool refine(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
-              const HypernodeWeight max_allowed_part_weight, HyperedgeWeight& best_cut,
-              double& best_imbalance) noexcept {
+              const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
+              HyperedgeWeight& best_cut, double& best_imbalance) noexcept {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
-    return refineImpl(refinement_nodes, num_refinement_nodes, max_allowed_part_weight,
+    return refineImpl(refinement_nodes, num_refinement_nodes, max_allowed_part_weights,
                       best_cut, best_imbalance);
   }
 
@@ -58,7 +58,7 @@ class IRefiner {
  private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                           const size_t num_refinement_nodes,
-                          const HypernodeWeight max_allowed_part_weight,
+                          const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                           HyperedgeWeight& best_cut,
                           double& best_imbalance) noexcept = 0;
   virtual void initializeImpl() noexcept { }

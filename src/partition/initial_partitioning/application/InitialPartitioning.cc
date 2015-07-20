@@ -714,8 +714,10 @@ int main(int argc, char* argv[]) {
 								/ static_cast<double>(config.initial_partitioning.k))
 						* (1.0 + config.initial_partitioning.epsilon));
 	}
-	config.partition.max_part_weight =
+	config.partition.max_part_weights[0] =
 			config.initial_partitioning.upper_allowed_partition_weight[0];
+	config.partition.max_part_weights[1] =
+			config.initial_partitioning.upper_allowed_partition_weight[1];
 
 	//Initialize the InitialPartitioner
 

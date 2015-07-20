@@ -247,8 +247,12 @@ class LPRefiner : public IRefiner {
       const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
+<<<<<<< HEAD
 
+      if (target_part_weight + node_weight <= _config.partition.max_part_weight) {
+=======
       if (target_part_weight + node_weight <= _config.partition.max_part_weights[0]) {
+>>>>>>> master
         if (target_part_gain > max_gain) {
           max_score.clear();
           max_gain = target_part_gain;

@@ -5,6 +5,8 @@
 #include <gmock/gmock.h>
 
 #include "tools/MtxToHgrConversion.h"
+#include "lib/definitions.h"
+#include "lib/io/HypergraphIO.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -56,4 +58,18 @@ TEST(AnMtxToHgrConversionRoutine, ConvertsGeneralCoordinateMTXMatrixToHGRFormat)
   std::string hgr_filename("test_instances/CoordinateGeneral.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 }
+
+TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent) {
+  std::string mtx_filename("test_instances/EmptyRows.mtx");
+  std::string hgr_filename("test_instances/EmptyRows.hgr");
+  std::string correct_hgr_filename("test_instances/EmptyRowsCorrect.hgr");
+  convertMtxToHgr(mtx_filename, hgr_filename);
+
+  defs::Hypergraph correct_hypergraph = io::createHypergraphFromFile(correct_hgr_filename, 2);
+  defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+
+  ASSERT_THAT(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
+                                                                   correct_hypergraph), Eq(true));
+}
+
 }  // namespace mtxconversion
