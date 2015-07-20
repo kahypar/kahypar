@@ -199,9 +199,12 @@ class TwoWayFMRefiner : public IRefiner,
       } (), "GainCache Invalid");
 
     const HyperedgeWeight initial_cut = best_cut;
-    const double initial_imbalance = best_imbalance;
     HyperedgeWeight current_cut = best_cut;
-    double current_imbalance = best_imbalance;
+
+    HypernodeWeight current_weight_difference
+        = std::abs(static_cast<int>(_hg.partWeight(0)) - static_cast<int>(_hg.partWeight(1)));
+    HypernodeWeight best_weight_difference = current_weight_difference;
+    HypernodeWeight initial_weight_difference = current_weight_difference;
 
     int min_cut_index = -1;
     int num_moves = 0;
@@ -235,11 +238,9 @@ class TwoWayFMRefiner : public IRefiner,
                  "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
           _hg.changeNodePart(max_gain_node, to_part, from_part);
           return true;
-        } ()
-             , "max_gain move does not correspond to expected cut!");
+        } () , "max_gain move does not correspond to expected cut!");
 
 
-      ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
       DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
           << " to " << to_part << " (weight=" << _hg.nodeWeight(max_gain_node) << ")");
 
@@ -254,24 +255,26 @@ class TwoWayFMRefiner : public IRefiner,
         _pq.enablePart(from_part);
       }
 
-      current_imbalance = (static_cast<double>(std::max(_hg.partWeight(0), _hg.partWeight(1))) /
-                           (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
-
+      current_weight_difference
+          = std::abs(static_cast<int>(_hg.partWeight(0)) - static_cast<int>(_hg.partWeight(1)));
 
       current_cut -= max_gain;
       _stopping_policy.updateStatistics(max_gain);
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
-             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
+
 
       updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
-                                               (current_cut < best_cut);
-      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
+      const bool improved_cut_within_balance = (current_cut < best_cut)
+                                               && (_hg.partWeight(0)
+                                                   <= _config.partition.max_part_weights[0])
+                                               && (_hg.partWeight(1)
+                                                   <= _config.partition.max_part_weights[1]);
+      const bool improved_balance_less_equal_cut = (current_weight_difference
+                                                    < best_weight_difference) &&
                                                    (current_cut <= best_cut);
       ++num_moves_since_last_improvement;
       if (improved_cut_within_balance || improved_balance_less_equal_cut) {
@@ -281,7 +284,7 @@ class TwoWayFMRefiner : public IRefiner,
         DBG(dbg_refinement_2way_fm_improvements_cut && current_cut < best_cut,
             "2WayFM improved cut from " << best_cut << " to " << current_cut);
         best_cut = current_cut;
-        best_imbalance = current_imbalance;
+        best_weight_difference = current_weight_difference;
         _stopping_policy.resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
@@ -299,6 +302,9 @@ class TwoWayFMRefiner : public IRefiner,
     rollback(num_moves - 1, min_cut_index);
     _rollback_delta_cache.resetUsedEntries(_gain_cache);
 
+    best_imbalance = (static_cast<double>(std::max(_hg.partWeight(0), _hg.partWeight(1))) /
+                      (ceil((_hg.partWeight(0) + _hg.partWeight(1)) / 2.0))) - 1.0;
+
     ASSERT([&]() {
         for (HypernodeID hn = 0; hn < _gain_cache.size(); ++hn) {
           if (_gain_cache[hn] != kNotCached && _gain_cache[hn] != computeGain(hn)) {
@@ -315,8 +321,14 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
            << initial_cut << " to" << best_cut);
-    return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
-                                                 initial_imbalance, _config.partition.epsilon);
+    ASSERT(best_imbalance == metrics::imbalance(_hg, _config.partition.k),
+           V(best_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
+    ASSERT(_hg.partWeight(0) <= _config.partition.max_part_weights[0], "Block 0 imbalanced");
+    ASSERT(_hg.partWeight(1) <= _config.partition.max_part_weights[1], "Block 1 imbalanced");
+    return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_weight_difference,
+                                                 initial_weight_difference, _hg.partWeight(0),
+                                                 _hg.partWeight(1),
+                                                 _config.partition.max_part_weights);
   }
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,

@@ -91,8 +91,11 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
     Stats::instance().add("initialCut", _config.partition.current_v_cycle, initial_cut);
     Stats::instance().add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
-    DBG(true, "initial cut =" << current_cut);
-    DBG(true, "initial imbalance=" << current_imbalance);
+    LOG("initial cut =" << current_cut);
+    LOG("initial imbalance=" << current_imbalance);
+    LOG("target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
+        << " w(1)=" << _config.partition.max_part_weights[1]);
+    LOG("initial weights (RB): w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
@@ -125,8 +128,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     ASSERT(current_imbalance <= _config.partition.epsilon,
            "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
            << " > " << _config.partition.epsilon);
-    LOG("cut after refinement: " << current_cut);
-    LOG("imbalance after refinement: " << current_imbalance);
+    LOG("final cut: " << current_cut);
+    LOG("final imbalance: " << current_imbalance);
+    LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
     return current_cut < initial_cut;
   }
 
