@@ -582,7 +582,7 @@ config.partition.max_part_weights[1] =
   refiner->initialize();
 #endif
 
-  ASSERT_DEATH(refiner->computeGain(0),".*");
+  ASSERT_DEBUG_DEATH(refiner->computeGain(0),".*");
 }
 
 TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {

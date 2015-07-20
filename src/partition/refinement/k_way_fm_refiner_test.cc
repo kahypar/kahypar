@@ -58,11 +58,11 @@ class AKwayFMRefiner : public Test {
 using AKwayFMRefinerDeathTest = AKwayFMRefiner;
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation) {
-  ASSERT_DEATH(refiner->insertHNintoPQ(0, 10), ".*");
+  ASSERT_DEBUG_DEATH(refiner->insertHNintoPQ(0, 10), ".*");
 }
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation) {
-  ASSERT_DEATH(refiner->gainInducedByHypergraph(0, 0), ".*");
+  ASSERT_DEBUG_DEATH(refiner->gainInducedByHypergraph(0, 0), ".*");
 }
 
 TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
