@@ -133,8 +133,6 @@ static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {
   HypernodeWeight sum = 0;
   for (const HypernodeID hn : hypergraph.nodes()) {
-    if (hypergraph.numNodes() < 500)
-      LOGVAR(hypergraph.nodeWeight(hn));
     sum += hypergraph.nodeWeight(hn);
   }
   return sum / hypergraph.numNodes();
