@@ -37,6 +37,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
   double hn_degree_stdev = std::sqrt(metrics::hypernodeDegreeVariance(hypergraph));
   double he_size_stdev = std::sqrt(metrics::hyperedgeSizeVariance(hypergraph));
+  double hn_weight_stdev = std::sqrt(metrics::hypernodeWeightVariance(hypergraph));
 
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
@@ -57,6 +58,9 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   << (hn_degrees.empty() ? 0 : hn_degrees[hn_degrees.size() - 1])
   << "sd: " << std::setw(10) << std::left << hn_degree_stdev
   << "]" << std::endl;
+  std::cout << "-->" << "HN weight: avg: " << std::setw(10) << std::left
+            << metrics::avgHypernodeWeight(hypergraph)
+            << "sd: " << std::setw(10) << std::left << hn_weight_stdev << std::endl;
 }
 
 template <class Configuration>
