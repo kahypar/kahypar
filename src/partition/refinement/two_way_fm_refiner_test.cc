@@ -134,6 +134,12 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  config.partition.total_graph_weight = 7;
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * ceil(config.partition.total_graph_weight /
+                                                static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
+
   #ifdef USE_BUCKET_PQ
   refiner->initialize(100);
 #else
@@ -160,6 +166,11 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  config.partition.total_graph_weight = 7;
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * ceil(config.partition.total_graph_weight /
+                                                static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
   refiner->refine(refinement_nodes, 2, {42,42}, old_cut, old_imbalance);
 
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
@@ -172,6 +183,11 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   config.partition.epsilon = 0.15;
+  config.partition.total_graph_weight = 7;
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * ceil(config.partition.total_graph_weight /
+                                                static_cast<double>(config.partition.k));
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
   #ifdef USE_BUCKET_PQ
   refiner->initialize(100);
 #else
@@ -582,7 +598,7 @@ config.partition.max_part_weights[1] =
   refiner->initialize();
 #endif
 
-  ASSERT_DEATH(refiner->computeGain(0),".*");
+  ASSERT_DEBUG_DEATH(refiner->computeGain(0),".*");
 }
 
 TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {

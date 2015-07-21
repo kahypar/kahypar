@@ -136,6 +136,9 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 				std::move(extracted_init_hypergraph.second));
 		double init_alpha = config.initial_partitioning.init_alpha;
 
+		double best_imbalance = std::numeric_limits<double>::max();
+		std::vector<PartitionID> best_imbalanced_partition(extracted_init_hypergraph.first->numNodes(),0);
+
 		do {
 			extracted_init_hypergraph.first->resetPartitioning();
 			std::uniform_int_distribution<int> int_dist;
@@ -163,7 +166,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 											ceil(
 													static_cast<double>(extracted_init_hypergraph.first->totalWeight())
 													/ static_cast<double>(new_config.initial_partitioning.k))
-											* (1.0 + config.initial_partitioning.epsilon));
+											* (1.0 + new_config.partition.epsilon));
 								}
 								ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
 							});
@@ -174,7 +177,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 								config.initial_partitioning.algo,
 								*extracted_init_hypergraph.first, init_config));
 				(*partitioner).partition(init_config.initial_partitioning.k);
-			} else if (config.initial_partitioning.mode.compare("nLevel")
+			} else if (init_config.initial_partitioning.mode.compare("nLevel")
 					== 0) {
 				std::unique_ptr<IInitialPartitioner> partitioner(
 						InitialPartitioningFactory::getInstance().createObject(
@@ -182,12 +185,22 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 								*extracted_init_hypergraph.first, init_config));
 				(*partitioner).partition(init_config.initial_partitioning.k);
 			}
+			double imbalance = metrics::imbalance(*extracted_init_hypergraph.first,config.partition.k);
+			if(imbalance < best_imbalance) {
+				for(HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+					best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
+				}
+			}
 			init_alpha -= 0.1;
-		} while (metrics::imbalance(*extracted_init_hypergraph.first,config.partition.k) > config.partition.epsilon);
+		} while (metrics::imbalance(*extracted_init_hypergraph.first,config.partition.k) > config.partition.epsilon && init_alpha > 0.0);
 
 		for (HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+			PartitionID part = extracted_init_hypergraph.first->partID(hn);
+			if(part != best_imbalanced_partition[hn]) {
+				part = best_imbalanced_partition[hn];
+			}
 			hg.setNodePart(mapping[hn],
-					extracted_init_hypergraph.first->partID(hn));
+					part);
 		}
 
 	}

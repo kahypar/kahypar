@@ -54,7 +54,6 @@ private:
 	void kwayPartitionImpl() final {
 		recursiveBisection(_hg, _config.initial_partitioning.k);
 		_config.initial_partitioning.epsilon = _config.partition.epsilon;
-		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::performFMRefinement();

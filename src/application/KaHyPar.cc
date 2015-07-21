@@ -175,6 +175,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
                                                        + ".part."
                                                        + std::to_string(config.partition.k);
     config.partition.epsilon = vm["e"].as<double>();
+    config.initial_partitioning.epsilon = vm["e"].as<double>();
 
     if (vm.count("seed")) {
       config.partition.seed = vm["seed"].as<int>();
