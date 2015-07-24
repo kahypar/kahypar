@@ -158,6 +158,20 @@ public:
 
 	}
 
+	void bisectionPartitionImpl() final {
+		PartitionID k = _config.initial_partitioning.k;
+		_config.initial_partitioning.k = 2;
+		kwayPartitionImpl();
+		_config.initial_partitioning.k = k;
+	}
+
+private:
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, AllMaxGainMovesAZeroGainMovesIfNoHypernodeIsAssigned);
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, MaxGainMoveIsAZeroGainMoveIfANetHasOnlyOneAssignedHypernode);
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveIfThereAStillUnassignedNodesOfAHyperedgeAreLeft);
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnAssignedHypernodeIfAllHypernodesAreAssigned);
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned);
+
 	std::pair<PartitionID, Gain> computeMaxGainMove(const HypernodeID& hn) {
 
 		std::vector<double> tmp_scores(_config.initial_partitioning.k, 0);
@@ -165,7 +179,9 @@ public:
 		PartitionID source_part = _hg.partID(hn);
 		HyperedgeWeight internal_weight = 0;
 		for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-			const HypernodeID pins_in_source_part = (source_part == -1) ? 2 : _hg.pinCountInPart(he, source_part);
+			const HypernodeID pins_in_source_part =
+					(source_part == -1) ?
+							2 : _hg.pinCountInPart(he, source_part);
 			if (_hg.connectivity(he) == 1 && pins_in_source_part > 1) {
 				PartitionID part_in_edge =
 						std::numeric_limits<PartitionID>::min();
@@ -215,13 +231,6 @@ public:
 
 		return std::make_pair(max_part, static_cast<Gain>(max_score));
 
-	}
-
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
 	}
 
 	void assignAllUnassignedNodes(bool& converged) {

@@ -8,3 +8,4 @@ add_gmock_test(initial_partitioner_base_test initial_partitioner_base_test.cc $<
 add_gmock_test(random_partitioner_test random_partitioner_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>  ${PROJECT_SOURCE_DIR}/src/partition/)
 add_gmock_test(greedy_hypergraph_growing_test greedy_hypergraph_growing_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>  ${PROJECT_SOURCE_DIR}/src/partition/)
 add_gmock_test(bfs_partitioner_test bfs_partitioner_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>  ${PROJECT_SOURCE_DIR}/src/partition/)
+add_gmock_test(label_propagation_partitioner_test label_propagation_partitioner_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>  ${PROJECT_SOURCE_DIR}/src/partition/)
