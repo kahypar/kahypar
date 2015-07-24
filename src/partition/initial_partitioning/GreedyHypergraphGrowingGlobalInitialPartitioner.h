@@ -115,7 +115,7 @@ private:
 							"Assignment of hypernode " << best_node << " to partition " << best_part << " failed!");
 					ASSERT(
 							[&]() {
-								if(unassigned_part != -1) {
+								if(_config.initial_partitioning.unassigned_part != -1 && GainComputation::getType() == GainType::fm_gain) {
 									_hg.changeNodePart(best_node,best_part,unassigned_part);
 									HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 									_hg.changeNodePart(best_node,unassigned_part,best_part);

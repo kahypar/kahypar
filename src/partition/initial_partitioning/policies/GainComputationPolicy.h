@@ -28,6 +28,15 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
+
+enum class GainType
+	: std::uint8_t {
+		fm_gain,
+		modify_fm_gain,
+		max_net_gain,
+		max_pin_gain
+	};
+
 struct GainComputationPolicy {
 	virtual ~GainComputationPolicy() {
 	}
@@ -147,6 +156,10 @@ struct FMGainComputationPolicy: public GainComputationPolicy {
 		}
 	}
 
+	static GainType getType() {
+		return GainType::fm_gain;
+	}
+
 };
 
 struct FMModifyGainComputationPolicy: public GainComputationPolicy {
@@ -207,6 +220,10 @@ struct FMModifyGainComputationPolicy: public GainComputationPolicy {
 
 	}
 
+	static GainType getType() {
+		return GainType::modify_fm_gain;
+	}
+
 };
 
 struct MaxPinGainComputationPolicy: public GainComputationPolicy {
@@ -252,6 +269,10 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 
 	}
 
+	static GainType getType() {
+		return GainType::max_pin_gain;
+	}
+
 };
 
 struct MaxNetGainComputationPolicy: public GainComputationPolicy {
@@ -294,6 +315,10 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 				}
 			}
 		}
+	}
+
+	static GainType getType() {
+		return GainType::max_net_gain;
 	}
 
 };

@@ -111,15 +111,17 @@ private:
 
 						ASSERT(
 								[&]() {
-									if(_config.initial_partitioning.unassigned_part != -1) {
+									if(_config.initial_partitioning.unassigned_part != -1 && GainComputation::getType() == GainType::fm_gain) {
 										Gain gain = greedy_base.maxKeyFromPartition(i);
 										_hg.changeNodePart(hn,i,_config.initial_partitioning.unassigned_part);
 										HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 										_hg.changeNodePart(hn,_config.initial_partitioning.unassigned_part,i);
 										return metrics::hyperedgeCut(_hg) == (cut_before-gain);
 									}
-									return true;}(),
-								"Gain calculation failed!");
+									else {
+										return true;
+									}}(),
+								"Gain calculation of hypernode " << hn << " failed!");
 
 						assigned_nodes_weight += _hg.nodeWeight(hn);
 

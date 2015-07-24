@@ -87,7 +87,17 @@ private:
 					}(),
 							"Assignment of hypernode " << hn << " to partition " << i << " failed!");
 					ASSERT(
-							[&]() {if(unassigned_part != -1 && hn != kInvalidNode) {Gain gain = greedy_base.maxKeyFromPartition(i); _hg.changeNodePart(hn,i,unassigned_part); HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg); _hg.changeNodePart(hn,unassigned_part,i); return metrics::hyperedgeCut(_hg) == (cut_before-gain);} else {return true;}}(),
+							[&]() {
+								if(_config.initial_partitioning.unassigned_part != -1 && hn != kInvalidNode && GainComputation::getType() == GainType::fm_gain) {
+									Gain gain = greedy_base.maxKeyFromPartition(i);
+									_hg.changeNodePart(hn,i,unassigned_part);
+									HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
+									_hg.changeNodePart(hn,unassigned_part,i);
+									return metrics::hyperedgeCut(_hg) == (cut_before-gain);
+								}
+								else {
+									return true;
+								}}(),
 							"Gain calculation of hypernode " << hn << " failed!");
 
 					if (hn != kInvalidNode) {

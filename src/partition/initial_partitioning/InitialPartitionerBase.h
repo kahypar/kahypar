@@ -71,8 +71,8 @@ public:
 
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
-			if(_hg.nodeWeight(hn) > heaviest_node) {
-				heaviest_node = _hg.nodeWeight(hn);
+			if(_hg.nodeWeight(hn) > max_hypernode_weight) {
+				max_hypernode_weight = _hg.nodeWeight(hn);
 			}
 			_unassigned_nodes.push_back(hn);
 		}
@@ -143,13 +143,13 @@ public:
 			std::unique_ptr<IRefiner> refiner;
 			if(_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
 				refiner = (RefinerFactory::getInstance().createObject(
-															RefinementAlgorithm::kway_fm,
-															_hg, _config));
+								RefinementAlgorithm::kway_fm,
+								_hg, _config));
 			}
 			else {
 				refiner = (RefinerFactory::getInstance().createObject(
-											_config.partition.refinement_algorithm,
-											_hg, _config));
+								_config.partition.refinement_algorithm,
+								_hg, _config));
 			}
 			refiner->initialize();
 
@@ -160,7 +160,6 @@ public:
 			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 			HyperedgeWeight cut = cut_before;
 			double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
-
 
 			// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
 			// not possible to give more than one upper bound to the refiner.
@@ -175,8 +174,11 @@ public:
 				// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
 				//for.
 				adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(_config, [&]() {
-						measureTimeOfFunction("Refinement time",[&]() {
-										refiner->refine(refinement_nodes,_hg.numNodes(),_config.partition.max_part_weights,cut,imbalance);
+							measureTimeOfFunction("Refinement time",[&]() {
+										refiner->refine(refinement_nodes,_hg.numNodes(), {_config.partition.max_part_weights[0]
+													+ max_hypernode_weight,
+													_config.partition.max_part_weights[1]
+													+ max_hypernode_weight},cut,imbalance);
 									});
 						});
 				InitialStatManager::getInstance().updateStat("Partitioning Results", "Cut increase during refinement",InitialStatManager::getInstance().getStat("Partitioning Results", "Cut increase during refinement") + (cut_before - metrics::hyperedgeCut(_hg)));
@@ -362,7 +364,6 @@ protected:
 	Configuration& _config;
 	HypergraphPartitionBalancer _balancer;
 	HypernodeWeight total_hypergraph_weight = 0;
-	HypernodeWeight heaviest_node = 0;
 
 private:
 
@@ -433,6 +434,7 @@ private:
 	unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
 	std::vector<HypernodeID> _unassigned_nodes;
 	std::vector<HyperedgeID> _removed_hyperedges;
+	HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 
 };
 
