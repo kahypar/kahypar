@@ -19,6 +19,7 @@
 #include "tools/RandomFunctions.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "lib/datastructure/FastResetBitVector.h"
 
 using defs::Hypergraph;
 using defs::HypernodeWeight;
@@ -38,7 +39,8 @@ class LabelPropagationInitialPartitioner: public IInitialPartitioner,
 public:
 	LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
 			Configuration& config) :
-			InitialPartitionerBase(hypergraph, config) {
+			InitialPartitionerBase(hypergraph, config), _valid_parts(
+					config.initial_partitioning.k, false) {
 	}
 
 	~LabelPropagationInitialPartitioner() {
@@ -94,16 +96,18 @@ public:
 				if (max_part != _hg.partID(v)) {
 					PartitionID source_part = _hg.partID(v);
 
-					ASSERT([&]() {
-								 for(HyperedgeID he : _hg.incidentEdges(v)) {
-									 for(PartitionID part : _hg.connectivitySet(he)) {
-										 if(part == max_part) {
-											 return true;
-										 }
-									 }
-								 }
-								 return false;
-								 }(), "Partition " << max_part << " is not an incident label of hypernode " << v << "!");
+					ASSERT(
+							[&]() {
+								for(HyperedgeID he : _hg.incidentEdges(v)) {
+									for(PartitionID part : _hg.connectivitySet(he)) {
+										if(part == max_part) {
+											return true;
+										}
+									}
+								}
+								return false;
+							}(),
+							"Partition " << max_part << " is not an incident label of hypernode " << v << "!");
 
 					if (InitialPartitionerBase::assignHypernodeToPartition(v,
 							max_part)) {
@@ -179,16 +183,12 @@ public:
 	}
 
 private:
-	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, AllMaxGainMovesAZeroGainMovesIfNoHypernodeIsAssigned);
-	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, MaxGainMoveIsAZeroGainMoveIfANetHasOnlyOneAssignedHypernode);
-	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveIfThereAStillUnassignedNodesOfAHyperedgeAreLeft);
-	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnAssignedHypernodeIfAllHypernodesAreAssigned);
-	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned);
+	FRIEND_TEST(ALabelPropagationMaxGainMoveTest, AllMaxGainMovesAZeroGainMovesIfNoHypernodeIsAssigned);FRIEND_TEST(ALabelPropagationMaxGainMoveTest, MaxGainMoveIsAZeroGainMoveIfANetHasOnlyOneAssignedHypernode);FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveIfThereAStillUnassignedNodesOfAHyperedgeAreLeft);FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnAssignedHypernodeIfAllHypernodesAreAssigned);FRIEND_TEST(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned);
 
 	std::pair<PartitionID, Gain> computeMaxGainMove(const HypernodeID& hn) {
 
-		std::vector<double> tmp_scores(_config.initial_partitioning.k, 0);
-		std::vector<bool> valid_parts(_config.initial_partitioning.k,false);
+		_valid_parts.resetAllBitsToFalse();
+		std::vector<Gain> tmp_scores(_config.initial_partitioning.k, 0);
 
 		PartitionID source_part = _hg.partID(hn);
 		HyperedgeWeight internal_weight = 0;
@@ -196,19 +196,18 @@ private:
 			const HypernodeID pins_in_source_part =
 					(source_part == -1) ?
 							2 : _hg.pinCountInPart(he, source_part);
-			for (const PartitionID part : _hg.connectivitySet(he)) {
-				valid_parts[part] = true;
-			}
 			if (_hg.connectivity(he) == 1 && pins_in_source_part > 1) {
 				PartitionID part_in_edge =
 						std::numeric_limits<PartitionID>::min();
 				for (const PartitionID part : _hg.connectivitySet(he)) {
+					_valid_parts.setBit(part, true);
 					part_in_edge = part;
 				}
 				internal_weight += _hg.edgeWeight(he);
 				tmp_scores[part_in_edge] += _hg.edgeWeight(he);
 			} else {
 				for (const PartitionID target_part : _hg.connectivitySet(he)) {
+					_valid_parts.setBit(target_part, true);
 					if (_hg.connectivity(he) == 2 && source_part != -1
 							&& source_part != target_part) {
 						const HypernodeID pins_in_target_part =
@@ -224,30 +223,27 @@ private:
 		PartitionID max_part = _hg.partID(hn);
 		double max_score = (_hg.partID(hn) == -1) ? invalid_score_value : 0;
 		for (PartitionID p = 0; p < _config.initial_partitioning.k; ++p) {
-			tmp_scores[p] -= internal_weight;
+			if (_valid_parts[p]) {
+				tmp_scores[p] -= internal_weight;
 
-			if(!valid_parts[p]) {
-				continue;
-			}
+				/**ASSERT([&]() {
+				 Gain gain = GainComputation::calculateGain(_hg,hn,p);
+				 if(tmp_scores[p] != gain) {
+				 return false;
+				 }
+				 return true;
+				 }(), "Calculated gain of hypernode " << hn << " is not " << tmp_scores[p] << ".");*/
 
-			/**ASSERT([&]() {
-			 Gain gain = GainComputation::calculateGain(_hg,hn,p);
-			 if(tmp_scores[p] != gain) {
-			 return false;
-			 }
-			 return true;
-			 }(), "Calculated gain of hypernode " << hn << " is not " << tmp_scores[p] << ".");*/
-
-			HypernodeWeight new_partition_weight = _hg.partWeight(p)
-					+ _hg.nodeWeight(hn);
-			if (new_partition_weight
-					<= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
-				if (tmp_scores[p] > max_score) {
-					max_score = tmp_scores[p];
-					max_part = p;
+				HypernodeWeight new_partition_weight = _hg.partWeight(p)
+						+ _hg.nodeWeight(hn);
+				if (new_partition_weight
+						<= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
+					if (tmp_scores[p] > max_score) {
+						max_score = tmp_scores[p];
+						max_part = p;
+					}
 				}
 			}
-
 		}
 
 		return std::make_pair(max_part, static_cast<Gain>(max_score));
@@ -322,6 +318,7 @@ private:
 protected:
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
+	FastResetBitVector<> _valid_parts;
 
 	const double invalid_score_value = std::numeric_limits<double>::lowest();
 
