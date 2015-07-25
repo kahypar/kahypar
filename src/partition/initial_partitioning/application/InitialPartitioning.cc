@@ -695,14 +695,10 @@ int main(int argc, char* argv[]) {
 	Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector,
 			edge_vector, config.initial_partitioning.k, &hyperedge_weights,
 			&hypernode_weights);
-
-	ConfigurationManager::setHypergraphDependingParameters(config, hypergraph);
-
 	HypernodeWeight hypergraph_weight = 0;
 	for (const HypernodeID hn : hypergraph.nodes()) {
 		hypergraph_weight += hypergraph.nodeWeight(hn);
 	}
-
 	for (int i = 0; i < config.initial_partitioning.k; i++) {
 		config.initial_partitioning.perfect_balance_partition_weight.push_back(
 				ceil(
@@ -714,22 +710,16 @@ int main(int argc, char* argv[]) {
 								/ static_cast<double>(config.initial_partitioning.k))
 						* (1.0 + config.initial_partitioning.epsilon));
 	}
-	config.partition.max_part_weights[0] =
-			config.initial_partitioning.upper_allowed_partition_weight[0];
-	config.partition.max_part_weights[1] =
-			config.initial_partitioning.upper_allowed_partition_weight[1];
+	ConfigurationManager::setHypergraphDependingParameters(config, hypergraph);
 
 	//Initialize the InitialPartitioner
-
 	end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 	InitialStatManager::getInstance().addStat("Time Measurements",
 			"Enviroment Creation time",
 			static_cast<double>(elapsed_seconds.count()));
-
 	std::vector<HyperedgeID> removed_hyperedges = removeLargeHyperedges(
 			hypergraph, config);
-
 	start = std::chrono::high_resolution_clock::now();
 	if (config.initial_partitioning.mode.compare("direct") == 0) {
 		std::unique_ptr<IInitialPartitioner> partitioner(

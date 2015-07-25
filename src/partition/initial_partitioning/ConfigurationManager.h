@@ -96,7 +96,6 @@ public:
 		config.partition.total_graph_weight = hg.totalWeight();
 		config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
 		config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
-
 		//Coarsening-Parameters
 		config.coarsening.contraction_limit =
 				config.coarsening.contraction_limit_multiplier
