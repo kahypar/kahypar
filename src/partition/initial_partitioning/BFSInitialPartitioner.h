@@ -74,6 +74,7 @@ private:
 
 		HypernodeWeight assigned_nodes_weight = 0;
 		if (unassigned_part != -1) {
+			//TODO(heuer): Warum ist hier -epsilon? 
 			assigned_nodes_weight =
 					_config.initial_partitioning.perfect_balance_partition_weight[unassigned_part]
 							* (1.0 - _config.initial_partitioning.epsilon);
@@ -81,6 +82,7 @@ private:
 
 		//Initialize a vector for each partition, which indicates the hypernodes which are and were already in the queue.
 		//TODO(heuer): This can be done more efficiently. Why not use vector<bool> instead of unordered maps?
+		//TODO(heuer): Is it possible to get this into one vector<bool> instead of vectors of vectors?
 		std::vector<std::vector<bool>> in_queue(_hg.k(),
 				std::vector<bool>(_hg.numNodes(), false));
 		std::vector<std::vector<bool>> hyperedge_in_queue(_hg.k(),
