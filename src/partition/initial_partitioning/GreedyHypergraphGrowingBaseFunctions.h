@@ -82,10 +82,14 @@ public:
 				Gain gain = GainComputation::calculateGain(_hg, hn,
 						target_part);
 				_pq.insert(hn, target_part, gain);
+				//TODO(heuer): If target_part == _config.initial_partitioning.unassigned_part, then you already
+				// 			   inserted hn into the PQ with an invalid target part! Could this happen? 
+				//			   Why would one want to insert a HN into the unassigned-part PQ?
 				if(!_pq.isEnabled(target_part) && target_part != _config.initial_partitioning.unassigned_part) {
 					_pq.enablePart(target_part);
 				}
 
+				// This assertion is not necessary...
 				ASSERT(_pq.contains(hn,target_part),"Hypernode " << hn << " isn't succesfully inserted into pq " << target_part << "!");
 				ASSERT(_pq.isEnabled(target_part), "PQ " << target_part << " is disabled!");
 
@@ -110,7 +114,7 @@ public:
 	void getMaxGainHypernode(HypernodeID& best_node, PartitionID& best_part, Gain& best_gain) {
 		do {
 			if(_pq.empty()) {
-				best_node = 0;
+				best_node = 0; // 0 is a valid HN id... it would be better to return something clearly invalid.
 				best_part = -1;
 				break;
 			}
@@ -128,6 +132,7 @@ public:
 
 	}
 
+	//TODO(heuer): Is this method still in use? The Kway-PQ handles deleteMax way more efficiently...
 	void getGlobalMaxGainMove(HypernodeID& best_node, PartitionID& best_part, Gain& best_gain, std::vector<bool>& enable, std::vector<PartitionID>& parts) {
 
 		for(PartitionID i : parts) {
