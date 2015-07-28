@@ -5,12 +5,12 @@
 #ifndef SRC_PARTITION_CONFIGURATION_H_
 #define SRC_PARTITION_CONFIGURATION_H_
 
+#include <array>
 #include <cstdint>
 #include <iomanip>
 #include <limits>
 #include <sstream>
 #include <string>
-#include <array>
 
 #include "lib/definitions.h"
 
@@ -20,7 +20,6 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 
 namespace partition {
-
 enum class Mode : std::uint8_t {
   recursive_bisection,
   direct_kway
@@ -139,7 +138,14 @@ struct Configuration {
       current_v_cycle(0),
       epsilon(1.0),
       hmetis_ub_factor(-1.0),
-      max_part_weights({std::numeric_limits<HypernodeWeight>::max(), std::numeric_limits<HypernodeWeight>::max()}),
+      perfect_balance_part_weights({
+        std::numeric_limits<HypernodeWeight>::max(),
+        std::numeric_limits<HypernodeWeight>::max()
+      }),
+      max_part_weights({
+        std::numeric_limits<HypernodeWeight>::max(),
+        std::numeric_limits<HypernodeWeight>::max()
+      }),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
       initial_parallel_he_removal(false),
@@ -161,6 +167,7 @@ struct Configuration {
     int current_v_cycle;
     double epsilon;
     double hmetis_ub_factor;
+    std::array<HypernodeWeight, 2> perfect_balance_part_weights;
     std::array<HypernodeWeight, 2> max_part_weights;
     HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
@@ -248,8 +255,12 @@ inline std::string toString(const Configuration& config) {
   << config.partition.initial_parallel_he_removal << std::endl;
   oss << std::setw(35) << "  total_graph_weight: "
   << config.partition.total_graph_weight << std::endl;
+  oss << std::setw(35) << "  L_opt0: " << config.partition.perfect_balance_part_weights[0]
+  << std::endl;
+  oss << std::setw(35) << "  L_opt1: " << config.partition.perfect_balance_part_weights[1]
+  << std::endl;
   oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
-      << std::endl;
+  << std::endl;
   oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
   << std::endl;
   oss << std::setw(35) << " Mode: " << toString(config.partition.mode) << std::endl;

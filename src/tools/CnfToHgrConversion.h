@@ -99,7 +99,7 @@ static inline void convertInstance(const std::string& cnf_source_filename,
   std::ofstream out_stream(hgr_target_filename.c_str());
   out_stream << num_clauses << " " << num_hypernodes << std::endl;
   for (const auto& hyperedge : hyperedges) {
-    ASSERT(!hyperege.empty(), "SAT instance contains empty hypereges");
+    ASSERT(!hyperedge.empty(), "SAT instance contains empty hypereges");
     for (auto pin_iter = hyperedge.cbegin(); pin_iter != hyperedge.cend(); ++pin_iter) {
       out_stream << *pin_iter;
       if (pin_iter + 1 != hyperedge.end()) {
