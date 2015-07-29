@@ -87,6 +87,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       converged = true;
       changes = 0;
 
+      // TODO(heuer): is this shuffle really necessary in EACH iteration?
+      // This call is the TOP hotstop in LP refiner!
       Randomize::shuffleVector(nodes, nodes.size());
       for (HypernodeID v : nodes) {
         std::pair<PartitionID, Gain> max_move = computeMaxGainMove(v);
@@ -277,7 +279,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
   int bfsAssignHypernodeToPartition(HypernodeID hn, PartitionID p, int count =
                                       std::numeric_limits<int>::max()) {
+    // TODO(heuer): reuse these datastructures... this code will be called MANY times....
     std::queue<HypernodeID> q;
+    // TODO(heuer): REMOVE map and use FastResetBitVector instead
     std::map<HypernodeID, bool> in_queue;
     int assigned_nodes = 0;
     q.push(hn);
