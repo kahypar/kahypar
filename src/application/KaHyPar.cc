@@ -177,6 +177,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     if (vm.count("init-remove-hes")) {
       config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
     }
+    if (vm.count("remove-always-cut-hes")) {
+      config.partition.remove_hes_that_always_will_be_cut = vm["remove-always-cut-hes"].as<bool>();
+    }
+
     if (vm.count("lp_refiner_max_iterations")) {
       config.lp_refiner.max_number_iterations = vm["lp_refiner_max_iterations"].as<int>();
     }
@@ -208,7 +212,7 @@ void setDefaults(Configuration& config) {
   config.partition.seed = -1;
   config.partition.initial_partitioning_attempts = 10;
   config.partition.global_search_iterations = 10;
-  config.partition.hyperedge_size_threshold = -1;
+  config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_full;
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
   config.coarsening.contraction_limit_multiplier = 160;
@@ -328,6 +332,7 @@ int main(int argc, char* argv[]) {
     ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
+    ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(),
     "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")

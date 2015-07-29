@@ -148,6 +148,7 @@ struct Configuration {
       }),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
+      remove_hes_that_always_will_be_cut(false),
       initial_parallel_he_removal(false),
       verbose_output(false),
       mode(Mode::direct_kway),
@@ -171,6 +172,7 @@ struct Configuration {
     std::array<HypernodeWeight, 2> max_part_weights;
     HypernodeWeight total_graph_weight;
     HyperedgeID hyperedge_size_threshold;
+    bool remove_hes_that_always_will_be_cut;
     bool initial_parallel_he_removal;
     bool verbose_output;
     Mode mode;
@@ -253,6 +255,8 @@ inline std::string toString(const Configuration& config) {
   << config.partition.hyperedge_size_threshold << std::endl;
   oss << std::setw(35) << "  initially remove parallel HEs: " << std::boolalpha
   << config.partition.initial_parallel_he_removal << std::endl;
+  oss << std::setw(35) << "  remove HEs that always will be cut HEs: " << std::boolalpha
+  << config.partition.remove_hes_that_always_will_be_cut << std::endl;
   oss << std::setw(35) << "  total_graph_weight: "
   << config.partition.total_graph_weight << std::endl;
   oss << std::setw(35) << "  L_opt0: " << config.partition.perfect_balance_part_weights[0]

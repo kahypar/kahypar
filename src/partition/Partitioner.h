@@ -472,21 +472,46 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
 
 inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
                                                const Configuration& config) {
-  if (config.partition.hyperedge_size_threshold != -1) {
+  if (config.partition.hyperedge_size_threshold != std::numeric_limits<HyperedgeID>::max()) {
     for (const HyperedgeID he : hg.edges()) {
       if (hg.edgeSize(he) > config.partition.hyperedge_size_threshold) {
-        DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size ("
-            << hg.edgeSize(he) << ")   exceeds threshold: "
-            << config.partition.hyperedge_size_threshold);
+        DBG(dbg_partition_large_he_removal, "Hyperedge " << he << ": size (" << hg.edgeSize(he)
+            << ")   exceeds threshold: " << config.partition.hyperedge_size_threshold);
         removed_hyperedges.push_back(he);
         hg.removeEdge(he, false);
       }
     }
   }
+
+  // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
+  // remove them from the graph, to make subsequent partitioning easier.
+  // In case of direct k-way partitioning, Lmaxi=Lmax0=Lmax1 for all i in (0..k-1).
+  // In case of rb-based k-way partitioning however, Lmax0 might be different thisan Lmax1,
+  // depending on how block 0 and block1 will be partitioned further.
+  const HypernodeWeight max_part_weight = std::max(config.partition.max_part_weights[0],
+                                                   config.partition.max_part_weights[1]);
+  if (config.partition.remove_hes_that_always_will_be_cut) {
+    for (const HyperedgeID he : hg.edges()) {
+      HypernodeWeight sum_pin_weights = 0;
+      for (const HypernodeID pin : hg.pins(he)) {
+        sum_pin_weights += hg.nodeWeight(pin);
+      }
+
+      if (sum_pin_weights > max_part_weight) {
+        DBG(dbg_partition_large_he_removal,
+            "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
+            << max_part_weight);
+        removed_hyperedges.push_back(he);
+        hg.removeEdge(he, false);
+      }
+    }
+  }
+
   Stats::instance().add("numInitiallyRemovedLargeHEs", config.partition.current_v_cycle,
                         removed_hyperedges.size());
   LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
-      << config.partition.hyperedge_size_threshold << " pins");
+      << config.partition.hyperedge_size_threshold
+      << " pins or weight of pins was greater than Lmax=" << max_part_weight);
 }
 
 inline void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
