@@ -192,7 +192,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			}
 			init_alpha -= 0.1;
 		} while (metrics::imbalance(*extracted_init_hypergraph.first, config)
-				> config.partition.epsilon && init_alpha > 0.9);
+				> config.partition.epsilon && init_alpha > 0.0);
 
 		for (HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
 			PartitionID part = extracted_init_hypergraph.first->partID(hn);
