@@ -39,8 +39,7 @@ class LPRefiner : public IRefiner {
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
-    _bitset_he(hg.initialNumEdges(), false)
-  {
+    _bitset_he(hg.initialNumEdges(), false) {
     ALWAYS_ASSERT(_config.partition.mode == Mode::direct_kway,
                   "LP Refiner should not be used in RB, because L_max is not used for both parts");
   }
@@ -56,7 +55,7 @@ class LPRefiner : public IRefiner {
                   const std::array<HypernodeWeight, 2>& __attribute__ ((unused)) max_allowed_part_weights,
                   HyperedgeWeight& best_cut,
                   double __attribute__ ((unused))& best_imbalance) noexcept final {
-    assert(metrics::imbalance(_hg, _config.partition.k) < _config.partition.epsilon);
+    assert(metrics::imbalance(_hg, _config) < _config.partition.epsilon);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -89,7 +88,7 @@ class LPRefiner : public IRefiner {
           assert(best_cut <= in_cut);
           assert(gain_pair.first >= 0);
           assert(best_cut == metrics::hyperedgeCut(_hg));
-          assert(metrics::imbalance(_hg, _config.partition.k) <= _config.partition.epsilon);
+          assert(metrics::imbalance(_hg, _config) <= _config.partition.epsilon);
 
           // add adjacent pins to next iteration
           for (const auto& he : _hg.incidentEdges(hn)) {

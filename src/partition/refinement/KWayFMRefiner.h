@@ -124,9 +124,9 @@ class KWayFMRefiner : public IRefiner,
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg, _config.partition.k))),
+             FloatingPoint<double>(metrics::imbalance(_hg, _config))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg, _config.partition.k));
+           << " by hypergraph " << metrics::imbalance(_hg, _config));
 
     _pq.clear();
     _marked.resetAllBitsToFalse();
@@ -208,8 +208,8 @@ class KWayFMRefiner : public IRefiner,
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-      ASSERT(current_imbalance == metrics::imbalance(_hg, _config.partition.k),
-             V(current_imbalance) << V(metrics::imbalance(_hg, _config.partition.k)));
+      ASSERT(current_imbalance == metrics::imbalance(_hg, _config),
+             V(current_imbalance) << V(metrics::imbalance(_hg, _config)));
 
       // remove all other possible moves of the current max_gain_node
       for (PartitionID part = 0; part < _config.partition.k; ++part) {
@@ -890,9 +890,9 @@ class KWayFMRefiner : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
         case 1:
-            ASSERT(_hg.edgeSize(he) > 1, V(he));
-            internal_weight += he_weight;
-            break;
+          ASSERT(_hg.edgeSize(he) > 1, V(he));
+          internal_weight += he_weight;
+          break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!_seen[part]) {

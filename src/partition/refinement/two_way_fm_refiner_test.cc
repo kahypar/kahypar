@@ -36,6 +36,16 @@ class ATwoWayFMRefiner : public Test {
     hypergraph->setNodePart(5, 1);
     hypergraph->setNodePart(6, 1);
     hypergraph->initializeNumCutHyperedges();
+    config.partition.epsilon = 0.15;
+    config.partition.total_graph_weight = 7;
+    config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
+                                                            static_cast<double>(config.partition.k));
+    config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
+                                                            static_cast<double>(config.partition.k));
+
+    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                           * config.partition.perfect_balance_part_weights[0];
+    config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, config);
   }
@@ -94,11 +104,10 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 }
 
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  config.partition.epsilon = 0.15;
   #ifdef USE_BUCKET_PQ
   refiner->initialize(100);
 #else
@@ -106,7 +115,7 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
 #endif
   refiner->refine(refinement_nodes, 2, { 42, 42 }, old_cut, old_imbalance);
 
-  EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config.partition.k),
+  EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config),
                       old_imbalance);
 }
 
@@ -129,21 +138,9 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
 TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
-
-  config.partition.epsilon = 0.15;
-  config.partition.total_graph_weight = 7;
-
-  config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
   #ifdef USE_BUCKET_PQ
   refiner->initialize(100);
@@ -166,20 +163,10 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   hypergraph->changeNodePart(1, 1, 0);
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
-
-  config.partition.epsilon = 0.15;
-  config.partition.total_graph_weight = 7;
-  config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
   refiner->refine(refinement_nodes, 2, { 42, 42 }, old_cut, old_imbalance);
 
@@ -188,20 +175,9 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 }
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
-
-  config.partition.epsilon = 0.15;
-  config.partition.total_graph_weight = 7;
-  config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
-                                                          static_cast<double>(config.partition.k));
-
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
 #ifdef USE_BUCKET_PQ
   refiner->initialize(100);

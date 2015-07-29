@@ -164,6 +164,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(8.0 / 4);
+  config.partition.perfect_balance_part_weights[1] = ceil(8.0 / 4);
   config.partition.max_part_weights[0] = 0;
   config.partition.max_part_weights[1] = 0;
 
@@ -174,7 +176,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsCompleteRollbackIfNoImprovementCouldBe
   refiner->initialize();
 #endif
 
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 

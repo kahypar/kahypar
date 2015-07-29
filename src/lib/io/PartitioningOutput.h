@@ -59,8 +59,8 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   << "sd: " << std::setw(10) << std::left << hn_degree_stdev
   << "]" << std::endl;
   std::cout << "-->" << "HN weight: avg: " << std::setw(10) << std::left
-            << metrics::avgHypernodeWeight(hypergraph)
-            << "sd: " << std::setw(10) << std::left << hn_weight_stdev << std::endl;
+  << metrics::avgHypernodeWeight(hypergraph)
+  << "sd: " << std::setw(10) << std::left << hn_weight_stdev << std::endl;
 }
 
 template <class Configuration>
@@ -70,6 +70,7 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 }
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
+                                     const Configuration& config,
                                      const std::chrono::duration<double>& elapsed_seconds,
                                      const std::array<std::chrono::duration<double>, 7>& timings) {
   std::cout << "***********************" << hypergraph.k()
@@ -78,7 +79,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, hypergraph.k())
+  std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, config)
   << std::endl;
   std::cout << "partition time            = " << elapsed_seconds.count() << " s" << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {

@@ -449,7 +449,7 @@ int main(int argc, char* argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   io::printPartitioningStatistics();
-  io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
+  io::printPartitioningResults(hypergraph, config, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());

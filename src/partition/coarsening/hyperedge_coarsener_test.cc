@@ -118,6 +118,13 @@ TEST(HyperedgeCoarsener, RestoreParallelHyperedgesDuringUncontraction) {
                         HyperedgeVector { 0, 1, 0, 2, 1, 2 });
   hypergraph.setEdgeWeight(2, 5);
   Configuration config;
+  config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(3.0 / 2);
+  config.partition.perfect_balance_part_weights[1] = ceil(3.0 / 2);
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[1];
   config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
@@ -135,6 +142,13 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
                         HyperedgeVector { 0, 1, 0, 1, 2 });
   hypergraph.setEdgeWeight(1, 5);
   Configuration config;
+  config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(3.0 / 2);
+  config.partition.perfect_balance_part_weights[1] = ceil(3.0 / 2);
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[1];
   config.coarsening.max_allowed_node_weight = 5;
   HyperedgeCoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
@@ -150,6 +164,13 @@ TEST(HyperedgeCoasener, RestoreSingleNodeHyperedgesDuringUncontraction) {
 TEST_F(AHyperedgeCoarsener, FullyRestoresHypergraphDuringUncontraction) {
   Hypergraph input_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 });
+  config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+  config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[1];
   config.coarsening.max_allowed_node_weight = 10;
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
 

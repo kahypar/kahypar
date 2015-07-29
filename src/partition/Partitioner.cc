@@ -96,7 +96,7 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration
         << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg,
                                                                               hg_to_hmetis,
                                                                               partitioning,
-                                                                              config.partition.k));
+                                                                              config));
     Stats::instance().add("initialCut_" + std::to_string(attempt), 0, current_cut);
 
     if (current_cut < best_cut) {

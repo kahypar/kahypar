@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "lib/definitions.h"
+#include "partition/Configuration.h"
 
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
@@ -18,6 +19,8 @@ using defs::Hypergraph;
 using defs::PartitionID;
 using defs::HypernodeID;
 using defs::HyperedgeID;
+
+using partition::Configuration;
 
 namespace metrics {
 static const bool dbg_metrics_hyperedge_cut = false;
@@ -90,15 +93,17 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
   return cut;
 }
 
+
+// Hide original imbalance definitions that assume Lmax0=Lmax1=Lmax
+// Those should only be used in assertions.
+namespace {
 static inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
-  HypernodeWeight total_weight = 0;
-  HypernodeWeight max_weight = 0;
-  for (PartitionID i = 0; i != k; ++i) {
-    total_weight += hypergraph.partWeight(i);
+  HypernodeWeight max_weight = hypergraph.partWeight(0);
+  for (PartitionID i = 1; i != k; ++i) {
     max_weight = std::max(max_weight, hypergraph.partWeight(i));
   }
   return static_cast<double>(max_weight) /
-         ceil(static_cast<double>(total_weight) / k) - 1.0;
+         ceil(static_cast<double>(hypergraph.totalWeight()) / k) - 1.0;
 }
 
 template <typename CoarsendToHmetisMapping, typename Partition>
@@ -111,14 +116,83 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
     part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
   }
 
-  HypernodeWeight total_weight = 0;
-  HypernodeWeight max_weight = 0;
-  for (PartitionID i = 0; i != k; ++i) {
-    total_weight += part_weights[i];
+  HypernodeWeight max_weight = part_weights[0];
+  for (PartitionID i = 1; i != k; ++i) {
     max_weight = std::max(max_weight, part_weights[i]);
   }
   return static_cast<double>(max_weight) /
-         ceil(static_cast<double>(total_weight) / k) - 1.0;
+         ceil(static_cast<double>(hypergraph.totalWeight()) / k) - 1.0;
+}
+}  // namespace
+
+static inline double imbalance(const Hypergraph& hypergraph, const Configuration& config) {
+  ASSERT(config.partition.k == 2 ||
+         config.partition.perfect_balance_part_weights[0]
+         == config.partition.perfect_balance_part_weights[1],
+         "Imbalance cannot be calculated correctly");
+
+  double max_balance = (hypergraph.partWeight(0) /
+                        static_cast<double>(config.partition.perfect_balance_part_weights[0]));
+  for (PartitionID i = 1; i != config.partition.k; ++i) {
+    // If k > 2, then perfect_balance_part_weights[0] ==
+    // perfect_balance_part_weights[1] == perfect_balance_part_weights[i], because then we
+    // to direct k-way partitioning and each part has the same perfect_balance weight and Lmax
+    const double balance_i =
+      (hypergraph.partWeight(i) /
+       static_cast<double>(config.partition.perfect_balance_part_weights[1]));
+    max_balance = std::max(max_balance, balance_i);
+  }
+
+  // If we are in RB-mode and k!=2^x or we don't want to further partition blocks 0 and 1 into
+  // an equal number of blocks, the old, natural imbalance definition does not hold.
+  // However if k=2^x or we do partition into an equal number of blocks, this imbalance
+  // calculation should give the same result as the old one.
+  ASSERT(config.partition.perfect_balance_part_weights[0]
+         != config.partition.perfect_balance_part_weights[1] ||
+         max_balance - 1.0 == imbalance(hypergraph, config.partition.k),
+         "Incorrect Imbalance: " << (max_balance - 1.0) << "!="
+         << V(imbalance(hypergraph, config.partition.k)));
+  return max_balance - 1.0;
+}
+
+template <typename CoarsendToHmetisMapping, typename Partition>
+static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMapping&
+                               hg_to_hmetis, const Partition& partitioning,
+                               const Configuration& config) {
+  ASSERT(config.partition.k == 2 ||
+         config.partition.perfect_balance_part_weights[0]
+         == config.partition.perfect_balance_part_weights[1],
+         "Imbalance cannot be calculated correctly");
+  std::vector<HypernodeWeight> part_weights(config.partition.k, 0);
+
+  for (const HypernodeID hn : hypergraph.nodes()) {
+    part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
+  }
+
+  double max_balance =
+    (part_weights[0] / static_cast<double>(config.partition.perfect_balance_part_weights[0]));
+
+  for (PartitionID i = 1; i != config.partition.k; ++i) {
+    // If k > 2, then perfect_balance_part_weights[0] ==
+    // perfect_balance_part_weights[1] == perfect_balance_part_weights[i], because then we
+    // to direct k-way partitioning and each part has the same perfect_balance weight and Lmax
+    const double balance_i =
+      (part_weights[i] / static_cast<double>(config.partition.perfect_balance_part_weights[1]));
+
+    max_balance = std::max(max_balance, balance_i);
+  }
+
+  // If we are in RB-mode and k!=2^x or we don't want to further partition blocks 0 and 1 into
+  // an equal number of blocks, the old, natural imbalance definition does not hold.
+  // However if k=2^x or we do partition into an equal number of blocks, this imbalance
+  // calculation should give the same result as the old one.
+  ASSERT(config.partition.perfect_balance_part_weights[0]
+         != config.partition.perfect_balance_part_weights[1] ||
+         max_balance - 1.0 == imbalance(hypergraph, hg_to_hmetis, partitioning, config.partition.k),
+         "Incorrect Imbalance: " << (max_balance - 1.0) << "!="
+         << V(imbalance(hypergraph, hg_to_hmetis, partitioning, config.partition.k)));
+
+  return max_balance - 1.0;
 }
 
 static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
