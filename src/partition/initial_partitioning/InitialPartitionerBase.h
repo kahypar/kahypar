@@ -101,6 +101,8 @@ public:
 			_config.initial_partitioning.perfect_balance_partition_weight[i]
 			* (1.0 + epsilon);
 		}
+		_config.partition.max_part_weights[0] = _config.initial_partitioning.upper_allowed_partition_weight[0];
+		_config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
 	}
 
 	void eraseConnectedComponents() {
@@ -159,7 +161,7 @@ public:
 			}
 			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 			HyperedgeWeight cut = cut_before;
-			double imbalance = metrics::imbalance(_hg,_config.initial_partitioning.k);
+			double imbalance = metrics::imbalance(_hg,_config);
 
 			// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
 			// not possible to give more than one upper bound to the refiner.

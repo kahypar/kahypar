@@ -54,7 +54,6 @@ private:
 							ConfigurationManager::setHypergraphDependingParameters(config,_hg);
 						});
 
-
 		if(_hg.numEdges() != 0) {
 			Partitioner partitioner;
 			partitioner.partition(_hg, nlevel_config);

@@ -143,6 +143,12 @@ private:
 									config.initial_partitioning.upper_allowed_partition_weight[i] = config.initial_partitioning.perfect_balance_partition_weight[i]
 									* (1.0 + config.initial_partitioning.epsilon);
 								}
+
+								config.partition.perfect_balance_part_weights[0] = config.initial_partitioning.perfect_balance_partition_weight[0];
+								config.partition.perfect_balance_part_weights[1] = config.initial_partitioning.perfect_balance_partition_weight[1];
+								config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
+								config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
+
 							});
 
 			if (k2 - k1 == 0) {

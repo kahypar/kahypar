@@ -167,7 +167,7 @@ class Partitioner {
   inline Configuration createConfigurationForCurrentBisection(const Configuration& original_config,
                                                               const Hypergraph& original_hypergraph,
                                                               const Hypergraph& current_hypergraph,
-                                                              const PartitionID current_k ,
+                                                              const PartitionID current_k,
                                                               const PartitionID k0,
                                                               const PartitionID k1) const;
 
@@ -268,10 +268,9 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
 }
 
-inline Configuration Partitioner::createConfigurationForCurrentBisection(
-    const Configuration& original_config, const Hypergraph& original_hypergraph,
-    const Hypergraph& current_hypergraph, const PartitionID current_k,
-    const PartitionID k0, const PartitionID k1) const {
+inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config, const Hypergraph& original_hypergraph,
+                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k,
+                                                                         const PartitionID k0, const PartitionID k1) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
   current_config.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -281,15 +280,21 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(
   LOG(V(current_config.partition.epsilon));
   current_config.partition.total_graph_weight = current_hypergraph.totalWeight();
 
+  current_config.partition.perfect_balance_part_weights[0] =
+    ceil((k0 / static_cast<double>(current_k))
+         * static_cast<double>(current_config.partition.total_graph_weight));
+
+  current_config.partition.perfect_balance_part_weights[1] =
+    ceil((k1 / static_cast<double>(current_k))
+         * static_cast<double>(current_config.partition.total_graph_weight));
+
   current_config.partition.max_part_weights[0] =
-      (1 + current_config.partition.epsilon)
-      * ceil( (k0 / static_cast<double>(current_k))
-              *static_cast<double>(current_config.partition.total_graph_weight));
+    (1 + current_config.partition.epsilon)
+    * current_config.partition.perfect_balance_part_weights[0];
 
   current_config.partition.max_part_weights[1] =
-      (1 + current_config.partition.epsilon)
-      * ceil( (k1 / static_cast<double>(current_k))
-              *static_cast<double>(current_config.partition.total_graph_weight));
+    (1 + current_config.partition.epsilon)
+    * current_config.partition.perfect_balance_part_weights[1];
 
   current_config.coarsening.contraction_limit =
     current_config.coarsening.contraction_limit_multiplier * current_config.partition.k;
@@ -368,7 +373,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           Configuration current_config = createConfigurationForCurrentBisection(original_config,
                                                                                 input_hypergraph,
                                                                                 current_hypergraph,
-                                                                                k, km, k -km);
+                                                                                k, km, k - km);
           std::unique_ptr<ICoarsener> coarsener(CoarsenerFactory::getInstance().createObject(
                                                   current_config.partition.coarsening_algorithm,
                                                   current_hypergraph, current_config,

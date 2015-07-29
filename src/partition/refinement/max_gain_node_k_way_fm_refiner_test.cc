@@ -114,12 +114,17 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   hypergraph->initializeNumCutHyperedges();
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
+
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] =
-      (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    (1 + config.partition.epsilon)
+    * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 #ifdef USE_BUCKET_PQ
@@ -159,6 +164,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(8.0 / 4);
+  config.partition.perfect_balance_part_weights[1] = ceil(8.0 / 4);
   config.partition.max_part_weights[0] = 0;
   config.partition.max_part_weights[1] = 0;
 
@@ -169,11 +176,11 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   refiner->initialize();
 #endif
 
-  double old_imbalance = metrics::imbalance(*hypergraph, config.partition.k);
+  double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 
-  refiner->refine(refinement_nodes, 2, config.partition.max_part_weights , old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, config.partition.max_part_weights, old_cut, old_imbalance);
 
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(orig_hgr, *hypergraph), Eq(true));
 }*/
@@ -195,12 +202,16 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
 
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 #ifdef USE_BUCKET_PQ
@@ -230,12 +241,16 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
   hypergraph->printGraphState();
   config.partition.k = 4;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
 #ifdef USE_BUCKET_PQ
@@ -255,12 +270,16 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
 
   config.partition.k = 3;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] =
     (1 + config.partition.epsilon)
-      * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[1];
 
   hypergraph->setNodePart(0, 1);
   hypergraph->setNodePart(1, 2);
@@ -291,12 +310,16 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
 
   config.partition.k = 2;
   config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+                                                          / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
-    config.partition.max_part_weights[1] =
+    * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] =
     (1 + config.partition.epsilon)
-    * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    * config.partition.perfect_balance_part_weights[1];
 
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);

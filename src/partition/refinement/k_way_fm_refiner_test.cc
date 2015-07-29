@@ -31,12 +31,14 @@ class AKwayFMRefiner : public Test {
     config.partition.total_graph_weight = 2;
     config.partition.k = 2;
     config.partition.epsilon = 1.0;
-    config.partition.max_part_weights[0] =
-      (1 + config.partition.epsilon)
-      * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
-     config.partition.max_part_weights[1] =
-      (1 + config.partition.epsilon)
-      * ceil(hypergraph->numNodes() / static_cast<double>(config.partition.k));
+    config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
+                                                            static_cast<double>(config.partition.k));
+    config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
+                                                            static_cast<double>(config.partition.k));
+
+    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                           * config.partition.perfect_balance_part_weights[0];
+    config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 1);

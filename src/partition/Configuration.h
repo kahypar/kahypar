@@ -5,12 +5,12 @@
 #ifndef SRC_PARTITION_CONFIGURATION_H_
 #define SRC_PARTITION_CONFIGURATION_H_
 
+#include <array>
 #include <cstdint>
 #include <iomanip>
 #include <limits>
 #include <sstream>
 #include <string>
-#include <array>
 
 #include "lib/definitions.h"
 
@@ -21,7 +21,6 @@ using defs::PartitionID;
 using defs::HypernodeWeightVector;
 
 namespace partition {
-
 enum class Mode
 	: std::uint8_t {
 		recursive_bisection, direct_kway
@@ -241,8 +240,9 @@ struct Configuration {
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
 						2), epsilon(0.05), algorithm(), mode(), algo(
 						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						-1), nruns(1), direct_nlevel_contraction_divider(2.0), init_alpha(1.0), alpha(
-						1), beta(1), unassigned_part(0), pool_type("basic"), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
+						-1), nruns(1), direct_nlevel_contraction_divider(2.0), init_alpha(
+						1.0), alpha(1), beta(1), unassigned_part(0), pool_type(
+						"basic"), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
 		}
 
 		std::string coarse_graph_filename;
@@ -274,49 +274,42 @@ struct Configuration {
 
 	struct PartitioningParameters {
 		PartitioningParameters() :
-		      k(2),
-		      seed(0),
-		      initial_partitioning_attempts(1),
-		      global_search_iterations(1),
-		      current_v_cycle(0),
-		      epsilon(1.0),
-		      hmetis_ub_factor(-1.0),
-		      max_part_weights({std::numeric_limits<HypernodeWeight>::max(), std::numeric_limits<HypernodeWeight>::max()}),
-		      total_graph_weight(0),
-		      hyperedge_size_threshold(-1),
-		      initial_parallel_he_removal(false),
-		      verbose_output(false),
-		      mode(Mode::direct_kway),
-		      coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
-		      initial_partitioner(InitialPartitioner::hMetis),
-		      refinement_algorithm(RefinementAlgorithm::kway_fm),
-		      graph_filename(),
-		      graph_partition_filename(),
-		      coarse_graph_filename(),
-		      coarse_graph_partition_filename(),
-		      initial_partitioner_path() { }
+				k(2), seed(0), initial_partitioning_attempts(1), global_search_iterations(
+						1), current_v_cycle(0), epsilon(1.0), hmetis_ub_factor(
+						-1.0), perfect_balance_part_weights( {
+						std::numeric_limits<HypernodeWeight>::max(),
+						std::numeric_limits<HypernodeWeight>::max() }), max_part_weights(
+						{ std::numeric_limits<HypernodeWeight>::max(),
+								std::numeric_limits<HypernodeWeight>::max() }), total_graph_weight(
+						0), hyperedge_size_threshold(-1), initial_parallel_he_removal(
+						false), verbose_output(false), mode(Mode::direct_kway), coarsening_algorithm(
+						CoarseningAlgorithm::heavy_lazy), initial_partitioner(
+						InitialPartitioner::hMetis), refinement_algorithm(
+						RefinementAlgorithm::kway_fm), graph_filename(), graph_partition_filename(), coarse_graph_filename(), coarse_graph_partition_filename(), initial_partitioner_path() {
+		}
 
-	    PartitionID k;
-	    int seed;
-	    int initial_partitioning_attempts;
-	    int global_search_iterations;
-	    int current_v_cycle;
-	    double epsilon;
-	    double hmetis_ub_factor;
-	    std::array<HypernodeWeight, 2> max_part_weights;
-	    HypernodeWeight total_graph_weight;
-	    HyperedgeID hyperedge_size_threshold;
-	    bool initial_parallel_he_removal;
-	    bool verbose_output;
-	    Mode mode;
-	    CoarseningAlgorithm coarsening_algorithm;
-	    InitialPartitioner initial_partitioner;
-	    RefinementAlgorithm refinement_algorithm;
-	    std::string graph_filename;
-	    std::string graph_partition_filename;
-	    std::string coarse_graph_filename;
-	    std::string coarse_graph_partition_filename;
-	    std::string initial_partitioner_path;
+		PartitionID k;
+		int seed;
+		int initial_partitioning_attempts;
+		int global_search_iterations;
+		int current_v_cycle;
+		double epsilon;
+		double hmetis_ub_factor;
+		std::array<HypernodeWeight, 2> perfect_balance_part_weights;
+		std::array<HypernodeWeight, 2> max_part_weights;
+		HypernodeWeight total_graph_weight;
+		HyperedgeID hyperedge_size_threshold;
+		bool initial_parallel_he_removal;
+		bool verbose_output;
+		Mode mode;
+		CoarseningAlgorithm coarsening_algorithm;
+		InitialPartitioner initial_partitioner;
+		RefinementAlgorithm refinement_algorithm;
+		std::string graph_filename;
+		std::string graph_partition_filename;
+		std::string coarse_graph_filename;
+		std::string coarse_graph_partition_filename;
+		std::string initial_partitioner_path;
 	};
 
 	struct FMParameters {
@@ -388,9 +381,13 @@ inline std::string toString(const Configuration& config) {
 			<< std::endl;
 	oss << std::setw(35) << "  total_graph_weight: "
 			<< config.partition.total_graph_weight << std::endl;
-  oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
-      << std::endl;
-  oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
+	oss << std::setw(35) << "  L_opt0: "
+			<< config.partition.perfect_balance_part_weights[0] << std::endl;
+	oss << std::setw(35) << "  L_opt1: "
+			<< config.partition.perfect_balance_part_weights[1] << std::endl;
+	oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
+			<< std::endl;
+	oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
 			<< std::endl;
 	oss << std::setw(35) << " Mode: " << toString(config.partition.mode)
 			<< std::endl;

@@ -94,6 +94,8 @@ public:
 				config.partition.coarse_graph_filename + ".part."
 						+ std::to_string(config.initial_partitioning.k);
 		config.partition.total_graph_weight = hg.totalWeight();
+		config.partition.perfect_balance_part_weights[0] = config.initial_partitioning.perfect_balance_partition_weight[0];
+		config.partition.perfect_balance_part_weights[1] = config.initial_partitioning.perfect_balance_partition_weight[1];
 		config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
 		config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
 		//Coarsening-Parameters

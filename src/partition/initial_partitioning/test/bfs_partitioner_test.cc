@@ -57,6 +57,10 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 						/ static_cast<double>(config.initial_partitioning.k))
 				* (1.0 + config.partition.epsilon);
 	}
+	config.partition.perfect_balance_part_weights[0] = config.initial_partitioning.perfect_balance_partition_weight[0];
+	config.partition.perfect_balance_part_weights[1] = config.initial_partitioning.perfect_balance_partition_weight[1];
+	config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
+	config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
 }
 
 class ABFSBisectionInitialPartionerTest: public Test {
@@ -228,7 +232,7 @@ TEST_F(AKWayBFSInitialPartitionerTest, HasValidImbalance) {
 
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k),config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
 }
 
@@ -279,7 +283,7 @@ TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k), config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
 
 }
 

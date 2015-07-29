@@ -635,9 +635,14 @@ int main(int argc, char* argv[]) {
   config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
                                                 / config.coarsening.contraction_limit;
 
+  config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
+                                                          static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] =
+    config.partition.perfect_balance_part_weights[0];
+
+
   config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * ceil(config.partition.total_graph_weight /
-                                                static_cast<double>(config.partition.k));
+                                         * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
 
@@ -696,7 +701,7 @@ int main(int argc, char* argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   io::printPartitioningStatistics();
-  io::printPartitioningResults(hypergraph, elapsed_seconds, partitioner.timings());
+  io::printPartitioningResults(hypergraph, config, elapsed_seconds, partitioner.timings());
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());

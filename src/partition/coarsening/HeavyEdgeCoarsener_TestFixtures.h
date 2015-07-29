@@ -56,6 +56,14 @@ class ACoarsenerBase : public Test {
     coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
     refiner(new DummyRefiner()) {
     refiner->initialize();
+    config.partition.epsilon = 0.3;
+    config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+    config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                           * config.partition.perfect_balance_part_weights[0];
+    config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                           * config.partition.perfect_balance_part_weights[1];
+
     config.coarsening.max_allowed_node_weight = 5;
   }
 
@@ -174,6 +182,14 @@ void restoresParallelHyperedgesInReverseOrder() {
                         &node_weights);
 
   Configuration config;
+  config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(52.0 / 2);
+  config.partition.perfect_balance_part_weights[1] = ceil(52.0 / 2);
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[1];
+
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());
@@ -208,6 +224,13 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
                         &node_weights);
 
   Configuration config;
+  config.partition.epsilon = 1.0;
+  config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+  config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[1];
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DummyRefiner());

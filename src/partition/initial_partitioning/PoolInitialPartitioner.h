@@ -196,7 +196,7 @@ private:
 			(*partitioner).partition(_config.initial_partitioning.k);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 			double current_imbalance = metrics::imbalance(_hg,
-					_config.initial_partitioning.k);
+					_config);
 			std::cout << "[Cut: " << current_cut << " - Imbalance: "
 					<< current_imbalance << "]" << std::endl;
 			if (current_cut <= best_cut) {

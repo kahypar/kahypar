@@ -141,7 +141,7 @@ private:
 			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 			HyperedgeWeight cut = cut_before;
 			double imbalance = metrics::imbalance(_hg,
-					config.initial_partitioning.k);
+					config);
 
 			if (config.initial_partitioning.upper_allowed_partition_weight[0]
 					== config.initial_partitioning.upper_allowed_partition_weight[1]) {

@@ -219,13 +219,17 @@ class APartitionOfAHypergraph : public Test {
     _config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     _config.partition.total_graph_weight = 7;
     _config.coarsening.contraction_limit = 2;
-    _config.coarsening.max_allowed_node_weight= 5;
+    _config.coarsening.max_allowed_node_weight = 5;
     _config.partition.graph_filename = "APartitionOfAHypergraphTest";
     _config.partition.graph_partition_filename = "APartitionOfAHypergraphTest.hgr.part.2.KaHyPar";
     _config.partition.coarse_graph_filename = "APartitionOfAHypergraphTest_coarse.hgr";
     _config.partition.coarse_graph_partition_filename = "APartitionOfAHypergraphTest_coarse.hgr.part.2";
-    _config.partition.max_part_weights[0] = (1 + _config.partition.epsilon) * ceil(7.0 / 2);
-    _config.partition.max_part_weights[1] = (1 + _config.partition.epsilon) * ceil(7.0 / 2);
+    _config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+    _config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+    _config.partition.max_part_weights[0] = (1 + _config.partition.epsilon)
+                                            * _config.partition.perfect_balance_part_weights[0];
+    _config.partition.max_part_weights[1] = (1 + _config.partition.epsilon) *
+                                            _config.partition.perfect_balance_part_weights[1];
     double exp = 1.0 / log2(_config.partition.k);
     _config.partition.hmetis_ub_factor =
       50.0 * (2 * pow((1 + _config.partition.epsilon), exp)

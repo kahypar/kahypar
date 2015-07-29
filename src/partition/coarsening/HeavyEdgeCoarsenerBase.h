@@ -43,7 +43,7 @@ struct CoarseningMemento {
 
 template <class Rater = Mandatory,
           class PrioQueue = NoDataBinaryMaxHeap<HypernodeID,
-                                                typename Rater::RatingType>>
+                                                typename Rater::RatingType> >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  protected:
   using Base = CoarsenerBase<CoarseningMemento>;
@@ -85,7 +85,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   }
 
   bool doUncoarsen(IRefiner& refiner) noexcept {
-    double current_imbalance = metrics::imbalance(_hg, _config.partition.k);
+    double current_imbalance = metrics::imbalance(_hg, _config);
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
 
@@ -118,9 +118,13 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
       _history.pop_back();
     }
-    /**ASSERT(current_imbalance <= _config.partition.epsilon,
-           "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config.partition.k)
-           << " > " << _config.partition.epsilon);*/
+
+    // This currently cannot be guaranteed for RB-partitioning and k != 2^x, since it might be
+    // possible that 2FM cannot re-adjust the part weights to be less than Lmax0 and Lmax1.
+    // In order to guarantee this, 2FM would have to force rebalancing by sacrificing cut-edges.
+    // ASSERT(current_imbalance <= _config.partition.epsilon,
+    //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
+    //        << " > " << _config.partition.epsilon);
     LOG("final cut: " << current_cut);
     LOG("final imbalance: " << current_imbalance);
     LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));

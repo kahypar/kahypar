@@ -265,7 +265,7 @@ TEST_F(AKWayGreedySequentialTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k),config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
 }
 
@@ -308,7 +308,7 @@ TEST_F(AKWayGreedyGlobalTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k),config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
 }
 
@@ -350,7 +350,7 @@ TEST_F(AKWayGreedyRoundRobinTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k),config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
 }
 
@@ -393,7 +393,7 @@ TEST_F(AGreedyRecursiveBisectionTest, HasValidImbalance) {
 	initializePartitioning(k);
 	partitioner->partition(config.initial_partitioning.k);
 
-	ASSERT_LE(metrics::imbalance(*hypergraph,config.initial_partitioning.k), config.partition.epsilon);
+	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
 
 }
 
