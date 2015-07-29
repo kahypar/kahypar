@@ -322,10 +322,17 @@ void setDefaults(Configuration& config) {
   config.partition.k = 2;
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
+<<<<<<< HEAD
   config.partition.initial_partitioning_attempts = 1;
   config.partition.global_search_iterations = 1;
-  config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+  config.partition.hyperedge_size_threshold = -1;
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+=======
+  config.partition.initial_partitioning_attempts = 10;
+  config.partition.global_search_iterations = 10;
+  config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+  config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_full;
+>>>>>>> master
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
   config.initial_partitioning.algorithm = "pool";
   config.initial_partitioning.pool_type = "mix3";

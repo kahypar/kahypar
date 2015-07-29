@@ -46,6 +46,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " numVCycles=" << config.partition.global_search_iterations
   << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
   << " initiallyRemoveParallelHEs=" << std::boolalpha << config.partition.initial_parallel_he_removal
+  << " removeHEsThatAlwaysWillBeCut=" << std::boolalpha << config.partition.remove_hes_that_always_will_be_cut
   << " mode=" << toString(config.partition.mode)
   << " coarseningAlgo=" << toString(config.partition.coarsening_algorithm)
   << " coarseningMaxAllowedWeightMultiplier=" << config.coarsening.max_allowed_weight_multiplier
