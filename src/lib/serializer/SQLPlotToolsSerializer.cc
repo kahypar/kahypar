@@ -19,7 +19,6 @@ namespace serializer {
 void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
                                        const Partitioner& partitioner,
                                        const std::chrono::duration<double>& elapsed_seconds,
-                                       const std::array<std::chrono::duration<double>, 7>& timings,
                                        const std::string& filename) {
   std::ostringstream oss;
   oss << "RESULT"
@@ -82,13 +81,13 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " absorption=" << metrics::absorption(hypergraph)
   << " imbalance=" << metrics::imbalance(hypergraph, config)
   << " totalPartitionTime=" << elapsed_seconds.count()
-  << " initialParallelHEremovalTime=" << timings[0].count()
-  << " initialLargeHEremovalTime=" << timings[1].count()
-  << " coarseningTime=" << timings[2].count()
-  << " initialPartitionTime=" << timings[3].count()
-  << " uncoarseningRefinementTime=" << timings[4].count()
-  << " initialParallelHErestoreTime=" << timings[5].count()
-  << " initialLargeHErestoreTime=" << timings[6].count()
+  << " initialParallelHEremovalTime=" << Stats::instance().get("InitialParallelHEremoval")
+  << " initialLargeHEremovalTime=" << Stats::instance().get("InitialLargeHEremoval")
+  << " coarseningTime=" << Stats::instance().get("Coarsening")
+  << " initialPartitionTime=" << Stats::instance().get("InitialPartitioning")
+  << " uncoarseningRefinementTime=" << Stats::instance().get("UncoarseningRefinement")
+  << " initialParallelHErestoreTime=" << Stats::instance().get("InitialParallelHErestore")
+  << " initialLargeHErestoreTime=" << Stats::instance().get("InitialLargeHErestore")
   << " git=" << STR(KaHyPar_BUILD_VERSION)
   << std::endl;
   if (!filename.empty()) {

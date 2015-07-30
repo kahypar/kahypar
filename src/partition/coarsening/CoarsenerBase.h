@@ -73,8 +73,7 @@ class CoarsenerBase {
       _hypergraph_pruner.removeSingleNodeHyperedges(_hg, rep_node,
                                                     _history.back().one_pin_hes_begin,
                                                     _history.back().one_pin_hes_size);
-    Stats::instance().add("removedSingleNodeHEWeight", _config.partition.current_v_cycle,
-                          removed_he_weight);
+    Stats::instance().add(_config, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
   void removeParallelHyperedges(const HypernodeID rep_node) noexcept {
@@ -82,7 +81,7 @@ class CoarsenerBase {
       _hypergraph_pruner.removeParallelHyperedges(_hg, rep_node,
                                                   _history.back().parallel_hes_begin,
                                                   _history.back().parallel_hes_size);
-    Stats::instance().add("numRemovedParalellHEs", _config.partition.current_v_cycle, removed_parallel_hes);
+    Stats::instance().add(_config, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() noexcept {
@@ -126,9 +125,9 @@ class CoarsenerBase {
       old_cut = current_cut;
       improvement_found = refiner.refine(refinement_nodes, num_refinement_nodes,
                                          { _config.partition.max_part_weights[0]
-                                               + _max_hn_weights.back().max_weight,
+                                           + _max_hn_weights.back().max_weight,
                                            _config.partition.max_part_weights[1]
-                                               + _max_hn_weights.back().max_weight},
+                                           + _max_hn_weights.back().max_weight },
                                          current_cut,
                                          current_imbalance);
 

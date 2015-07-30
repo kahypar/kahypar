@@ -275,6 +275,8 @@ struct Configuration {
 	  struct PartitioningParameters {
 	    PartitioningParameters() :
 	      k(2),
+      rb_lower_k(0),
+      rb_upper_k(1),
 	      seed(0),
 	      initial_partitioning_attempts(1),
 	      global_search_iterations(1),
@@ -294,6 +296,7 @@ struct Configuration {
 	      remove_hes_that_always_will_be_cut(false),
 	      initial_parallel_he_removal(false),
 	      verbose_output(false),
+		  collect_stats(false),
 	      mode(Mode::direct_kway),
 	      coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
 	      initial_partitioner(InitialPartitioner::hMetis),
@@ -305,6 +308,8 @@ struct Configuration {
 	      initial_partitioner_path() { }
 
 	    PartitionID k;
+    PartitionID rb_lower_k;
+    PartitionID rb_upper_k;
 	    int seed;
 	    int initial_partitioning_attempts;
 	    int global_search_iterations;
@@ -318,6 +323,7 @@ struct Configuration {
 	    bool remove_hes_that_always_will_be_cut;
 	    bool initial_parallel_he_removal;
 	    bool verbose_output;
+    bool collect_stats;
 	    Mode mode;
 	    CoarseningAlgorithm coarsening_algorithm;
 	    InitialPartitioner initial_partitioner;

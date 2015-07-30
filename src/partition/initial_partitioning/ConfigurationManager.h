@@ -61,6 +61,7 @@ public:
 		config.partition.initial_partitioning_attempts = 1;
 		config.partition.hyperedge_size_threshold = -1;
 		config.partition.mode = Mode::direct_kway;
+		config.partition.collect_stats = false;
 
 
 		//Coarsening-Parameters

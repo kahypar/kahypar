@@ -29,6 +29,8 @@ class AMaxGainNodeKWayFMRefiner : public Test {
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6, 2, 7 }, 4)),
     refiner() {
     config.partition.k = 4;
+    config.partition.rb_lower_k = 0;
+    config.partition.rb_upper_k = config.partition.k - 1;
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 0);
     hypergraph->setNodePart(2, 1);
@@ -113,6 +115,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   hypergraph->setNodePart(7, 3);
   hypergraph->initializeNumCutHyperedges();
   config.partition.k = 4;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
 
   config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
@@ -163,6 +167,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   orig_hgr.initializeNumCutHyperedges();
 
   config.partition.k = 4;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
   config.partition.perfect_balance_part_weights[0] = ceil(8.0 / 4);
   config.partition.perfect_balance_part_weights[1] = ceil(8.0 / 4);
@@ -201,6 +207,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   hypergraph->initializeNumCutHyperedges();
 
   config.partition.k = 4;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
   config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
                                                           / static_cast<double>(config.partition.k));
@@ -240,6 +248,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
   hypergraph->initializeNumCutHyperedges();
   hypergraph->printGraphState();
   config.partition.k = 4;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
   config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
                                                           / static_cast<double>(config.partition.k));
@@ -269,6 +279,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
                                   HyperedgeVector { 0, 1, 2, 3, 3, 4, 5, 3, 8, 9, 3, 6, 7 }, 3));
 
   config.partition.k = 3;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
   config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
                                                           / static_cast<double>(config.partition.k));
@@ -309,6 +321,8 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
                                   HyperedgeVector { 0, 1, 0 }, 2));
 
   config.partition.k = 2;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
   config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
                                                           / static_cast<double>(config.partition.k));

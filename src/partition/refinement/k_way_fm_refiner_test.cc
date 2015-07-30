@@ -30,6 +30,8 @@ class AKwayFMRefiner : public Test {
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 2;
     config.partition.k = 2;
+    config.partition.rb_lower_k = 0;
+    config.partition.rb_upper_k = config.partition.k - 1;
     config.partition.epsilon = 1.0;
     config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
                                                             static_cast<double>(config.partition.k));

@@ -66,8 +66,7 @@ private:
 		}
 
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
-		InitialPartitionerBase::recalculateBalanceConstraints(
-				-_config.initial_partitioning.epsilon);
+		InitialPartitionerBase::recalculateBalanceConstraints(0);
 		bool is_upper_bound_released = false;
 
 		std::vector<PartitionID> part_shuffle(_config.initial_partitioning.k);
