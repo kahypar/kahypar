@@ -30,14 +30,18 @@ class Stats {
   Stats& operator= (Stats&&) = delete;
 
   void add(const Configuration& config, const std::string& key, double value) {
-    _stats["v" + std::to_string(config.partition.current_v_cycle)
-           + "_lk_" + std::to_string(config.partition.rb_lower_k)
-           + "_uk_" + std::to_string(config.partition.rb_upper_k)
-           + "_" + key] += value;
+    if (config.partition.collect_stats) {
+      _stats["v" + std::to_string(config.partition.current_v_cycle)
+             + "_lk_" + std::to_string(config.partition.rb_lower_k)
+             + "_uk_" + std::to_string(config.partition.rb_upper_k)
+             + "_" + key] += value;
+    }
   }
 
-  void addToTotal(const std::string& key, double value) {
-    _stats[key] += value;
+  void addToTotal(const Configuration& config, const std::string& key, double value) {
+    if (config.partition.collect_stats) {
+      _stats[key] += value;
+    }
   }
 
   double get(const std::string& key) const {

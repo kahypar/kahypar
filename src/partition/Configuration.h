@@ -153,6 +153,7 @@ struct Configuration {
       remove_hes_that_always_will_be_cut(false),
       initial_parallel_he_removal(false),
       verbose_output(false),
+      collect_stats(false),
       mode(Mode::direct_kway),
       coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
       initial_partitioner(InitialPartitioner::hMetis),
@@ -179,6 +180,7 @@ struct Configuration {
     bool remove_hes_that_always_will_be_cut;
     bool initial_parallel_he_removal;
     bool verbose_output;
+    bool collect_stats;
     Mode mode;
     CoarseningAlgorithm coarsening_algorithm;
     InitialPartitioner initial_partitioner;

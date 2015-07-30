@@ -430,6 +430,9 @@ int main(int argc, char* argv[]) {
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
                             config.partition.graph_filename.find_last_of("/") + 1));
 
+  // the main partitioner should track stats
+  config.partition.collect_stats = true;
+
   Partitioner partitioner;
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();

@@ -168,7 +168,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, const Configuration& 
   std::vector<HyperedgeID> removed_hyperedges;
   removeLargeHyperedges(hypergraph, removed_hyperedges, config);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("InitialLargeHEremoval",
+  Stats::instance().addToTotal(config, "InitialLargeHEremoval",
                                std::chrono::duration<double>(end - start).count());
 
   switch (config.partition.mode) {
@@ -183,7 +183,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, const Configuration& 
   start = std::chrono::high_resolution_clock::now();
   restoreLargeHyperedges(hypergraph, removed_hyperedges);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("InitialLargeHErestore", std::chrono::duration<double>(end - start).count());
+  Stats::instance().addToTotal(config, "InitialLargeHErestore", std::chrono::duration<double>(end - start).count());
 
   if (config.partition.initial_parallel_he_removal) {
     restoreParallelHyperedges(hypergraph);
@@ -196,14 +196,14 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("Coarsening", std::chrono::duration<double>(end - start).count());
+  Stats::instance().addToTotal(config, "Coarsening", std::chrono::duration<double>(end - start).count());
 
   utils::gatherCoarseningStats(hypergraph, 0, k1, k2);
 
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, config);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("InitialPartitioning",
+  Stats::instance().addToTotal(config, "InitialPartitioning",
                                std::chrono::duration<double>(end - start).count());
 
   hypergraph.sortConnectivitySets();
@@ -212,7 +212,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("UncoarseningRefinement",
+  Stats::instance().addToTotal(config, "UncoarseningRefinement",
                                std::chrono::duration<double>(end - start).count());
 }
 
@@ -223,7 +223,7 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("VCycleCoarsening",
+  Stats::instance().addToTotal(config, "VCycleCoarsening",
                                std::chrono::duration<double>(end - start).count());
 
   utils::gatherCoarseningStats(hypergraph, vcycle, k1, k2);
@@ -233,7 +233,7 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal("VCycleUnCoarseningRefinement",
+  Stats::instance().addToTotal(config, "VCycleUnCoarseningRefinement",
                                std::chrono::duration<double>(end - start).count());
   return found_improved_cut;
 }
