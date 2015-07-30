@@ -143,6 +143,7 @@ public:
 				}
 				ASSERT(_pq.isEnabled(i), "Partition " << i << " should be enable.");
 				ASSERT(!_pq.empty(i), "PQ of partition " << i << " shouldn't be empty!");
+				ASSERT(_hg.partID(_pq.max(i)) == _config.initial_partitioning.unassigned_part, "Hypernode with the maximum gain isn't an unassigned hypernode!");
 				if(best_gain < _pq.maxKey(i)) {
 					best_gain = _pq.maxKey(i);
 					best_part = i;
@@ -191,7 +192,6 @@ public:
 				}(), "Gain value of a move of a hypernode isn't equal with the real gain.");
 
 	}
-
 
 	size_t size() {
 		return _pq.size();

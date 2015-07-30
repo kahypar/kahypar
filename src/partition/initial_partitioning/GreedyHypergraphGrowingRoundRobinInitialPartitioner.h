@@ -51,17 +51,14 @@ private:
 		_config.initial_partitioning.unassigned_part = -1;
 		InitialPartitionerBase::resetPartitioning();
 
-
 		//Calculate Startnodes and push them into the queues.
 		greedy_base.calculateStartNodes();
-
 
 		//Enable parts are allowed to receive further hypernodes.
 		std::vector<bool> partEnable(_config.initial_partitioning.k, true);
 		if (_config.initial_partitioning.unassigned_part != -1) {
 			partEnable[_config.initial_partitioning.unassigned_part] = false;
 		}
-
 
 		HypernodeID assigned_nodes_weight = 0;
 		if (_config.initial_partitioning.unassigned_part != -1) {
@@ -78,11 +75,13 @@ private:
 				if (partEnable[i]) {
 					every_part_disable = false;
 					HypernodeID hn;
-					while (!greedy_base.empty(i)
-							&& _hg.partID(greedy_base.maxFromPartition(i))
-									!= _config.initial_partitioning.unassigned_part) {
-						greedy_base.deleteMaxFromPartition(i);
-					}
+					ASSERT(
+							greedy_base.empty(i)
+									|| _hg.partID(
+											greedy_base.maxFromPartition(i))
+											== _config.initial_partitioning.unassigned_part,
+							"Hypernode with the maximum gain isn't an unassigned hypernode!");
+
 					if (greedy_base.empty(i)) {
 						HypernodeID newStartNode =
 								InitialPartitionerBase::getUnassignedNode();
@@ -165,8 +164,6 @@ private:
 			}
 			return true;
 		}(), "There are unassigned hypernodes!");
-
-
 
 		_config.initial_partitioning.unassigned_part = unassigned_part;
 		InitialPartitionerBase::recalculateBalanceConstraints(
