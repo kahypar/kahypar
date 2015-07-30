@@ -62,6 +62,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
   if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
     config.partition.graph_filename = vm["hgr"].as<std::string>();
     config.partition.k = vm["k"].as<PartitionID>();
+    config.partition.rb_lower_k = 0;
+    config.partition.rb_upper_k = config.partition.k - 1;
 
     config.partition.coarse_graph_filename = std::string("/tmp/PID_")
                                              + std::to_string(getpid())
@@ -208,6 +210,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
 
 void setDefaults(Configuration& config) {
   config.partition.k = 2;
+  config.partition.rb_lower_k = 0;
+  config.partition.rb_upper_k = 1;
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
   config.partition.initial_partitioning_attempts = 10;
@@ -426,12 +430,6 @@ int main(int argc, char* argv[]) {
   io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
                             config.partition.graph_filename.find_last_of("/") + 1));
 
-#ifdef GATHER_STATS
-  LOG("*******************************");
-  LOG("***** GATHER_STATS ACTIVE *****");
-  LOG("*******************************");
-#endif
-
   Partitioner partitioner;
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -453,14 +451,20 @@ int main(int argc, char* argv[]) {
 
   std::chrono::duration<double> elapsed_seconds = end - start;
 
+#ifdef GATHER_STATS
+  LOG("*******************************");
+  LOG("***** GATHER_STATS ACTIVE *****");
+  LOG("*******************************");
   io::printPartitioningStatistics();
-  io::printPartitioningResults(hypergraph, config, elapsed_seconds, partitioner.timings());
+#endif
+
+  io::printPartitioningResults(hypergraph, config, elapsed_seconds);
   io::writePartitionFile(hypergraph, config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
   SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner,
-                                    elapsed_seconds, partitioner.timings(), result_file);
+                                    elapsed_seconds, result_file);
   return 0;
 }

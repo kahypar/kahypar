@@ -89,8 +89,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
     const HyperedgeWeight initial_cut = current_cut;
 
-    Stats::instance().add("initialCut", _config.partition.current_v_cycle, initial_cut);
-    Stats::instance().add("initialImbalance", _config.partition.current_v_cycle, current_imbalance);
+    Stats::instance().add(_config, "initialCut", initial_cut);
+    Stats::instance().add(_config, "initialImbalance", current_imbalance);
     LOG("initial cut =" << current_cut);
     LOG("initial imbalance=" << current_imbalance);
     LOG("target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
@@ -132,6 +132,8 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
     //        << " > " << _config.partition.epsilon);
+    Stats::instance().add(_config, "finalCut", current_cut);
+    Stats::instance().add(_config, "finaleImbalance", current_imbalance);
     LOG("final cut: " << current_cut);
     LOG("final imbalance: " << current_imbalance);
     LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));

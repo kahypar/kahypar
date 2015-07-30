@@ -71,8 +71,7 @@ inline void printPartitionerConfiguration(const Configuration& config) {
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Configuration& config,
-                                     const std::chrono::duration<double>& elapsed_seconds,
-                                     const std::array<std::chrono::duration<double>, 7>& timings) {
+                                     const std::chrono::duration<double>& elapsed_seconds) {
   std::cout << "***********************" << hypergraph.k()
   << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
@@ -81,19 +80,35 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, config)
   << std::endl;
-  std::cout << "partition time            = " << elapsed_seconds.count() << " s" << std::endl;
+  std::cout << "Partition time            = " << elapsed_seconds.count() << " s" << std::endl;
+
+  std::cout << "  | initial parallel HE removal  = "
+  << Stats::instance().get("InitialParallelHEremoval")
+  << " s [currently not implemented]" << std::endl;
+  std::cout << "  | initial large HE removal     = "
+  << Stats::instance().get("InitialLargeHEremoval") << " s" << std::endl;
+  std::cout << "  | coarsening                   = "
+  << Stats::instance().get("Coarsening") << " s" << std::endl;
+  std::cout << "  | initial partitioning         = "
+  << Stats::instance().get("InitialPartitioning") << " s" << std::endl;
+  std::cout << "  | uncoarsening/refinement      = "
+  << Stats::instance().get("UncoarseningRefinement") << " s" << std::endl;
+  std::cout << "  | initial large HE restore     = "
+  << Stats::instance().get("InitialLargeHErestore") << " s" << std::endl;
+  std::cout << "  | initial parallel HE restore  = "
+  << Stats::instance().get("InitialParallelHErestore")
+  << " s [currently not implemented]" << std::endl;
+  if (config.partition.global_search_iterations > 0) {
+    std::cout << " | v-cycle coarsening              = "
+    << Stats::instance().get("VCycleCoarsening") << " s" << std::endl;
+    std::cout << " | v-cycle uncoarsening/refinement = "
+    << Stats::instance().get("VCycleUnCoarseningRefinement") << " s" << std::endl;
+  }
+  std::cout << "Partition sizes and weights: " << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
     << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
   }
-
-  std::cout << "     | initial parallel HE removal time  = " << timings[0].count() << " s" << std::endl;
-  std::cout << "     | initial large HE removal time     = " << timings[1].count() << " s" << std::endl;
-  std::cout << "     | coarsening time                   = " << timings[2].count() << " s" << std::endl;
-  std::cout << "     | initial partition time            = " << timings[3].count() << " s" << std::endl;
-  std::cout << "     | uncoarsening/refinement time      = " << timings[4].count() << " s" << std::endl;
-  std::cout << "     | initial large HE restore time     = " << timings[5].count() << " s" << std::endl;
-  std::cout << "     | initial parallel HE restore time  = " << timings[6].count() << " s" << std::endl;
 }
 
 inline void printPartitioningStatistics() {
