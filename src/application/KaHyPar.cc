@@ -327,7 +327,8 @@ void setDefaults(Configuration& config) {
   config.partition.rb_upper_k = 1;
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
-  config.partition.initial_partitioning_attempts = 1;
+  config.partition.initial_partitioning_attempts = 20;
+  config.initial_partitioning.nruns = 20;
   config.partition.global_search_iterations = 1;
   config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
