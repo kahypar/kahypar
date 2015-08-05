@@ -66,7 +66,7 @@ public:
 
 		//Coarsening-Parameters
 		config.coarsening.contraction_limit_multiplier = 150;
-		config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_partial;
+		config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
 		config.coarsening.max_allowed_weight_multiplier = 2.5;
 
 		//Refinement-Parameters

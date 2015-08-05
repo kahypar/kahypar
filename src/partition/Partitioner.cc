@@ -159,6 +159,10 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 								new_config.partition.epsilon = (init_alpha*config.partition.epsilon);
 								new_config.initial_partitioning.seed = seed;
 								new_config.partition.seed = seed;
+								if(config.partition.initial_partitioning_attempts != 1) {
+									new_config.initial_partitioning.nruns = config.initial_partitioning.nruns;
+									new_config.partition.initial_partitioning_attempts = config.partition.initial_partitioning_attempts;
+								}
 								for (int i = 0; i < new_config.initial_partitioning.k; i++) {
 									new_config.initial_partitioning.perfect_balance_partition_weight.push_back(config.partition.perfect_balance_part_weights[i % 2]);
 									new_config.initial_partitioning.upper_allowed_partition_weight.push_back(

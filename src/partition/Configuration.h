@@ -68,6 +68,7 @@ enum class InitialPartitionerAlgorithm
 	rb_greedy_round_maxnet,
 	rb_greedy_global_modify,
 	greedy_global_modify,
+	hyperedge_growing,
 	rb_bfs,
 	rb_random,
 	rb_lp,

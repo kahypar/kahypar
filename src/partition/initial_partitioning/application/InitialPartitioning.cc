@@ -26,6 +26,7 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
+#include "partition/initial_partitioning/HyperedgeGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/nLevelInitialPartitioner.h"
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
@@ -64,6 +65,7 @@ using partition::PaToHInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
+using partition::HyperedgeGrowingInitialPartitioner;
 using partition::LabelPropagationInitialPartitioner;
 using partition::IterativeLocalSearchPartitioner;
 using partition::SimulatedAnnealingPartitioner;
@@ -170,6 +172,8 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::direct_nLevel;
 	} else if (mode.compare("pool") == 0) {
 		return InitialPartitionerAlgorithm::pool;
+	}  else if (mode.compare("hyperedge-growing") == 0) {
+		return InitialPartitionerAlgorithm::hyperedge_growing;
 	} else if (mode.compare("ils") == 0) {
 		return InitialPartitionerAlgorithm::ils;
 	} else if (mode.compare("sa") == 0) {
@@ -407,6 +411,12 @@ static Registrar<InitialPartitioningFactory> reg_random(
 		InitialPartitionerAlgorithm::random,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new RandomInitialPartitioner(hypergraph,config);
+		});
+
+static Registrar<InitialPartitioningFactory> reg_hyperedge_growing(
+		InitialPartitionerAlgorithm::hyperedge_growing,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new HyperedgeGrowingInitialPartitioner(hypergraph,config);
 		});
 
 static Registrar<InitialPartitioningFactory> reg_bfs(

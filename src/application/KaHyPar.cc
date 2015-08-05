@@ -184,6 +184,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config, const po::v
     }
     if (vm.count("nruns")) {
       config.partition.initial_partitioning_attempts = vm["nruns"].as<int>();
+      config.initial_partitioning.nruns = vm["nruns"].as<int>();
     }
     if (vm.count("part")) {
       if (vm["part"].as<std::string>() == "hMetis") {
