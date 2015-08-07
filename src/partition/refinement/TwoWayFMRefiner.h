@@ -68,6 +68,7 @@ class TwoWayFMRefiner : public IRefiner,
     _marked(_hg.initialNumNodes(), false),
     _active(_hg.initialNumNodes(), false),
     _he_fully_active(_hg.initialNumEdges(), false),
+    _hns_in_activation_vector(_hg.initialNumNodes(), false),
     _performed_moves(),
     _hns_to_activate(),
     _non_border_hns_to_remove(),
@@ -358,14 +359,12 @@ class TwoWayFMRefiner : public IRefiner,
       // }
     }
 
-    // remove dups
-    // TODO(schlag): fix this!!!
     for (const HypernodeID hn : _hns_to_activate) {
-      if (!_active[hn]) {
-        activate(hn, max_allowed_part_weights);
-      }
+      ASSERT(!_active[hn], V(hn));
+      activate(hn, max_allowed_part_weights);
     }
     _hns_to_activate.clear();
+    _hns_in_activation_vector.resetAllBitsToFalse();
 
     // changeNodePart collects all pins that become non-border hns after the move
     // Previously, these nodes were removed directly in fullUpdate. While this is
@@ -445,9 +444,12 @@ class TwoWayFMRefiner : public IRefiner,
     ASSERT(gain_delta != 0, " No 0-delta gain updates allowed");
     if (!_marked[pin]) {
       if (!_active[pin]) {
-        ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
-        ++num_active_pins;  // since we do lazy activation!
-        _hns_to_activate.push_back(pin);
+        if (!_hns_in_activation_vector[pin]) {
+          ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+          ++num_active_pins;  // since we do lazy activation!
+          _hns_to_activate.push_back(pin);
+          _hns_in_activation_vector.setBit(pin, true);
+        }
       } else {
         updatePin(pin, gain_delta);
         ++num_active_pins;
@@ -461,9 +463,12 @@ class TwoWayFMRefiner : public IRefiner,
                          HypernodeID& num_active_pins) {
     if (!_marked[pin]) {
       if (!_active[pin]) {
-        ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
-        ++num_active_pins;  // since we do lazy activation!
-        _hns_to_activate.push_back(pin);
+        if (!_hns_in_activation_vector[pin]) {
+          ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+          ++num_active_pins;  // since we do lazy activation!
+          _hns_to_activate.push_back(pin);
+          _hns_in_activation_vector.setBit(pin, true);
+        }
       } else {
         if (gain_delta != 0) {
           updatePin(pin, gain_delta);
@@ -665,6 +670,7 @@ class TwoWayFMRefiner : public IRefiner,
   FastResetBitVector<> _marked;
   FastResetBitVector<> _active;
   FastResetBitVector<> _he_fully_active;
+  FastResetBitVector<> _hns_in_activation_vector;
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
