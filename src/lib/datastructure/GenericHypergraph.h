@@ -606,7 +606,7 @@ class GenericHypergraph {
     return Memento(u, u_offset, u_size, v);
   }
 
-  void uncontract(const Memento& memento) noexcept {
+  std::pair<HyperedgeWeight, HyperedgeWeight> uncontract(const Memento& memento) noexcept {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
 
@@ -633,6 +633,7 @@ class GenericHypergraph {
       _hes_not_containing_u.setBit(_incidence_array[i], false);
     }
 
+    std::pair<HyperedgeWeight, HyperedgeWeight> ret = { 0, 0 };
     if (hypernode(memento.u).size() - memento.u_size > 0) {
       // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
       // Set incidence entry containing u for this HE e back to v, because this slot was used
@@ -646,6 +647,11 @@ class GenericHypergraph {
           if (connectivity(he) > 1) {
             --_num_incident_cut_hes[memento.u];    // because u is not connected to that cut HE anymore
             ++_num_incident_cut_hes[memento.v];    // because v is connected to that cut HE
+            // because after uncontraction, u is not connected to that HE anymore
+            ret.first -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
+          } else {
+            // because after uncontraction, u is not connected to that HE anymore
+            ret.first += pinCountInPart(he, partID(memento.u)) != 1 ? edgeWeight(he) : 0;
           }
 
           // The state of this hyperedge now resembles the state before contraction.
@@ -682,15 +688,37 @@ class GenericHypergraph {
         if (connectivity(he) > 1) {
           ++_num_incident_cut_hes[memento.v];     // because v is connected to that cut HE
         }
-
+        // Either the HE could have been removed from the cut before the move, or the HE
+        // was not present before uncontraction, because it was a removed single-node HE
+        // In both cases, there is no positive gain anymore, because the HE can't be removed
+        // from the cut or a move now would result in a new cut edge.
+        ret.first -= pinCountInPart(he, partID(memento.u)) == 2 ? edgeWeight(he) : 0;
+        ret.second -= pinCountInPart(he, partID(memento.u)) == 2 ? edgeWeight(he) : 0;
         ++_current_num_pins;
+
+        _hes_not_containing_u.setBit(he, true);
       }
     }
+
+    for (const HyperedgeID he : incidentEdges(memento.u)) {
+      // these should be the remaining hes that are only connected to u
+      if (!_hes_not_containing_u[he]) {
+        if (connectivity(he) > 1) {
+          // because after uncontraction v is not connected to that HE anymore
+          ret.second -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
+        } else {
+          // because after uncontraction v is not connected to that HE anymore
+          ret.second += pinCountInPart(he, partID(memento.u)) != 1 ? edgeWeight(he) : 0;
+        }
+      }
+    }
+
 
     ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
            V(memento.u) << V(_num_incident_cut_hes[memento.u]) << V(numIncidentCutHEs(memento.u)));
     ASSERT(_num_incident_cut_hes[memento.v] == numIncidentCutHEs(memento.v),
            V(memento.v) << V(_num_incident_cut_hes[memento.v]) << V(numIncidentCutHEs(memento.v)));
+    return ret;
   }
 
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) noexcept {

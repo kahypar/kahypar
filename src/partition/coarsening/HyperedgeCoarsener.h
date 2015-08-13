@@ -136,7 +136,7 @@ class HyperedgeCoarsener : public ICoarsener,
       restoreSingleNodeHyperedges();
       performUncontraction(_history.back(), refinement_nodes, num_refinement_nodes);
       performLocalSearch(refiner, refinement_nodes, num_refinement_nodes,
-                         current_imbalance, current_cut);
+                         current_imbalance, current_cut, { 0, 0 });
       _history.pop_back();
     }
     return current_cut < initial_cut;

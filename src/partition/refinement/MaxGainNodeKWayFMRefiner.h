@@ -128,6 +128,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
+                  const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(

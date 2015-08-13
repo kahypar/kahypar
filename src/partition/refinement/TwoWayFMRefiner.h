@@ -9,6 +9,7 @@
 #include <array>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest_prod.h"
@@ -164,6 +165,7 @@ class TwoWayFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
+                  const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -179,9 +181,18 @@ class TwoWayFMRefiner : public IRefiner,
     _he_fully_active.resetAllBitsToFalse();
     _locked_hes.resetUsedEntries();
 
+    // Will always be the case in the first FM pass, since the just uncontracted HN
+    // was not seen before.
+    if (_gain_cache[refinement_nodes[1]] == kNotCached) {
+      // In further FM passes, changes will be set to 0 by the caller.
+      if (_gain_cache[refinement_nodes[0]] != kNotCached) {
+        _gain_cache[refinement_nodes[1]] = _gain_cache[refinement_nodes[0]] + changes.second;
+        _gain_cache[refinement_nodes[0]] += changes.first;
+      }
+    }
+
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      _gain_cache[refinement_nodes[i]] = kNotCached;
       activate(refinement_nodes[i], max_allowed_part_weights);
 
       // If Lmax0==Lmax1, then all border nodes should be active. However, if Lmax0 != Lmax1,
@@ -332,8 +343,9 @@ class TwoWayFMRefiner : public IRefiner,
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part,
                         const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
+    const Gain temp = _gain_cache[moved_hn];
+    const Gain rb_delta = _rollback_delta_cache.get(moved_hn);
     _gain_cache[moved_hn] = kNotCached;
-
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       if (_locked_hes.get(he) != kLocked) {
         if (_locked_hes.get(he) == to_part) {
@@ -351,13 +363,16 @@ class TwoWayFMRefiner : public IRefiner,
           _locked_hes.uncheckedSet(he, kLocked);
           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
         }
+      } else {
+        // he is locked
+        // In case of 2-FM, nothing to do here except keeping the cache up to date
+        deltaUpdateForCache(from_part, to_part, he);
+        DBG(dbg_refinement_2way_locked_hes, he << " is locked");
       }
-      // else {
-      // he is locked
-      // In case of 2-FM, nothing to do here
-      //   DBG(dbg_refinement_2way_locked_hes, he << " is locked");
-      // }
     }
+
+    _gain_cache[moved_hn] = -temp;
+    _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
     for (const HypernodeID hn : _hns_to_activate) {
       ASSERT(!_active[hn], V(hn));
@@ -594,18 +609,64 @@ class TwoWayFMRefiner : public IRefiner,
       } else {
         for (const HypernodeID pin : _hg.pins(he)) {
           if (_hg.partID(pin) == from_part) {
-            if (increase_necessary && !_marked[pin]) {
-              updatePin(pin, he_weight);
-              break;      // caching is done in updatePin in this case
+            if (increase_necessary) {
+              if (!_marked[pin]) {
+                updatePin(pin, he_weight);
+                // break;      // caching is done in updatePin in this case
+              } else {
+                updateGainCache(pin, he_weight);
+              }
             }
-          } else if (decrease_necessary && !_marked[pin]) {
-            updatePin(pin, -he_weight);
-            break;    // caching is done in updatePin in this case
+          } else if (decrease_necessary) {
+            if (!_marked[pin]) {
+              updatePin(pin, -he_weight);
+              // break;    // caching is done in updatePin in this case
+            } else {
+              updateGainCache(pin, -he_weight);
+            }
           }
         }
       }
     }
   }
+
+
+  // LOCKED HE delta update for cache of moved HNs
+  void deltaUpdateForCache(const PartitionID from_part,
+                           const PartitionID to_part, const HyperedgeID he) noexcept {
+    const HypernodeID pin_count_from_part_after_move = _hg.pinCountInPart(he, from_part);
+    const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
+
+    const bool he_became_cut_he = pin_count_to_part_after_move == 1;
+    const bool he_became_internal_he = pin_count_from_part_after_move == 0;
+    const bool increase_necessary = pin_count_from_part_after_move == 1;
+    const bool decrease_necessary = pin_count_to_part_after_move == 2;
+    ASSERT(!he_became_cut_he, V(he));
+    ASSERT(!he_became_internal_he, V(he));
+
+    if (increase_necessary || decrease_necessary) {
+      ASSERT(_hg.edgeSize(he) != 1, V(he));
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+      if (_hg.edgeSize(he) == 2) {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          const char factor = (_hg.partID(pin) == from_part ? 2 : -2);
+          updateGainCache(pin, factor * he_weight);
+        }
+      } else {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (_hg.partID(pin) == from_part) {
+            if (increase_necessary) {
+              updateGainCache(pin, he_weight);
+            }
+          } else if (decrease_necessary) {
+            updateGainCache(pin, -he_weight);
+          }
+        }
+      }
+    }
+  }
+
 
   int numRepetitionsImpl() const noexcept final {
     return _config.fm_local_search.num_repetitions;
