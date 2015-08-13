@@ -186,7 +186,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 0, 1 };
 
-  refiner->refine(refinement_nodes, 2, config.partition.max_part_weights, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, 2, config.partition.max_part_weights, { 0, 0 }, old_cut, old_imbalance);
 
   ASSERT_THAT(verifyEquivalenceWithPartitionInfo(orig_hgr, *hypergraph), Eq(true));
 }*/

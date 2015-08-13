@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <stack>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "lib/core/Mandatory.h"
@@ -106,7 +107,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.back().contraction_memento.u << ","
           << _history.back().contraction_memento.v << ")");
-      _hg.uncontract(_history.back().contraction_memento);
+      const std::pair<HyperedgeWeight, HyperedgeWeight> changes = _hg.uncontract(_history.back().contraction_memento);
       refinement_nodes[0] = _history.back().contraction_memento.u;
       refinement_nodes[1] = _history.back().contraction_memento.v;
 
@@ -115,7 +116,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       }
 
 
-      performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut);
+      performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut, changes);
       _history.pop_back();
     }
 
