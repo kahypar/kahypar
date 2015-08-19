@@ -15,6 +15,7 @@
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
+#include "partition/initial_partitioning/InitialStatManager.h"
 
 using partition::Configuration;
 using defs::Hypergraph;
