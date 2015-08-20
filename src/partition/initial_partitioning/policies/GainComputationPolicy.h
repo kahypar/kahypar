@@ -284,7 +284,7 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 			const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
 					target_part);
 			if (pins_in_target_part > 0) {
-				gain++;
+				gain += hg.edgeWeight(he);
 			}
 		}
 		return gain;
@@ -306,11 +306,11 @@ struct MaxNetGainComputationPolicy: public GainComputationPolicy {
 					if (from != -1) {
 						if (pins_in_source_part == 0
 								&& pq.contains(node, from)) {
-							pq.updateKeyBy(node, from, -1);
+							pq.updateKeyBy(node, from, -_hg.edgeWeight(he));
 						}
 					}
 					if (pins_in_target_part == 1 && pq.contains(node, to)) {
-						pq.updateKeyBy(node, to, 1);
+						pq.updateKeyBy(node, to, _hg.edgeWeight(he));
 					}
 				}
 			}
