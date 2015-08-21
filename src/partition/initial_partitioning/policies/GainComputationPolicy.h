@@ -239,7 +239,9 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 				}
 			}
 		}
-		gain = target_part_pins.size();
+		for(HypernodeID node : target_part_pins) {
+			gain += hg.nodeWeight(node);
+		}
 		return gain;
 	}
 
@@ -252,12 +254,12 @@ struct MaxPinGainComputationPolicy: public GainComputationPolicy {
 			for (HypernodeID node : _hg.pins(he)) {
 				if (!visit[node]) {
 					if (pq.contains(node, to)) {
-						pq.updateKeyBy(node, to, 1);
+						pq.updateKeyBy(node, to, _hg.nodeWeight(hn));
 					}
 
 					if (from != -1) {
 						if (pq.contains(node, from)) {
-							pq.updateKeyBy(node, from, -1);
+							pq.updateKeyBy(node, from, -_hg.nodeWeight(hn));
 						}
 					}
 					visit.setBit(node, true);
