@@ -628,12 +628,26 @@ class GenericHypergraph {
       _hes_not_containing_u.setBit(he, true);
     }
 
-    // Those HEs actually contained u and therefore will result in a Case 1 undo operation.
-    for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
-      _hes_not_containing_u.setBit(_incidence_array[i], false);
-    }
 
     std::pair<HyperedgeWeight, HyperedgeWeight> ret = { 0, 0 };
+    for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
+      const HyperedgeID he = _incidence_array[i];
+      if (!_hes_not_containing_u[he]) {
+        // These are hyperedges that are not connected to v after the uncontraction operation,
+        // because they initially were only connected to u before the contraction.
+        if (connectivity(he) > 1) {
+          // because after uncontraction v is not connected to that HE anymore
+          ret.second -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
+        } else {
+          // because after uncontraction v is not connected to that HE anymore
+          ASSERT(pinCountInPart(he, partID(memento.u)) > 1, "Found Single-Node HE!");
+          ret.second += edgeWeight(he);
+        }
+      }
+      // Those HEs actually contained u and therefore will result in a Case 1 undo operation.
+      _hes_not_containing_u.setBit(he, false);
+    }
+
     if (hypernode(memento.u).size() - memento.u_size > 0) {
       // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u):
       // Set incidence entry containing u for this HE e back to v, because this slot was used
@@ -651,7 +665,8 @@ class GenericHypergraph {
             ret.first -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
           } else {
             // because after uncontraction, u is not connected to that HE anymore
-            ret.first += pinCountInPart(he, partID(memento.u)) != 1 ? edgeWeight(he) : 0;
+            ASSERT(pinCountInPart(he, partID(memento.u)) > 1, "Found Single-Node HE!");
+            ret.first += edgeWeight(he);
           }
 
           // The state of this hyperedge now resembles the state before contraction.
@@ -695,24 +710,8 @@ class GenericHypergraph {
         ret.first -= pinCountInPart(he, partID(memento.u)) == 2 ? edgeWeight(he) : 0;
         ret.second -= pinCountInPart(he, partID(memento.u)) == 2 ? edgeWeight(he) : 0;
         ++_current_num_pins;
-
-        _hes_not_containing_u.setBit(he, true);
       }
     }
-
-    for (const HyperedgeID he : incidentEdges(memento.u)) {
-      // these should be the remaining hes that are only connected to u
-      if (!_hes_not_containing_u[he]) {
-        if (connectivity(he) > 1) {
-          // because after uncontraction v is not connected to that HE anymore
-          ret.second -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
-        } else {
-          // because after uncontraction v is not connected to that HE anymore
-          ret.second += pinCountInPart(he, partID(memento.u)) != 1 ? edgeWeight(he) : 0;
-        }
-      }
-    }
-
 
     ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
            V(memento.u) << V(_num_incident_cut_hes[memento.u]) << V(numIncidentCutHEs(memento.u)));
@@ -1300,6 +1299,7 @@ class GenericHypergraph {
     hypernode(memento.u).setSize(memento.u_size);
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
   }
+
 
   void resetReusedPinSlotToOriginalValue(const HyperedgeID he, const Memento& memento) noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
