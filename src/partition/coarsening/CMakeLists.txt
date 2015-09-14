@@ -4,4 +4,3 @@ add_gmock_test(heuristic_heavy_edge_coarsener_test heuristic_heavy_edge_coarsene
 add_gmock_test(full_heavy_edge_coarsener_test full_heavy_edge_coarsener_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>)
 add_gmock_test(lazy_update_heavy_edge_coarsener_test lazy_update_heavy_edge_coarsener_test.cc $<TARGET_OBJECTS:RandomFunctions> $<TARGET_OBJECTS:Partitioner>)
 add_gmock_test(rater_test rater_test.cc $<TARGET_OBJECTS:RandomFunctions>)
-add_gmock_test(hyperedge_coarsener_test hyperedge_coarsener_test.cc $<TARGET_OBJECTS:RandomFunctions>)

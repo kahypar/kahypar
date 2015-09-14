@@ -12,8 +12,6 @@
 #include "lib/core/Typelist.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
-#include "partition/coarsening/HyperedgeCoarsener.h"
-#include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
@@ -36,7 +34,6 @@ using core::Typelist;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
-using partition::EdgeWeightDivMultPinWeight;
 
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
@@ -80,6 +77,5 @@ using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
 using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
 using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
-using HyperedgeCoarsener2 = HyperedgeCoarsener<EdgeWeightDivMultPinWeight>;
 }  // namespace partition
 #endif  // SRC_PARTITION_FACTORIES_H_

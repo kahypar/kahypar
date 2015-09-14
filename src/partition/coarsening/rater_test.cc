@@ -7,7 +7,6 @@
 #include "gmock/gmock.h"
 
 #include "lib/definitions.h"
-#include "partition/coarsening/HyperedgeRatingPolicies.h"
 #include "partition/coarsening/Rater.h"
 
 using::testing::Test;
@@ -111,7 +110,7 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   ASSERT_THAT(rater.rate(0).valid, Eq(true));
 
   hypergraph->contract(0, 2);
-  hypergraph->removeEdge(0, false); // since we cannot rate single-node HEs
+  hypergraph->removeEdge(0, false);  // since we cannot rate single-node HEs
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
@@ -134,36 +133,5 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
-}
-
-TEST_F(AHyperedgeRater, ReturnsCorrectHyperedgeRatings) {
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph,
-                                               config.coarsening.max_allowed_node_weight).value,
-              DoubleEq(1.0));
-
-  config.coarsening.max_allowed_node_weight = 10;
-  hypergraph->setNodeWeight(1, 2);
-  hypergraph->setNodeWeight(3, 3);
-  hypergraph->setNodeWeight(4, 4);
-
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph,
-                                               config.coarsening.max_allowed_node_weight).value,
-              DoubleEq(1.0 / (2 * 3 * 4)));
-}
-
-TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfContractionWouldViolateThreshold) {
-  config.coarsening.max_allowed_node_weight = 3;
-
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(1, *hypergraph,
-                                               config.coarsening.max_allowed_node_weight).valid,
-              Eq(false));
-}
-
-TEST_F(AHyperedgeRater, ReturnsInvalidRatingIfHyperedgeIsCutHyperedge) {
-  hypergraph->setNodePart(0, 0);
-  hypergraph->setNodePart(2, 1);
-  ASSERT_THAT(EdgeWeightDivMultPinWeight::rate(0, *hypergraph,
-                                               config.coarsening.max_allowed_node_weight).valid,
-              Eq(false));
 }
 }  // namespace partition
