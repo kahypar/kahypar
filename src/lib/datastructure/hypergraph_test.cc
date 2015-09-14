@@ -4,11 +4,13 @@
 
 #include <iostream>
 #include <stack>
+#include <tuple>
 
 #include "gmock/gmock.h"
 
 #include "lib/datastructure/Hypergraph_TestFixtures.h"
 #include "lib/definitions.h"
+#include "partition/coarsening/HypergraphPruner.h"
 
 using::testing::Eq;
 using::testing::ContainerEq;
@@ -363,18 +365,27 @@ TEST_F(AnUncontractionOperation, RestoresHyperedgeSizeOfHyperedgesAffectedByCont
 }
 
 TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
-  std::stack<Memento> contraction_history;
-  contraction_history.emplace(modified_hypergraph.contract(4, 6));
-  contraction_history.emplace(modified_hypergraph.contract(3, 4));
-  contraction_history.emplace(modified_hypergraph.contract(0, 2));
-  contraction_history.emplace(modified_hypergraph.contract(0, 1));
-  contraction_history.emplace(modified_hypergraph.contract(0, 5));
-  contraction_history.emplace(modified_hypergraph.contract(0, 3));
+  std::vector<std::pair<HypernodeID, HypernodeID>> contractions{{4,6}, {3,4},{0,2},
+                                                                {0,1}, {0,5}, {0,3}};
+  std::stack<std::tuple<Memento,int,int>> contraction_history;
+  partition::HypergraphPruner hypergraph_pruner(modified_hypergraph.initialNumNodes());
+  for (const auto& contraction : contractions) {
+    contraction_history.emplace(modified_hypergraph.contract(contraction.first,
+                                                             contraction.second),0,0);
+    hypergraph_pruner.removeSingleNodeHyperedges(modified_hypergraph,
+                                                 std::get<0>(contraction_history.top()).u,
+                                                 std::get<1>(contraction_history.top()),
+                                                 std::get<2>(contraction_history.top()));
+  }
+
   ASSERT_THAT(modified_hypergraph.nodeWeight(0), Eq(7));
   modified_hypergraph.setNodePart(0, 0);
 
   while (!contraction_history.empty()) {
-    modified_hypergraph.uncontract(contraction_history.top());
+    hypergraph_pruner.restoreSingleNodeHyperedges(modified_hypergraph,
+                                                  std::get<1>(contraction_history.top()),
+                                                   std::get<2>(contraction_history.top()));
+    modified_hypergraph.uncontract(std::get<0>(contraction_history.top()));
     contraction_history.pop();
   }
 
