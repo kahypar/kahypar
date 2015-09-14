@@ -80,6 +80,7 @@ class TwoWayFMRefiner : public IRefiner,
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
     _performed_moves.reserve(_hg.initialNumNodes());
     _hns_to_activate.reserve(_hg.initialNumNodes());
+    _delta_gain_support = true;
   }
 
   virtual ~TwoWayFMRefiner() { }
