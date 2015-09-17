@@ -206,7 +206,6 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   Stats::instance().addToTotal(config, "InitialPartitioning",
                                std::chrono::duration<double>(end - start).count());
 
-  hypergraph.sortConnectivitySets();
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();

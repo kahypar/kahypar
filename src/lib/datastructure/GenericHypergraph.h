@@ -1015,13 +1015,6 @@ class GenericHypergraph {
     return hyperedge(he);
   }
 
-  void sortConnectivitySets() noexcept {
-    for (HyperedgeID he = 0; he < _num_hyperedges; ++he) {
-      std::sort(hyperedge(he).connectivity_set_begin,
-                hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity);
-    }
-  }
-
  private:
   FRIEND_TEST(AHypergraph, DisconnectsHypernodeFromHyperedge);
   FRIEND_TEST(AHypergraph, RemovesHyperedges);
@@ -1312,10 +1305,6 @@ class GenericHypergraph {
       ASSERT(it != end, "Part not found:" << id);
       std::iter_swap(it, end - 1);
       --hyperedge(he).connectivity;
-      std::sort(it, hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity);
-      ASSERT(std::is_sorted(hyperedge(he).connectivity_set_begin,
-                            hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity),
-             V(he));
       return true;
     }
     return false;
@@ -1334,17 +1323,10 @@ class GenericHypergraph {
                        hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity, id)
              == hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity,
              "Part " << id << " already contained");
-      PartitionID* it = std::find_if(hyperedge(he).connectivity_set_begin,
-                                     hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity,
-                                     [&](const PartitionID i) { return id < i; });
-      memmove(it + 1, it, ((hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity) - it) * sizeof(PartitionID));
-      *it = id;
+      *(hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity) = id;
       ++hyperedge(he).connectivity;
       first_pin_in_part = true;
     }
-    ASSERT(std::is_sorted(hyperedge(he).connectivity_set_begin,
-                          hyperedge(he).connectivity_set_begin + hyperedge(he).connectivity),
-           V(he));
     ASSERT([&]() {
         for (PartitionID i = 0; i < _k; ++i) {
           if (std::count(hyperedge(he).connectivity_set_begin,
