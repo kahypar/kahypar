@@ -23,6 +23,7 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
+#include "partition/refinement/HypernodeStateVector.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -72,8 +73,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _tmp_max_gain_target_parts(),
     _pq(_config.partition.k),
-    _marked(_hg.initialNumNodes(), false),
-    _active(_hg.initialNumNodes(), false),
+    _hn_state(_hg.initialNumNodes()),
     _just_updated(_hg.initialNumNodes(), false),
     _seen_as_max_part(_config.partition.k, false),
     _performed_moves(),
@@ -137,8 +137,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg, _config));
 
     _pq.clear();
-    _marked.resetAllBitsToFalse();
-    _active.resetAllBitsToFalse();
+    _hn_state.reset();
 
     Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
     for (size_t i = 0; i < num_refinement_nodes; ++i) {
@@ -172,7 +171,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << from_part << " target_part=" << to_part);
 
-      ASSERT(!_marked[max_gain_node], V(max_gain_node));
+      ASSERT(!_hn_state.marked(max_gain_node), V(max_gain_node));
       ASSERT(max_gain == computeMaxGainMove(max_gain_node).first,
              V(max_gain) << V(computeMaxGainMove(max_gain_node).first));
       ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
@@ -198,7 +197,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
              , "max_gain move does not correspond to expected cut!");
 
       moveHypernode(max_gain_node, from_part, to_part);
-      _marked.setBit(max_gain_node, true);
+      _hn_state.mark(max_gain_node);
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weights[0]) {
         _pq.disablePart(to_part);
@@ -292,8 +291,8 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
     _just_updated.resetAllBitsToFalse();
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
-        if (!_marked[pin] && !_just_updated[pin]) {
-          if (!_active[pin]) {
+        if (!_hn_state.marked(pin) && !_just_updated[pin]) {
+          if (!_hn_state.active(pin)) {
             activate(pin, max_allowed_part_weight);
           } else {
             if (_hg.isBorderNode(pin)) {
@@ -301,7 +300,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
             } else {
               ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
               _pq.remove(pin, _target_parts[pin]);
-              _active.setBit(pin, false);
+              _hn_state.deactivate(pin);
             }
           }
         }
@@ -318,11 +317,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               }
             } else {
               if (_pq.contains(pin)) {
-                ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
+                ASSERT(!_hn_state.marked(pin), "HN " << pin << "is marked but in PQ");
                 ASSERT(_hg.isBorderNode(pin), "BorderFail");
-                ASSERT(_pq.contains(pin, target_part), V(target_part));
                 const PartitionID target_part = _target_parts[pin];
                 const GainPartitionPair pair = computeMaxGainMove(pin);
+                ASSERT(_pq.contains(pin, target_part), V(target_part));
                 // target_part currently cannot be validated that way, because of connectivity-
                 // decrease assertion in computeMaxGainMove. This potentially leads to a different
                 // order in which HEs are visited and therefore might change the max_target_part.
@@ -359,7 +358,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                     ++num_pqs_containing_pin;
                   }
                 }
-                if(num_pqs_containing_pin != 1) {
+                if (num_pqs_containing_pin != 1) {
                   LOG("HN " << pin << " contained in more than one part:");
                   return false;
                 }
@@ -378,7 +377,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                   return false;
                 }
               } else {
-                if (!_marked[pin]) {
+                if (!_hn_state.marked(pin)) {
                   const GainPartitionPair pair = computeMaxGainMove(pin);
                   LOG("HN " << pin << " not in PQ but also not marked");
                   LOG("gain=" << pair.first);
@@ -397,9 +396,9 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   void updatePin(const HypernodeID pin, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(_pq.contains(pin, _target_parts[pin]), V(pin));
     ASSERT(!_just_updated[pin], V(pin));
-    ASSERT(!_marked[pin], V(pin));
+    ASSERT(!_hn_state.marked(pin), V(pin));
     ASSERT(_hg.isBorderNode(pin), V(pin));
-    ASSERT(_active[pin], V(pin));
+    ASSERT(_hn_state.active(pin), V(pin));
 
     const GainPartitionPair pair = computeMaxGainMove(pin);
     DBG(dbg_refinement_kway_fm_gain_update, "updating gain of HN " << pin
@@ -426,7 +425,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(!_pq.contains(hn), V(hn) << V(_target_parts[hn]));
-    ASSERT(!_active[hn], V(hn));
+    ASSERT(!_hn_state.active(hn), V(hn));
     if (_hg.isBorderNode(hn)) {
       const GainPartitionPair pair = computeMaxGainMove(hn);
       DBG(dbg_refinement_kway_fm_activation, "inserting HN " << hn << " with gain "
@@ -435,7 +434,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
       _pq.insert(hn, pair.second, pair.first);
       _target_parts[hn] = pair.second;
       _just_updated.setBit(hn, true);
-      _active.setBit(hn, true);
+      _hn_state.activate(hn);
       if (_hg.partWeight(pair.second) < max_allowed_part_weight) {
         _pq.enablePart(pair.second);
       }
@@ -615,8 +614,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   std::vector<PartitionID> _target_parts;
   std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
-  FastResetBitVector<> _marked;
-  FastResetBitVector<> _active;
+  HypernodeStateVector<> _hn_state;
   FastResetBitVector<> _just_updated;
   FastResetBitVector<> _seen_as_max_part;
   std::vector<RollbackInfo> _performed_moves;
