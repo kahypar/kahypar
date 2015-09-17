@@ -638,12 +638,10 @@ class TwoWayFMRefiner : public IRefiner,
     const HypernodeID pin_count_from_part_after_move = _hg.pinCountInPart(he, from_part);
     const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
 
-    const bool he_became_cut_he = pin_count_to_part_after_move == 1;
-    const bool he_became_internal_he = pin_count_from_part_after_move == 0;
     const bool increase_necessary = pin_count_from_part_after_move == 1;
     const bool decrease_necessary = pin_count_to_part_after_move == 2;
-    ASSERT(!he_became_cut_he, V(he));
-    ASSERT(!he_became_internal_he, V(he));
+    ASSERT(pin_count_to_part_after_move != 1, V(he)); // he should not have become cut he
+    ASSERT(pin_count_from_part_after_move != 0, V(he)); // he should not have become internal he
 
     if (increase_necessary || decrease_necessary) {
       ASSERT(_hg.edgeSize(he) != 1, V(he));
