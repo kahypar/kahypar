@@ -320,6 +320,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
               if (_pq.contains(pin)) {
                 ASSERT(!_marked[pin], "HN " << pin << "is marked but in PQ");
                 ASSERT(_hg.isBorderNode(pin), "BorderFail");
+                ASSERT(_pq.contains(pin, target_part), V(target_part));
                 const PartitionID target_part = _target_parts[pin];
                 const GainPartitionPair pair = computeMaxGainMove(pin);
                 // target_part currently cannot be validated that way, because of connectivity-
@@ -336,31 +337,33 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                   LOG("source part=" << _hg.partID(pin));
                   return false;
                 }
-                if (_hg.partWeight(pair.second) < max_allowed_part_weight &&
-                    !_pq.isEnabled(pair.second)) {
+                if (_hg.partWeight(target_part) < max_allowed_part_weight &&
+                    !_pq.isEnabled(target_part)) {
                   LOGVAR(pin);
                   LOG("key=" << pair.first);
-                  LOG("Part " << pair.second << " should be enabled as target part");
+                  LOG("Part " << target_part << " should be enabled as target part");
                   return false;
                 }
-                if (_hg.partWeight(pair.second) >= max_allowed_part_weight &&
-                    _pq.isEnabled(pair.second)) {
+                if (_hg.partWeight(target_part) >= max_allowed_part_weight &&
+                    _pq.isEnabled(target_part)) {
                   LOGVAR(pin);
                   LOG("key=" << pair.first);
-                  LOG("Part " << pair.second << " should NOT be enabled as target part");
+                  LOG("Part " << target_part << " should NOT be enabled as target part");
                   return false;
                 }
 
                 // We use a k-way PQ, but each HN should only be in at most one of the PQs
-                ASSERT(_pq.contains(pin, pair.second), V(pair.second));
+                PartitionID num_pqs_containing_pin = 0;
                 for (PartitionID part = 0; part < _config.partition.k; ++part) {
-                  if (part != pair.second && _pq.contains(pin, part)) {
-                    LOG("HN " << pin << " contained in more than one part:");
-                    LOG("expected part=" << pair.second);
-                    LOG("also contained in part " << part);
-                    return false;
+                  if (_pq.contains(pin, part)) {
+                    ++num_pqs_containing_pin;
                   }
                 }
+                if(num_pqs_containing_pin != 1) {
+                  LOG("HN " << pin << " contained in more than one part:");
+                  return false;
+                }
+
                 // Staleness check. If the PQ contains a move of pin to part, there
                 // has to be at least one HE that connects to that part. Otherwise the
                 // move is stale and should have been removed from the PQ.
