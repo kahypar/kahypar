@@ -104,7 +104,6 @@ using partition::nGPRandomWalkStopsSearch;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
-using partition::HyperedgeCoarsener2;
 using partition::ConfigurationManager;
 using partition::ICoarsener;
 
@@ -400,12 +399,6 @@ static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
 			return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
 		});
 
-static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
-		CoarseningAlgorithm::hyperedge,
-		[](Hypergraph& hypergraph, const Configuration& config,
-				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-			return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
-		});
 
 static Registrar<InitialPartitioningFactory> reg_random(
 		InitialPartitionerAlgorithm::random,

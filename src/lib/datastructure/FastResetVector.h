@@ -61,21 +61,21 @@ class FastResetVector : public std::vector<T>{
   }
 
   void resetUsedEntries() {
-    while (!_used_entries.empty()) {
-      std::vector<T>::operator[] (_used_entries.back()) = _initial_value;
-      _used_entries.pop_back();
+    for (auto rit = _used_entries.crbegin(); rit != _used_entries.crend(); ++rit) {
+      std::vector<T>::operator[] (* rit) = _initial_value;
     }
+    _used_entries.clear();
   }
 
   template <class Container>
   void resetUsedEntries(Container& container) {
-    while (!_used_entries.empty()) {
-      if (container[_used_entries.back()] != std::numeric_limits<typename Container::value_type>::max()) {
-        container[_used_entries.back()] += std::vector<T>::operator[] (_used_entries.back());
+    for (auto rit = _used_entries.crbegin(); rit != _used_entries.crend(); ++rit) {
+      if (container[*rit] != std::numeric_limits<typename Container::value_type>::max()) {
+        container[*rit] += std::vector<T>::operator[] (*rit);
       }
-      std::vector<T>::operator[] (_used_entries.back()) = _initial_value;
-      _used_entries.pop_back();
+      std::vector<T>::operator[] (* rit) = _initial_value;
     }
+    _used_entries.clear();
   }
 
  private:

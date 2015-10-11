@@ -50,7 +50,6 @@ using partition::InitialPartitioningFactory;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
-using partition::HyperedgeCoarsener2;
 using partition::TwoWayFMFactoryDispatcher;
 using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
@@ -374,13 +373,6 @@ static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
   [](Hypergraph& hypergraph, const Configuration& config,
      const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
   return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
-
-static Registrar<CoarsenerFactory> reg_hyperedge_coarsener(
-  CoarseningAlgorithm::hyperedge,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new HyperedgeCoarsener2(hypergraph, config, weight_of_heaviest_node);
 });
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
