@@ -132,7 +132,7 @@ class HyperedgeFMRefiner : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
+                  const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
     ONLYDEBUG(max_allowed_part_weights);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
@@ -143,6 +143,7 @@ class HyperedgeFMRefiner : public IRefiner,
              FloatingPoint<double>(calculateImbalance())),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << calculateImbalance());
+
     _pq[0]->clear();
     _pq[1]->clear();
     resetMarkedHyperedges();

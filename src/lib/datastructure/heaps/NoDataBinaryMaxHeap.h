@@ -53,10 +53,9 @@ class NoDataBinaryMaxHeap {
   using data_type = void;
 
   explicit NoDataBinaryMaxHeap(const id_slot& storage_initializer,
-                               const key_slot unused = 0) noexcept
+                               const key_slot UNUSED(unused) = 0) noexcept
     : handles(storage_initializer),
     max_size(storage_initializer + 1) {
-    UNUSED(unused);  // only to satisfy test interface
     next_slot = 0;
     heap.reserve(max_size);
     heap[next_slot] = HeapElement(meta_key_slot::max());  // insert the sentinel element

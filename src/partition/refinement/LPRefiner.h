@@ -52,8 +52,8 @@ class LPRefiner : public IRefiner {
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const size_t num_refinement_nodes,
-                  const std::array<HypernodeWeight, 2>& __attribute__ ((unused)) max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& uncontraction_changes,
+                  const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
+                  const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut,
                   double __attribute__ ((unused))& best_imbalance) noexcept final {
     assert(metrics::imbalance(_hg, _config) < _config.partition.epsilon);

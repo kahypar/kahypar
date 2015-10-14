@@ -67,7 +67,8 @@
   } while (0)
 
 #define ONLYDEBUG(x) ((void)x)
-#define UNUSED(x)  ((void)x)
+#define UTILS_UNUSED __attribute__((unused))
+#define UNUSED(name) unused_ ## name UTILS_UNUSED
 #define UNUSED_FUNCTION(x) ((void)x)
 
 #endif  // SRC_LIB_MACROS_H_
