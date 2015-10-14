@@ -89,6 +89,7 @@ class GenericHypergraph {
 
   struct AdditionalHypernodeData : public HypernodeData {
     PartitionID part_id = kInvalidPartition;
+    HyperedgeID num_incident_cut_hes = 0;
   };
 
   struct Dummy {
@@ -372,7 +373,6 @@ class GenericHypergraph {
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(std::make_unique<PartitionID[]>(_num_hyperedges * _k)),
-    _num_incident_cut_hes(num_hypernodes, 0),
     _hes_not_containing_u(_num_hyperedges, false) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -634,8 +634,8 @@ class GenericHypergraph {
       if ((no_pins_left_in_source_part && !only_one_pin_in_to_part)) {
         if (pinCountInPart(he, to) == edgeSize(he)) {
           for (const HypernodeID pin : pins(he)) {
-            --_num_incident_cut_hes[pin];
-            if (_num_incident_cut_hes[pin] == 0) {
+            --hypernode(pin).num_incident_cut_hes;
+            if (hypernode(pin).num_incident_cut_hes == 0) {
               // ASSERT(std::find(non_border_hns_to_remove.cbegin(),
               //                  non_border_hns_to_remove.cend(), pin) ==
               //        non_border_hns_to_remove.end(),
@@ -647,7 +647,7 @@ class GenericHypergraph {
       } else if (!no_pins_left_in_source_part && only_one_pin_in_to_part) {
         if (pinCountInPart(he, from) == edgeSize(he) - 1) {
           for (const HypernodeID pin : pins(he)) {
-            ++_num_incident_cut_hes[pin];
+            ++hypernode(pin).num_incident_cut_hes;
           }
         }
       }
@@ -677,9 +677,9 @@ class GenericHypergraph {
 
   bool isBorderNode(const HypernodeID hn) const {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(_num_incident_cut_hes[hn] == numIncidentCutHEs(hn), V(hn));
-    ASSERT((_num_incident_cut_hes[hn] > 0) == isBorderNodeInternal(hn), V(hn));
-    return _num_incident_cut_hes[hn] > 0;
+    ASSERT(hypernode(hn).num_incident_cut_hes == numIncidentCutHEs(hn), V(hn));
+    ASSERT((hypernode(hn).num_incident_cut_hes > 0) == isBorderNodeInternal(hn), V(hn));
+    return hypernode(hn).num_incident_cut_hes > 0;
   }
 
 
@@ -811,7 +811,7 @@ class GenericHypergraph {
       }
 
       if (connectivity(old_representative) > 1) {
-        ++_num_incident_cut_hes[pin];
+        ++hypernode(pin).num_incident_cut_hes;
       }
 
       ASSERT(_incidence_array[hypernode(pin).firstInvalidEntry() - 1] == he,
@@ -826,9 +826,11 @@ class GenericHypergraph {
     }
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
-    std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).connectivity = 0;
+    }
+    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+      hypernode(i).num_incident_cut_hes = 0;
     }
   }
 
@@ -957,11 +959,17 @@ class GenericHypergraph {
   // Needs to be called after initial partitioning in order to provide
   // correct borderNode checks.
   void initializeNumCutHyperedges() {
-    std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
+    // std::fill(_num_incident_cut_hes.begin(), _num_incident_cut_hes.end(), 0);
+    // We need to fill all fields with 0, otherwise V-cycles provide incorrect
+    // results. Since hypernodes might be disabled, we bypass assertion in
+    // hypernode(.) here and directly access _hypernodes.
+    for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
+      _hypernodes[hn].num_incident_cut_hes = 0;
+    }
     for (const HyperedgeID he : edges()) {
       if (connectivity(he) > 1) {
         for (const HypernodeID pin : pins(he)) {
-          ++_num_incident_cut_hes[pin];
+          ++hypernode(pin).num_incident_cut_hes;
         }
       }
     }
@@ -1046,7 +1054,6 @@ class GenericHypergraph {
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(nullptr),
-    _num_incident_cut_hes(),
     _hes_not_containing_u() { }
 
   std::pair<HyperedgeWeight, HyperedgeWeight> uncontract_impl(const Memento& memento, std::true_type) noexcept {
@@ -1100,8 +1107,8 @@ class GenericHypergraph {
           resetReusedPinSlotToOriginalValue(he, memento);
 
           if (connectivity(he) > 1) {
-            --_num_incident_cut_hes[memento.u];    // because u is not connected to that cut HE anymore
-            ++_num_incident_cut_hes[memento.v];    // because v is connected to that cut HE
+            --hypernode(memento.u).num_incident_cut_hes;    // because u is not connected to that cut HE anymore
+            ++hypernode(memento.v).num_incident_cut_hes;    // because v is connected to that cut HE
             // because after uncontraction, u is not connected to that HE anymore
             ret.first -= pinCountInPart(he, partID(memento.u)) == 1 ? edgeWeight(he) : 0;
           } else {
@@ -1141,7 +1148,7 @@ class GenericHypergraph {
                << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
 
         if (connectivity(he) > 1) {
-          ++_num_incident_cut_hes[memento.v];     // because v is connected to that cut HE
+          ++hypernode(memento.v).num_incident_cut_hes;     // because v is connected to that cut HE
         }
 
         // Either the HE could have been removed from the cut before the move, or the HE
@@ -1155,10 +1162,10 @@ class GenericHypergraph {
       }
     }
 
-    ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
-           V(memento.u) << V(_num_incident_cut_hes[memento.u]) << V(numIncidentCutHEs(memento.u)));
-    ASSERT(_num_incident_cut_hes[memento.v] == numIncidentCutHEs(memento.v),
-           V(memento.v) << V(_num_incident_cut_hes[memento.v]) << V(numIncidentCutHEs(memento.v)));
+    ASSERT(hypernode(memento.u).num_incident_cut_hes == numIncidentCutHEs(memento.u),
+           V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes) << V(numIncidentCutHEs(memento.u)));
+    ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
+           V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
 
     return ret;
   }
@@ -1201,8 +1208,8 @@ class GenericHypergraph {
           resetReusedPinSlotToOriginalValue(he, memento);
 
           if (connectivity(he) > 1) {
-            --_num_incident_cut_hes[memento.u];    // because u is not connected to that cut HE anymore
-            ++_num_incident_cut_hes[memento.v];    // because v is connected to that cut HE
+            --hypernode(memento.u).num_incident_cut_hes;    // because u is not connected to that cut HE anymore
+            ++hypernode(memento.v).num_incident_cut_hes;    // because v is connected to that cut HE
           }
           // The state of this hyperedge now resembles the state before contraction.
           // Thus we don't need to process them any further.
@@ -1236,17 +1243,17 @@ class GenericHypergraph {
                << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
 
         if (connectivity(he) > 1) {
-          ++_num_incident_cut_hes[memento.v];     // because v is connected to that cut HE
+          ++hypernode(memento.v).num_incident_cut_hes;     // because v is connected to that cut HE
         }
 
         ++_current_num_pins;
       }
     }
 
-    ASSERT(_num_incident_cut_hes[memento.u] == numIncidentCutHEs(memento.u),
-           V(memento.u) << V(_num_incident_cut_hes[memento.u]) << V(numIncidentCutHEs(memento.u)));
-    ASSERT(_num_incident_cut_hes[memento.v] == numIncidentCutHEs(memento.v),
-           V(memento.v) << V(_num_incident_cut_hes[memento.v]) << V(numIncidentCutHEs(memento.v)));
+    ASSERT(hypernode(memento.u).num_incident_cut_hes == numIncidentCutHEs(memento.u),
+           V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes) << V(numIncidentCutHEs(memento.u)));
+    ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
+           V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
   }
 
   bool isBorderNodeInternal(const HypernodeID hn) const {
@@ -1515,10 +1522,6 @@ class GenericHypergraph {
   std::vector<HypernodeID> _pins_in_part;
   std::unique_ptr<PartitionID[]> _connectivity_sets;
 
-  // To allow O(1) border node check, we keep track of the number
-  // of cut hyperedges per hypernode after initial partitioning.
-  std::vector<HyperedgeID> _num_incident_cut_hes;
-
   // Used during uncontraction to decide how to perform the uncontraction operation.
   // Incident HEs of the representative either already contained u and v before the contraction
   // or only contained v. In the latter case, we use _hes_not_containing_u[he]=true, to
@@ -1582,19 +1585,16 @@ bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hyp
          expected._current_num_pins == actual._current_num_pins &&
          expected._hypernodes == actual._hypernodes &&
          expected._hyperedges == actual._hyperedges &&
-         expected_incidence_array == actual_incidence_array &&
-         expected._num_incident_cut_hes == actual._num_incident_cut_hes;
+         expected_incidence_array == actual_incidence_array;
 }
 
 template <typename Hypergraph>
 bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hypergraph& actual) {
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using HypernodeID = typename Hypergraph::HypernodeID;
 
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
-
-
-  ASSERT(expected._num_incident_cut_hes == actual._num_incident_cut_hes, "Error");
 
   bool connectivity_sets_valid = true;
   for (const HyperedgeID he : actual.edges()) {
@@ -1605,10 +1605,20 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
     }
   }
 
+  bool num_incident_cut_hes_valid = true;
+  for (const HypernodeID hn : actual.nodes()) {
+    ASSERT(expected.hypernode(hn).num_incident_cut_hes == actual.hypernode(hn).num_incident_cut_hes
+           , V(hn));
+    if (expected.hypernode(hn).num_incident_cut_hes != actual.hypernode(hn).num_incident_cut_hes) {
+      num_incident_cut_hes_valid = false;
+      break;
+    }
+  }
+
   return verifyEquivalenceWithoutPartitionInfo(expected, actual) &&
          expected._part_info == actual._part_info &&
          expected._pins_in_part == actual._pins_in_part &&
-         expected._num_incident_cut_hes == actual._num_incident_cut_hes &&
+         num_incident_cut_hes_valid &&
          connectivity_sets_valid;
 }
 
@@ -1690,7 +1700,6 @@ reindex(const Hypergraph& hypergraph) {
   }
 
   reindexed_hypergraph->_part_info.resize(reindexed_hypergraph->_k);
-  reindexed_hypergraph->_num_incident_cut_hes.resize(num_hypernodes, 0);
 
   return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
 }
@@ -1775,9 +1784,6 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     subhypergraph->hyperedge(he).connectivity_set_begin = subhypergraph->_connectivity_sets.get()
                                                           + he * 2;
   }
-
-
-  subhypergraph->_num_incident_cut_hes.resize(num_hypernodes, 0);
 
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
