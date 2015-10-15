@@ -10,7 +10,6 @@
 
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
-#include "partition/initial_partitioning/InitialStatManager.h"
 #include "partition/Configuration.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "lib/datastructure/KWayPriorityQueue.h"

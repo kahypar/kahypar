@@ -15,7 +15,6 @@
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
-#include "partition/initial_partitioning/HypergraphPartitionBalancer.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingBaseFunctions.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
@@ -24,7 +23,6 @@
 
 using datastructure::NoDataBinaryMaxHeap;
 using defs::HypernodeWeight;
-using partition::HypergraphPartitionBalancer;
 using partition::StartNodeSelectionPolicy;
 using partition::GainComputationPolicy;
 
@@ -139,7 +137,6 @@ private:
 		}(), "There are unassigned hypernodes!");
 
 		InitialPartitionerBase::rollbackToBestCut();
-		InitialPartitionerBase::eraseConnectedComponents();
 		InitialPartitionerBase::performFMRefinement();
 	}
 

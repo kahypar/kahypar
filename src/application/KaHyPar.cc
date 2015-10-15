@@ -24,7 +24,6 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
-#include "partition/initial_partitioning/nLevelInitialPartitioner.h"
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
@@ -67,7 +66,6 @@ using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::PoolInitialPartitioner;
-using partition::nLevelInitialPartitioner;
 using partition::RecursiveBisection;
 using partition::FMGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
@@ -138,20 +136,8 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::rb_bfs;
 	} else if (mode.compare("recursive-random") == 0) {
 		return InitialPartitionerAlgorithm::rb_random;
-	} else if (mode.compare("hMetis") == 0) {
-		return InitialPartitionerAlgorithm::hMetis;
-	} else if (mode.compare("PaToH") == 0) {
-		return InitialPartitionerAlgorithm::PaToH;
-	} else if (mode.compare("nLevel") == 0) {
-		return InitialPartitionerAlgorithm::nLevel;
-	} else if (mode.compare("direct_nLevel") == 0) {
-		return InitialPartitionerAlgorithm::direct_nLevel;
 	} else if (mode.compare("pool") == 0) {
 		return InitialPartitionerAlgorithm::pool;
-	} else if (mode.compare("ils") == 0) {
-		return InitialPartitionerAlgorithm::ils;
-	} else if (mode.compare("sa") == 0) {
-		return InitialPartitionerAlgorithm::sa;
 	}
 	return InitialPartitionerAlgorithm::rb_greedy_global;
 }
@@ -550,11 +536,6 @@ static Registrar<InitialPartitioningFactory> reg_rb_greedy_round_maxnet(
 		InitialPartitionerAlgorithm::rb_greedy_round_maxnet,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new RecursiveBisection<GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,MaxNetGainComputationPolicy>>(hypergraph,config);
-		});
-static Registrar<InitialPartitioningFactory> reg_nlevel(
-		InitialPartitionerAlgorithm::nLevel,
-		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-			return new RecursiveBisection<nLevelInitialPartitioner>(hypergraph,config);
 		});
 static Registrar<InitialPartitioningFactory> reg_pool(
 		InitialPartitionerAlgorithm::pool,

@@ -39,8 +39,6 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 	config.initial_partitioning.unassigned_part = 1;
 	config.initial_partitioning.rollback = false;
 	config.initial_partitioning.refinement = false;
-	config.initial_partitioning.erase_components = false;
-	config.initial_partitioning.balance = true;
 	config.initial_partitioning.upper_allowed_partition_weight.resize(
 			config.initial_partitioning.k);
 	config.initial_partitioning.perfect_balance_partition_weight.resize(

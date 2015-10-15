@@ -195,14 +195,6 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
 		return std::string("hMetis");
 	case InitialPartitionerAlgorithm::PaToH:
 		return std::string("PaToH");
-	case InitialPartitionerAlgorithm::ils:
-		return std::string("ils");
-	case InitialPartitionerAlgorithm::sa:
-		return std::string("sa");
-	case InitialPartitionerAlgorithm::nLevel:
-		return std::string("nLevel");
-	case InitialPartitionerAlgorithm::direct_nLevel:
-		return std::string("direct_nLevel");
 	case InitialPartitionerAlgorithm::pool:
 		return std::string("pool");
 	}
@@ -241,11 +233,9 @@ struct Configuration {
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
 						2), epsilon(0.05), algorithm("pool"), mode("pool"), algo(
 						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						1), nruns(20), direct_nlevel_contraction_divider(2.0), init_alpha(
-						1.0), alpha(1), beta(1), unassigned_part(1), pool_type(
-						"mix3"), min_ils_iterations(400), max_stable_net_removals(
-						100), rollback(false), refinement(true), erase_components(
-						false), balance(false), stats(false), styles(false) {
+						1), nruns(20), init_alpha(
+						1.0), unassigned_part(1), pool_type(
+						"mix3"), rollback(false), refinement(true) {
 		}
 
 		std::string coarse_graph_filename;
@@ -258,21 +248,12 @@ struct Configuration {
 		HypernodeWeightVector upper_allowed_partition_weight;
 		HypernodeWeightVector perfect_balance_partition_weight;
 		int nruns;
-		double direct_nlevel_contraction_divider;
 		PartitionID unassigned_part;
-		double alpha;
 		double init_alpha;
-		double beta;
 		int seed;
-		int min_ils_iterations;
-		int max_stable_net_removals;
 		std::string pool_type;
 		bool rollback;
 		bool refinement;
-		bool erase_components;
-		bool balance;
-		bool stats;
-		bool styles;
 	};
 
 	struct PartitioningParameters {

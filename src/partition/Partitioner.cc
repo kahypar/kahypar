@@ -9,14 +9,12 @@
 #include "lib/io/PartitioningOutput.h"
 #include "partition/Configuration.h"
 #include "tools/RandomFunctions.h"
-#include "partition/initial_partitioning/ConfigurationManager.h"
 
 #ifndef NDEBUG
 #include "partition/Metrics.h"
 #endif
 
 using defs::HighResClockTimepoint;
-using partition::ConfigurationManager;
 using datastructure::reindex;
 
 namespace partition {
