@@ -239,11 +239,13 @@ struct Configuration {
 	struct InitialPartitioningParameters {
 		InitialPartitioningParameters() :
 				coarse_graph_filename(), coarse_graph_partition_filename(), k(
-						2), epsilon(0.05), algorithm(), mode(), algo(
-						InitialPartitionerAlgorithm::rb_greedy_global), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						-1), nruns(1), direct_nlevel_contraction_divider(2.0), init_alpha(
-						1.0), alpha(1), beta(1), unassigned_part(0), pool_type(
-						"basic"), min_ils_iterations(), max_stable_net_removals(), rollback(), refinement(), erase_components(), balance(), stats(), styles() {
+						2), epsilon(0.05), algorithm("pool"), mode("pool"), algo(
+						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
+						1), nruns(20), direct_nlevel_contraction_divider(2.0), init_alpha(
+						1.0), alpha(1), beta(1), unassigned_part(1), pool_type(
+						"mix3"), min_ils_iterations(400), max_stable_net_removals(
+						100), rollback(false), refinement(true), erase_components(
+						false), balance(false), stats(false), styles(false) {
 		}
 
 		std::string coarse_graph_filename;
@@ -273,68 +275,50 @@ struct Configuration {
 		bool styles;
 	};
 
-	  struct PartitioningParameters {
-	    PartitioningParameters() :
-	      k(2),
-      rb_lower_k(0),
-      rb_upper_k(1),
-	      seed(0),
-	      initial_partitioning_attempts(1),
-	      global_search_iterations(1),
-	      current_v_cycle(0),
-	      epsilon(1.0),
-	      hmetis_ub_factor(-1.0),
-	      perfect_balance_part_weights({
-	        std::numeric_limits<HypernodeWeight>::max(),
-	        std::numeric_limits<HypernodeWeight>::max()
-	      }),
-	      max_part_weights({
-	        std::numeric_limits<HypernodeWeight>::max(),
-	        std::numeric_limits<HypernodeWeight>::max()
-	      }),
-	      total_graph_weight(0),
-	      hyperedge_size_threshold(-1),
-	      remove_hes_that_always_will_be_cut(false),
-	      initial_parallel_he_removal(false),
-	      verbose_output(false),
-		  collect_stats(false),
-	      mode(Mode::direct_kway),
-	      coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
-	      initial_partitioner(InitialPartitioner::hMetis),
-	      refinement_algorithm(RefinementAlgorithm::kway_fm),
-	      graph_filename(),
-	      graph_partition_filename(),
-	      coarse_graph_filename(),
-	      coarse_graph_partition_filename(),
-	      initial_partitioner_path() { }
+	struct PartitioningParameters {
+		PartitioningParameters() :
+				k(2), rb_lower_k(0), rb_upper_k(1), seed(0), initial_partitioning_attempts(
+						1), global_search_iterations(1), current_v_cycle(0), epsilon(
+						1.0), hmetis_ub_factor(-1.0), perfect_balance_part_weights(
+						{ std::numeric_limits<HypernodeWeight>::max(),
+								std::numeric_limits<HypernodeWeight>::max() }), max_part_weights(
+						{ std::numeric_limits<HypernodeWeight>::max(),
+								std::numeric_limits<HypernodeWeight>::max() }), total_graph_weight(
+						0), hyperedge_size_threshold(-1), remove_hes_that_always_will_be_cut(
+						false), initial_parallel_he_removal(false), verbose_output(
+						false), collect_stats(false), mode(Mode::direct_kway), coarsening_algorithm(
+						CoarseningAlgorithm::heavy_lazy), initial_partitioner(
+						InitialPartitioner::hMetis), refinement_algorithm(
+						RefinementAlgorithm::kway_fm), graph_filename(), graph_partition_filename(), coarse_graph_filename(), coarse_graph_partition_filename(), initial_partitioner_path() {
+		}
 
-	    PartitionID k;
-    PartitionID rb_lower_k;
-    PartitionID rb_upper_k;
-	    int seed;
-	    int initial_partitioning_attempts;
-	    int global_search_iterations;
-	    int current_v_cycle;
-	    double epsilon;
-	    double hmetis_ub_factor;
-	    std::array<HypernodeWeight, 2> perfect_balance_part_weights;
-	    std::array<HypernodeWeight, 2> max_part_weights;
-	    HypernodeWeight total_graph_weight;
-	    HyperedgeID hyperedge_size_threshold;
-	    bool remove_hes_that_always_will_be_cut;
-	    bool initial_parallel_he_removal;
-	    bool verbose_output;
-    bool collect_stats;
-	    Mode mode;
-	    CoarseningAlgorithm coarsening_algorithm;
-	    InitialPartitioner initial_partitioner;
-	    RefinementAlgorithm refinement_algorithm;
-	    std::string graph_filename;
-	    std::string graph_partition_filename;
-	    std::string coarse_graph_filename;
-	    std::string coarse_graph_partition_filename;
-	    std::string initial_partitioner_path;
-	  };
+		PartitionID k;
+		PartitionID rb_lower_k;
+		PartitionID rb_upper_k;
+		int seed;
+		int initial_partitioning_attempts;
+		int global_search_iterations;
+		int current_v_cycle;
+		double epsilon;
+		double hmetis_ub_factor;
+		std::array<HypernodeWeight, 2> perfect_balance_part_weights;
+		std::array<HypernodeWeight, 2> max_part_weights;
+		HypernodeWeight total_graph_weight;
+		HyperedgeID hyperedge_size_threshold;
+		bool remove_hes_that_always_will_be_cut;
+		bool initial_parallel_he_removal;
+		bool verbose_output;
+		bool collect_stats;
+		Mode mode;
+		CoarseningAlgorithm coarsening_algorithm;
+		InitialPartitioner initial_partitioner;
+		RefinementAlgorithm refinement_algorithm;
+		std::string graph_filename;
+		std::string graph_partition_filename;
+		std::string coarse_graph_filename;
+		std::string coarse_graph_partition_filename;
+		std::string initial_partitioner_path;
+	};
 
 	struct FMParameters {
 		FMParameters() :
@@ -381,90 +365,100 @@ struct Configuration {
 };
 
 inline std::string toString(const Configuration& config) {
-  std::ostringstream oss;
-  oss << std::left;
-  oss << "Partitioning Parameters:" << std::endl;
-  oss << std::setw(35) << "  Hypergraph: " << config.partition.graph_filename << std::endl;
-  oss << std::setw(35) << "  Partition File: " << config.partition.graph_partition_filename
-  << std::endl;
-  oss << std::setw(35) << "  Coarsened Hypergraph: " << config.partition.coarse_graph_filename
-  << std::endl;
-  oss << std::setw(35) << "  Coarsened Partition File: "
-  << config.partition.coarse_graph_partition_filename << std::endl;
-  oss << std::setw(35) << "  k: " << config.partition.k << std::endl;
-  oss << std::setw(35) << "  epsilon: " << config.partition.epsilon
-  << std::endl;
-  oss << std::setw(35) << "  seed: " << config.partition.seed << std::endl;
-  oss << std::setw(35) << "  # global search iterations: "
-  << config.partition.global_search_iterations << std::endl;
-  oss << std::setw(35) << "  hyperedge size threshold: "
-  << config.partition.hyperedge_size_threshold << std::endl;
-  oss << std::setw(35) << "  initially remove parallel HEs: " << std::boolalpha
-  << config.partition.initial_parallel_he_removal << std::endl;
-  oss << std::setw(35) << "  remove HEs that always will be cut HEs: " << std::boolalpha
-  << config.partition.remove_hes_that_always_will_be_cut << std::endl;
-  oss << std::setw(35) << "  total_graph_weight: "
-  << config.partition.total_graph_weight << std::endl;
-  oss << std::setw(35) << "  L_opt0: " << config.partition.perfect_balance_part_weights[0]
-  << std::endl;
-  oss << std::setw(35) << "  L_opt1: " << config.partition.perfect_balance_part_weights[1]
-  << std::endl;
-  oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
-  << std::endl;
-  oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
-  << std::endl;
-  oss << std::setw(35) << " Mode: " << toString(config.partition.mode) << std::endl;
-  oss << std::setw(35) << "  Coarsening Algorithm: "
-  << toString(config.partition.coarsening_algorithm) << std::endl;
-  oss << std::setw(35) << "  Initial Partition Algorithm: " <<
-  toString(config.partition.initial_partitioner) << std::endl;
-  oss << std::setw(35) << "  Refinement Algorithm: "
-  << toString(config.partition.refinement_algorithm) << std::endl;
-  oss << "Coarsening Parameters:" << std::endl;
-  oss << std::setw(35) << "  max-allowed-weight-multiplier: "
-  << config.coarsening.max_allowed_weight_multiplier << std::endl;
-  oss << std::setw(35) << "  contraction-limit-multiplier: "
-  << config.coarsening.contraction_limit_multiplier << std::endl;
-  oss << std::setw(35) << "  hypernode weight fraction: "
-  << config.coarsening.hypernode_weight_fraction << std::endl;
-  oss << std::setw(35) << "  max. allowed hypernode weight: "
-  << config.coarsening.max_allowed_node_weight << std::endl;
-  oss << std::setw(35) << "  contraction limit: " << config.coarsening.contraction_limit
-  << std::endl;
-  oss << "Initial Partitioning Parameters:" << std::endl;
-  oss << std::setw(35) << "  hmetis_ub_factor: " << config.partition.hmetis_ub_factor << std::endl;
-  oss << std::setw(35) << "  # initial partitionings: "
-  << config.partition.initial_partitioning_attempts << std::endl;
-  oss << std::setw(35) << "  initial partitioner path: "
-  << config.partition.initial_partitioner_path
-  << std::endl;
-  oss << "Refinement Parameters:" << std::endl;
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
-      config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm ||
-      config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm_maxgain) {
-    oss << std::setw(35) << "  stopping rule: "
-    << toString(config.fm_local_search.stopping_rule) << std::endl;
-    oss << std::setw(35) << "  max. # repetitions: "
-    << config.fm_local_search.num_repetitions << std::endl;
-    oss << std::setw(35) << "  max. # fruitless moves: "
-    << config.fm_local_search.max_number_of_fruitless_moves << std::endl;
-    oss << std::setw(35) << "  random walk stop alpha: "
-    << config.fm_local_search.alpha << std::endl;
-    oss << std::setw(35) << "  random walk stop beta : "
-    << config.fm_local_search.beta << std::endl;
-  }
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::hyperedge) {
-    oss << std::setw(35) << "  stopping rule: "
-    << toString(config.her_fm.stopping_rule) << std::endl;
-    oss << std::setw(35) << "  max. # repetitions: " << config.her_fm.num_repetitions << std::endl;
-    oss << std::setw(35) << "  max. # fruitless moves: "
-    << config.her_fm.max_number_of_fruitless_moves << std::endl;
-  }
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::label_propagation) {
-    oss << std::setw(35) << "  max. # iterations: "
-    << config.lp_refiner.max_number_iterations << std::endl;
-  }
-  return oss.str();
+	std::ostringstream oss;
+	oss << std::left;
+	oss << "Partitioning Parameters:" << std::endl;
+	oss << std::setw(35) << "  Hypergraph: " << config.partition.graph_filename
+			<< std::endl;
+	oss << std::setw(35) << "  Partition File: "
+			<< config.partition.graph_partition_filename << std::endl;
+	oss << std::setw(35) << "  Coarsened Hypergraph: "
+			<< config.partition.coarse_graph_filename << std::endl;
+	oss << std::setw(35) << "  Coarsened Partition File: "
+			<< config.partition.coarse_graph_partition_filename << std::endl;
+	oss << std::setw(35) << "  k: " << config.partition.k << std::endl;
+	oss << std::setw(35) << "  epsilon: " << config.partition.epsilon
+			<< std::endl;
+	oss << std::setw(35) << "  seed: " << config.partition.seed << std::endl;
+	oss << std::setw(35) << "  # global search iterations: "
+			<< config.partition.global_search_iterations << std::endl;
+	oss << std::setw(35) << "  hyperedge size threshold: "
+			<< config.partition.hyperedge_size_threshold << std::endl;
+	oss << std::setw(35) << "  initially remove parallel HEs: "
+			<< std::boolalpha << config.partition.initial_parallel_he_removal
+			<< std::endl;
+	oss << std::setw(35) << "  remove HEs that always will be cut HEs: "
+			<< std::boolalpha
+			<< config.partition.remove_hes_that_always_will_be_cut << std::endl;
+	oss << std::setw(35) << "  total_graph_weight: "
+			<< config.partition.total_graph_weight << std::endl;
+	oss << std::setw(35) << "  L_opt0: "
+			<< config.partition.perfect_balance_part_weights[0] << std::endl;
+	oss << std::setw(35) << "  L_opt1: "
+			<< config.partition.perfect_balance_part_weights[1] << std::endl;
+	oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
+			<< std::endl;
+	oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
+			<< std::endl;
+	oss << std::setw(35) << " Mode: " << toString(config.partition.mode)
+			<< std::endl;
+	oss << std::setw(35) << "  Coarsening Algorithm: "
+			<< toString(config.partition.coarsening_algorithm) << std::endl;
+	oss << std::setw(35) << "  Initial Partition Algorithm: "
+			<< toString(config.partition.initial_partitioner) << std::endl;
+	oss << std::setw(35) << "  Refinement Algorithm: "
+			<< toString(config.partition.refinement_algorithm) << std::endl;
+	oss << "Coarsening Parameters:" << std::endl;
+	oss << std::setw(35) << "  max-allowed-weight-multiplier: "
+			<< config.coarsening.max_allowed_weight_multiplier << std::endl;
+	oss << std::setw(35) << "  contraction-limit-multiplier: "
+			<< config.coarsening.contraction_limit_multiplier << std::endl;
+	oss << std::setw(35) << "  hypernode weight fraction: "
+			<< config.coarsening.hypernode_weight_fraction << std::endl;
+	oss << std::setw(35) << "  max. allowed hypernode weight: "
+			<< config.coarsening.max_allowed_node_weight << std::endl;
+	oss << std::setw(35) << "  contraction limit: "
+			<< config.coarsening.contraction_limit << std::endl;
+	oss << "Initial Partitioning Parameters:" << std::endl;
+	oss << std::setw(35) << "  hmetis_ub_factor: "
+			<< config.partition.hmetis_ub_factor << std::endl;
+	oss << std::setw(35) << "  # initial partitionings: "
+			<< config.partition.initial_partitioning_attempts << std::endl;
+	oss << std::setw(35) << "  initial partitioner path: "
+			<< config.partition.initial_partitioner_path << std::endl;
+	oss << "Refinement Parameters:" << std::endl;
+	if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm
+			|| config.partition.refinement_algorithm
+					== RefinementAlgorithm::kway_fm
+			|| config.partition.refinement_algorithm
+					== RefinementAlgorithm::kway_fm_maxgain) {
+		oss << std::setw(35) << "  stopping rule: "
+				<< toString(config.fm_local_search.stopping_rule) << std::endl;
+		oss << std::setw(35) << "  max. # repetitions: "
+				<< config.fm_local_search.num_repetitions << std::endl;
+		oss << std::setw(35) << "  max. # fruitless moves: "
+				<< config.fm_local_search.max_number_of_fruitless_moves
+				<< std::endl;
+		oss << std::setw(35) << "  random walk stop alpha: "
+				<< config.fm_local_search.alpha << std::endl;
+		oss << std::setw(35) << "  random walk stop beta : "
+				<< config.fm_local_search.beta << std::endl;
+	}
+	if (config.partition.refinement_algorithm
+			== RefinementAlgorithm::hyperedge) {
+		oss << std::setw(35) << "  stopping rule: "
+				<< toString(config.her_fm.stopping_rule) << std::endl;
+		oss << std::setw(35) << "  max. # repetitions: "
+				<< config.her_fm.num_repetitions << std::endl;
+		oss << std::setw(35) << "  max. # fruitless moves: "
+				<< config.her_fm.max_number_of_fruitless_moves << std::endl;
+	}
+	if (config.partition.refinement_algorithm
+			== RefinementAlgorithm::label_propagation) {
+		oss << std::setw(35) << "  max. # iterations: "
+				<< config.lp_refiner.max_number_iterations << std::endl;
+	}
+	return oss.str();
 }
 }  // namespace partition
 #endif  // SRC_PARTITION_CONFIGURATION_H_

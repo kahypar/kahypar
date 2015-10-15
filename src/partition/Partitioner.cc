@@ -20,6 +20,62 @@ using partition::ConfigurationManager;
 using datastructure::reindex;
 
 namespace partition {
+
+inline Configuration Partitioner::createConfigurationForInitialPartitioning(
+		const Hypergraph& hg, const Configuration& original_config,
+		double init_alpha) const {
+	Configuration config(original_config);
+
+	config.initial_partitioning.k = config.partition.k;
+	config.initial_partitioning.epsilon = init_alpha
+			* original_config.partition.epsilon;
+	config.partition.epsilon = init_alpha * original_config.partition.epsilon;
+	config.initial_partitioning.unassigned_part = 1;
+	for (int i = 0; i < config.initial_partitioning.k; i++) {
+		config.initial_partitioning.perfect_balance_partition_weight.push_back(
+				config.partition.perfect_balance_part_weights[i % 2]);
+		config.initial_partitioning.upper_allowed_partition_weight.push_back(
+				config.initial_partitioning.perfect_balance_partition_weight[i]
+						* (1.0 + config.partition.epsilon));
+	}
+	config.partition.collect_stats = false;
+
+	//Coarsening-Parameters
+	config.coarsening.contraction_limit_multiplier = 150;
+	config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+	config.coarsening.max_allowed_weight_multiplier = 2.5;
+
+	//Refinement-Parameters
+	config.partition.global_search_iterations = 0;
+	if (config.initial_partitioning.k == 2) {
+		config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+	} else {
+		config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
+	}
+	config.fm_local_search.num_repetitions = -1;
+	config.fm_local_search.max_number_of_fruitless_moves = 50;
+	config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
+	config.fm_local_search.alpha = 8;
+	config.her_fm.num_repetitions = -1;
+	config.her_fm.max_number_of_fruitless_moves = 10;
+	config.lp_refiner.max_number_iterations = 3;
+
+	//Hypergraph depending parameters
+	config.partition.total_graph_weight = hg.totalWeight();
+	config.coarsening.contraction_limit =
+			config.coarsening.contraction_limit_multiplier
+					* config.initial_partitioning.k;
+	config.coarsening.hypernode_weight_fraction =
+			config.coarsening.max_allowed_weight_multiplier
+					/ config.coarsening.contraction_limit;
+	config.coarsening.max_allowed_node_weight =
+			config.coarsening.hypernode_weight_fraction
+					* config.partition.total_graph_weight;
+	config.fm_local_search.beta = log(hg.numNodes());
+
+	return config;
+}
+
 void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		const Configuration& config) {
 	io::printHypergraphInfo(hg,
@@ -147,28 +203,11 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			std::mt19937 generator(config.partition.seed);
 			int seed = int_dist(generator);
 			Configuration init_config =
-					ConfigurationManager::copyConfigAndSetValues(config,
-							[&](Configuration& new_config) {
-								ConfigurationManager::setDefaults(new_config);
-								new_config.initial_partitioning.mode = config.initial_partitioning.mode;
-								new_config.initial_partitioning.algo = config.initial_partitioning.algo;
-								new_config.initial_partitioning.algorithm = config.initial_partitioning.algorithm;
-								new_config.initial_partitioning.k = config.partition.k;
-								new_config.partition.k = config.partition.k;
-								new_config.initial_partitioning.epsilon = (init_alpha*config.partition.epsilon);
-								new_config.partition.epsilon = (init_alpha*config.partition.epsilon);
-								new_config.initial_partitioning.seed = seed;
-								new_config.partition.seed = seed;
-								new_config.initial_partitioning.nruns = config.initial_partitioning.nruns;
-								new_config.partition.initial_partitioning_attempts = config.partition.initial_partitioning_attempts;
-								for (int i = 0; i < new_config.initial_partitioning.k; i++) {
-									new_config.initial_partitioning.perfect_balance_partition_weight.push_back(config.partition.perfect_balance_part_weights[i % 2]);
-									new_config.initial_partitioning.upper_allowed_partition_weight.push_back(
-											new_config.initial_partitioning.perfect_balance_partition_weight[i]
-											* (1.0 + new_config.partition.epsilon));
-								}
-								ConfigurationManager::setHypergraphDependingParameters(new_config,*extracted_init_hypergraph.first);
-							});
+					Partitioner::createConfigurationForInitialPartitioning(
+							*extracted_init_hypergraph.first, config,
+							init_alpha);
+			init_config.initial_partitioning.seed = seed;
+			init_config.partition.seed = seed;
 
 			if (init_config.initial_partitioning.mode.compare("direct") == 0) {
 				std::unique_ptr<IInitialPartitioner> partitioner(
@@ -178,12 +217,11 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 				(*partitioner).partition(init_config.initial_partitioning.k);
 			} else if (init_config.initial_partitioning.mode.compare("nLevel")
 					== 0) {
-				std::unique_ptr<IInitialPartitioner> partitioner(
-						InitialPartitioningFactory::getInstance().createObject(
-								InitialPartitionerAlgorithm::nLevel,
-								*extracted_init_hypergraph.first, init_config));
-				(*partitioner).partition(init_config.initial_partitioning.k);
+				init_config.initial_partitioning.mode = "direct";
+				Partitioner::partition(*extracted_init_hypergraph.first,
+						init_config);
 			}
+
 			double imbalance = metrics::imbalance(
 					*extracted_init_hypergraph.first, config);
 			if (imbalance < best_imbalance) {
