@@ -57,7 +57,7 @@ private:
 
 	// TODO(heuer): If I'm right, the k-way impl could be implemented in the same way as the different
 	// greedy variants. Did you try these as well?
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning();
@@ -165,14 +165,6 @@ private:
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
 	}
-
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
-	}
-
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 

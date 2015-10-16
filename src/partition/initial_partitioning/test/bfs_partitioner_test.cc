@@ -122,51 +122,11 @@ public:
 
 };
 
-class ABFSRecursiveBisectionTest: public Test {
-public:
-	ABFSRecursiveBisectionTest() :
-			config(), partitioner(nullptr), hypergraph(nullptr) {
-	}
-
-	void initializePartitioning(PartitionID k) {
-		config.initial_partitioning.coarse_graph_filename =
-				"test_instances/ibm01.hgr";
-
-		HypernodeID num_hypernodes;
-		HyperedgeID num_hyperedges;
-		HyperedgeIndexVector index_vector;
-		HyperedgeVector edge_vector;
-		HyperedgeWeightVector hyperedge_weights;
-		HypernodeWeightVector hypernode_weights;
-
-		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
-				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				&hyperedge_weights, &hypernode_weights);
-		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, &hyperedge_weights,
-				&hypernode_weights);
-
-		HypernodeWeight hypergraph_weight = 0;
-		for (HypernodeID hn : hypergraph->nodes()) {
-			hypergraph_weight += hypergraph->nodeWeight(hn);
-		}
-		initializeConfiguration(config, k, hypergraph_weight);
-
-		partitioner = new RecursiveBisection<BFSInitialPartitioner<TestStartNodeSelectionPolicy>>(
-				*hypergraph, config);
-	}
-
-	RecursiveBisection<BFSInitialPartitioner<TestStartNodeSelectionPolicy>>* partitioner;
-	Hypergraph* hypergraph;
-	Configuration config;
-
-};
 
 
 TEST_F(ABFSBisectionInitialPartionerTest, ChecksCorrectBisectionCut) {
 
-	partitioner->partition(2);
+	partitioner->partition(hypergraph,config);
 	std::vector<HypernodeID> partition_zero {0,1,2,3};
 	std::vector<HypernodeID> partition_one {4,5,6};
 	for(unsigned int i = 0; i < partition_zero.size(); i++) {
@@ -182,7 +142,7 @@ TEST_F(ABFSBisectionInitialPartionerTest, ChecksCorrectBisectionCut) {
 
 TEST_F(ABFSBisectionInitialPartionerTest, LeavesNoHypernodeUnassigned) {
 
-	partitioner->partition(2);
+	partitioner->partition(hypergraph,config);
 
 	for(HypernodeID hn : hypergraph.nodes()) {
 		ASSERT_NE(hypergraph.partID(hn),-1);
@@ -228,7 +188,7 @@ TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPush
 
 TEST_F(AKWayBFSInitialPartitionerTest, HasValidImbalance) {
 
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
@@ -236,7 +196,7 @@ TEST_F(AKWayBFSInitialPartitionerTest, HasValidImbalance) {
 
 TEST_F(AKWayBFSInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -256,7 +216,7 @@ TEST_F(AKWayBFSInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 
 TEST_F(AKWayBFSInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for(HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn),-1);
@@ -265,57 +225,10 @@ TEST_F(AKWayBFSInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AKWayBFSInitialPartitionerTest, GrowPartitionOnPartitionMinus1) {
 	config.initial_partitioning.unassigned_part = -1;
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for(HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn),-1);
-	}
-}
-
-
-
-
-TEST_F(ABFSRecursiveBisectionTest, HasValidImbalance) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
-
-}
-
-TEST_F(ABFSRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	//Upper bounds of maximum partition weight should not be exceeded.
-	HypernodeWeight heaviest_part = 0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		if (heaviest_part < hypergraph->partWeight(k)) {
-			heaviest_part = hypergraph->partWeight(k);
-		}
-	}
-
-	//No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
-	double lower_bound_factor = 50.0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		ASSERT_GE(hypergraph->partWeight(k),
-				(lower_bound_factor / 100.0) * heaviest_part);
-	}
-
-}
-
-TEST_F(ABFSRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	for (HypernodeID hn : hypergraph->nodes()) {
-		ASSERT_NE(hypergraph->partID(hn), -1);
 	}
 }
 

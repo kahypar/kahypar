@@ -47,7 +47,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
   ~LabelPropagationInitialPartitioner() { }
 
-  void kwayPartitionImpl() final {
+  void initialPartition() final {
     PartitionID unassigned_part =
       _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
@@ -173,12 +173,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::performFMRefinement();
   }
 
-  void bisectionPartitionImpl() final {
-    PartitionID k = _config.initial_partitioning.k;
-    _config.initial_partitioning.k = 2;
-    kwayPartitionImpl();
-    _config.initial_partitioning.k = k;
-  }
 
  private:
   FRIEND_TEST(ALabelPropagationMaxGainMoveTest, AllMaxGainMovesAZeroGainMovesIfNoHypernodeIsAssigned);

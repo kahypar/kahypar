@@ -382,6 +382,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(
 							current_config.partition.coarsening_algorithm,
 							current_hypergraph, current_config,
 							current_hypergraph.weightOfHeaviestNode()));
+
 			std::unique_ptr<IRefiner> refiner(
 					RefinerFactory::getInstance().createObject(
 							current_config.partition.refinement_algorithm,

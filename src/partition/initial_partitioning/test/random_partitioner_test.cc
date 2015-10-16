@@ -129,50 +129,10 @@ public:
 
 };
 
-class ARandomRecursiveBisectionTest: public Test {
-public:
-	ARandomRecursiveBisectionTest() :
-			config(), partitioner(nullptr), hypergraph(nullptr) {
-	}
-
-	void initializePartitioning(PartitionID k) {
-		config.initial_partitioning.coarse_graph_filename =
-				"test_instances/ibm01.hgr";
-
-		HypernodeID num_hypernodes;
-		HyperedgeID num_hyperedges;
-		HyperedgeIndexVector index_vector;
-		HyperedgeVector edge_vector;
-		HyperedgeWeightVector hyperedge_weights;
-		HypernodeWeightVector hypernode_weights;
-
-		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
-				num_hypernodes, num_hyperedges, index_vector, edge_vector,
-				&hyperedge_weights, &hypernode_weights);
-		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-				index_vector, edge_vector, k, &hyperedge_weights,
-				&hypernode_weights);
-
-		HypernodeWeight hypergraph_weight = 0;
-		for (HypernodeID hn : hypergraph->nodes()) {
-			hypergraph_weight += hypergraph->nodeWeight(hn);
-		}
-		initializeConfiguration(config, k, hypergraph_weight);
-
-		partitioner = new RecursiveBisection<RandomInitialPartitioner>(
-				*hypergraph, config);
-	}
-
-	RecursiveBisection<RandomInitialPartitioner>* partitioner;
-	Hypergraph* hypergraph;
-	Configuration config;
-
-};
 
 TEST_F(ARandomBisectionInitialPartitionerTest, HasValidImbalance) {
 
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
 
@@ -180,7 +140,7 @@ TEST_F(ARandomBisectionInitialPartitionerTest, HasValidImbalance) {
 
 TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for (HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn), -1);
@@ -192,7 +152,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
 
@@ -202,7 +162,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -225,56 +185,13 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for (HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn), -1);
 	}
 }
 
-TEST_F(ARandomRecursiveBisectionTest, HasValidImbalance) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
-
-}
-
-TEST_F(ARandomRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	//Upper bounds of maximum partition weight should not be exceeded.
-	HypernodeWeight heaviest_part = 0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		if (heaviest_part < hypergraph->partWeight(k)) {
-			heaviest_part = hypergraph->partWeight(k);
-		}
-	}
-
-	//No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
-	double lower_bound_factor = 50.0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		ASSERT_GE(hypergraph->partWeight(k),
-				(lower_bound_factor / 100.0) * heaviest_part);
-	}
-
-}
-
-TEST_F(ARandomRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	for (HypernodeID hn : hypergraph->nodes()) {
-		ASSERT_NE(hypergraph->partID(hn), -1);
-	}
-}
 
 }
 ;

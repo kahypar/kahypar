@@ -48,21 +48,15 @@ public:
 
 private:
 
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 		recursiveBisection(_hg, _config.initial_partitioning.k);
 		_config.initial_partitioning.epsilon = _config.partition.epsilon;
 		InitialPartitionerBase::recalculateBalanceConstraints(
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::performFMRefinement();
+		_config.initial_partitioning.nruns = 1;
 	}
 
-	void bisectionPartitionImpl() final {
-		performMultipleRunsOnHypergraph(_hg, _config, 2);
-		_config.initial_partitioning.epsilon = _config.partition.epsilon;
-		InitialPartitionerBase::recalculateBalanceConstraints(
-				_config.initial_partitioning.epsilon);
-		InitialPartitionerBase::performFMRefinement();
-	}
 
 	double calculateEpsilon(Hypergraph& hyper,
 			HypernodeWeight hypergraph_weight, PartitionID k) {
@@ -228,7 +222,7 @@ private:
 			InitialPartitioner partitioner(hyper, config);
 			InitialPartitionerBase::adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(
 					config, [&]() {
-						partitioner.partition(2);
+						partitioner.partition(hyper,config);
 					});
 
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(hyper);

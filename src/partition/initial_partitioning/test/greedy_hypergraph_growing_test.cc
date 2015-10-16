@@ -218,7 +218,7 @@ TEST_F(AGreedyHypergraphGrowingBaseFunctionTest, DeletesAssignedHypernodesFromPr
 
 TEST_F(AGreedySequentialBisectionTest, ExpectedGreedySequentialBisectionResult) {
 
-	partitioner->partition(2);
+	partitioner->partition(hypergraph,config);
 	std::vector<HypernodeID> partition_zero {0,1,2,5};
 	std::vector<HypernodeID> partition_one {3,4,6};
 
@@ -232,7 +232,7 @@ TEST_F(AGreedySequentialBisectionTest, ExpectedGreedySequentialBisectionResult) 
 
 TEST_F(AGreedyGlobalBisectionTest, ExpectedGreedyGlobalBisectionResult) {
 
-	partitioner->partition(2);
+	partitioner->partition(hypergraph,config);
 	std::vector<HypernodeID> partition_zero {0,1,2,5};
 	std::vector<HypernodeID> partition_one {3,4,6};
 
@@ -246,7 +246,7 @@ TEST_F(AGreedyGlobalBisectionTest, ExpectedGreedyGlobalBisectionResult) {
 
 TEST_F(AGreedyRoundRobinBisectionTest, ExpectedGreedyRoundRobinBisectionResult) {
 
-	partitioner->partition(2);
+	partitioner->partition(hypergraph,config);
 	std::vector<HypernodeID> partition_zero {0,1,3,4};
 	std::vector<HypernodeID> partition_one {2,5,6};
 
@@ -263,7 +263,7 @@ TEST_F(AKWayGreedySequentialTest, HasValidImbalance) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
@@ -273,7 +273,7 @@ TEST_F(AKWayGreedySequentialTest, HasNoSignificantLowPartitionWeights) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -295,7 +295,7 @@ TEST_F(AKWayGreedySequentialTest, LeavesNoHypernodeUnassigned) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for(HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn),-1);
@@ -306,7 +306,7 @@ TEST_F(AKWayGreedyGlobalTest, HasValidImbalance) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
@@ -316,7 +316,7 @@ TEST_F(AKWayGreedyGlobalTest, HasNoSignificantLowPartitionWeights) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -337,7 +337,7 @@ TEST_F(AKWayGreedyGlobalTest, HasNoSignificantLowPartitionWeights) {
 TEST_F(AKWayGreedyGlobalTest, LeavesNoHypernodeUnassigned) {
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for(HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn),-1);
@@ -348,7 +348,7 @@ TEST_F(AKWayGreedyRoundRobinTest, HasValidImbalance) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	ASSERT_LE(metrics::imbalance(*hypergraph,config),config.partition.epsilon);
 
@@ -358,7 +358,7 @@ TEST_F(AKWayGreedyRoundRobinTest, HasNoSignificantLowPartitionWeights) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -380,56 +380,14 @@ TEST_F(AKWayGreedyRoundRobinTest, LeavesNoHypernodeUnassigned) {
 
 	PartitionID k = 4;
 	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
+	partitioner->partition(*hypergraph,config);
 
 	for(HypernodeID hn : hypergraph->nodes()) {
 		ASSERT_NE(hypergraph->partID(hn),-1);
 	}
 }
 
-TEST_F(AGreedyRecursiveBisectionTest, HasValidImbalance) {
 
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	ASSERT_LE(metrics::imbalance(*hypergraph,config), config.partition.epsilon);
-
-}
-
-TEST_F(AGreedyRecursiveBisectionTest, HasNoSignificantLowPartitionWeights) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	//Upper bounds of maximum partition weight should not be exceeded.
-	HypernodeWeight heaviest_part = 0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		if (heaviest_part < hypergraph->partWeight(k)) {
-			heaviest_part = hypergraph->partWeight(k);
-		}
-	}
-
-	//No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
-	double lower_bound_factor = 50.0;
-	for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
-		ASSERT_GE(hypergraph->partWeight(k),
-				(lower_bound_factor / 100.0) * heaviest_part);
-	}
-
-}
-
-TEST_F(AGreedyRecursiveBisectionTest, LeavesNoHypernodeUnassigned) {
-
-	PartitionID k = 4;
-	initializePartitioning(k);
-	partitioner->partition(config.initial_partitioning.k);
-
-	for (HypernodeID hn : hypergraph->nodes()) {
-		ASSERT_NE(hypergraph->partID(hn), -1);
-	}
-}
 
 };
 

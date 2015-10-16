@@ -57,7 +57,6 @@ public:
 	_config(config),
 	_bisection_assignment_history(),
 	_record_assignment_history(false),
-	_removed_hyperedges(),
 	_unassigned_nodes() {
 		for (const HypernodeID hn : _hg.nodes()) {
 			total_hypergraph_weight += _hg.nodeWeight(hn);
@@ -104,6 +103,15 @@ public:
 			}
 			_hg.initializeNumCutHyperedges();
 		}
+
+		_record_assignment_history = false;
+		_bisection_assignment_history.clear();
+		_unassigned_nodes.clear();
+		for (const HypernodeID hn : _hg.nodes()) {
+			_unassigned_nodes.push_back(hn);
+		}
+		_un_pos = _unassigned_nodes.size();
+
 	}
 
 	void performFMRefinement() {
@@ -160,8 +168,8 @@ public:
 					if (current_node != std::numeric_limits<HypernodeID>::max()) {
 						_hg.changeNodePart(current_node, to, from);
 					}
-					node_assignment assignment = _bisection_assignment_history.top();
-					_bisection_assignment_history.pop();
+					node_assignment assignment = _bisection_assignment_history.back();
+					_bisection_assignment_history.pop_back();
 					current_node = assignment.hn;
 					from = assignment.from;
 					to = assignment.to;
@@ -272,7 +280,7 @@ private:
 			}
 			// TODO(heuer): Potentially it is slightly more efficient to use a vector.
 			// Additionally, using emplace, the node-assignment could be constructed inplace
-			_bisection_assignment_history.push(assign);
+			_bisection_assignment_history.push_back(assign);
 		}
 
 	}
@@ -280,12 +288,11 @@ private:
 	HypernodeID _best_cut_node = std::numeric_limits<HypernodeID>::max();
 	HyperedgeWeight _best_cut = std::numeric_limits<HyperedgeWeight>::max();
 	HyperedgeWeight _current_cut = 0;
-	std::stack<node_assignment> _bisection_assignment_history;
+	std::vector<node_assignment> _bisection_assignment_history;
 	bool _record_assignment_history;
 	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
 	unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
 	std::vector<HypernodeID> _unassigned_nodes;
-	std::vector<HyperedgeID> _removed_hyperedges;
 	HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
 }

@@ -212,7 +212,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 						InitialPartitioningFactory::getInstance().createObject(
 								config.initial_partitioning.algo,
 								*extracted_init_hypergraph.first, init_config));
-				(*partitioner).partition(init_config.initial_partitioning.k);
+				(*partitioner).partition(*extracted_init_hypergraph.first,
+						init_config);
 			} else if (init_config.initial_partitioning.mode.compare("nLevel")
 					== 0) {
 				init_config.initial_partitioning.mode = "direct";

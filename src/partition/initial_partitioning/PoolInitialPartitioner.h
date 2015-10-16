@@ -28,7 +28,26 @@ class PoolInitialPartitioner: public IInitialPartitioner,
 public:
 	PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
 			InitialPartitionerBase(hypergraph, config), _partitioner_pool() {
-		configurePoolPartitioner();
+		//mix3 == 011110110111 == 1975
+		_partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_global);
+		_partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_round);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_sequential);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_global_maxpin);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_round_maxpin);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_sequential_maxpin);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_global_maxnet);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_round_maxnet);
+		_partitioner_pool.push_back(
+				InitialPartitionerAlgorithm::greedy_sequential_maxnet);
+		_partitioner_pool.push_back(InitialPartitionerAlgorithm::lp);
+		_partitioner_pool.push_back(InitialPartitionerAlgorithm::bfs);
+		_partitioner_pool.push_back(InitialPartitionerAlgorithm::random);
 	}
 
 	~PoolInitialPartitioner() {
@@ -36,167 +55,26 @@ public:
 
 private:
 
-	void configurePoolPartitioner() {
-
-		if (_config.initial_partitioning.pool_type.compare("full") == 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		} else if (_config.initial_partitioning.pool_type.compare("adaptive") == 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		} else if (_config.initial_partitioning.pool_type.compare("greedy_full")
-				== 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxnet);
-		} else if (_config.initial_partitioning.pool_type.compare("greedy")
-				== 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-		} else if (_config.initial_partitioning.pool_type.compare("greedy_maxpin")
-				== 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxpin);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy_maxpin);
-		} else if (_config.initial_partitioning.pool_type.compare("greedy_maxnet")
-				== 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy_maxnet);
-		} else if (_config.initial_partitioning.pool_type.compare("no_greedy")
-				== 0) {
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		} else if (_config.initial_partitioning.pool_type.compare("mix1") == 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		} else if (_config.initial_partitioning.pool_type.compare("mix2") == 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		}  else if (_config.initial_partitioning.pool_type.compare("mix3") == 0) {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_round_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		} else {
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_greedy);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxpin);
-			_partitioner_pool.push_back(
-					InitialPartitionerAlgorithm::rb_greedy_global_maxnet);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_lp);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_bfs);
-			_partitioner_pool.push_back(InitialPartitionerAlgorithm::rb_random);
-		}
-
-	}
-
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 
 		HyperedgeWeight best_cut = max_cut;
 		double best_imbalance = _config.initial_partitioning.epsilon;
 		std::vector<PartitionID> best_partition(_hg.numNodes());
 		std::string best_algorithm = "";
-		int n = _partitioner_pool.size();
-		if(_config.initial_partitioning.pool_type.compare("adaptive") == 0) {
-			Randomize::shuffleVector(_partitioner_pool,n);
-			n = 6;
-		}
-
-		for (int i = 0; i < n; i++) {
+		unsigned int n = _partitioner_pool.size() - 1;
+		for (unsigned int i = 0; i <= n; i++) {
+			if (!((_config.initial_partitioning.pool_type >> (n - i)) & 1)) {
+				continue;
+			}
 			InitialPartitionerAlgorithm algo = _partitioner_pool[i];
 			std::cout << "Starting initial partitioner algorithm: "
 					<< partition::toString(algo) << std::endl;
 			std::unique_ptr<IInitialPartitioner> partitioner(
 					InitialPartitioningFactory::getInstance().createObject(algo,
 							_hg, _config));
-			(*partitioner).partition(_config.initial_partitioning.k);
+			(*partitioner).partition(_hg, _config);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
-			double current_imbalance = metrics::imbalance(_hg,
-					_config);
+			double current_imbalance = metrics::imbalance(_hg, _config);
 			std::cout << "[Cut: " << current_cut << " - Imbalance: "
 					<< current_imbalance << "]" << std::endl;
 			if (current_cut <= best_cut) {
@@ -224,7 +102,8 @@ private:
 
 		std::cout << "Pool partitioner results: [min: " << best_cut
 				<< ",  algo: " << best_algorithm << "]" << std::endl;
-		PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
+		PartitionID unassigned_part =
+				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;
 		InitialPartitionerBase::resetPartitioning();
 		_config.initial_partitioning.unassigned_part = unassigned_part;
@@ -243,13 +122,8 @@ private:
 			return true;
 		}(), "There are unassigned hypernodes!");
 
-	}
+		_config.initial_partitioning.nruns = 1;
 
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
 	}
 
 	std::vector<InitialPartitionerAlgorithm> _partitioner_pool;

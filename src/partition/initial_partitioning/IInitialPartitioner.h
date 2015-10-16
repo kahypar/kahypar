@@ -21,13 +21,24 @@ class IInitialPartitioner {
 	  IInitialPartitioner& operator = (IInitialPartitioner&&) = delete;
 
 
-	void partition(int k) {
-		if(k == 2) {
-			bisectionPartitionImpl();
+	void partition(Hypergraph& hg, Configuration& config) {
+		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
+		std::vector<PartitionID> best_partition(hg.numNodes(),0);
+		for(int i = 0; i < config.initial_partitioning.nruns; i++) {
+			initialPartition();
+			HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
+			if(current_cut < best_cut) {
+				best_cut = current_cut;
+				for(HypernodeID hn : hg.nodes()) {
+					best_partition[hn] = hg.partID(hn);
+				}
+			}
 		}
-		else {
-			kwayPartitionImpl();
+		hg.resetPartitioning();
+		for(HypernodeID hn : hg.nodes()) {
+			hg.setNodePart(hn,best_partition[hn]);
 		}
+		hg.initializeNumCutHyperedges();
 	}
 
 
@@ -38,9 +49,7 @@ class IInitialPartitioner {
 
 	private:
 
-	virtual void kwayPartitionImpl() = 0;
-
-	virtual void bisectionPartitionImpl() = 0;
+	virtual void initialPartition() = 0;
 
 
 };

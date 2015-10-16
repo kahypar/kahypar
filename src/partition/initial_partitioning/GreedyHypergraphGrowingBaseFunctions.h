@@ -55,6 +55,19 @@ public:
 
 	virtual ~GreedyHypergraphGrowingBaseFunctions() {}
 
+	void reset() {
+		_start_nodes.clear();
+		_visit.resetAllBitsToFalse();
+		_hyperedge_already_process.assign(_config.initial_partitioning.k,
+				std::vector<bool>(_hg.initialNumEdges()));
+		_unassigned_nodes.clear();
+		_pq.clear();
+		for (const HypernodeID hn : _hg.nodes()) {
+			_unassigned_nodes.push_back(hn);
+		}
+		_un_pos = _unassigned_nodes.size();
+	}
+
 	void calculateStartNodes() {
 		StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
 				_config.initial_partitioning.k);

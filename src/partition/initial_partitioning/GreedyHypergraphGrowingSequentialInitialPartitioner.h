@@ -54,11 +54,12 @@ public:
 private:
 	FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoBucketQueue);FRIEND_TEST(AGreedyInitialPartionerTest, ExpectedMaxGainValueAfterUpdateAHypernodeIntoBucketQueue);
 
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning();
+		greedy_base.reset();
 
 		//Calculate Startnodes and push them into the queues.
 		greedy_base.calculateStartNodes();
@@ -140,12 +141,6 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
-	}
 
 	void assignAllUnassignedHypernodesAccordingToTheirGain() {
 		//Assign first all possible unassigned nodes, which are still left in the priority queue.

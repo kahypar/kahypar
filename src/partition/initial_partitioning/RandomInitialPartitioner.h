@@ -32,7 +32,7 @@ public:
 
 private:
 
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;
@@ -76,12 +76,6 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
-	}
 
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;

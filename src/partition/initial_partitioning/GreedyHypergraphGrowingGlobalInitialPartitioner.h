@@ -47,10 +47,11 @@ public:
 
 private:
 
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning();
+		greedy_base.reset();
 
 		//Calculate Startnodes and push them into the queues.
 		greedy_base.calculateStartNodes();
@@ -174,12 +175,6 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
-	}
 
 	//double max_net_size;
 	using InitialPartitionerBase::_hg;

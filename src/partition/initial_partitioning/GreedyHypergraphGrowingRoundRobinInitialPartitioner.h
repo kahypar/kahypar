@@ -45,11 +45,12 @@ public:
 
 private:
 
-	void kwayPartitionImpl() final {
+	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;
 		InitialPartitionerBase::resetPartitioning();
+		greedy_base.reset();
 
 		//Calculate Startnodes and push them into the queues.
 		greedy_base.calculateStartNodes();
@@ -68,7 +69,6 @@ private:
 		}
 
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
-
 			bool every_part_disable = true;
 
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
@@ -170,13 +170,6 @@ private:
 				_config.initial_partitioning.epsilon);
 		InitialPartitionerBase::rollbackToBestCut();
 		InitialPartitionerBase::performFMRefinement();
-	}
-
-	void bisectionPartitionImpl() final {
-		PartitionID k = _config.initial_partitioning.k;
-		_config.initial_partitioning.k = 2;
-		kwayPartitionImpl();
-		_config.initial_partitioning.k = k;
 	}
 
 	//double max_net_size;
