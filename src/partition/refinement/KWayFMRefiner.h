@@ -45,8 +45,8 @@ namespace partition {
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
-class KWayFMRefiner : public IRefiner,
-                      private FMRefinerBase {
+class KWayFMRefiner final : public IRefiner,
+                            private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
   static const bool dbg_refinement_kway_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
@@ -101,7 +101,7 @@ class KWayFMRefiner : public IRefiner,
   FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       // _pq.initialize(_hg.initialNumNodes());
@@ -109,7 +109,7 @@ class KWayFMRefiner : public IRefiner,
     }
   }
 #else
-  void initializeImpl() noexcept final {
+  void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
@@ -120,7 +120,7 @@ class KWayFMRefiner : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -256,11 +256,11 @@ class KWayFMRefiner : public IRefiner,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  int numRepetitionsImpl() const noexcept final {
+  int numRepetitionsImpl() const noexcept override final {
     return _config.fm_local_search.num_repetitions;
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ

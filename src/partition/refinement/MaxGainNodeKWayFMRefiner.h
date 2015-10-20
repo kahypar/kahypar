@@ -42,8 +42,8 @@ namespace partition {
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
-class MaxGainNodeKWayFMRefiner : public IRefiner,
-                                 private FMRefinerBase {
+class MaxGainNodeKWayFMRefiner final : public IRefiner,
+                                       private FMRefinerBase {
   static const bool dbg_refinement_kway_fm_activation = false;
   static const bool dbg_refinement_kway_fm_improvements_cut = true;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
@@ -108,7 +108,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
 #ifdef USE_BUCKET_PQ
 
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
@@ -117,7 +117,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
 
 #else
 
-  void initializeImpl() noexcept final {
+  void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
@@ -129,7 +129,7 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
@@ -259,11 +259,11 @@ class MaxGainNodeKWayFMRefiner : public IRefiner,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  int numRepetitionsImpl() const noexcept final {
+  int numRepetitionsImpl() const noexcept override final {
     return _config.fm_local_search.num_repetitions;
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ

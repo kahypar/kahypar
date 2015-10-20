@@ -49,8 +49,8 @@ template <class StoppingPolicy = Mandatory,
           template <class> class QueueSelectionPolicy = MandatoryTemplate,
           class QueueCloggingPolicy = Mandatory
           >
-class HyperedgeFMRefiner : public IRefiner,
-                           private FMRefinerBase {
+class HyperedgeFMRefiner final : public IRefiner,
+                                 private FMRefinerBase {
  private:
   using HyperedgeFMHeap = NoDataBinaryMaxHeap<HyperedgeID, HyperedgeWeight,
                                               std::numeric_limits<HyperedgeWeight> >;
@@ -109,13 +109,13 @@ class HyperedgeFMRefiner : public IRefiner,
   HyperedgeFMRefiner(HyperedgeFMRefiner&&) = delete;
   HyperedgeFMRefiner& operator= (HyperedgeFMRefiner&&) = delete;
 
-  void initializeImpl(HyperedgeWeight) noexcept final {
+  void initializeImpl(HyperedgeWeight) noexcept override final {
     if (!_is_initialized) {
       _is_initialized = true;
     }
   }
 
-  void initializeImpl() noexcept final {
+  void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _is_initialized = true;
     }
@@ -133,7 +133,7 @@ class HyperedgeFMRefiner : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
     ONLYDEBUG(max_allowed_part_weights);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
@@ -304,11 +304,11 @@ class HyperedgeFMRefiner : public IRefiner,
     return true;
   }
 
-  int numRepetitionsImpl() const noexcept final {
+  int numRepetitionsImpl() const noexcept override final {
     return _config.her_fm.num_repetitions;
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return std::string(templateToString<QueueSelectionPolicy<Gain> >()
                        + templateToString<QueueCloggingPolicy>()
                        + templateToString<StoppingPolicy>());
