@@ -53,13 +53,5 @@ static defs::IncidenceIterator begin(std::pair<defs::IncidenceIterator, defs::In
 static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::IncidenceIterator>& x) {
   return std::move(x.second);
 }
-
-static const defs::PartitionID* begin(std::pair<const defs::PartitionID*, const defs::PartitionID*>& x) {
-  return std::move(x.first);
-}
-
-static const defs::PartitionID* end(std::pair<const defs::PartitionID*, const defs::PartitionID*>& x) {
-  return std::move(x.second);
-}
 }  // namespace std
 #endif  // SRC_LIB_DEFINITIONS_H_

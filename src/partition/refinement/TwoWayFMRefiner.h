@@ -53,8 +53,8 @@ static const bool dbg_refinement_2way_locked_hes = false;
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
-class TwoWayFMRefiner : public IRefiner,
-                        private FMRefinerBase {
+class TwoWayFMRefiner final : public IRefiner,
+                              private FMRefinerBase {
  private:
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
@@ -147,7 +147,7 @@ class TwoWayFMRefiner : public IRefiner,
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept final {
+  void initializeImpl(const HyperedgeWeight max_gain) noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
@@ -155,7 +155,7 @@ class TwoWayFMRefiner : public IRefiner,
     std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
   }
 #else
-  void initializeImpl() noexcept final {
+  void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
@@ -167,7 +167,7 @@ class TwoWayFMRefiner : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept final {
+                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -175,7 +175,6 @@ class TwoWayFMRefiner : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << metrics::imbalance(_hg, _config));
-
     _pq.clear();
     _hn_state.reset();
     _he_fully_active.resetAllBitsToFalse();
@@ -258,50 +257,55 @@ class TwoWayFMRefiner : public IRefiner,
       DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
           << " to " << to_part << " (weight=" << _hg.nodeWeight(max_gain_node) << ")");
 
-      _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
-      _hn_state.mark(max_gain_node);
+      if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node) <= _config.partition.max_part_weights[to_part]) {
+        _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
+        _hn_state.mark(max_gain_node);
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
-        _pq.disablePart(to_part);
+        if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
+          _pq.disablePart(to_part);
+        }
+        if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
+          _pq.enablePart(from_part);
+        }
+
+        current_imbalance = metrics::imbalance(_hg, _config);
+
+        current_cut -= max_gain;
+        _stopping_policy.updateStatistics(max_gain);
+
+        ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+               V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+
+        updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
+
+        // right now, we do not allow a decrease in cut in favor of an increase in balance
+        const bool improved_cut_within_balance = (current_cut < best_cut) &&
+                                                 (_hg.partWeight(0)
+                                                  <= _config.partition.max_part_weights[0]) &&
+                                                 (_hg.partWeight(1)
+                                                  <= _config.partition.max_part_weights[1]);
+        const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
+                                                     (current_cut <= best_cut);
+        ++num_moves_since_last_improvement;
+        if (improved_cut_within_balance || improved_balance_less_equal_cut) {
+          DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
+              "2WayFM improved balance between " << from_part << " and " << to_part
+              << "(max_gain=" << max_gain << ")");
+          DBG(dbg_refinement_2way_fm_improvements_cut && current_cut < best_cut,
+              "2WayFM improved cut from " << best_cut << " to " << current_cut);
+          best_cut = current_cut;
+          best_imbalance = current_imbalance;
+          _stopping_policy.resetStatistics();
+          min_cut_index = num_moves;
+          num_moves_since_last_improvement = 0;
+          _rollback_delta_cache.resetUsedEntries();
+        }
+        _performed_moves[num_moves] = max_gain_node;
+        ++num_moves;
+      } else {
+        ++num_moves_since_last_improvement;
+        _hn_state.mark(max_gain_node);
       }
-      if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
-        _pq.enablePart(from_part);
-      }
-
-      current_imbalance = metrics::imbalance(_hg, _config);
-
-      current_cut -= max_gain;
-      _stopping_policy.updateStatistics(max_gain);
-
-      ASSERT(current_cut == metrics::hyperedgeCut(_hg),
-             V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-
-      updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
-
-      // right now, we do not allow a decrease in cut in favor of an increase in balance
-      const bool improved_cut_within_balance = (current_cut < best_cut) &&
-                                               (_hg.partWeight(0)
-                                                <= _config.partition.max_part_weights[0]) &&
-                                               (_hg.partWeight(1)
-                                                <= _config.partition.max_part_weights[1]);
-      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
-                                                   (current_cut <= best_cut);
-      ++num_moves_since_last_improvement;
-      if (improved_cut_within_balance || improved_balance_less_equal_cut) {
-        DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
-            "2WayFM improved balance between " << from_part << " and " << to_part
-            << "(max_gain=" << max_gain << ")");
-        DBG(dbg_refinement_2way_fm_improvements_cut && current_cut < best_cut,
-            "2WayFM improved cut from " << best_cut << " to " << current_cut);
-        best_cut = current_cut;
-        best_imbalance = current_imbalance;
-        _stopping_policy.resetStatistics();
-        min_cut_index = num_moves;
-        num_moves_since_last_improvement = 0;
-        _rollback_delta_cache.resetUsedEntries();
-      }
-      _performed_moves[num_moves] = max_gain_node;
-      ++num_moves;
     }
     DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
@@ -665,11 +669,11 @@ class TwoWayFMRefiner : public IRefiner,
   }
 
 
-  int numRepetitionsImpl() const noexcept final {
+  int numRepetitionsImpl() const noexcept override final {
     return _config.fm_local_search.num_repetitions;
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ

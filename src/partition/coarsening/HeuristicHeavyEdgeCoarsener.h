@@ -26,8 +26,8 @@ namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
 
 template <class Rater = Mandatory>
-class HeuristicHeavyEdgeCoarsener : public ICoarsener,
-                                    private HeavyEdgeCoarsenerBase<Rater>{
+class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
+                                          private HeavyEdgeCoarsenerBase<Rater>{
  private:
   using Base = HeavyEdgeCoarsenerBase<Rater>;
   using Base::rateAllHypernodes;
@@ -56,7 +56,7 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void coarsenImpl(const HypernodeID limit) noexcept final {
+  void coarsenImpl(const HypernodeID limit) noexcept override final {
     _pq.clear();
     _sources.clear();
 
@@ -97,11 +97,11 @@ class HeuristicHeavyEdgeCoarsener : public ICoarsener,
     }
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) noexcept final {
+  bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
     return Base::doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 

@@ -4,6 +4,8 @@
 
 #ifndef SRC_PARTITION_REFINEMENT_IREFINER_H_
 #define SRC_PARTITION_REFINEMENT_IREFINER_H_
+
+#include <array>
 #include <string>
 #include <utility>
 #include <vector>
