@@ -25,10 +25,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 	Configuration config(original_config);
 
 	config.initial_partitioning.k = config.partition.k;
-	config.initial_partitioning.epsilon = init_alpha
+	config.initial_partitioning.epsilon = original_config.initial_partitioning.init_alpha
 			* original_config.partition.epsilon;
-	config.partition.epsilon = init_alpha * original_config.partition.epsilon;
-	config.initial_partitioning.unassigned_part = 1;
+	config.initial_partitioning.perfect_balance_partition_weight.clear();
+	config.initial_partitioning.upper_allowed_partition_weight.clear();
 	for (int i = 0; i < config.initial_partitioning.k; i++) {
 		config.initial_partitioning.perfect_balance_partition_weight.push_back(
 				config.partition.perfect_balance_part_weights[i % 2]);
@@ -40,16 +40,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 
 	//Coarsening-Parameters
 	config.coarsening.contraction_limit_multiplier = 150;
-	config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
 	config.coarsening.max_allowed_weight_multiplier = 2.5;
 
 	//Refinement-Parameters
 	config.partition.global_search_iterations = 0;
-	if (config.initial_partitioning.k == 2) {
-		config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
-	} else {
-		config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-	}
 	config.fm_local_search.num_repetitions = -1;
 	config.fm_local_search.max_number_of_fruitless_moves = 50;
 	config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
@@ -70,6 +64,47 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 			config.coarsening.hypernode_weight_fraction
 					* config.partition.total_graph_weight;
 	config.fm_local_search.beta = log(hg.numNodes());
+
+	if (config.initial_partitioning.init_technique
+			== InitialPartitioningTechnique::multilevel
+			&& config.initial_partitioning.init_mode
+					== Mode::recursive_bisection) {
+		config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+		config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+		config.partition.mode = Mode::recursive_bisection;
+	} else if (config.initial_partitioning.init_technique
+			== InitialPartitioningTechnique::multilevel
+			&& config.initial_partitioning.init_mode == Mode::direct_kway) {
+		if (config.partition.k > 2) {
+			config.partition.refinement_algorithm =
+					RefinementAlgorithm::kway_fm;
+		} else {
+			config.partition.refinement_algorithm =
+					RefinementAlgorithm::twoway_fm;
+		}
+		config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+		config.partition.mode = Mode::direct_kway;
+	} else if (config.initial_partitioning.init_technique
+			== InitialPartitioningTechnique::flat
+			&& config.initial_partitioning.init_mode
+					== Mode::recursive_bisection) {
+		config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
+		config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
+		config.partition.mode = Mode::recursive_bisection;
+	} else {
+		if (config.partition.k > 2) {
+			config.partition.refinement_algorithm =
+					RefinementAlgorithm::kway_fm;
+		} else {
+			config.partition.refinement_algorithm =
+					RefinementAlgorithm::twoway_fm;
+		}
+		config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
+		config.partition.mode = Mode::direct_kway;
+	}
+	config.initial_partitioning.init_technique =
+			InitialPartitioningTechnique::flat;
+	config.initial_partitioning.init_mode = Mode::direct_kway;
 
 	return config;
 }
@@ -207,16 +242,17 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			init_config.initial_partitioning.seed = seed;
 			init_config.partition.seed = seed;
 
-			if (init_config.initial_partitioning.mode.compare("direct") == 0) {
+			if (config.initial_partitioning.init_technique
+					== InitialPartitioningTechnique::flat
+					&& config.initial_partitioning.init_mode
+							== Mode::direct_kway) {
 				std::unique_ptr<IInitialPartitioner> partitioner(
 						InitialPartitioningFactory::getInstance().createObject(
 								config.initial_partitioning.algo,
 								*extracted_init_hypergraph.first, init_config));
 				(*partitioner).partition(*extracted_init_hypergraph.first,
 						init_config);
-			} else if (init_config.initial_partitioning.mode.compare("nLevel")
-					== 0) {
-				init_config.initial_partitioning.mode = "direct";
+			} else {
 				Partitioner::partition(*extracted_init_hypergraph.first,
 						init_config);
 			}

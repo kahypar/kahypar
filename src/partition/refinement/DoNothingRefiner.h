@@ -36,7 +36,7 @@ class DoNothingRefiner final : public IRefiner {
   void initializeImpl() noexcept override final { }
   void initializeImpl(const HyperedgeWeight) noexcept override final { }
   int numRepetitionsImpl() const noexcept override final { }
-  std::string policyStringImpl() const noexcept override final { return std::string("") }
+  std::string policyStringImpl() const noexcept override final { return std::string(""); }
 };
 }  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_

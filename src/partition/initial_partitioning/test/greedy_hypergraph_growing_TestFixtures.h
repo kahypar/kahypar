@@ -159,7 +159,7 @@ public:
 	}
 
 	void initializePartitioning(PartitionID k) {
-		config.initial_partitioning.coarse_graph_filename =
+		std::string coarse_graph_filename =
 				"test_instances/ibm01.hgr";
 
 		HypernodeID num_hypernodes;
@@ -169,7 +169,7 @@ public:
 		HyperedgeWeightVector hyperedge_weights;
 		HypernodeWeightVector hypernode_weights;
 		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
+				coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
 				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
@@ -201,7 +201,7 @@ public:
 	}
 
 	void initializePartitioning(PartitionID k) {
-		config.initial_partitioning.coarse_graph_filename =
+		std::string coarse_graph_filename =
 				"test_instances/ibm01.hgr";
 
 		HypernodeID num_hypernodes;
@@ -211,7 +211,7 @@ public:
 		HyperedgeWeightVector hyperedge_weights;
 		HypernodeWeightVector hypernode_weights;
 		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
+				coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
 				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
@@ -243,7 +243,7 @@ public:
 	}
 
 	void initializePartitioning(PartitionID k) {
-		config.initial_partitioning.coarse_graph_filename =
+		std::string coarse_graph_filename =
 				"test_instances/ibm01.hgr";
 
 		HypernodeID num_hypernodes;
@@ -253,7 +253,7 @@ public:
 		HyperedgeWeightVector hyperedge_weights;
 		HypernodeWeightVector hypernode_weights;
 		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
+				coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
 				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,

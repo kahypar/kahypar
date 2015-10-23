@@ -87,7 +87,7 @@ public:
 	AKWayBFSInitialPartitionerTest() :
 			config(), partitioner(nullptr), hypergraph(nullptr) {
 
-		config.initial_partitioning.coarse_graph_filename =
+		std::string coarse_graph_filename =
 				"test_instances/ibm01.hgr";
 
 		HypernodeID num_hypernodes;
@@ -99,7 +99,7 @@ public:
 
 		PartitionID k = 4;
 		io::readHypergraphFile(
-				config.initial_partitioning.coarse_graph_filename,
+				coarse_graph_filename,
 				num_hypernodes, num_hyperedges, index_vector, edge_vector,
 				&hyperedge_weights, &hypernode_weights);
 		hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,

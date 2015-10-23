@@ -208,7 +208,7 @@ private:
 		int best_cut_iteration = -1;
 
 		int runs = config.initial_partitioning.nruns;
-		if (config.initial_partitioning.mode.compare("nLevel") == 0) {
+		if (config.initial_partitioning.init_technique == InitialPartitioningTechnique::multilevel) {
 			runs = 1;
 		}
 

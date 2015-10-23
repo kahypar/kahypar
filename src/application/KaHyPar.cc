@@ -38,6 +38,7 @@ using partition::Partitioner;
 using partition::InitialPartitioner;
 using partition::Configuration;
 using partition::Mode;
+using partition::InitialPartitioningTechnique;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
 using partition::InitialPartitionerAlgorithm;
@@ -45,6 +46,7 @@ using partition::RefinementStoppingRule;
 using partition::CoarsenerFactory;
 using partition::RefinerFactory;
 using partition::InitialPartitioningFactory;
+using partition::DoNothingCoarsener;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
@@ -57,6 +59,7 @@ using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
+using partition::DoNothingRefiner;
 using partition::IInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::LabelPropagationInitialPartitioner;
@@ -152,15 +155,27 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 				config.partition.initial_partitioner =
 						InitialPartitioner::KaHyPar;
 				if (vm.count("init-mode")) {
-					config.initial_partitioning.mode = vm["init-mode"].as<
-							std::string>();
+					if (vm["init-mode"].as<std::string>() == "rb") {
+						config.initial_partitioning.init_mode =
+								Mode::recursive_bisection;
+					} else if (vm["init-mode"].as<std::string>() == "direct") {
+						config.initial_partitioning.init_mode = Mode::direct_kway ;
+					}
+
+				}
+				if (vm.count("init-technique")) {
+					if (vm["init-technique"].as<std::string>() == "flat") {
+						config.initial_partitioning.init_technique =
+								InitialPartitioningTechnique::flat;
+					} else if (vm["init-technique"].as<std::string>() == "multi") {
+						config.initial_partitioning.init_technique = InitialPartitioningTechnique::multilevel;
+					}
+
 				}
 				if (vm.count("init-algo")) {
-					config.initial_partitioning.algorithm = vm["init-algo"].as<
-							std::string>();
 					config.initial_partitioning.algo =
 							stringToInitialPartitionerAlgorithm(
-									config.initial_partitioning.algorithm);
+									vm["init-algo"].as<std::string>());
 				}
 				if (vm.count("init-alpha")) {
 					config.initial_partitioning.init_alpha =
@@ -214,9 +229,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			} else if (vm["ctype"].as<std::string>() == "hyperedge") {
 				config.partition.coarsening_algorithm =
 						CoarseningAlgorithm::hyperedge;
-			} else if (vm["rtype"].as<std::string>() == "empty") {
-				config.partition.coarsening_algorithm =
-						CoarseningAlgorithm::empty;
 			} else {
 				std::cout << "Illegal ctype option! Exiting..." << std::endl;
 				exit(0);
@@ -301,9 +313,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 			} else if (vm["rtype"].as<std::string>() == "sclap") {
 				config.partition.refinement_algorithm =
 						RefinementAlgorithm::label_propagation;
-			} else if (vm["rtype"].as<std::string>() == "empty") {
-				config.partition.refinement_algorithm =
-						RefinementAlgorithm::empty;
 			} else {
 				std::cout << "Illegal stopFM option! Exiting..." << std::endl;
 				exit(0);
@@ -328,10 +337,11 @@ void setDefaults(Configuration& config) {
 			std::numeric_limits<HyperedgeID>::max();
 	config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
 	config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-	config.initial_partitioning.algorithm = "pool";
 	config.initial_partitioning.pool_type = 1975;
+	config.initial_partitioning.init_technique =
+			InitialPartitioningTechnique::flat;
+	config.initial_partitioning.init_mode = Mode::recursive_bisection;
 	config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
-	config.initial_partitioning.mode = "nLevel";
 	config.initial_partitioning.init_alpha = 1.0;
 	config.coarsening.contraction_limit_multiplier = 160;
 	config.coarsening.max_allowed_weight_multiplier = 2.5;
@@ -349,7 +359,6 @@ void setDefaults(Configuration& config) {
 	config.her_fm.max_number_of_fruitless_moves = 10;
 	config.lp_refiner.max_number_iterations = 3;
 }
-
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
 		CoarseningAlgorithm::heavy_lazy,
@@ -371,6 +380,13 @@ static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
 		[](Hypergraph& hypergraph, const Configuration& config,
 				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
 			return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
+		});
+
+static Registrar<CoarsenerFactory> reg_do_nothing_coarsener(
+		CoarseningAlgorithm::do_nothing,
+		[](Hypergraph& hypergraph, const Configuration& config,
+				const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+			return new DoNothingCoarsener();
 		});
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
@@ -407,6 +423,12 @@ static Registrar<RefinerFactory> reg_lp_local_search(
 		RefinementAlgorithm::label_propagation,
 		[](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
 			return new LPRefiner(hypergraph, config);
+		});
+
+static Registrar<RefinerFactory> reg_do_nothing_refiner(
+		RefinementAlgorithm::do_nothing,
+		[](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
+			return new DoNothingRefiner();
 		});
 
 static Registrar<RefinerFactory> reg_hyperedge_local_search(
@@ -513,8 +535,10 @@ int main(int argc, char* argv[]) {
 			"# initial partition trials, the final bisection corresponds to the one with the smallest cut")(
 			"part", po::value<std::string>(),
 			"Initial Partitioner: hMetis (default), PaToH or KaHyPar")(
+			"init-technique", po::value<std::string>(),
+			"If part=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")(
 			"init-mode", po::value<std::string>(),
-			"If part=KaHyPar: direct or nLevel recursive-bisection Initial Partitioning")(
+			"If part=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")(
 			"init-algo", po::value<std::string>(),
 			"If part=KaHyPar, used initial partitioning algorithm")(
 			"init-alpha", po::value<double>(),
@@ -568,7 +592,7 @@ int main(int argc, char* argv[]) {
 			io::createHypergraphFromFile(config.partition.graph_filename,
 					config.partition.k));
 
-	// ensure that there are no single-node hyperedges
+// ensure that there are no single-node hyperedges
 	HyperedgeID num_single_node_hes = 0;
 	HyperedgeID num_unconnected_hns = 0;
 	for (const HyperedgeID he : hypergraph.edges()) {
@@ -605,11 +629,11 @@ int main(int argc, char* argv[]) {
 					* config.partition.total_graph_weight;
 	config.fm_local_search.beta = log(hypergraph.numNodes());
 
-	// We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
-	// with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
-	// In order to provide a balanced initial partitioning, we determine the UBfactor such that
-	// the maximal allowed partiton size corresponds to our upper bound i.e.
-	// (1+epsilon) * ceil(total_weight / k).
+// We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
+// with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
+// In order to provide a balanced initial partitioning, we determine the UBfactor such that
+// the maximal allowed partiton size corresponds to our upper bound i.e.
+// (1+epsilon) * ceil(total_weight / k).
 	double exp = 1.0 / log2(config.partition.k);
 	config.partition.hmetis_ub_factor =
 			50.0
@@ -634,7 +658,7 @@ int main(int argc, char* argv[]) {
 			config.partition.graph_filename.substr(
 					config.partition.graph_filename.find_last_of("/") + 1));
 
-	// the main partitioner should track stats
+// the main partitioner should track stats
 	config.partition.collect_stats = true;
 
 	Partitioner partitioner;

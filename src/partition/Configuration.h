@@ -26,6 +26,11 @@ enum class Mode
 		recursive_bisection, direct_kway
 };
 
+enum class InitialPartitioningTechnique
+	: std::uint8_t {
+		multilevel, flat
+};
+
 enum class InitialPartitioner
 	: std::uint8_t {
 		hMetis, PaToH, KaHyPar
@@ -33,17 +38,22 @@ enum class InitialPartitioner
 
 enum class CoarseningAlgorithm
 	: std::uint8_t {
-		heavy_full, heavy_partial, heavy_lazy, hyperedge, empty
+		heavy_full, heavy_partial, heavy_lazy, hyperedge, do_nothing
 };
 
 enum class RefinementAlgorithm
 	: std::uint8_t {
-		twoway_fm, kway_fm, kway_fm_maxgain, hyperedge, label_propagation, empty
+		twoway_fm,
+	kway_fm,
+	kway_fm_maxgain,
+	hyperedge,
+	label_propagation,
+	do_nothing
 };
 
 enum class InitialPartitionerAlgorithm
 	: std::uint8_t {
-	greedy_sequential,
+		greedy_sequential,
 	greedy_global,
 	greedy_round,
 	greedy_sequential_maxpin,
@@ -96,8 +106,6 @@ static std::string toString(const CoarseningAlgorithm& algo) {
 		return std::string("heavy_lazy");
 	case CoarseningAlgorithm::hyperedge:
 		return std::string("hyperedge");
-	case CoarseningAlgorithm::empty:
-		return std::string("empty");
 	}
 	return std::string("UNDEFINED");
 }
@@ -114,8 +122,6 @@ static std::string toString(const RefinementAlgorithm& algo) {
 		return std::string("hyperedge");
 	case RefinementAlgorithm::label_propagation:
 		return std::string("label_propagation");
-	case RefinementAlgorithm::empty:
-		return std::string("empty");
 	}
 	return std::string("UNDEFINED");
 }
@@ -181,20 +187,18 @@ struct Configuration {
 
 	struct InitialPartitioningParameters {
 		InitialPartitioningParameters() :
-				coarse_graph_filename(), coarse_graph_partition_filename(), k(
-						2), epsilon(0.05), algorithm("pool"), mode("pool"), algo(
+				k(2), epsilon(0.05), init_technique(
+						InitialPartitioningTechnique::flat), init_mode(
+						Mode::recursive_bisection), algo(
 						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						1), nruns(20), init_alpha(
-						1.0), unassigned_part(1), pool_type(
+						1), nruns(20), init_alpha(1.0), unassigned_part(1), pool_type(
 						1975), rollback(false), refinement(true) {
 		}
 
-		std::string coarse_graph_filename;
-		std::string coarse_graph_partition_filename;
 		PartitionID k;
 		double epsilon;
-		std::string algorithm;
-		std::string mode;
+		InitialPartitioningTechnique init_technique;
+		Mode init_mode;
 		InitialPartitionerAlgorithm algo;
 		HypernodeWeightVector upper_allowed_partition_weight;
 		HypernodeWeightVector perfect_balance_partition_weight;
