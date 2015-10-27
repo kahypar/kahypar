@@ -25,7 +25,7 @@ using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 
 namespace partition {
-class LPRefiner : public IRefiner {
+class LPRefiner final : public IRefiner {
   using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
 
@@ -52,10 +52,10 @@ class LPRefiner : public IRefiner {
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const size_t num_refinement_nodes,
-                  const std::array<HypernodeWeight, 2>& __attribute__ ((unused)) max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& uncontraction_changes,
+                  const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
+                  const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut,
-                  double __attribute__ ((unused))& best_imbalance) noexcept final {
+                  double __attribute__ ((unused))& best_imbalance) noexcept override final {
     assert(metrics::imbalance(_hg, _config) < _config.partition.epsilon);
     ASSERT(best_cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
@@ -116,11 +116,11 @@ class LPRefiner : public IRefiner {
     return best_cut < in_cut;
   }
 
-  int numRepetitionsImpl() const noexcept final {
+  int numRepetitionsImpl() const noexcept override final {
     return 0;
   }
 
-  std::string policyStringImpl() const noexcept final {
+  std::string policyStringImpl() const noexcept override final {
     return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
   }
 
@@ -129,7 +129,7 @@ class LPRefiner : public IRefiner {
     return _hg.connectivity(he) > 1;
   }
 
-  void initializeImpl() noexcept final {
+  void initializeImpl() noexcept override final {
     _is_initialized = true;
     _cur_queue.clear();
     _cur_queue.reserve(_hg.initialNumNodes());
