@@ -25,8 +25,9 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 	Configuration config(original_config);
 
 	config.initial_partitioning.k = config.partition.k;
-	config.initial_partitioning.epsilon = original_config.initial_partitioning.init_alpha
-			* original_config.partition.epsilon;
+	config.initial_partitioning.epsilon =
+			original_config.initial_partitioning.init_alpha
+					* original_config.partition.epsilon;
 	config.initial_partitioning.perfect_balance_partition_weight.clear();
 	config.initial_partitioning.upper_allowed_partition_weight.clear();
 	for (int i = 0; i < config.initial_partitioning.k; i++) {
@@ -65,6 +66,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 					* config.partition.total_graph_weight;
 	config.fm_local_search.beta = log(hg.numNodes());
 
+	//State transition for the initial partitioning technique which should be used
 	if (config.initial_partitioning.init_technique
 			== InitialPartitioningTechnique::multilevel
 			&& config.initial_partitioning.init_mode
@@ -109,12 +111,16 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 	return config;
 }
 
+
 void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		const Configuration& config) {
 	io::printHypergraphInfo(hg,
 			config.partition.coarse_graph_filename.substr(
 					config.partition.coarse_graph_filename.find_last_of("/")
 							+ 1));
+
+	std::uniform_int_distribution<int> int_dist;
+	std::mt19937 generator(config.partition.seed);
 
 	if (config.partition.initial_partitioner == InitialPartitioner::hMetis
 			|| config.partition.initial_partitioner
@@ -146,9 +152,6 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
 		HyperedgeWeight current_cut =
 				std::numeric_limits<HyperedgeWeight>::max();
-
-		std::uniform_int_distribution<int> int_dist;
-		std::mt19937 generator(config.partition.seed);
 
 		for (int attempt = 0;
 				attempt < config.partition.initial_partitioning_attempts;
@@ -224,24 +227,26 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		auto extracted_init_hypergraph = reindex(hg);
 		std::vector<HypernodeID> mapping(
 				std::move(extracted_init_hypergraph.second));
-		double init_alpha = config.initial_partitioning.init_alpha;
 
+		// TODO(heuer): Is it really necassary to run the initial partitioner several times
+		// if the resulting partition is imbalanced?
+		double init_alpha = config.initial_partitioning.init_alpha;
 		double best_imbalance = std::numeric_limits<double>::max();
 		std::vector<PartitionID> best_imbalanced_partition(
 				extracted_init_hypergraph.first->numNodes(), 0);
 
 		do {
 			extracted_init_hypergraph.first->resetPartitioning();
-			std::uniform_int_distribution<int> int_dist;
-			std::mt19937 generator(config.partition.seed);
-			int seed = int_dist(generator);
 			Configuration init_config =
 					Partitioner::createConfigurationForInitialPartitioning(
 							*extracted_init_hypergraph.first, config,
 							init_alpha);
-			init_config.initial_partitioning.seed = seed;
-			init_config.partition.seed = seed;
 
+			init_config.initial_partitioning.seed = int_dist(generator);
+			init_config.partition.seed = init_config.initial_partitioning.seed;
+
+			LOG(
+					"Calling Initial Partitioner: " << toString(config.initial_partitioning.init_technique) << " " << toString(config.initial_partitioning.init_mode) << " " << toString(config.initial_partitioning.algo) << " (k="<< init_config.initial_partitioning.k << ", epsilon=" << init_config.initial_partitioning.epsilon << ")");
 			if (config.initial_partitioning.init_technique
 					== InitialPartitioningTechnique::flat
 					&& config.initial_partitioning.init_mode
@@ -269,6 +274,17 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		} while (metrics::imbalance(*extracted_init_hypergraph.first, config)
 				> config.partition.epsilon && init_alpha > 0.0);
 
+
+		ASSERT([&]() {
+			for(HypernodeID hn : hg.nodes()) {
+				if(hg.partID(hn) != -1) {
+					return false;
+				}
+			}
+			return true;
+		}(), "The original hypergraph isn't unpartioned!");
+
+		//Apply the best balanced partition to the original hypergraph
 		for (HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
 			PartitionID part = extracted_init_hypergraph.first->partID(hn);
 			if (part != best_imbalanced_partition[hn]) {

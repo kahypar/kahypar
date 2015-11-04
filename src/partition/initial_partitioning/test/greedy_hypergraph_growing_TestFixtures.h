@@ -21,7 +21,6 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/RecursiveBisection.h"
 
 
 

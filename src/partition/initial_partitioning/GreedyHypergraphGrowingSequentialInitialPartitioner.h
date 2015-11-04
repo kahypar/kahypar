@@ -72,7 +72,6 @@ private:
 
 		for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 			if (i != unassigned_part) {
-
 				HypernodeID hn = kInvalidNode;
 
 				do {

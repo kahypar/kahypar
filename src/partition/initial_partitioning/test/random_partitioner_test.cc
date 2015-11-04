@@ -7,7 +7,6 @@
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
-#include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 
 using ::testing::Eq;

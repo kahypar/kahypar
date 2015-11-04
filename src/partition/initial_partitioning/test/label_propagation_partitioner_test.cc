@@ -13,7 +13,6 @@
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
-#include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 

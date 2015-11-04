@@ -67,16 +67,16 @@ private:
 				continue;
 			}
 			InitialPartitionerAlgorithm algo = _partitioner_pool[i];
-			std::cout << "Starting initial partitioner algorithm: "
-					<< partition::toString(algo) << std::endl;
+			LOG("Calling initial partitioning algorithm: "
+					<< partition::toString(algo));
 			std::unique_ptr<IInitialPartitioner> partitioner(
 					InitialPartitioningFactory::getInstance().createObject(algo,
 							_hg, _config));
 			(*partitioner).partition(_hg, _config);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 			double current_imbalance = metrics::imbalance(_hg, _config);
-			std::cout << "[Cut: " << current_cut << " - Imbalance: "
-					<< current_imbalance << "]" << std::endl;
+			LOG("[Cut: " << current_cut << " - Imbalance: "
+					<< current_imbalance << "]");
 			if (current_cut <= best_cut) {
 				bool apply_best_partition = true;
 				if (best_cut != max_cut) {
@@ -100,8 +100,8 @@ private:
 					<< std::endl;
 		}
 
-		std::cout << "Pool partitioner results: [min: " << best_cut
-				<< ",  algo: " << best_algorithm << "]" << std::endl;
+		LOG("Pool partitioner results: [min: " << best_cut
+				<< ",  algo: " << best_algorithm << "]");
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;

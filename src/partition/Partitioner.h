@@ -148,6 +148,7 @@ private:
 			const Hypergraph& current_hypergraph, const PartitionID current_k,
 			const PartitionID k0, const PartitionID k1) const;
 
+
 	inline Configuration createConfigurationForInitialPartitioning(
 			const Hypergraph& hg, const Configuration& original_config,
 			double init_alpha) const;

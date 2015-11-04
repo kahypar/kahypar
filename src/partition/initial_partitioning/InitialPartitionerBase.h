@@ -127,33 +127,35 @@ public:
 								_config.partition.refinement_algorithm,
 								_hg, _config));
 			}
-			refiner->initialize();
 
+			refiner->initialize();
 			std::vector<HypernodeID> refinement_nodes;
 			for (HypernodeID hn : _hg.nodes()) {
-				refinement_nodes.push_back(hn);
+				if(_hg.isBorderNode(hn)) {
+					refinement_nodes.push_back(hn);
+				}
 			}
-			HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-			HyperedgeWeight cut = cut_before;
+			unsigned int refinement_hypernodes = refinement_nodes.size();
+			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+			HyperedgeWeight old_cut = current_cut;
 			double imbalance = metrics::imbalance(_hg, _config);
 
-			// TODO(heuer): This is still an relevant issue! I think we should not test refinement as long as it is
-			// not possible to give more than one upper bound to the refiner.
-			// However, if I'm correct, the condition always evaluates to true if k=2^x right?
-			// Only perform refinement if the weight of partition 0 and 1 is the same to avoid unexpected partition weights.
-			if (_config.initial_partitioning.upper_allowed_partition_weight[0] == _config.initial_partitioning.upper_allowed_partition_weight[1]) {
-				_config.partition.max_part_weights[0] = _config.initial_partitioning.upper_allowed_partition_weight[0];
-				_config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
-				HypernodeWeight max_allowed_part_weight = _config.initial_partitioning.upper_allowed_partition_weight[0];
-				// TODO(heuer): If you look at the uncoarsening code that calls the refiner, you see, that
-				// another idea is to restart the refiner as long as it finds an improvement on the current
-				// level. This should also be evaluated. Actually, this is, what parameter --FM-reps is used
-				// for.
-				refiner->refine(refinement_nodes, _hg.numNodes(), {_config.partition.max_part_weights[0]
+			bool improvement_found = false;
+			int iteration = 0;
+			do {
+				if(current_cut == 0) {
+					break;
+				}
+				improvement_found = refiner->refine(refinement_nodes, refinement_hypernodes, {_config.initial_partitioning.upper_allowed_partition_weight[0]
 							+ max_hypernode_weight,
-							_config.partition.max_part_weights[1]
-							+ max_hypernode_weight}, {0, 0}, cut, imbalance);
-			}
+							_config.initial_partitioning.upper_allowed_partition_weight[1]
+							+ max_hypernode_weight}, {0, 0}, current_cut, imbalance);
+			    ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
+			    ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
+				old_cut = current_cut;
+				iteration++;
+			} while(iteration < _config.initial_partitioning.local_search_repetitions && improvement_found);
+
 		}
 	}
 
@@ -210,7 +212,7 @@ public:
 
 	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-		for (int i = 0; i < _un_pos; i++) {
+		for (unsigned int i = 0; i < _un_pos; i++) {
 			HypernodeID hn = _unassigned_nodes[i];
 			if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;
@@ -223,7 +225,6 @@ public:
 		}
 		return unassigned_node;
 	}
-
 
 protected:
 	Hypergraph& _hg;

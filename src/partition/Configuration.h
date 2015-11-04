@@ -74,12 +74,23 @@ enum class RefinementStoppingRule
 		simple, adaptive1, adaptive2
 };
 
+
 static std::string toString(const Mode& mode) {
 	switch (mode) {
 	case Mode::recursive_bisection:
 		return std::string("rb");
 	case Mode::direct_kway:
 		return std::string("direct");
+	}
+	return std::string("UNDEFINED");
+}
+
+static std::string toString(const InitialPartitioningTechnique& technique) {
+	switch (technique) {
+	case InitialPartitioningTechnique::flat:
+		return std::string("flat");
+	case InitialPartitioningTechnique::multilevel:
+		return std::string("multilevel");
 	}
 	return std::string("UNDEFINED");
 }
@@ -191,7 +202,7 @@ struct Configuration {
 						InitialPartitioningTechnique::flat), init_mode(
 						Mode::recursive_bisection), algo(
 						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						1), nruns(20), init_alpha(1.0), unassigned_part(1), pool_type(
+						1), nruns(20), init_alpha(1.0), unassigned_part(1), local_search_repetitions(1), pool_type(
 						1975), rollback(false), refinement(true) {
 		}
 
@@ -204,6 +215,7 @@ struct Configuration {
 		HypernodeWeightVector perfect_balance_partition_weight;
 		int nruns;
 		PartitionID unassigned_part;
+		int local_search_repetitions;
 		double init_alpha;
 		int seed;
 		unsigned int pool_type;

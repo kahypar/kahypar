@@ -15,7 +15,6 @@
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
-#include "partition/initial_partitioning/RecursiveBisection.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 
 

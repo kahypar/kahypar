@@ -144,6 +144,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					vm["nruns"].as<int>();
 			config.initial_partitioning.nruns = vm["nruns"].as<int>();
 		}
+
+		if (vm.count("mode")) {
+			if (vm["mode"].as<std::string>() == "rb") {
+				config.partition.mode = Mode::recursive_bisection;
+			} else if (vm["mode"].as<std::string>() == "direct") {
+				config.partition.mode = Mode::direct_kway;
+			}
+		}
+
 		if (vm.count("part")) {
 			if (vm["part"].as<std::string>() == "hMetis") {
 				config.partition.initial_partitioner =
@@ -159,7 +168,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 						config.initial_partitioning.init_mode =
 								Mode::recursive_bisection;
 					} else if (vm["init-mode"].as<std::string>() == "direct") {
-						config.initial_partitioning.init_mode = Mode::direct_kway ;
+						config.initial_partitioning.init_mode =
+								Mode::direct_kway;
 					}
 
 				}
@@ -167,8 +177,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					if (vm["init-technique"].as<std::string>() == "flat") {
 						config.initial_partitioning.init_technique =
 								InitialPartitioningTechnique::flat;
-					} else if (vm["init-technique"].as<std::string>() == "multi") {
-						config.initial_partitioning.init_technique = InitialPartitioningTechnique::multilevel;
+					} else if (vm["init-technique"].as<std::string>()
+							== "multi") {
+						config.initial_partitioning.init_technique =
+								InitialPartitioningTechnique::multilevel;
 					}
 
 				}
@@ -181,13 +193,22 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 					config.initial_partitioning.init_alpha =
 							vm["init-alpha"].as<double>();
 				}
-			}
-		}
-		if (vm.count("mode")) {
-			if (vm["mode"].as<std::string>() == "rb") {
-				config.partition.mode = Mode::recursive_bisection;
-			} else if (vm["mode"].as<std::string>() == "direct") {
-				config.partition.mode = Mode::direct_kway;
+
+				//If we use the n-Level recursive bisection partitioner the initial partitioner is only
+				// call for k=2.
+				if (config.partition.mode == Mode::recursive_bisection
+						&& config.initial_partitioning.init_mode
+								== Mode::recursive_bisection) {
+					config.initial_partitioning.init_mode = Mode::direct_kway;
+				}
+
+				if (config.initial_partitioning.init_mode == Mode::direct_kway
+						&& config.initial_partitioning.init_technique
+								== InitialPartitioningTechnique::multilevel) {
+					config.initial_partitioning.init_technique =
+							InitialPartitioningTechnique::flat;
+				}
+
 			}
 		}
 		if (vm.count("part-path")) {
@@ -267,6 +288,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 				config.fm_local_search.num_repetitions =
 						std::numeric_limits<int>::max();
 				config.her_fm.num_repetitions = std::numeric_limits<int>::max();
+			}
+		}
+		if (vm.count("init-FMreps")) {
+			config.initial_partitioning.local_search_repetitions = vm["init-FMreps"].as<int>();
+			if (config.initial_partitioning.local_search_repetitions == -1) {
+				config.initial_partitioning.local_search_repetitions =
+						std::numeric_limits<int>::max();
 			}
 		}
 		if (vm.count("i")) {
@@ -563,6 +591,8 @@ int main(int argc, char* argv[]) {
 			"2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")(
 			"FMreps", po::value<int>(),
 			"2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")(
+			"init-FMreps", po::value<int>(),
+			"local search repetitions during initial partitioning (default:1, no limit:-1)")(
 			"i", po::value<int>(),
 			"2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")(
 			"alpha", po::value<double>(),
