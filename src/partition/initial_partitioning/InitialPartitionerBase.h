@@ -143,7 +143,7 @@ public:
 			bool improvement_found = false;
 			int iteration = 0;
 			do {
-				if(current_cut == 0) {
+				if(refinement_nodes.size() < 2) {
 					break;
 				}
 				improvement_found = refiner->refine(refinement_nodes, refinement_hypernodes, {_config.initial_partitioning.upper_allowed_partition_weight[0]

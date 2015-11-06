@@ -352,8 +352,12 @@ inline std::string toString(const Configuration& config) {
 			<< std::endl;
 	oss << std::setw(35) << "  Coarsening Algorithm: "
 			<< toString(config.partition.coarsening_algorithm) << std::endl;
-	oss << std::setw(35) << "  Initial Partition Algorithm: "
+	oss << std::setw(35) << "  Initial Partitioner: "
 			<< toString(config.partition.initial_partitioner) << std::endl;
+	oss << std::setw(35) << "  Initial Partitioning Mode: "
+			<< toString(config.initial_partitioning.init_mode) << " " << toString(config.initial_partitioning.init_technique) << std::endl;
+	oss << std::setw(35) << "  Initial Partitioning Algorithm: "
+			<< toString(config.initial_partitioning.algo) << std::endl;
 	oss << std::setw(35) << "  Refinement Algorithm: "
 			<< toString(config.partition.refinement_algorithm) << std::endl;
 	oss << "Coarsening Parameters:" << std::endl;

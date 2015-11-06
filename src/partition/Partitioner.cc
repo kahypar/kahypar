@@ -293,6 +293,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			hg.setNodePart(mapping[hn], part);
 		}
 
+		Stats::instance().addToTotal(config,"InitialCut", metrics::hyperedgeCut(hg));
+
 	}
 }
 }

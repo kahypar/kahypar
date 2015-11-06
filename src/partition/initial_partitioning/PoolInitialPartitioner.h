@@ -22,6 +22,22 @@ using partition::Configuration;
 
 namespace partition {
 
+struct partitioning_result {
+	InitialPartitionerAlgorithm algo;
+	HyperedgeWeight cut;
+	double imbalance;
+
+	partitioning_result(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
+			double imbalance) :
+			algo(algo), cut(cut), imbalance(imbalance) {
+	}
+
+	void print_result(std::string desc) {
+		LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="<<toString(algo) << "]");
+	}
+
+};
+
 class PoolInitialPartitioner: public IInitialPartitioner,
 		private InitialPartitionerBase {
 
@@ -57,32 +73,31 @@ private:
 
 	void initialPartition() final {
 
-		HyperedgeWeight best_cut = max_cut;
-		double best_imbalance = _config.initial_partitioning.epsilon;
+		partitioning_result best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
+		partitioning_result min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
+		partitioning_result max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
+		partitioning_result min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, _kInvalidImbalance);
+		partitioning_result max_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, -0.1);
+
 		std::vector<PartitionID> best_partition(_hg.numNodes());
-		std::string best_algorithm = "";
 		unsigned int n = _partitioner_pool.size() - 1;
 		for (unsigned int i = 0; i <= n; i++) {
 			if (!((_config.initial_partitioning.pool_type >> (n - i)) & 1)) {
 				continue;
 			}
 			InitialPartitionerAlgorithm algo = _partitioner_pool[i];
-			LOG("Calling initial partitioning algorithm: "
-					<< partition::toString(algo));
 			std::unique_ptr<IInitialPartitioner> partitioner(
 					InitialPartitioningFactory::getInstance().createObject(algo,
 							_hg, _config));
 			(*partitioner).partition(_hg, _config);
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 			double current_imbalance = metrics::imbalance(_hg, _config);
-			LOG("[Cut: " << current_cut << " - Imbalance: "
-					<< current_imbalance << "]");
-			if (current_cut <= best_cut) {
+			if (current_cut <= best_cut.cut) {
 				bool apply_best_partition = true;
-				if (best_cut != max_cut) {
+				if (best_cut.cut != _kInvalidCut) {
 					if (current_imbalance
 							> _config.initial_partitioning.epsilon) {
-						if (current_imbalance > best_imbalance) {
+						if (current_imbalance > best_cut.imbalance) {
 							apply_best_partition = false;
 						}
 					}
@@ -91,17 +106,32 @@ private:
 					for (HypernodeID hn : _hg.nodes()) {
 						best_partition[hn] = _hg.partID(hn);
 					}
-					best_cut = current_cut;
-					best_imbalance = current_imbalance;
-					best_algorithm = partition::toString(algo);
+					applyPartitioningResults(best_cut,current_cut,current_imbalance,algo);
 				}
 			}
-			std::cout << "-----------------------------------------"
-					<< std::endl;
+			if(current_cut < min_cut.cut) {
+				applyPartitioningResults(min_cut,current_cut,current_imbalance,algo);
+			}
+			if(current_cut > max_cut.cut) {
+				applyPartitioningResults(max_cut,current_cut,current_imbalance,algo);
+			}
+			if(current_imbalance < min_imbalance.imbalance) {
+				applyPartitioningResults(min_imbalance,current_cut,current_imbalance,algo);
+			}
+			if(current_imbalance > max_imbalance.imbalance) {
+				applyPartitioningResults(max_imbalance,current_cut,current_imbalance,algo);
+			}
 		}
 
-		LOG("Pool partitioner results: [min: " << best_cut
-				<< ",  algo: " << best_algorithm << "]");
+		std::cout << "\n*********************************Pool-Initial-Partitioner-Result*********************************" << std::endl;
+		best_cut.print_result("Best Cut");
+		min_cut.print_result("Minimum Cut");
+		max_cut.print_result("Maximum Cut");
+		min_imbalance.print_result("Minimum Imbalance");
+		max_imbalance.print_result("Maximum Imbalance");
+		std::cout << "************************************************************************************************\n" << std::endl;
+
+
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		_config.initial_partitioning.unassigned_part = -1;
@@ -126,11 +156,18 @@ private:
 
 	}
 
+	void applyPartitioningResults(partitioning_result& result, HyperedgeWeight cut, double imbalance, InitialPartitionerAlgorithm algo) {
+		result.cut = cut;
+		result.imbalance = imbalance;
+		result.algo = algo;
+	}
+
 	std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
 
-	const HyperedgeWeight max_cut = std::numeric_limits<HyperedgeWeight>::max();
+	const HyperedgeWeight _kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
+	const double _kInvalidImbalance = std::numeric_limits<double>::max();
 
 }
 ;
