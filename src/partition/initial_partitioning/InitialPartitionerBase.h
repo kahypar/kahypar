@@ -162,7 +162,6 @@ public:
 	void rollbackToBestCut() {
 		if (_config.initial_partitioning.rollback) {
 			if (!_bisection_assignment_history.empty()) {
-				HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
 				HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
 				PartitionID from = kInvalidPartition, to = kInvalidPartition;
 				while (current_node != _best_cut_node &&

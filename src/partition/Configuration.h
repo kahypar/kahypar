@@ -74,7 +74,6 @@ enum class RefinementStoppingRule
 		simple, adaptive1, adaptive2
 };
 
-
 static std::string toString(const Mode& mode) {
 	switch (mode) {
 	case Mode::recursive_bisection:
@@ -117,6 +116,8 @@ static std::string toString(const CoarseningAlgorithm& algo) {
 		return std::string("heavy_lazy");
 	case CoarseningAlgorithm::hyperedge:
 		return std::string("hyperedge");
+	case CoarseningAlgorithm::do_nothing:
+		return std::string("do_nothing");
 	}
 	return std::string("UNDEFINED");
 }
@@ -133,6 +134,8 @@ static std::string toString(const RefinementAlgorithm& algo) {
 		return std::string("hyperedge");
 	case RefinementAlgorithm::label_propagation:
 		return std::string("label_propagation");
+	case RefinementAlgorithm::do_nothing:
+		return std::string("do_nothing");
 	}
 	return std::string("UNDEFINED");
 }
@@ -201,9 +204,10 @@ struct Configuration {
 				k(2), epsilon(0.05), init_technique(
 						InitialPartitioningTechnique::flat), init_mode(
 						Mode::recursive_bisection), algo(
-						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), seed(
-						1), nruns(20), init_alpha(1.0), unassigned_part(1), local_search_repetitions(1), pool_type(
-						1975), rollback(false), refinement(true) {
+						InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), nruns(
+						20), unassigned_part(1), local_search_repetitions(1), init_alpha(
+						1.0), seed(1), pool_type(1975), rollback(false), refinement(
+						true) {
 		}
 
 		PartitionID k;
@@ -308,7 +312,7 @@ struct Configuration {
 	LPRefinementParameters lp_refiner;
 
 	Configuration() :
-			partition(), coarsening(), fm_local_search(), her_fm(), lp_refiner() {
+			partition(), coarsening(), initial_partitioning(), fm_local_search(), her_fm(), lp_refiner() {
 	}
 };
 
@@ -355,7 +359,9 @@ inline std::string toString(const Configuration& config) {
 	oss << std::setw(35) << "  Initial Partitioner: "
 			<< toString(config.partition.initial_partitioner) << std::endl;
 	oss << std::setw(35) << "  Initial Partitioning Mode: "
-			<< toString(config.initial_partitioning.init_mode) << " " << toString(config.initial_partitioning.init_technique) << std::endl;
+			<< toString(config.initial_partitioning.init_mode) << " "
+			<< toString(config.initial_partitioning.init_technique)
+			<< std::endl;
 	oss << std::setw(35) << "  Initial Partitioning Algorithm: "
 			<< toString(config.initial_partitioning.algo) << std::endl;
 	oss << std::setw(35) << "  Refinement Algorithm: "

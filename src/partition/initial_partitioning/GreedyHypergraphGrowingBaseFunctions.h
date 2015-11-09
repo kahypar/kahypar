@@ -71,13 +71,16 @@ public:
 	void calculateStartNodes() {
 		StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
 				_config.initial_partitioning.k);
-		for (PartitionID i = 0; i < _start_nodes.size(); i++) {
+
+		int start_node_size = _start_nodes.size();
+
+		for (PartitionID i = 0; i < start_node_size; i++) {
 			insertNodeIntoPQ(_start_nodes[i], i);
 		}
 
 		ASSERT([&]() {
-					for(PartitionID i = 0; i < _start_nodes.size(); i++) {
-						for(PartitionID j = i+1; j < _start_nodes.size(); j++) {
+					for(PartitionID i = 0; i < start_node_size; i++) {
+						for(PartitionID j = i+1; j < start_node_size; j++) {
 							if(_start_nodes[i] == _start_nodes[j]) {
 								return false;
 							}
@@ -267,7 +270,7 @@ private:
 
 	HypernodeID getUnassignedNode() {
 		HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-		for(int i = 0; i < _un_pos; i++) {
+		for(unsigned int i = 0; i < _un_pos; i++) {
 			HypernodeID hn = _unassigned_nodes[i];
 			if(_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
 				unassigned_node = hn;

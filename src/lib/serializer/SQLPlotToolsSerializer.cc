@@ -78,7 +78,6 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     oss << " partWeight" << i << "=" << hypergraph.partWeight(i);
   }
   oss << " cut=" << metrics::hyperedgeCut(hypergraph)
-  << " initialCut=" << Stats::instance().get("InitialCut")
   << " soed=" << metrics::soed(hypergraph)
   << " kMinusOne=" << metrics::kMinus1(hypergraph)
   << " absorption=" << metrics::absorption(hypergraph)

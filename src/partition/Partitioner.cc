@@ -25,9 +25,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 	Configuration config(original_config);
 
 	config.initial_partitioning.k = config.partition.k;
-	config.initial_partitioning.epsilon =
-			original_config.initial_partitioning.init_alpha
-					* original_config.partition.epsilon;
+	config.initial_partitioning.epsilon = init_alpha
+			* original_config.partition.epsilon;
 	config.initial_partitioning.perfect_balance_partition_weight.clear();
 	config.initial_partitioning.upper_allowed_partition_weight.clear();
 	for (int i = 0; i < config.initial_partitioning.k; i++) {
@@ -111,7 +110,6 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 	return config;
 }
 
-
 void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		const Configuration& config) {
 	io::printHypergraphInfo(hg,
@@ -141,6 +139,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		case InitialPartitioner::PaToH:
 			io::writeHypergraphForPaToHPartitioning(hg,
 					config.partition.coarse_graph_filename, hg_to_hmetis);
+			break;
+		case InitialPartitioner::KaHyPar:
 			break;
 		}
 
@@ -186,6 +186,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 								+ " BO=C"  // balance on cell weights
 								+ (config.partition.verbose_output ?
 										" OD=2" : " > /dev/null");
+				break;
+			case InitialPartitioner::KaHyPar:
 				break;
 			}
 
@@ -274,7 +276,6 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 		} while (metrics::imbalance(*extracted_init_hypergraph.first, config)
 				> config.partition.epsilon && init_alpha > 0.0);
 
-
 		ASSERT([&]() {
 			for(HypernodeID hn : hg.nodes()) {
 				if(hg.partID(hn) != -1) {
@@ -293,7 +294,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 			hg.setNodePart(mapping[hn], part);
 		}
 
-		Stats::instance().addToTotal(config,"InitialCut", metrics::hyperedgeCut(hg));
+		Stats::instance().addToTotal(config, "InitialCut",
+				metrics::hyperedgeCut(hg));
 
 	}
 }
