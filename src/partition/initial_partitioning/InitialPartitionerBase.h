@@ -130,12 +130,6 @@ public:
 
 			refiner->initialize();
 			std::vector<HypernodeID> refinement_nodes;
-			for (HypernodeID hn : _hg.nodes()) {
-				if(_hg.isBorderNode(hn)) {
-					refinement_nodes.push_back(hn);
-				}
-			}
-			unsigned int refinement_hypernodes = refinement_nodes.size();
 			HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
 			HyperedgeWeight old_cut = current_cut;
 			double imbalance = metrics::imbalance(_hg, _config);
@@ -143,7 +137,16 @@ public:
 			bool improvement_found = false;
 			int iteration = 0;
 			do {
-				if(refinement_nodes.size() < 2) {
+
+				refinement_nodes.clear();
+				for (HypernodeID hn : _hg.nodes()) {
+						if(_hg.isBorderNode(hn)) {
+							refinement_nodes.push_back(hn);
+						}
+				}
+				unsigned int refinement_hypernodes = refinement_nodes.size();
+
+				if(refinement_hypernodes < 2) {
 					break;
 				}
 				improvement_found = refiner->refine(refinement_nodes, refinement_hypernodes, {_config.initial_partitioning.upper_allowed_partition_weight[0]
