@@ -152,17 +152,16 @@ TEST_F(ABFSBisectionInitialPartionerTest, LeavesNoHypernodeUnassigned) {
 TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
 
 	std::queue<HypernodeID> q;
-	std::vector<bool> in_queue(7,false);
-	std::vector<bool> hyperedge_in_queue(7,false);
-	in_queue[0] = true;
+	partitioner->_in_queue.setBit(0,true);
 	q.push(0);
+	hypergraph.setNodePart(0,0);
 	config.initial_partitioning.unassigned_part = -1;
-	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue);
+	partitioner->pushIncidentHypernodesIntoQueue(q,0);
 	for(HypernodeID hn = 0; hn < 5; hn++) {
-		ASSERT_TRUE(in_queue[hn]);
+		ASSERT_TRUE(partitioner->_in_queue[hn]);
 	}
 	for(HypernodeID hn = 5; hn < 7; hn++) {
-		ASSERT_FALSE(in_queue[hn]);
+		ASSERT_FALSE(partitioner->_in_queue[hn]);
 	}
 
 }
@@ -170,12 +169,11 @@ TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushing
 TEST_F(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue) {
 
 	std::queue<HypernodeID> q;
-	std::vector<bool> in_queue(7,false);
-	std::vector<bool> hyperedge_in_queue(7,false);
-	in_queue[0] = true;
+	partitioner->_in_queue.setBit(0,true);
 	q.push(0);
+	hypergraph.setNodePart(0,0);
 	config.initial_partitioning.unassigned_part = -1;
-	partitioner->pushIncidentHypernodesIntoQueue(q,0,in_queue,hyperedge_in_queue);
+	partitioner->pushIncidentHypernodesIntoQueue(q,0);
 	std::vector<HypernodeID> expected_in_queue {0,2,1,3,4};
 	for(unsigned int i = 0; i < expected_in_queue.size(); i++) {
 		HypernodeID hn = q.front(); q.pop();

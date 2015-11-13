@@ -29,7 +29,9 @@ class BFSInitialPartitioner: public IInitialPartitioner,
 
 public:
 	BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), q() {
+			InitialPartitionerBase(hypergraph, config), q(), _in_queue(
+					config.initial_partitioning.k*hypergraph.numNodes(), false), _hyperedge_in_queue(
+							config.initial_partitioning.k*hypergraph.numEdges(), false) {
 	}
 
 	~BFSInitialPartitioner() {
@@ -39,30 +41,29 @@ private:
 	FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
 	void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
-			HypernodeID hn, std::vector<bool>& in_queue,
-			std::vector<bool>& hyperedge_in_queue) {
+			HypernodeID hn) {
+		PartitionID k = _hg.partID(hn);
 		for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-			if (!hyperedge_in_queue[he]) {
+			if (!_hyperedge_in_queue[k*_hg.numEdges()+he]) {
 				for (const HypernodeID hnodes : _hg.pins(he)) {
 					if (_hg.partID(hnodes) == _config.initial_partitioning.unassigned_part
-							&& !in_queue[hnodes]) {
+							&& !_in_queue[k*_hg.numNodes()+hnodes]) {
 						q.push(hnodes);
-						in_queue[hnodes] = true;
+						_in_queue.setBit(k*_hg.numNodes()+hnodes,true);
 					}
 				}
-				hyperedge_in_queue[he] = true;
+				_hyperedge_in_queue.setBit(k*_hg.numEdges()+he, true);
 			}
 		}
 	}
 
-	// TODO(heuer): If I'm right, the k-way impl could be implemented in the same way as the different
-	// greedy variants. Did you try these as well?
+
 	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
 		InitialPartitionerBase::resetPartitioning();
 
-		//Initialize a vector of queues for each partition
+		//Initialize a vector of queues for each part
 		q.clear();
 		q.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
@@ -80,13 +81,9 @@ private:
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
 
-		//Initialize a vector for each partition, which indicates the hypernodes which are and were already in the queue.
-		//TODO(heuer): This can be done more efficiently. Why not use vector<bool> instead of unordered maps?
-		//TODO(heuer): Is it possible to get this into one vector<bool> instead of vectors of vectors?
-		std::vector<std::vector<bool>> in_queue(_hg.k(),
-				std::vector<bool>(_hg.numNodes(), false));
-		std::vector<std::vector<bool>> hyperedge_in_queue(_hg.k(),
-				std::vector<bool>(_hg.numEdges(), false));
+
+		_in_queue.resetAllBitsToFalse();
+		_hyperedge_in_queue.resetAllBitsToFalse();
 
 		//Calculate Startnodes and push them into the queues.
 		std::vector<HypernodeID> startNodes;
@@ -96,7 +93,7 @@ private:
 		// the queue. Why not directly insert them into the queue?
 		for (PartitionID k = 0; k < startNodes.size(); k++) {
 			q[k].push(startNodes[k]);
-			in_queue[k][startNodes[k]] = true;
+			_in_queue.setBit(k*_hg.numNodes()+startNodes[k],true);
 		}
 
 		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
@@ -124,18 +121,17 @@ private:
 					}
 
 					if (hn != invalid_hypernode) {
-						in_queue[i][hn] = true;
+						_in_queue.setBit(i*_hg.numNodes()+hn,true);
 						ASSERT(_hg.partID(hn) == unassigned_part,
 								"Hypernode " << hn << " isn't a node from an unassigned part.");
 
 						if (assignHypernodeToPartition(hn, i)) {
 							assigned_nodes_weight += _hg.nodeWeight(hn);
 
-							pushIncidentHypernodesIntoQueue(q[i], hn,
-									in_queue[i], hyperedge_in_queue[i]);
+							pushIncidentHypernodesIntoQueue(q[i], hn);
 
 							ASSERT(
-									[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !in_queue[i][hnodes]) { return false; } } } return true; }(),
+									[&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !_in_queue[i*_hg.numNodes()+hnodes]) { return false; } } } return true; }(),
 									"Some hypernodes are missing into the queue!");
 						} else {
 							if (q[i].empty()) {
@@ -171,6 +167,9 @@ private:
 	const HypernodeID invalid_hypernode =
 			std::numeric_limits<HypernodeID>::max();
 	std::vector<std::queue<HypernodeID>> q;
+	FastResetBitVector<> _in_queue;
+	FastResetBitVector<> _hyperedge_in_queue;
+
 
 };
 
