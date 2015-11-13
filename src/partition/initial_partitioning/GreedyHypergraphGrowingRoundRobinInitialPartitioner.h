@@ -68,7 +68,7 @@ private:
 							* (1.0 - _config.initial_partitioning.epsilon);
 		}
 
-		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
+		while (assigned_nodes_weight < _hg.totalWeight()) {
 			bool every_part_disable = true;
 
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {

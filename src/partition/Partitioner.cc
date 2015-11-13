@@ -14,6 +14,7 @@
 #include "partition/Metrics.h"
 #endif
 
+
 using defs::HighResClockTimepoint;
 using datastructure::reindex;
 
@@ -26,6 +27,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(
 
 	config.initial_partitioning.k = config.partition.k;
 	config.initial_partitioning.epsilon = init_alpha
+			* original_config.partition.epsilon;
+	config.partition.epsilon = init_alpha
 			* original_config.partition.epsilon;
 	config.initial_partitioning.perfect_balance_partition_weight.clear();
 	config.initial_partitioning.upper_allowed_partition_weight.clear();

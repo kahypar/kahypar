@@ -96,7 +96,7 @@ private:
 			_in_queue.setBit(k*_hg.numNodes()+startNodes[k],true);
 		}
 
-		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
+		while (assigned_nodes_weight < _hg.totalWeight()) {
 			bool every_part_is_disable = true;
 			for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
 				every_part_is_disable = every_part_is_disable && !partEnable[i];

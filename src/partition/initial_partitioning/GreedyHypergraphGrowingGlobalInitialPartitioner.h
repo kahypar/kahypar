@@ -77,7 +77,7 @@ private:
 
 		// TODO(heuer): Why do you use assigned_nodes_weight instead of counting
 		// the number of assigned hypernodes?
-		while (assigned_nodes_weight < _config.partition.total_graph_weight) {
+		while (assigned_nodes_weight < _hg.totalWeight()) {
 			std::random_shuffle(part_shuffle.begin(), part_shuffle.end());
 			//Searching for the highest gain value
 			Gain best_gain = kInitialGain;

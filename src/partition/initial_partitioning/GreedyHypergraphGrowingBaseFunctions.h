@@ -40,8 +40,7 @@ public:
 	_pq(config.initial_partitioning.k),
 	_start_nodes(),
 	_visit(_hg.initialNumNodes(),false),
-	_hyperedge_already_process(config.initial_partitioning.k,
-			std::vector<bool>(_hg.initialNumEdges())),
+	_hyperedge_in_queue(config.initial_partitioning.k*_hg.initialNumEdges(),false),
 	_unassigned_nodes()
 	{
 
@@ -58,13 +57,8 @@ public:
 	void reset() {
 		_start_nodes.clear();
 		_visit.resetAllBitsToFalse();
-		_hyperedge_already_process.assign(_config.initial_partitioning.k,
-				std::vector<bool>(_hg.initialNumEdges()));
-		_unassigned_nodes.clear();
+		_hyperedge_in_queue.resetAllBitsToFalse();
 		_pq.clear();
-		for (const HypernodeID hn : _hg.nodes()) {
-			_unassigned_nodes.push_back(hn);
-		}
 		_un_pos = _unassigned_nodes.size();
 	}
 
@@ -178,14 +172,14 @@ public:
 		//Pushing incident hypernode into bucket queue or update gain value
 		if(insert) {
 			for (HyperedgeID he : _hg.incidentEdges(hn)) {
-				if (!_hyperedge_already_process[target_part][he]) {
+				if (!_hyperedge_in_queue[target_part*_hg.numEdges()+he]) {
 					for (HypernodeID hnode : _hg.pins(he)) {
 						if (_hg.partID(hnode) == _config.initial_partitioning.unassigned_part) {
 							insertNodeIntoPQ(hnode, target_part);
 							ASSERT(_pq.contains(hnode,target_part), "PQ of partition " << target_part << " should contain hypernode " << hnode << "!");
 						}
 					}
-					_hyperedge_already_process[target_part][he] = true;
+					_hyperedge_in_queue.setBit(target_part*_hg.numEdges()+he,true);
 				}
 			}
 		}
@@ -263,7 +257,7 @@ protected:
 	Configuration& _config;
 	KWayRefinementPQ _pq;
 	FastResetBitVector<> _visit;
-	std::vector<std::vector<bool>> _hyperedge_already_process;
+	FastResetBitVector<> _hyperedge_in_queue;
 	std::vector<HypernodeID> _start_nodes;
 
 private:

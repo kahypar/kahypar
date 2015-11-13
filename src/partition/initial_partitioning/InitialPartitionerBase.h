@@ -59,18 +59,10 @@ public:
 	_record_assignment_history(false),
 	_unassigned_nodes() {
 		for (const HypernodeID hn : _hg.nodes()) {
-			total_hypergraph_weight += _hg.nodeWeight(hn);
-			if (_hg.nodeWeight(hn) > max_hypernode_weight) {
-				max_hypernode_weight = _hg.nodeWeight(hn);
-			}
+			max_hypernode_weight = std::max(_hg.nodeWeight(hn),max_hypernode_weight);
 			_unassigned_nodes.push_back(hn);
 		}
 		_un_pos = _unassigned_nodes.size();
-
-		// TODO(heuer): This should be done in your application.
-		// In general, the partitioner should only use the config parameters, not
-		// set them.
-		_config.partition.total_graph_weight = total_hypergraph_weight;
 	}
 
 	virtual ~InitialPartitionerBase() {}
@@ -106,17 +98,12 @@ public:
 
 		_record_assignment_history = false;
 		_bisection_assignment_history.clear();
-		_unassigned_nodes.clear();
-		for (const HypernodeID hn : _hg.nodes()) {
-			_unassigned_nodes.push_back(hn);
-		}
 		_un_pos = _unassigned_nodes.size();
 
 	}
 
 	void performFMRefinement() {
 		if (_config.initial_partitioning.refinement) {
-			_config.partition.total_graph_weight = total_hypergraph_weight;
 			std::unique_ptr<IRefiner> refiner;
 			if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
 				refiner = (RefinerFactory::getInstance().createObject(
@@ -231,7 +218,6 @@ public:
 protected:
 	Hypergraph& _hg;
 	Configuration& _config;
-	HypernodeWeight total_hypergraph_weight = 0;
 
 private:
 	void calculateCutAfterAssignment(HypernodeID hn, PartitionID from, PartitionID to) {
@@ -292,10 +278,10 @@ private:
 	HyperedgeWeight _best_cut = std::numeric_limits<HyperedgeWeight>::max();
 	HyperedgeWeight _current_cut = 0;
 	std::vector<node_assignment> _bisection_assignment_history;
+	std::vector<HypernodeID> _unassigned_nodes;
 	bool _record_assignment_history;
 	static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
 	unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
-	std::vector<HypernodeID> _unassigned_nodes;
 	HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
 }

@@ -24,7 +24,7 @@ class RandomInitialPartitioner: public IInitialPartitioner,
 
 public:
 	RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config) {
+			InitialPartitionerBase(hypergraph, config), _tryToAssignHypernodeToPart(config.initial_partitioning.k,false) {
 	}
 
 	~RandomInitialPartitioner() {
@@ -39,13 +39,12 @@ private:
 		InitialPartitionerBase::resetPartitioning();
 		for (const HypernodeID hn : _hg.nodes()) {
 			PartitionID p = -1;
-			std::vector<bool> has_try_partition(_config.initial_partitioning.k,
-					false);
+			_tryToAssignHypernodeToPart.resetAllBitsToFalse();
 			int partition_sum = 0;
 			do {
-				if (p != -1 && !has_try_partition[p]) {
+				if (p != -1 && !_tryToAssignHypernodeToPart[p]) {
 					partition_sum += (p + 1);
-					has_try_partition[p] = true;
+					_tryToAssignHypernodeToPart.setBit(p, true);
 					if (partition_sum
 							== (_config.initial_partitioning.k
 									* (_config.initial_partitioning.k + 1))
@@ -58,6 +57,7 @@ private:
 				p = Randomize::getRandomInt(0,
 						_config.initial_partitioning.k - 1);
 			} while (!assignHypernodeToPartition(hn, p));
+
 			ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p << ", but is actually in " << _hg.partID(hn) << ".");
 		}
 		_hg.initializeNumCutHyperedges();
@@ -76,6 +76,7 @@ private:
 		InitialPartitionerBase::performFMRefinement();
 	}
 
+	FastResetBitVector<> _tryToAssignHypernodeToPart;
 
 	using InitialPartitionerBase::_hg;
 	using InitialPartitionerBase::_config;
