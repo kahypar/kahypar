@@ -23,10 +23,12 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 
 #include "lib/serializer/SQLPlotToolsSerializer.h"
@@ -67,11 +69,15 @@ using partition::RandomInitialPartitioner;
 using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
 using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
 using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
+using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::PoolInitialPartitioner;
 using partition::FMGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
 using partition::MaxNetGainComputationPolicy;
 using partition::BFSStartNodeSelectionPolicy;
+using partition::RoundRobinQueueCloggingPolicy;
+using partition::GlobalQueueCloggingPolicy;
+using partition::SequentialQueueCloggingPolicy;
 using serializer::SQLPlotToolsSerializer;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -109,6 +115,8 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(
 		return InitialPartitionerAlgorithm::bfs;
 	} else if (mode.compare("random") == 0) {
 		return InitialPartitionerAlgorithm::random;
+	} else if(mode.compare("greedy_test") == 0) {
+		return InitialPartitionerAlgorithm::greedy_test;
 	} else if (mode.compare("pool") == 0) {
 		return InitialPartitionerAlgorithm::pool;
 	}
@@ -509,6 +517,11 @@ static Registrar<InitialPartitioningFactory> reg_greedy_round(
 		InitialPartitionerAlgorithm::greedy_round,
 		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
 			return new GreedyHypergraphGrowingRoundRobinInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy>(hypergraph,config);
+		});
+static Registrar<InitialPartitioningFactory> reg_greedy_test(
+		InitialPartitionerAlgorithm::greedy_test,
+		[](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
+			return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,FMGainComputationPolicy,SequentialQueueCloggingPolicy>(hypergraph,config);
 		});
 static Registrar<InitialPartitioningFactory> reg_greedy_maxpin(
 		InitialPartitionerAlgorithm::greedy_sequential_maxpin,

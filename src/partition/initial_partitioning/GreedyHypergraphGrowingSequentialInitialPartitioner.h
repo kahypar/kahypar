@@ -64,9 +64,6 @@ private:
 		//Calculate Startnodes and push them into the queues.
 		greedy_base.calculateStartNodes();
 
-		// TODO(heuer): This does not seem to be fair. In other variants you
-		// (1) have a less tight bound, (2) you unlock the upper bound later on...
-		// Why don't you also perform an unlock here?
 		//Define a weight bound, which every partition have to reach, to avoid very small partitions.
 		InitialPartitionerBase::recalculateBalanceConstraints(0.0);
 

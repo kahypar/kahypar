@@ -62,6 +62,7 @@ enum class InitialPartitionerAlgorithm
 	greedy_sequential_maxnet,
 	greedy_global_maxnet,
 	greedy_round_maxnet,
+	greedy_test,
 	bfs,
 	random,
 	lp,
@@ -166,6 +167,8 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
 		return std::string("random");
 	case InitialPartitionerAlgorithm::lp:
 		return std::string("lp");
+	case InitialPartitionerAlgorithm::greedy_test:
+		return std::string("greedy_test");
 	case InitialPartitionerAlgorithm::pool:
 		return std::string("pool");
 	}
