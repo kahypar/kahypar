@@ -20,9 +20,6 @@
 #include "tools/RandomFunctions.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingSequentialInitialPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingGlobalInitialPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingRoundRobinInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
@@ -66,9 +63,6 @@ using partition::IInitialPartitioner;
 using partition::BFSInitialPartitioner;
 using partition::LabelPropagationInitialPartitioner;
 using partition::RandomInitialPartitioner;
-using partition::GreedyHypergraphGrowingGlobalInitialPartitioner;
-using partition::GreedyHypergraphGrowingRoundRobinInitialPartitioner;
-using partition::GreedyHypergraphGrowingSequentialInitialPartitioner;
 using partition::GreedyHypergraphGrowingInitialPartitioner;
 using partition::PoolInitialPartitioner;
 using partition::FMGainComputationPolicy;
