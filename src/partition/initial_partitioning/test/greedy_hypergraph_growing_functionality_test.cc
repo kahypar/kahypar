@@ -126,6 +126,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAndHy
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpdatePriorityQueue) {
 	hypergraph.initializeNumCutHyperedges();
+	config.initial_partitioning.unassigned_part = 0;
 	ghg->insertNodeIntoPQ(0,1,true);
 	ASSERT_EQ(ghg->_pq.max(1),0);
 	ASSERT_EQ(ghg->_pq.maxKey(1),2);
@@ -140,6 +141,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpd
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdate) {
 
 	hypergraph.initializeNumCutHyperedges();
+	ghg->_partEnabled[config.initial_partitioning.unassigned_part] = false;
 	ghg->insertNodeIntoPQ(2,0,false);
 	ghg->insertNodeIntoPQ(4,0,false);
 	ghg->insertNodeIntoPQ(6,0,false);
@@ -158,6 +160,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfter
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGainValuesInPQAfterAMove) {
 
 	hypergraph.initializeNumCutHyperedges();
+	ghg->_partEnabled[config.initial_partitioning.unassigned_part] = false;
 
 	hypergraph.changeNodePart(0,0,1);
 	ghg->insertNodeIntoPQ(0,0);
