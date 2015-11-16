@@ -236,5 +236,5 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainsAfterDeltaGainUpdate) {
 	ASSERT_EQ(pq.key(6, 0), 2);
 }
 
-}
+};
 

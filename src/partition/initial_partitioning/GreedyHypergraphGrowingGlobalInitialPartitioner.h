@@ -47,6 +47,7 @@ public:
 
 private:
 
+
 	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;

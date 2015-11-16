@@ -131,7 +131,8 @@ struct SequentialQueueCloggingPolicy: public GreedyQueueCloggingPolicy {
 			}
 		}
 
-		return current_id != k;
+		current_id = current_id == k ? -1 : current_id;
+		return current_id != -1;
 	}
 
 };

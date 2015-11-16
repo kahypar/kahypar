@@ -1,7 +1,14 @@
 /*
- * label_propagation_partitioner_test.cc
+ * greedy_hypergraph_growing_partitioner_test.cc
  *
  *  Created on: 16.11.2015
+ *      Author: theuer
+ */
+
+/*
+ * greedy_hypergraph_growing_test.cc
+ *
+ *  Created on: 21.05.2015
  *      Author: theuer
  */
 
@@ -13,9 +20,10 @@
 #include "lib/io/HypergraphIO.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
-#include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
+#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -65,17 +73,19 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
 	Randomize::setSeed(config.initial_partitioning.seed);
 }
 
-template<typename StartNodeSelection, typename GainComputation>
-struct LPTemplateStruct {
+template<typename StartNodeSelection, typename GainComputation,
+		typename QueueClogging>
+struct GreedyTemplateStruct {
 	typedef StartNodeSelection Type1;
 	typedef GainComputation Type2;
+	typedef QueueClogging Type3;
 };
 
 template<class T>
-class AKWayLabelPropagationInitialPartitionerTest: public Test {
+class AKWayGreedyHypergraphGrowingPartitionerTest: public Test {
 public:
-	AKWayLabelPropagationInitialPartitionerTest() :
-			config(), lp(nullptr), hypergraph(nullptr) {
+	AKWayGreedyHypergraphGrowingPartitionerTest() :
+			config(), ghg(nullptr), hypergraph(nullptr) {
 
 		std::string hypergraph_filename = "test_instances/ibm01.hgr";
 		PartitionID k = 4;
@@ -94,36 +104,51 @@ public:
 
 		initializeConfiguration(*hypergraph, config, k);
 
-		lp = new LabelPropagationInitialPartitioner<typename T::Type1,
-				typename T::Type2>(*hypergraph, config);
+		ghg = new GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
+				typename T::Type2, typename T::Type3>(*hypergraph, config);
 	}
 
-	virtual ~AKWayLabelPropagationInitialPartitionerTest() {
-		delete lp;
+	virtual ~AKWayGreedyHypergraphGrowingPartitionerTest() {
+		delete ghg;
 		delete hypergraph;
 	}
 
-	LabelPropagationInitialPartitioner<typename T::Type1, typename T::Type2>* lp;
+	GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
+			typename T::Type2, typename T::Type3>* ghg;
 	Hypergraph* hypergraph;
 	Configuration config;
 };
 
 typedef ::testing::Types<
-		LPTemplateStruct<BFSStartNodeSelectionPolicy, FMGainComputationPolicy>,
-		LPTemplateStruct<BFSStartNodeSelectionPolicy,
-				MaxPinGainComputationPolicy>,
-		LPTemplateStruct<BFSStartNodeSelectionPolicy,
-				MaxNetGainComputationPolicy>> LPTestTemplates;
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				FMGainComputationPolicy, GlobalQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				FMGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				FMGainComputationPolicy, SequentialQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxPinGainComputationPolicy, GlobalQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxPinGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxPinGainComputationPolicy, SequentialQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxNetGainComputationPolicy, GlobalQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxNetGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+		GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+				MaxNetGainComputationPolicy, SequentialQueueCloggingPolicy>> GreedyTestTemplates;
 
-TYPED_TEST_CASE(AKWayLabelPropagationInitialPartitionerTest, LPTestTemplates);
+TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,
+		GreedyTestTemplates);
 
-TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest,HasValidImbalance){
-	this->lp->partition(*(this->hypergraph),this->config);
-	ASSERT_LE(metrics::imbalance(*(this->hypergraph),this->config),this->config.partition.epsilon);
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest,HasValidImbalance){
+this->ghg->partition(*(this->hypergraph),this->config);
+ASSERT_LE(metrics::imbalance(*(this->hypergraph),this->config),this->config.partition.epsilon);
 }
 
-TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowPartitionWeights){
-	this->lp->partition(*(this->hypergraph),this->config);
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowPartitionWeights) {
+	this->ghg->partition(*(this->hypergraph),this->config);
 
 	//Upper bounds of maximum partition weight should not be exceeded.
 	HypernodeWeight heaviest_part = 0;
@@ -140,8 +165,8 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowParti
 	}
 }
 
-TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassigned){
-	this->lp->partition(*(this->hypergraph),this->config);
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassigned) {
+	this->ghg->partition(*(this->hypergraph),this->config);
 
 	for(HypernodeID hn : this->hypergraph->nodes()) {
 		ASSERT_NE(this->hypergraph->partID(hn),-1);

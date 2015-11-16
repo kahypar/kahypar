@@ -58,6 +58,16 @@ public:
 
 private:
 
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, InsertionOfAHypernodeIntoPQ);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, TryingToInsertAHypernodeIntoTheSamePQAsHisCurrentPart);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpdatePriorityQueue);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdate);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGainValuesInPQAfterAMove);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdateWithUnassignedPartMinusOne);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromPriorityQueue);
+	FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, CheckIfAllEnabledPQContainsAtLeastOneHypernode);
+
 	void initialPartition() final {
 		PartitionID unassigned_part =
 				_config.initial_partitioning.unassigned_part;
@@ -69,6 +79,8 @@ private:
 		//Calculate Startnodes and push them into the queues.
 		calculateStartNodes();
 
+		//If the weight of the unassigned part is less than minimum_unassigned_part_weight, than
+		//initial partitioning stops.
 		HypernodeWeight minimum_unassigned_part_weight = 0;
 		if (_config.initial_partitioning.unassigned_part != -1) {
 			_partEnabled[_config.initial_partitioning.unassigned_part] = false;
@@ -83,12 +95,17 @@ private:
 		PartitionID current_id = 0;
 		while (true) {
 
-			if(_config.initial_partitioning.unassigned_part != -1 && minimum_unassigned_part_weight > _hg.partWeight(_config.initial_partitioning.unassigned_part)) {
+			if (_config.initial_partitioning.unassigned_part != -1
+					&& minimum_unassigned_part_weight
+							> _hg.partWeight(
+									_config.initial_partitioning.unassigned_part)) {
 				break;
 			}
 
-			if (!QueueClogging::nextQueueID(_hg,_config,_pq, current_id, _partEnabled,
-					parts, is_upper_bound_released)) {
+			if (!QueueClogging::nextQueueID(_hg, _config, _pq, current_id,
+					_partEnabled, parts, is_upper_bound_released)) {
+
+				//Every part is disabled and the upper weight bound is released to finish initial partitioning
 				if (!is_upper_bound_released) {
 					InitialPartitionerBase::recalculateBalanceConstraints(
 							_config.initial_partitioning.epsilon);
@@ -99,6 +116,8 @@ private:
 							_partEnabled[i] = true;
 						}
 					}
+					//Every part should have at least one hypernode in its
+					//corresponding pq
 					insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
 					current_id = 0;
 					continue;
@@ -111,6 +130,7 @@ private:
 					"Current queue " << current_id << "shouldn't be empty!");
 
 			HypernodeID current_hn = _pq.max(current_id);
+
 			ASSERT(
 					_hg.partID(current_hn)
 							== _config.initial_partitioning.unassigned_part,
@@ -182,9 +202,7 @@ private:
 				Gain gain = GainComputation::calculateGain(_hg, hn,
 						target_part);
 				_pq.insert(hn, target_part, gain);
-				//TODO(heuer): If target_part == _config.initial_partitioning.unassigned_part, then you already
-				// 			   inserted hn into the PQ with an invalid target part! Could this happen?
-				//			   Why would one want to insert a HN into the unassigned-part PQ?
+
 				if (!_pq.isEnabled(target_part)
 						&& target_part
 								!= _config.initial_partitioning.unassigned_part) {
@@ -232,6 +250,7 @@ private:
 			}
 		}
 
+		//Every enabled part should have at least one hypernode in his corresponding pq
 		insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
 
 		ASSERT(
