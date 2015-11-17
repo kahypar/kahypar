@@ -27,7 +27,6 @@ class IInitialPartitioner {
       HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
       if (current_cut < best_cut) {
         best_cut = current_cut;
-        // TODO(heuer): Is this really necessary?
         for (HypernodeID hn : hg.nodes()) {
           best_partition[hn] = hg.partID(hn);
         }
