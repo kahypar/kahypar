@@ -94,6 +94,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     bool is_upper_bound_released = false;
     InitialPartitionerBase::recalculateBalanceConstraints(/*epsilon*/ 0);
 
+    // TODO(heuer): Would be better if this was initialized to something invalid, since
+    // 0 is a _valid_ part id.
     PartitionID current_id = 0;
     while (true) {
       if (_config.initial_partitioning.unassigned_part != -1 &&
@@ -111,6 +113,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           InitialPartitionerBase::recalculateBalanceConstraints(
             _config.initial_partitioning.epsilon);
           is_upper_bound_released = true;
+          // TODO(heuer): This also seems unnecessary. Why not just disable the part that became too large?
           for (PartitionID i = 0; i < _config.initial_partitioning.k;
                i++) {
             if (i != _config.initial_partitioning.unassigned_part) {
@@ -160,6 +163,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       }
     }
 
+    // TODO(heuer): Actually this isn't the correct condition to be checked.
+    // Wouldn't it be more precise, if the version of GHG would be checked?
+    // Or is this not explicitly stored somewhere? The it should at least
+    // be documented that this corresponds to the case, where the upper_bound
+    // is used.
     if (_config.initial_partitioning.unassigned_part == -1) {
       for (HypernodeID hn : _hg.nodes()) {
         if (_hg.partID(hn) == -1) {
@@ -197,6 +205,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void insertNodeIntoPQ(const HypernodeID hn, const PartitionID target_part,
                         const bool updateGain = false) {
+    // TODO(heuer): Why is this check necessary?
     if (_hg.partID(hn) != target_part) {
       if (!_pq.contains(hn, target_part)) {
         const Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
@@ -228,6 +237,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                      _config.initial_partitioning.unassigned_part, target_part,
                                      _visit);
     // Pushing incident hypernode into bucket queue or update gain value
+    // TODO(heuer): Shouldn't it be possible to do this within the deltaGainUpdate function?
     if (insert) {
       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
         if (!_hyperedge_in_queue[target_part * _hg.numEdges() + he]) {
@@ -249,7 +259,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
-            for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+            for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
               if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
                 const Gain gain = GainComputation::calculateGain(_hg, pin, i);
                 if (gain != _pq.key(pin, i)) {
@@ -265,7 +275,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   }
 
   void deleteNodeInAllBucketQueues(const HypernodeID hn) {
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+    // TODO(heuer): Always use meaningful names when iterating over parts.
+    // In this case i should be named part.
+    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       if (_pq.contains(hn, i)) {
         _pq.remove(hn, i);
       }
@@ -276,7 +288,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void insertInAllEmptyEnabledQueuesAnUnassignedHypernode() {
     // No queue, which is enabled, should be empty.
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       if (_partEnabled[i] && _pq.empty(i)) {
         const HypernodeID unassigned_node = InitialPartitionerBase::getUnassignedNode();
         if (unassigned_node != kInvalidNode) {
@@ -325,8 +337,19 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 // double max_net_size;
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
+  // TODO(heuer): get rid of start nodes vector.
   std::vector<HypernodeID> _start_nodes;
+  // TODO(heuer): Actually this vector shouldn't be necessary at all, since the
+  // KWayRefinementPQ provides facilities to enable and disable parts.
+  // When used to find the "globally" next best move, it then also only searches
+  // the enabled PQs if you use the deleteMax method. I would suggest refactoring this code
+  // and the corresponding strategy in such a way, that the return the next node to be moved.
+  // Special care has then to be taken in case the node cannot be moved to the corresponding
+  // part. Also note that _pq.max(<part-id>) is should usually only be used for testing
+  // purposes.
   std::vector<bool> _partEnabled;
+  // TODO(heuer): actually it might not be necessary to use the parts vector for random shuffling.
+  // But this should indeed be verified by an experimental evaluation on the medium-sized instances.
   std::vector<PartitionID> _parts;
   KWayRefinementPQ _pq;
   FastResetBitVector<> _visit;

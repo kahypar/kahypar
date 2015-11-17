@@ -70,6 +70,14 @@ struct GlobalQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
                "PQ of part " << i << " should be enabled.");
         ASSERT(!_pq.empty(i),
                "PQ of part " << i << " shouldn't be empty!");
+        // TODO(heuer): This is actually dangerous, because the result
+        // of maxKey depends on the internal implementation of maxIndex()
+        // used inside maxKey. This is why maxKey should only be used
+        // for testing purposes. Better use deleteMax(...) in this case.
+        // Additionally deleteMax() runs in O(|enabled PQs|) instead
+        // of O(k). If randomization really makes a difference here,
+        // we could discuss whether or not I should provide a randomized
+        // version of deleteMax(...)
         const Gain gain = _pq.maxKey(i);
         if (best_gain < gain) {
           best_gain = gain;
@@ -111,6 +119,8 @@ struct SequentialQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
 
     if (!is_upper_bound_released) {
       HypernodeID next_node = _pq.max(current_id);
+      // TODO(heuer): using the enablePart/disablePart facilities,
+      // this would also be more elegant.
       if (hg.partWeight(current_id) + hg.nodeWeight(next_node)
           > config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
         current_id++;
