@@ -6,6 +6,8 @@
  */
 
 #include "gmock/gmock.h"
+
+#include <memory>
 #include <set>
 
 #include "lib/datastructure/FastResetBitVector.h"

@@ -19,6 +19,7 @@
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
+#include "partition/Metrics.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"

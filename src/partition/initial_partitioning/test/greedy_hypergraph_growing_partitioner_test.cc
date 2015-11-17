@@ -13,11 +13,15 @@
  */
 
 #include "gmock/gmock.h"
+
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
 
 #include "lib/io/HypergraphIO.h"
+#include "partition/Configuration.h"
+#include "partition/Metrics.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"

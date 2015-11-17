@@ -6,6 +6,8 @@
  */
 
 #include "gmock/gmock.h"
+
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>

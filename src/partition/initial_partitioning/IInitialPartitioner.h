@@ -8,6 +8,8 @@
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
 
+#include "partition/Configuration.h"
+
 namespace partition {
 class IInitialPartitioner {
  public:

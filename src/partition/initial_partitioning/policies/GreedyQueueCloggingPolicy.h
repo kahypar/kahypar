@@ -28,14 +28,15 @@ struct GreedyQueueCloggingPolicy {
 };
 
 struct RoundRobinQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
-  static inline PartitionID getOperatingUnassignedPart() {
+  static inline PartitionID getOperatingUnassignedPart() { // TODO(heuer): document
     return -1;
   }
 
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
                                  KWayRefinementPQ& _pq, PartitionID& current_id,
                                  std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool& is_upper_bound_released) {
+                                 bool& is_upper_bound_released) { // TODO(heuer): Why pass by reference?
+    // TODO(heuer): Don't use c-style casts
     PartitionID k = ((PartitionID)partEnabled.size());
     current_id = ((current_id + 1) % k);
     int counter = 1;
@@ -63,13 +64,13 @@ struct GlobalQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
     Randomize::shuffleVector(parts, parts.size());
     Gain best_gain = std::numeric_limits<Gain>::min();
     current_id = -1;
-    for (PartitionID i : parts) {
+    for (const PartitionID i : parts) {
       if (partEnabled[i]) {
         ASSERT(_pq.isEnabled(i),
                "PQ of part " << i << " should be enabled.");
         ASSERT(!_pq.empty(i),
                "PQ of part " << i << " shouldn't be empty!");
-        Gain gain = _pq.maxKey(i);
+        const Gain gain = _pq.maxKey(i);
         if (best_gain < gain) {
           best_gain = gain;
           current_id = i;
@@ -79,8 +80,8 @@ struct GlobalQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
 
     ASSERT([&]() {
         if (current_id != -1) {
-          Gain gain = _pq.maxKey(current_id);
-          PartitionID k = ((PartitionID)parts.size());
+          const Gain gain = _pq.maxKey(current_id);
+          const PartitionID k = ((PartitionID)parts.size());
           for (PartitionID i = 0; i < k; i++) {
             if (i != current_id && partEnabled[i]) {
               if (gain < _pq.maxKey(i)) {

@@ -13,6 +13,7 @@
  */
 
 #include <map>
+#include <memory>
 
 #include "gmock/gmock.h"
 

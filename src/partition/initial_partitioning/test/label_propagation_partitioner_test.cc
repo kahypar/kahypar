@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "lib/io/HypergraphIO.h"
+#include "partition/Metrics.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
