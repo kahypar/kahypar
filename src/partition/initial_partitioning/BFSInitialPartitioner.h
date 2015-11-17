@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <queue>
-#include <unordered_map>
 
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
