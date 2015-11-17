@@ -38,6 +38,8 @@ class IInitialPartitioner {
     for (HypernodeID hn : hg.nodes()) {
       hg.setNodePart(hn, best_partition[hn]);
     }
+    // TODO(heuer): Is this necessary. The Partitioner itself does
+    // this right after initial partitioning. see Partitioner.h
     hg.initializeNumCutHyperedges();
   }
 
