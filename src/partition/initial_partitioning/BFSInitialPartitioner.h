@@ -26,10 +26,13 @@ template <class StartNodeSelection = StartNodeSelectionPolicy>
 class BFSInitialPartitioner : public IInitialPartitioner,
                               private InitialPartitionerBase {
  public:
+  // TODO(heuer): Please alway format initializer like this and use correct
+  // initialization order.
   BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-    InitialPartitionerBase(hypergraph, config), q(), _in_queue(
-      config.initial_partitioning.k * hypergraph.numNodes(), false), _hyperedge_in_queue(
-      config.initial_partitioning.k * hypergraph.numEdges(), false) { }
+    InitialPartitionerBase(hypergraph, config),
+    _queues(),
+    _in_queue(config.initial_partitioning.k * hypergraph.numNodes(), false),
+    _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.numEdges(), false) { }
 
   ~BFSInitialPartitioner() { }
 
@@ -63,8 +66,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     // Initialize a vector of queues for each part
     // TODO(heuer): Why not just clearing the queues?
-    q.clear();
-    q.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
+    _queues.clear();
+    _queues.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
     // Initialize a vector for each partition, which indicate if a partition is
     // ready to receive further hypernodes.
@@ -93,7 +96,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     // TODO(heuer): Also, why build the start node vector only to then insert the nodes into
     // the queue. Why not directly insert them into the queue?
     for (PartitionID k = 0; k < startNodes.size(); k++) {
-      q[k].push(startNodes[k]);
+      _queues[k].push(startNodes[k]);
       _in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
     }
 
@@ -104,14 +107,14 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         if (partEnabled[i]) {
           HypernodeID hn = invalid_hypernode;
 
-          // Searching for an unassigned hypernode in queue for Partition i
-          if (!q[i].empty()) {
-            hn = q[i].front();
-            q[i].pop();
+          // Searching for an unassigned hypernode in _queueueue for Partition i
+          if (!_queues[i].empty()) {
+            hn = _queues[i].front();
+            _queues[i].pop();
             while (_hg.partID(hn) != unassigned_part &&
-                   !q[i].empty()) {
-              hn = q[i].front();
-              q[i].pop();
+                   !_queues[i].empty()) {
+              hn = _queues[i].front();
+              _queues[i].pop();
             }
           }
 
@@ -129,7 +132,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             if (assignHypernodeToPartition(hn, i)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);
 
-              pushIncidentHypernodesIntoQueue(q[i], hn);
+              pushIncidentHypernodesIntoQueue(_queues[i], hn);
 
               ASSERT(
                 [&]() {
@@ -143,7 +146,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
                   } return true; } (),
                 "Some hypernodes are missing into the queue!");
             } else {
-              if (q[i].empty()) {
+              if (_queues[i].empty()) {
                 partEnabled[i] = false;
               }
             }
@@ -175,7 +178,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
   const HypernodeID invalid_hypernode =
     std::numeric_limits<HypernodeID>::max();
-  std::vector<std::queue<HypernodeID> > q;
+  std::vector<std::queue<HypernodeID> > _queues;
   FastResetBitVector<> _in_queue;
   FastResetBitVector<> _hyperedge_in_queue;
 };
