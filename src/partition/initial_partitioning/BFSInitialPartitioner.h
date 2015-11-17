@@ -34,12 +34,14 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   ~BFSInitialPartitioner() { }
 
  private:
-  FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
-  FRIEND_TEST(ABFSBisectionInitialPartionerTest, HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
+  FRIEND_TEST(ABFSBisectionInitialPartionerTest,
+              HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
+  FRIEND_TEST(ABFSBisectionInitialPartionerTest,
+              HasCorrectHypernodesIntoQueueAfterPushingIncidentHypernodesIntoQueue);
 
   void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
                                        HypernodeID hn) {
-    PartitionID k = _hg.partID(hn);
+    const PartitionID k = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (!_hyperedge_in_queue[k * _hg.numEdges() + he]) {
         for (const HypernodeID hnodes : _hg.pins(he)) {
@@ -56,18 +58,20 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
 
   void initialPartition() final {
-    PartitionID unassigned_part =
-      _config.initial_partitioning.unassigned_part;
+    const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     InitialPartitionerBase::resetPartitioning();
 
     // Initialize a vector of queues for each part
+    // TODO(heuer): Why not just clearing the queues?
     q.clear();
     q.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
-    // Initialize a vector for each partition, which indicate if a partition is ready to receive further hypernodes.
-    std::vector<bool> partEnable(_config.initial_partitioning.k, true);
+    // Initialize a vector for each partition, which indicate if a partition is
+    // ready to receive further hypernodes.
+    // TODO(heuer): Is vector<bool> here faster than FastResetVector?
+    std::vector<bool> partEnabled(_config.initial_partitioning.k, true);
     if (unassigned_part != -1) {
-      partEnable[unassigned_part] = false;
+      partEnabled[unassigned_part] = false;
     }
 
     HypernodeWeight assigned_nodes_weight = 0;
@@ -94,10 +98,10 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     }
 
     while (assigned_nodes_weight < _hg.totalWeight()) {
-      bool every_part_is_disable = true;
+      bool every_part_is_disabled = true;
       for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-        every_part_is_disable = every_part_is_disable && !partEnable[i];
-        if (partEnable[i]) {
+        every_part_is_disabled = every_part_is_disabled && !partEnabled[i];
+        if (partEnabled[i]) {
           HypernodeID hn = invalid_hypernode;
 
           // Searching for an unassigned hypernode in queue for Partition i
@@ -128,20 +132,28 @@ class BFSInitialPartitioner : public IInitialPartitioner,
               pushIncidentHypernodesIntoQueue(q[i], hn);
 
               ASSERT(
-                [&]() { for (HyperedgeID he : _hg.incidentEdges(hn)) { for (HypernodeID hnodes : _hg.pins(he)) { if (_hg.partID(hnodes) == unassigned_part && !_in_queue[i * _hg.numNodes() + hnodes]) { return false; } } } return true; } (),
+                [&]() {
+                  for (HyperedgeID he : _hg.incidentEdges(hn)) {
+                    for (HypernodeID hnodes : _hg.pins(he)) {
+                      if (_hg.partID(hnodes) == unassigned_part
+                          && !_in_queue[i * _hg.numNodes() + hnodes]) {
+                        return false;
+                      }
+                    }
+                  } return true; } (),
                 "Some hypernodes are missing into the queue!");
             } else {
               if (q[i].empty()) {
-                partEnable[i] = false;
+                partEnabled[i] = false;
               }
             }
           } else {
-            partEnable[i] = false;
+            partEnabled[i] = false;
           }
         }
       }
 
-      if (every_part_is_disable) {
+      if (every_part_is_disabled) {
         break;
       }
     }
