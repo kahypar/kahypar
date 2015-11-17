@@ -101,12 +101,14 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     while (assigned_nodes_weight < _hg.totalWeight()) {
       bool every_part_is_disabled = true;
-      for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+      // TODO(heuer): Give variable a meaningful name like part, since i
+      // actually is the current block id and not just a simple loop counter.
+      for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
         every_part_is_disabled = every_part_is_disabled && !partEnabled[i];
         if (partEnabled[i]) {
           HypernodeID hn = invalid_hypernode;
 
-          // Searching for an unassigned hypernode in _queueueue for Partition i
+          // Searching for an unassigned hypernode in queue for Partition i
           if (!_queues[i].empty()) {
             hn = _queues[i].front();
             _queues[i].pop();
@@ -133,10 +135,16 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
               pushIncidentHypernodesIntoQueue(_queues[i], hn);
 
-              ASSERT(
-                [&]() {
-                  for (HyperedgeID he : _hg.incidentEdges(hn)) {
-                    for (HypernodeID hnodes : _hg.pins(he)) {
+              // TODO(heuer): This assertion is actually a post-condition of
+              // pushIncidentHypernodesIntoQueue. Therefore it should be the
+              // last statement inside the method instead of being outside.
+              ASSERT([&]() {
+                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+                    // TODO(heuer): please use 'pin' instead of 'hnnodes',
+                    // since the whole codebase uses 'pin' as variable name
+                    // when iterating over pins. Please check this in all other files
+                    // as well.
+                    for (const HypernodeID hnodes : _hg.pins(he)) {
                       if (_hg.partID(hnodes) == unassigned_part
                           && !_in_queue[i * _hg.numNodes() + hnodes]) {
                         return false;
@@ -178,6 +186,9 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   const HypernodeID invalid_hypernode =
     std::numeric_limits<HypernodeID>::max();
   std::vector<std::queue<HypernodeID> > _queues;
+  // TODO(heuer): Do you really need to know in which queue the HN/HE is?
+  // It seems like it would be sufficient to only know whether or not a HN/HE is
+  // in a queue.
   FastResetBitVector<> _in_queue;
   FastResetBitVector<> _hyperedge_in_queue;
 };
