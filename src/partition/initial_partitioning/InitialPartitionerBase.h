@@ -77,6 +77,7 @@ class InitialPartitionerBase {
     _config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
   }
 
+  // TODO(heuer): Don't use this "andCallFunction"-approach!
   void adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(Configuration& config, std::function<void()> f) {
     double epsilon = config.partition.epsilon;
     PartitionID k = config.partition.k;
@@ -104,6 +105,8 @@ class InitialPartitionerBase {
   void performFMRefinement() {
     if (_config.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;
+      // TODO(heuer): Its nice that the code doesn't crash in this case. However we should write
+      // a warning message to the console to notify the user about his mistake.
       if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
@@ -129,6 +132,8 @@ class InitialPartitionerBase {
             refinement_nodes.push_back(hn);
           }
         }
+        // TODO(heuer): Use size_t rather than unsigned int and also use a proper variable name
+        // i.e. num_refinement_nodes
         unsigned int refinement_hypernodes = refinement_nodes.size();
 
         if (refinement_hypernodes < 2) {
@@ -150,7 +155,8 @@ class InitialPartitionerBase {
     if (_config.initial_partitioning.rollback) {
       if (!_bisection_assignment_history.empty()) {
         HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
-        PartitionID from = kInvalidPartition, to = kInvalidPartition;
+        PartitionID from = kInvalidPartition;
+        PartitionID to = kInvalidPartition;
         while (current_node != _best_cut_node &&
                !_bisection_assignment_history.empty()) {
           if (current_node != std::numeric_limits<HypernodeID>::max()) {
@@ -164,14 +170,15 @@ class InitialPartitionerBase {
         }
         // TODO(heuer): Try to restrict line length to 100.
         ASSERT(metrics::hyperedgeCut(_hg) == _best_cut,
-               "Calculation of the best seen cut failed. Should be " << _best_cut << ", but is " << metrics::hyperedgeCut(_hg) << ".");
+               "Calculation of the best seen cut failed. Should be " << _best_cut
+               << ", but is " << metrics::hyperedgeCut(_hg) << ".");
       }
     }
   }
 
   bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
-    HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
-                                              + _hg.nodeWeight(hn);
+    const HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
+                                                    + _hg.nodeWeight(hn);
     const PartitionID source_part = _hg.partID(hn);
     // TODO(heuer): Why do you need the second condition: && hn < _hg.numNodes()?
     if (assign_partition_weight
@@ -277,6 +284,7 @@ class InitialPartitionerBase {
   std::vector<HypernodeID> _unassigned_nodes;
   bool _record_assignment_history;
   static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
+  // TODO(heuer): Use better variable name
   unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
   HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
