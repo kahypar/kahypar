@@ -10,23 +10,23 @@
 #include "lib/core/PolicyRegistry.h"
 #include "lib/core/StaticDispatcher.h"
 #include "lib/core/Typelist.h"
+#include "partition/coarsening/DoNothingCoarsener.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/DoNothingCoarsener.h"
 #include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/initial_partitioning/IInitialPartitioner.h"
+#include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/FMFactoryExecutor.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/LPRefiner.h"
-#include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
-#include "partition/initial_partitioning/IInitialPartitioner.h"
 
 using core::Parameters;
 using core::Factory;
@@ -48,7 +48,7 @@ using RefinerFactory = Factory<RefinementAlgorithm,
                                IRefiner* (*)(Hypergraph&, const Configuration&)>;
 
 using InitialPartitioningFactory = Factory<InitialPartitionerAlgorithm,
-										IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
+                                           IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
 
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
 using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
@@ -79,7 +79,6 @@ using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFac
                                                                      nGPRandomWalkStopsSearch>,
                                                             Typelist<NullPolicy>,
                                                             IRefiner*>;
-
 
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;

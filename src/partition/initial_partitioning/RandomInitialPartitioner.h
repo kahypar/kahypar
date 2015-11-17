@@ -18,72 +18,65 @@
 using defs::HypernodeWeight;
 
 namespace partition {
+class RandomInitialPartitioner : public IInitialPartitioner,
+                                 private InitialPartitionerBase {
+ public:
+  RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
+    InitialPartitionerBase(hypergraph, config), _tryToAssignHypernodeToPart(config.initial_partitioning.k, false) { }
 
-class RandomInitialPartitioner: public IInitialPartitioner,
-		private InitialPartitionerBase {
+  ~RandomInitialPartitioner() { }
 
-public:
-	RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-			InitialPartitionerBase(hypergraph, config), _tryToAssignHypernodeToPart(config.initial_partitioning.k,false) {
-	}
+ private:
+  void initialPartition() final {
+    PartitionID unassigned_part =
+      _config.initial_partitioning.unassigned_part;
+    _config.initial_partitioning.unassigned_part = -1;
+    InitialPartitionerBase::resetPartitioning();
+    for (const HypernodeID hn : _hg.nodes()) {
+      PartitionID p = -1;
+      _tryToAssignHypernodeToPart.resetAllBitsToFalse();
+      int partition_sum = 0;
+      do {
+        if (p != -1 && !_tryToAssignHypernodeToPart[p]) {
+          partition_sum += (p + 1);
+          _tryToAssignHypernodeToPart.setBit(p, true);
+          if (partition_sum
+              == (_config.initial_partitioning.k
+                  * (_config.initial_partitioning.k + 1))
+              / 2) {
+            _hg.setNodePart(hn, p);
+            _config.initial_partitioning.rollback = false;
+            break;
+          }
+        }
+        p = Randomize::getRandomInt(0,
+                                    _config.initial_partitioning.k - 1);
+      } while (!assignHypernodeToPartition(hn, p));
 
-	~RandomInitialPartitioner() {
-	}
+      ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p << ", but is actually in " << _hg.partID(hn) << ".");
+    }
+    _hg.initializeNumCutHyperedges();
+    _config.initial_partitioning.unassigned_part = unassigned_part;
 
-private:
+    ASSERT([&]() {
+        for (HypernodeID hn : _hg.nodes()) {
+          if (_hg.partID(hn) == -1) {
+            return false;
+          }
+        }
+        return true;
+      } (), "There are unassigned hypernodes!");
 
-	void initialPartition() final {
-		PartitionID unassigned_part =
-				_config.initial_partitioning.unassigned_part;
-		_config.initial_partitioning.unassigned_part = -1;
-		InitialPartitionerBase::resetPartitioning();
-		for (const HypernodeID hn : _hg.nodes()) {
-			PartitionID p = -1;
-			_tryToAssignHypernodeToPart.resetAllBitsToFalse();
-			int partition_sum = 0;
-			do {
-				if (p != -1 && !_tryToAssignHypernodeToPart[p]) {
-					partition_sum += (p + 1);
-					_tryToAssignHypernodeToPart.setBit(p, true);
-					if (partition_sum
-							== (_config.initial_partitioning.k
-									* (_config.initial_partitioning.k + 1))
-									/ 2) {
-						_hg.setNodePart(hn, p);
-						_config.initial_partitioning.rollback = false;
-						break;
-					}
-				}
-				p = Randomize::getRandomInt(0,
-						_config.initial_partitioning.k - 1);
-			} while (!assignHypernodeToPartition(hn, p));
+    InitialPartitionerBase::rollbackToBestCut();
+    InitialPartitionerBase::performFMRefinement();
+  }
 
-			ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p << ", but is actually in " << _hg.partID(hn) << ".");
-		}
-		_hg.initializeNumCutHyperedges();
-		_config.initial_partitioning.unassigned_part = unassigned_part;
+  FastResetBitVector<> _tryToAssignHypernodeToPart;
 
-		ASSERT([&]() {
-			for(HypernodeID hn : _hg.nodes()) {
-				if(_hg.partID(hn) == -1) {
-					return false;
-				}
-			}
-			return true;
-		}(), "There are unassigned hypernodes!");
-
-		InitialPartitionerBase::rollbackToBestCut();
-		InitialPartitionerBase::performFMRefinement();
-	}
-
-	FastResetBitVector<> _tryToAssignHypernodeToPart;
-
-	using InitialPartitionerBase::_hg;
-	using InitialPartitionerBase::_config;
-
+  using InitialPartitionerBase::_hg;
+  using InitialPartitionerBase::_config;
 }
 ;
-
 }
 
-#endif /* SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_ */
+#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_ */

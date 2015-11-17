@@ -1,10 +1,13 @@
+/***************************************************************************
+ *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef SRC_LIB_CORE_REGISTRAR_H_
 #define SRC_LIB_CORE_REGISTRAR_H_
 
 #include "lib/core/Mandatory.h"
 
 namespace core {
-
 template <typename Factory = Mandatory>
 class Registrar {
  public:
@@ -14,6 +17,5 @@ class Registrar {
     Factory::getInstance().registerObject(id, classFactoryFunction);
   }
 };
-
-} // namespace core
+}  // namespace core
 #endif  // SRC_LIB_CORE_REGISTRAR_H_

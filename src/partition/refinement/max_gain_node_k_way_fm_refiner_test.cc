@@ -70,7 +70,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, DoesNotActivateInternalNodes) {
 
 TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   // hypergraph with positive, zero and negative gain nodes
-  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10,  13 },
+  hypergraph.reset(new Hypergraph(9, 5, HyperedgeIndexVector { 0, 2, 4, 8, 10, 13 },
                                   HyperedgeVector { 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 7, 8 }, 4));
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
   hypergraph->setNodePart(0, 0);
