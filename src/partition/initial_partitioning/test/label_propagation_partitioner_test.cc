@@ -75,7 +75,9 @@ template <class T>
 class AKWayLabelPropagationInitialPartitionerTest : public Test {
  public:
   AKWayLabelPropagationInitialPartitionerTest() :
-    config(), lp(nullptr), hypergraph(nullptr) {
+    config(),
+    lp(nullptr),
+    hypergraph(nullptr) {
     std::string hypergraph_filename = "test_instances/ibm01.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;

@@ -28,7 +28,9 @@ struct partitioning_result {
 
   partitioning_result(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
                       double imbalance) :
-    algo(algo), cut(cut), imbalance(imbalance) { }
+    algo(algo),
+    cut(cut),
+    imbalance(imbalance) { }
 
   void print_result(std::string desc) {
     LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm=" << toString(algo) << "]");
@@ -39,7 +41,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
                                private InitialPartitionerBase {
  public:
   PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-    InitialPartitionerBase(hypergraph, config), _partitioner_pool() {
+    InitialPartitionerBase(hypergraph, config),
+    _partitioner_pool() {
     // mix3 == 011110110111 == 1975
     _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_global);
     _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_round);

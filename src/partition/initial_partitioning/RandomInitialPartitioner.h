@@ -22,7 +22,8 @@ class RandomInitialPartitioner : public IInitialPartitioner,
                                  private InitialPartitionerBase {
  public:
   RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-    InitialPartitionerBase(hypergraph, config), _tryToAssignHypernodeToPart(config.initial_partitioning.k, false) { }
+    InitialPartitionerBase(hypergraph, config),
+    _tryToAssignHypernodeToPart(config.initial_partitioning.k, false) { }
 
   ~RandomInitialPartitioner() { }
 

@@ -186,9 +186,11 @@ static std::string toString(const RefinementStoppingRule& algo) {
 struct Configuration {
   struct CoarseningParameters {
     CoarseningParameters() :
-      max_allowed_node_weight(0), contraction_limit(0), contraction_limit_multiplier(
-        0), hypernode_weight_fraction(0.0), max_allowed_weight_multiplier(
-        0.0) { }
+      max_allowed_node_weight(0),
+      contraction_limit(0),
+      contraction_limit_multiplier(0),
+      hypernode_weight_fraction(0.0),
+      max_allowed_weight_multiplier(0.0) { }
 
     HypernodeWeight max_allowed_node_weight;
     HypernodeID contraction_limit;
@@ -199,13 +201,21 @@ struct Configuration {
 
   struct InitialPartitioningParameters {
     InitialPartitioningParameters() :
-      k(2), epsilon(0.05), init_technique(
-        InitialPartitioningTechnique::flat), init_mode(
-        Mode::recursive_bisection), algo(
-        InitialPartitionerAlgorithm::pool), upper_allowed_partition_weight(), perfect_balance_partition_weight(), nruns(
-        20), unassigned_part(1), local_search_repetitions(1), init_alpha(
-        1.0), seed(1), pool_type(1975), rollback(false), refinement(
-        true) { }
+      k(2),
+      epsilon(0.05),
+      init_technique(InitialPartitioningTechnique::flat),
+      init_mode(Mode::recursive_bisection),
+      algo(InitialPartitionerAlgorithm::pool),
+      upper_allowed_partition_weight(),
+      perfect_balance_partition_weight(),
+      nruns(20),
+      unassigned_part(1),
+      local_search_repetitions(1),
+      init_alpha(1.0),
+      seed(1),
+      pool_type(1975),
+      rollback(false),
+      refinement(true) { }
 
     PartitionID k;
     double epsilon;
@@ -226,20 +236,35 @@ struct Configuration {
 
   struct PartitioningParameters {
     PartitioningParameters() :
-      k(2), rb_lower_k(0), rb_upper_k(1), seed(0), initial_partitioning_attempts(
-        1), global_search_iterations(1), current_v_cycle(0), epsilon(
-        1.0), hmetis_ub_factor(-1.0), perfect_balance_part_weights({
-        std::numeric_limits<HypernodeWeight>::max(),
-        std::numeric_limits<HypernodeWeight>::max()
-      }), max_part_weights(
-        { std::numeric_limits<HypernodeWeight>::max(),
-          std::numeric_limits<HypernodeWeight>::max() }), total_graph_weight(
-        0), hyperedge_size_threshold(-1), remove_hes_that_always_will_be_cut(
-        false), initial_parallel_he_removal(false), verbose_output(
-        false), collect_stats(false), mode(Mode::direct_kway), coarsening_algorithm(
-        CoarseningAlgorithm::heavy_lazy), initial_partitioner(
-        InitialPartitioner::hMetis), refinement_algorithm(
-        RefinementAlgorithm::kway_fm), graph_filename(), graph_partition_filename(), coarse_graph_filename(), coarse_graph_partition_filename(), initial_partitioner_path() { }
+      k(2),
+      rb_lower_k(0),
+      rb_upper_k(1),
+      seed(0),
+      initial_partitioning_attempts(1),
+      global_search_iterations(1),
+      current_v_cycle(0),
+      epsilon(1.0),
+      hmetis_ub_factor(-1.0),
+      perfect_balance_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
+              std::numeric_limits<HypernodeWeight>::max()
+      }),
+      max_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
+              std::numeric_limits<HypernodeWeight>::max() }),
+      total_graph_weight(0),
+      hyperedge_size_threshold(-1),
+      remove_hes_that_always_will_be_cut(false),
+      initial_parallel_he_removal(false),
+      verbose_output(false),
+      collect_stats(false),
+      mode(Mode::direct_kway),
+      coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
+      initial_partitioner(InitialPartitioner::hMetis),
+      refinement_algorithm(RefinementAlgorithm::kway_fm),
+      graph_filename(),
+      graph_partition_filename(),
+      coarse_graph_filename(),
+      coarse_graph_partition_filename(),
+      initial_partitioner_path() { }
 
     PartitionID k;
     PartitionID rb_lower_k;
@@ -271,8 +296,11 @@ struct Configuration {
 
   struct FMParameters {
     FMParameters() :
-      max_number_of_fruitless_moves(50), num_repetitions(1), alpha(4), beta(
-        0.0), stopping_rule(RefinementStoppingRule::simple) { }
+      max_number_of_fruitless_moves(50),
+      num_repetitions(1),
+      alpha(4),
+      beta(0.0),
+      stopping_rule(RefinementStoppingRule::simple) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
@@ -283,8 +311,9 @@ struct Configuration {
 
   struct HERFMParameters {
     HERFMParameters() :
-      max_number_of_fruitless_moves(10), num_repetitions(1), stopping_rule(
-        RefinementStoppingRule::simple) { }
+      max_number_of_fruitless_moves(10),
+      num_repetitions(1),
+      stopping_rule(RefinementStoppingRule::simple) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
@@ -306,7 +335,12 @@ struct Configuration {
   LPRefinementParameters lp_refiner;
 
   Configuration() :
-    partition(), coarsening(), initial_partitioning(), fm_local_search(), her_fm(), lp_refiner() { }
+    partition(),
+    coarsening(),
+    initial_partitioning(),
+    fm_local_search(),
+    her_fm(),
+    lp_refiner() { }
 };
 
 inline std::string toString(const Configuration& config) {

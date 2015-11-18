@@ -58,7 +58,9 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 class ARandomBisectionInitialPartitionerTest : public Test {
  public:
   ARandomBisectionInitialPartitionerTest() :
-    config(), partitioner(nullptr), hypergraph(nullptr) {
+    config(),
+    partitioner(nullptr),
+    hypergraph(nullptr) {
     std::string coarse_graph_filename = "test_instances/ibm01.hgr";
 
     HypernodeID num_hypernodes;
@@ -93,7 +95,9 @@ class ARandomBisectionInitialPartitionerTest : public Test {
 class AKWayRandomInitialPartitionerTest : public Test {
  public:
   AKWayRandomInitialPartitionerTest() :
-    config(), partitioner(nullptr), hypergraph(nullptr) { }
+    config(),
+    partitioner(nullptr),
+    hypergraph(nullptr) { }
 
   void initializePartitioning(PartitionID k) {
     std::string coarse_graph_filename = "test_instances/ibm01.hgr";

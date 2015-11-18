@@ -44,7 +44,8 @@ class PolicyRegistry {
   }
 
  private:
-  PolicyRegistry() : _policies() { }
+  PolicyRegistry() :
+    _policies() { }
   PolicyMap _policies;
 };
 }  // namespace core

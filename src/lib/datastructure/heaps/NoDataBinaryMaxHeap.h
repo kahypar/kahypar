@@ -32,8 +32,9 @@ class NoDataBinaryMaxHeap {
 
  protected:
   struct HeapElement {
-    HeapElement(const key_slot& key_ = meta_key_slot::max(), const id_slot& id_ = 0)
-      : key(key_), id(id_)
+    HeapElement(const key_slot& key_ = meta_key_slot::max(), const id_slot& id_ = 0) :
+      key(key_),
+      id(id_)
     { }
 
     key_slot key;
@@ -53,8 +54,8 @@ class NoDataBinaryMaxHeap {
   using data_type = void;
 
   explicit NoDataBinaryMaxHeap(const id_slot& storage_initializer,
-                               const key_slot UNUSED(unused) = 0) noexcept
-    : handles(storage_initializer),
+                               const key_slot UNUSED(unused) = 0) noexcept :
+    handles(storage_initializer),
     max_size(storage_initializer + 1) {
     next_slot = 0;
     heap.reserve(max_size);

@@ -79,7 +79,10 @@ class Partitioner {
     PartitionID upper_k;
     RBState(HypergraphPtr h, RBHypergraphState s, const PartitionID lk,
             const PartitionID uk) :
-      hypergraph(std::move(h)), state(s), lower_k(lk), upper_k(uk) { }
+      hypergraph(std::move(h)),
+      state(s),
+      lower_k(lk),
+      upper_k(uk) { }
   };
 
  public:

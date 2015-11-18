@@ -42,9 +42,12 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
  public:
   LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
                                      Configuration& config) :
-    InitialPartitionerBase(hypergraph, config), _valid_parts(
-      config.initial_partitioning.k, false), _in_queue(
-      hypergraph.numNodes(), false), _tmp_scores(
+    InitialPartitionerBase(hypergraph, config),
+    _valid_parts(
+      config.initial_partitioning.k, false),
+    _in_queue(
+      hypergraph.numNodes(), false),
+    _tmp_scores(
       _config.initial_partitioning.k, 0) { }
 
   ~LabelPropagationInitialPartitioner() { }

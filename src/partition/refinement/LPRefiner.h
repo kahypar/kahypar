@@ -31,7 +31,8 @@ class LPRefiner final : public IRefiner {
 
  public:
   LPRefiner(Hypergraph& hg, const Configuration& configuration) noexcept :
-    _hg(hg), _config(configuration),
+    _hg(hg),
+    _config(configuration),
     _cur_queue(),
     _next_queue(),
     _contained_cur_queue(hg.initialNumNodes(), false),

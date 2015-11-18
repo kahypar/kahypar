@@ -80,7 +80,9 @@ class ABFSBisectionInitialPartioner : public Test {
 class AKWayBFSInitialPartitioner : public Test {
  public:
   AKWayBFSInitialPartitioner() :
-    config(), partitioner(nullptr), hypergraph(nullptr) {
+    config(),
+    partitioner(nullptr),
+    hypergraph(nullptr) {
     std::string coarse_graph_filename =
       "test_instances/ibm01.hgr";
 

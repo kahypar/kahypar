@@ -53,7 +53,8 @@ class AnUnPartitionedHypergraph : public Test {
 
 class TheDemoHypergraph : public AnUnPartitionedHypergraph {
  public:
-  TheDemoHypergraph() : AnUnPartitionedHypergraph() { }
+  TheDemoHypergraph() :
+    AnUnPartitionedHypergraph() { }
 };
 
 class APartitionedHypergraph : public Test {

@@ -88,7 +88,9 @@ template <class T>
 class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
  public:
   AKWayGreedyHypergraphGrowingPartitionerTest() :
-    config(), ghg(nullptr), hypergraph(nullptr) {
+    config(),
+    ghg(nullptr),
+    hypergraph(nullptr) {
     std::string hypergraph_filename = "test_instances/ibm01.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;
