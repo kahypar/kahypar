@@ -38,9 +38,9 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 using Gain = HyperedgeWeight;
 
 namespace partition {
-class AGainComputationTest : public Test {
+class AGainComputationPolicy : public Test {
  public:
-  AGainComputationTest() :
+  AGainComputationPolicy() :
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(
@@ -105,7 +105,7 @@ class AGainComputationTest : public Test {
   Configuration config;
 };
 
-TEST_F(AGainComputationTest, ChecksCorrectFMGainComputation) {
+TEST_F(AGainComputationPolicy, ComputesCorrectFMGains) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>(true, false);
   ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 1), -1);
   ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 1, 1), 0);
@@ -116,7 +116,7 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainComputation) {
   ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 6, 0), -1);
 }
 
-TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdate) {
+TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>();
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
@@ -132,7 +132,7 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdate) {
   ASSERT_EQ(pq.key(6, 0), 0);
 }
 
-TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdateOnUnassignedPartMinusOne) {
+TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnassignedPartMinusOne) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>(false);
 
   // Test correct gain values before
@@ -171,13 +171,13 @@ TEST_F(AGainComputationTest, ChecksCorrectFMGainsAfterDeltaGainUpdateOnUnassigne
   ASSERT_EQ(pq.key(6, 0), 0);
 }
 
-TEST_F(AGainComputationTest, GainFromAMoveSourceEqualTargetIsZero) {
+TEST_F(AGainComputationPolicy, ComputesCorrectZeroGainForMovesToSameBlock) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>(true, false);
   ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 0), 0);
 }
 
 
-TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainComputation) {
+TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinGains) {
   pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>(true, false);
   ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 0, 1), 2);
   ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 1, 1), 2);
@@ -188,7 +188,7 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainComputation) {
   ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 6, 0), 1);
 }
 
-TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainsAfterDeltaGainUpdate) {
+TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
   pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>();
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
@@ -204,7 +204,7 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxPinGainsAfterDeltaGainUpdate) {
   ASSERT_EQ(pq.key(6, 0), 2);
 }
 
-TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainComputation) {
+TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetGainGains) {
   pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>(true, false);
   ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 0, 1), 1);
   ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 1, 1), 1);
@@ -215,7 +215,7 @@ TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainComputation) {
   ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 6, 0), 1);
 }
 
-TEST_F(AGainComputationTest, ChecksCorrectMaxNetGainsAfterDeltaGainUpdate) {
+TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>();
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
