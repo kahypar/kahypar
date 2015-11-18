@@ -145,13 +145,15 @@ class BFSInitialPartitioner : public IInitialPartitioner,
                     // when iterating over pins. Please check this in all other files
                     // as well.
                     for (const HypernodeID hnodes : _hg.pins(he)) {
-                      if (_hg.partID(hnodes) == unassigned_part
-                          && !_in_queue[i * _hg.numNodes() + hnodes]) {
+                      if (_hg.partID(hnodes) == unassigned_part &&
+                          !_in_queue[i * _hg.numNodes() + hnodes]) {
                         return false;
                       }
                     }
-                  } return true; } (),
-                "Some hypernodes are missing into the queue!");
+                  }
+                  return true;
+                } (),
+                     "Some hypernodes are missing into the queue!");
             } else {
               if (_queues[i].empty()) {
                 partEnabled[i] = false;

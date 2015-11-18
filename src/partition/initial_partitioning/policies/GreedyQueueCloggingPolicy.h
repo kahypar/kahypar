@@ -28,14 +28,14 @@ struct GreedyQueueCloggingPolicy {
 };
 
 struct RoundRobinQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
-  static inline PartitionID getOperatingUnassignedPart() { // TODO(heuer): document
+  static inline PartitionID getOperatingUnassignedPart() {  // TODO(heuer): document
     return -1;
   }
 
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
                                  KWayRefinementPQ& _pq, PartitionID& current_id,
                                  std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool& is_upper_bound_released) { // TODO(heuer): Why pass by reference?
+                                 bool& is_upper_bound_released) {  // TODO(heuer): Why pass by reference?
     // TODO(heuer): Don't use c-style casts
     PartitionID k = ((PartitionID)partEnabled.size());
     current_id = ((current_id + 1) % k);

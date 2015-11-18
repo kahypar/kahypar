@@ -41,7 +41,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     _pq(config.initial_partitioning.k),
     _start_nodes(),
     _visit(_hg.initialNumNodes(), false),
-    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(),false),
+    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(), false),
     _partEnabled(_config.initial_partitioning.k, true),
     _parts(_config.initial_partitioning.k, 0) {
     _pq.initialize(_hg.initialNumNodes());
@@ -72,7 +72,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               CheckIfAllEnabledPQContainsAtLeastOneHypernode);
 
   void initialPartition() final {
-    //TODO(heuer): Document reasoning behind this assignment
+    // TODO(heuer): Document reasoning behind this assignment
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = QueueClogging::getOperatingUnassignedPart();
     InitialPartitionerBase::resetPartitioning();
@@ -92,7 +92,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
     // Define a weight bound, which every partition has to reach, to avoid very small partitions.
     bool is_upper_bound_released = false;
-    InitialPartitionerBase::recalculateBalanceConstraints(/*epsilon*/ 0);
+    InitialPartitionerBase::recalculateBalanceConstraints(  /*epsilon*/ 0);
 
     // TODO(heuer): Would be better if this was initialized to something invalid, since
     // 0 is a _valid_ part id.
@@ -104,7 +104,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         break;
       }
 
-      //TODO(heuer): Wouldn't QueueSelection be a better name for the policy?
+      // TODO(heuer): Wouldn't QueueSelection be a better name for the policy?
       if (!QueueClogging::nextQueueID(_hg, _config, _pq, current_id,
                                       _partEnabled, _parts, is_upper_bound_released)) {
         // Every part is disabled and the upper weight bound is released to finish initial partitioning
@@ -136,7 +136,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       const HypernodeID current_hn = _pq.max(current_id);
 
       ASSERT(_hg.partID(current_hn) == _config.initial_partitioning.unassigned_part,
-        "The current selected hypernode " << current_hn
+             "The current selected hypernode " << current_hn
              << " is already assigned to a part during initial partitioning!");
 
       if (assignHypernodeToPartition(current_hn, current_id)) {
@@ -145,8 +145,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                << " failed!");
 
         ASSERT([&]() {
-            if (_config.initial_partitioning.unassigned_part != -1
-                && GainComputation::getType() == GainType::fm_gain) {
+            if (_config.initial_partitioning.unassigned_part != -1 &&
+                GainComputation::getType() == GainType::fm_gain) {
               const Gain gain = _pq.maxKey(current_id);
               _hg.changeNodePart(current_hn, current_id, _config.initial_partitioning.unassigned_part);
               const HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
@@ -156,7 +156,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               return true;
             }
           } (),
-          "Gain calculation of hypernode " << current_hn << " failed!");
+               "Gain calculation of hypernode " << current_hn << " failed!");
         insertAndUpdateNodesAfterMove(current_hn, current_id);
       } else {
         _partEnabled[current_id] = false;
@@ -248,7 +248,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                      "PQ of partition " << target_part << " should contain hypernode " << hnode << "!");
             }
           }
-          _hyperedge_in_queue.setBit( target_part * _hg.numEdges() + he, true);
+          _hyperedge_in_queue.setBit(target_part * _hg.numEdges() + he, true);
         }
       }
     }
@@ -271,7 +271,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         }
         return true;
       } (),
-      "Gain value of a move of a hypernode isn't equal with the real gain.");
+           "Gain value of a move of a hypernode isn't equal with the real gain.");
   }
 
   void deleteNodeInAllBucketQueues(const HypernodeID hn) {
@@ -310,7 +310,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   }
 
   void calculateStartNodes() {
-    //TODO(heuer): This again seems unnecessary.. why use the start_nodes vector
+    // TODO(heuer): This again seems unnecessary.. why use the start_nodes vector
     // when you could directly insert into PQ?
     StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
                                             _config.initial_partitioning.k);
