@@ -5,8 +5,8 @@
  *      Author: theuer
  */
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUECLOGGINGPOLICY_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUECLOGGINGPOLICY_H_
+#ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_
+#define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
@@ -23,11 +23,11 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
-struct GreedyQueueCloggingPolicy {
-  virtual ~GreedyQueueCloggingPolicy() { }
+struct GreedyQueueSelectionPolicy {
+  virtual ~GreedyQueueSelectionPolicy() { }
 };
 
-struct RoundRobinQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
+struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {  // TODO(heuer): document
     return -1;
   }
@@ -35,9 +35,8 @@ struct RoundRobinQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
                                  KWayRefinementPQ& _pq, PartitionID& current_id,
                                  std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool& is_upper_bound_released) {  // TODO(heuer): Why pass by reference?
-    // TODO(heuer): Don't use c-style casts
-    PartitionID k = ((PartitionID)partEnabled.size());
+                                 bool is_upper_bound_released) {
+    PartitionID k = static_cast<PartitionID>(partEnabled.size());
     current_id = ((current_id + 1) % k);
     int counter = 1;
     while (!partEnabled[current_id]) {
@@ -52,7 +51,7 @@ struct RoundRobinQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
   }
 };
 
-struct GlobalQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
+struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }
@@ -106,7 +105,7 @@ struct GlobalQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
   }
 };
 
-struct SequentialQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
+struct SequentialQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }
@@ -129,7 +128,7 @@ struct SequentialQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
         }
       }
     } else {
-      if (!GlobalQueueCloggingPolicy::nextQueueID(hg, config, _pq,
+      if (!GlobalQueueSelectionPolicy::nextQueueID(hg, config, _pq,
                                                   current_id, partEnabled, parts, is_upper_bound_released)) {
         return false;
       }
@@ -141,4 +140,4 @@ struct SequentialQueueCloggingPolicy : public GreedyQueueCloggingPolicy {
 };
 }
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUECLOGGINGPOLICY_H_ */
+#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_ */

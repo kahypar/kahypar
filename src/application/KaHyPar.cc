@@ -24,7 +24,6 @@
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
@@ -69,9 +68,9 @@ using partition::FMGainComputationPolicy;
 using partition::MaxPinGainComputationPolicy;
 using partition::MaxNetGainComputationPolicy;
 using partition::BFSStartNodeSelectionPolicy;
-using partition::RoundRobinQueueCloggingPolicy;
-using partition::GlobalQueueCloggingPolicy;
-using partition::SequentialQueueCloggingPolicy;
+using partition::RoundRobinQueueSelectionPolicy;
+using partition::GlobalQueueSelectionPolicy;
+using partition::SequentialQueueSelectionPolicy;
 using serializer::SQLPlotToolsSerializer;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -495,47 +494,47 @@ static Registrar<InitialPartitioningFactory> reg_lp(
 static Registrar<InitialPartitioningFactory> reg_greedy(
   InitialPartitionerAlgorithm::greedy_sequential,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, SequentialQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global(
   InitialPartitionerAlgorithm::greedy_global,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, GlobalQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round(
   InitialPartitionerAlgorithm::greedy_round,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, RoundRobinQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_maxpin(
   InitialPartitionerAlgorithm::greedy_sequential_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, SequentialQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global_maxpin(
   InitialPartitionerAlgorithm::greedy_global_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, GlobalQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round_maxpin(
   InitialPartitionerAlgorithm::greedy_round_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, RoundRobinQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_maxnet(
   InitialPartitionerAlgorithm::greedy_sequential_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, SequentialQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global_maxnet(
   InitialPartitionerAlgorithm::greedy_global_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, GlobalQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round_maxnet(
   InitialPartitionerAlgorithm::greedy_round_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, RoundRobinQueueCloggingPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_pool(
   InitialPartitionerAlgorithm::pool,

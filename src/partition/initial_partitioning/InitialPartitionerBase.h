@@ -48,6 +48,9 @@ struct node_assignment {
   HypernodeID hn;
   PartitionID from;
   PartitionID to;
+
+  node_assignment(HypernodeID hn, PartitionID from, PartitionID to) : hn(hn), from(from), to(to) {}
+
 };
 
 class InitialPartitionerBase {
@@ -62,7 +65,7 @@ class InitialPartitionerBase {
       max_hypernode_weight = std::max(_hg.nodeWeight(hn), max_hypernode_weight);
       _unassigned_nodes.push_back(hn);
     }
-    _un_pos = _unassigned_nodes.size();
+    _unassigned_node_bound = _unassigned_nodes.size();
   }
 
   virtual ~InitialPartitionerBase() { }
@@ -77,17 +80,6 @@ class InitialPartitionerBase {
     _config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
   }
 
-  // TODO(heuer): Don't use this "andCallFunction"-approach!
-  void adaptPartitionConfigToInitialPartitioningConfigAndCallFunction(Configuration& config, std::function<void()> f) {
-    double epsilon = config.partition.epsilon;
-    PartitionID k = config.partition.k;
-    config.partition.epsilon = config.initial_partitioning.epsilon;
-    config.partition.k = config.initial_partitioning.k;
-    f();
-    config.partition.epsilon = epsilon;
-    config.partition.k = k;
-  }
-
   void resetPartitioning() {
     _hg.resetPartitioning();
     if (_config.initial_partitioning.unassigned_part != -1) {
@@ -99,18 +91,17 @@ class InitialPartitionerBase {
 
     _record_assignment_history = false;
     _bisection_assignment_history.clear();
-    _un_pos = _unassigned_nodes.size();
+    _unassigned_node_bound = _unassigned_nodes.size();
   }
 
   void performFMRefinement() {
     if (_config.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;
-      // TODO(heuer): Its nice that the code doesn't crash in this case. However we should write
-      // a warning message to the console to notify the user about his mistake.
       if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
                      _hg, _config));
+        LOG("WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.");
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
                      _config.partition.refinement_algorithm,
@@ -132,14 +123,12 @@ class InitialPartitionerBase {
             refinement_nodes.push_back(hn);
           }
         }
-        // TODO(heuer): Use size_t rather than unsigned int and also use a proper variable name
-        // i.e. num_refinement_nodes
-        unsigned int refinement_hypernodes = refinement_nodes.size();
 
-        if (refinement_hypernodes < 2) {
+        size_t num_refinement_nodes = refinement_nodes.size();
+        if (num_refinement_nodes < 2) {
           break;
         }
-        improvement_found = refiner->refine(refinement_nodes, refinement_hypernodes, { _config.initial_partitioning.upper_allowed_partition_weight[0]
+        improvement_found = refiner->refine(refinement_nodes, num_refinement_nodes, { _config.initial_partitioning.upper_allowed_partition_weight[0]
                                                                                        + max_hypernode_weight,
                                                                                        _config.initial_partitioning.upper_allowed_partition_weight[1]
                                                                                        + max_hypernode_weight }, { 0, 0 }, current_cut, imbalance);
@@ -180,9 +169,8 @@ class InitialPartitionerBase {
     const HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
                                                     + _hg.nodeWeight(hn);
     const PartitionID source_part = _hg.partID(hn);
-    // TODO(heuer): Why do you need the second condition: && hn < _hg.numNodes()?
     if (assign_partition_weight
-        <= _config.initial_partitioning.upper_allowed_partition_weight[target_part] && hn < _hg.numNodes()) {
+        <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) {
       if (_hg.partID(hn) == -1) {
         _hg.setNodePart(hn, target_part);
       } else {
@@ -205,14 +193,14 @@ class InitialPartitionerBase {
 
   HypernodeID getUnassignedNode() {
     HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-    for (unsigned int i = 0; i < _un_pos; i++) {
+    for (unsigned int i = 0; i < _unassigned_node_bound; i++) {
       HypernodeID hn = _unassigned_nodes[i];
       if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
         unassigned_node = hn;
         break;
       } else {
-        std::swap(_unassigned_nodes[i], _unassigned_nodes[_un_pos - 1]);
-        _un_pos--;
+        std::swap(_unassigned_nodes[i], _unassigned_nodes[_unassigned_node_bound - 1]);
+        _unassigned_node_bound--;
         i--;
       }
     }
@@ -263,17 +251,11 @@ class InitialPartitionerBase {
     }
 
     if (_record_assignment_history) {
-      node_assignment assign;
-      assign.hn = hn;
-      assign.from = from;
-      assign.to = to;
       if (isFeasibleSolution && _current_cut < _best_cut) {
         _best_cut = _current_cut;
         _best_cut_node = hn;
       }
-      // TODO(heuer): Potentially it is slightly more efficient to use a vector.
-      // Additionally, using emplace, the node-assignment could be constructed inplace
-      _bisection_assignment_history.push_back(assign);
+      _bisection_assignment_history.emplace(_bisection_assignment_history.end(), node_assignment(hn,from,to));
     }
   }
 
@@ -284,8 +266,7 @@ class InitialPartitionerBase {
   std::vector<HypernodeID> _unassigned_nodes;
   bool _record_assignment_history;
   static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
-  // TODO(heuer): Use better variable name
-  unsigned int _un_pos = std::numeric_limits<PartitionID>::max();
+  unsigned int _unassigned_node_bound = std::numeric_limits<PartitionID>::max();
   HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
 }

@@ -1,5 +1,5 @@
 /*
- * greedy_queue_clogging_test.cc
+ * greedy_queue_Selection_test.cc
  *
  *  Created on: 16.11.2015
  *      Author: theuer
@@ -15,7 +15,7 @@
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 
 using::testing::Eq;
 using::testing::Test;
@@ -32,9 +32,9 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 using Gain = HyperedgeWeight;
 
 namespace partition {
-class AGreedyQueueCloggingTest : public Test {
+class AGreedyQueueSelectionTest : public Test {
  public:
-  AGreedyQueueCloggingTest() :
+  AGreedyQueueSelectionTest() :
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(
@@ -111,85 +111,85 @@ class AGreedyQueueCloggingTest : public Test {
   bool is_upper_bound_released;
 };
 
-TEST_F(AGreedyQueueCloggingTest, ChecksRoundRobinNextQueueID) {
+TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 3);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisabled) {
+TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisabled) {
   partEnabled[1] = false;
   partEnabled[3] = false;
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksIfRoundRobinReturnsFalseIfEveryPartIsDisabled) {
+TEST_F(AGreedyQueueSelectionTest, ChecksIfRoundRobinReturnsFalseIfEveryPartIsDisabled) {
   partEnabled[0] = false;
   partEnabled[1] = false;
   partEnabled[2] = false;
   partEnabled[3] = false;
   ASSERT_FALSE(
-    RoundRobinQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksGlobalNextQueueID) {
+TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueID) {
   initializeConfiguration(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
   current_id = 1;
   ASSERT_TRUE(
-    GlobalQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                            current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled) {
+TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled) {
   initializeConfiguration(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
 
   current_id = 1;
   ASSERT_TRUE(
-    GlobalQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                            current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 
   partEnabled[0] = false;
   ASSERT_TRUE(
-    GlobalQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                            current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksIfGlobalReturnsFalseIfEveryPartIsDisabled) {
+TEST_F(AGreedyQueueSelectionTest, ChecksIfGlobalReturnsFalseIfEveryPartIsDisabled) {
   initializeConfiguration(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
@@ -197,12 +197,12 @@ TEST_F(AGreedyQueueCloggingTest, ChecksIfGlobalReturnsFalseIfEveryPartIsDisabled
   partEnabled[0] = false;
   partEnabled[1] = false;
   ASSERT_FALSE(
-    GlobalQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                            current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueID) {
+TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
   initializeConfiguration(2);
   config.initial_partitioning.unassigned_part = -1;
   std::vector<HypernodeID> nodes = { 0, 1, 2, 3, 4, 5, 6 };
@@ -211,26 +211,26 @@ TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueID) {
   config.initial_partitioning.upper_allowed_partition_weight[1] = 2;
 
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 
   hypergraph.setNodePart(3, 0);
   pq.remove(3, 0);
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 
   hypergraph.setNodePart(4, 0);
   pq.remove(4, 0);
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueIDWithUnassignedPartPlusOne) {
+TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartPlusOne) {
   initializeConfiguration(2);
   config.initial_partitioning.unassigned_part = 1;
   std::vector<HypernodeID> nodes = { 0, 1, 2, 3, 4, 5, 6 };
@@ -239,26 +239,26 @@ TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueIDWithUnassignedPartPl
   config.initial_partitioning.upper_allowed_partition_weight[1] = 2;
 
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 
   hypergraph.setNodePart(3, 0);
   pq.remove(3, 0);
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 
   hypergraph.setNodePart(4, 0);
   pq.remove(4, 0);
   ASSERT_FALSE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
-TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueIDBehaviourIfUpperBoundIsReleased) {
+TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDBehaviourIfUpperBoundIsReleased) {
   initializeConfiguration(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
@@ -266,7 +266,7 @@ TEST_F(AGreedyQueueCloggingTest, ChecksSequentialNextQueueIDBehaviourIfUpperBoun
   current_id = 1;
 
   ASSERT_TRUE(
-    SequentialQueueCloggingPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
                                                current_id, partEnabled, parts, is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
 }

@@ -14,14 +14,14 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
 using partition::StartNodeSelectionPolicy;
 using partition::GainComputationPolicy;
-using partition::GreedyQueueCloggingPolicy;
+using partition::GreedyQueueSelectionPolicy;
 using datastructure::KWayPriorityQueue;
 
 using Gain = HyperedgeWeight;
@@ -31,7 +31,7 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 namespace partition {
 template <class StartNodeSelection = StartNodeSelectionPolicy,
           class GainComputation = GainComputationPolicy,
-          class QueueClogging = GreedyQueueCloggingPolicy>
+          class QueueSelection = GreedyQueueSelectionPolicy>
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase {
  public:
@@ -45,8 +45,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     _partEnabled(_config.initial_partitioning.k, true),
     _parts(_config.initial_partitioning.k, 0) {
     _pq.initialize(_hg.initialNumNodes());
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-      _parts[i] = i;
+    for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+      _parts[part] = part;
     }
   }
 
@@ -72,9 +72,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               CheckIfAllEnabledPQContainsAtLeastOneHypernode);
 
   void initialPartition() final {
-    // TODO(heuer): Document reasoning behind this assignment
+    //Every QueueSelectionPolicy specify its own operating unassigned part. Therefore we only change
+	//the unassigned_part variable in this method and reset it at the end to original value.
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
-    _config.initial_partitioning.unassigned_part = QueueClogging::getOperatingUnassignedPart();
+    _config.initial_partitioning.unassigned_part = QueueSelection::getOperatingUnassignedPart();
     InitialPartitionerBase::resetPartitioning();
     reset();
 
@@ -90,8 +91,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         _config.initial_partitioning.perfect_balance_partition_weight[unassigned_part];
     }
 
-    // Define a weight bound, which every partition has to reach, to avoid very small partitions.
     bool is_upper_bound_released = false;
+    // Define a weight bound, which every part has to reach, to avoid very small partitions.
     InitialPartitionerBase::recalculateBalanceConstraints(  /*epsilon*/ 0);
 
     // TODO(heuer): Would be better if this was initialized to something invalid, since
@@ -104,8 +105,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         break;
       }
 
-      // TODO(heuer): Wouldn't QueueSelection be a better name for the policy?
-      if (!QueueClogging::nextQueueID(_hg, _config, _pq, current_id,
+      if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_id,
                                       _partEnabled, _parts, is_upper_bound_released)) {
         // Every part is disabled and the upper weight bound is released to finish initial partitioning
         // TODO(heuer): Name of boolean variable is_upper_bound_released seems to be misleading
@@ -114,10 +114,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
             _config.initial_partitioning.epsilon);
           is_upper_bound_released = true;
           // TODO(heuer): This also seems unnecessary. Why not just disable the part that became too large?
-          for (PartitionID i = 0; i < _config.initial_partitioning.k;
-               i++) {
-            if (i != _config.initial_partitioning.unassigned_part) {
-              _partEnabled[i] = true;
+          for (PartitionID part = 0; part < _config.initial_partitioning.k;
+               ++part) {
+            if (part != _config.initial_partitioning.unassigned_part) {
+              _partEnabled[part] = true;
             }
           }
           // Every part should have at least one hypernode in its
@@ -180,11 +180,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           }
         }
       }
-    }
-
-    // TODO(heuer): Why is this only needed in this case?
-    // TODO(heuer): Could also be moved inside the if above...
-    if (_config.initial_partitioning.unassigned_part == -1) {
+      // TODO(heuer): Why is this only needed in this case?
       _hg.initializeNumCutHyperedges();
     }
 
@@ -216,7 +212,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           _pq.enablePart(target_part);
         }
 
-        // This assertion is not necessary...
         ASSERT(_pq.contains(hn, target_part),
                "Hypernode " << hn << " isn't succesfully inserted into pq " << target_part << "!");
         ASSERT(_pq.isEnabled(target_part),
@@ -241,11 +236,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     if (insert) {
       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
         if (!_hyperedge_in_queue[target_part * _hg.numEdges() + he]) {
-          for (const HypernodeID hnode : _hg.pins(he)) {
-            if (_hg.partID(hnode) == _config.initial_partitioning.unassigned_part) {
-              insertNodeIntoPQ(hnode, target_part);
-              ASSERT(_pq.contains(hnode, target_part),
-                     "PQ of partition " << target_part << " should contain hypernode " << hnode << "!");
+          for (const HypernodeID pin : _hg.pins(he)) {
+            if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
+              insertNodeIntoPQ(pin, target_part);
+              ASSERT(_pq.contains(pin, target_part),
+                     "PQ of partition " << target_part << " should contain hypernode " << pin << "!");
             }
           }
           _hyperedge_in_queue.setBit(target_part * _hg.numEdges() + he, true);
@@ -275,11 +270,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   }
 
   void deleteNodeInAllBucketQueues(const HypernodeID hn) {
-    // TODO(heuer): Always use meaningful names when iterating over parts.
-    // In this case i should be named part.
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-      if (_pq.contains(hn, i)) {
-        _pq.remove(hn, i);
+    for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+      if (_pq.contains(hn, part)) {
+        _pq.remove(hn, part);
       }
     }
     ASSERT(!_pq.contains(hn),
@@ -321,16 +314,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       insertNodeIntoPQ(_start_nodes[i], i);
     }
 
-    // TODO(heuer): Could this assertion be expressed in terms of std::sort + std::unique?
     ASSERT([&]() {
-        for (PartitionID i = 0; i < start_node_size; i++) {
-          for (PartitionID j = i + 1; j < start_node_size; j++) {
-            if (_start_nodes[i] == _start_nodes[j]) {
-              return false;
-            }
-          }
-        }
-        return true;
+    	std::sort(_start_nodes.begin(),_start_nodes.end());
+    	return std::unique(_start_nodes.begin(),_start_nodes.end()) == _start_nodes.end();
       } (), "There are at least two start nodes which are equal!");
   }
 

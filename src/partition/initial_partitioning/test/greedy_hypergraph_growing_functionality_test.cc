@@ -20,8 +20,8 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 
 
 using::testing::Eq;
@@ -92,11 +92,11 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
 
     ghg = new GreedyHypergraphGrowingInitialPartitioner<
       BFSStartNodeSelectionPolicy, FMGainComputationPolicy,
-      GlobalQueueCloggingPolicy>(hypergraph, config);
+      GlobalQueueSelectionPolicy>(hypergraph, config);
   }
 
   GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
-                                            FMGainComputationPolicy, GlobalQueueCloggingPolicy>* ghg;
+                                            FMGainComputationPolicy, GlobalQueueSelectionPolicy>* ghg;
   Hypergraph hypergraph;
   Configuration config;
 };

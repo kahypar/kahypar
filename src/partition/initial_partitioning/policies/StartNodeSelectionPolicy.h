@@ -83,11 +83,8 @@ struct RandomStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
     }
 
     for (PartitionID i = 0; i < k; i++) {
-      // TODO(heuer): uninitialized variable. Hn is also not needed outside of the while
-      // loop. Thus there is no need to declare it here...,
-      HypernodeID hn;
       while (true) {
-        hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
+        HypernodeID hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
         // TODO(heuer): in this case you check for duplicate start nodes...
         // This check is missing in the BFS-Policy.
         auto node = std::find(startNodes.begin(), startNodes.end(), hn);

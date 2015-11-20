@@ -84,7 +84,7 @@ class AKWayBFSInitialPartitioner : public Test {
     partitioner(nullptr),
     hypergraph(nullptr) {
     std::string coarse_graph_filename =
-      "test_instances/ibm01.hgr";
+      "test_instances/test_instance.hgr";
 
     HypernodeID num_hypernodes;
     HyperedgeID num_hyperedges;
@@ -141,22 +141,22 @@ TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
 
 TEST_F(ABFSBisectionInitialPartioner, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
   std::queue<HypernodeID> q;
-  partitioner->_in_queue.setBit(0, true);
+  partitioner->_hypernode_in_queue.setBit(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
   config.initial_partitioning.unassigned_part = -1;
   partitioner->pushIncidentHypernodesIntoQueue(q, 0);
   for (HypernodeID hn = 0; hn < 5; hn++) {
-    ASSERT_TRUE(partitioner->_in_queue[hn]);
+    ASSERT_TRUE(partitioner->_hypernode_in_queue[hn]);
   }
   for (HypernodeID hn = 5; hn < 7; hn++) {
-    ASSERT_FALSE(partitioner->_in_queue[hn]);
+    ASSERT_FALSE(partitioner->_hypernode_in_queue[hn]);
   }
 }
 
 TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingIncidentHypernodesIntoQueue) {
   std::queue<HypernodeID> q;
-  partitioner->_in_queue.setBit(0, true);
+  partitioner->_hypernode_in_queue.setBit(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
   config.initial_partitioning.unassigned_part = -1;

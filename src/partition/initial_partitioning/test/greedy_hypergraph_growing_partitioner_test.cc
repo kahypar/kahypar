@@ -26,8 +26,8 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueCloggingPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 
 using::testing::Eq;
 using::testing::Test;
@@ -77,11 +77,11 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
 }
 
 template <typename StartNodeSelection, typename GainComputation,
-          typename QueueClogging>
+          typename QueueSelection>
 struct GreedyTemplateStruct {
   typedef StartNodeSelection Type1;
   typedef GainComputation Type2;
-  typedef QueueClogging Type3;
+  typedef QueueSelection Type3;
 };
 
 template <class T>
@@ -91,7 +91,7 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
     config(),
     ghg(nullptr),
     hypergraph(nullptr) {
-    std::string hypergraph_filename = "test_instances/ibm01.hgr";
+    std::string hypergraph_filename = "test_instances/test_instance.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;
     HyperedgeID num_hyperedges;
@@ -105,6 +105,7 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
     hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
                                 index_vector, edge_vector, k, &hyperedge_weights,
                                 &hypernode_weights);
+
 
     initializeConfiguration(*hypergraph, config, k);
 
@@ -125,23 +126,23 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
 
 typedef::testing::Types<
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         FMGainComputationPolicy, GlobalQueueCloggingPolicy>,
+                         FMGainComputationPolicy, GlobalQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         FMGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+                         FMGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         FMGainComputationPolicy, SequentialQueueCloggingPolicy>,
+                         FMGainComputationPolicy, SequentialQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxPinGainComputationPolicy, GlobalQueueCloggingPolicy>,
+                         MaxPinGainComputationPolicy, GlobalQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxPinGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+                         MaxPinGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxPinGainComputationPolicy, SequentialQueueCloggingPolicy>,
+                         MaxPinGainComputationPolicy, SequentialQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxNetGainComputationPolicy, GlobalQueueCloggingPolicy>,
+                         MaxNetGainComputationPolicy, GlobalQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxNetGainComputationPolicy, RoundRobinQueueCloggingPolicy>,
+                         MaxNetGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
-                         MaxNetGainComputationPolicy, SequentialQueueCloggingPolicy> > GreedyTestTemplates;
+                         MaxNetGainComputationPolicy, SequentialQueueSelectionPolicy> > GreedyTestTemplates;
 
 TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,
                 GreedyTestTemplates);

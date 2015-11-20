@@ -25,12 +25,10 @@ template <class StartNodeSelection = StartNodeSelectionPolicy>
 class BFSInitialPartitioner : public IInitialPartitioner,
                               private InitialPartitionerBase {
  public:
-  // TODO(heuer): Please alway format initializer like this and use correct
-  // initialization order.
   BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
     _queues(),
-    _in_queue(config.initial_partitioning.k * hypergraph.numNodes(), false),
+    _hypernode_in_queue(config.initial_partitioning.k * hypergraph.numNodes(), false),
     _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.numEdges(), false) { }
 
   ~BFSInitialPartitioner() { }
@@ -43,19 +41,33 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
   void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
                                        HypernodeID hn) {
-    const PartitionID k = _hg.partID(hn);
+    const PartitionID part = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      if (!_hyperedge_in_queue[k * _hg.numEdges() + he]) {
+      if (!_hyperedge_in_queue[part * _hg.numEdges() + he]) {
         for (const HypernodeID hnodes : _hg.pins(he)) {
           if (_hg.partID(hnodes) == _config.initial_partitioning.unassigned_part &&
-              !_in_queue[k * _hg.numNodes() + hnodes]) {
+              !_hypernode_in_queue[part * _hg.numNodes() + hnodes]) {
             q.push(hnodes);
-            _in_queue.setBit(k * _hg.numNodes() + hnodes, true);
+            _hypernode_in_queue.setBit(part * _hg.numNodes() + hnodes, true);
           }
         }
-        _hyperedge_in_queue.setBit(k * _hg.numEdges() + he, true);
+        _hyperedge_in_queue.setBit(part * _hg.numEdges() + he, true);
       }
     }
+
+    ASSERT([&]() {
+        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
+            if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
+                !_hypernode_in_queue[part * _hg.numNodes() + pin]) {
+              return false;
+            }
+          }
+        }
+        return true;
+      } (),
+           "Some hypernodes are missing into the queue!");
+
   }
 
 
@@ -63,10 +75,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     InitialPartitionerBase::resetPartitioning();
 
-    // Initialize a vector of queues for each part
-    // TODO(heuer): Why not just clearing the queues?
     _queues.clear();
-    _queues.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
+    _queues.assign(_config.initial_partitioning.k,std::queue<HypernodeID>());
 
     // Initialize a vector for each partition, which indicate if a partition is
     // ready to receive further hypernodes.
@@ -85,7 +95,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     }
 
 
-    _in_queue.resetAllBitsToFalse();
+    _hypernode_in_queue.resetAllBitsToFalse();
     _hyperedge_in_queue.resetAllBitsToFalse();
 
     // Calculate Startnodes and push them into the queues.
@@ -96,26 +106,24 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     // the queue. Why not directly insert them into the queue?
     for (PartitionID k = 0; k < startNodes.size(); k++) {
       _queues[k].push(startNodes[k]);
-      _in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
+      _hypernode_in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
     }
 
     while (assigned_nodes_weight < _hg.totalWeight()) {
       bool every_part_is_disabled = true;
-      // TODO(heuer): Give variable a meaningful name like part, since i
-      // actually is the current block id and not just a simple loop counter.
-      for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-        every_part_is_disabled = every_part_is_disabled && !partEnabled[i];
-        if (partEnabled[i]) {
+      for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+        every_part_is_disabled = every_part_is_disabled && !partEnabled[part];
+        if (partEnabled[part]) {
           HypernodeID hn = invalid_hypernode;
 
-          // Searching for an unassigned hypernode in queue for Partition i
-          if (!_queues[i].empty()) {
-            hn = _queues[i].front();
-            _queues[i].pop();
+          // Searching for an unassigned hypernode in queue for Part part
+          if (!_queues[part].empty()) {
+            hn = _queues[part].front();
+            _queues[part].pop();
             while (_hg.partID(hn) != unassigned_part &&
-                   !_queues[i].empty()) {
-              hn = _queues[i].front();
-              _queues[i].pop();
+                   !_queues[part].empty()) {
+              hn = _queues[part].front();
+              _queues[part].pop();
             }
           }
 
@@ -126,41 +134,20 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           }
 
           if (hn != invalid_hypernode) {
-            _in_queue.setBit(i * _hg.numNodes() + hn, true);
+            _hypernode_in_queue.setBit(part * _hg.numNodes() + hn, true);
             ASSERT(_hg.partID(hn) == unassigned_part,
                    "Hypernode " << hn << " isn't a node from an unassigned part.");
 
-            if (assignHypernodeToPartition(hn, i)) {
+            if (assignHypernodeToPartition(hn, part)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);
-
-              pushIncidentHypernodesIntoQueue(_queues[i], hn);
-
-              // TODO(heuer): This assertion is actually a post-condition of
-              // pushIncidentHypernodesIntoQueue. Therefore it should be the
-              // last statement inside the method instead of being outside.
-              ASSERT([&]() {
-                  for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-                    // TODO(heuer): please use 'pin' instead of 'hnnodes',
-                    // since the whole codebase uses 'pin' as variable name
-                    // when iterating over pins. Please check this in all other files
-                    // as well.
-                    for (const HypernodeID hnodes : _hg.pins(he)) {
-                      if (_hg.partID(hnodes) == unassigned_part &&
-                          !_in_queue[i * _hg.numNodes() + hnodes]) {
-                        return false;
-                      }
-                    }
-                  }
-                  return true;
-                } (),
-                     "Some hypernodes are missing into the queue!");
+              pushIncidentHypernodesIntoQueue(_queues[part], hn);
             } else {
-              if (_queues[i].empty()) {
-                partEnabled[i] = false;
+              if (_queues[part].empty()) {
+                partEnabled[part] = false;
               }
             }
           } else {
-            partEnabled[i] = false;
+            partEnabled[part] = false;
           }
         }
       }
@@ -191,7 +178,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   // TODO(heuer): Do you really need to know in which queue the HN/HE is?
   // It seems like it would be sufficient to only know whether or not a HN/HE is
   // in a queue.
-  FastResetBitVector<> _in_queue;
+  FastResetBitVector<> _hypernode_in_queue;
   FastResetBitVector<> _hyperedge_in_queue;
 };
 }
