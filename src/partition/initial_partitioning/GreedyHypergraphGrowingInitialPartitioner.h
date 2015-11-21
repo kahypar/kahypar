@@ -41,13 +41,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     _pq(config.initial_partitioning.k),
     _start_nodes(),
     _visit(_hg.initialNumNodes(), false),
-    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(), false),
-    _partEnabled(_config.initial_partitioning.k, true),
-    _parts(_config.initial_partitioning.k, 0) {
+    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(), false) {
     _pq.initialize(_hg.initialNumNodes());
-    for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
-      _parts[part] = part;
-    }
   }
 
   ~GreedyHypergraphGrowingInitialPartitioner() { }
@@ -86,7 +81,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // initial partitioning stops.
     HypernodeWeight minimum_unassigned_part_weight = 0;
     if (_config.initial_partitioning.unassigned_part != -1) {
-      _partEnabled[_config.initial_partitioning.unassigned_part] = false;
+      _pq.disablePart(_config.initial_partitioning.unassigned_part);
       minimum_unassigned_part_weight =
         _config.initial_partitioning.perfect_balance_partition_weight[unassigned_part];
     }
@@ -105,8 +100,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         break;
       }
 
-      if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_id,
-                                      _partEnabled, _parts, is_upper_bound_released)) {
+      HypernodeID current_hn = kInvalidNode;
+	  Gain current_gain = kInvalidGain;
+
+      if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_hn, current_gain, current_id,
+    		  is_upper_bound_released)) {
         // Every part is disabled and the upper weight bound is released to finish initial partitioning
         // TODO(heuer): Name of boolean variable is_upper_bound_released seems to be misleading
         if (!is_upper_bound_released) {
@@ -116,13 +114,15 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           // TODO(heuer): This also seems unnecessary. Why not just disable the part that became too large?
           for (PartitionID part = 0; part < _config.initial_partitioning.k;
                ++part) {
-            if (part != _config.initial_partitioning.unassigned_part) {
-              _partEnabled[part] = true;
+            if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part)) {
+              if(_pq.size(part) == 0) {
+            	  insertUnassignedHypernodeIntoPQ(part);
+              }
+              else {
+            	  _pq.enablePart(part);
+              }
             }
           }
-          // Every part should have at least one hypernode in its
-          // corresponding pq
-          insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
           current_id = 0;
           continue;
         } else {
@@ -130,11 +130,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         }
       }
 
-      ASSERT(!_pq.empty(current_id),
-             "Current queue " << current_id << "shouldn't be empty!");
-
-      const HypernodeID current_hn = _pq.max(current_id);
-
+      ASSERT(current_hn < _hg.numNodes(), "Current Hypernode " << current_hn << " is not a valid hypernode!");
+      ASSERT(current_id != -1, "Part " << current_id << " is no valid part!");
       ASSERT(_hg.partID(current_hn) == _config.initial_partitioning.unassigned_part,
              "The current selected hypernode " << current_hn
              << " is already assigned to a part during initial partitioning!");
@@ -147,11 +144,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         ASSERT([&]() {
             if (_config.initial_partitioning.unassigned_part != -1 &&
                 GainComputation::getType() == GainType::fm_gain) {
-              const Gain gain = _pq.maxKey(current_id);
               _hg.changeNodePart(current_hn, current_id, _config.initial_partitioning.unassigned_part);
               const HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
               _hg.changeNodePart(current_hn, _config.initial_partitioning.unassigned_part, current_id);
-              return metrics::hyperedgeCut(_hg) == (cut_before - gain);
+              return metrics::hyperedgeCut(_hg) == (cut_before - current_gain);
             } else {
               return true;
             }
@@ -159,7 +155,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                "Gain calculation of hypernode " << current_hn << " failed!");
         insertAndUpdateNodesAfterMove(current_hn, current_id);
       } else {
-        _partEnabled[current_id] = false;
+        _pq.disablePart(current_id);
       }
     }
 
@@ -195,8 +191,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     _visit.resetAllBitsToFalse();
     _hyperedge_in_queue.resetAllBitsToFalse();
     _pq.clear();
-    _partEnabled.clear();
-    _partEnabled.assign(_config.initial_partitioning.k, true);
   }
 
   void insertNodeIntoPQ(const HypernodeID hn, const PartitionID target_part,
@@ -248,8 +242,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       }
     }
 
-    // Every enabled part should have at least one hypernode in his corresponding pq
-    insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
+    if(!_pq.isEnabled(target_part)) {
+    	insertUnassignedHypernodeIntoPQ(target_part);
+    }
+
 
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -272,6 +268,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   void deleteNodeInAllBucketQueues(const HypernodeID hn) {
     for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
       if (_pq.contains(hn, part)) {
+    	if(_pq.isEnabled(part) && _pq.size(part) == 1 && _hg.partID(hn) != part) {
+    		insertUnassignedHypernodeIntoPQ(part);
+    	}
         _pq.remove(hn, part);
       }
     }
@@ -279,28 +278,13 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
            "Hypernode " << hn << " isn't succesfully deleted from all PQs.");
   }
 
-  void insertInAllEmptyEnabledQueuesAnUnassignedHypernode() {
-    // No queue, which is enabled, should be empty.
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-      if (_partEnabled[i] && _pq.empty(i)) {
-        const HypernodeID unassigned_node = InitialPartitionerBase::getUnassignedNode();
-        if (unassigned_node != kInvalidNode) {
-          insertNodeIntoPQ(unassigned_node, i);
-        } else {
-          _partEnabled[i] = false;
-        }
-      }
-    }
-
-    ASSERT([&]() {
-        for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
-          if (_partEnabled[k] && _pq.empty(k)) {
-            return false;
-          }
-        }
-        return true;
-      } (), "There is an enabled queue, which is empty!");
+  void insertUnassignedHypernodeIntoPQ(PartitionID part) {
+	 HypernodeID unassigned_node = InitialPartitionerBase::getUnassignedNode();
+	 if (unassigned_node != kInvalidNode) {
+	   insertNodeIntoPQ(unassigned_node, part);
+	 }
   }
+
 
   void calculateStartNodes() {
     // TODO(heuer): This again seems unnecessary.. why use the start_nodes vector
@@ -325,23 +309,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   // TODO(heuer): get rid of start nodes vector.
   std::vector<HypernodeID> _start_nodes;
-  // TODO(heuer): Actually this vector shouldn't be necessary at all, since the
-  // KWayRefinementPQ provides facilities to enable and disable parts.
-  // When used to find the "globally" next best move, it then also only searches
-  // the enabled PQs if you use the deleteMax method. I would suggest refactoring this code
-  // and the corresponding strategy in such a way, that the return the next node to be moved.
-  // Special care has then to be taken in case the node cannot be moved to the corresponding
-  // part. Also note that _pq.max(<part-id>) is should usually only be used for testing
-  // purposes.
-  std::vector<bool> _partEnabled;
-  // TODO(heuer): actually it might not be necessary to use the parts vector for random shuffling.
-  // But this should indeed be verified by an experimental evaluation on the medium-sized instances.
-  std::vector<PartitionID> _parts;
   KWayRefinementPQ _pq;
   FastResetBitVector<> _visit;
   FastResetBitVector<> _hyperedge_in_queue;
 
-  static const Gain kInitialGain = std::numeric_limits<Gain>::min();
+  static const Gain kInvalidGain = std::numeric_limits<Gain>::min();
   static const PartitionID kInvalidPartition = -1;
   static const HypernodeID kInvalidNode =
     std::numeric_limits<HypernodeID>::max();

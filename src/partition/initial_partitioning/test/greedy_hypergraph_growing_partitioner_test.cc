@@ -50,6 +50,7 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
   config.partition.epsilon = 0.05;
   config.initial_partitioning.seed = 1;
   config.initial_partitioning.unassigned_part = 1;
+  config.initial_partitioning.nruns = 1;
   config.initial_partitioning.rollback = false;
   config.initial_partitioning.refinement = false;
   config.initial_partitioning.upper_allowed_partition_weight.resize(
@@ -177,4 +178,10 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
     ASSERT_NE(this->hypergraph->partID(hn), -1);
   }
 }
+
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
+	this->config.initial_partitioning.nruns = 3;
+	this->ghg->partition(*(this->hypergraph), this->config);
+}
+
 }

@@ -193,15 +193,13 @@ class InitialPartitionerBase {
 
   HypernodeID getUnassignedNode() {
     HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
-    for (unsigned int i = 0; i < _unassigned_node_bound; i++) {
+    for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];
       if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
         unassigned_node = hn;
         break;
       } else {
-        std::swap(_unassigned_nodes[i], _unassigned_nodes[_unassigned_node_bound - 1]);
-        _unassigned_node_bound--;
-        i--;
+        std::swap(_unassigned_nodes[i--], _unassigned_nodes[--_unassigned_node_bound]);
       }
     }
     return unassigned_node;

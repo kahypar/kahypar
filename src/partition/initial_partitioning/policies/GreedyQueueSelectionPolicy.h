@@ -20,123 +20,118 @@ using defs::Hypergraph;
 using datastructure::KWayPriorityQueue;
 
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight> >;
+std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
 struct GreedyQueueSelectionPolicy {
-  virtual ~GreedyQueueSelectionPolicy() { }
+	virtual ~GreedyQueueSelectionPolicy() {
+	}
 };
 
-struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
-  static inline PartitionID getOperatingUnassignedPart() {  // TODO(heuer): document
-    return -1;
-  }
+struct RoundRobinQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
+	static inline PartitionID getOperatingUnassignedPart() { // TODO(heuer): document
+		return -1;
+	}
 
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
-                                 KWayRefinementPQ& _pq, PartitionID& current_id,
-                                 std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool is_upper_bound_released) {
-    PartitionID k = static_cast<PartitionID>(partEnabled.size());
-    current_id = ((current_id + 1) % k);
-    int counter = 1;
-    while (!partEnabled[current_id]) {
-      if (counter == k) {
-        current_id = -1;
-        return false;
-      }
-      current_id = ((current_id + 1) % k);
-      counter++;
-    }
-    return true;
-  }
+	static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+			KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+			PartitionID& current_id, bool is_upper_bound_released) {
+		PartitionID k = config.initial_partitioning.k;
+		current_id = ((current_id + 1) % k);
+		current_hn = invalid_node;
+		current_gain = invalid_gain;
+		int counter = 1;
+		while (!_pq.isEnabled(current_id)) {
+			if (counter == k) {
+				current_id = invalid_part;
+				return false;
+			}
+			current_id = ((current_id + 1) % k);
+			counter++;
+		}
+		if (current_id != -1) {
+			_pq.deleteMaxFromPartition(current_hn, current_gain,
+					current_id);
+		}
+		return true;
+	}
+
+	static const HypernodeID invalid_node = -1;
+	static const PartitionID invalid_part = -1;
+	static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
-  static inline PartitionID getOperatingUnassignedPart() {
-    return 1;
-  }
+struct GlobalQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
+	static inline PartitionID getOperatingUnassignedPart() {
+		return 1;
+	}
 
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
-                                 KWayRefinementPQ& _pq, PartitionID& current_id,
-                                 std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool is_upper_bound_released) {
-    Randomize::shuffleVector(parts, parts.size());
-    Gain best_gain = std::numeric_limits<Gain>::min();
-    current_id = -1;
-    for (const PartitionID i : parts) {
-      if (partEnabled[i]) {
-        ASSERT(_pq.isEnabled(i),
-               "PQ of part " << i << " should be enabled.");
-        ASSERT(!_pq.empty(i),
-               "PQ of part " << i << " shouldn't be empty!");
-        // TODO(heuer): This is actually dangerous, because the result
-        // of maxKey depends on the internal implementation of maxIndex()
-        // used inside maxKey. This is why maxKey should only be used
-        // for testing purposes. Better use deleteMax(...) in this case.
-        // Additionally deleteMax() runs in O(|enabled PQs|) instead
-        // of O(k). If randomization really makes a difference here,
-        // we could discuss whether or not I should provide a randomized
-        // version of deleteMax(...)
-        const Gain gain = _pq.maxKey(i);
-        if (best_gain < gain) {
-          best_gain = gain;
-          current_id = i;
-        }
-      }
-    }
+	static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+			KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+			PartitionID& current_id, bool is_upper_bound_released) {
 
-    ASSERT([&]() {
-        if (current_id != -1) {
-          const Gain gain = _pq.maxKey(current_id);
-          const PartitionID k = ((PartitionID)parts.size());
-          for (PartitionID i = 0; i < k; i++) {
-            if (i != current_id && partEnabled[i]) {
-              if (gain < _pq.maxKey(i)) {
-                return false;
-              }
-            }
-          }
-        }
-        return true;
-      } (),
-           "Gain of pq " << current_id << " isn't the pq with the maximum gain move!");
+		current_id = invalid_part;
+		current_hn = invalid_node;
+		current_gain = invalid_gain;
+		bool exist_enabled_pq = false;
+		for (PartitionID part = 0; part < config.initial_partitioning.k;
+				++part) {
+			if (_pq.isEnabled(part)) {
+				exist_enabled_pq = true;
+				break;
+			}
+		}
 
-    return current_id != -1;
-  }
+		if (exist_enabled_pq) {
+			_pq.deleteMax(current_hn, current_gain, current_id);
+		}
+		return current_id != -1;
+	}
+
+	static const HypernodeID invalid_node = -1;
+	static const PartitionID invalid_part = -1;
+	static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct SequentialQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
-  static inline PartitionID getOperatingUnassignedPart() {
-    return 1;
-  }
+struct SequentialQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
+	static inline PartitionID getOperatingUnassignedPart() {
+		return 1;
+	}
 
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
-                                 KWayRefinementPQ& _pq, PartitionID& current_id,
-                                 std::vector<bool>& partEnabled, std::vector<PartitionID>& parts,
-                                 bool is_upper_bound_released) {
-    PartitionID k = ((PartitionID)parts.size());
+	static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+			KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+			PartitionID& current_id, bool is_upper_bound_released) {
+		if (!is_upper_bound_released) {
+			_pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
 
-    if (!is_upper_bound_released) {
-      HypernodeID next_node = _pq.max(current_id);
-      // TODO(heuer): using the enablePart/disablePart facilities,
-      // this would also be more elegant.
-      if (hg.partWeight(current_id) + hg.nodeWeight(next_node)
-          > config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
-        current_id++;
-        if (current_id == config.initial_partitioning.unassigned_part) {
-          current_id++;
-        }
-      }
-    } else {
-      if (!GlobalQueueSelectionPolicy::nextQueueID(hg, config, _pq,
-                                                  current_id, partEnabled, parts, is_upper_bound_released)) {
-        return false;
-      }
-    }
+			if (hg.partWeight(current_id) + hg.nodeWeight(current_hn)
+					> config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+				current_id++;
+				if (current_id == config.initial_partitioning.unassigned_part) {
+					current_id++;
+				}
+				if (current_id != config.initial_partitioning.k) {
+					ASSERT(_pq.isEnabled(current_id),
+							"PQ " << current_id << " should be enabled!");
+					_pq.deleteMaxFromPartition(current_hn, current_gain,
+							current_id);
+				} else {
+					current_hn = invalid_node;
+					current_gain = invalid_gain;
+					current_id = invalid_part;
+				}
+			}
+		} else {
+			GlobalQueueSelectionPolicy::nextQueueID(hg, config, _pq, current_hn, current_gain,
+					current_id, is_upper_bound_released);
+		}
 
-    current_id = current_id == k ? -1 : current_id;
-    return current_id != -1;
-  }
+	return current_id != -1;
+}
+
+static const HypernodeID invalid_node = -1;
+static const PartitionID invalid_part = -1;
+static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 }
 

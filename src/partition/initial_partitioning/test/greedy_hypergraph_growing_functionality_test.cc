@@ -137,7 +137,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpd
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdate) {
   hypergraph.initializeNumCutHyperedges();
-  ghg->_partEnabled[config.initial_partitioning.unassigned_part] = false;
+  ghg->_pq.disablePart(config.initial_partitioning.unassigned_part);
   ghg->insertNodeIntoPQ(2, 0, false);
   ghg->insertNodeIntoPQ(4, 0, false);
   ghg->insertNodeIntoPQ(6, 0, false);
@@ -154,7 +154,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfter
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGainValuesInPQAfterAMove) {
   hypergraph.initializeNumCutHyperedges();
-  ghg->_partEnabled[config.initial_partitioning.unassigned_part] = false;
+  ghg->_pq.disablePart(config.initial_partitioning.unassigned_part);
 
   hypergraph.changeNodePart(0, 0, 1);
   ghg->insertNodeIntoPQ(0, 0);
@@ -221,7 +221,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(ghg->_pq.contains(6));
 }
 
-TEST_F(AGreedyHypergraphGrowingFunctionalityTest, CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
+/*TEST_F(AGreedyHypergraphGrowingFunctionalityTest, CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
   hypergraph.resetPartitioning();
   config.initial_partitioning.unassigned_part = -1;
 
@@ -237,5 +237,5 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, CheckIfAllEnabledPQContainsAtL
   ASSERT_EQ(ghg->_pq.size(), 1);
   ASSERT_TRUE(!ghg->_pq.contains(0, 0));
   ASSERT_TRUE(ghg->_pq.contains(0, 1));
-}
+}*/
 }
