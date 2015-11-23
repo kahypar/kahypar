@@ -214,7 +214,6 @@ struct Configuration {
       init_alpha(1.0),
       seed(1),
       pool_type(1975),
-      rollback(false),
       refinement(true) { }
 
     PartitionID k;
@@ -230,7 +229,6 @@ struct Configuration {
     double init_alpha;
     int seed;
     unsigned int pool_type;
-    bool rollback;
     bool refinement;
   };
 

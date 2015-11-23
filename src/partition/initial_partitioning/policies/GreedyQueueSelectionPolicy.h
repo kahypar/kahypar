@@ -102,10 +102,20 @@ struct SequentialQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
 			KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
 			PartitionID& current_id, bool is_upper_bound_released) {
 		if (!is_upper_bound_released) {
-			_pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
+			bool next_part = false;
+			if(hg.partWeight(current_id) < config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+				_pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
 
-			if (hg.partWeight(current_id) + hg.nodeWeight(current_hn)
-					> config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+				if (hg.partWeight(current_id) + hg.nodeWeight(current_hn)
+						> config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+			        _pq.insert(current_hn,current_id,current_gain);
+					next_part = true;
+				}
+			} else {
+				next_part = true;
+			}
+
+			if(next_part) {
 				current_id++;
 				if (current_id == config.initial_partitioning.unassigned_part) {
 					current_id++;
@@ -114,13 +124,14 @@ struct SequentialQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
 					ASSERT(_pq.isEnabled(current_id),
 							"PQ " << current_id << " should be enabled!");
 					_pq.deleteMaxFromPartition(current_hn, current_gain,
-							current_id);
+								current_id);
 				} else {
 					current_hn = invalid_node;
 					current_gain = invalid_gain;
 					current_id = invalid_part;
 				}
 			}
+
 		} else {
 			GlobalQueueSelectionPolicy::nextQueueID(hg, config, _pq, current_hn, current_gain,
 					current_id, is_upper_bound_released);

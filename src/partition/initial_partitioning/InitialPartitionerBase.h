@@ -44,22 +44,12 @@ using partition::KWayFMRefiner;
 using partition::IRefiner;
 
 namespace partition {
-struct node_assignment {
-  HypernodeID hn;
-  PartitionID from;
-  PartitionID to;
-
-  node_assignment(HypernodeID hn, PartitionID from, PartitionID to) : hn(hn), from(from), to(to) {}
-
-};
 
 class InitialPartitionerBase {
  public:
   InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
-    _bisection_assignment_history(),
-    _record_assignment_history(false),
     _unassigned_nodes() {
     for (const HypernodeID hn : _hg.nodes()) {
       max_hypernode_weight = std::max(_hg.nodeWeight(hn), max_hypernode_weight);
@@ -88,9 +78,6 @@ class InitialPartitionerBase {
       }
       _hg.initializeNumCutHyperedges();
     }
-
-    _record_assignment_history = false;
-    _bisection_assignment_history.clear();
     _unassigned_node_bound = _unassigned_nodes.size();
   }
 
@@ -140,30 +127,6 @@ class InitialPartitionerBase {
     }
   }
 
-  void rollbackToBestCut() {
-    if (_config.initial_partitioning.rollback) {
-      if (!_bisection_assignment_history.empty()) {
-        HypernodeID current_node = std::numeric_limits<HypernodeID>::max();
-        PartitionID from = kInvalidPartition;
-        PartitionID to = kInvalidPartition;
-        while (current_node != _best_cut_node &&
-               !_bisection_assignment_history.empty()) {
-          if (current_node != std::numeric_limits<HypernodeID>::max()) {
-            _hg.changeNodePart(current_node, to, from);
-          }
-          node_assignment assignment = _bisection_assignment_history.back();
-          _bisection_assignment_history.pop_back();
-          current_node = assignment.hn;
-          from = assignment.from;
-          to = assignment.to;
-        }
-        // TODO(heuer): Try to restrict line length to 100.
-        ASSERT(metrics::hyperedgeCut(_hg) == _best_cut,
-               "Calculation of the best seen cut failed. Should be " << _best_cut
-               << ", but is " << metrics::hyperedgeCut(_hg) << ".");
-      }
-    }
-  }
 
   bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
     const HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
@@ -179,9 +142,6 @@ class InitialPartitionerBase {
         } else {
           return false;
         }
-      }
-      if (_config.initial_partitioning.rollback) {
-        calculateCutAfterAssignment(hn, source_part, target_part);
       }
       ASSERT(_hg.partID(hn) == target_part,
              "Assigned partition of Hypernode " << hn << " should be " << target_part << ", but currently is " << _hg.partID(hn));
@@ -205,64 +165,16 @@ class InitialPartitionerBase {
     return unassigned_node;
   }
 
+  HypernodeWeight getMaxHypernodeWeight() {
+	  return max_hypernode_weight;
+  }
+
  protected:
   Hypergraph& _hg;
   Configuration& _config;
 
  private:
-  void calculateCutAfterAssignment(HypernodeID hn, PartitionID from, PartitionID to) {
-    for (HyperedgeID he : _hg.incidentEdges(hn)) {
-      HyperedgeID pins_in_source_part_before = 0;
-      if (from != -1) {
-        pins_in_source_part_before = _hg.pinCountInPart(he, from) + 1;
-      }
-      const HyperedgeID pins_in_target_part_after = _hg.pinCountInPart(he, to);
-      HyperedgeID connectivity_before = _hg.connectivity(he);
-      if (pins_in_source_part_before == 1) {
-        connectivity_before++;
-      }
-      if (pins_in_target_part_after == 1) {
-        connectivity_before--;
-      }
-      if (_hg.connectivity(he) == 1 && connectivity_before == 2) {
-        _current_cut -= _hg.edgeWeight(he);
-      }
-      if (_hg.connectivity(he) == 2 && connectivity_before == 1) {
-        _current_cut += _hg.edgeWeight(he);
-      }
-    }
-
-    ASSERT(_current_cut == metrics::hyperedgeCut(_hg), "Calculated hyperedge cut doesn't match with the real hyperedge cut!");
-
-    bool isFeasibleSolution = true;
-    for (PartitionID k = 0; k < _config.initial_partitioning.k; k++) {
-      if (_hg.partWeight(k) > _config.initial_partitioning.upper_allowed_partition_weight[k]) {
-        isFeasibleSolution = false;
-        break;
-      }
-    }
-    if (from == -1) {
-      isFeasibleSolution = false;
-    }
-    if (isFeasibleSolution && !_record_assignment_history) {
-      _record_assignment_history = true;
-    }
-
-    if (_record_assignment_history) {
-      if (isFeasibleSolution && _current_cut < _best_cut) {
-        _best_cut = _current_cut;
-        _best_cut_node = hn;
-      }
-      _bisection_assignment_history.emplace(_bisection_assignment_history.end(), node_assignment(hn,from,to));
-    }
-  }
-
-  HypernodeID _best_cut_node = std::numeric_limits<HypernodeID>::max();
-  HyperedgeWeight _best_cut = std::numeric_limits<HyperedgeWeight>::max();
-  HyperedgeWeight _current_cut = 0;
-  std::vector<node_assignment> _bisection_assignment_history;
   std::vector<HypernodeID> _unassigned_nodes;
-  bool _record_assignment_history;
   static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
   unsigned int _unassigned_node_bound = std::numeric_limits<PartitionID>::max();
   HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();

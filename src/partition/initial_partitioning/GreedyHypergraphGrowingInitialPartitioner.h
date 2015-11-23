@@ -106,19 +106,16 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_hn, current_gain, current_id,
     		  is_upper_bound_released)) {
         // Every part is disabled and the upper weight bound is released to finish initial partitioning
-        // TODO(heuer): Name of boolean variable is_upper_bound_released seems to be misleading
         if (!is_upper_bound_released) {
           InitialPartitionerBase::recalculateBalanceConstraints(
             _config.initial_partitioning.epsilon);
           is_upper_bound_released = true;
-          // TODO(heuer): This also seems unnecessary. Why not just disable the part that became too large?
           for (PartitionID part = 0; part < _config.initial_partitioning.k;
                ++part) {
             if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part)) {
               if(_pq.size(part) == 0) {
             	  insertUnassignedHypernodeIntoPQ(part);
-              }
-              else {
+              } else {
             	  _pq.enablePart(part);
               }
             }
@@ -154,18 +151,48 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           } (),
                "Gain calculation of hypernode " << current_hn << " failed!");
         insertAndUpdateNodesAfterMove(current_hn, current_id);
+
+        if(_hg.partWeight(current_id) == _config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+        	_pq.disablePart(current_id);
+        }
       } else {
+        _pq.insert(current_hn,current_id,current_gain);
         _pq.disablePart(current_id);
       }
+
+      ASSERT([&]() {
+    	  	bool exist_unassigned_node = InitialPartitionerBase::getUnassignedNode() != kInvalidNode;
+        	for(PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+        		if(!_pq.isEnabled(part) && part != _config.initial_partitioning.unassigned_part) {
+					if((exist_unassigned_node || _pq.size(part) > 0) && _hg.partWeight(part) + InitialPartitionerBase::getMaxHypernodeWeight() <= _config.initial_partitioning.upper_allowed_partition_weight[part]) {
+							return false;
+					}
+        		}
+        	}
+        	return true;
+        }(), "There is a PQ, which is disabled, but the hypernode with maximum weight can be placed inside this part!");
+
+      ASSERT([&]() {
+        	for(PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+        		if(_pq.isEnabled(part) && part != _config.initial_partitioning.unassigned_part) {
+					if(_hg.partWeight(part) == _config.initial_partitioning.upper_allowed_partition_weight[part]) {
+							return false;
+					}
+        		}
+        	}
+        	return true;
+        }(), "There is a PQ, which is enabled, but no hypernode fits inside the corresponding part!");
+
+
     }
 
-    // TODO(heuer): Actually this isn't the correct condition to be checked.
-    // Wouldn't it be more precise, if the version of GHG would be checked?
-    // Or is this not explicitly stored somewhere? The it should at least
-    // be documented that this corresponds to the case, where the upper_bound
-    // is used.
+    // If our unassigned part is -1 and we have a very small epsilon it can happen that there
+    // exists only a few hypernodes, which aren't assigned to any part. In this case we
+    // assign it to a part where the gain is maximized (only part 0 and 1 are considered for gain calculation)
+    //Attention: Can produce imbalanced partitions.
     if (_config.initial_partitioning.unassigned_part == -1) {
-      for (HypernodeID hn : _hg.nodes()) {
+      HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
+      while(hn != kInvalidNode) {
         if (_hg.partID(hn) == -1) {
           const Gain gain0 = GainComputation::calculateGain(_hg, hn, 0);
           const Gain gain1 = GainComputation::calculateGain(_hg, hn, 1);
@@ -175,14 +202,16 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
             _hg.setNodePart(hn, 1);
           }
         }
+        hn = InitialPartitionerBase::getUnassignedNode();
       }
-      // TODO(heuer): Why is this only needed in this case?
+      // In the case if the unassigned part is != -1, the cut hyperedges are initialized within
+      // the resetPartitioning() method in InitialPartitionerBase. If the unassigned part is equal to -1
+      // have to do it here, because at this point finally all hypernodes are assigned to a valid part.
       _hg.initializeNumCutHyperedges();
     }
 
     _config.initial_partitioning.unassigned_part = unassigned_part;
     InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
-    InitialPartitionerBase::rollbackToBestCut();
     InitialPartitionerBase::performFMRefinement();
   }
 
@@ -219,9 +248,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void insertAndUpdateNodesAfterMove(const HypernodeID hn, const PartitionID target_part,
                                      const bool insert = true, const bool delete_nodes = true) {
-    if (delete_nodes) {
-      deleteNodeInAllBucketQueues(hn);
-    }
+
     GainComputation::deltaGainUpdate(_hg, _config, _pq, hn,
                                      _config.initial_partitioning.unassigned_part, target_part,
                                      _visit);
@@ -240,6 +267,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           _hyperedge_in_queue.setBit(target_part * _hg.numEdges() + he, true);
         }
       }
+    }
+
+    if (delete_nodes) {
+      deleteNodeInAllBucketQueues(hn);
     }
 
     if(!_pq.isEnabled(target_part)) {
@@ -287,8 +318,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
 
   void calculateStartNodes() {
-    // TODO(heuer): This again seems unnecessary.. why use the start_nodes vector
-    // when you could directly insert into PQ?
     StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
                                             _config.initial_partitioning.k);
 
@@ -307,7 +336,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 // double max_net_size;
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
-  // TODO(heuer): get rid of start nodes vector.
   std::vector<HypernodeID> _start_nodes;
   KWayRefinementPQ _pq;
   FastResetBitVector<> _visit;
@@ -317,6 +345,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   static const PartitionID kInvalidPartition = -1;
   static const HypernodeID kInvalidNode =
     std::numeric_limits<HypernodeID>::max();
+
 };
 }
 

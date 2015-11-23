@@ -46,7 +46,6 @@ class RandomInitialPartitioner : public IInitialPartitioner,
                   * (_config.initial_partitioning.k + 1))
               / 2) {
             _hg.setNodePart(hn, p);
-            _config.initial_partitioning.rollback = false;
             break;
           }
         }
@@ -68,7 +67,6 @@ class RandomInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
-    InitialPartitionerBase::rollbackToBestCut();
     InitialPartitionerBase::performFMRefinement();
   }
 

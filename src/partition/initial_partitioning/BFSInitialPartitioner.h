@@ -102,8 +102,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _hg,
                                             _config.initial_partitioning.k);
-    // TODO(heuer): Also, why build the start node vector only to then insert the nodes into
-    // the queue. Why not directly insert them into the queue?
     for (PartitionID k = 0; k < startNodes.size(); k++) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
@@ -166,7 +164,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
-    InitialPartitionerBase::rollbackToBestCut();
     InitialPartitionerBase::performFMRefinement();
   }
   using InitialPartitionerBase::_hg;
@@ -175,9 +172,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   const HypernodeID invalid_hypernode =
     std::numeric_limits<HypernodeID>::max();
   std::vector<std::queue<HypernodeID> > _queues;
-  // TODO(heuer): Do you really need to know in which queue the HN/HE is?
-  // It seems like it would be sufficient to only know whether or not a HN/HE is
-  // in a queue.
   FastResetBitVector<> _hypernode_in_queue;
   FastResetBitVector<> _hyperedge_in_queue;
 };
