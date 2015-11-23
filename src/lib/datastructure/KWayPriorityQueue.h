@@ -26,7 +26,8 @@ namespace datastructure {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
-          typename Storage = ArrayStorage<IDType> >
+          typename Storage = ArrayStorage<IDType>,
+          bool DisableEmptyQueues = true>
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
   using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
@@ -133,15 +134,18 @@ class KWayPriorityQueue {
     ASSERT(max_part != kInvalidPart, V(max_part) << V(max_id));
 
     _queues[max_index].deleteMax();
-    if (_queues[max_index].empty()) {
-      ASSERT(isEnabled(max_part), V(max_part));
-      --_num_enabled_pqs;  // now points to the last enabled pq
-      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
-      swap(_index[max_part], _num_enabled_pqs);
-      swap(_index[max_part], _num_nonempty_pqs);
-      markUnused(max_part);
+    if (DisableEmptyQueues) {
+      if (_queues[max_index].empty()) {
+        ASSERT(isEnabled(max_part), V(max_part));
+        --_num_enabled_pqs;  // now points to the last enabled pq
+        --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
+        swap(_index[max_part], _num_enabled_pqs);
+        swap(_index[max_part], _num_nonempty_pqs);
+        markUnused(max_part);
+      }
     }
     --_num_entries;
+
   }
 
   KeyType key(const IDType id, const PartitionID part) const noexcept {
@@ -183,14 +187,16 @@ class KWayPriorityQueue {
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_index[part]].contains(id), V(id) << V(part));
     _queues[_index[part]].deleteNode(id);
-    if (_queues[_index[part]].empty()) {
-      if (isEnabled(part)) {
-        --_num_enabled_pqs;  // now points to the last enabled pq
-        swap(_index[part], _num_enabled_pqs);
+    if (DisableEmptyQueues) {
+      if (_queues[_index[part]].empty()) {
+        if (isEnabled(part)) {
+          --_num_enabled_pqs;  // now points to the last enabled pq
+          swap(_index[part], _num_enabled_pqs);
+        }
+        --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
+        swap(_index[part], _num_nonempty_pqs);
+        markUnused(part);
       }
-      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
-      swap(_index[part], _num_nonempty_pqs);
-      markUnused(part);
     }
     --_num_entries;
   }
@@ -266,13 +272,16 @@ class KWayPriorityQueue {
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage>
-constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey, Storage>::kInvalidIndex;
+          class Storage,
+          bool DisableEmptyQueues>
+constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey, Storage,
+                                   DisableEmptyQueues>::kInvalidIndex;
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage>
-constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage>::kInvalidPart;
+          class Storage,
+          bool DisableEmptyQueues>
+constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage, DisableEmptyQueues>::kInvalidPart;
 }  // namespace datastructure
 
 #endif  // SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_
