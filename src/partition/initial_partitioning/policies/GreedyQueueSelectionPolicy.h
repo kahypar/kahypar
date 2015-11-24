@@ -19,10 +19,12 @@ using defs::PartitionID;
 using defs::Hypergraph;
 using datastructure::KWayPriorityQueue;
 
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
+
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+
 struct GreedyQueueSelectionPolicy {
 	virtual ~GreedyQueueSelectionPolicy() {
 	}

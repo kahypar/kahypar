@@ -24,10 +24,12 @@ using defs::Hypergraph;
 using datastructure::KWayPriorityQueue;
 
 using Gain = HyperedgeWeight;
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight> >;
 
 namespace partition {
+
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+
 enum class GainType
 : std::uint8_t {
   fm_gain,

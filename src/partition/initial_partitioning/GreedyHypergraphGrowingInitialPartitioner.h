@@ -23,12 +23,16 @@ using partition::StartNodeSelectionPolicy;
 using partition::GainComputationPolicy;
 using partition::GreedyQueueSelectionPolicy;
 using datastructure::KWayPriorityQueue;
+using external::ArrayStorage;
 
 using Gain = HyperedgeWeight;
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight> >;
+
 
 namespace partition {
+
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+
 template <class StartNodeSelection = StartNodeSelectionPolicy,
           class GainComputation = GainComputationPolicy,
           class QueueSelection = GreedyQueueSelectionPolicy>

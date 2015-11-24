@@ -27,11 +27,13 @@ using defs::HyperedgeID;
 using partition::FMGainComputationPolicy;
 using datastructure::KWayPriorityQueue;
 
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight> >;
 using Gain = HyperedgeWeight;
 
 namespace partition {
+
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+
 class AGreedyQueueSelectionTest : public Test {
  public:
   AGreedyQueueSelectionTest() :
