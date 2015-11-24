@@ -9,13 +9,13 @@
 #include <limits>
 #include <vector>
 
-#include "lib/definitions.h"
-
 #include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
+#include "lib/definitions.h"
 #include "lib/macros.h"
+#include "tools/RandomFunctions.h"
 
 using defs::PartitionID;
 using datastructure::NoDataBinaryMaxHeap;
@@ -26,7 +26,9 @@ namespace datastructure {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
-          typename Storage = ArrayStorage<IDType> >
+          typename Storage = ArrayStorage<IDType>,
+          bool UseRandomTieBreaking = false>
+
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
   using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
@@ -42,6 +44,7 @@ class KWayPriorityQueue {
     _queues(),
     _index(k, kInvalidIndex),
     _part(k, kInvalidPart),
+    _ties(k),
     _num_entries(0),
     _num_nonempty_pqs(0),
     _num_enabled_pqs(0) { }
@@ -120,7 +123,7 @@ class KWayPriorityQueue {
   }
 
   void deleteMax(IDType& max_id, KeyType& max_key, PartitionID& max_part) noexcept {
-    size_t max_index = maxIndex();
+    size_t max_index = UseRandomTieBreaking ? maxIndexRandomTieBreaking() : maxIndex();
     ASSERT(max_index < _num_enabled_pqs, V(max_index));
 
     max_part = _part[max_index];
@@ -280,6 +283,22 @@ class KWayPriorityQueue {
     return max_index;
   }
 
+  size_t maxIndexRandomTieBreaking()  noexcept {
+    KeyType max_key = MetaKey::min();
+    for (size_t index = 0; index < _num_enabled_pqs; ++index) {
+      ASSERT(!_queues[index].empty(), V(index));
+      const KeyType key = _queues[index].getMaxKey();
+      if (key > max_key) {
+        max_key = key;
+        _ties.clear();
+        _ties.push_back(index);
+      } else if (key == max_key) {
+        _ties.push_back(index);
+      }
+    }
+    return _ties[Randomize::getRandomInt(0, _ties.size() - 1)];
+  }
+
   bool isUnused(const PartitionID part) const noexcept {
     ASSERT((_index[part] != kInvalidIndex ? _part[_index[part]] != kInvalidPart : true), V(part));
     return _index[part] == kInvalidIndex;
@@ -293,6 +312,7 @@ class KWayPriorityQueue {
   std::vector<Queue> _queues;
   std::vector<size_t> _index;     // part to index mapping
   std::vector<PartitionID> _part;  // index to part mapping
+  std::vector<size_t> _ties;  // for random tie breaking
   size_t _num_entries;
   size_t _num_nonempty_pqs;
   size_t _num_enabled_pqs;
@@ -301,13 +321,17 @@ class KWayPriorityQueue {
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage>
-constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey, Storage>::kInvalidIndex;
+          class Storage,
+          bool UseRandomTieBreaking>
+constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey, Storage,
+                                   UseRandomTieBreaking>::kInvalidIndex;
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage>
-constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage>::kInvalidPart;
+          class Storage,
+          bool UseRandomTieBreaking>
+constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage,
+                                        UseRandomTieBreaking>::kInvalidPart;
 }  // namespace datastructure
 
 #endif  // SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_

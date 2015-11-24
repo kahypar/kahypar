@@ -755,19 +755,23 @@ class GenericHypergraph {
          } (),
          "Incorrect calculation of pin counts");**/
     }
-    /**ASSERT([&]() {
-       for (const HyperedgeID he : incidentEdges(hn)) {
-       for (const HypernodeID pin : pins(he)) {
-       if (_num_incident_cut_hes[pin] != numIncidentCutHEs(pin)) {
-       LOGVAR(pin);
-       LOGVAR(_num_incident_cut_hes[pin]);
-       LOGVAR(numIncidentCutHEs(pin));
-       return false;
-       }
-       }
-       }
-       return true;
-       } (), "Inconsisten #CutHEs state");*/
+    // ASSERT([&]() {
+    //    for (const HyperedgeID he : incidentEdges(hn)) {
+    //    for (const HypernodeID pin : pins(he)) {
+    //      if (pin == 1891) {
+    //        LOG(V(hypernode(pin).num_incident_cut_hes));
+    //      }
+
+    //    if (hypernode(pin).num_incident_cut_hes != numIncidentCutHEs(pin)) {
+    //    LOGVAR(pin);
+    //    LOGVAR(hypernode(pin).num_incident_cut_hes);
+    //    LOGVAR(numIncidentCutHEs(pin));
+    //    return false;
+    //    }
+    //    }
+    //    }
+    //    return true;
+    //    } (), "Inconsisten #CutHEs state");
   }
 
   bool isBorderNode(const HypernodeID hn) const {
