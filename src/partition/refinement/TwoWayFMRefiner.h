@@ -391,6 +391,16 @@ class TwoWayFMRefiner final : public IRefiner,
     for (const HypernodeID hn : _non_border_hns_to_remove) {
       DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM deleting pin " << hn << " from PQ "
           << to_part);
+      ASSERT([&]() {
+          if (hn != moved_hn) {
+            for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+              if (_hg.connectivity(he) > 1) {
+                return false;
+              }
+            }
+          }
+          return true;
+        } (), V(hn) << " is no internal node!");
       if (_hn_state.active(hn)) {
         ASSERT(_pq.contains(hn, (_hg.partID(hn) ^ 1)), V(hn) << V((_hg.partID(hn) ^ 1)));
         // This invalidation is not necessary since the cached gain will stay up-to-date
