@@ -1402,9 +1402,10 @@ class GenericHypergraph {
            "HE " << he << "does not have any pins in partition " << id);
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ASSERT(_pins_in_part[he * _k + id] > 0, "invalid decrease");
-    _pins_in_part[he * _k + id] -= 1;
-    hyperedge(he).connectivity -= _pins_in_part[he * _k + id] == 0;
-    return _pins_in_part[he * _k + id] == 0;
+    const size_t offset =  he * _k + id;
+    _pins_in_part[offset] -= 1;
+    hyperedge(he).connectivity -= _pins_in_part[offset] == 0;
+    return _pins_in_part[offset] == 0;
   }
 
   bool increasePinCountInPart(const HyperedgeID he, const PartitionID id) noexcept {
@@ -1413,9 +1414,10 @@ class GenericHypergraph {
            "HE " << he << ": pin_count[" << id << "]=" << pinCountInPart(he, id)
            << "edgesize=" << edgeSize(he));
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    _pins_in_part[he * _k + id] += 1;
-    hyperedge(he).connectivity += _pins_in_part[he * _k + id] == 1;
-    return _pins_in_part[he * _k + id] == 1;
+    const size_t offset = he * _k + id;
+    _pins_in_part[offset] += 1;
+    hyperedge(he).connectivity += _pins_in_part[offset] == 1;
+    return _pins_in_part[offset] == 1;
   }
 
   void invalidatePartitionPinCounts(const HyperedgeID he) noexcept {
