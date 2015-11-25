@@ -89,6 +89,7 @@ class GenericHypergraph {
   struct AdditionalHypernodeData : public HypernodeData {
     PartitionID part_id = kInvalidPartition;
     HyperedgeID num_incident_cut_hes = 0;
+    std::uint32_t state = 0;
   };
 
   struct Dummy {
@@ -459,6 +460,8 @@ class GenericHypergraph {
     _current_num_hypernodes(_num_hypernodes),
     _current_num_hyperedges(_num_hyperedges),
     _current_num_pins(_num_pins),
+    _threshold_active(1),
+    _threshold_marked(2),
     _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
     _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
@@ -1055,6 +1058,41 @@ class GenericHypergraph {
     return _k;
   }
 
+  bool active(const HypernodeID u) const {
+    return hypernode(u).state == _threshold_active;
+  }
+
+  bool marked(const HypernodeID u) const {
+    return hypernode(u).state == _threshold_marked;
+  }
+
+  void mark(const HypernodeID u) {
+    ASSERT(hypernode(u).state == _threshold_active, V(u));
+    hypernode(u).state = _threshold_marked;
+  }
+
+  void activate(const HypernodeID u) {
+    ASSERT(hypernode(u).state < _threshold_active, V(u));
+    hypernode(u).state = _threshold_active;
+  }
+
+  void deactivate(const HypernodeID u) {
+    ASSERT(hypernode(u).state == _threshold_active, V(u));
+    --hypernode(u).state;
+  }
+
+  void resetHypernodeState() {
+    if (_threshold_marked == std::numeric_limits<std::uint32_t>::max()) {
+      for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
+        hypernode(hn).state = 0;
+      }
+      _threshold_active = -2;
+      _threshold_marked = -1;
+    }
+    _threshold_active += 2;
+    _threshold_marked += 2;
+  }
+
   // Needs to be called after initial partitioning in order to provide
   // correct borderNode checks.
   void initializeNumCutHyperedges() {
@@ -1147,6 +1185,8 @@ class GenericHypergraph {
     _current_num_hypernodes(0),
     _current_num_hyperedges(0),
     _current_num_pins(0),
+    _threshold_active(1),
+    _threshold_marked(2),
     _hypernodes(),
     _hyperedges(),
     _incidence_array(),
@@ -1402,7 +1442,7 @@ class GenericHypergraph {
            "HE " << he << "does not have any pins in partition " << id);
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ASSERT(_pins_in_part[he * _k + id] > 0, "invalid decrease");
-    const size_t offset =  he * _k + id;
+    const size_t offset = he * _k + id;
     _pins_in_part[offset] -= 1;
     hyperedge(he).connectivity -= _pins_in_part[offset] == 0;
     return _pins_in_part[offset] == 0;
@@ -1584,6 +1624,9 @@ class GenericHypergraph {
   HypernodeID _current_num_hypernodes;
   HyperedgeID _current_num_hyperedges;
   HypernodeID _current_num_pins;
+
+  std::uint32_t _threshold_active;
+  std::uint32_t _threshold_marked;
 
   std::vector<HypernodeVertex> _hypernodes;
   std::vector<HyperedgeVertex> _hyperedges;
