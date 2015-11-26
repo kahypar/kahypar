@@ -42,14 +42,13 @@ struct RoundRobinQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
 		current_id = ((current_id + 1) % k);
 		current_hn = invalid_node;
 		current_gain = invalid_gain;
-		int counter = 1;
+		PartitionID counter = 1;
 		while (!_pq.isEnabled(current_id)) {
-			if (counter == k) {
+			if (counter++ == k) {
 				current_id = invalid_part;
 				return false;
 			}
 			current_id = ((current_id + 1) % k);
-			counter++;
 		}
 		if (current_id != -1) {
 			_pq.deleteMaxFromPartition(current_hn, current_gain,
@@ -87,6 +86,19 @@ struct GlobalQueueSelectionPolicy: public GreedyQueueSelectionPolicy {
 		if (exist_enabled_pq) {
 			_pq.deleteMax(current_hn, current_gain, current_id);
 		}
+
+		ASSERT([&]() {
+			if(current_id != -1) {
+				for(PartitionID part = 0; part < config.initial_partitioning.k;
+						++part) {
+					if(_pq.isEnabled(part) && _pq.maxKey(part) > current_gain) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}(), "Moving hypernode " << current_hn << " to part " << current_id << " isn't the move with maximum gain!");
+
 		return current_id != -1;
 	}
 

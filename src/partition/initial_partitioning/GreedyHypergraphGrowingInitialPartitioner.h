@@ -116,7 +116,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           is_upper_bound_released = true;
           for (PartitionID part = 0; part < _config.initial_partitioning.k;
                ++part) {
-            if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part)) {
+            if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part)
+            		&& _hg.partWeight(part) < _config.initial_partitioning.upper_allowed_partition_weight[part]) {
               if(_pq.size(part) == 0) {
             	  insertUnassignedHypernodeIntoPQ(part);
               } else {
@@ -130,6 +131,14 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           break;
         }
       }
+
+     /* for(PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
+    	  std::cout << _hg.partWeight(part) << "(" << _pq.size(part) << "," << _pq.isEnabled(part) << ",";
+    	  if(_pq.size(part) > 0)
+    		  std::cout << _pq.maxKey(part);
+    	  std::cout << ") ";
+      }
+      std::cout << std::endl;*/
 
       ASSERT(current_hn < _hg.numNodes(), "Current Hypernode " << current_hn << " is not a valid hypernode!");
       ASSERT(current_id != -1, "Part " << current_id << " is no valid part!");

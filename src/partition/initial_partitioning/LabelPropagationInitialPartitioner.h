@@ -65,7 +65,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
     int assigned_nodes = 0;
     int lambda = 1;
-    int connected_nodes = 5;
+    int connected_nodes = std::max(std::min(5,static_cast<int>(_hg.numNodes()/_config.initial_partitioning.k)),1);
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _hg,
                                             lambda * _config.initial_partitioning.k);
@@ -143,18 +143,16 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       // If the algorithm is converged but there are still unassigned hypernodes left, we try to choose
       // five additional hypernodes and assign them to the part with minimum weight to continue with
       // Label Propagation.
-      int assign_unassigned_node_count = 5;
+      size_t assign_unassigned_node_count = 5;
       if (converged && assigned_nodes < _hg.numNodes()) {
-        for (HypernodeID hn : nodes) {
-          if (_hg.partID(hn) == -1) {
+        for (size_t i = 0; i < assign_unassigned_node_count; ++i) {
+          	HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
+          	if(hn == kInvalidNode) {
+          		break;
+          	}
             assignHypernodeToPartWithMinimumPartWeight(hn);
             converged = false;
             assigned_nodes++;
-            assign_unassigned_node_count--;
-            if (!assign_unassigned_node_count) {
-              break;
-            }
-          }
         }
       }
     }
@@ -308,6 +306,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   FastResetBitVector<> _valid_parts;
   FastResetBitVector<> _in_queue;
   std::vector<Gain> _tmp_scores;
+  static const HypernodeID kInvalidNode =
+    std::numeric_limits<HypernodeID>::max();
 
   const double invalid_score_value = std::numeric_limits<double>::lowest();
 };
