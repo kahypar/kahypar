@@ -243,11 +243,12 @@ struct Configuration {
       current_v_cycle(0),
       epsilon(1.0),
       hmetis_ub_factor(-1.0),
-      perfect_balance_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
-              std::numeric_limits<HypernodeWeight>::max()
+      perfect_balance_part_weights({
+        std::numeric_limits<HypernodeWeight>::max(),
+        std::numeric_limits<HypernodeWeight>::max()
       }),
       max_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
-              std::numeric_limits<HypernodeWeight>::max() }),
+                         std::numeric_limits<HypernodeWeight>::max() }),
       total_graph_weight(0),
       hyperedge_size_threshold(-1),
       remove_hes_that_always_will_be_cut(false),
