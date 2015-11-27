@@ -24,7 +24,6 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
-#include "partition/refinement/HypernodeStateVector.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
@@ -67,7 +66,6 @@ class TwoWayFMRefiner final : public IRefiner,
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq(2),
-    _hn_state(_hg.initialNumNodes()),
     _he_fully_active(_hg.initialNumEdges(), false),
     _hns_in_activation_vector(_hg.initialNumNodes(), false),
     _performed_moves(),
@@ -94,26 +92,25 @@ class TwoWayFMRefiner final : public IRefiner,
   void activate(const HypernodeID hn,
                 const std::array<HypernodeWeight, 2>& max_allowed_part_weights) noexcept {
     if (_hg.isBorderNode(hn)) {
-      const PartitionID target_part = _hg.partID(hn) ^ 1;
-      ASSERT(!_hn_state.active(hn), V(hn));
-      ASSERT(!_hn_state.marked(hn), "Hypernode" << hn << " is already marked");
-      ASSERT(!_pq.contains(hn, target_part),
-             "HN " << hn << " is already contained in PQ " << target_part);
+      ASSERT(!_hg.active(hn), V(hn));
+      ASSERT(!_hg.marked(hn), "Hypernode" << hn << " is already marked");
+      ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)),
+             "HN " << hn << " is already contained in PQ " << 1 - _hg.partID(hn));
       DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain " << computeGain(hn)
-          << " in PQ " << target_part);
+          << " in PQ " << 1 - _hg.partID(hn));
 
       if (_gain_cache[hn] == kNotCached) {
         _gain_cache[hn] = computeGain(hn);
       }
       ASSERT(_gain_cache[hn] == computeGain(hn),
              V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
-      _pq.insert(hn, target_part, _gain_cache[hn]);
-      if (_hg.partWeight(target_part) < max_allowed_part_weights[target_part]) {
-        _pq.enablePart(target_part);
+      _pq.insert(hn, 1 - _hg.partID(hn), _gain_cache[hn]);
+      if (_hg.partWeight(1 - _hg.partID(hn)) < max_allowed_part_weights[1 - _hg.partID(hn)]) {
+        _pq.enablePart(1 - _hg.partID(hn));
       }
       // mark HN as just activated to prevent delta-gain updates in current
       // updateNeighbours call, because we just calculated the correct gain values.
-      _hn_state.activate(hn);
+      _hg.activate(hn);
     }
   }
 
@@ -176,7 +173,7 @@ class TwoWayFMRefiner final : public IRefiner,
            "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
            << " by hypergraph " << metrics::imbalance(_hg, _config));
     _pq.clear();
-    _hn_state.reset();
+    _hg.resetHypernodeState();
     _he_fully_active.resetAllBitsToFalse();
     _locked_hes.resetUsedEntries();
 
@@ -239,7 +236,7 @@ class TwoWayFMRefiner final : public IRefiner,
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
           << " target_part=" << to_part);
-      ASSERT(!_hn_state.marked(max_gain_node),
+      ASSERT(!_hg.marked(max_gain_node),
              "HN " << max_gain_node << "is marked and not eligable to be moved");
       ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain caculation: " <<
              "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
@@ -258,7 +255,7 @@ class TwoWayFMRefiner final : public IRefiner,
           << " to " << to_part << " (weight=" << _hg.nodeWeight(max_gain_node) << ")");
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
-      _hn_state.mark(max_gain_node);
+      _hg.mark(max_gain_node);
 
       if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
         _pq.disablePart(to_part);
@@ -374,7 +371,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
     for (const HypernodeID hn : _hns_to_activate) {
-      ASSERT(!_hn_state.active(hn), V(hn));
+      ASSERT(!_hg.active(hn), V(hn));
       activate(hn, max_allowed_part_weights);
     }
     _hns_to_activate.clear();
@@ -401,12 +398,12 @@ class TwoWayFMRefiner final : public IRefiner,
           }
           return true;
         } (), V(hn) << " is no internal node!");
-      if (_hn_state.active(hn)) {
+      if (_hg.active(hn)) {
         ASSERT(_pq.contains(hn, (_hg.partID(hn) ^ 1)), V(hn) << V((_hg.partID(hn) ^ 1)));
         // This invalidation is not necessary since the cached gain will stay up-to-date
         // _gain_cache[pin] = kNotCached;
         _pq.remove(hn, (_hg.partID(hn) ^ 1));
-        _hn_state.deactivate(hn);
+        _hg.deactivate(hn);
       }
     }
     _non_border_hns_to_remove.clear();
@@ -417,15 +414,15 @@ class TwoWayFMRefiner final : public IRefiner,
             const PartitionID other_part = _hg.partID(pin) ^ 1;
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
-              if (_pq.contains(pin, other_part) || _hn_state.active(pin)) {
+              if (_pq.contains(pin, other_part) || _hg.active(pin)) {
                 LOG("HN " << pin << " should not be contained in PQ");
                 return false;
               }
             } else {
               // HN is border HN
               if (_pq.contains(pin, other_part)) {
-                ASSERT(_hn_state.active(pin), "HN " << pin << " is in PQ but not active");
-                ASSERT(!_hn_state.marked(pin),
+                ASSERT(_hg.active(pin), "HN " << pin << " is in PQ but not active");
+                ASSERT(!_hg.marked(pin),
                        "HN " << pin << " should not be in PQ, because it is already marked");
                 if (_pq.key(pin, other_part) != computeGain(pin)) {
                   LOG("Incorrect gain for HN " << pin);
@@ -435,7 +432,7 @@ class TwoWayFMRefiner final : public IRefiner,
                   LOG("to part = " << other_part);
                   return false;
                 }
-              } else if (!_hn_state.marked(pin)) {
+              } else if (!_hg.marked(pin)) {
                 LOG("HN " << pin << " not in PQ, but also not marked!");
                 return false;
               }
@@ -458,16 +455,16 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.isEnabled(1) : !_pq.isEnabled(1)), V(1));
   }
 
-  void updateGainCache(const HypernodeID pin, const Gain gain_delta) {
+  void updateGainCache(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
     _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
   }
 
   void performNonZeroFullUpdate(const HypernodeID pin, const Gain gain_delta,
-                                HypernodeID& num_active_pins) {
+                                HypernodeID& num_active_pins) noexcept __attribute__ ((always_inline)) {
     ASSERT(gain_delta != 0, " No 0-delta gain updates allowed");
-    if (!_hn_state.marked(pin)) {
-      if (!_hn_state.active(pin)) {
+    if (!_hg.marked(pin)) {
+      if (!_hg.active(pin)) {
         if (!_hns_in_activation_vector[pin]) {
           ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
           ++num_active_pins;  // since we do lazy activation!
@@ -481,29 +478,6 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
     updateGainCache(pin, gain_delta);
-  }
-
-  void performFullUpdate(const HypernodeID pin, const Gain gain_delta,
-                         HypernodeID& num_active_pins) {
-    if (!_hn_state.marked(pin)) {
-      if (!_hn_state.active(pin)) {
-        if (!_hns_in_activation_vector[pin]) {
-          ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
-          ++num_active_pins;  // since we do lazy activation!
-          _hns_to_activate.push_back(pin);
-          _hns_in_activation_vector.setBit(pin, true);
-        }
-      } else {
-        if (gain_delta != 0) {
-          updatePin(pin, gain_delta);
-        }
-        ++num_active_pins;
-        return;    // caching is done in updatePin in this case
-      }
-    }
-    if (gain_delta != 0) {
-      updateGainCache(pin, gain_delta);
-    }
   }
 
   // Full update includes:
@@ -550,22 +524,35 @@ class TwoWayFMRefiner final : public IRefiner,
         for (const HypernodeID pin : _hg.pins(he)) {
           // factor is unfortunately necessary because we need to iterate over all pins
           // since we night find new nodes for activation.
-          Gain factor = 0;
-          if (_hg.partID(pin) == from_part) {
-            if (increase_necessary) {
-              // Before move, there were two pins (moved_node and the current pin) in from_part.
-              // After moving moved_node to to_part, the gain of the remaining pin in
-              // from_part increases by w(he).
-              factor = 1;
+
+          // Before move, there were two pins (moved_node and the current pin) in from_part.
+          // After moving moved_node to to_part, the gain of the remaining pin in
+          // from_part increases by w(he).
+          Gain factor = _hg.partID(pin) == from_part && increase_necessary ? 1 : 0;
+          // Before move, pin was the only HN in to_part. It thus had a
+          // positive gain, because moving it to from_part would have removed
+          // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
+          // because now there are pins in both parts.
+          factor = _hg.partID(pin) != from_part && decrease_necessary ? -1 : factor;
+          if (!_hg.marked(pin)) {
+            if (!_hg.active(pin)) {
+              if (!_hns_in_activation_vector[pin]) {
+                ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+                ++num_active_pins;  // since we do lazy activation!
+                _hns_to_activate.push_back(pin);
+                _hns_in_activation_vector.setBit(pin, true);
+              }
+            } else {
+              if (factor != 0) {
+                updatePin(pin, factor * he_weight);
+              }
+              ++num_active_pins;
+              continue;    // caching is done in updatePin in this case
             }
-          } else if (decrease_necessary) {
-            // Before move, pin was the only HN in to_part. It thus had a
-            // positive gain, because moving it to from_part would have removed
-            // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
-            // because now there are pins in both parts.
-            factor = -1;
           }
-          performFullUpdate(pin, factor * he_weight, num_active_pins);
+          if (factor != 0) {
+            updateGainCache(pin, factor * he_weight);
+          }
         }
       }
       _he_fully_active.setBit(he, (_hg.edgeSize(he) == num_active_pins));
@@ -593,7 +580,7 @@ class TwoWayFMRefiner final : public IRefiner,
       if (_hg.edgeSize(he) == 2) {
         for (const HypernodeID pin : _hg.pins(he)) {
           const char factor = (_hg.partID(pin) == from_part ? 2 : -2);
-          if (!_hn_state.marked(pin)) {
+          if (!_hg.marked(pin)) {
             updatePin(pin, factor * he_weight);
             continue;      // caching is done in updatePin in this case
           }
@@ -601,7 +588,7 @@ class TwoWayFMRefiner final : public IRefiner,
         }
       } else if (he_became_cut_he) {
         for (const HypernodeID pin : _hg.pins(he)) {
-          if (!_hn_state.marked(pin)) {
+          if (!_hg.marked(pin)) {
             updatePin(pin, he_weight);
             continue;      // caching is done in updatePin in this case
           }
@@ -609,7 +596,7 @@ class TwoWayFMRefiner final : public IRefiner,
         }
       } else if (he_became_internal_he) {
         for (const HypernodeID pin : _hg.pins(he)) {
-          if (!_hn_state.marked(pin)) {
+          if (!_hg.marked(pin)) {
             updatePin(pin, -he_weight);
             continue;      // caching is done in updatePin in this case
           }
@@ -619,7 +606,7 @@ class TwoWayFMRefiner final : public IRefiner,
         for (const HypernodeID pin : _hg.pins(he)) {
           if (_hg.partID(pin) == from_part) {
             if (increase_necessary) {
-              if (!_hn_state.marked(pin)) {
+              if (!_hg.marked(pin)) {
                 updatePin(pin, he_weight);
                 // break;      // caching is done in updatePin in this case
               } else {
@@ -627,7 +614,7 @@ class TwoWayFMRefiner final : public IRefiner,
               }
             }
           } else if (decrease_necessary) {
-            if (!_hn_state.marked(pin)) {
+            if (!_hg.marked(pin)) {
               updatePin(pin, -he_weight);
               // break;    // caching is done in updatePin in this case
             } else {
@@ -689,12 +676,12 @@ class TwoWayFMRefiner final : public IRefiner,
 #endif
   }
 
-  void updatePin(const HypernodeID pin, const Gain gain_delta) noexcept {
+  void updatePin(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
     const PartitionID target_part = _hg.partID(pin) ^ 1;
-    ASSERT(_hn_state.active(pin), V(pin) << V(target_part));
+    ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
     ASSERT(gain_delta != 0, V(gain_delta));
-    ASSERT(!_hn_state.marked(pin),
+    ASSERT(!_hg.marked(pin),
            " Trying to update marked HN " << pin << " in PQ " << target_part);
     // New version actually updates them but removes them afterwards at the end of updateNeighbours
     // ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " PQ=" << target_part);
@@ -735,7 +722,6 @@ class TwoWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   KWayRefinementPQ _pq;
-  HypernodeStateVector<> _hn_state;
   FastResetBitVector<> _he_fully_active;
   FastResetBitVector<> _hns_in_activation_vector;
   std::vector<HypernodeID> _performed_moves;
