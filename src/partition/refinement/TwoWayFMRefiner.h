@@ -585,7 +585,7 @@ class TwoWayFMRefiner final : public IRefiner,
          // he is locked
          DBG(dbg_refinement_2way_locked_hes, he << " is locked");
          // In case of 2-FM, nothing to do here except keeping the cache up to date
-         deltaUpdate</* no rebalacing update */false, /* update pq */true>(from_part, to_part, he);
+         deltaUpdate</*rebalacing update */false, /*update pq */false>(from_part, to_part, he);
        }
     }
 
