@@ -59,7 +59,7 @@ class TwoWayFMRefiner final : public IRefiner,
  private:
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
-  using RebalancePQ = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight, std::numeric_limits<HyperedgeWeight>>;
+  using RebalancePQ = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight, std::numeric_limits<HyperedgeWeight> >;
 
   static constexpr char kLocked = std::numeric_limits<char>::max();
   static const char kFree = std::numeric_limits<char>::max() - 1;
@@ -69,7 +69,7 @@ class TwoWayFMRefiner final : public IRefiner,
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq(2),
-    _rebalance_pqs({RebalancePQ(_hg.numNodes()), RebalancePQ(_hg.numNodes())}),
+    _rebalance_pqs({ RebalancePQ(_hg.numNodes()), RebalancePQ(_hg.numNodes()) }),
     _he_fully_active(_hg.initialNumEdges(), false),
     _hns_in_activation_vector(_hg.initialNumNodes(), false),
     _performed_moves(),
@@ -86,8 +86,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _delta_gain_support = true;
   }
 
-  virtual ~TwoWayFMRefiner() {
-  }
+  virtual ~TwoWayFMRefiner() { }
 
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;
@@ -195,7 +194,7 @@ class TwoWayFMRefiner final : public IRefiner,
         _gain_cache[refinement_nodes[1]] = _gain_cache[refinement_nodes[0]] + changes.second;
         _gain_cache[refinement_nodes[0]] += changes.first;
         _rebalance_pqs[1 - _hg.partID(refinement_nodes[0])].updateKeyBy(refinement_nodes[0], changes.first);
-        _rebalance_pqs[1 - _hg.partID(refinement_nodes[1])].push(refinement_nodes[1],  _gain_cache[refinement_nodes[1]]);
+        _rebalance_pqs[1 - _hg.partID(refinement_nodes[1])].push(refinement_nodes[1], _gain_cache[refinement_nodes[1]]);
       }
     }
 
@@ -328,9 +327,8 @@ class TwoWayFMRefiner final : public IRefiner,
         const bool imbalanced_part = part_0_imbalanced ? 0 : 1;
         const bool rebalance_to_part = 1 - imbalanced_part;
         Gain rebalance_gain = 1;
-        while (rebalance_gain >= 0 && !_rebalance_pqs[rebalance_to_part].empty()
-               && imbalance_before_move > imbalance_after_move) {
-
+        while (rebalance_gain >= 0 && !_rebalance_pqs[rebalance_to_part].empty() &&
+               imbalance_before_move > imbalance_after_move) {
           imbalance_before_move = current_imbalance;
 
           rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
@@ -357,7 +355,7 @@ class TwoWayFMRefiner final : public IRefiner,
           ASSERT(rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
                  << V(rebalance_gain) << V(computeGain(max_gain_node)));
 
-          _hg.changeNodePart(max_gain_node,from_part ,to_part , _non_border_hns_to_remove);
+          _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
           _hg.markRebalanced(max_gain_node);
 
           ASSERT(-rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
@@ -387,7 +385,6 @@ class TwoWayFMRefiner final : public IRefiner,
           if (!_rebalance_pqs[rebalance_to_part].empty()) {
             rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
           }
-
         }
       }
 
@@ -438,12 +435,12 @@ class TwoWayFMRefiner final : public IRefiner,
         }
         return true;
       } (), "GainCache Invalid");
-    ASSERT([&](){
-        for(const HypernodeID hn : _hg.nodes()) {
+    ASSERT([&]() {
+        for (const HypernodeID hn : _hg.nodes()) {
           ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
         }
         return true;
-      }(),"Rebalance PQ inconsistent");
+      } (), "Rebalance PQ inconsistent");
 
     // This currently cannot be guaranteed in case k!=2^x, because initial partitioner might create
     // a bipartition which is balanced regarding epsilon, but not regarding the targeted block
@@ -484,7 +481,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void selectRebalanceMove(HypernodeID& max_gain_node, Gain& max_gain, PartitionID& to_part)
-      const {
+  const {
     // new selection
     const bool rebalance_pq0_empty = _rebalance_pqs[0].empty();
     const bool rebalance_pq1_empty = _rebalance_pqs[1].empty();
@@ -521,7 +518,6 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
 
-
   // Special update of neighboring HNs for rebalacing moves. In order to not interfere with
   // local search itself, this method does NOT activate new nodes for local search.
   // However it removes internal nodes from the local search PQ since they become invalid.
@@ -551,7 +547,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
 
     _gain_cache[moved_hn] = -temp;
-    ASSERT(!_rebalance_pqs[from_part].contains(moved_hn)  &&
+    ASSERT(!_rebalance_pqs[from_part].contains(moved_hn) &&
            !_rebalance_pqs[to_part].contains(moved_hn), V(moved_hn));
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
@@ -612,32 +608,32 @@ class TwoWayFMRefiner final : public IRefiner,
     const Gain rb_delta = _rollback_delta_cache.get(moved_hn);
     _gain_cache[moved_hn] = kNotCached;
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-       if (_locked_hes.get(he) != kLocked) {
-         if (_locked_hes.get(he) == to_part) {
-           // he is loose
-           deltaUpdate(from_part, to_part, he);
-           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " maintained state: loose");
-         } else if (_locked_hes.get(he) == kFree) {
-           // he is free.
-           fullUpdate(from_part, to_part, he);
-           _locked_hes.set(he, to_part);
-           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: free -> loose");
-         } else {
-           // he is loose and becomes locked after the move
-           fullUpdate(from_part, to_part, he);
-           _locked_hes.uncheckedSet(he, kLocked);
-           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
-         }
-       } else {
-         // he is locked
-         DBG(dbg_refinement_2way_locked_hes, he << " is locked");
-         // In case of 2-FM, nothing to do here except keeping the cache up to date
-         deltaUpdate</*rebalacing update */false, /*update pq */false>(from_part, to_part, he);
-       }
+      if (_locked_hes.get(he) != kLocked) {
+        if (_locked_hes.get(he) == to_part) {
+          // he is loose
+          deltaUpdate(from_part, to_part, he);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " maintained state: loose");
+        } else if (_locked_hes.get(he) == kFree) {
+          // he is free.
+          fullUpdate(from_part, to_part, he);
+          _locked_hes.set(he, to_part);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: free -> loose");
+        } else {
+          // he is loose and becomes locked after the move
+          fullUpdate(from_part, to_part, he);
+          _locked_hes.uncheckedSet(he, kLocked);
+          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
+        }
+      } else {
+        // he is locked
+        DBG(dbg_refinement_2way_locked_hes, he << " is locked");
+        // In case of 2-FM, nothing to do here except keeping the cache up to date
+        deltaUpdate<  /*rebalacing update */ false,  /*update pq */ false>(from_part, to_part, he);
+      }
     }
 
     _gain_cache[moved_hn] = -temp;
-    ASSERT(!_rebalance_pqs[from_part].contains(moved_hn)  &&
+    ASSERT(!_rebalance_pqs[from_part].contains(moved_hn) &&
            !_rebalance_pqs[to_part].contains(moved_hn), V(moved_hn));
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
@@ -964,7 +960,7 @@ class TwoWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
   KWayRefinementPQ _pq;
-  std::array<RebalancePQ,2> _rebalance_pqs;
+  std::array<RebalancePQ, 2> _rebalance_pqs;
   FastResetBitVector<> _he_fully_active;
   FastResetBitVector<> _hns_in_activation_vector;
   std::vector<HypernodeID> _performed_moves;
