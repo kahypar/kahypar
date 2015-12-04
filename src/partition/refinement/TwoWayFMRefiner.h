@@ -243,77 +243,35 @@ class TwoWayFMRefiner final : public IRefiner,
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
 
-      // new selection
-      const bool rebalance_pq0_empty = _rebalance_pqs[0].empty();
-      const bool rebalance_pq1_empty = _rebalance_pqs[1].empty();
+      selectRebalanceMove(max_gain_node, max_gain, to_part);
 
-      if (rebalance_pq0_empty && !rebalance_pq1_empty) {
-        max_gain = _rebalance_pqs[1].getMaxKey();
-        max_gain_node = _rebalance_pqs[1].getMax();
-        to_part = 1;
-      } else if (!rebalance_pq0_empty && rebalance_pq1_empty) {
-        max_gain = _rebalance_pqs[0].getMaxKey();
-        max_gain_node = _rebalance_pqs[0].getMax();
-        to_part = 0;
-      } else if (!rebalance_pq0_empty && !rebalance_pq1_empty) {
-        if (_rebalance_pqs[0].getMaxKey() > _rebalance_pqs[1].getMaxKey()) {
-          max_gain = _rebalance_pqs[0].getMaxKey();
-          max_gain_node = _rebalance_pqs[0].getMax();
-          to_part = 0;
-        } else if (_rebalance_pqs[0].getMaxKey() == _rebalance_pqs[1].getMaxKey()) {
-          if (_hg.partWeight(0) > _hg.partWeight(1)) {
-            max_gain = _rebalance_pqs[1].getMaxKey();
-            max_gain_node = _rebalance_pqs[1].getMax();
-            to_part = 1;
-          } else {
-            max_gain = _rebalance_pqs[0].getMaxKey();
-            max_gain_node = _rebalance_pqs[0].getMax();
-            to_part = 0;
-          }
-        } else {
-          max_gain = _rebalance_pqs[1].getMaxKey();
-          max_gain_node = _rebalance_pqs[1].getMax();
-          to_part = 1;
-        }
-      }
-
-
-      // If we choose a move from the rebalance PQ, it has to be outside
-      // of the local search search space!
+      // A rebalance move has to be outside of the local search search space!
       ASSERT(max_gain_node == kInvalidHN || !_hg.active(max_gain_node), V(max_gain_node));
       ASSERT(max_gain_node == kInvalidHN || !_hg.marked(max_gain_node), V(max_gain_node));
 
       bool used_rebalance_pqs = false;
 
       if (max_gain <= 0 || max_gain < _pq.maxKey()) {
-        //LOG("switching to actual local PQ!!!!!!!!");
         _pq.deleteMax(max_gain_node, max_gain, to_part);
-        //LOG(V(max_gain_node) << V(max_gain) << V(to_part));
-        //ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+        ASSERT(!_rebalance_pqs[to_part].contains(max_gain_node), V(max_gain_node));
       } else {
         if (_hg.active(max_gain_node)) {
-          //LOG("============== removing:" << max_gain_node);
           _pq.remove(max_gain_node, to_part);
         }
+        _rebalance_pqs[to_part].deleteNode(max_gain_node);
+        _disabled_rebalance_hns.push_back(max_gain_node);
         used_rebalance_pqs = true;
       }
 
       PartitionID from_part = _hg.partID(max_gain_node);
-
-      if (used_rebalance_pqs) {
-        _rebalance_pqs[to_part].deleteNode(max_gain_node);
-        _disabled_rebalance_hns.push_back(max_gain_node);
-      } else {
-        ASSERT(!_rebalance_pqs[to_part].contains(max_gain_node), V(max_gain_node));
-      }
-
-      //LOG("pushing " << max_gain_node << " into rebalance PQ " << from_part << " gain: " << -max_gain);
 
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
           << " target_part=" << to_part);
       ASSERT(!_hg.marked(max_gain_node),
              "HN " << max_gain_node << "is marked and not eligible to be moved");
+      ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+
       ASSERT(max_gain == computeGain(max_gain_node), "Inconsistent gain calculation: " <<
              "expected g(" << max_gain_node << ")=" << computeGain(max_gain_node) <<
              " - got g(" << max_gain_node << ")=" << max_gain);
@@ -334,14 +292,6 @@ class TwoWayFMRefiner final : public IRefiner,
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
-      // TODO(schlag): This has to be refactored!
-      if (used_rebalance_pqs) {
-        _hg.markRebalanced(max_gain_node);
-      } else {
-        _hg.mark(max_gain_node);
-      }
-
-
       if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
         _pq.disablePart(to_part);
       }
@@ -357,10 +307,13 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
 
-      // TODO(schlag): This has to be refactored!
       if (used_rebalance_pqs) {
+        // markRebalanced does not assert prior activation, since rebalance moves are not active
+        // in local search
+        _hg.markRebalanced(max_gain_node);
         updateNeighboursAfterRebalaceMove(max_gain_node, from_part, to_part, max_allowed_part_weights);
       } else {
+        _hg.mark(max_gain_node);
         updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
       }
 
@@ -526,6 +479,43 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
     _non_border_hns_to_remove.clear();
+  }
+
+  void selectRebalanceMove(HypernodeID& max_gain_node, Gain& max_gain, PartitionID& to_part)
+      const {
+    // new selection
+    const bool rebalance_pq0_empty = _rebalance_pqs[0].empty();
+    const bool rebalance_pq1_empty = _rebalance_pqs[1].empty();
+
+    if (rebalance_pq0_empty && !rebalance_pq1_empty) {
+      max_gain = _rebalance_pqs[1].getMaxKey();
+      max_gain_node = _rebalance_pqs[1].getMax();
+      to_part = 1;
+    } else if (!rebalance_pq0_empty && rebalance_pq1_empty) {
+      max_gain = _rebalance_pqs[0].getMaxKey();
+      max_gain_node = _rebalance_pqs[0].getMax();
+      to_part = 0;
+    } else if (!rebalance_pq0_empty && !rebalance_pq1_empty) {
+      if (_rebalance_pqs[0].getMaxKey() > _rebalance_pqs[1].getMaxKey()) {
+        max_gain = _rebalance_pqs[0].getMaxKey();
+        max_gain_node = _rebalance_pqs[0].getMax();
+        to_part = 0;
+      } else if (_rebalance_pqs[0].getMaxKey() == _rebalance_pqs[1].getMaxKey()) {
+        if (_hg.partWeight(0) > _hg.partWeight(1)) {
+          max_gain = _rebalance_pqs[1].getMaxKey();
+          max_gain_node = _rebalance_pqs[1].getMax();
+          to_part = 1;
+        } else {
+          max_gain = _rebalance_pqs[0].getMaxKey();
+          max_gain_node = _rebalance_pqs[0].getMax();
+          to_part = 0;
+        }
+      } else {
+        max_gain = _rebalance_pqs[1].getMaxKey();
+        max_gain_node = _rebalance_pqs[1].getMax();
+        to_part = 1;
+      }
+    }
   }
 
 
