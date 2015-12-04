@@ -337,7 +337,8 @@ class TwoWayFMRefiner final : public IRefiner,
           max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
 
           if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
-              > _config.partition.max_part_weights[rebalance_to_part]) {
+              > _config.partition.max_part_weights[rebalance_to_part] ||
+              rebalance_gain < 0) {
             break;
           }
 
@@ -369,6 +370,7 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.enablePart(from_part);
           }
 
+          ASSERT(rebalance_gain >= 0, V(rebalance_gain));
           current_cut -= rebalance_gain;
           ASSERT(current_cut == metrics::hyperedgeCut(_hg),
                  V(current_cut) << V(metrics::hyperedgeCut(_hg)));
