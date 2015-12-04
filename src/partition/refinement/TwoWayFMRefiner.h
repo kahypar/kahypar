@@ -260,12 +260,21 @@ class TwoWayFMRefiner final : public IRefiner,
           max_gain = _rebalance_pqs[0].getMaxKey();
           max_gain_node = _rebalance_pqs[0].getMax();
           to_part = 0;
+        } else if (_rebalance_pqs[0].getMaxKey() == _rebalance_pqs[1].getMaxKey()) {
+          if (_hg.partWeight(0) > _hg.partWeight(1)) {
+            max_gain = _rebalance_pqs[1].getMaxKey();
+            max_gain_node = _rebalance_pqs[1].getMax();
+            to_part = 1;
+          } else {
+            max_gain = _rebalance_pqs[0].getMaxKey();
+            max_gain_node = _rebalance_pqs[0].getMax();
+            to_part = 0;
+          }
         } else {
           max_gain = _rebalance_pqs[1].getMaxKey();
           max_gain_node = _rebalance_pqs[1].getMax();
           to_part = 1;
         }
-        // TODO(schlag): Third alternative: Move to lesser balanced part!!!!!!
       }
 
 
