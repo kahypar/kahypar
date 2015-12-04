@@ -86,10 +86,9 @@ class NoDataBinaryMaxHeap {
 
   // push an element onto the heap
   inline void push(const id_slot& id, const key_slot& key) noexcept {
-    GUARANTEE(!contains(id), std::runtime_error,
-              "[error] BinaryHeap::push - pushing already contained element")
-    GUARANTEE(next_slot + 1 <= max_size,
-              std::runtime_error, "[error] BinaryHeap::push - heap size overflow")
+    ASSERT(!contains(id), "pushing already contained element" << id);
+    ASSERT(next_slot + 1 <= max_size, "heap size overflow");
+
     const size_t handle = next_slot++;
     heap[handle] = HeapElement(key, id);
     handles[id] = handle;
@@ -101,8 +100,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void deleteMax() noexcept {
-    GUARANTEE(!empty(), std::runtime_error,
-              "[error] BinaryHeap::deleteMin - Deleting from empty heap")
+    ASSERT(!empty(), "Deleting from empty heap");
+
     const size_t max_handle = handles[heap[1].id];
     const size_t swap_handle = next_slot - 1;
     handles[heap[swap_handle].id] = 1;
@@ -117,7 +116,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void deleteNode(const id_slot& id) noexcept {
-    GUARANTEE(contains(id), std::runtime_error, "[error] trying to delete element not in heap.")
+    ASSERT(contains(id), "trying to delete element not in heap: " << id);
+
     const size_t node_handle = handles[id];
     const size_t swap_handle = next_slot - 1;
     if (node_handle != swap_handle) {
@@ -138,26 +138,22 @@ class NoDataBinaryMaxHeap {
   }
 
   inline const id_slot & getMax() const noexcept {
-    GUARANTEE(!empty(), std::runtime_error,
-              "[error] BinaryHeap::getMin() - Requesting minimum of empty heap")
+    ASSERT(!empty(), "Requesting minimum of empty heap");
     return heap[1].id;
   }
 
   inline const key_slot & getMaxKey() const noexcept {
-    GUARANTEE(!empty(), std::runtime_error,
-              "[error] BinaryHeap::getMinKey() - Requesting minimum key of empty heap")
+    ASSERT(!empty(), "Requesting minimum key of empty heap");
     return heap[1].key;
   }
 
   inline const key_slot & getCurrentKey(const id_slot& id) const noexcept {
-    GUARANTEE(isReached(id), std::runtime_error,
-              "[error] BinaryHeap::getCurrentKey - Accessing invalid element")
+    ASSERT(isReached(id), "Accessing invalid element:" << id);
     return heap[handles[id]].key;
   }
 
   inline const key_slot & getKey(const id_slot& id) const noexcept {
-    GUARANTEE(isReached(id), std::runtime_error,
-              "[error] BinaryHeap::getCurrentKey - Accessing invalid element")
+    ASSERT(isReached(id), "Accessing invalid element:" << id);
     return heap[handles[id]].key;
   }
 
@@ -172,8 +168,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void decreaseKey(const id_slot& id, const key_slot& new_key) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::decreaseKey - Calling decreaseKey for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling decreaseKey for element not contained in Queue:" << id);
+
     const size_t handle = handles[id];
     heap[handle].key = new_key;
     downHeap(handle);
@@ -184,8 +180,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void increaseKey(const id_slot& id, const key_slot& new_key) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::increaseKey - Calling increaseKey for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling increaseKey for element not contained in Queue:" << id);
+
     const size_t handle = handles[id];
     heap[handle].key = new_key;
     upHeap(handle);
@@ -196,8 +192,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void updateKey(const id_slot& id, const key_slot& new_key) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::updateKey - Calling updateKey for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling updateKey for element not contained in Queue:" << id);
+
     const size_t handle = handles[id];
     if (new_key < heap[handle].key) {
       heap[handle].key = new_key;
@@ -213,8 +209,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void decreaseKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::decreaseKeyBy - Calling decreaseKeyBy for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling decreaseKeyBy for element not contained in Queue:" << id);
+
 #ifndef NDEBUG
     const key_slot old_key = heap[handles[id]].key;
 #endif
@@ -228,8 +224,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void increaseKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::increaseKeyBy - Calling increaseKeyBy for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling increaseKeyBy for element not contained in Queue:" << id);
+
 #ifndef NDEBUG
     const key_slot old_key = heap[handles[id]].key;
 #endif
@@ -243,8 +239,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void updateKeyBy(const id_slot& id, const key_slot& key_delta) noexcept {
-    GUARANTEE(contains(id), std::runtime_error,
-              "[error] BinaryHeap::updateKey - Calling updateKey for element not contained in Queue. Check with \"contains(id)\"")
+    ASSERT(contains(id), "Calling updateKeyBy for element not contained in Queue:" << id);
+
 #ifndef NDEBUG
     const key_slot old_key = heap[handles[id]].key;
 #endif
@@ -264,8 +260,7 @@ class NoDataBinaryMaxHeap {
   inline void clear() noexcept {
     handles.clear();
     next_slot = 1;  // remove anything but the sentinel
-    GUARANTEE(heap[0].key == meta_key_slot::max(),
-              std::runtime_error, "[error] BinaryHeap::clear missing sentinel")
+    ASSERT(heap[0].key == meta_key_slot::max(), "Sentinel element missing");
   }
 
   inline void clearHeap() noexcept {
@@ -278,16 +273,14 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void upHeap(size_t heap_position) noexcept {
-    GUARANTEE(0 != heap_position, std::runtime_error,
-              "[error] BinaryHeap::upHeap - calling upHeap for the sentinel")
-    GUARANTEE(next_slot > heap_position, std::runtime_error,
-              "[error] BinaryHeap::upHeap - position specified larger than heap size")
+    ASSERT(0 != heap_position, "calling upHeap for the sentinel");
+    ASSERT(next_slot > heap_position, "position specified larger than heap size");
+
     const key_slot rising_key = heap[heap_position].key;
     const id_slot rising_id = heap[heap_position].id;
     size_t next_position = heap_position >> 1;
     while (heap[next_position].key < rising_key) {
-      GUARANTEE(0 != next_position, std::runtime_error,
-                "[error] BinaryHeap::upHeap - swapping the sentinel, wrong meta key supplied")
+      ASSERT(0 != next_position, "swapping the sentinel, wrong meta key supplied");
       heap[heap_position] = heap[next_position];
       handles[heap[heap_position].id] = heap_position;
       heap_position = next_position;
@@ -302,10 +295,8 @@ class NoDataBinaryMaxHeap {
   }
 
   inline void downHeap(size_t heap_position) noexcept {
-    GUARANTEE(0 != heap_position, std::runtime_error,
-              "[error] BinaryHeap::downHeap - calling downHeap for the sentinel")
-    GUARANTEE(next_slot > heap_position, std::runtime_error,
-              "[error] BinaryHeap::downHeap - position specified larger than heap size")
+    ASSERT(0 != heap_position, "calling downHeap for the sentinel");
+    ASSERT(next_slot > heap_position, "position specified larger than heap size");
     const key_slot dropping_key = heap[heap_position].key;
     const id_slot dropping_id = heap[heap_position].id;
     const size_t heap_size = next_slot;
