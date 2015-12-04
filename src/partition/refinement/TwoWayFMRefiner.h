@@ -102,24 +102,20 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.marked(hn), "Hypernode" << hn << " is already marked");
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)),
              "HN " << hn << " is already contained in PQ " << 1 - _hg.partID(hn));
-      DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain " << computeGain(hn)
-          << " in PQ " << 1 - _hg.partID(hn));
-
-      if (_gain_cache[hn] == kNotCached) {
-        _gain_cache[hn] = computeGain(hn);
-      }
+      ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn) &&
+             _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn) == computeGain(hn), V(hn));
       ASSERT(_gain_cache[hn] == computeGain(hn), V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
+
+      DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain "
+          << computeGain(hn) << " in PQ " << 1 - _hg.partID(hn));
+
       _pq.insert(hn, 1 - _hg.partID(hn), _gain_cache[hn]);
       if (_hg.partWeight(1 - _hg.partID(hn)) < max_allowed_part_weights[1 - _hg.partID(hn)]) {
         _pq.enablePart(1 - _hg.partID(hn));
       }
-      // mark HN as just activated to prevent delta-gain updates in current
-      // updateNeighbours call, because we just calculated the correct gain values.
       _hg.activate(hn);
-      if (_rebalance_pqs[1 - _hg.partID(hn)].contains(hn)) {
-        _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
-        _disabled_rebalance_hns.push_back(hn);
-      }
+      _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+      _disabled_rebalance_hns.push_back(hn);
     }
   }
 
@@ -269,7 +265,7 @@ class TwoWayFMRefiner final : public IRefiner,
           max_gain_node = _rebalance_pqs[1].getMax();
           to_part = 1;
         }
-        // TODO(schlag): Third alternative: coinflip
+        // TODO(schlag): Third alternative: Move to lesser balanced part!!!!!!
       }
 
 
@@ -495,8 +491,11 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void restoreRebalancePQ() {
+    // TODO(schlag): Make sure we store each removed node only once!
     for (const HypernodeID hn : _disabled_rebalance_hns) {
-      _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      if (!_rebalance_pqs[1 - _hg.partID(hn)].contains(hn)) {
+        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      }
     }
     _disabled_rebalance_hns.clear();
   }
@@ -510,9 +509,11 @@ class TwoWayFMRefiner final : public IRefiner,
       // All other HNs contained in the vector have to be internal nodes.
       ASSERT(_hg.marked(hn) || !_hg.isBorderNode(hn), V(hn));
       if (_hg.active(hn)) {
-        ASSERT(_pq.contains(hn, (_hg.partID(hn) ^ 1)), V(hn) << V((_hg.partID(hn) ^ 1)));
+        ASSERT(_pq.contains(hn, (1 - _hg.partID(hn))), V(hn) << V((1 - _hg.partID(hn))));
+        ASSERT(!_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
         _pq.remove(hn, (_hg.partID(hn) ^ 1));
         _hg.deactivate(hn);
+        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
       }
     }
     _non_border_hns_to_remove.clear();
@@ -554,6 +555,47 @@ class TwoWayFMRefiner final : public IRefiner,
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
     removeInternalizedHns();
+
+    ASSERT([&]() {
+        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
+            const PartitionID other_part = _hg.partID(pin) ^ 1;
+            if (!_hg.isBorderNode(pin)) {
+              // The pin is an internal HN
+              ASSERT(!_pq.contains(pin, other_part), V(pin));
+              ASSERT(!_hg.active(pin), V(pin));
+            } else {
+              // HN is border HN
+              // Rebalance operations should not interfere with local search.
+              // Therefore rebalacing moves to not trigger new activations.
+              // However they can lead to delta-gain updates for local search
+              // moves.
+              ASSERT(!_hg.active(pin) || _pq.contains(pin, other_part), V(pin));
+              if (_pq.contains(pin, other_part)) {
+                ASSERT(!_hg.marked(pin),
+                       "HN " << pin << " should not be in PQ, because it is already marked");
+                ASSERT(_pq.key(pin, other_part) == computeGain(pin),
+                       V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
+                       << V(_hg.partID(pin)) << V(other_part));
+              }
+            }
+            // If the pin is either marked as moved or active, it should not be contained in the
+            // rebalacing PQ.
+            ASSERT(!_hg.active(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            ASSERT(!_hg.marked(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            // Gain calculation needs to be consistent in cache and rebalance pq
+            ASSERT((_gain_cache[pin] == kNotCached) || _gain_cache[pin] == computeGain(pin),
+                   V(pin) << V(_gain_cache[pin]) << V(computeGain(pin)));
+            // A HN that is neither active nor marked as moved should be available for rebalancing.
+            ASSERT(_hg.marked(pin) || _hg.active(pin) ||
+                   (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
+                    _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin)),
+                   V(pin) << V(_hg.marked(pin)) << V(_hg.active(pin))
+                   << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
+          }
+        }
+        return true;
+      } (), "UpdateNeighbors failed!");
 
     ASSERT((!_pq.empty(0) && _hg.partWeight(0) < max_allowed_part_weights[0] ?
             _pq.isEnabled(0) : !_pq.isEnabled(0)), V(0));
@@ -626,8 +668,8 @@ class TwoWayFMRefiner final : public IRefiner,
             } else {
               // HN is border HN
               // Border HNs should be contained in PQ or be marked
+              ASSERT(!_hg.active(pin) || _pq.contains(pin, other_part), V(pin));
               if (_pq.contains(pin, other_part)) {
-                ASSERT(_hg.active(pin), "HN " << pin << " is in PQ but not active");
                 ASSERT(!_hg.marked(pin),
                        "HN " << pin << " should not be in PQ, because it is already marked");
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
@@ -637,8 +679,19 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(true == false, "HN " << pin << " not in PQ, but also not marked!");
               }
             }
+            // If the pin is either marked as moved or active, it should not be contained in the
+            // rebalacing PQ.
+            ASSERT(!_hg.active(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            ASSERT(!_hg.marked(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            // Gain calculation needs to be consistent in cache and rebalance pq
             ASSERT((_gain_cache[pin] == kNotCached) || _gain_cache[pin] == computeGain(pin),
                    V(pin) << V(_gain_cache[pin]) << V(computeGain(pin)));
+            // A HN that is neither active nor marked as moved should be available for rebalancing.
+            ASSERT(_hg.marked(pin) || _hg.active(pin) ||
+                   (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
+                    _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin)),
+                   V(pin) << V(_hg.marked(pin)) << V(_hg.active(pin))
+                   << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
           }
         }
         return true;
