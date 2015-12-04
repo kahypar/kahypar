@@ -1,16 +1,6 @@
-/*
- * gain_computation_test.cc
- *
- *  Created on: 20.05.2015
- *      Author: theuer
- */
-
-/*
- * initial_partitioner_base_test.cc
- *
- *  Created on: Apr 17, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #include <map>
 #include <memory>
@@ -36,17 +26,16 @@ using datastructure::KWayPriorityQueue;
 using Gain = HyperedgeWeight;
 
 namespace partition {
-
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+                                           std::numeric_limits<HyperedgeWeight>,
+                                           ArrayStorage<HypernodeID>, true>;
 
 class AGainComputationPolicy : public Test {
  public:
   AGainComputationPolicy() :
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(
-      2) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(2) {
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
@@ -231,4 +220,4 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   ASSERT_EQ(pq.key(5, 0), 1);
   ASSERT_EQ(pq.key(6, 0), 2);
 }
-}
+}  // namespace partition

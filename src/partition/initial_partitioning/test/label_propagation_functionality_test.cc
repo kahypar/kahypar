@@ -1,13 +1,12 @@
-/*
- * label_propagation_partitioner_test.cc
- *
- *  Created on: 24.07.2015
- *      Author: theuer
- */
-#include "gmock/gmock.h"
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
+
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/io/HypergraphIO.h"
 #include "partition/Metrics.h"
@@ -69,7 +68,8 @@ class ALabelPropagationMaxGainMoveTest : public Test {
   Configuration config;
 };
 
-TEST_F(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned) {
+TEST_F(ALabelPropagationMaxGainMoveTest,
+       CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned) {
   hypergraph.setNodePart(1, 0);
   hypergraph.setNodePart(2, 1);
   hypergraph.setNodePart(3, 0);
@@ -81,7 +81,8 @@ TEST_F(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnUnassignedHyper
   ASSERT_EQ(max_move.second, -1);
 }
 
-TEST_F(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnAssignedHypernodeIfAllHypernodesAreAssigned) {
+TEST_F(ALabelPropagationMaxGainMoveTest,
+       CalculateMaxGainMoveOfAnAssignedHypernodeIfAllHypernodesAreAssigned) {
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
   hypergraph.setNodePart(2, 1);
@@ -94,7 +95,8 @@ TEST_F(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveOfAnAssignedHyperno
   ASSERT_EQ(max_move.second, 2);
 }
 
-TEST_F(ALabelPropagationMaxGainMoveTest, CalculateMaxGainMoveIfThereAStillUnassignedNodesOfAHyperedgeAreLeft) {
+TEST_F(ALabelPropagationMaxGainMoveTest,
+       CalculateMaxGainMoveIfThereAStillUnassignedNodesOfAHyperedgeAreLeft) {
   hypergraph.setNodePart(0, 0);
   hypergraph.setNodePart(1, 1);
   hypergraph.setNodePart(3, 1);
@@ -118,4 +120,4 @@ TEST_F(ALabelPropagationMaxGainMoveTest, MaxGainMoveIsAZeroGainMoveIfANetHasOnly
   ASSERT_EQ(max_move.first, 0);
   ASSERT_EQ(max_move.second, 0);
 }
-}
+}  // namespace partition

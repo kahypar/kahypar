@@ -1,9 +1,6 @@
-/*
- * RandomInitialPartitioner.h
- *
- *  Created on: Apr 3, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_
@@ -53,7 +50,8 @@ class RandomInitialPartitioner : public IInitialPartitioner,
                                     _config.initial_partitioning.k - 1);
       } while (!assignHypernodeToPartition(hn, p));
 
-      ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p << ", but is actually in " << _hg.partID(hn) << ".");
+      ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p
+             << ", but is actually in " << _hg.partID(hn) << ".");
     }
     _hg.initializeNumCutHyperedges();
     _config.initial_partitioning.unassigned_part = unassigned_part;
@@ -74,8 +72,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
-}
-;
-}
+};
+}  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_

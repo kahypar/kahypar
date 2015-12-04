@@ -1,15 +1,14 @@
-/*
- * BFSInitialPartitioning.h
- *
- *  Created on: Apr 12, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
 
 #include <algorithm>
+#include <limits>
 #include <queue>
+#include <vector>
 
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
@@ -67,7 +66,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         return true;
       } (),
            "Some hypernodes are missing into the queue!");
-
   }
 
 
@@ -76,7 +74,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::resetPartitioning();
 
     _queues.clear();
-    _queues.assign(_config.initial_partitioning.k,std::queue<HypernodeID>());
+    _queues.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
     // Initialize a vector for each partition, which indicate if a partition is
     // ready to receive further hypernodes.
@@ -175,6 +173,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   FastResetBitVector<> _hypernode_in_queue;
   FastResetBitVector<> _hyperedge_in_queue;
 };
-}
+}  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_

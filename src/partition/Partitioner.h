@@ -132,7 +132,8 @@ class Partitioner {
   inline void restoreLargeHyperedges(Hypergraph& hg,
                                      const Hyperedges& removed_hyperedges);
   inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                   CoarsenedToHmetisMapping& hg_to_hmetis, const Hypergraph& hg);
+                                                   CoarsenedToHmetisMapping& hg_to_hmetis,
+                                                   const Hypergraph& hg);
   void performInitialPartitioning(Hypergraph& hg,
                                   const Configuration& config);
   inline void removeParallelHyperedges(Hypergraph& hypergraph,
@@ -153,11 +154,14 @@ class Partitioner {
 
   inline Configuration createConfigurationForCurrentBisection(const Configuration& original_config,
                                                               const Hypergraph& original_hypergraph,
-                                                              const Hypergraph& current_hypergraph, const PartitionID current_k,
-                                                              const PartitionID k0, const PartitionID k1) const;
+                                                              const Hypergraph& current_hypergraph,
+                                                              const PartitionID current_k,
+                                                              const PartitionID k0,
+                                                              const PartitionID k1) const;
 
 
-  inline Configuration createConfigurationForInitialPartitioning(const Hypergraph& hg, const Configuration& original_config,
+  inline Configuration createConfigurationForInitialPartitioning(const Hypergraph& hg,
+                                                                 const Configuration& original_config,
                                                                  double init_alpha) const;
 
   std::string _internals;
@@ -223,8 +227,11 @@ inline void Partitioner::partition(Hypergraph& hypergraph,
 }
 
 inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph,
-                                         ICoarsener& coarsener, IRefiner& refiner, const Configuration& config,
-                                         const int vcycle, const PartitionID k1, const PartitionID k2) {
+                                         ICoarsener& coarsener,
+                                         IRefiner& refiner,
+                                         const Configuration& config,
+                                         const int vcycle, const PartitionID k1,
+                                         const PartitionID k2) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -253,7 +260,8 @@ inline HypernodeID Partitioner::originalHypernode(const HypernodeID hn,
 }
 
 inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight original_hypergraph_weight,
-                                                   const HypernodeWeight current_hypergraph_weight, const PartitionID k,
+                                                   const HypernodeWeight current_hypergraph_weight,
+                                                   const PartitionID k,
                                                    const Configuration& original_config) const {
   double base = ceil(
     static_cast<double>(original_hypergraph_weight)
@@ -265,8 +273,10 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
 
 inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config,
                                                                          const Hypergraph& original_hypergraph,
-                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k,
-                                                                         const PartitionID k0, const PartitionID k1) const {
+                                                                         const Hypergraph& current_hypergraph,
+                                                                         const PartitionID current_k,
+                                                                         const PartitionID k0,
+                                                                         const PartitionID k1) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
   current_config.partition.epsilon = calculateRelaxedEpsilon(
@@ -323,7 +333,8 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
   return current_config;
 }
 
-inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input_hypergraph, const Configuration& original_config) {
+inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input_hypergraph,
+                                                               const Configuration& original_config) {
   // Custom deleters for Hypergraphs stored in hypergraph_stack. The top-level
   // hypergraph is the input hypergraph, which is not supposed to be deleted.
   // All extracted hypergraphs however can be deleted as soon as they are not needed

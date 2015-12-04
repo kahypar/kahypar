@@ -1,15 +1,12 @@
-/*
- * bfs_partitioner_test.cc
- *
- *  Created on: 21.05.2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
-
-#include "gmock/gmock.h"
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/io/HypergraphIO.h"
 #include "partition/Metrics.h"
@@ -51,8 +48,10 @@ void initializeConfiguration(Configuration& config, PartitionID k,
       / static_cast<double>(config.initial_partitioning.k))
                                                                     * (1.0 + config.partition.epsilon);
   }
-  config.partition.perfect_balance_part_weights[0] = config.initial_partitioning.perfect_balance_partition_weight[0];
-  config.partition.perfect_balance_part_weights[1] = config.initial_partitioning.perfect_balance_partition_weight[1];
+  config.partition.perfect_balance_part_weights[0] =
+    config.initial_partitioning.perfect_balance_partition_weight[0];
+  config.partition.perfect_balance_part_weights[1] =
+    config.initial_partitioning.perfect_balance_partition_weight[1];
   config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
   config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
 }
@@ -138,7 +137,8 @@ TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
   }
 }
 
-TEST_F(ABFSBisectionInitialPartioner, HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
+TEST_F(ABFSBisectionInitialPartioner,
+       HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
   std::queue<HypernodeID> q;
   partitioner->_hypernode_in_queue.setBit(0, true);
   q.push(0);
@@ -187,7 +187,8 @@ TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
     }
   }
 
-  // No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+  // No partition weight should fall below under "lower_bound_factor"
+  // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
   for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
     ASSERT_GE(hypergraph->partWeight(k), (lower_bound_factor / 100.0) * heaviest_part);
@@ -210,4 +211,4 @@ TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
-}
+}  // namespace partition

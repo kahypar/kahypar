@@ -1,16 +1,13 @@
-/*
- * greedy_hypergraph_growing_test.cc
- *
- *  Created on: 21.05.2015
- *      Author: theuer
- */
-
-#include "gmock/gmock.h"
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
@@ -20,8 +17,8 @@
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 
 
 using::testing::Eq;
@@ -111,7 +108,8 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, TryingToInsertAHypernodeIntoTh
 }
 
 
-TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue) {
+TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
+       ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue) {
   ghg->insertNodeIntoPQ(2, 0, true);
   ghg->insertNodeIntoPQ(4, 0, true);
   ghg->insertNodeIntoPQ(6, 0, true);
@@ -175,7 +173,8 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGain
   ASSERT_EQ(ghg->_pq.key(4, 0), -1);
 }
 
-TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdateWithUnassignedPartMinusOne) {
+TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
+       ChecksCorrectMaxGainValueAfterDeltaGainUpdateWithUnassignedPartMinusOne) {
   hypergraph.resetPartitioning();
   config.initial_partitioning.unassigned_part = -1;
   ghg->insertNodeIntoPQ(2, 0);
@@ -220,7 +219,8 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(ghg->_pq.contains(6));
 }
 
-/*TEST_F(AGreedyHypergraphGrowingFunctionalityTest, CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
+/*TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
+      CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
   hypergraph.resetPartitioning();
   config.initial_partitioning.unassigned_part = -1;
 
@@ -237,4 +237,4 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(!ghg->_pq.contains(0, 0));
   ASSERT_TRUE(ghg->_pq.contains(0, 1));
 }*/
-}
+}  // namespace partition

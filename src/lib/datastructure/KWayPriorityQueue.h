@@ -28,7 +28,6 @@ template <typename IDType = Mandatory,
           typename MetaKey = Mandatory,
           typename Storage = ArrayStorage<IDType>,
           bool UseRandomTieBreaking = false>
-
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
   using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;

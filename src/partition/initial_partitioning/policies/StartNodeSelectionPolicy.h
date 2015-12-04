@@ -1,19 +1,17 @@
-/*
- * StartNodeSelectionPolicy.h
- *
- *  Created on: Apr 18, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/definitions.h"
-#include "tools/RandomFunctions.h"
 #include <algorithm>
 #include <queue>
 #include <vector>
+
+#include "lib/datastructure/FastResetBitVector.h"
+#include "lib/definitions.h"
+#include "tools/RandomFunctions.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -141,4 +139,4 @@ struct TestStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
 };
 }  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_

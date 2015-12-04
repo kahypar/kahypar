@@ -489,52 +489,71 @@ static Registrar<InitialPartitioningFactory> reg_bfs(
 static Registrar<InitialPartitioningFactory> reg_lp(
   InitialPartitionerAlgorithm::lp,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy>(hypergraph, config);
+  return new LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                FMGainComputationPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy(
   InitialPartitionerAlgorithm::greedy_sequential,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       FMGainComputationPolicy,
+                                                       SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global(
   InitialPartitionerAlgorithm::greedy_global,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       FMGainComputationPolicy,
+                                                       GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round(
   InitialPartitionerAlgorithm::greedy_round,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, FMGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       FMGainComputationPolicy,
+                                                       RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_maxpin(
   InitialPartitionerAlgorithm::greedy_sequential_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxPinGainComputationPolicy,
+                                                       SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global_maxpin(
   InitialPartitionerAlgorithm::greedy_global_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxPinGainComputationPolicy,
+                                                       GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round_maxpin(
   InitialPartitionerAlgorithm::greedy_round_maxpin,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxPinGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxPinGainComputationPolicy,
+                                                       RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_maxnet(
   InitialPartitionerAlgorithm::greedy_sequential_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, SequentialQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxNetGainComputationPolicy,
+                                                       SequentialQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_global_maxnet(
   InitialPartitionerAlgorithm::greedy_global_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, GlobalQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxNetGainComputationPolicy,
+                                                       GlobalQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_greedy_round_maxnet(
   InitialPartitionerAlgorithm::greedy_round_maxnet,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy, MaxNetGainComputationPolicy, RoundRobinQueueSelectionPolicy>(hypergraph, config);
+  return new GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                       MaxNetGainComputationPolicy,
+                                                       RoundRobinQueueSelectionPolicy>(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_pool(
   InitialPartitionerAlgorithm::pool,
@@ -544,56 +563,35 @@ static Registrar<InitialPartitioningFactory> reg_pool(
 
 int main(int argc, char* argv[]) {
   po::options_description desc("Allowed options");
-  desc.add_options()("help", "show help message")("verbose",
-                                                  po::value<bool>(), "Verbose partitioner output")("hgr",
-                                                                                                   po::value<std::string>(),
-                                                                                                   "Filename of the hypergraph to be partitioned")("k",
-                                                                                                                                                   po::value<PartitionID>(), "Number of partitions")("e",
-                                                                                                                                                                                                     po::value<double>(), "Imbalance parameter epsilon")("seed",
-                                                                                                                                                                                                                                                         po::value<int>(), "Seed for random number generator")("mode",
-                                                                                                                                                                                                                                                                                                               po::value<std::string>(),
-                                                                                                                                                                                                                                                                                                               "(rb) recursive bisection, (direct) direct k-way")(
-    "init-remove-hes", po::value<bool>(),
-    "Initially remove parallel hyperedges before partitioning")("nruns",
-                                                                po::value<int>(),
-                                                                "# initial partition trials, the final bisection corresponds to the one with the smallest cut")(
-    "part", po::value<std::string>(),
-    "Initial Partitioner: hMetis (default), PaToH or KaHyPar")(
-    "init-technique", po::value<std::string>(),
-    "If part=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")(
-    "init-mode", po::value<std::string>(),
-    "If part=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")(
-    "init-algo", po::value<std::string>(),
-    "If part=KaHyPar, used initial partitioning algorithm")(
-    "init-alpha", po::value<double>(),
-    "Restrict initial partitioning epsilon to init-alpha*epsilon")(
-    "part-path", po::value<std::string>(),
-    "Path to Initial Partitioner Binary")("vcycles", po::value<int>(),
-                                          "# v-cycle iterations")("cmaxnet", po::value<HyperedgeID>(),
-                                                                  "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")(
-    "remove-always-cut-hes", po::value<bool>(),
-    "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")(
-    "ctype", po::value<std::string>(),
-    "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")(
-    "s", po::value<double>(),
-    "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")(
-    "t", po::value<HypernodeID>(),
-    "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")(
-    "rtype", po::value<std::string>(),
-    "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")(
-    "lp_refiner_max_iterations", po::value<int>(),
-    "Refinement: maximum number of iterations for label propagation based refinement")(
-    "stopFM", po::value<std::string>(),
-    "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")(
-    "FMreps", po::value<int>(),
-    "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")(
-    "init-FMreps", po::value<int>(),
-    "local search repetitions during initial partitioning (default:1, no limit:-1)")(
-    "i", po::value<int>(),
-    "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")(
-    "alpha", po::value<double>(),
-    "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")(
-    "file", po::value<std::string>(), "filename of result file");
+  desc.add_options()("help", "show help message")
+    ("verbose", po::value<bool>(), "Verbose partitioner output")
+    ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
+    ("k", po::value<PartitionID>(), "Number of partitions")
+    ("e", po::value<double>(), "Imbalance parameter epsilon")
+    ("seed", po::value<int>(), "Seed for random number generator")
+    ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
+    ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
+    ("nruns", po::value<int>(), "# initial partition trials, the final bisection correspondsto the one with the smallest cut")
+    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
+    ("init-technique", po::value<std::string>(), "If part=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
+    ("init-mode", po::value<std::string>(), "If part=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
+    ("init-algo", po::value<std::string>(), "If part=KaHyPar, used initial partitioning algorithm")
+    ("init-alpha", po::value<double>(), "Restrict initial partitioning epsilon to init-alpha*epsilon")
+    ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
+    ("vcycles", po::value<int>(), "# v-cycle iterations")
+    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
+    ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
+    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
+    ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
+    ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
+    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
+    ("lp_refiner_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
+    ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
+    ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
+    ("init-FMreps", po::value<int>(), "local search repetitions during initial partitioning (default:1, no limit:-1)")
+    ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
+    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
+    ("file", po::value<std::string>(), "filename of result file");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -677,7 +675,8 @@ int main(int argc, char* argv[]) {
     LOG(
       "\033[1m\033[31m" << "Removed " << num_single_node_hes << " hyperedges with |e|=1" << "\033[0m");
     LOG(
-      "\033[1m\033[31m" << "===> " << num_unconnected_hns << " unconnected HNs could have been removed" << "\033[0m");
+      "\033[1m\033[31m" << "===> " << num_unconnected_hns << " unconnected HNs could have been removed"
+      << "\033[0m");
   }
 
   io::printHypergraphInfo(hypergraph,

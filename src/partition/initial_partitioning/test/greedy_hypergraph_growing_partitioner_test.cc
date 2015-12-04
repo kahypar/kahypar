@@ -1,23 +1,13 @@
-/*
- * greedy_hypergraph_growing_partitioner_test.cc
- *
- *  Created on: 16.11.2015
- *      Author: theuer
- */
-
-/*
- * greedy_hypergraph_growing_test.cc
- *
- *  Created on: 21.05.2015
- *      Author: theuer
- */
-
-#include "gmock/gmock.h"
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/io/HypergraphIO.h"
 #include "partition/Configuration.h"
@@ -26,8 +16,8 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
+#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 
 using::testing::Eq;
 using::testing::Test;
@@ -110,7 +100,8 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
     initializeConfiguration(*hypergraph, config, k);
 
     ghg = new GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
-                                                        typename T::Type2, typename T::Type3>(*hypergraph, config);
+                                                        typename T::Type2, typename T::Type3>
+            (*hypergraph, config);
   }
 
   virtual ~AKWayGreedyHypergraphGrowingPartitionerTest() {
@@ -163,7 +154,8 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowParti
     }
   }
 
-  // No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+  // No partition weight should fall below under "lower_bound_factor"
+  // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
   for (PartitionID k = 0; k < this->config.initial_partitioning.k; k++) {
     ASSERT_GE(this->hypergraph->partWeight(k), (lower_bound_factor / 100.0) * heaviest_part);
@@ -179,8 +171,7 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
-	this->config.initial_partitioning.nruns = 3;
-	this->ghg->partition(*(this->hypergraph), this->config);
+  this->config.initial_partitioning.nruns = 3;
+  this->ghg->partition(*(this->hypergraph), this->config);
 }
-
-}
+}  // namespace partition

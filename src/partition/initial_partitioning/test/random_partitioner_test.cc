@@ -1,11 +1,12 @@
 /***************************************************************************
- *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#include "gmock/gmock.h"
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/io/HypergraphIO.h"
 #include "partition/Metrics.h"
@@ -166,7 +167,8 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
     }
   }
 
-  // No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+  // No partition weight should fall below under "lower_bound_factor"
+  // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
   for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
     ASSERT_GE(hypergraph->partWeight(k),
@@ -183,4 +185,4 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
-}
+}  // namespace partition

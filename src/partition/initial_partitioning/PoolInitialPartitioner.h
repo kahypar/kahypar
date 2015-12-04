@@ -1,13 +1,12 @@
-/*
- * PoolInitialPartitioner.h
- *
- *  Created on: 03.06.2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
 
+#include <limits>
+#include <string>
 #include <vector>
 
 #include "lib/definitions.h"
@@ -33,7 +32,8 @@ struct partitioning_result {
     imbalance(imbalance) { }
 
   void print_result(std::string desc) {
-    LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm=" << toString(algo) << "]");
+    LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
+        << toString(algo) << "]");
   }
 };
 
@@ -119,13 +119,15 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
     }
 
-    std::cout << "\n*********************************Pool-Initial-Partitioner-Result*********************************" << std::endl;
+    std::cout << "\n*********************************Pool-Initial-Partitioner-Result***************"
+    << "******************" << std::endl;
     best_cut.print_result("Best Cut");
     min_cut.print_result("Minimum Cut");
     max_cut.print_result("Maximum Cut");
     min_imbalance.print_result("Minimum Imbalance");
     max_imbalance.print_result("Maximum Imbalance");
-    std::cout << "************************************************************************************************\n" << std::endl;
+    std::cout << "**********************************************************************************"
+    << "**************\n" << std::endl;
 
 
     PartitionID unassigned_part =
@@ -151,7 +153,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.nruns = 1;
   }
 
-  void applyPartitioningResults(partitioning_result& result, HyperedgeWeight cut, double imbalance, InitialPartitionerAlgorithm algo) {
+  void applyPartitioningResults(partitioning_result& result, HyperedgeWeight cut,
+                                double imbalance, InitialPartitionerAlgorithm algo) {
     result.cut = cut;
     result.imbalance = imbalance;
     result.algo = algo;
@@ -163,8 +166,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
   const HyperedgeWeight _kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
   const double _kInvalidImbalance = std::numeric_limits<double>::max();
-}
-;
-}
+};
+}  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_

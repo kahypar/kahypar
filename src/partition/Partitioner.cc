@@ -19,7 +19,9 @@ using defs::HighResClockTimepoint;
 using datastructure::reindex;
 
 namespace partition {
-inline Configuration Partitioner::createConfigurationForInitialPartitioning(const Hypergraph& hg, const Configuration& original_config,
+inline Configuration Partitioner::createConfigurationForInitialPartitioning(const Hypergraph& hg,
+                                                                            const Configuration&
+                                                                            original_config,
                                                                             double init_alpha) const {
   Configuration config(original_config);
 
@@ -211,7 +213,8 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
 
       current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
       DBG(dbg_partition_initial_partitioning,
-          "attempt " << attempt << " seed(" << seed << "):" << current_cut << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning, config));
+          "attempt " << attempt << " seed(" << seed << "):" << current_cut
+          << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning, config));
       Stats::instance().add(config,
                             "initialCut_" + std::to_string(attempt), current_cut);
 
@@ -255,7 +258,10 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
       init_config.partition.seed = init_config.initial_partitioning.seed;
 
       LOG(
-        "Calling Initial Partitioner: " << toString(config.initial_partitioning.init_technique) << " " << toString(config.initial_partitioning.init_mode) << " " << toString(config.initial_partitioning.algo) << " (k=" << init_config.initial_partitioning.k << ", epsilon=" << init_config.initial_partitioning.epsilon << ")");
+        "Calling Initial Partitioner: " << toString(config.initial_partitioning.init_technique)
+        << " " << toString(config.initial_partitioning.init_mode) << " " << toString(config.initial_partitioning.algo)
+        << " (k=" << init_config.initial_partitioning.k << ", epsilon="
+        << init_config.initial_partitioning.epsilon << ")");
       if (config.initial_partitioning.init_technique
           == InitialPartitioningTechnique::flat &&
           config.initial_partitioning.init_mode
@@ -305,5 +311,4 @@ void Partitioner::performInitialPartitioning(Hypergraph& hg,
                                  metrics::hyperedgeCut(hg));
   }
 }
-}
-// namespace partition
+}  // namespace partition

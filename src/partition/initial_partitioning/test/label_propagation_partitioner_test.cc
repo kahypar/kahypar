@@ -1,14 +1,12 @@
-/*
- * label_propagation_partitioner_test.cc
- *
- *  Created on: 16.11.2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
-#include "gmock/gmock.h"
 #include <queue>
 #include <unordered_map>
 #include <vector>
+
+#include "gmock/gmock.h"
 
 #include "lib/io/HypergraphIO.h"
 #include "partition/Metrics.h"
@@ -133,7 +131,8 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowParti
     }
   }
 
-  // No partition weight should fall below under "lower_bound_factor" percent of the heaviest partition weight.
+  // No partition weight should fall below under "lower_bound_factor"
+  // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
   for (PartitionID k = 0; k < this->config.initial_partitioning.k; k++) {
     ASSERT_GE(this->hypergraph->partWeight(k), (lower_bound_factor / 100.0) * heaviest_part);
@@ -147,4 +146,4 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassig
     ASSERT_NE(this->hypergraph->partID(hn), -1);
   }
 }
-}
+}  // namespace partition

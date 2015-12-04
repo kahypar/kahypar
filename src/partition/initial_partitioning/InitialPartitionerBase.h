@@ -1,9 +1,6 @@
-/*
- * InitialPartitionerBase.h
- *
- *  Created on: Apr 3, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_
@@ -44,7 +41,6 @@ using partition::KWayFMRefiner;
 using partition::IRefiner;
 
 namespace partition {
-
 class InitialPartitionerBase {
  public:
   InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept :
@@ -84,7 +80,8 @@ class InitialPartitionerBase {
   void performFMRefinement() {
     if (_config.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;
-      if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm && _config.initial_partitioning.k > 2) {
+      if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm &&
+          _config.initial_partitioning.k > 2) {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
                      _hg, _config));
@@ -115,10 +112,12 @@ class InitialPartitionerBase {
         if (num_refinement_nodes < 2) {
           break;
         }
-        improvement_found = refiner->refine(refinement_nodes, num_refinement_nodes, { _config.initial_partitioning.upper_allowed_partition_weight[0]
-                                                                                       + max_hypernode_weight,
-                                                                                       _config.initial_partitioning.upper_allowed_partition_weight[1]
-                                                                                       + max_hypernode_weight }, { 0, 0 }, current_cut, imbalance);
+        improvement_found =
+          refiner->refine(refinement_nodes, num_refinement_nodes,
+                          { _config.initial_partitioning.upper_allowed_partition_weight[0]
+                            + max_hypernode_weight,
+                            _config.initial_partitioning.upper_allowed_partition_weight[1]
+                            + max_hypernode_weight }, { 0, 0 }, current_cut, imbalance);
         ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
         ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
         old_cut = current_cut;
@@ -144,7 +143,8 @@ class InitialPartitionerBase {
         }
       }
       ASSERT(_hg.partID(hn) == target_part,
-             "Assigned partition of Hypernode " << hn << " should be " << target_part << ", but currently is " << _hg.partID(hn));
+             "Assigned partition of Hypernode " << hn << " should be " << target_part
+             << ", but currently is " << _hg.partID(hn));
       return true;
     } else {
       return false;
@@ -166,7 +166,7 @@ class InitialPartitionerBase {
   }
 
   HypernodeWeight getMaxHypernodeWeight() {
-	  return max_hypernode_weight;
+    return max_hypernode_weight;
   }
 
  protected:
@@ -179,6 +179,6 @@ class InitialPartitionerBase {
   unsigned int _unassigned_node_bound = std::numeric_limits<PartitionID>::max();
   HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
-}
+}  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_

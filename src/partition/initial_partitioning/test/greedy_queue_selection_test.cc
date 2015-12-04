@@ -1,14 +1,11 @@
-/*
- * greedy_queue_selection_test.cc
- *
- *  Created on: 16.11.2015
- *      Author: theuer
- */
-
-#include "gmock/gmock.h"
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #include <memory>
 #include <set>
+
+#include "gmock/gmock.h"
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
@@ -30,9 +27,9 @@ using datastructure::KWayPriorityQueue;
 using Gain = HyperedgeWeight;
 
 namespace partition {
-
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+                                           std::numeric_limits<HyperedgeWeight>,
+                                           ArrayStorage<HypernodeID>, true>;
 
 class AGreedyQueueSelectionTest : public Test {
  public:
@@ -67,19 +64,19 @@ class AGreedyQueueSelectionTest : public Test {
 
     for (HypernodeID hn : nodes) {
       if (part_0.find(hn) != part_0.end()) {
-        insertHypernodeIntoPQ<GainComputationPolicy>(hn,1);
+        insertHypernodeIntoPQ<GainComputationPolicy>(hn, 1);
       } else {
-    	  insertHypernodeIntoPQ<GainComputationPolicy>(hn,0);
+        insertHypernodeIntoPQ<GainComputationPolicy>(hn, 0);
       }
     }
   }
 
   template <class GainComputationPolicy>
   void insertHypernodeIntoPQ(HypernodeID hn, PartitionID part) {
-	  pq.insert(hn,part,GainComputationPolicy::calculateGain(hypergraph, hn, part));
-	  if(!pq.isEnabled(part)) {
-		  pq.enablePart(part);
-	  }
+    pq.insert(hn, part, GainComputationPolicy::calculateGain(hypergraph, hn, part));
+    if (!pq.isEnabled(part)) {
+      pq.enablePart(part);
+    }
   }
 
   void initializeConfiguration(PartitionID k) {
@@ -113,58 +110,66 @@ class AGreedyQueueSelectionTest : public Test {
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
-  for(HypernodeID hn : hypergraph.nodes()) {
-	  insertHypernodeIntoPQ<FMGainComputationPolicy>(hn,hn % 4);
+  for (HypernodeID hn : hypergraph.nodes()) {
+    insertHypernodeIntoPQ<FMGainComputationPolicy>(hn, hn % 4);
   }
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
-  ASSERT_EQ(current_hn,1);
+  ASSERT_EQ(current_hn, 1);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
-  ASSERT_EQ(current_hn,2);
+  ASSERT_EQ(current_hn, 2);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 3);
-  ASSERT_EQ(current_hn,3);
+  ASSERT_EQ(current_hn, 3);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
-  ASSERT_EQ(current_hn,0);
+  ASSERT_EQ(current_hn, 0);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisabled) {
-  for(HypernodeID hn : hypergraph.nodes()) {
-	insertHypernodeIntoPQ<FMGainComputationPolicy>(hn,2*(hn % 2));
+  for (HypernodeID hn : hypergraph.nodes()) {
+    insertHypernodeIntoPQ<FMGainComputationPolicy>(hn, 2 * (hn % 2));
   }
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
-  ASSERT_EQ(current_hn,1);
+  ASSERT_EQ(current_hn, 1);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
-  ASSERT_EQ(current_hn,0);
+  ASSERT_EQ(current_hn, 0);
   ASSERT_TRUE(
     RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-                                               current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
-  ASSERT_EQ(current_hn,5);
+  ASSERT_EQ(current_hn, 5);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksIfRoundRobinReturnsFalseIfEveryPartIsDisabled) {
   ASSERT_FALSE(
-	    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-	                                               current_hn, current_gain, current_id, is_upper_bound_released));
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
@@ -175,9 +180,10 @@ TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueID) {
   current_id = 1;
   ASSERT_TRUE(
     GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                            current_hn, current_gain, current_id,
+                                            is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
-  ASSERT_EQ(current_hn,5);
+  ASSERT_EQ(current_hn, 5);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled) {
@@ -188,16 +194,18 @@ TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled)
   current_id = 1;
   ASSERT_TRUE(
     GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                            current_hn, current_gain, current_id,
+                                            is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 5);
 
-  insertHypernodeIntoPQ<FMGainComputationPolicy>(5,0);
+  insertHypernodeIntoPQ<FMGainComputationPolicy>(5, 0);
 
   pq.disablePart(0);
   ASSERT_TRUE(
     GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                            current_hn, current_gain, current_id,
+                                            is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
   ASSERT_EQ(current_hn, 0);
 }
@@ -207,10 +215,12 @@ TEST_F(AGreedyQueueSelectionTest, ChecksIfGlobalReturnsFalseIfEveryPartIsDisable
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
 
-  pq.disablePart(0); pq.disablePart(1);
+  pq.disablePart(0);
+  pq.disablePart(1);
   ASSERT_FALSE(
     GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                            current_hn, current_gain, current_id,
+                                            is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
@@ -224,26 +234,29 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 3);
-  ASSERT_FALSE(pq.contains(3,0));
-  hypergraph.setNodePart(3,0);
+  ASSERT_FALSE(pq.contains(3, 0));
+  hypergraph.setNodePart(3, 0);
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 5);
-  ASSERT_FALSE(pq.contains(5,0));
-  hypergraph.setNodePart(5,0);
+  ASSERT_FALSE(pq.contains(5, 0));
+  hypergraph.setNodePart(5, 0);
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
   ASSERT_EQ(current_hn, 0);
-  ASSERT_FALSE(pq.contains(0,1));
+  ASSERT_FALSE(pq.contains(0, 1));
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartPlusOne) {
@@ -256,23 +269,26 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartP
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 3);
-  ASSERT_FALSE(pq.contains(3,0));
-  hypergraph.setNodePart(3,0);
+  ASSERT_FALSE(pq.contains(3, 0));
+  hypergraph.setNodePart(3, 0);
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 5);
-  ASSERT_FALSE(pq.contains(5,0));
-  hypergraph.setNodePart(5,0);
+  ASSERT_FALSE(pq.contains(5, 0));
+  hypergraph.setNodePart(5, 0);
 
   ASSERT_FALSE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
@@ -285,8 +301,9 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDBehaviourIfUpperBou
 
   ASSERT_TRUE(
     SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
-            current_hn, current_gain, current_id, is_upper_bound_released));
+                                                current_hn, current_gain, current_id,
+                                                is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 5);
 }
-}
+}  // namespace partition

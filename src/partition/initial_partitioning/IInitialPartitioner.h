@@ -1,12 +1,12 @@
-/*
- * IInitialPartitioner.h
- *
- *  Created on: Apr 3, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
+
+#include <limits>
+#include <vector>
 
 #include "partition/Configuration.h"
 
@@ -37,7 +37,6 @@ class IInitialPartitioner {
     for (HypernodeID hn : hg.nodes()) {
       hg.setNodePart(hn, best_partition[hn]);
     }
-
   }
 
 
@@ -49,7 +48,7 @@ class IInitialPartitioner {
  private:
   virtual void initialPartition() = 0;
 };
-}
+}  // namespace partition
 
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_

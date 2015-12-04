@@ -1,12 +1,8 @@
-/*
- * initial_partitioner_base_test.cc
- *
- *  Created on: Apr 17, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #include "gmock/gmock.h"
-
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 
 using::testing::Eq;
@@ -113,4 +109,4 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
     ASSERT_EQ(hypergraph.partID(hn), 0);
   }
 }
-}
+}  // namespace partition

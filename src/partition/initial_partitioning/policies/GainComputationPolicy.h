@@ -1,20 +1,20 @@
-/*
- * GainComputationPolicy.h
- *
- *  Created on: Apr 20, 2015
- *      Author: theuer
- */
+/***************************************************************************
+ *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ **************************************************************************/
 
 #ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_
 #define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_
+
+#include <algorithm>
+#include <limits>
+#include <queue>
+#include <set>
+#include <vector>
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
 #include "tools/RandomFunctions.h"
-#include <algorithm>
-#include <queue>
-#include <vector>
 
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -26,9 +26,9 @@ using datastructure::KWayPriorityQueue;
 using Gain = HyperedgeWeight;
 
 namespace partition {
-
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, ArrayStorage<HypernodeID>, true >;
+                                           std::numeric_limits<HyperedgeWeight>,
+                                           ArrayStorage<HypernodeID>, true>;
 
 enum class GainType
 : std::uint8_t {
@@ -307,6 +307,6 @@ struct MaxNetGainComputationPolicy : public GainComputationPolicy {
     return GainType::max_net_gain;
   }
 };
-}
+}  // namespace partition
 
-#endif  /* SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_ */
+#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_
