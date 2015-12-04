@@ -1,5 +1,0 @@
-{
-    "name": "HypergraphPartitioning",
-    "directory": "/home/theuer/Dokumente/hypergraph/src",
-    "files": [ { "filters": [ "*.cpp", "*.h"] } ]
-}
