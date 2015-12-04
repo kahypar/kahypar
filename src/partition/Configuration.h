@@ -214,6 +214,8 @@ struct Configuration {
       init_alpha(1.0),
       seed(1),
       pool_type(1975),
+      lp_max_iteration(100),
+      lp_assign_vertex_to_part(5),
       refinement(true) { }
 
     PartitionID k;
@@ -229,6 +231,8 @@ struct Configuration {
     double init_alpha;
     int seed;
     unsigned int pool_type;
+    int lp_max_iteration;
+    int lp_assign_vertex_to_part;
     bool refinement;
   };
 
