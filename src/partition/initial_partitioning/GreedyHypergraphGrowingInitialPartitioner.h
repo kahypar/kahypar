@@ -43,8 +43,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   GreedyHypergraphGrowingInitialPartitioner(Hypergraph& hypergraph,
                                             Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
-    _pq(config.initial_partitioning.k),
     _start_nodes(),
+    _pq(config.initial_partitioning.k),
     _visit(_hg.initialNumNodes(), false),
     _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(), false) {
     _pq.initialize(_hg.initialNumNodes());

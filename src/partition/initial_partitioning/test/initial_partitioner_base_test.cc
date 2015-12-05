@@ -2,6 +2,8 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
+#include <memory>
+
 #include "gmock/gmock.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 
@@ -17,17 +19,18 @@ namespace partition {
 class InitialPartitionerBaseTest : public Test {
  public:
   InitialPartitionerBaseTest() :
+    partitioner(nullptr),
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), partitioner(
-      nullptr) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    config() {
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
 
     initializeConfiguration(hypergraph_weight);
-    partitioner = new InitialPartitionerBase(hypergraph, config);
+    partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, config);
     partitioner->recalculateBalanceConstraints(config.initial_partitioning.epsilon);
   }
 
@@ -47,7 +50,7 @@ class InitialPartitionerBaseTest : public Test {
     }
   }
 
-  InitialPartitionerBase* partitioner;
+  std::shared_ptr<InitialPartitionerBase> partitioner;
   Hypergraph hypergraph;
   Configuration config;
 };

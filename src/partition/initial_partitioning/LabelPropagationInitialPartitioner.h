@@ -62,14 +62,14 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _hg,
                                             _config.initial_partitioning.k);
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
     }
 
     ASSERT(
       [&]() {
-        for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
-          if (_hg.partSize(i) != connected_nodes) {
+        for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+          if (static_cast<int>(_hg.partSize(i)) != connected_nodes) {
             return false;
           }
         }
@@ -78,8 +78,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       "Size of a partition is not equal " << connected_nodes << "!");
 
     bool converged = false;
-    int iterations = 0;
-    while (!converged && iterations < _config.initial_partitioning.lp_max_iteration) {
+    size_t iterations = 0;
+    while (!converged && iterations < static_cast<size_t>(_config.initial_partitioning.lp_max_iteration)) {
       converged = true;
 
       int unvisited_pos = nodes.size();
@@ -90,11 +90,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
         std::pair<PartitionID, Gain> max_move = computeMaxGainMove(v);
         PartitionID max_part = max_move.first;
-        Gain max_gain = max_move.second;
 
         if (max_part != _hg.partID(v)) {
-          PartitionID source_part = _hg.partID(v);
-
           ASSERT(
             [&]() {
               for (HyperedgeID he : _hg.incidentEdges(v)) {
@@ -108,12 +105,15 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             } (),
             "Partition " << max_part << " is not an incident label of hypernode " << v << "!");
 
+#ifndef NDEBUG
+          PartitionID source_part = _hg.partID(v);
+#endif
           if (InitialPartitionerBase::assignHypernodeToPartition(v,
                                                                  max_part)) {
             ASSERT(
               [&]() {
                 if (source_part != -1) {
-                  Gain gain = max_gain;
+                  Gain gain = max_move.second;
                   _hg.changeNodePart(v, max_part, source_part);
                   HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
                   _hg.changeNodePart(v, source_part, max_part);
@@ -134,7 +134,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       // five additional hypernodes and assign them to the part with minimum weight to continue with
       // Label Propagation.
       if (converged && InitialPartitionerBase::getUnassignedNode() != kInvalidNode) {
-        for (size_t i = 0; i < _config.initial_partitioning.lp_assign_vertex_to_part; ++i) {
+        for (auto i = 0; i < _config.initial_partitioning.lp_assign_vertex_to_part; ++i) {
           HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
           if (hn == kInvalidNode) {
             break;
@@ -205,8 +205,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           _valid_parts.setBit(target_part, true);
           if (_hg.connectivity(he) == 2 && source_part != -1 &&
               source_part != target_part) {
-            const HypernodeID pins_in_target_part =
-              _hg.pinCountInPart(he, target_part);
             if (pins_in_source_part == 1) {
               _tmp_scores[target_part] += _hg.edgeWeight(he);
             }

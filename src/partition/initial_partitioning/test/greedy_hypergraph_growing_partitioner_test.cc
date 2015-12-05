@@ -78,9 +78,9 @@ template <class T>
 class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
  public:
   AKWayGreedyHypergraphGrowingPartitionerTest() :
-    config(),
     ghg(nullptr),
-    hypergraph(nullptr) {
+    hypergraph(nullptr),
+    config() {
     std::string hypergraph_filename = "test_instances/test_instance.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;
@@ -92,26 +92,21 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
     io::readHypergraphFile(hypergraph_filename, num_hypernodes,
                            num_hyperedges, index_vector, edge_vector, &hyperedge_weights,
                            &hypernode_weights);
-    hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-                                index_vector, edge_vector, k, &hyperedge_weights,
-                                &hypernode_weights);
+    hypergraph = std::make_shared<Hypergraph>(num_hypernodes, num_hyperedges,
+                                              index_vector, edge_vector, k, &hyperedge_weights,
+                                              &hypernode_weights);
 
 
     initializeConfiguration(*hypergraph, config, k);
 
-    ghg = new GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
-                                                        typename T::Type2, typename T::Type3>
+    ghg = std::make_shared<GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
+                                                                     typename T::Type2, typename T::Type3> >
             (*hypergraph, config);
   }
 
-  virtual ~AKWayGreedyHypergraphGrowingPartitionerTest() {
-    delete ghg;
-    delete hypergraph;
-  }
-
-  GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
-                                            typename T::Type2, typename T::Type3>* ghg;
-  Hypergraph* hypergraph;
+  std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
+                                                            typename T::Type2, typename T::Type3> > ghg;
+  std::shared_ptr<Hypergraph> hypergraph;
   Configuration config;
 };
 

@@ -34,11 +34,11 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 class AGreedyQueueSelectionTest : public Test {
  public:
   AGreedyQueueSelectionTest() :
+    pq(4),
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(
-      4), current_id(0), current_hn(-1), current_gain(-1), is_upper_bound_released(
-      false) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    config(), current_id(0), current_hn(-1), current_gain(-1), is_upper_bound_released(false) {
     PartitionID k = 4;
     pq.initialize(hypergraph.initialNumNodes());
     initializeConfiguration(k);

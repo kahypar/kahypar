@@ -22,7 +22,7 @@ class DoNothingCoarsener final : public ICoarsener {
 
  private:
   void coarsenImpl(const defs::HypernodeID) noexcept override final { }
-  bool uncoarsenImpl(IRefiner&) noexcept override final { }
+  bool uncoarsenImpl(IRefiner&) noexcept override final { return false; }
   std::string policyStringImpl() const noexcept override final { return std::string(""); }
 };
 }  // namespace partition

@@ -2,6 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -51,19 +52,20 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 class ALabelPropagationMaxGainMoveTest : public Test {
  public:
   ALabelPropagationMaxGainMoveTest() :
+    partitioner(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), partitioner(
-      nullptr) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    config() {
     PartitionID k = 2;
     initializeConfiguration(config, k, 7);
 
-    partitioner = new LabelPropagationInitialPartitioner<
-      BFSStartNodeSelectionPolicy, FMGainComputationPolicy>(
+    partitioner = std::make_shared<LabelPropagationInitialPartitioner<
+                                     BFSStartNodeSelectionPolicy, FMGainComputationPolicy> >(
       hypergraph, config);
   }
 
-  LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,
-                                     FMGainComputationPolicy>* partitioner;
+  std::shared_ptr<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                     FMGainComputationPolicy> > partitioner;
   Hypergraph hypergraph;
   Configuration config;
 };

@@ -33,7 +33,7 @@ struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
     while (start_nodes.size() != static_cast<unsigned int>(k)) {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
-      int visited_nodes = 0;
+      size_t visited_nodes = 0;
       for (const HypernodeID start_node : start_nodes) {
         bfs.push(start_node);
         in_queue.setBit(start_node, true);
@@ -102,7 +102,7 @@ struct RandomStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
 struct TestStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
-    if (startNodes.size() == k) {
+    if (static_cast<int>(startNodes.size()) == k) {
       return;
     } else if (startNodes.size() == 0) {
       startNodes.push_back(0);

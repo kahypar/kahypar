@@ -38,6 +38,7 @@ enum class GainType
   max_pin_gain
 };
 
+
 struct GainComputationPolicy {
   virtual ~GainComputationPolicy() { }
 };
@@ -74,6 +75,7 @@ struct FMGainComputationPolicy : public GainComputationPolicy {
   static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& config,
                                      KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
                                      PartitionID to, FastResetBitVector<>& visit) {
+    (void)visit;  // Fix unused parameter warning
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
       HypernodeID pin_count_in_source_part_before = 0;
       if (from != -1) {
@@ -155,70 +157,10 @@ struct FMGainComputationPolicy : public GainComputationPolicy {
   }
 };
 
-struct FMModifyGainComputationPolicy : public GainComputationPolicy {
-  static inline Gain calculateGain(const Hypergraph& hg,
-                                   const HypernodeID& hn, const PartitionID& target_part) noexcept {
-    const PartitionID source_part = hg.partID(hn);
-    double gain = 0.0;
-    for (HyperedgeID he : hg.incidentEdges(hn)) {
-      const HypernodeID pins_in_source_part = hg.pinCountInPart(he,
-                                                                source_part);
-      const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
-                                                                target_part);
-      if (hg.edgeSize(he) != 1) {
-        double hyperedge_gain = (static_cast<double>(hg.edgeWeight(he))
-                                 / (hg.edgeSize(he) - 1))
-                                * (1 + static_cast<double>(pins_in_target_part)
-                                   - static_cast<double>(pins_in_source_part));
-        gain += hyperedge_gain;
-      }
-    }
-    return gain;
-  }
-
-  static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& config,
-                                     KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
-                                     PartitionID to, FastResetBitVector<>& visit) {
-    for (HyperedgeID he : _hg.incidentEdges(hn)) {
-      for (HypernodeID pin : _hg.pins(he)) {
-        if (pq.contains(pin, to)) {
-          if (_hg.partID(pin) == from) {
-            pq.updateKeyBy(pin, to,
-                           ((Gain)(static_cast<double>(2
-                                                       * _hg.edgeWeight(he))
-                                   / (_hg.edgeSize(he) - 1))));
-          } else {
-            pq.updateKeyBy(pin, to,
-                           ((Gain)(static_cast<double>(_hg.edgeWeight(he))
-                                   / (_hg.edgeSize(he) - 1))));
-          }
-        }
-
-        if (pq.contains(pin, from)) {
-          if (_hg.partID(pin) == to) {
-            pq.updateKeyBy(pin, from,
-                           ((Gain)(static_cast<double>(-2
-                                                       * _hg.edgeWeight(he))
-                                   / (_hg.edgeSize(he) - 1))));
-          } else {
-            pq.updateKeyBy(pin, to,
-                           ((Gain)(static_cast<double>(-_hg.edgeWeight(he))
-                                   / (_hg.edgeSize(he) - 1))));
-          }
-        }
-      }
-    }
-  }
-
-  static GainType getType() {
-    return GainType::modify_fm_gain;
-  }
-};
 
 struct MaxPinGainComputationPolicy : public GainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn, const PartitionID& target_part) noexcept {
-    const PartitionID source_part = hg.partID(hn);
     Gain gain = 0;
     std::set<HypernodeID> target_part_pins;
     for (HyperedgeID he : hg.incidentEdges(hn)) {
@@ -237,6 +179,7 @@ struct MaxPinGainComputationPolicy : public GainComputationPolicy {
   static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& config,
                                      KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
                                      PartitionID to, FastResetBitVector<>& visit) {
+    (void)config;  // Fix unused parameter warning
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
       for (HypernodeID node : _hg.pins(he)) {
         if (!visit[node]) {
@@ -265,7 +208,6 @@ struct MaxPinGainComputationPolicy : public GainComputationPolicy {
 struct MaxNetGainComputationPolicy : public GainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn, const PartitionID& target_part) noexcept {
-    const PartitionID source_part = hg.partID(hn);
     Gain gain = 0;
     for (HyperedgeID he : hg.incidentEdges(hn)) {
       const HypernodeID pins_in_target_part = hg.pinCountInPart(he,
@@ -280,6 +222,8 @@ struct MaxNetGainComputationPolicy : public GainComputationPolicy {
   static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& config,
                                      KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
                                      PartitionID to, FastResetBitVector<>& visit) {
+    (void)config;
+    (void)visit;              // Fix unused parameter warning
     for (HyperedgeID he : _hg.incidentEdges(hn)) {
       Gain pins_in_source_part = -1;
       if (from != -1) {

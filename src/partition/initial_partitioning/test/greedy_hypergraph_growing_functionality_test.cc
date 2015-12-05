@@ -72,9 +72,10 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
 class AGreedyHypergraphGrowingFunctionalityTest : public Test {
  public:
   AGreedyHypergraphGrowingFunctionalityTest() :
+    ghg(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), ghg(
-      nullptr) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    config() {
     PartitionID k = 2;
     initializeConfiguration(hypergraph, config, k);
 
@@ -86,13 +87,14 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
       }
     }
 
-    ghg = new GreedyHypergraphGrowingInitialPartitioner<
-      BFSStartNodeSelectionPolicy, FMGainComputationPolicy,
-      GlobalQueueSelectionPolicy>(hypergraph, config);
+    ghg = std::make_shared<GreedyHypergraphGrowingInitialPartitioner<
+                             BFSStartNodeSelectionPolicy, FMGainComputationPolicy,
+                             GlobalQueueSelectionPolicy> >(hypergraph, config);
   }
 
-  GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
-                                            FMGainComputationPolicy, GlobalQueueSelectionPolicy>* ghg;
+  std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+                                                            FMGainComputationPolicy,
+                                                            GlobalQueueSelectionPolicy> > ghg;
   Hypergraph hypergraph;
   Configuration config;
 };

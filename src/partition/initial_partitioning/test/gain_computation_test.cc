@@ -33,9 +33,11 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
 class AGainComputationPolicy : public Test {
  public:
   AGainComputationPolicy() :
+    pq(2),
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }), config(), pq(2) {
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    config() {
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);

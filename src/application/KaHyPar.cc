@@ -219,6 +219,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
           config.partition.initial_partitioner_path =
             "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
           break;
+        case InitialPartitioner::KaHyPar:
+          config.partition.initial_partitioner_path = "";
+          break;
       }
     }
     if (vm.count("vcycles")) {
@@ -410,6 +413,9 @@ static Registrar<CoarsenerFactory> reg_do_nothing_coarsener(
   CoarseningAlgorithm::do_nothing,
   [](Hypergraph& hypergraph, const Configuration& config,
      const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  (void)hypergraph;
+  (void)config;
+  (void)weight_of_heaviest_node;                               // Fixing unused parameter warning
   return new DoNothingCoarsener();
 });
 
@@ -452,6 +458,8 @@ static Registrar<RefinerFactory> reg_lp_local_search(
 static Registrar<RefinerFactory> reg_do_nothing_refiner(
   RefinementAlgorithm::do_nothing,
   [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
+  (void)hypergraph;
+  (void)config;                  // Fixing unused parameter warning
   return new DoNothingRefiner();
 });
 

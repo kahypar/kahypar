@@ -36,6 +36,8 @@ struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
                                  KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool is_upper_bound_released) {
+    (void)hg;
+    (void)is_upper_bound_released;           // Fix unused parameter warning
     PartitionID k = config.initial_partitioning.k;
     current_id = ((current_id + 1) % k);
     current_hn = invalid_node;
@@ -68,6 +70,8 @@ struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
                                  KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool is_upper_bound_released) {
+    (void)hg;
+    (void)is_upper_bound_released;           // Fix unused parameter warning
     current_id = invalid_part;
     current_hn = invalid_node;
     current_gain = invalid_gain;

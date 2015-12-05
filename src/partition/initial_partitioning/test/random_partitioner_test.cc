@@ -2,6 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -58,9 +59,9 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 class ARandomBisectionInitialPartitionerTest : public Test {
  public:
   ARandomBisectionInitialPartitionerTest() :
-    config(),
     partitioner(nullptr),
-    hypergraph(nullptr) {
+    hypergraph(nullptr),
+    config() {
     std::string coarse_graph_filename = "test_instances/test_instance.hgr";
 
     HypernodeID num_hypernodes;
@@ -74,9 +75,9 @@ class ARandomBisectionInitialPartitionerTest : public Test {
     io::readHypergraphFile(coarse_graph_filename, num_hypernodes,
                            num_hyperedges, index_vector, edge_vector, &hyperedge_weights,
                            &hypernode_weights);
-    hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-                                index_vector, edge_vector, k, &hyperedge_weights,
-                                &hypernode_weights);
+    hypergraph = std::make_shared<Hypergraph>(num_hypernodes, num_hyperedges,
+                                              index_vector, edge_vector, k, &hyperedge_weights,
+                                              &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph->nodes()) {
@@ -84,20 +85,20 @@ class ARandomBisectionInitialPartitionerTest : public Test {
     }
     initializeConfiguration(config, k, hypergraph_weight);
 
-    partitioner = new RandomInitialPartitioner(*hypergraph, config);
+    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, config);
   }
 
-  RandomInitialPartitioner* partitioner;
-  Hypergraph* hypergraph;
+  std::shared_ptr<RandomInitialPartitioner> partitioner;
+  std::shared_ptr<Hypergraph> hypergraph;
   Configuration config;
 };
 
 class AKWayRandomInitialPartitionerTest : public Test {
  public:
   AKWayRandomInitialPartitionerTest() :
-    config(),
     partitioner(nullptr),
-    hypergraph(nullptr) { }
+    hypergraph(nullptr),
+    config() { }
 
   void initializePartitioning(PartitionID k) {
     std::string coarse_graph_filename = "test_instances/test_instance.hgr";
@@ -112,9 +113,9 @@ class AKWayRandomInitialPartitionerTest : public Test {
     io::readHypergraphFile(coarse_graph_filename, num_hypernodes,
                            num_hyperedges, index_vector, edge_vector, &hyperedge_weights,
                            &hypernode_weights);
-    hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-                                index_vector, edge_vector, k, &hyperedge_weights,
-                                &hypernode_weights);
+    hypergraph = std::make_shared<Hypergraph>(num_hypernodes, num_hyperedges,
+                                              index_vector, edge_vector, k, &hyperedge_weights,
+                                              &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph->nodes()) {
@@ -122,11 +123,11 @@ class AKWayRandomInitialPartitionerTest : public Test {
     }
     initializeConfiguration(config, k, hypergraph_weight);
 
-    partitioner = new RandomInitialPartitioner(*hypergraph, config);
+    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, config);
   }
 
-  RandomInitialPartitioner* partitioner;
-  Hypergraph* hypergraph;
+  std::shared_ptr<RandomInitialPartitioner> partitioner;
+  std::shared_ptr<Hypergraph> hypergraph;
   Configuration config;
 };
 

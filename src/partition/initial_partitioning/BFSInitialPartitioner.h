@@ -100,7 +100,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _hg,
                                             _config.initial_partitioning.k);
-    for (PartitionID k = 0; k < startNodes.size(); k++) {
+    for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
     }

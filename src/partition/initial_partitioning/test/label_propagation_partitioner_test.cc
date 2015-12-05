@@ -2,6 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -72,9 +73,9 @@ template <class T>
 class AKWayLabelPropagationInitialPartitionerTest : public Test {
  public:
   AKWayLabelPropagationInitialPartitionerTest() :
-    config(),
     lp(nullptr),
-    hypergraph(nullptr) {
+    hypergraph(nullptr),
+    config() {
     std::string hypergraph_filename = "test_instances/test_instance.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;
@@ -86,23 +87,20 @@ class AKWayLabelPropagationInitialPartitionerTest : public Test {
     io::readHypergraphFile(hypergraph_filename, num_hypernodes,
                            num_hyperedges, index_vector, edge_vector, &hyperedge_weights,
                            &hypernode_weights);
-    hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-                                index_vector, edge_vector, k, &hyperedge_weights,
-                                &hypernode_weights);
+    hypergraph = std::make_shared<Hypergraph>(num_hypernodes, num_hyperedges,
+                                              index_vector, edge_vector, k, &hyperedge_weights,
+                                              &hypernode_weights);
 
     initializeConfiguration(*hypergraph, config, k);
 
-    lp = new LabelPropagationInitialPartitioner<typename T::Type1,
-                                                typename T::Type2>(*hypergraph, config);
+
+    lp = std::make_shared<LabelPropagationInitialPartitioner<typename T::Type1,
+                                                             typename T::Type2> >(*hypergraph, config);
   }
 
-  virtual ~AKWayLabelPropagationInitialPartitionerTest() {
-    delete lp;
-    delete hypergraph;
-  }
 
-  LabelPropagationInitialPartitioner<typename T::Type1, typename T::Type2>* lp;
-  Hypergraph* hypergraph;
+  std::shared_ptr<LabelPropagationInitialPartitioner<typename T::Type1, typename T::Type2> > lp;
+  std::shared_ptr<Hypergraph> hypergraph;
   Configuration config;
 };
 

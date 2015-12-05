@@ -2,6 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -59,18 +60,18 @@ void initializeConfiguration(Configuration& config, PartitionID k,
 class ABFSBisectionInitialPartioner : public Test {
  public:
   ABFSBisectionInitialPartioner() :
+    partitioner(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
-    partitioner(nullptr) {
+    config() {
     PartitionID k = 2;
     initializeConfiguration(config, k, 7);
 
-    partitioner = new BFSInitialPartitioner<TestStartNodeSelectionPolicy>(
+    partitioner = std::make_shared<BFSInitialPartitioner<TestStartNodeSelectionPolicy> >(
       hypergraph, config);
   }
 
-  BFSInitialPartitioner<TestStartNodeSelectionPolicy>* partitioner;
+  std::shared_ptr<BFSInitialPartitioner<TestStartNodeSelectionPolicy> > partitioner;
   Hypergraph hypergraph;
   Configuration config;
 };
@@ -78,9 +79,9 @@ class ABFSBisectionInitialPartioner : public Test {
 class AKWayBFSInitialPartitioner : public Test {
  public:
   AKWayBFSInitialPartitioner() :
-    config(),
     partitioner(nullptr),
-    hypergraph(nullptr) {
+    hypergraph(nullptr),
+    config() {
     std::string coarse_graph_filename =
       "test_instances/test_instance.hgr";
 
@@ -96,9 +97,9 @@ class AKWayBFSInitialPartitioner : public Test {
       coarse_graph_filename,
       num_hypernodes, num_hyperedges, index_vector, edge_vector,
       &hyperedge_weights, &hypernode_weights);
-    hypergraph = new Hypergraph(num_hypernodes, num_hyperedges,
-                                index_vector, edge_vector, k, &hyperedge_weights,
-                                &hypernode_weights);
+    hypergraph = std::make_shared<Hypergraph>(num_hypernodes, num_hyperedges,
+                                              index_vector, edge_vector, k, &hyperedge_weights,
+                                              &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph->nodes()) {
@@ -106,12 +107,12 @@ class AKWayBFSInitialPartitioner : public Test {
     }
     initializeConfiguration(config, k, hypergraph_weight);
 
-    partitioner = new BFSInitialPartitioner<TestStartNodeSelectionPolicy>(
+    partitioner = std::make_shared<BFSInitialPartitioner<TestStartNodeSelectionPolicy> >(
       *hypergraph, config);
   }
 
-  BFSInitialPartitioner<TestStartNodeSelectionPolicy>* partitioner;
-  Hypergraph* hypergraph;
+  std::shared_ptr<BFSInitialPartitioner<TestStartNodeSelectionPolicy> > partitioner;
+  std::shared_ptr<Hypergraph> hypergraph;
   Configuration config;
 };
 
