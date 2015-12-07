@@ -33,26 +33,22 @@ struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
     return -1;
   }
 
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+  static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
                                  KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
-                                 PartitionID& current_id, bool is_upper_bound_released) {
-    (void)hg;
-    (void)is_upper_bound_released;           // Fix unused parameter warning
-    PartitionID k = config.initial_partitioning.k;
-    current_id = ((current_id + 1) % k);
+                                 PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
+    current_id = ((current_id + 1) % config.initial_partitioning.k);
     current_hn = invalid_node;
     current_gain = invalid_gain;
     PartitionID counter = 1;
     while (!_pq.isEnabled(current_id)) {
-      if (counter++ == k) {
+      if (counter++ == config.initial_partitioning.k) {
         current_id = invalid_part;
         return false;
       }
-      current_id = ((current_id + 1) % k);
+      current_id = ((current_id + 1) % config.initial_partitioning.k);
     }
     if (current_id != -1) {
-      _pq.deleteMaxFromPartition(current_hn, current_gain,
-                                 current_id);
+      _pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
     }
     return true;
   }
@@ -67,17 +63,14 @@ struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
     return 1;
   }
 
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+  static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
                                  KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
-                                 PartitionID& current_id, bool is_upper_bound_released) {
-    (void)hg;
-    (void)is_upper_bound_released;           // Fix unused parameter warning
+                                 PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
     current_id = invalid_part;
     current_hn = invalid_node;
     current_gain = invalid_gain;
     bool exist_enabled_pq = false;
-    for (PartitionID part = 0; part < config.initial_partitioning.k;
-         ++part) {
+    for (PartitionID part = 0; part < config.initial_partitioning.k; ++part) {
       if (_pq.isEnabled(part)) {
         exist_enabled_pq = true;
         break;
@@ -90,8 +83,7 @@ struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
 
     ASSERT([&]() {
         if (current_id != -1) {
-          for (PartitionID part = 0; part < config.initial_partitioning.k;
-               ++part) {
+          for (PartitionID part = 0; part < config.initial_partitioning.k; ++part) {
             if (_pq.isEnabled(part) && _pq.maxKey(part) > current_gain) {
               return false;
             }

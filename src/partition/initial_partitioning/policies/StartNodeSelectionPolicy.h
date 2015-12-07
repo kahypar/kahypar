@@ -30,7 +30,7 @@ struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
     FastResetBitVector<> in_queue(hg.numNodes(), false);
     FastResetBitVector<> hyperedge_in_queue(hg.numEdges(), false);
 
-    while (start_nodes.size() != static_cast<unsigned int>(k)) {
+    while (start_nodes.size() != static_cast<size_t>(k)) {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
       size_t visited_nodes = 0;
@@ -41,7 +41,7 @@ struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
 
 
       while (!bfs.empty()) {
-        HypernodeID hn = bfs.front();
+        const HypernodeID hn = bfs.front();
         bfs.pop();
         lastHypernode = hn;
         visited_nodes++;
@@ -57,7 +57,7 @@ struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
           }
         }
         if (bfs.empty() && visited_nodes != hg.numNodes()) {
-          for (HypernodeID hn : hg.nodes()) {
+          for (const HypernodeID hn : hg.nodes()) {
             if (!in_queue[hn]) {
               bfs.push(hn);
               in_queue.setBit(hn, true);
@@ -80,7 +80,7 @@ struct RandomStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
       return;
     }
 
-    for (PartitionID i = 0; i < k; i++) {
+    for (PartitionID i = 0; i < k; ++i) {
       while (true) {
         HypernodeID hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
         // TODO(heuer): in this case you check for duplicate start nodes...
