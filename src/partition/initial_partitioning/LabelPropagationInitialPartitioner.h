@@ -285,7 +285,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _hg.setNodePart(hn, p);
   }
 
- protected:
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
   using InitialPartitionerBase::kInvalidNode;

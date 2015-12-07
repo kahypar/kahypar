@@ -165,9 +165,9 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     result.algo = algo;
   }
 
-  std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
+  std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
 
   static const HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
