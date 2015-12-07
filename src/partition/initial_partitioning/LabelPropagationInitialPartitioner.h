@@ -178,7 +178,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(ALabelPropagationMaxGainMoveTest,
               CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned);
 
-  std::pair<PartitionID, Gain> computeMaxGainMove(const HypernodeID& hn) {
+  std::pair<PartitionID, Gain> computeMaxGainMove(const HypernodeID hn) {
     ASSERT(
       std::all_of(_tmp_scores.begin(), _tmp_scores.end(),
                   [](Gain i) { return i == 0; }),
@@ -271,7 +271,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _in_queue.resetAllBitsToFalse();
   }
 
-  void assignHypernodeToPartWithMinimumPartWeight(HypernodeID hn) {
+  void assignHypernodeToPartWithMinimumPartWeight(const HypernodeID hn) {
     PartitionID p = kInvalidPart;
     HypernodeWeight min_part_weight = std::numeric_limits<HypernodeWeight>::max();
     for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {

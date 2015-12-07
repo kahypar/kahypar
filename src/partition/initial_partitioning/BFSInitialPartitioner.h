@@ -39,7 +39,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
               HasCorrectHypernodesInQueueAfterPushingIncidentHypernodesIntoQueue);
 
   void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
-                                       HypernodeID hn) {
+                                       const HypernodeID hn) {
     const PartitionID part = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (!_hyperedge_in_queue[part * _hg.numEdges() + he]) {
@@ -98,8 +98,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     // Calculate Startnodes and push them into the queues.
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _hg,
-                                            _config.initial_partitioning.k);
+    StartNodeSelection::calculateStartNodes(startNodes, _hg, _config.initial_partitioning.k);
     for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.setBit(k * _hg.numNodes() + startNodes[k], true);
@@ -124,8 +123,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           }
 
           // If no unassigned hypernode was found we have to select a new startnode.
-          if (hn == invalid_hypernode ||
-              _hg.partID(hn) != unassigned_part) {
+          if (hn == invalid_hypernode || _hg.partID(hn) != unassigned_part) {
             hn = InitialPartitionerBase::getUnassignedNode();
           }
 
@@ -167,8 +165,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
 
-  const HypernodeID invalid_hypernode =
-    std::numeric_limits<HypernodeID>::max();
+  const HypernodeID invalid_hypernode = std::numeric_limits<HypernodeID>::max();
   std::vector<std::queue<HypernodeID> > _queues;
   FastResetBitVector<> _hypernode_in_queue;
   FastResetBitVector<> _hyperedge_in_queue;

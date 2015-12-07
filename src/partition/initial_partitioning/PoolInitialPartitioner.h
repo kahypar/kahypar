@@ -20,13 +20,13 @@ using defs::HypernodeWeight;
 using partition::Configuration;
 
 namespace partition {
-struct partitioning_result {
+struct PartitioningResult {
   InitialPartitionerAlgorithm algo;
   HyperedgeWeight cut;
   double imbalance;
 
-  partitioning_result(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
-                      double imbalance) :
+  PartitioningResult(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
+                     double imbalance) :
     algo(algo),
     cut(cut),
     imbalance(imbalance) { }
@@ -69,12 +69,12 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  private:
   void initialPartition() final {
-    partitioning_result best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
-    partitioning_result min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
-    partitioning_result max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
-    partitioning_result min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut,
-                                      _kInvalidImbalance);
-    partitioning_result max_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, -0.1);
+    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
+    PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
+    PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
+    PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut,
+                                     _kInvalidImbalance);
+    PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, -0.1);
 
     std::vector<PartitionID> best_partition(_hg.numNodes());
     unsigned int n = _partitioner_pool.size() - 1;
@@ -84,23 +84,21 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
       InitialPartitionerAlgorithm algo = _partitioner_pool[i];
       std::unique_ptr<IInitialPartitioner> partitioner(
-        InitialPartitioningFactory::getInstance().createObject(algo,
-                                                               _hg, _config));
-      (*partitioner).partition(_hg, _config);
+        InitialPartitioningFactory::getInstance().createObject(algo,_hg, _config));
+      partitioner->partition(_hg, _config);
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _config);
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
         if (best_cut.cut != _kInvalidCut) {
-          if (current_imbalance
-              > _config.initial_partitioning.epsilon) {
+          if (current_imbalance > _config.initial_partitioning.epsilon) {
             if (current_imbalance > best_cut.imbalance) {
               apply_best_partition = false;
             }
           }
         }
         if (apply_best_partition) {
-          for (HypernodeID hn : _hg.nodes()) {
+          for (const HypernodeID hn : _hg.nodes()) {
             best_partition[hn] = _hg.partID(hn);
           }
           applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
@@ -153,8 +151,9 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.nruns = 1;
   }
 
-  void applyPartitioningResults(partitioning_result& result, HyperedgeWeight cut,
-                                double imbalance, InitialPartitionerAlgorithm algo) {
+  void applyPartitioningResults(PartitioningResult& result, const HyperedgeWeight cut,
+                                const double imbalance,
+                                const InitialPartitionerAlgorithm algo) const {
     result.cut = cut;
     result.imbalance = imbalance;
     result.algo = algo;

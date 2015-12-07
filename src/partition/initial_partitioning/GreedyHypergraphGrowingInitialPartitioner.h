@@ -323,7 +323,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
            "Hypernode " << hn << " isn't succesfully deleted from all PQs.");
   }
 
-  void insertUnassignedHypernodeIntoPQ(PartitionID part) {
+  void insertUnassignedHypernodeIntoPQ(const PartitionID part) {
     HypernodeID unassigned_node = InitialPartitionerBase::getUnassignedNode();
     if (unassigned_node != kInvalidNode) {
       insertNodeIntoPQ(unassigned_node, part);
