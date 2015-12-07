@@ -21,28 +21,31 @@ using defs::PartitionID;
 using defs::HypernodeWeightVector;
 
 namespace partition {
-enum class Mode
-: std::uint8_t {
-  recursive_bisection, direct_kway
+enum class Mode : std::uint8_t {
+  recursive_bisection,
+  direct_kway
 };
 
-enum class InitialPartitioningTechnique
-: std::uint8_t {
-  multilevel, flat
+enum class InitialPartitioningTechnique : std::uint8_t {
+  multilevel,
+  flat
 };
 
-enum class InitialPartitioner
-: std::uint8_t {
-  hMetis, PaToH, KaHyPar
+enum class InitialPartitioner : std::uint8_t {
+  hMetis,
+  PaToH,
+  KaHyPar
 };
 
-enum class CoarseningAlgorithm
-: std::uint8_t {
-  heavy_full, heavy_partial, heavy_lazy, hyperedge, do_nothing
+enum class CoarseningAlgorithm : std::uint8_t {
+  heavy_full,
+  heavy_partial,
+  heavy_lazy,
+  hyperedge,
+  do_nothing
 };
 
-enum class RefinementAlgorithm
-: std::uint8_t {
+enum class RefinementAlgorithm : std::uint8_t {
   twoway_fm,
   kway_fm,
   kway_fm_maxgain,
@@ -51,8 +54,7 @@ enum class RefinementAlgorithm
   do_nothing
 };
 
-enum class InitialPartitionerAlgorithm
-: std::uint8_t {
+enum class InitialPartitionerAlgorithm : std::uint8_t {
   greedy_sequential,
   greedy_global,
   greedy_round,
@@ -68,9 +70,10 @@ enum class InitialPartitionerAlgorithm
   pool
 };
 
-enum class RefinementStoppingRule
-: std::uint8_t {
-  simple, adaptive1, adaptive2
+enum class RefinementStoppingRule : std::uint8_t {
+  simple,
+  adaptive1,
+  adaptive2
 };
 
 static std::string toString(const Mode& mode) {

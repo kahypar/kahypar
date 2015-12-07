@@ -32,7 +32,6 @@ class IInitialPartitioner {
         }
       }
     }
-    // TODO(heuer): shouldn't that be INSIDE the for-loop???
     hg.resetPartitioning();
     for (HypernodeID hn : hg.nodes()) {
       hg.setNodePart(hn, best_partition[hn]);

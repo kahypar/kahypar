@@ -67,9 +67,10 @@ class Partitioner {
   using HypergraphPtr = std::unique_ptr<Hypergraph, void (*)(Hypergraph*)>;
   using MappingStack = std::vector<std::vector<HypernodeID> >;
 
-  enum class RBHypergraphState
-  : std::uint8_t {
-    unpartitioned, partitionedAndPart1Extracted, finished
+  enum class RBHypergraphState : std::uint8_t {
+    unpartitioned,
+    partitionedAndPart1Extracted,
+    finished
   };
 
   struct RBState {
@@ -167,8 +168,7 @@ class Partitioner {
   std::string _internals;
 };
 
-inline void Partitioner::partition(Hypergraph& hypergraph,
-                                   const Configuration& config) {
+inline void Partitioner::partition(Hypergraph& hypergraph, const Configuration& config) {
   if (config.partition.initial_parallel_he_removal) {
     removeParallelHyperedges(hypergraph, config);
   }
@@ -200,9 +200,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph,
   }
 }
 
-inline void Partitioner::partition(Hypergraph& hypergraph,
-                                   ICoarsener& coarsener, IRefiner& refiner, const Configuration& config,
-                                   const PartitionID k1, const PartitionID k2) {
+inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
+                                   const Configuration& config, const PartitionID k1,
+                                   const PartitionID k2) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -226,10 +226,8 @@ inline void Partitioner::partition(Hypergraph& hypergraph,
                                std::chrono::duration<double>(end - start).count());
 }
 
-inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph,
-                                         ICoarsener& coarsener,
-                                         IRefiner& refiner,
-                                         const Configuration& config,
+inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
+                                         IRefiner& refiner, const Configuration& config,
                                          const int vcycle, const PartitionID k1,
                                          const PartitionID k2) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -271,12 +269,9 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
 }
 
-inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config,
-                                                                         const Hypergraph& original_hypergraph,
-                                                                         const Hypergraph& current_hypergraph,
-                                                                         const PartitionID current_k,
-                                                                         const PartitionID k0,
-                                                                         const PartitionID k1) const {
+inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config, const Hypergraph& original_hypergraph,
+                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k,
+                                                                         const PartitionID k0, const PartitionID k1) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
   current_config.partition.epsilon = calculateRelaxedEpsilon(
@@ -287,26 +282,21 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     current_hypergraph.totalWeight();
 
   current_config.partition.perfect_balance_part_weights[0] =
-    ceil(
-      (k0 / static_cast<double>(current_k))
-      * static_cast<double>(current_config.partition.total_graph_weight));
+    ceil((k0 / static_cast<double>(current_k))
+         * static_cast<double>(current_config.partition.total_graph_weight));
 
   current_config.partition.perfect_balance_part_weights[1] =
-    ceil(
-      (k1 / static_cast<double>(current_k))
-      * static_cast<double>(current_config.partition.total_graph_weight));
+    ceil((k1 / static_cast<double>(current_k))
+         * static_cast<double>(current_config.partition.total_graph_weight));
 
-  current_config.partition.max_part_weights[0] = (1
-                                                  + current_config.partition.epsilon)
-                                                 * current_config.partition.perfect_balance_part_weights[0];
+  current_config.partition.max_part_weights[0] =
+    (1 + current_config.partition.epsilon) * current_config.partition.perfect_balance_part_weights[0];
 
-  current_config.partition.max_part_weights[1] = (1
-                                                  + current_config.partition.epsilon)
-                                                 * current_config.partition.perfect_balance_part_weights[1];
+  current_config.partition.max_part_weights[1] =
+    (1 + current_config.partition.epsilon) * current_config.partition.perfect_balance_part_weights[1];
 
   current_config.coarsening.contraction_limit =
-    current_config.coarsening.contraction_limit_multiplier
-    * current_config.partition.k;
+    current_config.coarsening.contraction_limit_multiplier * current_config.partition.k;
 
   current_config.coarsening.hypernode_weight_fraction =
     current_config.coarsening.max_allowed_weight_multiplier
@@ -353,15 +343,12 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
   while (!hypergraph_stack.empty()) {
     Hypergraph& current_hypergraph = *hypergraph_stack.back().hypergraph;
 
-    if (hypergraph_stack.back().lower_k
-        == hypergraph_stack.back().upper_k) {
+    if (hypergraph_stack.back().lower_k == hypergraph_stack.back().upper_k) {
       for (const HypernodeID hn : current_hypergraph.nodes()) {
         const HypernodeID original_hn = originalHypernode(hn,
                                                           mapping_stack);
-        const PartitionID current_part = input_hypergraph.partID(
-          original_hn);
-        ASSERT(current_part != Hypergraph::kInvalidPartition,
-               V(current_part));
+        const PartitionID current_part = input_hypergraph.partID(original_hn);
+        ASSERT(current_part != Hypergraph::kInvalidPartition, V(current_part));
         if (current_part != hypergraph_stack.back().lower_k) {
           input_hypergraph.changeNodePart(original_hn, current_part,
                                           hypergraph_stack.back().lower_k);
@@ -415,15 +402,11 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           // TODO(schlag): we could integrate v-cycles in a similar fashion as is
           // performDirectKwayPartitioning
-          partition(current_hypergraph, *coarsener, *refiner, current_config,
-                    k1, k2);
+          partition(current_hypergraph, *coarsener, *refiner, current_config, k1, k2);
 
-          std::cout
-          << "-------------------------------------------------------------------------------------------"
-          << std::endl;
-          auto extractedHypergraph_1 =
-            extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 1);
+          std::cout << "-------------------------------------------------------------" << std::endl;
+          auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(
+            current_hypergraph, 1);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state =
@@ -462,11 +445,9 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
       config.partition.refinement_algorithm, hypergraph, config));
 
   // TODO(schlag): find better solution
-  _internals.append(
-    coarsener->policyString() + " " + refiner->policyString());
+  _internals.append(coarsener->policyString() + " " + refiner->policyString());
 
-  partition(hypergraph, *coarsener, *refiner, config, 0,
-            (config.partition.k - 1));
+  partition(hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
 
   DBG(dbg_partition_vcycles,
       "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
@@ -482,8 +463,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
     DBG(dbg_partition_vcycles,
         "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
-      LOG(
-        "Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
+      LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
       break;
     }
 
@@ -496,7 +476,8 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
 }
 
 inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                              CoarsenedToHmetisMapping& hg_to_hmetis, const Hypergraph& hg) {
+                                                              CoarsenedToHmetisMapping& hg_to_hmetis,
+                                                              const Hypergraph& hg) {
   int i = 0;
   for (const HypernodeID hn : hg.nodes()) {
     hg_to_hmetis[hn] = i;
@@ -505,14 +486,15 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
   }
 }
 
-inline void Partitioner::removeLargeHyperedges(Hypergraph& hg,
-                                               Hyperedges& removed_hyperedges, const Configuration& config) {
+inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
+                                               const Configuration& config) {
   if (config.partition.hyperedge_size_threshold
       != std::numeric_limits<HyperedgeID>::max()) {
     for (const HyperedgeID he : hg.edges()) {
       if (hg.edgeSize(he) > config.partition.hyperedge_size_threshold) {
         DBG(dbg_partition_large_he_removal,
-            "Hyperedge " << he << ": size (" << hg.edgeSize(he) << ")   exceeds threshold: " << config.partition.hyperedge_size_threshold);
+            "Hyperedge " << he << ": size (" << hg.edgeSize(he) << ")   exceeds threshold: "
+            << config.partition.hyperedge_size_threshold);
         removed_hyperedges.push_back(he);
         hg.removeEdge(he, false);
       }
@@ -522,11 +504,10 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg,
   // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
   // remove them from the graph, to make subsequent partitioning easier.
   // In case of direct k-way partitioning, Lmaxi=Lmax0=Lmax1 for all i in (0..k-1).
-  // In case of rb-based k-way partitioning however, Lmax0 might be different thisan Lmax1,
+  // In case of rb-based k-way partitioning however, Lmax0 might be different than Lmax1,
   // depending on how block 0 and block1 will be partitioned further.
-  const HypernodeWeight max_part_weight = std::max(
-    config.partition.max_part_weights[0],
-    config.partition.max_part_weights[1]);
+  const HypernodeWeight max_part_weight =
+    std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
   if (config.partition.remove_hes_that_always_will_be_cut) {
     for (const HyperedgeID he : hg.edges()) {
       HypernodeWeight sum_pin_weights = 0;
@@ -536,7 +517,8 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg,
 
       if (sum_pin_weights > max_part_weight) {
         DBG(dbg_partition_large_he_removal,
-            "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: " << max_part_weight);
+            "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
+            << max_part_weight);
         removed_hyperedges.push_back(he);
         hg.removeEdge(he, false);
       }
@@ -545,14 +527,14 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg,
 
   Stats::instance().add(config, "numInitiallyRemovedLargeHEs",
                         removed_hyperedges.size());
-  LOG(
-    "removed " << removed_hyperedges.size() << " HEs that had more than " << config.partition.hyperedge_size_threshold << " pins or weight of pins was greater than Lmax=" << max_part_weight);
+  LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
+      << config.partition.hyperedge_size_threshold
+      << " pins or weight of pins was greater than Lmax=" << max_part_weight);
 }
 
 inline void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
                                                 const Hyperedges& removed_hyperedges) {
-  for (auto && edge = removed_hyperedges.rbegin();
-       edge != removed_hyperedges.rend(); ++edge) {
+  for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
     DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
     hg.restoreEdge(*edge);
   }

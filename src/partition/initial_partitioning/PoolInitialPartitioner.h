@@ -72,7 +72,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     partitioning_result best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     partitioning_result min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     partitioning_result max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
-    partitioning_result min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, _kInvalidImbalance);
+    partitioning_result min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut,
+                                      _kInvalidImbalance);
     partitioning_result max_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, -0.1);
 
     std::vector<PartitionID> best_partition(_hg.numNodes());
@@ -130,19 +131,18 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     << "**************\n" << std::endl;
 
 
-    PartitionID unassigned_part =
-      _config.initial_partitioning.unassigned_part;
+    const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
     _config.initial_partitioning.unassigned_part = unassigned_part;
-    for (HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID hn : _hg.nodes()) {
       _hg.setNodePart(hn, best_partition[hn]);
     }
 
     _hg.initializeNumCutHyperedges();
 
     ASSERT([&]() {
-        for (HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }

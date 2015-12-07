@@ -62,14 +62,16 @@ class InitialPartitionerBase {
         _config.initial_partitioning.perfect_balance_partition_weight[i]
         * (1.0 + epsilon);
     }
-    _config.partition.max_part_weights[0] = _config.initial_partitioning.upper_allowed_partition_weight[0];
-    _config.partition.max_part_weights[1] = _config.initial_partitioning.upper_allowed_partition_weight[1];
+    _config.partition.max_part_weights[0] =
+      _config.initial_partitioning.upper_allowed_partition_weight[0];
+    _config.partition.max_part_weights[1] =
+      _config.initial_partitioning.upper_allowed_partition_weight[1];
   }
 
   void resetPartitioning() {
     _hg.resetPartitioning();
     if (_config.initial_partitioning.unassigned_part != -1) {
-      for (HypernodeID hn : _hg.nodes()) {
+      for (const HypernodeID hn : _hg.nodes()) {
         _hg.setNodePart(hn, _config.initial_partitioning.unassigned_part);
       }
       _hg.initializeNumCutHyperedges();
@@ -105,7 +107,7 @@ class InitialPartitionerBase {
       int iteration = 0;
       do {
         refinement_nodes.clear();
-        for (HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID hn : _hg.nodes()) {
           if (_hg.isBorderNode(hn)) {
             refinement_nodes.push_back(hn);
           }
@@ -127,15 +129,14 @@ class InitialPartitionerBase {
         old_cut = current_cut;
 #endif
         iteration++;
-      } while (iteration < _config.initial_partitioning.local_search_repetitions && improvement_found);
+      } while (iteration < _config.initial_partitioning.local_search_repetitions &&
+               improvement_found);
     }
   }
 
 
   bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
-    const HypernodeWeight assign_partition_weight = _hg.partWeight(target_part)
-                                                    + _hg.nodeWeight(hn);
-    if (assign_partition_weight
+    if (_hg.partWeight(target_part) + _hg.nodeWeight(hn)
         <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) {
       if (_hg.partID(hn) == -1) {
         _hg.setNodePart(hn, target_part);

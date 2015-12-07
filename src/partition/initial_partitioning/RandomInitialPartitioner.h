@@ -26,8 +26,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
  private:
   void initialPartition() final {
-    PartitionID unassigned_part =
-      _config.initial_partitioning.unassigned_part;
+    const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
     for (const HypernodeID hn : _hg.nodes()) {
@@ -46,8 +45,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
             break;
           }
         }
-        p = Randomize::getRandomInt(0,
-                                    _config.initial_partitioning.k - 1);
+        p = Randomize::getRandomInt(0, _config.initial_partitioning.k - 1);
       } while (!assignHypernodeToPartition(hn, p));
 
       ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p
@@ -57,7 +55,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.unassigned_part = unassigned_part;
 
     ASSERT([&]() {
-        for (HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }

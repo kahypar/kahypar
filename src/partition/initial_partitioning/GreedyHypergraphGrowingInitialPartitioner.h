@@ -72,8 +72,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               CheckIfAllEnabledPQContainsAtLeastOneHypernode);
 
   void initialPartition() final {
-    // Every QueueSelectionPolicy specify its own operating unassigned part. Therefore we only change
-    // the unassigned_part variable in this method and reset it at the end to original value.
+    // Every QueueSelectionPolicy specifies its own operating unassigned part.
+    // Therefore we only change the unassigned_part variable in this method and reset it at
+    // the end to original value.
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = QueueSelection::getOperatingUnassignedPart();
     InitialPartitionerBase::resetPartitioning();
@@ -95,8 +96,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // Define a weight bound, which every part has to reach, to avoid very small partitions.
     InitialPartitionerBase::recalculateBalanceConstraints(0);
 
-    // TODO(heuer): Would be better if this was initialized to something invalid, since
-    // 0 is a _valid_ part id.
+    // current_id = 0 is used in QueueSelection policy. Therefore we don't use
+    // and invalid part id for initialization.
     PartitionID current_id = 0;
     while (true) {
       if (_config.initial_partitioning.unassigned_part != -1 &&
@@ -110,13 +111,13 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
       if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_hn, current_gain, current_id,
                                        is_upper_bound_released)) {
-        // Every part is disabled and the upper weight bound is released to finish initial partitioning
+        // Every part is disabled and the upper weight bound is released
+        // to finish initial partitioning
         if (!is_upper_bound_released) {
           InitialPartitionerBase::recalculateBalanceConstraints(
             _config.initial_partitioning.epsilon);
           is_upper_bound_released = true;
-          for (PartitionID part = 0; part < _config.initial_partitioning.k;
-               ++part) {
+          for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
             if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part) &&
                 _hg.partWeight(part) < _config.initial_partitioning.upper_allowed_partition_weight[part]) {
               if (_pq.size(part) == 0) {
@@ -133,15 +134,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         }
       }
 
-      /* for(PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
-           std::cout << _hg.partWeight(part) << "(" << _pq.size(part) << "," << _pq.isEnabled(part) << ",";
-           if(_pq.size(part) > 0)
-               std::cout << _pq.maxKey(part);
-           std::cout << ") ";
-       }
-       std::cout << std::endl;*/
-
-      ASSERT(current_hn < _hg.numNodes(), "Current Hypernode " << current_hn << " is not a valid hypernode!");
+      ASSERT(current_hn < _hg.numNodes(),
+             "Current Hypernode " << current_hn << " is not a valid hypernode!");
       ASSERT(current_id != -1, "Part " << current_id << " is no valid part!");
       ASSERT(_hg.partID(current_hn) == _config.initial_partitioning.unassigned_part,
              "The current selected hypernode " << current_hn
@@ -155,9 +149,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         ASSERT([&]() {
             if (_config.initial_partitioning.unassigned_part != -1 &&
                 GainComputation::getType() == GainType::fm_gain) {
-              _hg.changeNodePart(current_hn, current_id, _config.initial_partitioning.unassigned_part);
+              _hg.changeNodePart(current_hn, current_id,
+                                 _config.initial_partitioning.unassigned_part);
               const HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
-              _hg.changeNodePart(current_hn, _config.initial_partitioning.unassigned_part, current_id);
+              _hg.changeNodePart(current_hn, _config.initial_partitioning.unassigned_part,
+                                 current_id);
               return metrics::hyperedgeCut(_hg) == (cut_before - current_gain);
             } else {
               return true;
@@ -193,18 +189,20 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       ASSERT([&]() {
           for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
             if (_pq.isEnabled(part) && part != _config.initial_partitioning.unassigned_part) {
-              if (_hg.partWeight(part) == _config.initial_partitioning.upper_allowed_partition_weight[part]) {
+              if (_hg.partWeight(part) ==
+                  _config.initial_partitioning.upper_allowed_partition_weight[part]) {
                 return false;
               }
             }
           }
           return true;
-        } (), "There is a PQ, which is enabled, but no hypernode fits inside the corresponding part!");
+        } (), "There is an enabled PQ,  but no hypernode fits inside the corresponding part!");
     }
 
     // If our unassigned part is -1 and we have a very small epsilon it can happen that there
     // exists only a few hypernodes, which aren't assigned to any part. In this case we
-    // assign it to a part where the gain is maximized (only part 0 and 1 are considered for gain calculation)
+    // assign it to a part where the gain is maximized (only part 0 and 1 are considered for
+    // gain calculation)
     // Attention: Can produce imbalanced partitions.
     if (_config.initial_partitioning.unassigned_part == -1) {
       HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
@@ -221,8 +219,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         hn = InitialPartitionerBase::getUnassignedNode();
       }
       // In the case if the unassigned part is != -1, the cut hyperedges are initialized within
-      // the resetPartitioning() method in InitialPartitionerBase. If the unassigned part is equal to -1
-      // have to do it here, because at this point finally all hypernodes are assigned to a valid part.
+      // the resetPartitioning() method in InitialPartitionerBase.
+      // If the unassigned part is equal to -1, we have to do it here, because at this point
+      // finally all hypernodes are assigned to a valid part.
       _hg.initializeNumCutHyperedges();
     }
 
@@ -348,7 +347,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       } (), "There are at least two start nodes which are equal!");
   }
 
-// double max_net_size;
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
   std::vector<HypernodeID> _start_nodes;
@@ -358,8 +356,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   static const Gain kInvalidGain = std::numeric_limits<Gain>::min();
   static const PartitionID kInvalidPartition = -1;
-  static const HypernodeID kInvalidNode =
-    std::numeric_limits<HypernodeID>::max();
+  static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 };
 }  // namespace partition
 

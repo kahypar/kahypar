@@ -52,7 +52,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::resetPartitioning();
 
     std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
-    for (HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID hn : _hg.nodes()) {
       nodes[hn] = hn;
     }
 
@@ -79,7 +79,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
     bool converged = false;
     size_t iterations = 0;
-    while (!converged && iterations < static_cast<size_t>(_config.initial_partitioning.lp_max_iteration)) {
+    while (!converged &&
+           iterations < static_cast<size_t>(_config.initial_partitioning.lp_max_iteration)) {
       converged = true;
 
       int unvisited_pos = nodes.size();
@@ -94,8 +95,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         if (max_part != _hg.partID(v)) {
           ASSERT(
             [&]() {
-              for (HyperedgeID he : _hg.incidentEdges(v)) {
-                for (PartitionID part : _hg.connectivitySet(he)) {
+              for (const HyperedgeID he : _hg.incidentEdges(v)) {
+                for (const PartitionID part : _hg.connectivitySet(he)) {
                   if (part == max_part) {
                     return true;
                   }
@@ -108,8 +109,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 #ifndef NDEBUG
           PartitionID source_part = _hg.partID(v);
 #endif
-          if (InitialPartitionerBase::assignHypernodeToPartition(v,
-                                                                 max_part)) {
+          if (InitialPartitionerBase::assignHypernodeToPartition(v, max_part)) {
             ASSERT(
               [&]() {
                 if (source_part != -1) {
@@ -257,8 +257,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (_hg.partID(node) == -1) {
         _hg.setNodePart(node, p);
         assigned_nodes++;
-        for (HyperedgeID he : _hg.incidentEdges(node)) {
-          for (HypernodeID pin : _hg.pins(he)) {
+        for (const HyperedgeID he : _hg.incidentEdges(node)) {
+          for (const HypernodeID pin : _hg.pins(he)) {
             if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
               _bfs_queue.push(pin);
               _in_queue.setBit(pin, true);
