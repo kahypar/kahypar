@@ -74,7 +74,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   }
 
 
-  void initialPartition() override final {
+  void partitionImpl() override final {
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     InitialPartitionerBase::resetPartitioning();
 

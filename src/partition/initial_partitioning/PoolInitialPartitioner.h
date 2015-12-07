@@ -74,7 +74,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   PoolInitialPartitioner& operator= (PoolInitialPartitioner&&) = delete;
 
  private:
-  void initialPartition() override final {
+  void partitionImpl() override final {
     PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);

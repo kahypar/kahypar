@@ -72,7 +72,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
               CheckIfAllEnabledPQContainsAtLeastOneHypernode);
 
-  void initialPartition() override final {
+  void partitionImpl() override final {
     // Every QueueSelectionPolicy specifies its own operating unassigned part.
     // Therefore we only change the unassigned_part variable in this method and reset it at
     // the end to original value.

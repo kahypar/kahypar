@@ -31,7 +31,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
   RandomInitialPartitioner& operator= (RandomInitialPartitioner&&) = delete;
 
  private:
-  void initialPartition() override final {
+  void partitionImpl() override final {
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();

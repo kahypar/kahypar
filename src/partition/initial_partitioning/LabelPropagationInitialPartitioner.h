@@ -48,7 +48,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   LabelPropagationInitialPartitioner(LabelPropagationInitialPartitioner&&) = delete;
   LabelPropagationInitialPartitioner& operator= (LabelPropagationInitialPartitioner&&) = delete;
 
-  void initialPartition() override final {
+  void partitionImpl() override final {
     PartitionID unassigned_part =
       _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
