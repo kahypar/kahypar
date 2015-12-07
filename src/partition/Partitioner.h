@@ -218,13 +218,13 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   config.fm_local_search.beta = log(hg.numNodes());
 
   // State transition for the initial partitioning technique which should be used
-  if (config.initial_partitioning.init_technique == InitialPartitioningTechnique::multilevel &&
-      config.initial_partitioning.init_mode == Mode::recursive_bisection) {
+  if (config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel &&
+      config.initial_partitioning.mode == Mode::recursive_bisection) {
     config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
     config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
     config.partition.mode = Mode::recursive_bisection;
-  } else if (config.initial_partitioning.init_technique == InitialPartitioningTechnique::multilevel &&
-             config.initial_partitioning.init_mode == Mode::direct_kway) {
+  } else if (config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel &&
+             config.initial_partitioning.mode == Mode::direct_kway) {
     if (config.partition.k > 2) {
       config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
     } else {
@@ -232,8 +232,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
     }
     config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
     config.partition.mode = Mode::direct_kway;
-  } else if (config.initial_partitioning.init_technique == InitialPartitioningTechnique::flat &&
-             config.initial_partitioning.init_mode == Mode::recursive_bisection) {
+  } else if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+             config.initial_partitioning.mode == Mode::recursive_bisection) {
     config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
     config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
     config.partition.mode = Mode::recursive_bisection;
@@ -246,8 +246,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
     config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
     config.partition.mode = Mode::direct_kway;
   }
-  config.initial_partitioning.init_technique = InitialPartitioningTechnique::flat;
-  config.initial_partitioning.init_mode = Mode::direct_kway;
+  config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
+  config.initial_partitioning.mode = Mode::direct_kway;
 
   return config;
 }
@@ -478,13 +478,13 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
     init_config.initial_partitioning.seed = int_dist(generator);
     init_config.partition.seed = init_config.initial_partitioning.seed;
 
-    LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.init_technique)
-        << " " << toString(config.initial_partitioning.init_mode) << " "
+    LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
+        << " " << toString(config.initial_partitioning.mode) << " "
         << toString(config.initial_partitioning.algo)
         << " (k=" << init_config.initial_partitioning.k << ", epsilon="
         << init_config.initial_partitioning.epsilon << ")");
-    if (config.initial_partitioning.init_technique == InitialPartitioningTechnique::flat &&
-        config.initial_partitioning.init_mode == Mode::direct_kway) {
+    if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+        config.initial_partitioning.mode == Mode::direct_kway) {
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(
           config.initial_partitioning.algo,

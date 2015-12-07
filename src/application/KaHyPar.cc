@@ -163,20 +163,20 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
           InitialPartitioner::KaHyPar;
         if (vm.count("init-mode")) {
           if (vm["init-mode"].as<std::string>() == "rb") {
-            config.initial_partitioning.init_mode =
+            config.initial_partitioning.mode =
               Mode::recursive_bisection;
           } else if (vm["init-mode"].as<std::string>() == "direct") {
-            config.initial_partitioning.init_mode =
+            config.initial_partitioning.mode =
               Mode::direct_kway;
           }
         }
         if (vm.count("init-technique")) {
           if (vm["init-technique"].as<std::string>() == "flat") {
-            config.initial_partitioning.init_technique =
+            config.initial_partitioning.technique =
               InitialPartitioningTechnique::flat;
           } else if (vm["init-technique"].as<std::string>()
                      == "multi") {
-            config.initial_partitioning.init_technique =
+            config.initial_partitioning.technique =
               InitialPartitioningTechnique::multilevel;
           }
         }
@@ -193,15 +193,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         // If we use the n-Level recursive bisection partitioner the initial partitioner is only
         // call for k=2.
         if (config.partition.mode == Mode::recursive_bisection &&
-            config.initial_partitioning.init_mode
+            config.initial_partitioning.mode
             == Mode::recursive_bisection) {
-          config.initial_partitioning.init_mode = Mode::direct_kway;
+          config.initial_partitioning.mode = Mode::direct_kway;
         }
 
-        if (config.initial_partitioning.init_mode == Mode::direct_kway &&
-            config.initial_partitioning.init_technique
+        if (config.initial_partitioning.mode == Mode::direct_kway &&
+            config.initial_partitioning.technique
             == InitialPartitioningTechnique::multilevel) {
-          config.initial_partitioning.init_technique =
+          config.initial_partitioning.technique =
             InitialPartitioningTechnique::flat;
         }
       }
@@ -365,9 +365,9 @@ void setDefaults(Configuration& config) {
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
   config.initial_partitioning.pool_type = 1975;
-  config.initial_partitioning.init_technique =
+  config.initial_partitioning.technique =
     InitialPartitioningTechnique::flat;
-  config.initial_partitioning.init_mode = Mode::recursive_bisection;
+  config.initial_partitioning.mode = Mode::recursive_bisection;
   config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
   config.initial_partitioning.init_alpha = 1.0;
   config.coarsening.contraction_limit_multiplier = 160;

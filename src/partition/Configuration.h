@@ -206,8 +206,8 @@ struct Configuration {
     InitialPartitioningParameters() :
       k(2),
       epsilon(0.05),
-      init_technique(InitialPartitioningTechnique::flat),
-      init_mode(Mode::recursive_bisection),
+      technique(InitialPartitioningTechnique::flat),
+      mode(Mode::recursive_bisection),
       algo(InitialPartitionerAlgorithm::pool),
       upper_allowed_partition_weight(),
       perfect_balance_partition_weight(),
@@ -223,8 +223,8 @@ struct Configuration {
 
     PartitionID k;
     double epsilon;
-    InitialPartitioningTechnique init_technique;
-    Mode init_mode;
+    InitialPartitioningTechnique technique;
+    Mode mode;
     InitialPartitionerAlgorithm algo;
     HypernodeWeightVector upper_allowed_partition_weight;
     HypernodeWeightVector perfect_balance_partition_weight;
@@ -392,8 +392,8 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(35) << "  Initial Partitioner: "
   << toString(config.partition.initial_partitioner) << std::endl;
   oss << std::setw(35) << "  Initial Partitioning Mode: "
-  << toString(config.initial_partitioning.init_mode) << " "
-  << toString(config.initial_partitioning.init_technique)
+  << toString(config.initial_partitioning.mode) << " "
+  << toString(config.initial_partitioning.technique)
   << std::endl;
   oss << std::setw(35) << "  Initial Partitioning Algorithm: "
   << toString(config.initial_partitioning.algo) << std::endl;
