@@ -46,9 +46,10 @@ class InitialPartitionerBase {
   InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
-    _unassigned_nodes() {
+    _unassigned_nodes(),
+    _unassigned_node_bound(std::numeric_limits<PartitionID>::max()),
+    _max_hypernode_weight(hypergraph.weightOfHeaviestNode()) {
     for (const HypernodeID hn : _hg.nodes()) {
-      max_hypernode_weight = std::max(_hg.nodeWeight(hn), max_hypernode_weight);
       _unassigned_nodes.push_back(hn);
     }
     _unassigned_node_bound = _unassigned_nodes.size();
@@ -120,9 +121,9 @@ class InitialPartitionerBase {
         improvement_found =
           refiner->refine(refinement_nodes, num_refinement_nodes,
                           { _config.initial_partitioning.upper_allowed_partition_weight[0]
-                            + max_hypernode_weight,
+                            + _max_hypernode_weight,
                             _config.initial_partitioning.upper_allowed_partition_weight[1]
-                            + max_hypernode_weight }, { 0, 0 }, current_cut, imbalance);
+                            + _max_hypernode_weight }, { 0, 0 }, current_cut, imbalance);
         ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
         ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
 #ifndef NDEBUG
@@ -171,7 +172,7 @@ class InitialPartitionerBase {
   }
 
   HypernodeWeight getMaxHypernodeWeight() {
-    return max_hypernode_weight;
+    return _max_hypernode_weight;
   }
 
  protected:
@@ -180,9 +181,9 @@ class InitialPartitionerBase {
 
  private:
   std::vector<HypernodeID> _unassigned_nodes;
+  unsigned int _unassigned_node_bound;
+  HypernodeWeight _max_hypernode_weight;
   static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
-  unsigned int _unassigned_node_bound = std::numeric_limits<PartitionID>::max();
-  HypernodeWeight max_hypernode_weight = std::numeric_limits<HypernodeWeight>::min();
 };
 }  // namespace partition
 

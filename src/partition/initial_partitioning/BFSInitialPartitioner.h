@@ -170,7 +170,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
 
-  const HypernodeID invalid_hypernode = std::numeric_limits<HypernodeID>::max();
+  static const HypernodeID invalid_hypernode = std::numeric_limits<HypernodeID>::max();
   std::vector<std::queue<HypernodeID> > _queues;
   FastResetBitVector<> _hypernode_in_queue;
   FastResetBitVector<> _hyperedge_in_queue;

@@ -293,8 +293,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   std::vector<Gain> _tmp_scores;
   static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
   static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
-
-  const double invalid_score_value = std::numeric_limits<double>::lowest();
+  static constexpr double invalid_score_value = std::numeric_limits<double>::lowest();
 };
 }  // namespace partition
 

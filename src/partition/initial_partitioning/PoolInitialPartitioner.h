@@ -169,8 +169,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
 
-  const HyperedgeWeight _kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
-  const double _kInvalidImbalance = std::numeric_limits<double>::max();
+  static const HyperedgeWeight _kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
+  static constexpr double _kInvalidImbalance = std::numeric_limits<double>::max();
 };
 }  // namespace partition
 
