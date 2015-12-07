@@ -9,34 +9,29 @@
 #include <limits>
 #include <vector>
 
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
-using partition::StartNodeSelectionPolicy;
-using partition::GainComputationPolicy;
-using partition::GreedyQueueSelectionPolicy;
 using datastructure::KWayPriorityQueue;
 using external::ArrayStorage;
 
 using Gain = HyperedgeWeight;
-
 
 namespace partition {
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            std::numeric_limits<HyperedgeWeight>,
                                            ArrayStorage<HypernodeID>, true>;
 
-template <class StartNodeSelection = StartNodeSelectionPolicy,
-          class GainComputation = GainComputationPolicy,
-          class QueueSelection = GreedyQueueSelectionPolicy>
+template <class StartNodeSelection = Mandatory,
+          class GainComputation = Mandatory,
+          class QueueSelection = Mandatory>
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase {
  public:

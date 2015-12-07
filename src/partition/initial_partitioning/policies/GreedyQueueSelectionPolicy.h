@@ -24,11 +24,7 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            std::numeric_limits<HyperedgeWeight>,
                                            ArrayStorage<HypernodeID>, true>;
 
-struct GreedyQueueSelectionPolicy {
-  virtual ~GreedyQueueSelectionPolicy() { }
-};
-
-struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
+struct RoundRobinQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {   // TODO(heuer): document
     return -1;
   }
@@ -58,7 +54,7 @@ struct RoundRobinQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
+struct GlobalQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }
@@ -101,7 +97,7 @@ struct GlobalQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct SequentialQueueSelectionPolicy : public GreedyQueueSelectionPolicy {
+struct SequentialQueueSelectionPolicy {
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }

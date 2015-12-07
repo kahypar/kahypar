@@ -10,17 +10,16 @@
 #include <queue>
 #include <vector>
 
+#include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
-using partition::StartNodeSelectionPolicy;
 
 namespace partition {
-template <class StartNodeSelection = StartNodeSelectionPolicy>
+template <class StartNodeSelection = Mandatory>
 class BFSInitialPartitioner : public IInitialPartitioner,
                               private InitialPartitionerBase {
  public:

@@ -12,27 +12,24 @@
 #include <utility>
 #include <vector>
 
+#include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
-#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::Hypergraph;
 using defs::HypernodeWeight;
 using defs::HypernodeID;
 using defs::HyperedgeID;
-using partition::GainComputationPolicy;
-using partition::StartNodeSelectionPolicy;
 using Gain = HyperedgeWeight;
 
 
 namespace partition {
-template <class StartNodeSelection = StartNodeSelectionPolicy,
-          class GainComputation = GainComputationPolicy>
+template <class StartNodeSelection = Mandatory,
+          class GainComputation = Mandatory>
 class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                            private InitialPartitionerBase {
  public:

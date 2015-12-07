@@ -19,11 +19,7 @@ using defs::PartitionID;
 using defs::Hypergraph;
 
 namespace partition {
-struct StartNodeSelectionPolicy {
-  virtual ~StartNodeSelectionPolicy() { }
-};
-
-struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
+struct BFSStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     start_nodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
@@ -72,7 +68,7 @@ struct BFSStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
   }
 };
 
-struct RandomStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
+struct RandomStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     if (k == 2) {
@@ -99,7 +95,7 @@ struct RandomStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
 // the first Policy such that it uses Random in one case, and in the test-case only returns
 // 0 as start node.
 // Additionally, this method has the same bug as described above.
-struct TestStartNodeSelectionPolicy : public StartNodeSelectionPolicy {
+struct TestStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     if (static_cast<int>(startNodes.size()) == k) {

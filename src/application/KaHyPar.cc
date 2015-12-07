@@ -24,6 +24,7 @@
 #include "partition/initial_partitioning/PoolInitialPartitioner.h"
 #include "partition/initial_partitioning/RandomInitialPartitioner.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
+#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
 

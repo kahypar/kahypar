@@ -38,11 +38,7 @@ enum class GainType : std::uint8_t {
 };
 
 
-struct GainComputationPolicy {
-  virtual ~GainComputationPolicy() { }
-};
-
-struct FMGainComputationPolicy : public GainComputationPolicy {
+struct FMGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part) noexcept {
     const PartitionID source_part = hg.partID(hn);
@@ -140,7 +136,7 @@ struct FMGainComputationPolicy : public GainComputationPolicy {
 };
 
 
-struct MaxPinGainComputationPolicy : public GainComputationPolicy {
+struct MaxPinGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn, const PartitionID& target_part) noexcept {
     Gain gain = 0;
@@ -186,7 +182,7 @@ struct MaxPinGainComputationPolicy : public GainComputationPolicy {
   }
 };
 
-struct MaxNetGainComputationPolicy : public GainComputationPolicy {
+struct MaxNetGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn, const PartitionID& target_part) noexcept {
     Gain gain = 0;
