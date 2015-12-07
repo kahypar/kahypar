@@ -75,12 +75,12 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
-    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
-    PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
+    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, 0.0);
+    PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, 0.0);
     PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
-    PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut,
-                                     _kInvalidImbalance);
-    PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, _kInvalidCut, -0.1);
+    PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut,
+                                     kInvalidImbalance);
+    PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut, -0.1);
 
     std::vector<PartitionID> best_partition(_hg.numNodes());
     unsigned int n = _partitioner_pool.size() - 1;
@@ -96,7 +96,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       double current_imbalance = metrics::imbalance(_hg, _config);
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
-        if (best_cut.cut != _kInvalidCut) {
+        if (best_cut.cut != kInvalidCut) {
           if (current_imbalance > _config.initial_partitioning.epsilon) {
             if (current_imbalance > best_cut.imbalance) {
               apply_best_partition = false;
@@ -169,8 +169,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
 
-  static const HyperedgeWeight _kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
-  static constexpr double _kInvalidImbalance = std::numeric_limits<double>::max();
+  static const HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
+  static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 };
 }  // namespace partition
 

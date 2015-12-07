@@ -158,7 +158,7 @@ class InitialPartitionerBase {
   }
 
   HypernodeID getUnassignedNode() {
-    HypernodeID unassigned_node = std::numeric_limits<HypernodeID>::max();
+    HypernodeID unassigned_node = kInvalidNode;
     for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];
       if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
@@ -178,12 +178,13 @@ class InitialPartitionerBase {
  protected:
   Hypergraph& _hg;
   Configuration& _config;
+  static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
+  static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 
  private:
   std::vector<HypernodeID> _unassigned_nodes;
   unsigned int _unassigned_node_bound;
   HypernodeWeight _max_hypernode_weight;
-  static const PartitionID kInvalidPartition = std::numeric_limits<PartitionID>::max();
 };
 }  // namespace partition
 

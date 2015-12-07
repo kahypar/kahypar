@@ -215,7 +215,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     }
 
     PartitionID max_part = _hg.partID(hn);
-    double max_score = (_hg.partID(hn) == -1) ? invalid_score_value : 0;
+    double max_score = (_hg.partID(hn) == -1) ? std::numeric_limits<double>::lowest() : 0;
     for (PartitionID p = 0; p < _config.initial_partitioning.k; ++p) {
       if (_valid_parts[p]) {
         _tmp_scores[p] -= internal_weight;
@@ -288,12 +288,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
  protected:
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
+  using InitialPartitionerBase::kInvalidNode;
+  using InitialPartitionerBase::kInvalidPart;
   FastResetBitVector<> _valid_parts;
   FastResetBitVector<> _in_queue;
   std::vector<Gain> _tmp_scores;
-  static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
-  static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
-  static constexpr double invalid_score_value = std::numeric_limits<double>::lowest();
 };
 }  // namespace partition
 

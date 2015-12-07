@@ -108,7 +108,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       }
 
       HypernodeID current_hn = kInvalidNode;
-      Gain current_gain = kInvalidGain;
+      Gain current_gain = std::numeric_limits<Gain>::min();
 
       if (!QueueSelection::nextQueueID(_hg, _config, _pq, current_hn, current_gain, current_id,
                                        is_upper_bound_released)) {
@@ -350,14 +350,12 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
+  using InitialPartitionerBase::kInvalidNode;
   std::vector<HypernodeID> _start_nodes;
+
   KWayRefinementPQ _pq;
   FastResetBitVector<> _visit;
   FastResetBitVector<> _hyperedge_in_queue;
-
-  static const Gain kInvalidGain = std::numeric_limits<Gain>::min();
-  static const PartitionID kInvalidPartition = -1;
-  static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 };
 }  // namespace partition
 
