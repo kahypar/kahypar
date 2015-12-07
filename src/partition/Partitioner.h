@@ -170,6 +170,20 @@ class Partitioner {
   std::string _internals;
 };
 
+inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
+  io::printHypergraphInfo(hg,
+                          config.partition.coarse_graph_filename.substr(
+                            config.partition.coarse_graph_filename.find_last_of("/")
+                            + 1));
+  if (config.partition.initial_partitioner == InitialPartitioner::hMetis ||
+      config.partition.initial_partitioner == InitialPartitioner::PaToH) {
+    initialPartitioningViaExternalTools(hg, config);
+  } else if (config.partition.initial_partitioner == InitialPartitioner::KaHyPar) {
+    initialPartitioningViaKaHyPar(hg, config);
+  }
+  Stats::instance().addToTotal(config, "InitialCut", metrics::hyperedgeCut(hg));
+}
+
 inline Configuration Partitioner::createConfigurationForInitialPartitioning(const Hypergraph& hg,
                                                                             const Configuration&
                                                                             original_config,
