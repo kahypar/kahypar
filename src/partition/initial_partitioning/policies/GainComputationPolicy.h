@@ -37,7 +37,6 @@ enum class GainType : std::uint8_t {
   max_pin_gain
 };
 
-
 struct FMGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part) noexcept {
