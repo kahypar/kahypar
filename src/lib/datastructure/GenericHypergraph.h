@@ -89,6 +89,7 @@ class GenericHypergraph {
   struct AdditionalHypernodeData : public HypernodeData {
     PartitionID part_id = kInvalidPartition;
     HyperedgeID num_incident_cut_hes = 0;
+    std::uint32_t state = 0;
   };
 
   struct Dummy {
@@ -459,6 +460,8 @@ class GenericHypergraph {
     _current_num_hypernodes(_num_hypernodes),
     _current_num_hyperedges(_num_hyperedges),
     _current_num_pins(_num_pins),
+    _threshold_active(1),
+    _threshold_marked(2),
     _hypernodes(_num_hypernodes, HypernodeVertex(0, 0, 1)),
     _hyperedges(_num_hyperedges, HyperedgeVertex(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
@@ -1055,6 +1058,41 @@ class GenericHypergraph {
     return _k;
   }
 
+  bool active(const HypernodeID u) const {
+    return hypernode(u).state == _threshold_active;
+  }
+
+  bool marked(const HypernodeID u) const {
+    return hypernode(u).state == _threshold_marked;
+  }
+
+  void mark(const HypernodeID u) {
+    ASSERT(hypernode(u).state == _threshold_active, V(u));
+    hypernode(u).state = _threshold_marked;
+  }
+
+  void activate(const HypernodeID u) {
+    ASSERT(hypernode(u).state < _threshold_active, V(u));
+    hypernode(u).state = _threshold_active;
+  }
+
+  void deactivate(const HypernodeID u) {
+    ASSERT(hypernode(u).state == _threshold_active, V(u));
+    --hypernode(u).state;
+  }
+
+  void resetHypernodeState() {
+    if (_threshold_marked == std::numeric_limits<std::uint32_t>::max()) {
+      for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
+        hypernode(hn).state = 0;
+      }
+      _threshold_active = -2;
+      _threshold_marked = -1;
+    }
+    _threshold_active += 2;
+    _threshold_marked += 2;
+  }
+
   // Needs to be called after initial partitioning in order to provide
   // correct borderNode checks.
   void initializeNumCutHyperedges() {
@@ -1147,6 +1185,8 @@ class GenericHypergraph {
     _current_num_hypernodes(0),
     _current_num_hyperedges(0),
     _current_num_pins(0),
+    _threshold_active(1),
+    _threshold_marked(2),
     _hypernodes(),
     _hyperedges(),
     _incidence_array(),
@@ -1402,9 +1442,10 @@ class GenericHypergraph {
            "HE " << he << "does not have any pins in partition " << id);
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
     ASSERT(_pins_in_part[he * _k + id] > 0, "invalid decrease");
-    _pins_in_part[he * _k + id] -= 1;
-    hyperedge(he).connectivity -= _pins_in_part[he * _k + id] == 0;
-    return _pins_in_part[he * _k + id] == 0;
+    const size_t offset = he * _k + id;
+    _pins_in_part[offset] -= 1;
+    hyperedge(he).connectivity -= _pins_in_part[offset] == 0;
+    return _pins_in_part[offset] == 0;
   }
 
   bool increasePinCountInPart(const HyperedgeID he, const PartitionID id) noexcept {
@@ -1413,9 +1454,10 @@ class GenericHypergraph {
            "HE " << he << ": pin_count[" << id << "]=" << pinCountInPart(he, id)
            << "edgesize=" << edgeSize(he));
     ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    _pins_in_part[he * _k + id] += 1;
-    hyperedge(he).connectivity += _pins_in_part[he * _k + id] == 1;
-    return _pins_in_part[he * _k + id] == 1;
+    const size_t offset = he * _k + id;
+    _pins_in_part[offset] += 1;
+    hyperedge(he).connectivity += _pins_in_part[offset] == 1;
+    return _pins_in_part[offset] == 1;
   }
 
   void invalidatePartitionPinCounts(const HyperedgeID he) noexcept {
@@ -1582,6 +1624,9 @@ class GenericHypergraph {
   HypernodeID _current_num_hypernodes;
   HyperedgeID _current_num_hyperedges;
   HypernodeID _current_num_pins;
+
+  std::uint32_t _threshold_active;
+  std::uint32_t _threshold_marked;
 
   std::vector<HypernodeVertex> _hypernodes;
   std::vector<HyperedgeVertex> _hyperedges;
@@ -1790,62 +1835,63 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     }
   }
 
-  subhypergraph->_hypernodes.resize(num_hypernodes);
-  subhypergraph->_num_hypernodes = num_hypernodes;
+  if (num_hypernodes > 0) {
+    subhypergraph->_hypernodes.resize(num_hypernodes);
+    subhypergraph->_num_hypernodes = num_hypernodes;
 
-  HyperedgeID num_hyperedges = 0;
-  HypernodeID pin_index = 0;
-  for (const HyperedgeID he : hypergraph.edges()) {
-    if (hypergraph.connectivity(he) > 1) {
-      continue;
-    }
-    if (*hypergraph.connectivitySet(he).first == part) {
-      ASSERT(hypergraph.hyperedge(he).connectivity == 1,
-             V(he) << V(hypergraph.hyperedge(he).connectivity));
-      ASSERT(hypergraph.edgeSize(he) > 1, V(he));
-      subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
-      ++subhypergraph->_num_hyperedges;
-      subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
-      for (const HypernodeID pin : hypergraph.pins(he)) {
-        subhypergraph->hyperedge(num_hyperedges).increaseSize();
-        subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
-        subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
-        ++pin_index;
+    HyperedgeID num_hyperedges = 0;
+    HypernodeID pin_index = 0;
+    for (const HyperedgeID he : hypergraph.edges()) {
+      if (hypergraph.connectivity(he) > 1) {
+        continue;
       }
-      ++num_hyperedges;
+      if (*hypergraph.connectivitySet(he).first == part) {
+        ASSERT(hypergraph.hyperedge(he).connectivity == 1,
+               V(he) << V(hypergraph.hyperedge(he).connectivity));
+        ASSERT(hypergraph.edgeSize(he) > 1, V(he));
+        subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+        ++subhypergraph->_num_hyperedges;
+        subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+        for (const HypernodeID pin : hypergraph.pins(he)) {
+          subhypergraph->hyperedge(num_hyperedges).increaseSize();
+          subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+          subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
+          ++pin_index;
+        }
+        ++num_hyperedges;
+      }
+    }
+
+    const HypernodeID num_pins = pin_index;
+    subhypergraph->_num_pins = num_pins;
+    subhypergraph->_current_num_hypernodes = num_hypernodes;
+    subhypergraph->_current_num_hyperedges = num_hyperedges;
+    subhypergraph->_current_num_pins = num_pins;
+    subhypergraph->_type = hypergraph.type();
+
+    subhypergraph->_incidence_array.resize(2 * num_pins);
+    subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
+    subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
+
+    subhypergraph->hypernode(0).setFirstEntry(num_pins);
+    for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+      subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
+      subhypergraph->hypernode(i).setSize(0);
+      subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
+      subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
+    }
+    subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
+    subhypergraph->hypernode(num_hypernodes - 1).setWeight(
+      hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
+    subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
+
+    for (const HyperedgeID he : subhypergraph->edges()) {
+      for (const HypernodeID pin : subhypergraph->pins(he)) {
+        subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
+        subhypergraph->hypernode(pin).increaseSize();
+      }
     }
   }
-
-  const HypernodeID num_pins = pin_index;
-  subhypergraph->_num_pins = num_pins;
-  subhypergraph->_current_num_hypernodes = num_hypernodes;
-  subhypergraph->_current_num_hyperedges = num_hyperedges;
-  subhypergraph->_current_num_pins = num_pins;
-  subhypergraph->_type = hypergraph.type();
-
-  subhypergraph->_incidence_array.resize(2 * num_pins);
-  subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
-  subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
-
-  subhypergraph->hypernode(0).setFirstEntry(num_pins);
-  for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
-    subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
-    subhypergraph->hypernode(i).setSize(0);
-    subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
-    subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
-  }
-  subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
-  subhypergraph->hypernode(num_hypernodes - 1).setWeight(
-    hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
-  subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
-
-  for (const HyperedgeID he : subhypergraph->edges()) {
-    for (const HypernodeID pin : subhypergraph->pins(he)) {
-      subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
-      subhypergraph->hypernode(pin).increaseSize();
-    }
-  }
-
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
 }

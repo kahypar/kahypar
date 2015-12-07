@@ -205,8 +205,8 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   refiner.initialize();
 #endif
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._hn_state.activate(0);
-  refiner._hn_state.activate(1);
+  refiner._hg.activate(0);
+  refiner._hg.activate(1);
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
   refiner._pq.insert(0, 1, refiner._gain_cache[0]);
@@ -216,7 +216,7 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
 
   hypergraph.changeNodePart(1, 0, 1);
-  refiner._hn_state.mark(1);
+  refiner._hg.mark(1);
 
   refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
@@ -246,7 +246,7 @@ TEST_F(AGainUpdateMethod, RespectsNegativeGainUpdateSpecialCaseForHyperedgesOfSi
   refiner._pq.enablePart(1);
 
   hypergraph.changeNodePart(1, 1, 0);
-  refiner._hn_state.mark(1);
+  refiner._hg.mark(1);
   refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -267,10 +267,10 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner.initialize();
 #endif
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._hn_state.activate(0);
-  refiner._hn_state.activate(1);
-  refiner._hn_state.activate(2);
-  refiner._hn_state.activate(3);
+  refiner._hg.activate(0);
+  refiner._hg.activate(1);
+  refiner._hg.activate(2);
+  refiner._hg.activate(3);
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
   refiner._gain_cache[2] = refiner.computeGain(2);
@@ -287,7 +287,7 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   ASSERT_THAT(refiner._pq.key(3, 1), Eq(-1));
 
   hypergraph.changeNodePart(3, 0, 1);
-  refiner._hn_state.mark(3);
+  refiner._hg.mark(3);
   refiner.updateNeighbours(3, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -328,7 +328,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   ASSERT_THAT(refiner._pq.key(3, 0), Eq(1));
 
   hypergraph.changeNodePart(3, 1, 0);
-  refiner._hn_state.mark(3);
+  refiner._hg.mark(3);
   refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
@@ -360,7 +360,7 @@ TEST_F(AGainUpdateMethod, HandlesCase2To1) {
   ASSERT_THAT(refiner._pq.key(3, 0), Eq(0));
 
   hypergraph.changeNodePart(3, 1, 0);
-  refiner._hn_state.mark(3);
+  refiner._hg.mark(3);
   refiner.updateNeighbours(3, 1, 0,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -392,7 +392,7 @@ TEST_F(AGainUpdateMethod, HandlesCase1To2) {
   ASSERT_THAT(refiner._pq.key(3, 0), Eq(1));
 
   hypergraph.changeNodePart(2, 0, 1);
-  refiner._hn_state.mark(2);
+  refiner._hg.mark(2);
   refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -421,7 +421,7 @@ TEST_F(AGainUpdateMethod, HandlesSpecialCaseOfHyperedgeWith3Pins) {
   ASSERT_THAT(refiner._pq.key(2, 0), Eq(1));
 
   hypergraph.changeNodePart(1, 0, 1);
-  refiner._hn_state.mark(1);
+  refiner._hg.mark(1);
   refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(1));
@@ -449,7 +449,7 @@ TEST_F(AGainUpdateMethod, RemovesNonBorderNodesFromPQ) {
   ASSERT_THAT(refiner._pq.contains(0, 1), Eq(true));
 
   hypergraph.changeNodePart(1, 1, 0, refiner._non_border_hns_to_remove);
-  refiner._hn_state.mark(1);
+  refiner._hg.mark(1);
   refiner.updateNeighbours(1, 1, 0,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(1, 0), Eq(1));
@@ -475,15 +475,15 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   refiner._gain_cache[1] = refiner.computeGain(1);
   refiner._pq.insert(0, 1, refiner._gain_cache[0]);
   refiner._pq.insert(1, 1, refiner._gain_cache[1]);
-  refiner._hn_state.activate(0);
-  refiner._hn_state.activate(1);
+  refiner._hg.activate(0);
+  refiner._hg.activate(1);
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.contains(2), Eq(false));
 
   hypergraph.changeNodePart(1, 0, 1);
-  refiner._hn_state.mark(1);
+  refiner._hg.mark(1);
   refiner.updateNeighbours(1, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(0));
@@ -512,10 +512,10 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   // bypassing activate
   refiner._pq.insert(2, 1, refiner.computeGain(2));
   refiner._gain_cache[2] = refiner.computeGain(2);
-  refiner._hn_state.activate(2);
+  refiner._hg.activate(2);
   refiner._pq.enablePart(1);
   refiner.moveHypernode(2, 0, 1);
-  refiner._hn_state.mark(2);
+  refiner._hg.mark(2);
   refiner.updateNeighbours(2, 0, 1,  /* dummy max-part-weight */ { 42, 42 });
 
   ASSERT_THAT(refiner._pq.contains(4, 1), Eq(true));
@@ -601,9 +601,9 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   refiner->initialize();
 #endif
 
-  refiner->_hn_state.activate(0);
+  refiner->_hg.activate(0);
   hypergraph->changeNodePart(0, 0, 1);
-  refiner->_hn_state.mark(0);
+  refiner->_hg.mark(0);
 
   refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));

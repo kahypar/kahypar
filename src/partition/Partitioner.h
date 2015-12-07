@@ -359,9 +359,9 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
                                                    const HypernodeWeight current_hypergraph_weight,
                                                    const PartitionID k,
                                                    const Configuration& original_config) const {
-  double base = ceil(
-    static_cast<double>(original_hypergraph_weight)
-    / original_config.partition.k)
+  ASSERT(k * original_hypergraph_weight >= original_config.partition.k * current_hypergraph_weight,
+         "start partition already too imbalanced");
+  double base = ceil(static_cast<double>(original_hypergraph_weight) / original_config.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_config.partition.epsilon);
   return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
