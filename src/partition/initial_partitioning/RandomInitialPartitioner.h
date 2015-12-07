@@ -24,8 +24,14 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
   ~RandomInitialPartitioner() { }
 
+  RandomInitialPartitioner(const RandomInitialPartitioner&) = delete;
+  RandomInitialPartitioner& operator= (const RandomInitialPartitioner&) = delete;
+
+  RandomInitialPartitioner(RandomInitialPartitioner&&) = delete;
+  RandomInitialPartitioner& operator= (RandomInitialPartitioner&&) = delete;
+
  private:
-  void initialPartition() final {
+  void initialPartition() override final {
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();

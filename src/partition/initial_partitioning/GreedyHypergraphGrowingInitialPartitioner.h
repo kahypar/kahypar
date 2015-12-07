@@ -47,6 +47,12 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   ~GreedyHypergraphGrowingInitialPartitioner() { }
 
+  GreedyHypergraphGrowingInitialPartitioner(const GreedyHypergraphGrowingInitialPartitioner&) = delete;
+  GreedyHypergraphGrowingInitialPartitioner& operator= (const GreedyHypergraphGrowingInitialPartitioner&) = delete;
+
+  GreedyHypergraphGrowingInitialPartitioner(GreedyHypergraphGrowingInitialPartitioner&&) = delete;
+  GreedyHypergraphGrowingInitialPartitioner& operator= (GreedyHypergraphGrowingInitialPartitioner&&) = delete;
+
  private:
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest, InsertionOfAHypernodeIntoPQ);
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
@@ -66,7 +72,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
               CheckIfAllEnabledPQContainsAtLeastOneHypernode);
 
-  void initialPartition() final {
+  void initialPartition() override final {
     // Every QueueSelectionPolicy specifies its own operating unassigned part.
     // Therefore we only change the unassigned_part variable in this method and reset it at
     // the end to original value.

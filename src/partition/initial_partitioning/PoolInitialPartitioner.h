@@ -67,8 +67,14 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
   ~PoolInitialPartitioner() { }
 
+  PoolInitialPartitioner(const PoolInitialPartitioner&) = delete;
+  PoolInitialPartitioner& operator= (const PoolInitialPartitioner&) = delete;
+
+  PoolInitialPartitioner(PoolInitialPartitioner&&) = delete;
+  PoolInitialPartitioner& operator= (PoolInitialPartitioner&&) = delete;
+
  private:
-  void initialPartition() final {
+  void initialPartition() override final {
     PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, _kInvalidCut, 0.0);
     PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
@@ -84,7 +90,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
       InitialPartitionerAlgorithm algo = _partitioner_pool[i];
       std::unique_ptr<IInitialPartitioner> partitioner(
-        InitialPartitioningFactory::getInstance().createObject(algo,_hg, _config));
+        InitialPartitioningFactory::getInstance().createObject(algo, _hg, _config));
       partitioner->partition(_hg, _config);
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _config);

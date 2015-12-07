@@ -42,7 +42,13 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
   ~LabelPropagationInitialPartitioner() { }
 
-  void initialPartition() final {
+  LabelPropagationInitialPartitioner(const LabelPropagationInitialPartitioner&) = delete;
+  LabelPropagationInitialPartitioner& operator= (const LabelPropagationInitialPartitioner&) = delete;
+
+  LabelPropagationInitialPartitioner(LabelPropagationInitialPartitioner&&) = delete;
+  LabelPropagationInitialPartitioner& operator= (LabelPropagationInitialPartitioner&&) = delete;
+
+  void initialPartition() override final {
     PartitionID unassigned_part =
       _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;

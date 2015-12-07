@@ -31,6 +31,12 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
   ~BFSInitialPartitioner() { }
 
+  BFSInitialPartitioner(const BFSInitialPartitioner&) = delete;
+  BFSInitialPartitioner& operator= (const BFSInitialPartitioner&) = delete;
+
+  BFSInitialPartitioner(BFSInitialPartitioner&&) = delete;
+  BFSInitialPartitioner& operator= (BFSInitialPartitioner&&) = delete;
+
  private:
   FRIEND_TEST(ABFSBisectionInitialPartioner,
               HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue);
@@ -68,7 +74,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   }
 
 
-  void initialPartition() final {
+  void initialPartition() override final {
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     InitialPartitionerBase::resetPartitioning();
 
