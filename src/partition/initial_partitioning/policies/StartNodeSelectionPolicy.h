@@ -110,7 +110,7 @@ struct TestStartNodeSelectionPolicy {
     std::vector<bool> in_queue(hg.numNodes(), false);
     std::queue<HypernodeID> bfs;
     HypernodeID lastHypernode = -1;
-    for (unsigned int i = 0; i < startNodes.size(); i++) {
+    for (unsigned int i = 0; i < startNodes.size(); ++i) {
       bfs.push(startNodes[i]);
     }
     while (!bfs.empty()) {
