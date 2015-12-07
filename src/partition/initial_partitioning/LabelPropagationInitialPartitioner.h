@@ -189,11 +189,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     HyperedgeWeight internal_weight = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HypernodeID pins_in_source_part =
-        (source_part == -1) ?
-        2 : _hg.pinCountInPart(he, source_part);
+        (source_part == -1) ? 2 : _hg.pinCountInPart(he, source_part);
       if (_hg.connectivity(he) == 1 && pins_in_source_part > 1) {
-        PartitionID part_in_edge =
-          std::numeric_limits<PartitionID>::min();
+        PartitionID part_in_edge = std::numeric_limits<PartitionID>::min();
         for (const PartitionID part : _hg.connectivitySet(he)) {
           _valid_parts.setBit(part, true);
           part_in_edge = part;
@@ -227,9 +225,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
          return true;
          }(), "Calculated gain of hypernode " << hn << " is not " << tmp_scores[p] << ".");*/
 
-        const HypernodeWeight new_partition_weight = _hg.partWeight(p)
-                                                     + _hg.nodeWeight(hn);
-        if (new_partition_weight
+        if (_hg.partWeight(p) + _hg.nodeWeight(hn)
             <= _config.initial_partitioning.upper_allowed_partition_weight[p]) {
           if (_tmp_scores[p] > max_score) {
             max_score = _tmp_scores[p];
@@ -256,7 +252,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       _bfs_queue.pop();
       if (_hg.partID(node) == -1) {
         _hg.setNodePart(node, p);
-        assigned_nodes++;
+        ++assigned_nodes;
         for (const HyperedgeID he : _hg.incidentEdges(node)) {
           for (const HypernodeID pin : _hg.pins(he)) {
             if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
@@ -278,7 +274,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   void assignHypernodeToPartWithMinimumPartWeight(HypernodeID hn) {
     PartitionID p = kInvalidPart;
     HypernodeWeight min_part_weight = std::numeric_limits<HypernodeWeight>::max();
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; i++) {
+    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       p = (_hg.partWeight(i) < min_part_weight ? i : p);
       min_part_weight = std::min(_hg.partWeight(i), min_part_weight);
     }
