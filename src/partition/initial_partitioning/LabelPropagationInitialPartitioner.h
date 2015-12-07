@@ -131,7 +131,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           }
         }
       }
-      iterations++;
+      ++iterations;
 
       // If the algorithm is converged but there are still unassigned hypernodes left, we try to choose
       // five additional hypernodes and assign them to the part with minimum weight to continue with

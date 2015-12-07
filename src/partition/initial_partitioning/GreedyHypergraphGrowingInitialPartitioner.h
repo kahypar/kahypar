@@ -338,7 +338,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
     const int start_node_size = _start_nodes.size();
 
-    for (PartitionID i = 0; i < start_node_size; i++) {
+    for (PartitionID i = 0; i < start_node_size; ++i) {
       insertNodeIntoPQ(_start_nodes[i], i);
     }
 

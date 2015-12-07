@@ -58,7 +58,7 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() { }
 
   void recalculateBalanceConstraints(const double epsilon) {
-    for (int i = 0; i < _config.initial_partitioning.k; i++) {
+    for (int i = 0; i < _config.initial_partitioning.k; ++i) {
       _config.initial_partitioning.upper_allowed_partition_weight[i] =
         _config.initial_partitioning.perfect_balance_partition_weight[i]
         * (1.0 + epsilon);
@@ -129,7 +129,7 @@ class InitialPartitionerBase {
 #ifndef NDEBUG
         old_cut = current_cut;
 #endif
-        iteration++;
+        ++iteration;
       } while (iteration < _config.initial_partitioning.local_search_repetitions &&
                improvement_found);
     }

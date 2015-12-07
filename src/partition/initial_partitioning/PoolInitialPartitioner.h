@@ -84,7 +84,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
     std::vector<PartitionID> best_partition(_hg.numNodes());
     unsigned int n = _partitioner_pool.size() - 1;
-    for (unsigned int i = 0; i <= n; i++) {
+    for (unsigned int i = 0; i <= n; ++i) {
       if (!((_config.initial_partitioning.pool_type >> (n - i)) & 1)) {
         continue;
       }
