@@ -1,3 +1,4 @@
+
 /***************************************************************************
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
@@ -111,23 +112,23 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
 };
 
 typedef::testing::Types<
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          FMGainComputationPolicy, GlobalQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          FMGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          FMGainComputationPolicy, SequentialQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxPinGainComputationPolicy, GlobalQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxPinGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxPinGainComputationPolicy, SequentialQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxNetGainComputationPolicy, GlobalQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxNetGainComputationPolicy, RoundRobinQueueSelectionPolicy>,
-    GreedyTemplateStruct<BFSStartNodeSelectionPolicy,
+    GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          MaxNetGainComputationPolicy, SequentialQueueSelectionPolicy> > GreedyTestTemplates;
 
 TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,

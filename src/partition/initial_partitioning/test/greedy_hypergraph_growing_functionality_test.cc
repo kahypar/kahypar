@@ -88,11 +88,11 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
     }
 
     ghg = std::make_shared<GreedyHypergraphGrowingInitialPartitioner<
-                             BFSStartNodeSelectionPolicy, FMGainComputationPolicy,
+                             BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy,
                              GlobalQueueSelectionPolicy> >(hypergraph, config);
   }
 
-  std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy,
+  std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                                             FMGainComputationPolicy,
                                                             GlobalQueueSelectionPolicy> > ghg;
   Hypergraph hypergraph;

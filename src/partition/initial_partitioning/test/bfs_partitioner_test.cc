@@ -27,6 +27,9 @@ using defs::PartitionID;
 
 
 namespace partition {
+  
+using TestStartNodeSelectionPolicy = BFSStartNodeSelectionPolicy<false>;
+
 void initializeConfiguration(Configuration& config, PartitionID k,
                              HypernodeWeight hypergraph_weight) {
   config.initial_partitioning.k = k;

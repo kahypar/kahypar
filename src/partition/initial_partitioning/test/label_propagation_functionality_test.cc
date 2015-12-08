@@ -60,11 +60,11 @@ class ALabelPropagationMaxGainMoveTest : public Test {
     initializeConfiguration(config, k, 7);
 
     partitioner = std::make_shared<LabelPropagationInitialPartitioner<
-                                     BFSStartNodeSelectionPolicy, FMGainComputationPolicy> >(
+                                     BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy> >(
       hypergraph, config);
   }
 
-  std::shared_ptr<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy,
+  std::shared_ptr<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                                      FMGainComputationPolicy> > partitioner;
   Hypergraph hypergraph;
   Configuration config;

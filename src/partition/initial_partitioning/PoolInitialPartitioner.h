@@ -43,26 +43,27 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
     _partitioner_pool() {
-    // mix3 == 011110110111 == 1975
-    _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_global);
-    _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_round);
+    // mix3 => pool_type = 011110110111_{2} = 1975_{10}
+    //Set bits in pool_type decides which partitioner is executed
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_global); //12th bit set to 1
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_round); //11th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_sequential);
+      InitialPartitionerAlgorithm::greedy_sequential); //10th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_global_maxpin);
+      InitialPartitionerAlgorithm::greedy_global_maxpin); //9th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_round_maxpin);
+      InitialPartitionerAlgorithm::greedy_round_maxpin); //8th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_sequential_maxpin);
+      InitialPartitionerAlgorithm::greedy_sequential_maxpin); //7th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_global_maxnet);
+      InitialPartitionerAlgorithm::greedy_global_maxnet); //6th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_round_maxnet);
+      InitialPartitionerAlgorithm::greedy_round_maxnet); //5th bit set to 1
     _partitioner_pool.push_back(
-      InitialPartitionerAlgorithm::greedy_sequential_maxnet);
-    _partitioner_pool.push_back(InitialPartitionerAlgorithm::lp);
-    _partitioner_pool.push_back(InitialPartitionerAlgorithm::bfs);
-    _partitioner_pool.push_back(InitialPartitionerAlgorithm::random);
+      InitialPartitionerAlgorithm::greedy_sequential_maxnet); //4th bit set to 1
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::lp); //3th bit set to 1
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::bfs); //2th bit set to 1
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::random); //1th bit set to 1
   }
 
   ~PoolInitialPartitioner() { }
@@ -85,6 +86,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     std::vector<PartitionID> best_partition(_hg.numNodes());
     unsigned int n = _partitioner_pool.size() - 1;
     for (unsigned int i = 0; i <= n; ++i) {
+      //If the (n-i)th bit of pool_type is set we execute the corresponding 
+      //initial partitioner (see constructor)
       if (!((_config.initial_partitioning.pool_type >> (n - i)) & 1)) {
         continue;
       }

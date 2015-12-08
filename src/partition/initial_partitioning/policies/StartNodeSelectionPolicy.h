@@ -19,10 +19,15 @@ using defs::PartitionID;
 using defs::Hypergraph;
 
 namespace partition {
+template <bool UseRandomStartHypernode = true>
 struct BFSStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
-    start_nodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
+    HypernodeID start_hn = 0;
+    if(UseRandomStartHypernode) {
+      start_hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
+    }
+    start_nodes.push_back(start_hn);
     FastResetBitVector<> in_queue(hg.numNodes(), false);
     FastResetBitVector<> hyperedge_in_queue(hg.numEdges(), false);
 
@@ -79,8 +84,6 @@ struct RandomStartNodeSelectionPolicy {
     for (PartitionID i = 0; i < k; ++i) {
       while (true) {
         HypernodeID hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
-        // TODO(heuer): in this case you check for duplicate start nodes...
-        // This check is missing in the BFS-Policy.
         auto node = std::find(startNodes.begin(), startNodes.end(), hn);
         if (node == startNodes.end()) {
           startNodes.push_back(hn);
@@ -91,48 +94,6 @@ struct RandomStartNodeSelectionPolicy {
   }
 };
 
-// TODO(heuer): Unneccesary code-duplication. It would be better to further parametrize
-// the first Policy such that it uses Random in one case, and in the test-case only returns
-// 0 as start node.
-// Additionally, this method has the same bug as described above.
-struct TestStartNodeSelectionPolicy {
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
-                                         const Hypergraph& hg, const PartitionID k) noexcept {
-    if (static_cast<int>(startNodes.size()) == k) {
-      return;
-    } else if (startNodes.size() == 0) {
-      startNodes.push_back(0);
-      calculateStartNodes(startNodes, hg, k);
-      return;
-    }
-
-    std::vector<bool> visited(hg.numNodes(), false);
-    std::vector<bool> in_queue(hg.numNodes(), false);
-    std::queue<HypernodeID> bfs;
-    HypernodeID lastHypernode = -1;
-    for (unsigned int i = 0; i < startNodes.size(); ++i) {
-      bfs.push(startNodes[i]);
-    }
-    while (!bfs.empty()) {
-      HypernodeID hn = bfs.front();
-      bfs.pop();
-      if (visited[hn])
-        continue;
-      lastHypernode = hn;
-      visited[hn] = true;
-      for (HyperedgeID he : hg.incidentEdges(lastHypernode)) {
-        for (HypernodeID hnodes : hg.pins(he)) {
-          if (!visited[hnodes] && !in_queue[hnodes]) {
-            bfs.push(hnodes);
-            in_queue[hnodes] = true;
-          }
-        }
-      }
-    }
-    startNodes.push_back(lastHypernode);
-    calculateStartNodes(startNodes, hg, k);
-  }
-};
 }  // namespace partition
 
 #endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_

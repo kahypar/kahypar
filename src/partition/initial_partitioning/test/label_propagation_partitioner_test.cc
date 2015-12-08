@@ -105,10 +105,10 @@ class AKWayLabelPropagationInitialPartitionerTest : public Test {
 };
 
 typedef::testing::Types<
-    LPTemplateStruct<BFSStartNodeSelectionPolicy, FMGainComputationPolicy>,
-    LPTemplateStruct<BFSStartNodeSelectionPolicy,
+    LPTemplateStruct<BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy>,
+    LPTemplateStruct<BFSStartNodeSelectionPolicy<>,
                      MaxPinGainComputationPolicy>,
-    LPTemplateStruct<BFSStartNodeSelectionPolicy,
+    LPTemplateStruct<BFSStartNodeSelectionPolicy<>,
                      MaxNetGainComputationPolicy> > LPTestTemplates;
 
 TYPED_TEST_CASE(AKWayLabelPropagationInitialPartitionerTest, LPTestTemplates);

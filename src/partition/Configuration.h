@@ -228,13 +228,17 @@ struct Configuration {
     InitialPartitionerAlgorithm algo;
     HypernodeWeightVector upper_allowed_partition_weight;
     HypernodeWeightVector perfect_balance_partition_weight;
-    int nruns;
+    int nruns; 
     PartitionID unassigned_part;
     int local_search_repetitions;
-    double init_alpha;
+    double init_alpha; // For initial partitioning epsilon is set to epsilon*init_alpha
     int seed;
+    //If pool initial partitioner is used, the first 12 bits of this number decides
+    //which algorithms are used.
     unsigned int pool_type;
+    //Maximum iterations of the Label Propagation IP over all hypernodes
     int lp_max_iteration;
+    //Amojunt of hypernodes which are assigned around each start vertex (LP)
     int lp_assign_vertex_to_part;
     bool refinement;
   };

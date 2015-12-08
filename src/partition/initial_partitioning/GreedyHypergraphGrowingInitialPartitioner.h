@@ -240,7 +240,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void insertNodeIntoPQ(const HypernodeID hn, const PartitionID target_part,
                         const bool updateGain = false) {
-    // TODO(heuer): Why is this check necessary?
+    //We don't want to insert hypernodes which are already assigned to the target_part
+    //into the corresponding PQ again
     if (_hg.partID(hn) != target_part) {
       if (!_pq.contains(hn, target_part)) {
         const Gain gain = GainComputation::calculateGain(_hg, hn, target_part);

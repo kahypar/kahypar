@@ -20,7 +20,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
  public:
   RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
-    _tryToAssignHypernodeToPart(config.initial_partitioning.k, false) { }
+    _already_tried_to_assign_hn_to_part(config.initial_partitioning.k, false) { }
 
   ~RandomInitialPartitioner() { }
 
@@ -37,12 +37,15 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::resetPartitioning();
     for (const HypernodeID hn : _hg.nodes()) {
       PartitionID p = -1;
-      _tryToAssignHypernodeToPart.resetAllBitsToFalse();
+      _already_tried_to_assign_hn_to_part.resetAllBitsToFalse();
       int partition_sum = 0;
       do {
-        if (p != -1 && !_tryToAssignHypernodeToPart[p]) {
+        if (p != -1 && !_already_tried_to_assign_hn_to_part[p]) {
           partition_sum += (p + 1);
-          _tryToAssignHypernodeToPart.setBit(p, true);
+          _already_tried_to_assign_hn_to_part.setBit(p, true);
+	  //If the current hypernode fits in no part of the partition
+	  //(partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
+	  //him to a part which violates the imbalance definition
           if (partition_sum
               == (_config.initial_partitioning.k
                   * (_config.initial_partitioning.k + 1))
@@ -72,7 +75,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::performFMRefinement();
   }
 
-  FastResetBitVector<> _tryToAssignHypernodeToPart;
+  FastResetBitVector<> _already_tried_to_assign_hn_to_part;
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
