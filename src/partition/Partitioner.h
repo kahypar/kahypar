@@ -190,9 +190,12 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                                             double init_alpha) const {
   Configuration config(original_config);
 
+  config.partition.epsilon = init_alpha * original_config.partition.epsilon;
+  config.partition.collect_stats = false;
+
   config.initial_partitioning.k = config.partition.k;
   config.initial_partitioning.epsilon = init_alpha * original_config.partition.epsilon;
-  config.partition.epsilon = init_alpha * original_config.partition.epsilon;
+
   config.initial_partitioning.perfect_balance_partition_weight.clear();
   config.initial_partitioning.upper_allowed_partition_weight.clear();
   for (int i = 0; i < config.initial_partitioning.k; ++i) {
@@ -202,7 +205,6 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
       config.initial_partitioning.perfect_balance_partition_weight[i]
       * (1.0 + config.partition.epsilon));
   }
-  config.partition.collect_stats = false;
 
   // Coarsening-Parameters
   config.coarsening.contraction_limit_multiplier = 150;
@@ -231,50 +233,57 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
     * config.partition.total_graph_weight;
   config.fm_local_search.beta = log(hg.numNodes());
 
-  // State transition for the initial partitioning technique which should be used
-  if (config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel &&
-      config.initial_partitioning.mode == Mode::recursive_bisection) {
-    //Recursive-Bisection Multilevel Initial Partitioning
-    // => Calling recursive bisection partitioner with heavy_lazy coarsening
-    // and the two-way fm refinement
-    config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
-    config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
-    config.partition.mode = Mode::recursive_bisection;
-  } else if (config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel &&
-             config.initial_partitioning.mode == Mode::direct_kway) {
-    //Direct-kWay Multilevel Initial Partitioning (currently bad configuration
-    // => if this IP configuration is detected Direct-kWay Flat IP is used)
-    // => Calling direct k-way partitioner with heavy_lazy coarsening
-    // and the two-way fm (for k = 2) or kway fm (for k > 2) refinement
-    if (config.partition.k > 2) {
-      config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-    } else {
-      config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
-    }
-    config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
-    config.partition.mode = Mode::direct_kway;
-  } else if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-             config.initial_partitioning.mode == Mode::recursive_bisection) {
-    //Recursive-Bisection Initial Partitioning without multilevel
-    // => Calling recursive bisection partitioner and coarsening and refinement
-    // should do nothing
-    config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
-    config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
-    config.partition.mode = Mode::recursive_bisection;
-  } else {
-    //Direct-kWay Flat Initial Partitioning
-    // => Calling direct k-way partitioner with the two-way fm (for k = 2) or 
-    // kway fm (for k > 2) refinement and the coarsening should do nothing
-    if (config.partition.k > 2) {
-      config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-    } else {
-      config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
-    }
-    config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
-    config.partition.mode = Mode::direct_kway;
+  // Reconfiguring the partitioner to act as an initial partitioner
+  // on the next partition call using the new configuration
+  // based on the initial partitioning settings provided by the
+  // original_config.
+  switch (original_config.initial_partitioning.technique) {
+    case InitialPartitioningTechnique::multilevel:
+      // Multi-level initial partitioning always uses heavy_lazy coarsening
+      config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+      switch (original_config.initial_partitioning.mode) {
+        case Mode::recursive_bisection:
+          config.partition.mode = Mode::recursive_bisection;
+          config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+          break;
+        case Mode::direct_kway:
+          //Direct-kWay Multilevel Initial Partitioning (currently bad configuration
+          // => if this IP configuration is detected Direct-kWay Flat IP is used)
+          // => Calling direct k-way partitioner with heavy_lazy coarsening
+          // and the two-way fm (for k = 2) or kway fm (for k > 2) refinement
+          config.partition.mode = Mode::direct_kway;
+          config.partition.refinement_algorithm =
+              config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
+          break;
+      }
+      break;
+    case InitialPartitioningTechnique::flat:
+      // No more coarsening in this case. Since KaHyPar is designed to be an n-level partitioner,
+      // we do not support flat partitioning explicitly. However we provide a coarsening
+      // algorithm that doesn't do anything in order to "emulate" a flat partitioner
+      // for initial partitioning.
+      config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
+      switch (original_config.initial_partitioning.mode) {
+        case Mode::recursive_bisection:
+          config.partition.mode = Mode::recursive_bisection;
+          config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
+          break;
+        case Mode::direct_kway:
+          config.partition.mode = Mode::direct_kway;
+          // TODO(heuer): Why is a local search algorithm used in this base but not in RB-mode?
+          config.partition.refinement_algorithm =
+              config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
+          break;
+      }
   }
-  //Base Case: The next partitioner call should use the direct k-way flat
-  //initial partitioner
+  // We are now in initial partitioning mode, i.e. the next call to performInitialPartitioning
+  // will actually trigger the computation of an initial partition of the hypergraph.
+  // Computing an actual initial partition is always flat, since the graph has been coarsened
+  // before in case of multilevel initial partitioning, or should not be coarsened in case
+  // of flat initial partitioning. Furthermore we set the initial partitioning mode to
+  // direkt k-way by convention, since all initial partitioning algorithms work for arbitrary
+  // values of k >=2. The only difference is whether or not we use 2-way FM refinement
+  // or k-way FM refinement (this decision is based on the value of k).
   config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
   config.initial_partitioning.mode = Mode::direct_kway;
 
