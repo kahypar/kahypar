@@ -231,7 +231,9 @@ struct Configuration {
     int nruns; 
     PartitionID unassigned_part;
     int local_search_repetitions;
-    double init_alpha; // For initial partitioning epsilon is set to epsilon*init_alpha
+    //Is used to get a tighter balance constraint for initial partitioning.
+    //Before initial partitioning epsilon is set to init_alpha*epsilon.
+    double init_alpha;
     int seed;
     //If pool initial partitioner is used, the first 12 bits of this number decides
     //which algorithms are used.

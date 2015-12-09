@@ -247,10 +247,11 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
           break;
         case Mode::direct_kway:
-          //Direct-kWay Multilevel Initial Partitioning (currently bad configuration
-          // => if this IP configuration is detected Direct-kWay Flat IP is used)
-          // => Calling direct k-way partitioner with heavy_lazy coarsening
-          // and the two-way fm (for k = 2) or kway fm (for k > 2) refinement
+          //Currently a bad configuration (see KaHyPar.cc). The same behaviour as this
+	  //initial partitioning method is archieve, if we use a smaller contraction limit
+	  //in the main partitioner. But the currently used contraction limit is optimized in
+	  //several experiments => It makes no sense to further coarsen the hypergraph after
+	  //coarsening phase.
           config.partition.mode = Mode::direct_kway;
           config.partition.refinement_algorithm =
               config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
@@ -270,9 +271,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           break;
         case Mode::direct_kway:
           config.partition.mode = Mode::direct_kway;
-          // TODO(heuer): Why is a local search algorithm used in this base but not in RB-mode?
-          config.partition.refinement_algorithm =
-              config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
+          config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
           break;
       }
   }
