@@ -32,11 +32,11 @@ class DoNothingRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>&,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>&,
                   HyperedgeWeight&,
-                  double&) noexcept override final { }
+                  double&) noexcept override final { return false; }
   void initializeImpl() noexcept override final { }
   void initializeImpl(const HyperedgeWeight) noexcept override final { }
-  int numRepetitionsImpl() const noexcept override final { }
-  std::string policyStringImpl() const noexcept override final { return std::string("") }
+  int numRepetitionsImpl() const noexcept override final { return 0; }
+  std::string policyStringImpl() const noexcept override final { return std::string(""); }
 };
 }  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_

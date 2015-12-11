@@ -72,7 +72,7 @@ TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
 }
 
-TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
+/*TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
   Configuration config;
@@ -83,7 +83,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
+  CoarsenerType coarsener(hypergraph, config,   1);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
   ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
@@ -97,5 +97,5 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(4), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(4));
-}
+}*/
 }  // namespace partition

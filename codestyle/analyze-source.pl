@@ -250,6 +250,7 @@ foreach my $arg (@ARGV) {
     elsif ($arg eq "-e") { $launch_emacs = 1; }
     elsif ($arg eq "-m") { $email_multimap = 1; }
     elsif ($arg eq "-a") {$all_files = 1;}
+    elsif ($arg eq "-aw") {$all_files = 1; $write_changes = 1;}
     else {
         print "Unknown parameter: $arg\n";
     } 

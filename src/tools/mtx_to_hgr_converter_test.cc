@@ -4,9 +4,9 @@
 
 #include <gmock/gmock.h>
 
-#include "tools/MtxToHgrConversion.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
+#include "tools/MtxToHgrConversion.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -71,5 +71,4 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   ASSERT_THAT(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                    correct_hypergraph), Eq(true));
 }
-
 }  // namespace mtxconversion

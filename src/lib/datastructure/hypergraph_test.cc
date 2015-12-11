@@ -365,13 +365,13 @@ TEST_F(AnUncontractionOperation, RestoresHyperedgeSizeOfHyperedgesAffectedByCont
 }
 
 TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
-  std::vector<std::pair<HypernodeID, HypernodeID>> contractions{{4,6}, {3,4},{0,2},
-                                                                {0,1}, {0,5}, {0,3}};
-  std::stack<std::tuple<Memento,int,int>> contraction_history;
+  std::vector<std::pair<HypernodeID, HypernodeID> > contractions { { 4, 6 }, { 3, 4 }, { 0, 2 },
+                                                                   { 0, 1 }, { 0, 5 }, { 0, 3 } };
+  std::stack<std::tuple<Memento, int, int> > contraction_history;
   partition::HypergraphPruner hypergraph_pruner(modified_hypergraph.initialNumNodes());
   for (const auto& contraction : contractions) {
     contraction_history.emplace(modified_hypergraph.contract(contraction.first,
-                                                             contraction.second),0,0);
+                                                             contraction.second), 0, 0);
     hypergraph_pruner.removeSingleNodeHyperedges(modified_hypergraph,
                                                  std::get<0>(contraction_history.top()).u,
                                                  std::get<1>(contraction_history.top()),
@@ -384,7 +384,7 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   while (!contraction_history.empty()) {
     hypergraph_pruner.restoreSingleNodeHyperedges(modified_hypergraph,
                                                   std::get<1>(contraction_history.top()),
-                                                   std::get<2>(contraction_history.top()));
+                                                  std::get<2>(contraction_history.top()));
     modified_hypergraph.uncontract(std::get<0>(contraction_history.top()));
     contraction_history.pop();
   }

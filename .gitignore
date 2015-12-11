@@ -16,6 +16,10 @@ release152/*
 debug/*
 debug152/*
 profile/*
+rprofile/*
 benchmark/build/*
 benchmark/results/notebooks/.ipynb_checkpoints/*
 benchmark/results/notebooks/*/
+benchmark_instances/
+/Debug/
+*kateproject*

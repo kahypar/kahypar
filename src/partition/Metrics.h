@@ -120,6 +120,7 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
   for (PartitionID i = 1; i != k; ++i) {
     max_weight = std::max(max_weight, part_weights[i]);
   }
+
   return static_cast<double>(max_weight) /
          ceil(static_cast<double>(hypergraph.totalWeight()) / k) - 1.0;
 }

@@ -28,7 +28,6 @@ template <typename IDType = Mandatory,
           typename MetaKey = Mandatory,
           typename Storage = ArrayStorage<IDType>,
           bool UseRandomTieBreaking = false>
-
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
   using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
@@ -147,6 +146,30 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
+  void deleteMaxFromPartition(IDType& max_id, KeyType& max_key, PartitionID part) noexcept {
+    size_t part_index = _index[part];
+    ASSERT(part_index < _num_enabled_pqs, V(part_index));
+
+    max_id = _queues[part_index].getMax();
+    max_key = _queues[part_index].getMaxKey();
+
+    ASSERT(_part[_index[part]] == part, V(part));
+    ASSERT(part_index != kInvalidIndex, V(part_index));
+    ASSERT(max_key != MetaKey::max(), V(max_key));
+    ASSERT(part != kInvalidPart, V(part) << V(max_id));
+
+    _queues[part_index].deleteMax();
+    if (_queues[part_index].empty()) {
+      ASSERT(isEnabled(part), V(part));
+      --_num_enabled_pqs;  // now points to the last enabled pq
+      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
+      swap(_index[part], _num_enabled_pqs);
+      swap(_index[part], _num_nonempty_pqs);
+      markUnused(part);
+    }
+    --_num_entries;
+  }
+
   KeyType key(const IDType id, const PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_index[part] < _num_nonempty_pqs, V(part));
@@ -213,9 +236,19 @@ class KWayPriorityQueue {
     return _queues[maxIndex()].getMax();
   }
 
+  IDType max(PartitionID part) const noexcept {
+    // Should only be used for testing
+    return _queues[_index[part]].getMax();
+  }
+
   KeyType maxKey() const noexcept {
     // Should only be used for testing
     return _queues[maxIndex()].getMaxKey();
+  }
+
+  KeyType maxKey(PartitionID part) const noexcept {
+    // Should only be used for testing
+    return _queues[_index[part]].getMaxKey();
   }
 
  private:
@@ -223,6 +256,7 @@ class KWayPriorityQueue {
   FRIEND_TEST(AKWayPriorityQueue, ChoosesMaxKeyAmongAllEnabledInternalHeaps);
   FRIEND_TEST(AKWayPriorityQueue, DoesNotConsiderDisabledHeapForChoosingMax);
   FRIEND_TEST(AKWayPriorityQueue, ReconsidersDisabledHeapAgainAfterEnabling);
+  FRIEND_TEST(AKWayPriorityQueue, PQIsUnusedAndDisableIfItBecomesEmptyAfterDeleteMaxFromPartition);
 
   void swap(const size_t index_a, const size_t index_b) noexcept {
     using std::swap;

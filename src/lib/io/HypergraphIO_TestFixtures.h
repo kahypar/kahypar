@@ -21,6 +21,7 @@
 
 using::testing::Test;
 
+using partition::InitialPartitioner;
 using partition::Rater;
 using partition::ICoarsener;
 using partition::IRefiner;

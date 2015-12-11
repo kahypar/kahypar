@@ -6,6 +6,6 @@
 #define SRC_LIB_CORE_EMPTY_H_
 
 namespace core {
-struct Empty {};
+struct Empty { };
 }  // namespace core
 #endif  // SRC_LIB_CORE_EMPTY_H_

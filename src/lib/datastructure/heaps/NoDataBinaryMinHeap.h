@@ -33,8 +33,9 @@ class NoDataBinaryMinHeap {
 
  protected:
   struct HeapElement {
-    HeapElement(const key_slot& key_ = meta_key_slot::max(), const id_slot& id_ = 0)
-      : key(key_), id(id_)
+    HeapElement(const key_slot& key_ = meta_key_slot::max(), const id_slot& id_ = 0) :
+      key(key_),
+      id(id_)
     { }
 
     key_slot key;

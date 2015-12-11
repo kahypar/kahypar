@@ -14,14 +14,14 @@
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
-#ifdef ENABLE_PROFILE
+/*#ifdef ENABLE_PROFILE
 #include <gperftools/profiler.h>
 #define GPERF_START_PROFILER(FILE) ProfilerStart(FILE)
 #define GPERF_STOP_PROFILER() ProfilerStop()
 #else
 #define GPERF_START_PROFILER(FILE)
 #define GPERF_STOP_PROFILER()
-#endif
+#endif*/
 
 #include <iostream>
 
@@ -67,7 +67,7 @@
   } while (0)
 
 #define ONLYDEBUG(x) ((void)x)
-#define UTILS_UNUSED __attribute__((unused))
+#define UTILS_UNUSED __attribute__ ((unused))
 #define UNUSED(name) unused_ ## name UTILS_UNUSED
 #define UNUSED_FUNCTION(x) ((void)x)
 

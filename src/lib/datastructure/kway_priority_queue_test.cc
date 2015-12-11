@@ -61,6 +61,21 @@ TEST_F(AKWayPriorityQueue, MustEnableAnInternalHeapInOrderToConsiderItDuringDele
   ASSERT_THAT(max_part, Eq(2));
 }
 
+TEST_F(AKWayPriorityQueue, MustEnableAnInternalHeapInOrderToConsiderItDuringDeleteMaxFromPartition) {
+  prio_queue.insert(0, 1, 20);
+  prio_queue.enablePart(1);
+  prio_queue.insert(1, 2, 25);
+  prio_queue.enablePart(2);
+  HypernodeID max_id = -1;
+  HyperedgeWeight max_gain = -1;
+  PartitionID part = 2;
+
+  prio_queue.deleteMaxFromPartition(max_id, max_gain, part);
+
+  ASSERT_THAT(max_id, Eq(1));
+  ASSERT_THAT(max_gain, Eq(25));
+}
+
 TEST_F(AKWayPriorityQueue, IsEmptyIfLastEnabledInternalHeapBecomesEmpty) {
   prio_queue.insert(1, 2, 25);
   prio_queue.enablePart(2);
@@ -71,6 +86,23 @@ TEST_F(AKWayPriorityQueue, IsEmptyIfLastEnabledInternalHeapBecomesEmpty) {
   prio_queue.deleteMax(max_id, max_gain, max_part);
 
   ASSERT_THAT(prio_queue.empty(), Eq(true));
+}
+
+TEST_F(AKWayPriorityQueue, PQIsUnusedAndDisableIfItBecomesEmptyAfterDeleteMaxFromPartition) {
+  prio_queue.insert(0, 1, 20);
+  prio_queue.enablePart(1);
+  prio_queue.insert(1, 2, 25);
+  prio_queue.enablePart(2);
+  HypernodeID max_id = -1;
+  HyperedgeWeight max_gain = -1;
+  PartitionID part = 2;
+
+  prio_queue.deleteMaxFromPartition(max_id, max_gain, part);
+
+  ASSERT_FALSE(prio_queue.contains(1, 2));
+  ASSERT_TRUE(prio_queue.empty(2));
+  ASSERT_FALSE(prio_queue.isEnabled(2));
+  ASSERT_TRUE(prio_queue.isUnused(2));
 }
 
 TEST_F(AKWayPriorityQueue, IsEmptyIfLastEnabledInternalHeapBecomesDisabled) {

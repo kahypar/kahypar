@@ -203,6 +203,7 @@ class KWayFMRefiner final : public IRefiner,
       current_imbalance = static_cast<double>(heaviest_part_weight) /
                           ceil(static_cast<double>(_config.partition.total_graph_weight) /
                                _config.partition.k) - 1.0;
+
       current_cut -= max_gain;
       _stopping_policy.updateStatistics(max_gain);
 

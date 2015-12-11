@@ -21,9 +21,9 @@ class DoNothingCoarsener final : public ICoarsener {
   DoNothingCoarsener& operator= (DoNothingCoarsener&&) = delete;
 
  private:
-  void coarsenImpl(const defs::HypernodeID) override final { }
-  bool uncoarsenImpl(IRefiner&) override final { }
-  std::string policyStringImpl() const override final { return std::string(""); }
+  void coarsenImpl(const defs::HypernodeID) noexcept override final { }
+  bool uncoarsenImpl(IRefiner&) noexcept override final { return false; }
+  std::string policyStringImpl() const noexcept override final { return std::string(""); }
 };
 }  // namespace partition
 #endif  // SRC_PARTITION_COARSENING_DONOTHINGCOARSENER_H_

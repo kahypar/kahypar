@@ -10,11 +10,14 @@
 #include "lib/core/PolicyRegistry.h"
 #include "lib/core/StaticDispatcher.h"
 #include "lib/core/Typelist.h"
+#include "partition/coarsening/DoNothingCoarsener.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
 #include "partition/coarsening/Rater.h"
+#include "partition/initial_partitioning/IInitialPartitioner.h"
+#include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/FMFactoryExecutor.h"
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
@@ -40,8 +43,12 @@ using CoarsenerFactory = Factory<CoarseningAlgorithm,
                                  ICoarsener* (*)(Hypergraph&, const Configuration&,
                                                  const HypernodeWeight)>;
 
+
 using RefinerFactory = Factory<RefinementAlgorithm,
                                IRefiner* (*)(Hypergraph&, const Configuration&)>;
+
+using InitialPartitioningFactory = Factory<InitialPartitionerAlgorithm,
+                                           IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
 
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
 using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
@@ -72,6 +79,7 @@ using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFac
                                                                      nGPRandomWalkStopsSearch>,
                                                             Typelist<NullPolicy>,
                                                             IRefiner*>;
+
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;

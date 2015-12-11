@@ -166,7 +166,4 @@ TEST(ABucketQueue, ChangesPositionOfElementsOnZeroGainUpdate) {
   ASSERT_THAT(bucket_pq.getMax(), Eq(0));
   ASSERT_THAT(bucket_pq.getMaxKey(), Eq(10));
 }
-
-
-
 }  // namespace datastructure
