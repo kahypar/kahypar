@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -15,7 +14,7 @@ ExternalProject_Add(gtest
   INSTALL_COMMAND "")
 
 site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc1.*")
+if(${HOSTNAME} MATCHES "i10pc.*")
 message(STATUS "hostname: ${HOSTNAME}")
 set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
 message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
@@ -23,7 +22,7 @@ set(ENV{LD_LIBRARY_PATH} "/software/gcc/4.9.1/lib64")
 message(STATUS "Setting LD_LIBRARY_PATH to $ENV{LD_LIBRARY_PATH}")
 set(BOOST_ROOT "/software/boost_1_55_0")
 message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
-endif(${HOSTNAME} MATCHES "i10pc1.*")
+endif(${HOSTNAME} MATCHES "i10pc.*")
 
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
