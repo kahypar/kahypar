@@ -260,11 +260,14 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
       break;
     case InitialPartitioningTechnique::flat:
       // No more coarsening in this case. Since KaHyPar is designed to be an n-level partitioner,
-      // we do not support flat partitioning explicitly. However we provide a coarsening and a
-      // refinement algorithm that doesn't do anything in order to "emulate" a flat partitioner
-      // for initial partitioning.
+      // we do not support flat partitioning explicitly. However we provide a coarsening
+      // algorithm that doesn't do anything in order to "emulate" a flat partitioner
+      // for initial partitioning. Since the initial partitioning uses a refinement
+      // algorithm to improve there initial partition, we use the twoway_fm algorithm.
+      // Since the coarsening algorithm do nothing, the twoway_fm algorithm in our "emulated"
+      // flat partitioner do also nothing.
       config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
-      config.partition.refinement_algorithm = RefinementAlgorithm::do_nothing;
+      config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
       switch (original_config.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           config.partition.mode = Mode::recursive_bisection;
