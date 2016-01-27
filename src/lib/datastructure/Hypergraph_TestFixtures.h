@@ -28,17 +28,20 @@ using AHyperedgeIterator = AHypergraph;
 
 class AHypergraphMacro : public AHypergraph {
  public:
-  AHypergraphMacro() : AHypergraph() { }
+  AHypergraphMacro() :
+    AHypergraph() { }
 };
 
 class AContractionMemento : public AHypergraph {
  public:
-  AContractionMemento() : AHypergraph() { }
+  AContractionMemento() :
+    AHypergraph() { }
 };
 
 class AnUncontractionOperation : public AHypergraph {
  public:
-  AnUncontractionOperation() : AHypergraph() {
+  AnUncontractionOperation() :
+    AHypergraph() {
     hypergraph.setNodePart(0, 0);
     hypergraph.setNodePart(1, 0);
     hypergraph.setNodePart(2, 0);

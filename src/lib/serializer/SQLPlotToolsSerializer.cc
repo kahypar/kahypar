@@ -36,11 +36,13 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " L_max1=" << config.partition.max_part_weights[1]
   << " seed=" << config.partition.seed
   << " hmetisUBFactor=" << config.partition.hmetis_ub_factor
-  << " numInitialPartitions=" << config.partition.initial_partitioning_attempts
+  << " numInitialPartitions=" << config.initial_partitioning.nruns
   << " initialPartitioner=" << toString(config.partition.initial_partitioner)
-  << " init_mode=" << config.initial_partitioning.mode
-  << " init_algo=" << config.initial_partitioning.algorithm
-  << " init_alpha=" << config.initial_partitioning.init_alpha
+  << " initialPartitioningMode=" << toString(config.initial_partitioning.mode)
+  << " initialPartitioningTechnique=" << toString(config.initial_partitioning.technique)
+  << " initialPartitioningAlgorithm=" << toString(config.initial_partitioning.algo)
+  << " poolType=" << config.initial_partitioning.pool_type
+  << " InitialFMNumRepetitions=" << config.initial_partitioning.local_search_repetitions
   << " initialPartitionerPath=" << config.partition.initial_partitioner_path
   << " numVCycles=" << config.partition.global_search_iterations
   << " HESizeThreshold=" << config.partition.hyperedge_size_threshold

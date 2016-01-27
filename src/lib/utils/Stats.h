@@ -74,7 +74,8 @@ class Stats {
   }
 
  private:
-  Stats() : _stats() { }
+  Stats() :
+    _stats() { }
   StatsMap _stats;
 };
 

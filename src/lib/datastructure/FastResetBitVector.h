@@ -70,7 +70,6 @@ class FastResetBitVector {
     memset(_v.get(), (initialiser ? 1 : 0), size * sizeof(UnderlyingType));
   }
 
-
  private:
   bool isSet(size_t i) const {
     return _v[i] == _threshold;

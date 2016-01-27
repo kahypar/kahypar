@@ -235,5 +235,4 @@ TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
               ::testing::ExitedWithCode(1),
               "Error: Hyperedge 1 is empty");
 }
-
 }  // namespace io
