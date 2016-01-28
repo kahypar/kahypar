@@ -326,21 +326,25 @@ class TwoWayFMRefiner final : public IRefiner,
       const bool part_0_imbalanced = _hg.partWeight(0) > _config.partition.max_part_weights[0];
       const bool part_1_imbalanced = _hg.partWeight(1) > _config.partition.max_part_weights[1];
       if (current_cut < best_cut && (part_0_imbalanced || part_1_imbalanced)) {
+        Gain gain_budget = best_cut - current_cut;
+        ASSERT(gain_budget >= 1, V(gain_budget));
         double imbalance_before_move = current_imbalance;
         double imbalance_after_move = -1.0;
         const bool imbalanced_part = part_0_imbalanced ? 0 : 1;
         const bool rebalance_to_part = 1 - imbalanced_part;
-        Gain rebalance_gain = 1;
-        while (rebalance_gain >= 0 && !_rebalance_pqs[rebalance_to_part].empty() &&
+        while (!_rebalance_pqs[rebalance_to_part].empty() &&
                imbalance_before_move > imbalance_after_move) {
+          ASSERT(gain_budget >= 1, V(gain_budget));
+          const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
+          max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
+
           imbalance_before_move = current_imbalance;
 
-          rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
-          max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
+          gain_budget += rebalance_gain;
 
           if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
               > _config.partition.max_part_weights[rebalance_to_part] ||
-              rebalance_gain < 0) {
+              gain_budget < 1) {
             break;
           }
 
@@ -376,7 +380,6 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.enablePart(from_part);
           }
 
-          ASSERT(rebalance_gain >= 0, V(rebalance_gain));
           current_cut -= rebalance_gain;
           ASSERT(current_cut == metrics::hyperedgeCut(_hg),
                  V(current_cut) << V(metrics::hyperedgeCut(_hg)));
@@ -388,12 +391,8 @@ class TwoWayFMRefiner final : public IRefiner,
 
           _performed_moves[num_moves] = max_gain_node;
           ++num_moves;
-
-
-          if (!_rebalance_pqs[rebalance_to_part].empty()) {
-            rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
-          }
         }
+        ASSERT(current_cut < best_cut, V(current_cut) << V(best_cut));
       }
 
 
