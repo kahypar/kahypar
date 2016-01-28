@@ -263,9 +263,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
       // we do not support flat partitioning explicitly. However we provide a coarsening
       // algorithm that doesn't do anything in order to "emulate" a flat partitioner
       // for initial partitioning. Since the initial partitioning uses a refinement
-      // algorithm to improve there initial partition, we use the twoway_fm algorithm.
-      // Since the coarsening algorithm do nothing, the twoway_fm algorithm in our "emulated"
-      // flat partitioner do also nothing.
+      // algorithm to improve the initial partition, we use the twoway_fm algorithm.
+      // Since the coarsening algorithm does nothing, the twoway_fm algorithm in our "emulated"
+      // flat partitioner do also nothing, since there is no uncoarsening phase in which
+      // a local search algorithm could further improve the solution.
       config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
       config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
       switch (original_config.initial_partitioning.mode) {
