@@ -153,7 +153,11 @@ class TwoWayFMRefiner final : public IRefiner,
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
     }
-    std::fill(_gain_cache.begin(), _gain_cache.end(), kNotCached);
+    for (const HypernodeID hn : _hg.nodes()) {
+      _gain_cache[hn] = computeGain(hn);
+      _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      ASSERT(_gain_cache[hn] == computeGain(hn), V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
+    }
   }
 #else
   void initializeImpl() noexcept override final {
@@ -354,6 +358,10 @@ class TwoWayFMRefiner final : public IRefiner,
           ASSERT(rebalance_gain == _gain_cache[max_gain_node], V(max_gain_node));
           ASSERT(rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
                  << V(rebalance_gain) << V(computeGain(max_gain_node)));
+
+          DBG(false, "REBALANCING: cut=" << current_cut << " max_gain_node=" << max_gain_node
+          << " gain=" << max_gain << " source_part=" << from_part
+          << " target_part=" << to_part);
 
           _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
           _hg.markRebalanced(max_gain_node);
