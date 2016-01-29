@@ -247,14 +247,14 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
           break;
         case Mode::direct_kway:
-          //Currently a bad configuration (see KaHyPar.cc). The same behaviour as this
-	  //initial partitioning method is archieve, if we use a smaller contraction limit
-	  //in the main partitioner. But the currently used contraction limit is optimized in
-	  //several experiments => It makes no sense to further coarsen the hypergraph after
-	  //coarsening phase.
+          // Currently a bad configuration (see KaHyPar.cc). The same behaviour as this
+          // initial partitioning method is archieve, if we use a smaller contraction limit
+          // in the main partitioner. But the currently used contraction limit is optimized in
+          // several experiments => It makes no sense to further coarsen the hypergraph after
+          // coarsening phase.
           config.partition.mode = Mode::direct_kway;
           config.partition.refinement_algorithm =
-              config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
+            config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
           break;
       }
       break;
@@ -523,8 +523,8 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
         << init_config.initial_partitioning.epsilon << ")");
     if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
         config.initial_partitioning.mode == Mode::direct_kway) {
-      //If the direct k-way flat initial partitioner is used we call the
-      //corresponding initial partitioing algorithm, otherwise...
+      // If the direct k-way flat initial partitioner is used we call the
+      // corresponding initial partitioing algorithm, otherwise...
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(
           config.initial_partitioning.algo,
@@ -532,7 +532,7 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
       partitioner->partition(*extracted_init_hypergraph.first,
                              init_config);
     } else {
-      //... we call the partitioner again with the new configuration.
+      // ... we call the partitioner again with the new configuration.
       Partitioner::partition(*extracted_init_hypergraph.first, init_config);
     }
 
@@ -703,7 +703,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           std::cout << "-------------------------------------------------------------" << std::endl;
           auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(
-            current_hypergraph, 1);
+            current_hypergraph, 1, current_config.partition.objective == Objective::connectivityMinusOne ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state =
@@ -717,7 +717,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 0);
+              current_hypergraph, 0, original_config.partition.objective == Objective::connectivityMinusOne ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(

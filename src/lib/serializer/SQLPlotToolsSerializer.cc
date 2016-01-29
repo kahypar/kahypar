@@ -28,6 +28,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " numHEs=" << hypergraph.initialNumEdges()
   << " " << hypergraph.typeAsString()
   << " k=" << config.partition.k
+  << " objective=" << toString(config.partition.objective)
   << " epsilon=" << config.partition.epsilon
   << " totalGraphWeight=" << config.partition.total_graph_weight
   << " L_opt0=" << config.partition.perfect_balance_part_weights[0]

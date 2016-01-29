@@ -37,6 +37,7 @@ using partition::Partitioner;
 using partition::InitialPartitioner;
 using partition::Configuration;
 using partition::Mode;
+using partition::Objective;
 using partition::InitialPartitioningTechnique;
 using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
@@ -149,6 +150,17 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.mode = Mode::recursive_bisection;
       } else if (vm["mode"].as<std::string>() == "direct") {
         config.partition.mode = Mode::direct_kway;
+      }
+    }
+
+    if (vm.count("obj")) {
+      if (vm["obj"].as<std::string>() == "cut") {
+        config.partition.objective = Objective::cut;
+      } else if (vm["obj"].as<std::string>() == "connectivityMinusOne") {
+        config.partition.objective = Objective::connectivityMinusOne;
+      } else {
+        std::cout << "No valid objective function." << std::endl;
+        exit(0);
       }
     }
 
@@ -354,6 +366,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 
 void setDefaults(Configuration& config) {
   config.partition.k = 2;
+  config.partition.objective = Objective::cut;
   config.partition.rb_lower_k = 0;
   config.partition.rb_upper_k = 1;
   config.partition.epsilon = 0.05;
@@ -493,7 +506,7 @@ static Registrar<InitialPartitioningFactory> reg_random(
 static Registrar<InitialPartitioningFactory> reg_bfs(
   InitialPartitionerAlgorithm::bfs,
   [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {
-  return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy<>>(hypergraph, config);
+  return new BFSInitialPartitioner<BFSStartNodeSelectionPolicy<> >(hypergraph, config);
 });
 static Registrar<InitialPartitioningFactory> reg_lp(
   InitialPartitionerAlgorithm::lp,
@@ -575,6 +588,7 @@ int main(int argc, char* argv[]) {
   desc.add_options()("help", "show help message")
     ("verbose", po::value<bool>(), "Verbose partitioner output")
     ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
+    ("obj", po::value<std::string>(), "Objective: cut, connectivityMinusOne")
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")
