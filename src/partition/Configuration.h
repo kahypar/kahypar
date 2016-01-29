@@ -76,12 +76,27 @@ enum class RefinementStoppingRule : std::uint8_t {
   adaptive2
 };
 
+enum class Objective : std::uint8_t {
+  cut,
+  connectivityMinusOne
+};
+
 static std::string toString(const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection:
       return std::string("rb");
     case Mode::direct_kway:
       return std::string("direct");
+  }
+  return std::string("UNDEFINED");
+}
+
+static std::string toString(const Objective& objective) {
+  switch (objective) {
+    case Objective::cut:
+      return std::string("cut");
+    case Objective::connectivityMinusOne:
+      return std::string("connectivityMinusOne");
   }
   return std::string("UNDEFINED");
 }
@@ -228,25 +243,26 @@ struct Configuration {
     InitialPartitionerAlgorithm algo;
     HypernodeWeightVector upper_allowed_partition_weight;
     HypernodeWeightVector perfect_balance_partition_weight;
-    int nruns; 
+    int nruns;
     PartitionID unassigned_part;
     int local_search_repetitions;
-    //Is used to get a tighter balance constraint for initial partitioning.
-    //Before initial partitioning epsilon is set to init_alpha*epsilon.
+    // Is used to get a tighter balance constraint for initial partitioning.
+    // Before initial partitioning epsilon is set to init_alpha*epsilon.
     double init_alpha;
     int seed;
-    //If pool initial partitioner is used, the first 12 bits of this number decides
-    //which algorithms are used.
+    // If pool initial partitioner is used, the first 12 bits of this number decides
+    // which algorithms are used.
     unsigned int pool_type;
-    //Maximum iterations of the Label Propagation IP over all hypernodes
+    // Maximum iterations of the Label Propagation IP over all hypernodes
     int lp_max_iteration;
-    //Amojunt of hypernodes which are assigned around each start vertex (LP)
+    // Amojunt of hypernodes which are assigned around each start vertex (LP)
     int lp_assign_vertex_to_part;
     bool refinement;
   };
 
   struct PartitioningParameters {
     PartitioningParameters() :
+      objective(Objective::cut),
       k(2),
       rb_lower_k(0),
       rb_upper_k(1),
@@ -278,6 +294,7 @@ struct Configuration {
       coarse_graph_partition_filename(),
       initial_partitioner_path() { }
 
+    Objective objective;
     PartitionID k;
     PartitionID rb_lower_k;
     PartitionID rb_upper_k;
@@ -367,6 +384,7 @@ inline std::string toString(const Configuration& config) {
   << config.partition.coarse_graph_filename << std::endl;
   oss << std::setw(35) << "  Coarsened Partition File: "
   << config.partition.coarse_graph_partition_filename << std::endl;
+  oss << std::setw(35) << "  Objective: " << toString(config.partition.objective) << std::endl;
   oss << std::setw(35) << "  k: " << config.partition.k << std::endl;
   oss << std::setw(35) << "  epsilon: " << config.partition.epsilon
   << std::endl;

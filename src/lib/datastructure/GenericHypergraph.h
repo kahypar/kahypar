@@ -1850,12 +1850,15 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     if (split_nets) {
       // Cut-Net Splitting is used to optimize connectivity-1 metric.
       for (const HyperedgeID he : hypergraph.edges()) {
+        ASSERT(hypergraph.edgeSize(he) > 1, V(he));
         if (hypergraph.connectivity(he) == 1 && *hypergraph.connectivitySet(he).first != part) {
-          // HE is completly contained in the other part
+          // HE is completely contained in one of the other parts
           continue;
         }
-        if (hypergraph.pinCountInPart(he, part) == 1) {
-          //  single-node HEs  can be removed
+        if (hypergraph.pinCountInPart(he, part) <= 1) {
+          // Single-node HEs have to be removed
+          // Furthermore the hyperedge might span other parts
+          // (not including the part to be extracted)
           continue;
         }
         subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
@@ -1869,7 +1872,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
             ++pin_index;
           }
         }
-        ASSERT(subhypergraph->hyperedge(num_hyperedges).size() > 1, V(num_hyperedges));
+        ASSERT(subhypergraph->hyperedge(num_hyperedges).size() > 1, V(he));
         ++num_hyperedges;
       }
     } else {
@@ -1885,6 +1888,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
           ++subhypergraph->_num_hyperedges;
           subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
           for (const HypernodeID pin : hypergraph.pins(he)) {
+            ASSERT(hypergraph.partID(pin) == part, V(pin));
             subhypergraph->hyperedge(num_hyperedges).increaseSize();
             subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
