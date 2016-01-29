@@ -1651,7 +1651,8 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                    const typename Hypergraph::PartitionID part);
+                                                                                                                    const typename Hypergraph::PartitionID part,
+                                                                                                                    const bool split_nets = false);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -1822,7 +1823,8 @@ template <typename Hypergraph>
 std::pair<std::unique_ptr<Hypergraph>,
           std::vector<typename Hypergraph::HypernodeID> >
 extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                 const typename Hypergraph::PartitionID part) {
+                                                 const typename Hypergraph::PartitionID part,
+                                                 const bool split_nets = false) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
@@ -1845,26 +1847,54 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
-    for (const HyperedgeID he : hypergraph.edges()) {
-      if (hypergraph.connectivity(he) > 1) {
-        continue;
-      }
-      if (*hypergraph.connectivitySet(he).first == part) {
-        ASSERT(hypergraph.hyperedge(he).connectivity == 1,
-               V(he) << V(hypergraph.hyperedge(he).connectivity));
-        ASSERT(hypergraph.edgeSize(he) > 1, V(he));
+    if (split_nets) {
+      // Cut-Net Splitting is used to optimize connectivity-1 metric.
+      for (const HyperedgeID he : hypergraph.edges()) {
+        if (hypergraph.connectivity(he) == 1 && *hypergraph.connectivitySet(he).first != part) {
+          // HE is completly contained in the other part
+          continue;
+        }
+        if (hypergraph.pinCountInPart(he, part) == 1) {
+          //  single-node HEs  can be removed
+          continue;
+        }
         subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
         ++subhypergraph->_num_hyperedges;
         subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
         for (const HypernodeID pin : hypergraph.pins(he)) {
-          subhypergraph->hyperedge(num_hyperedges).increaseSize();
-          subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
-          subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
-          ++pin_index;
+          if (hypergraph.partID(pin) == part) {
+            subhypergraph->hyperedge(num_hyperedges).increaseSize();
+            subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
+            ++pin_index;
+          }
         }
+        ASSERT(subhypergraph->hyperedge(num_hyperedges).size() > 1, V(num_hyperedges));
         ++num_hyperedges;
       }
+    } else {
+      for (const HyperedgeID he : hypergraph.edges()) {
+        if (hypergraph.connectivity(he) > 1) {
+          continue;
+        }
+        if (*hypergraph.connectivitySet(he).first == part) {
+          ASSERT(hypergraph.hyperedge(he).connectivity == 1,
+                 V(he) << V(hypergraph.hyperedge(he).connectivity));
+          ASSERT(hypergraph.edgeSize(he) > 1, V(he));
+          subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+          ++subhypergraph->_num_hyperedges;
+          subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+          for (const HypernodeID pin : hypergraph.pins(he)) {
+            subhypergraph->hyperedge(num_hyperedges).increaseSize();
+            subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
+            ++pin_index;
+          }
+          ++num_hyperedges;
+        }
+      }
     }
+
 
     const HypernodeID num_pins = pin_index;
     subhypergraph->_num_pins = num_pins;

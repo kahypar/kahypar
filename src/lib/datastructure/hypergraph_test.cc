@@ -762,6 +762,36 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHyperno
   ASSERT_THAT(extr_part0.first->numNodes(), Eq(5));
 }
 
+TEST_F(AHypergraph, CanBeDecomposedIntoHypergraphsUsingCutNetSplitting) {
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 0);
+  hypergraph.setNodePart(4, 0);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+  auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0, true);
+  auto extr_part1 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 1, true);
+  Hypergraph& part0_hypergraph = *extr_part0.first;
+  Hypergraph& part1_hypergraph = *extr_part1.first;
+
+  ASSERT_THAT(part0_hypergraph.numNodes(), Eq(4));
+  ASSERT_THAT(part1_hypergraph.numNodes(), Eq(3));
+
+  ASSERT_THAT(part0_hypergraph.numEdges(), Eq(2));
+  ASSERT_THAT(part1_hypergraph.numEdges(), Eq(1));
+
+  ASSERT_THAT(part0_hypergraph.edgeSize(0), Eq(4));
+  ASSERT_THAT(part0_hypergraph.edgeSize(1), Eq(2));
+  ASSERT_THAT(part1_hypergraph.edgeSize(0), Eq(3));
+
+  const std::vector<HypernodeID>& mapping_0 = extr_part0.second;
+  const std::vector<HypernodeID>& mapping_1 = extr_part1.second;
+
+  ASSERT_THAT(mapping_0, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 4 }));
+  ASSERT_THAT(mapping_1, ContainerEq(std::vector<HypernodeID>{ 2, 5, 6 }));
+}
+
 TEST_F(AHypergraph, CreatedViaReindexingIsACopyOfTheOriginalHypergraph) {
   verifyEquivalenceWithoutPartitionInfo(hypergraph, *reindex(hypergraph).first);
 }
