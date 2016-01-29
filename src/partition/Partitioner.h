@@ -385,8 +385,6 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
                                                    const HypernodeWeight current_hypergraph_weight,
                                                    const PartitionID k,
                                                    const Configuration& original_config) const {
-  ASSERT(k * original_hypergraph_weight >= original_config.partition.k * current_hypergraph_weight,
-         "start partition already too imbalanced");
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_config.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_config.partition.epsilon);
@@ -575,6 +573,7 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
   current_config.partition.epsilon = calculateRelaxedEpsilon(
     original_hypergraph.totalWeight(), current_hypergraph.totalWeight(),
     current_k, original_config);
+  ASSERT(current_config.partition.epsilon > 0.0, "start partition already too imbalanced");
   LOG(V(current_config.partition.epsilon));
   current_config.partition.total_graph_weight =
     current_hypergraph.totalWeight();
