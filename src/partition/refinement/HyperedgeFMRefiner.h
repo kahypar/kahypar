@@ -130,7 +130,7 @@ class HyperedgeFMRefiner final : public IRefiner,
     }
   }
 
-  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, size_t num_refinement_nodes,
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
@@ -148,9 +148,9 @@ class HyperedgeFMRefiner final : public IRefiner,
     _pq[1]->clear();
     resetMarkedHyperedges();
 
-    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
-    for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activateIncidentCutHyperedges(refinement_nodes[i]);
+    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    for (const HypernodeID hn : refinement_nodes) {
+      activateIncidentCutHyperedges(hn);
     }
     // DBG(true, "------pq[0].size=" << _pq[0]->size() << "------------_pq[1]->size()"
     //    << _pq[1]->size() << "----------------------");

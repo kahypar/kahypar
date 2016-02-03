@@ -161,7 +161,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 #endif
 
-  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
@@ -187,17 +187,17 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
 
-    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
-    for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i], max_allowed_part_weights);
+    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    for (const HypernodeID hn : refinement_nodes) {
+      activate(hn, max_allowed_part_weights);
 
       // If Lmax0==Lmax1, then all border nodes should be active. However, if Lmax0 != Lmax1,
       // because k!=2^x or we intend to further partition the hypergraph into unequal number of
       // blocks, then it might not be possible to activate all refinement nodes, because a
       // part could be overweight regarding Lmax.
       ASSERT((_config.partition.max_part_weights[0] != _config.partition.max_part_weights[1]) ||
-             (!_hg.isBorderNode(refinement_nodes[i]) ||
-              _pq.isEnabled(_hg.partID(refinement_nodes[i]) ^ 1)), V(refinement_nodes[i]));
+             (!_hg.isBorderNode(hn) ||
+              _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
     ASSERT([&]() {

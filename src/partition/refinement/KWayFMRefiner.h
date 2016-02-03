@@ -117,7 +117,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 #endif
 
-  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const size_t num_refinement_nodes,
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
@@ -136,9 +136,9 @@ class KWayFMRefiner final : public IRefiner,
 
     _locked_hes.resetUsedEntries();
 
-    Randomize::shuffleVector(refinement_nodes, num_refinement_nodes);
-    for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      activate(refinement_nodes[i], max_allowed_part_weights[0]);
+    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    for (const HypernodeID hn : refinement_nodes) {
+      activate(hn, max_allowed_part_weights[0]);
     }
 
     const HyperedgeWeight initial_cut = best_cut;

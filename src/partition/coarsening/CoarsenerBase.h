@@ -115,7 +115,7 @@ class CoarsenerBase {
   }
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
-                          const size_t num_refinement_nodes, double& current_imbalance,
+                          double& current_imbalance,
                           HyperedgeWeight& current_cut,
                           const std::pair<HyperedgeWeight, HyperedgeWeight>& changes) noexcept {
     HyperedgeWeight old_cut = current_cut;
@@ -123,10 +123,9 @@ class CoarsenerBase {
     bool improvement_found = false;
 
     std::pair<HyperedgeWeight, HyperedgeWeight> current_changes = changes;
-
     do {
       old_cut = current_cut;
-      improvement_found = refiner.refine(refinement_nodes, num_refinement_nodes,
+      improvement_found = refiner.refine(refinement_nodes,
                                          { _config.partition.max_part_weights[0]
                                            + _max_hn_weights.back().max_weight,
                                            _config.partition.max_part_weights[1]

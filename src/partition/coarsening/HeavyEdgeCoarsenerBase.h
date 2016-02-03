@@ -108,8 +108,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.back().contraction_memento.u << ","
           << _history.back().contraction_memento.v << ")");
 
-      refinement_nodes[0] = _history.back().contraction_memento.u;
-      refinement_nodes[1] = _history.back().contraction_memento.v;
+      refinement_nodes.clear();
+      refinement_nodes.push_back(_history.back().contraction_memento.u);
+      refinement_nodes.push_back(_history.back().contraction_memento.v);
 
       if (_hg.numNodes() > _max_hn_weights.back().num_nodes) {
         _max_hn_weights.pop_back();
@@ -118,10 +119,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
       if (refiner.supportsDeltaGain()) {
         const std::pair<HyperedgeWeight, HyperedgeWeight> changes = _hg.uncontract<true>(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut, changes);
+        performLocalSearch(refiner, refinement_nodes, current_imbalance, current_cut, changes);
       } else {
         _hg.uncontract<false>(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, 2, current_imbalance, current_cut, std::make_pair(0, 0));
+        performLocalSearch(refiner, refinement_nodes, current_imbalance, current_cut, std::make_pair(0, 0));
       }
 
       _history.pop_back();

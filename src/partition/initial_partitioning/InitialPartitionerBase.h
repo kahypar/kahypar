@@ -114,12 +114,11 @@ class InitialPartitionerBase {
           }
         }
 
-        size_t num_refinement_nodes = refinement_nodes.size();
-        if (num_refinement_nodes < 2) {
+        if (refinement_nodes.size() < 2) {
           break;
         }
         improvement_found =
-          refiner->refine(refinement_nodes, num_refinement_nodes,
+          refiner->refine(refinement_nodes,
                           { _config.initial_partitioning.upper_allowed_partition_weight[0]
                             + _max_hypernode_weight,
                             _config.initial_partitioning.upper_allowed_partition_weight[1]

@@ -28,7 +28,7 @@ class DoNothingRefiner final : public IRefiner {
   DoNothingRefiner& operator= (DoNothingRefiner&&) = delete;
 
  private:
-  bool refineImpl(std::vector<HypernodeID>&, const size_t,
+  bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>&,
                   HyperedgeWeight&,

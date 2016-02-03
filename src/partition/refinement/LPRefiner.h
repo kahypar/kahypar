@@ -52,7 +52,6 @@ class LPRefiner final : public IRefiner {
   LPRefiner& operator= (LPRefiner&&) = delete;
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                  const size_t num_refinement_nodes,
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
                   HyperedgeWeight& best_cut,
@@ -67,8 +66,7 @@ class LPRefiner final : public IRefiner {
     // Each hyperedge with only be considered once in a refinement run
     _bitset_he.resetAllBitsToFalse();
 
-    for (size_t i = 0; i < num_refinement_nodes; ++i) {
-      const auto& cur_node = refinement_nodes[i];
+    for (const HypernodeID cur_node : refinement_nodes) {
       if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
         assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weights[0]);
 
