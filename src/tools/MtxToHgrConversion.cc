@@ -37,6 +37,7 @@ MatrixInfo parseHeader(std::ifstream& file) {
     info.symmetry = MatrixSymmetry::SYMMETRIC;
   } else {
     std::cout << "Symmetry format " << symmetry << " is not supported" << std::endl;
+    exit(-1);
   }
   return info;
 }
