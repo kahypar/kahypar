@@ -355,8 +355,8 @@ class TwoWayFMRefiner final : public IRefiner,
                  << V(rebalance_gain) << V(computeGain(max_gain_node)));
 
           DBG(false, "REBALANCING: cut=" << current_cut << " max_gain_node=" << max_gain_node
-          << " gain=" << max_gain << " source_part=" << from_part
-          << " target_part=" << to_part);
+              << " gain=" << max_gain << " source_part=" << from_part
+              << " target_part=" << to_part);
 
           _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
           _hg.markRebalanced(max_gain_node);
@@ -548,7 +548,6 @@ class TwoWayFMRefiner final : public IRefiner,
 
     ASSERT(num_pq_elements_before_update == _pq.size(),
            "Rebalacing-updateNeigbours changed local search PQ size");
-
 
     _gain_cache[moved_hn] = -temp;
     ASSERT(!_rebalance_pqs[from_part].contains(moved_hn) &&
