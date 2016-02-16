@@ -330,12 +330,11 @@ class TwoWayFMRefiner final : public IRefiner,
         double imbalance_after_move = -1.0;
         const bool imbalanced_part = part_0_imbalanced ? 0 : 1;
         const bool rebalance_to_part = 1 - imbalanced_part;
-        Gain rebalance_gain = 1;
-        while (rebalance_gain >= 0 && !_rebalance_pqs[rebalance_to_part].empty() &&
+        while (!_rebalance_pqs[rebalance_to_part].empty() &&
                imbalance_before_move > imbalance_after_move) {
           imbalance_before_move = current_imbalance;
 
-          rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
+          const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
           max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
 
           if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
@@ -388,11 +387,6 @@ class TwoWayFMRefiner final : public IRefiner,
 
           _performed_moves[num_moves] = max_gain_node;
           ++num_moves;
-
-
-          if (!_rebalance_pqs[rebalance_to_part].empty()) {
-            rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
-          }
         }
       }
 
