@@ -295,12 +295,8 @@ class TwoWayFMRefiner final : public IRefiner,
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
-      if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
-        _pq.disablePart(to_part);
-      }
-      if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
-        _pq.enablePart(from_part);
-      }
+
+      updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
       current_imbalance = metrics::imbalance(_hg, _config);
 
@@ -368,12 +364,8 @@ class TwoWayFMRefiner final : public IRefiner,
           ASSERT(-rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
                  << V(-rebalance_gain) << V(computeGain(max_gain_node)));
 
-          if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
-            _pq.disablePart(to_part);
-          }
-          if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
-            _pq.enablePart(from_part);
-          }
+
+          updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
           ASSERT(rebalance_gain >= 0, V(rebalance_gain));
           current_cut -= rebalance_gain;
@@ -451,6 +443,16 @@ class TwoWayFMRefiner final : public IRefiner,
     // ASSERT(_hg.partWeight(1) <= _config.partition.max_part_weights[1], "Block 1 imbalanced");
     return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
                                                  initial_imbalance, _config.partition.epsilon);
+  }
+
+  void updatePQpartState(const PartitionID from_part, const PartitionID to_part,
+                         const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
+    if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
+      _pq.disablePart(to_part);
+    }
+    if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
+      _pq.enablePart(from_part);
+    }
   }
 
   void restoreRebalancePQ() {
