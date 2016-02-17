@@ -25,10 +25,10 @@ using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            ArrayStorage<HypernodeID>, true>;
 
 struct RoundRobinQueueSelectionPolicy {
-  //Method returns the part which all hypernodes has to be assigned to before
-  //initial partitioning. In experimental results we recognize that it is 
-  //desirable to let all hypernodes unassigned before initial partitioning
-  //in this method.
+  // Method returns the part which all hypernodes has to be assigned to before
+  // initial partitioning. In experimental results we recognize that it is
+  // desirable to let all hypernodes unassigned before initial partitioning
+  // in this method.
   static inline PartitionID getOperatingUnassignedPart() {
     return -1;
   }
@@ -59,10 +59,10 @@ struct RoundRobinQueueSelectionPolicy {
 };
 
 struct GlobalQueueSelectionPolicy {
-  //Method returns the part which all hypernodes has to be assigned to before
-  //initial partitioning. In experimental results we recognize that it is 
-  //desirable to assign all hypernodes to part 1 before initial partitioning
-  //in this method.
+  // Method returns the part which all hypernodes has to be assigned to before
+  // initial partitioning. In experimental results we recognize that it is
+  // desirable to assign all hypernodes to part 1 before initial partitioning
+  // in this method.
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }
@@ -106,10 +106,10 @@ struct GlobalQueueSelectionPolicy {
 };
 
 struct SequentialQueueSelectionPolicy {
-  //Method returns the part which all hypernodes has to be assigned to before
-  //initial partitioning. In experimental results we recognize that it is 
-  //desirable to assign all hypernodes to part 1 before initial partitioning
-  //in this method.
+  // Method returns the part which all hypernodes has to be assigned to before
+  // initial partitioning. In experimental results we recognize that it is
+  // desirable to assign all hypernodes to part 1 before initial partitioning
+  // in this method.
   static inline PartitionID getOperatingUnassignedPart() {
     return 1;
   }

@@ -596,7 +596,7 @@ TEST_F(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputa
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
 #ifdef USE_BUCKET_PQ
-  ASSERT_DEBUG_DEATH(refiner->initialize(100),".*");
+  ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
 #else
   ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
 #endif
@@ -625,7 +625,7 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   refiner->_disabled_rebalance_hns.push_back(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);
-  refiner->fullUpdate(0,1,0);
+  refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
 }                // namespace partition

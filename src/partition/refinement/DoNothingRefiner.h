@@ -43,7 +43,6 @@ class DoNothingRefiner final : public IRefiner {
   std::string policyStringImpl() const noexcept override final { return std::string(""); }
 
   using IRefiner::_is_initialized;
-
 };
 }  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_
