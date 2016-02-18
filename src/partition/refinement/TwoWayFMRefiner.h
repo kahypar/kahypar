@@ -77,7 +77,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _non_border_hns_to_remove(),
-    _disabled_rebalance_hns(),
+        _disabled_rebalance_hns(_hg.initialNumNodes(), -1),
     _gain_cache(_hg.initialNumNodes(), kNotCached),
     _rollback_delta_cache(_hg.initialNumNodes(), 0),
     _locked_hes(_hg.initialNumEdges(), kFree),
@@ -118,7 +118,7 @@ class TwoWayFMRefiner final : public IRefiner,
       _hg.activate(hn);
       if (global_rebalancing) {
         _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
-        _disabled_rebalance_hns.push_back(hn);
+        _disabled_rebalance_hns.set(hn, hn);
       }
     }
   }
@@ -274,7 +274,7 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.remove(max_gain_node, to_part);
           }
           _rebalance_pqs[to_part].deleteNode(max_gain_node);
-          _disabled_rebalance_hns.push_back(max_gain_node);
+          _disabled_rebalance_hns.set(max_gain_node, max_gain_node);
           used_rebalance_pqs = true;
         }
       } else {
@@ -283,9 +283,6 @@ class TwoWayFMRefiner final : public IRefiner,
 
       PartitionID from_part = _hg.partID(max_gain_node);
 
-      DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
-          << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
-          << " target_part=" << to_part);
       ASSERT(!_hg.marked(max_gain_node),
              "HN " << max_gain_node << "is marked and not eligible to be moved");
       ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
@@ -306,10 +303,10 @@ class TwoWayFMRefiner final : public IRefiner,
 
 
       DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
-          << " to " << to_part << " (weight=" << _hg.nodeWeight(max_gain_node) << ")");
+          << " to " << to_part << " (gain= " << max_gain
+          << ",weight=" << _hg.nodeWeight(max_gain_node) <<")");
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
-
 
       updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
@@ -431,7 +428,7 @@ class TwoWayFMRefiner final : public IRefiner,
       }
 
       _rebalance_pqs[rebalance_to_part].deleteMax();
-      _disabled_rebalance_hns.push_back(max_gain_node);
+      _disabled_rebalance_hns.set(max_gain_node, max_gain_node);
 
       // Rebalancing should not overlap with local search search space
       ASSERT(!_hg.active(max_gain_node), V(max_gain_node));
@@ -484,12 +481,7 @@ class TwoWayFMRefiner final : public IRefiner,
   void restoreRebalancePQ() {
     ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
     // TODO(schlag): Make sure we store each removed node only once!
-    for (const HypernodeID hn : _disabled_rebalance_hns) {
-      if (!_rebalance_pqs[1 - _hg.partID(hn)].contains(hn)) {
-        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
-      }
-    }
-    _disabled_rebalance_hns.clear();
+    _disabled_rebalance_hns.resetUsedEntries(_hg, _gain_cache, _rebalance_pqs);
   }
 
 
@@ -507,6 +499,7 @@ class TwoWayFMRefiner final : public IRefiner,
         _hg.deactivate(hn);
         if (global_rebalancing) {
           _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+          _disabled_rebalance_hns.set(hn, -1);
         }
       }
     }
@@ -743,7 +736,8 @@ class TwoWayFMRefiner final : public IRefiner,
     _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
 
-    if (global_rebalancing && _rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) {
+    if (global_rebalancing && _disabled_rebalance_hns.get(pin) == -1) {
+      ASSERT(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
       _rebalance_pqs[1 - _hg.partID(pin)].updateKeyBy(pin, gain_delta);
     }
     ASSERT(!global_rebalancing || !_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
@@ -1009,7 +1003,7 @@ class TwoWayFMRefiner final : public IRefiner,
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
-  std::vector<HypernodeID> _disabled_rebalance_hns;
+  FastResetVector<HypernodeID> _disabled_rebalance_hns;
   std::vector<Gain> _gain_cache;
   FastResetVector<Gain> _rollback_delta_cache;
   FastResetVector<char> _locked_hes;
