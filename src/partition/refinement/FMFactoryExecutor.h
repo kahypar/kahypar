@@ -36,19 +36,20 @@ class FMFactoryExecutor {
 
 template <
   template <class,
+            bool,
             class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased> class Refiner>
 class KFMFactoryExecutor {
  public:
-  template <typename StoppingPolicy, typename Dummy,
+  template <typename StoppingPolicy, typename GlobalRebalancing,
             typename ... Parameters>
-  IRefiner* fire(StoppingPolicy&, Dummy&, Parameters&& ... parameters) {
-    return new Refiner<StoppingPolicy>(std::forward<Parameters>(parameters) ...);
+  IRefiner* fire(StoppingPolicy&, GlobalRebalancing&, Parameters&& ... parameters) {
+    return new Refiner<StoppingPolicy, GlobalRebalancing::value>(std::forward<Parameters>(parameters) ...);
   }
 
   template <typename StoppingPolicy, typename Dummy,
             typename ... Parameters>
   IRefiner* onError(StoppingPolicy&, Dummy&, Parameters&& ...) {
-    std::cout << "error" << std::endl;
+    std::cout << "error: " << templateToString<Dummy>() << std::endl;
     return nullptr;
   }
 };

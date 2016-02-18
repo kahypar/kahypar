@@ -19,7 +19,8 @@ using defs::HyperedgeWeight;
 using defs::HypernodeID;
 
 namespace partition {
-using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
+using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                                      /*global rebalancing */ true>;
 
 class ATwoWayFMRefiner : public Test {
  public:

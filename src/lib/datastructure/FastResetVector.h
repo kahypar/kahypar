@@ -78,19 +78,19 @@ class FastResetVector : public std::vector<T>{
     _used_entries.clear();
   }
 
-  template <class Container, class PQ, class Hypergraph>
+  template <bool use_pqs, class Container, class PQ, class Hypergraph>
   void resetUsedEntries(Container& container, PQ& rb_pq, Hypergraph& hg) {
     for (auto rit = _used_entries.crbegin(); rit != _used_entries.crend(); ++rit) {
       if (container[*rit] != std::numeric_limits<typename Container::value_type>::max()) {
         container[*rit] += std::vector<T>::operator[] (*rit);
       }
-      rb_pq[1 - hg.partID(*rit)].updateKeyBy(*rit, std::vector<T>::operator[] (*rit));
+      if (use_pqs) {
+        rb_pq[1 - hg.partID(*rit)].updateKeyBy(*rit, std::vector<T>::operator[] (*rit));
+      }
       std::vector<T>::operator[] (* rit) = _initial_value;
     }
     _used_entries.clear();
   }
-
-
 
  private:
   const value_type _initial_value;

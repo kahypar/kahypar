@@ -27,6 +27,7 @@
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/refinement/policies/TwoFMRebalancePolicies.h"
 
 using core::Parameters;
 using core::Factory;
@@ -37,6 +38,8 @@ using core::Typelist;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
+using partition::GlobalRebalancing;
+using partition::NoGlobalRebalancing;
 
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
@@ -55,8 +58,9 @@ using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
                                                    Typelist<NumberOfFruitlessMovesStopsSearch,
                                                             RandomWalkModelStopsSearch,
                                                             nGPRandomWalkStopsSearch>,
-                                                   Typelist<NullPolicy>,
+                                                   Typelist<GlobalRebalancing, NoGlobalRebalancing>,
                                                    IRefiner*>;
+
 using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
 using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                       Typelist<NumberOfFruitlessMovesStopsSearch,

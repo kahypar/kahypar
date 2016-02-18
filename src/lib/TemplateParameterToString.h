@@ -36,4 +36,13 @@ std::string templateToString() {
 
 #endif
 
+template <bool value>
+std::string templateToString() {
+  if (value) {
+    return std::string("true");
+  }
+  return std::string("false");
+}
+
+
 #endif  // SRC_LIB_TEMPLATEPARAMETERTOSTRING_H_

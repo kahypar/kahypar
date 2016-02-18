@@ -53,13 +53,15 @@ static const bool dbg_refinement_2way_locked_hes = false;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
+          bool global_rebalancing = false,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
                               private FMRefinerBase {
  private:
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
-  using RebalancePQ = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight, std::numeric_limits<HyperedgeWeight> >;
+  using RebalancePQ = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
+                                          std::numeric_limits<HyperedgeWeight> >;
 
   static constexpr char kLocked = std::numeric_limits<char>::max();
   static const char kFree = std::numeric_limits<char>::max() - 1;
@@ -101,8 +103,9 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.marked(hn), "Hypernode" << hn << " is already marked");
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)),
              "HN " << hn << " is already contained in PQ " << 1 - _hg.partID(hn));
-      ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn) &&
-             _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn) == computeGain(hn), V(hn));
+      ASSERT(!global_rebalancing ||
+             (_rebalance_pqs[1 - _hg.partID(hn)].contains(hn) &&
+              _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn) == computeGain(hn)), V(hn));
       ASSERT(_gain_cache[hn] == computeGain(hn), V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
 
       DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain "
@@ -113,8 +116,10 @@ class TwoWayFMRefiner final : public IRefiner,
         _pq.enablePart(1 - _hg.partID(hn));
       }
       _hg.activate(hn);
-      _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
-      _disabled_rebalance_hns.push_back(hn);
+      if (global_rebalancing) {
+        _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+        _disabled_rebalance_hns.push_back(hn);
+      }
     }
   }
 
@@ -155,7 +160,9 @@ class TwoWayFMRefiner final : public IRefiner,
     }
     for (const HypernodeID hn : _hg.nodes()) {
       _gain_cache[hn] = computeGain(hn);
-      _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      if (global_rebalancing) {
+        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      }
       ASSERT(_gain_cache[hn] == computeGain(hn), V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
     }
   }
@@ -167,7 +174,9 @@ class TwoWayFMRefiner final : public IRefiner,
     }
     for (const HypernodeID hn : _hg.nodes()) {
       _gain_cache[hn] = computeGain(hn);
-      _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      if (global_rebalancing) {
+        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+      }
       ASSERT(_gain_cache[hn] == computeGain(hn), V(hn) << V(_gain_cache[hn]) << V(computeGain(hn)));
     }
   }
@@ -197,8 +206,12 @@ class TwoWayFMRefiner final : public IRefiner,
       if (_gain_cache[refinement_nodes[0]] != kNotCached) {
         _gain_cache[refinement_nodes[1]] = _gain_cache[refinement_nodes[0]] + changes.second;
         _gain_cache[refinement_nodes[0]] += changes.first;
-        _rebalance_pqs[1 - _hg.partID(refinement_nodes[0])].updateKeyBy(refinement_nodes[0], changes.first);
-        _rebalance_pqs[1 - _hg.partID(refinement_nodes[1])].push(refinement_nodes[1], _gain_cache[refinement_nodes[1]]);
+        if (global_rebalancing) {
+          _rebalance_pqs[1 - _hg.partID(refinement_nodes[0])].updateKeyBy(refinement_nodes[0],
+                                                                          changes.first);
+          _rebalance_pqs[1 - _hg.partID(refinement_nodes[1])].push(refinement_nodes[1],
+                                                                   _gain_cache[refinement_nodes[1]]);
+        }
       }
     }
 
@@ -245,25 +258,27 @@ class TwoWayFMRefiner final : public IRefiner,
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
-
-      selectRebalanceMove(max_gain_node, max_gain, to_part);
-
-      // A rebalance move has to be outside of the local search search space!
-      ASSERT(max_gain_node == kInvalidHN || !_hg.active(max_gain_node), V(max_gain_node));
-      ASSERT(max_gain_node == kInvalidHN || !_hg.marked(max_gain_node), V(max_gain_node));
-
       bool used_rebalance_pqs = false;
 
-      if (max_gain <= 0 || max_gain < _pq.maxKey()) {
-        _pq.deleteMax(max_gain_node, max_gain, to_part);
-        ASSERT(!_rebalance_pqs[to_part].contains(max_gain_node), V(max_gain_node));
-      } else {
-        if (_hg.active(max_gain_node)) {
-          _pq.remove(max_gain_node, to_part);
+      if (global_rebalancing) {
+        selectRebalanceMove(max_gain_node, max_gain, to_part);
+        // A rebalance move has to be outside of the local search search space!
+        ASSERT(max_gain_node == kInvalidHN || !_hg.active(max_gain_node), V(max_gain_node));
+        ASSERT(max_gain_node == kInvalidHN || !_hg.marked(max_gain_node), V(max_gain_node));
+
+        if (max_gain <= 0 || max_gain < _pq.maxKey()) {
+          _pq.deleteMax(max_gain_node, max_gain, to_part);
+          ASSERT(!_rebalance_pqs[to_part].contains(max_gain_node), V(max_gain_node));
+        } else {
+          if (_hg.active(max_gain_node)) {
+            _pq.remove(max_gain_node, to_part);
+          }
+          _rebalance_pqs[to_part].deleteNode(max_gain_node);
+          _disabled_rebalance_hns.push_back(max_gain_node);
+          used_rebalance_pqs = true;
         }
-        _rebalance_pqs[to_part].deleteNode(max_gain_node);
-        _disabled_rebalance_hns.push_back(max_gain_node);
-        used_rebalance_pqs = true;
+      } else {
+        _pq.deleteMax(max_gain_node, max_gain, to_part);
       }
 
       PartitionID from_part = _hg.partID(max_gain_node);
@@ -305,8 +320,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-
-      if (used_rebalance_pqs) {
+      if (global_rebalancing && used_rebalance_pqs) {
         // markRebalanced does not assert prior activation, since rebalance moves are not active
         // in local search
         _hg.markRebalanced(max_gain_node);
@@ -319,69 +333,14 @@ class TwoWayFMRefiner final : public IRefiner,
       _performed_moves[num_moves] = max_gain_node;
       ++num_moves;
 
-      const bool part_0_imbalanced = _hg.partWeight(0) > _config.partition.max_part_weights[0];
-      const bool part_1_imbalanced = _hg.partWeight(1) > _config.partition.max_part_weights[1];
-      if (current_cut < best_cut && (part_0_imbalanced || part_1_imbalanced)) {
-        double imbalance_before_move = current_imbalance;
-        double imbalance_after_move = -1.0;
-        const bool imbalanced_part = part_0_imbalanced ? 0 : 1;
-        const bool rebalance_to_part = 1 - imbalanced_part;
-        while (!_rebalance_pqs[rebalance_to_part].empty() &&
-               imbalance_before_move > imbalance_after_move) {
-          imbalance_before_move = current_imbalance;
-
-          const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
-          max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
-
-          if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
-              > _config.partition.max_part_weights[rebalance_to_part] ||
-              rebalance_gain < 0) {
-            break;
-          }
-
-          _rebalance_pqs[rebalance_to_part].deleteMax();
-          _disabled_rebalance_hns.push_back(max_gain_node);
-          from_part = imbalanced_part;
-          to_part = rebalance_to_part;
-
-          // Rebalancing should not overlap with local search search space
-          ASSERT(!_hg.active(max_gain_node), V(max_gain_node));
-          ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
-          ASSERT(!_pq.contains(max_gain_node, to_part), V(max_gain_node));
-
-          // Ensure gain calculation consistency
-          ASSERT(rebalance_gain == _gain_cache[max_gain_node], V(max_gain_node));
-          ASSERT(rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
-                 << V(rebalance_gain) << V(computeGain(max_gain_node)));
-
-          DBG(false, "REBALANCING: cut=" << current_cut << " max_gain_node=" << max_gain_node
-              << " gain=" << max_gain << " source_part=" << from_part
-              << " target_part=" << to_part);
-
-          _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
-          _hg.markRebalanced(max_gain_node);
-
-          ASSERT(-rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
-                 << V(-rebalance_gain) << V(computeGain(max_gain_node)));
-
-
-          updatePQpartState(from_part, to_part, max_allowed_part_weights);
-
-          ASSERT(rebalance_gain >= 0, V(rebalance_gain));
-          current_cut -= rebalance_gain;
-          ASSERT(current_cut == metrics::hyperedgeCut(_hg),
-                 V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-
-          current_imbalance = metrics::imbalance(_hg, _config);
-          imbalance_after_move = current_imbalance;
-
-          updateNeighboursAfterRebalaceMove(max_gain_node, from_part, to_part, max_allowed_part_weights);
-
-          _performed_moves[num_moves] = max_gain_node;
-          ++num_moves;
+      if (global_rebalancing) {
+        const bool part_0_imbalanced = _hg.partWeight(0) > _config.partition.max_part_weights[0];
+        const bool part_1_imbalanced = _hg.partWeight(1) > _config.partition.max_part_weights[1];
+        if (current_cut < best_cut && (part_0_imbalanced || part_1_imbalanced)) {
+          performRebalancing(part_0_imbalanced, current_cut, current_imbalance,
+                             num_moves, max_allowed_part_weights);
         }
       }
-
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_cut < best_cut) &&
@@ -414,9 +373,19 @@ class TwoWayFMRefiner final : public IRefiner,
             == true ? "policy" : "empty queue"));
 
 
-    restoreRebalancePQ();
+    if (global_rebalancing) {
+      restoreRebalancePQ();
+      ASSERT([&]() {
+          for (const HypernodeID hn : _hg.nodes()) {
+            ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
+          }
+          return true;
+        } (), "Rebalance PQ inconsistent");
+    }
+
     rollback(num_moves - 1, min_cut_index);
-    _rollback_delta_cache.resetUsedEntries(_gain_cache, _rebalance_pqs, _hg);
+    _rollback_delta_cache.resetUsedEntries<global_rebalancing>(_gain_cache, _rebalance_pqs, _hg);
+
 
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
@@ -429,12 +398,6 @@ class TwoWayFMRefiner final : public IRefiner,
         }
         return true;
       } (), "GainCache Invalid");
-    ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
-          ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
-        }
-        return true;
-      } (), "Rebalance PQ inconsistent");
 
     // This currently cannot be guaranteed in case k!=2^x, because initial partitioner might create
     // a bipartition which is balanced regarding epsilon, but not regarding the targeted block
@@ -443,6 +406,69 @@ class TwoWayFMRefiner final : public IRefiner,
     // ASSERT(_hg.partWeight(1) <= _config.partition.max_part_weights[1], "Block 1 imbalanced");
     return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
                                                  initial_imbalance, _config.partition.epsilon);
+  }
+
+
+  void performRebalancing(const bool part_0_imbalanced, HyperedgeWeight& current_cut,
+                          double& current_imbalance, int& num_moves,
+                          const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
+    ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
+    double imbalance_before_move = current_imbalance;
+    double imbalance_after_move = -1.0;
+    const PartitionID imbalanced_part = part_0_imbalanced ? 0 : 1;
+    const PartitionID rebalance_to_part = 1 - imbalanced_part;
+    while (!_rebalance_pqs[rebalance_to_part].empty() &&
+           imbalance_before_move > imbalance_after_move) {
+      imbalance_before_move = current_imbalance;
+
+      const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
+      const HypernodeID max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
+
+      if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
+          > _config.partition.max_part_weights[rebalance_to_part] ||
+          rebalance_gain < 0) {
+        break;
+      }
+
+      _rebalance_pqs[rebalance_to_part].deleteMax();
+      _disabled_rebalance_hns.push_back(max_gain_node);
+
+      // Rebalancing should not overlap with local search search space
+      ASSERT(!_hg.active(max_gain_node), V(max_gain_node));
+      ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
+      ASSERT(!_pq.contains(max_gain_node, rebalance_to_part), V(max_gain_node));
+
+      // Ensure gain calculation consistency
+      ASSERT(rebalance_gain == _gain_cache[max_gain_node], V(max_gain_node));
+      ASSERT(rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
+             << V(rebalance_gain) << V(computeGain(max_gain_node)));
+
+      DBG(false, "REBALANCING: cut=" << current_cut << " max_gain_node=" << max_gain_node
+          << " gain=" << rebalance_gain << " source_part=" << imbalanced_part
+          << " target_part=" << rebalance_to_part);
+
+      _hg.changeNodePart(max_gain_node, imbalanced_part, rebalance_to_part, _non_border_hns_to_remove);
+      _hg.markRebalanced(max_gain_node);
+
+      ASSERT(-rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
+             << V(-rebalance_gain) << V(computeGain(max_gain_node)));
+
+      updatePQpartState(imbalanced_part, rebalance_to_part, max_allowed_part_weights);
+
+      ASSERT(rebalance_gain >= 0, V(rebalance_gain));
+      current_cut -= rebalance_gain;
+      ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+             V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+
+      current_imbalance = metrics::imbalance(_hg, _config);
+      imbalance_after_move = current_imbalance;
+
+      updateNeighboursAfterRebalaceMove(max_gain_node, imbalanced_part, rebalance_to_part,
+                                        max_allowed_part_weights);
+
+      _performed_moves[num_moves] = max_gain_node;
+      ++num_moves;
+    }
   }
 
   void updatePQpartState(const PartitionID from_part, const PartitionID to_part,
@@ -456,6 +482,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void restoreRebalancePQ() {
+    ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
     // TODO(schlag): Make sure we store each removed node only once!
     for (const HypernodeID hn : _disabled_rebalance_hns) {
       if (!_rebalance_pqs[1 - _hg.partID(hn)].contains(hn)) {
@@ -475,10 +502,12 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(_hg.marked(hn) || !_hg.isBorderNode(hn), V(hn));
       if (_hg.active(hn)) {
         ASSERT(_pq.contains(hn, (1 - _hg.partID(hn))), V(hn) << V((1 - _hg.partID(hn))));
-        ASSERT(!_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
+        ASSERT(!global_rebalancing || !_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
         _pq.remove(hn, (_hg.partID(hn) ^ 1));
         _hg.deactivate(hn);
-        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+        if (global_rebalancing) {
+          _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+        }
       }
     }
     _non_border_hns_to_remove.clear();
@@ -486,6 +515,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void selectRebalanceMove(HypernodeID& max_gain_node, Gain& max_gain, PartitionID& to_part)
   const {
+    ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
     // new selection
     const bool rebalance_pq0_empty = _rebalance_pqs[0].empty();
     const bool rebalance_pq1_empty = _rebalance_pqs[1].empty();
@@ -528,6 +558,8 @@ class TwoWayFMRefiner final : public IRefiner,
   void updateNeighboursAfterRebalaceMove(const HypernodeID moved_hn, const PartitionID from_part,
                                          const PartitionID to_part,
                                          const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
+    ONLYDEBUG(max_allowed_part_weights);
+    ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
 #ifndef NDEBUG
     const size_t num_pq_elements_before_update = _pq.size();
 #endif
@@ -550,6 +582,7 @@ class TwoWayFMRefiner final : public IRefiner,
            "Rebalacing-updateNeigbours changed local search PQ size");
 
     _gain_cache[moved_hn] = -temp;
+
     ASSERT(!_rebalance_pqs[from_part].contains(moved_hn) &&
            !_rebalance_pqs[to_part].contains(moved_hn), V(moved_hn));
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
@@ -636,8 +669,8 @@ class TwoWayFMRefiner final : public IRefiner,
     }
 
     _gain_cache[moved_hn] = -temp;
-    ASSERT(!_rebalance_pqs[from_part].contains(moved_hn) &&
-           !_rebalance_pqs[to_part].contains(moved_hn), V(moved_hn));
+    ASSERT(!global_rebalancing || (!_rebalance_pqs[from_part].contains(moved_hn) &&
+                                   !_rebalance_pqs[to_part].contains(moved_hn)), V(moved_hn));
     _rollback_delta_cache.set(moved_hn, rb_delta + 2 * temp);
 
     for (const HypernodeID hn : _hns_to_activate) {
@@ -681,15 +714,18 @@ class TwoWayFMRefiner final : public IRefiner,
             }
             // If the pin is either marked as moved or active, it should not be contained in the
             // rebalacing PQ.
-            ASSERT(!_hg.active(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
-            ASSERT(!_hg.marked(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            ASSERT(!_hg.active(pin) || !global_rebalancing ||
+                   !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
+            ASSERT(!_hg.marked(pin) || !global_rebalancing ||
+                   !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
             // Gain calculation needs to be consistent in cache and rebalance pq
             ASSERT((_gain_cache[pin] == kNotCached) || _gain_cache[pin] == computeGain(pin),
                    V(pin) << V(_gain_cache[pin]) << V(computeGain(pin)));
             // A HN that is neither active nor marked as moved should be available for rebalancing.
             ASSERT(_hg.marked(pin) || _hg.active(pin) ||
-                   (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
-                    _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin)),
+                   (!global_rebalancing ||
+                    (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
+                     _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin))),
                    V(pin) << V(_hg.marked(pin)) << V(_hg.active(pin))
                    << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
           }
@@ -706,10 +742,11 @@ class TwoWayFMRefiner final : public IRefiner,
   void updateGainCache(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
     _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
-    if (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) {
+
+    if (global_rebalancing && _rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) {
       _rebalance_pqs[1 - _hg.partID(pin)].updateKeyBy(pin, gain_delta);
     }
-    ASSERT(!_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
+    ASSERT(!global_rebalancing || !_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
   }
 
   void performNonZeroFullUpdate(const HypernodeID pin, const Gain gain_delta,
@@ -902,6 +939,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
+                       " RefinerGlobalRebalacing=" + templateToString<global_rebalancing>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true");
@@ -914,7 +952,7 @@ class TwoWayFMRefiner final : public IRefiner,
     const PartitionID target_part = _hg.partID(pin) ^ 1;
     ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
-    ASSERT(!_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
+    ASSERT(!global_rebalancing || !_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
     ASSERT(gain_delta != 0, V(gain_delta));
     ASSERT(!_hg.marked(pin),
            " Trying to update marked HN " << pin << " in PQ " << target_part);
@@ -923,7 +961,7 @@ class TwoWayFMRefiner final : public IRefiner,
         << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
 
     _pq.updateKeyBy(pin, target_part, gain_delta);
-    if (_rebalance_pqs[target_part].contains(pin)) {
+    if (global_rebalancing && _rebalance_pqs[target_part].contains(pin)) {
       _rebalance_pqs[target_part].updateKeyBy(pin, gain_delta);
     }
     ASSERT(_gain_cache[pin] != kNotCached, "Error" << V(pin));
@@ -936,10 +974,12 @@ class TwoWayFMRefiner final : public IRefiner,
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
       HypernodeID hn = _performed_moves[last_index];
-      // Since the rollback_delta_cache maintains all delta changes, we have
-      // to reuse the gain of the old pq here in order to get correct deltas
-      _rebalance_pqs[_hg.partID(hn)].push(hn, _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn));
-      _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+      if (global_rebalancing) {
+        // Since the rollback_delta_cache maintains all delta changes, we have
+        // to reuse the gain of the old pq here in order to get correct deltas
+        _rebalance_pqs[_hg.partID(hn)].push(hn, _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn));
+        _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+      }
       _hg.changeNodePart(hn, _hg.partID(hn), (_hg.partID(hn) ^ 1));
       --last_index;
     }
@@ -976,11 +1016,11 @@ class TwoWayFMRefiner final : public IRefiner,
   StoppingPolicy _stopping_policy;
 };
 
-template <class T, class U>
-const char TwoWayFMRefiner<T, U>::kFree;
+template <class T, bool b, class U>
+const char TwoWayFMRefiner<T, b, U>::kFree;
 
-template <class T, class U>
-const HyperedgeWeight TwoWayFMRefiner<T, U>::kNotCached;
+template <class T, bool b, class U>
+const HyperedgeWeight TwoWayFMRefiner<T, b, U>::kNotCached;
 #pragma GCC diagnostic pop
 }                                   // namespace partition
 
