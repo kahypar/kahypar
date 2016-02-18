@@ -77,7 +77,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _non_border_hns_to_remove(),
-        _disabled_rebalance_hns(_hg.initialNumNodes(), -1),
+    _disabled_rebalance_hns(_hg.initialNumNodes(), -1),
     _gain_cache(_hg.initialNumNodes(), kNotCached),
     _rollback_delta_cache(_hg.initialNumNodes(), 0),
     _locked_hes(_hg.initialNumEdges(), kFree),
@@ -304,7 +304,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
           << " to " << to_part << " (gain= " << max_gain
-          << ",weight=" << _hg.nodeWeight(max_gain_node) <<")");
+          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")");
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 

@@ -95,7 +95,7 @@ class FastResetVector : public std::vector<T>{
   template <class Hypergraph, class GainCache, class RebalancePQs>
   void resetUsedEntries(const Hypergraph& hg, const GainCache& cache, RebalancePQs& pqs) {
     for (auto rit = _used_entries.crbegin(); rit != _used_entries.crend(); ++rit) {
-      if (std::vector<T>::operator[] (* rit) != _initial_value) {
+      if (std::vector<T>::operator[] (*rit) != _initial_value) {
         pqs[1 - hg.partID(*rit)].push(*rit, cache[*rit]);
       }
       std::vector<T>::operator[] (* rit) = _initial_value;
