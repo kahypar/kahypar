@@ -58,12 +58,20 @@ class SparseSet {
     return _dense.size();
   }
 
-  const auto begin() const {
+  auto begin() const {
     return _dense.cbegin();
   }
 
-  const auto end() const {
+  auto end() const {
     return _dense.cend();
+  }
+
+  auto crbegin() const {
+    return _dense.crbegin();
+  }
+
+  auto crend() const {
+    return _dense.crend();
   }
 
   void clear() {
