@@ -20,6 +20,7 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
+#include "lib/datastructure/SparseSet.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -32,6 +33,7 @@
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
+using datastructure::SparseSet;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -77,7 +79,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _non_border_hns_to_remove(),
-    _disabled_rebalance_hns(_hg.initialNumNodes(), -1),
+    _disabled_rebalance_hns(_hg.initialNumNodes()),
     _gain_cache(_hg.initialNumNodes(), kNotCached),
     _rollback_delta_cache(_hg.initialNumNodes(), 0),
     _locked_hes(_hg.initialNumEdges(), kFree),
@@ -118,7 +120,7 @@ class TwoWayFMRefiner final : public IRefiner,
       _hg.activate(hn);
       if (global_rebalancing) {
         _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
-        _disabled_rebalance_hns.set(hn, hn);
+        _disabled_rebalance_hns.add(hn);
       }
     }
   }
@@ -274,7 +276,7 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.remove(max_gain_node, to_part);
           }
           _rebalance_pqs[to_part].deleteNode(max_gain_node);
-          _disabled_rebalance_hns.set(max_gain_node, max_gain_node);
+          _disabled_rebalance_hns.add(max_gain_node);
           used_rebalance_pqs = true;
         }
       } else {
@@ -428,7 +430,7 @@ class TwoWayFMRefiner final : public IRefiner,
       }
 
       _rebalance_pqs[rebalance_to_part].deleteMax();
-      _disabled_rebalance_hns.set(max_gain_node, max_gain_node);
+      _disabled_rebalance_hns.add(max_gain_node);
 
       // Rebalancing should not overlap with local search search space
       ASSERT(!_hg.active(max_gain_node), V(max_gain_node));
@@ -480,8 +482,10 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void restoreRebalancePQ() {
     ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
-    // TODO(schlag): Make sure we store each removed node only once!
-    _disabled_rebalance_hns.resetUsedEntries(_hg, _gain_cache, _rebalance_pqs);
+    for (const HypernodeID hn : _disabled_rebalance_hns) {
+      _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
+    }
+    _disabled_rebalance_hns.clear();
   }
 
 
@@ -499,7 +503,7 @@ class TwoWayFMRefiner final : public IRefiner,
         _hg.deactivate(hn);
         if (global_rebalancing) {
           _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache[hn]);
-          _disabled_rebalance_hns.set(hn, -1);
+          _disabled_rebalance_hns.remove(hn);
         }
       }
     }
@@ -736,7 +740,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
 
-    if (global_rebalancing && _disabled_rebalance_hns.get(pin) == -1) {
+    if (global_rebalancing && !_disabled_rebalance_hns.contains(pin)) {
       ASSERT(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
       _rebalance_pqs[1 - _hg.partID(pin)].updateKeyBy(pin, gain_delta);
     }
@@ -1003,7 +1007,7 @@ class TwoWayFMRefiner final : public IRefiner,
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
-  FastResetVector<HypernodeID> _disabled_rebalance_hns;
+  SparseSet<HypernodeID> _disabled_rebalance_hns;
   std::vector<Gain> _gain_cache;
   FastResetVector<Gain> _rollback_delta_cache;
   FastResetVector<char> _locked_hes;
