@@ -5,7 +5,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 #ensure that gmock is built before tests are executed
-include(/usr/share/cmake-2.8/Modules/ExternalProject.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/modules/ExternalProject.cmake)
 ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gmock"
   INSTALL_COMMAND "")
@@ -44,6 +44,16 @@ if(NOT CMAKE_BUILD_TYPE)
        "Choose the type of build, options are: Debug Release"
        FORCE )
 endif()
+
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(doc
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM)
+endif(DOXYGEN_FOUND)
 
 include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
