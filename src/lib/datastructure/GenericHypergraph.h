@@ -73,7 +73,7 @@ class GenericHypergraph {
 
  private:
   // forward delarations
-  class Memento;
+  struct Memento;
   struct PartInfo;
   template <typename T, class D>
   class InternalVertex;
