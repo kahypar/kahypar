@@ -1648,7 +1648,7 @@ class GenericHypergraph {
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                                                                                     const typename Hypergraph::PartitionID part,
-                                                                                                                    const bool split_netsS);
+                                                                                                                    const bool split_nets = false);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
