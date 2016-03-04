@@ -22,7 +22,7 @@ class SparseSet {
  public:
   explicit SparseSet(T universe_size) :
     _dense(),
-    _sparse(std::make_unique<T[]>(universe_size)) { }
+    _sparse(std::make_unique<size_t[]>(universe_size)) { }
 
   SparseSet(const SparseSet&) = delete;
   SparseSet& operator= (const SparseSet&) = delete;
@@ -31,12 +31,12 @@ class SparseSet {
   SparseSet& operator= (SparseSet&&) = default;
 
   bool contains(const T value) const {
-    const T index = _sparse[value];
+    const size_t index = _sparse[value];
     return index < _dense.size() && _dense[index] == value;
   }
 
   void add(const T value) {
-    const T index = _sparse[value];
+    const size_t index = _sparse[value];
     const size_t n = _dense.size();
     if (index >= n || _dense[index] != value) {
       _sparse[value] = _dense.size();
@@ -45,7 +45,7 @@ class SparseSet {
   }
 
   void remove(const T value) {
-    const T index = _sparse[value];
+    const size_t index = _sparse[value];
     if (index <= _dense.size() - 1 && _dense[index] == value) {
       const T e = _dense.back();
       _dense[index] = e;
@@ -80,7 +80,7 @@ class SparseSet {
 
  private:
   std::vector<T> _dense;
-  std::unique_ptr<T[]> _sparse;
+  std::unique_ptr<size_t[]> _sparse;
 };
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_SPARSESET_H_
