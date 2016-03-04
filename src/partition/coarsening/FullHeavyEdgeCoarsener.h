@@ -72,7 +72,12 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       const HypernodeID rep_node = _pq.getMax();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.getMaxKey());
+          << _target[rep_node] << ") prio: " << _pq.getMaxKey() <<
+          " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
+          " w(" << rep_node << ")=" << _hg.nodeWeight(rep_node) <<
+          " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node) <<
+          " w(" << contracted_node << ")=" << _hg.nodeWeight(contracted_node));
+
 
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
