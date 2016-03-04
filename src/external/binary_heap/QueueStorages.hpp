@@ -31,7 +31,7 @@ class ArrayStorage{
  public:
   explicit ArrayStorage( id_slot size_) :
       size( size_ ),
-      positions( new size_t[size_] ) {}
+      positions( std::make_unique<size_t[]>(size_)) {}
 
   ArrayStorage(const ArrayStorage&) = delete;
   ArrayStorage& operator= (const ArrayStorage&) = delete;
