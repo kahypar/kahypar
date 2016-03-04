@@ -1003,7 +1003,7 @@ class TwoWayFMRefiner final : public IRefiner,
   KWayRefinementPQ _pq;
   std::array<RebalancePQ, 2> _rebalance_pqs;
   FastResetBitVector<> _he_fully_active;
-  FastResetBitVector<> _hns_in_activation_vector;
+  FastResetBitVector<> _hns_in_activation_vector; // faster than using a SparseSet in this case
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
