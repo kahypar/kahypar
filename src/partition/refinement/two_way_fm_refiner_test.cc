@@ -19,7 +19,8 @@ using defs::HyperedgeWeight;
 using defs::HypernodeID;
 
 namespace partition {
-using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
+using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
+                                                      /*global rebalancing */ true>;
 
 class ATwoWayFMRefiner : public Test {
  public:
@@ -142,27 +143,28 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  #ifdef USE_BUCKET_PQ
+#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
 #else
   refiner->initialize();
 #endif
   refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_cut, old_imbalance);
 
-  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
-  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
 }
 
 TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
-  #ifdef USE_BUCKET_PQ
+  hypergraph->changeNodePart(1, 1, 0);
+  ASSERT_THAT(hypergraph->partID(6), Eq(1));
+  ASSERT_THAT(hypergraph->partID(2), Eq(1));
+
+#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
 #else
   refiner->initialize();
 #endif  // already done above
-  hypergraph->changeNodePart(1, 1, 0);
-  ASSERT_THAT(hypergraph->partID(6), Eq(1));
-  ASSERT_THAT(hypergraph->partID(2), Eq(1));
 
   double old_imbalance = metrics::imbalance(*hypergraph, config);
   HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
@@ -207,6 +209,10 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._hg.activate(0);
   refiner._hg.activate(1);
+  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._disabled_rebalance_hns.add(0);
+  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._disabled_rebalance_hns.add(1);
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
   refiner._pq.insert(0, 1, refiner._gain_cache[0]);
@@ -271,6 +277,14 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner._hg.activate(1);
   refiner._hg.activate(2);
   refiner._hg.activate(3);
+  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._disabled_rebalance_hns.add(0);
+  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._disabled_rebalance_hns.add(1);
+  refiner._rebalance_pqs[1].deleteNode(2);
+  refiner._disabled_rebalance_hns.add(2);
+  refiner._rebalance_pqs[1].deleteNode(3);
+  refiner._disabled_rebalance_hns.add(3);
   refiner._gain_cache[0] = refiner.computeGain(0);
   refiner._gain_cache[1] = refiner.computeGain(1);
   refiner._gain_cache[2] = refiner.computeGain(2);
@@ -477,6 +491,10 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   refiner._pq.insert(1, 1, refiner._gain_cache[1]);
   refiner._hg.activate(0);
   refiner._hg.activate(1);
+  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._disabled_rebalance_hns.add(0);
+  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._disabled_rebalance_hns.add(1);
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -513,6 +531,8 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   refiner._pq.insert(2, 1, refiner.computeGain(2));
   refiner._gain_cache[2] = refiner.computeGain(2);
   refiner._hg.activate(2);
+  refiner._rebalance_pqs[1].deleteNode(2);
+  refiner._disabled_rebalance_hns.add(2);
   refiner._pq.enablePart(1);
   refiner.moveHypernode(2, 0, 1);
   refiner._hg.mark(2);
@@ -576,10 +596,10 @@ TEST_F(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputa
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new TwoWayFMRefinerSimpleStopping(*hypergraph, config));
-  #ifdef USE_BUCKET_PQ
-  refiner->initialize(100);
+#ifdef USE_BUCKET_PQ
+  ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
 #else
-  refiner->initialize();
+  ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
 #endif
 
   ASSERT_DEBUG_DEATH(refiner->computeGain(0), ".*");
@@ -602,9 +622,10 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
 #endif
 
   refiner->_hg.activate(0);
+  refiner->_rebalance_pqs[1].deleteNode(0);
+  refiner->_disabled_rebalance_hns.add(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);
-
   refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }

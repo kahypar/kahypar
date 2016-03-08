@@ -1071,6 +1071,10 @@ class GenericHypergraph {
     hypernode(u).state = _threshold_marked;
   }
 
+  void markRebalanced(const HypernodeID u) {
+    hypernode(u).state = _threshold_marked;
+  }
+
   void activate(const HypernodeID u) {
     ASSERT(hypernode(u).state < _threshold_active, V(u));
     hypernode(u).state = _threshold_active;

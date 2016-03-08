@@ -24,7 +24,7 @@ struct BFSStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     HypernodeID start_hn = 0;
-    if(UseRandomStartHypernode) {
+    if (UseRandomStartHypernode) {
       start_hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
     }
     start_nodes.push_back(start_hn);
@@ -93,7 +93,6 @@ struct RandomStartNodeSelectionPolicy {
     }
   }
 };
-
 }  // namespace partition
 
 #endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_STARTNODESELECTIONPOLICY_H_

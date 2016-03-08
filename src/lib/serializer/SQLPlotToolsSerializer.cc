@@ -62,6 +62,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
       config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm) {
     oss << " FMNumRepetitions=" << config.fm_local_search.num_repetitions
     << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
+    << " FMGlobalRebalancing=" << toString(config.fm_local_search.global_rebalancing)
     << " FMalpha=" << config.fm_local_search.alpha
     << " FMbeta=" << config.fm_local_search.beta;
   }

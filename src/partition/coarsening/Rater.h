@@ -9,13 +9,13 @@
 #include <stack>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
+#include "lib/datastructure/SparseMap.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
-using datastructure::FastResetBitVector;
+using datastructure::SparseMap;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -63,11 +63,7 @@ class Rater {
   Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config),
-    _tmp_ratings(_hg.initialNumNodes()),
-    _used_entries(),
-    _visited_hypernodes(_hg.initialNumNodes(), false) {
-    _used_entries.reserve(_hg.initialNumNodes());
-  }
+    _tmp_ratings(_hg.initialNumNodes()) { }
 
   Rater(const Rater&) = delete;
   Rater& operator= (const Rater&) = delete;
@@ -76,15 +72,6 @@ class Rater {
   Rater& operator= (Rater&&) = delete;
 
   HeavyEdgeRating rate(const HypernodeID u) noexcept {
-    ASSERT(_used_entries.empty(), "Stack is not empty");
-    ASSERT([&]() {
-        for (HypernodeID hn = 0; hn < _hg.initialNumNodes(); ++hn) {
-          if (_visited_hypernodes[hn]) {
-            return false;
-          }
-        }
-        return true;
-      } (), "Bitset not empty");
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
@@ -96,29 +83,23 @@ class Rater {
             belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
             (part_u == _hg.partID(v))) {
           _tmp_ratings[v] += score;
-          if (!_visited_hypernodes[v]) {
-            _visited_hypernodes.setBit(v, true);
-            _used_entries.push_back(v);
-          }
         }
       }
     }
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
-    while (!_used_entries.empty()) {
-      const HypernodeID tmp_target = _used_entries.back();
-      _used_entries.pop_back();
-      const RatingType tmp = _tmp_ratings[tmp_target] /
+    for (auto it = _tmp_ratings.crbegin(); it != _tmp_ratings.crend(); ++it) {
+      const HypernodeID tmp_target = it->key;
+      const RatingType tmp = it->value /
                              (weight_u * _hg.nodeWeight(tmp_target));
-      _tmp_ratings[tmp_target] = 0.0;
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
       if (acceptRating(tmp, max_rating)) {
         max_rating = tmp;
         target = tmp_target;
       }
-      _visited_hypernodes.setBit(tmp_target, false);
     }
+    _tmp_ratings.clear();
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
@@ -155,9 +136,7 @@ class Rater {
 
   Hypergraph& _hg;
   const Configuration& _config;
-  std::vector<RatingType> _tmp_ratings;
-  std::vector<HypernodeID> _used_entries;
-  FastResetBitVector<> _visited_hypernodes;
+  SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
 #pragma GCC diagnostic pop
 }  // namespace partition

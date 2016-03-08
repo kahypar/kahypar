@@ -16,6 +16,7 @@ struct PolicyBase {
 
 struct NullPolicy : PolicyBase {
   virtual ~NullPolicy() { }
+  enum { value = false };
 };
 
 template <typename IDType>

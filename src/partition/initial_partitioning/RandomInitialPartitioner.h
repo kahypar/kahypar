@@ -43,9 +43,9 @@ class RandomInitialPartitioner : public IInitialPartitioner,
         if (p != -1 && !_already_tried_to_assign_hn_to_part[p]) {
           partition_sum += (p + 1);
           _already_tried_to_assign_hn_to_part.setBit(p, true);
-	  //If the current hypernode fits in no part of the partition
-	  //(partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
-	  //him to a part which violates the imbalance definition
+          // If the current hypernode fits in no part of the partition
+          // (partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
+          // him to a part which violates the imbalance definition
           if (partition_sum
               == (_config.initial_partitioning.k
                   * (_config.initial_partitioning.k + 1))

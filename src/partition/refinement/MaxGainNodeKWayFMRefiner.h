@@ -41,6 +41,8 @@ namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
+          // does nothing for KFM
+          bool global_rebalancing = false,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class MaxGainNodeKWayFMRefiner final : public IRefiner,
                                        private FMRefinerBase {

@@ -43,6 +43,7 @@ using partition::CoarseningAlgorithm;
 using partition::RefinementAlgorithm;
 using partition::InitialPartitionerAlgorithm;
 using partition::RefinementStoppingRule;
+using partition::GlobalRebalancingMode;
 using partition::CoarsenerFactory;
 using partition::RefinerFactory;
 using partition::InitialPartitioningFactory;
@@ -292,6 +293,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         exit(0);
       }
     }
+    if (vm.count("global-rebalancing")) {
+      if (vm["global-rebalancing"].as<bool>()) {
+        config.fm_local_search.global_rebalancing = GlobalRebalancingMode::on;
+      } else {
+        config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
+      }
+    }
     if (vm.count("FMreps")) {
       config.fm_local_search.num_repetitions = vm["FMreps"].as<int>();
       config.her_fm.num_repetitions = vm["FMreps"].as<int>();
@@ -439,7 +447,8 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
   return TwoWayFMFactoryDispatcher::go(
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
       config.fm_local_search.stopping_rule),
-    NullPolicy(),
+    PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
+      config.fm_local_search.global_rebalancing),
     TwoWayFMFactoryExecutor(), hypergraph, config);
 });
 
@@ -496,6 +505,14 @@ static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive1_stopping
 
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping(
   RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
+
+static Registrar<PolicyRegistry<GlobalRebalancingMode> > reg_global_rebalancing(
+  GlobalRebalancingMode::on,
+  new GlobalRebalancing());
+
+static Registrar<PolicyRegistry<GlobalRebalancingMode> > reg_no_global_rebalancing(
+  GlobalRebalancingMode::off,
+  new NoGlobalRebalancing());
 
 static Registrar<InitialPartitioningFactory> reg_random(
   InitialPartitionerAlgorithm::random,
@@ -610,6 +627,7 @@ int main(int argc, char* argv[]) {
     ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
     ("lp_refiner_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
+    ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
     ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
     ("init-FMreps", po::value<int>(), "local search repetitions during initial partitioning (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")

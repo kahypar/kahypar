@@ -76,6 +76,11 @@ enum class RefinementStoppingRule : std::uint8_t {
   adaptive2
 };
 
+enum class GlobalRebalancingMode : bool {
+  off,
+  on
+};
+
 enum class Objective : std::uint8_t {
   cut,
   connectivityMinusOne
@@ -197,6 +202,16 @@ static std::string toString(const RefinementStoppingRule& algo) {
       return std::string("adaptive1");
     case RefinementStoppingRule::adaptive2:
       return std::string("adaptive2");
+  }
+  return std::string("UNDEFINED");
+}
+
+static std::string toString(const GlobalRebalancingMode& state) {
+  switch (state) {
+    case GlobalRebalancingMode::off:
+      return std::string("off");
+    case GlobalRebalancingMode::on:
+      return std::string("on");
   }
   return std::string("UNDEFINED");
 }
@@ -329,13 +344,15 @@ struct Configuration {
       num_repetitions(1),
       alpha(4),
       beta(0.0),
-      stopping_rule(RefinementStoppingRule::simple) { }
+      stopping_rule(RefinementStoppingRule::simple),
+      global_rebalancing(GlobalRebalancingMode::off) { }
 
     int max_number_of_fruitless_moves;
     int num_repetitions;
     double alpha;
     double beta;
     RefinementStoppingRule stopping_rule;
+    GlobalRebalancingMode global_rebalancing;
   };
 
   struct HERFMParameters {
@@ -449,6 +466,8 @@ inline std::string toString(const Configuration& config) {
       == RefinementAlgorithm::kway_fm_maxgain) {
     oss << std::setw(35) << "  stopping rule: "
     << toString(config.fm_local_search.stopping_rule) << std::endl;
+    oss << std::setw(35) << "  use global rebalancing: "
+    << toString(config.fm_local_search.global_rebalancing) << std::endl;
     oss << std::setw(35) << "  max. # repetitions: "
     << config.fm_local_search.num_repetitions << std::endl;
     oss << std::setw(35) << "  max. # fruitless moves: "
