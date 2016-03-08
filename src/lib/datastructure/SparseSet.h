@@ -21,8 +21,9 @@ template <typename T = Mandatory>
 class SparseSet {
  public:
   explicit SparseSet(T universe_size) :
-    _dense(),
-    _sparse(std::make_unique<size_t[]>(universe_size)) { }
+    _dense(std::make_unique<T[]>(universe_size)),
+    _sparse(std::make_unique<size_t[]>(universe_size)),
+    _size(0) { }
 
   SparseSet(const SparseSet&) = delete;
   SparseSet& operator= (const SparseSet&) = delete;
@@ -32,55 +33,47 @@ class SparseSet {
 
   bool contains(const T value) const {
     const size_t index = _sparse[value];
-    return index < _dense.size() && _dense[index] == value;
+    return index < _size && _dense[index] == value;
   }
 
   void add(const T value) {
     const size_t index = _sparse[value];
-    const size_t n = _dense.size();
-    if (index >= n || _dense[index] != value) {
-      _sparse[value] = _dense.size();
-      _dense.push_back(value);
+    if (index >= _size || _dense[index] != value) {
+      _sparse[value] = _size;
+      _dense[_size++] = value;
     }
   }
 
   void remove(const T value) {
     const size_t index = _sparse[value];
-    if (index <= _dense.size() - 1 && _dense[index] == value) {
-      const T e = _dense.back();
+    if (index <= _size - 1 && _dense[index] == value) {
+      const T e = _dense[_size - 1];
       _dense[index] = e;
       _sparse[e] = index;
-      _dense.pop_back();
+      --_size;
     }
   }
 
   size_t size() const {
-    return _dense.size();
+    return _size;
   }
 
   auto begin() const {
-    return _dense.cbegin();
+    return _dense.get();
   }
 
   auto end() const {
-    return _dense.cend();
-  }
-
-  auto crbegin() const {
-    return _dense.crbegin();
-  }
-
-  auto crend() const {
-    return _dense.crend();
+    return _dense.get() + _size;
   }
 
   void clear() {
-    _dense.clear();
+    _size = 0;
   }
 
  private:
-  std::vector<T> _dense;
+  std::unique_ptr<T[]> _dense;
   std::unique_ptr<size_t[]> _sparse;
+  size_t _size;
 };
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_SPARSESET_H_
