@@ -1,0 +1,14 @@
+% hypergraph for which classical imbalance definition is problematic
+% source: [YaIm13]
+11 20
+1 2
+1 2
+3 4 5 6 7 8 9
+3 4 5 6 7 8 9
+10 11 12 13 14
+10 11 12 13 14
+15 16 17 18 19 20
+15 16 17 18 19 20
+9 17
+12 15
+14 18
