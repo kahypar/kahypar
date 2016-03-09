@@ -159,7 +159,12 @@ class EnhancedBucketQueue {
   }
 
   void decreaseKeyBy(const IDType id, const KeyType key_delta) noexcept {
-    updateKeyBy(id, key_delta);
+    size_t in_bucket_index;
+    KeyType old_key;
+    std::tie(in_bucket_index, old_key) = _repository[id];
+    const KeyType new_key = old_key - key_delta;
+    const KeyType new_address = new_key + _key_range;
+    updateKeyInternal(id, in_bucket_index, new_address, old_key, new_key);
   }
   void increaseKeyBy(const IDType id, const KeyType key_delta) noexcept {
     updateKeyBy(id, key_delta);

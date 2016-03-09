@@ -74,6 +74,38 @@ TYPED_TEST(APriorityQueue, BehavesAsExpectedOnRemoval) {
   ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(1));
 }
 
+TYPED_TEST(APriorityQueue, CanIncreaseKeysByDelta) {
+  this->prio_queue.push(0, 4);
+  this->prio_queue.increaseKeyBy(0, 4);
+  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(8));
+}
+
+TYPED_TEST(APriorityQueue, CanDecreaseKeysByDelta) {
+  this->prio_queue.push(0, 4);
+  this->prio_queue.decreaseKeyBy(0, 2);
+  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(2));
+}
+
+TYPED_TEST(APriorityQueue, CanUpdateKeysByDelta) {
+  this->prio_queue.push(0, 4);
+  this->prio_queue.updateKeyBy(0, 2);
+  this->prio_queue.updateKeyBy(0, -3);
+  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
+}
+
+TYPED_TEST(APriorityQueue, AllowsDecreaseKeyOperations) {
+  this->prio_queue.push(1, 9);
+  this->prio_queue.decreaseKey(1, 2);
+  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(2));
+}
+
+TYPED_TEST(APriorityQueue, AllowsIncreaseKeyOperations) {
+  this->prio_queue.push(1, 4);
+  this->prio_queue.push(2, 5);
+  this->prio_queue.increaseKey(1, 8);
+  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(8));
+}
+
 TYPED_TEST(APriorityQueue, BehavesAsExpectedOnDeletionOfCurrentMaximum) {
   this->prio_queue.push(2, -1);
   this->prio_queue.push(0, 4);
@@ -151,6 +183,18 @@ TYPED_TEST(APriorityQueue, IsEmptyAfterClearing) {
   ASSERT_THAT(this->prio_queue.contains(1), Eq(false));
   ASSERT_THAT(this->prio_queue.contains(2), Eq(false));
   ASSERT_THAT(this->prio_queue.empty(), Eq(true));
+}
+
+
+TYPED_TEST(APriorityQueue, HandlesManySameKeys) {
+  this->prio_queue.clear();
+  this->prio_queue.push(7, 0);
+  this->prio_queue.push(5, 0);
+  this->prio_queue.push(3, 0);
+  this->prio_queue.push(1, 0);
+  this->prio_queue.push(19, 0);
+
+  ASSERT_THAT(this->prio_queue.getKey(7), Eq(0));
 }
 
 TEST(ABucketQueue, ChangesPositionOfElementsOnZeroGainUpdate) {
