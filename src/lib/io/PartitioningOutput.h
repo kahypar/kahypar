@@ -36,20 +36,25 @@ inline double median(const std::vector<T>& vec) {
 // based on: http://mathalope.co.uk/2014/07/18/accelerated-c-solution-to-exercise-3-2/
 template <typename T>
 inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec) {
-  const size_t size_mod_4 = vec.size() % 4;
-  const size_t M = vec.size() / 2;
-  const size_t ML = M / 2;
-  const size_t MU = M + ML;
-  double first_quartile = 0.0;
-  double third_quartile = 0.0;
-  if (size_mod_4 == 0 || size_mod_4 == 1) {
-    first_quartile = (vec[ML] + vec[ML - 1]) / 2;
-    third_quartile = (vec[MU] + vec[MU - 1]) / 2;
-  } else if (size_mod_4 == 2 || size_mod_4 == 3) {
-    first_quartile = vec[ML];
-    third_quartile = vec[MU];
+  if (!vec.empty()) {
+    const size_t size_mod_4 = vec.size() % 4;
+    const size_t M = vec.size() / 2;
+    const size_t ML = M / 2;
+    const size_t MU = M + ML;
+    double first_quartile = 0.0;
+    double third_quartile = 0.0;
+    if (size_mod_4 == 0 || size_mod_4 == 1) {
+      first_quartile = (vec[ML] + vec[ML - 1]) / 2;
+      third_quartile = (vec[MU] + vec[MU - 1]) / 2;
+    } else if (size_mod_4 == 2 || size_mod_4 == 3) {
+      first_quartile = vec[ML];
+      third_quartile = vec[MU];
+    }
+    return std::make_pair(first_quartile, third_quartile);
+  } else{
+    return std::make_pair(0.0, 0.0);
   }
-  return std::make_pair(first_quartile, third_quartile);
+
 }
 
 template <typename T>
