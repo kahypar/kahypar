@@ -335,6 +335,8 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
 
   utils::gatherCoarseningStats(hypergraph, 0, k1, k2);
 
+  // hypergraph.printGraphState();
+
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, config);
   end = std::chrono::high_resolution_clock::now();

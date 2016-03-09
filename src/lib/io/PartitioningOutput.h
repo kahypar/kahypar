@@ -21,46 +21,117 @@ using defs::Hypergraph;
 using utils::Stats;
 
 namespace io {
+namespace {
+template <typename T>
+inline double median(const std::vector<T>& vec) {
+  double median = 0.0;
+  if ((vec.size() % 2) == 0) {
+    median = static_cast<double>((vec[vec.size() / 2] + vec[(vec.size() / 2) - 1])) / 2.0;
+  } else {
+    median = vec[vec.size() / 2];
+  }
+  return median;
+}
+
+// based on: http://mathalope.co.uk/2014/07/18/accelerated-c-solution-to-exercise-3-2/
+template <typename T>
+inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec) {
+  const size_t size_mod_4 = vec.size() % 4;
+  const size_t M = vec.size() / 2;
+  const size_t ML = M / 2;
+  const size_t MU = M + ML;
+  double first_quartile = 0.0;
+  double third_quartile = 0.0;
+  if (size_mod_4 == 0 || size_mod_4 == 1) {
+    first_quartile = (vec[ML] + vec[ML - 1]) / 2;
+    third_quartile = (vec[MU] + vec[MU - 1]) / 2;
+  } else if (size_mod_4 == 2 || size_mod_4 == 3) {
+    first_quartile = vec[ML];
+    third_quartile = vec[MU];
+  }
+  return std::make_pair(first_quartile, third_quartile);
+}
+
+template <typename T>
+void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
+                const std::pair<double, double>& quartiles) {
+  std::cout << name << ":   [min: " << std::setw(5) << std::left
+  << (vec.empty() ? 0 : vec.front())
+  << "Q1: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.first)
+  << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : median(vec))
+  << "Q3: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.second)
+  << "max: " << std::setw(10) << std::left << (vec.empty() ? 0 : vec.back())
+  << "avg: " << std::setw(10) << std::left << avg
+  << "sd: " << std::setw(10) << std::left << stdev
+  << "]" << std::endl;
+}
+}
+
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
   std::vector<HypernodeID> he_sizes;
-  he_sizes.reserve(hypergraph.numEdges());
-  for (auto he : hypergraph.edges()) {
-    he_sizes.push_back(hypergraph.edgeSize(he));
-  }
-  std::sort(he_sizes.begin(), he_sizes.end());
+  std::vector<HyperedgeWeight> he_weights;
   std::vector<HyperedgeID> hn_degrees;
+  std::vector<HypernodeWeight> hn_weights;
+  he_sizes.reserve(hypergraph.numEdges());
+  he_weights.reserve(hypergraph.numEdges());
   hn_degrees.reserve(hypergraph.numNodes());
+  hn_weights.reserve(hypergraph.numNodes());
+
+  const double avg_hn_degree = metrics::avgHypernodeDegree(hypergraph);
+  double stdev_hn_degree = 0.0;
   for (auto hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
+    hn_weights.push_back(hypergraph.nodeWeight(hn));
+    stdev_hn_degree += (hypergraph.nodeDegree(hn) - avg_hn_degree) *
+                       (hypergraph.nodeDegree(hn) - avg_hn_degree);
   }
-  std::sort(hn_degrees.begin(), hn_degrees.end());
+  stdev_hn_degree = std::sqrt(stdev_hn_degree / (hypergraph.numNodes() - 1));
 
-  double hn_degree_stdev = std::sqrt(metrics::hypernodeDegreeVariance(hypergraph));
-  double he_size_stdev = std::sqrt(metrics::hyperedgeSizeVariance(hypergraph));
-  double hn_weight_stdev = std::sqrt(metrics::hypernodeWeightVariance(hypergraph));
+
+  const double avg_he_size = metrics::avgHyperedgeDegree(hypergraph);
+  double stdev_he_size = 0.0;
+  for (auto he : hypergraph.edges()) {
+    he_sizes.push_back(hypergraph.edgeSize(he));
+    he_weights.push_back(hypergraph.edgeWeight(he));
+    stdev_he_size += (hypergraph.edgeSize(he) - avg_he_size) *
+                     (hypergraph.edgeSize(he) - avg_he_size);
+  }
+  stdev_he_size = std::sqrt(stdev_he_size / (hypergraph.numEdges() - 1));
+
+  std::sort(he_sizes.begin(), he_sizes.end());
+  std::sort(he_weights.begin(), he_weights.end());
+  std::sort(hn_degrees.begin(), hn_degrees.end());
+  std::sort(hn_weights.begin(), hn_weights.end());
+
+  const double avg_hn_weight = std::accumulate(hn_weights.begin(), hn_weights.end(), 0.0) /
+                               static_cast<double>(hn_weights.size());
+  const double avg_he_weight = std::accumulate(he_weights.begin(), he_weights.end(), 0.0) /
+                               static_cast<double>(he_weights.size());
+
+  double stdev_hn_weight = 0.0;
+  for (const HypernodeWeight hn_weight : hn_weights) {
+    stdev_hn_weight += (hn_weight - avg_hn_weight) * (hn_weight - avg_hn_weight);
+  }
+  stdev_hn_weight = std::sqrt(stdev_hn_weight / (hypergraph.numNodes() - 1));
+
+  double stdev_he_weight = 0.0;
+  for (const HyperedgeWeight he_weight : he_weights) {
+    stdev_he_weight += (he_weight - avg_he_weight) * (he_weight - avg_he_weight);
+  }
+  stdev_he_weight = std::sqrt(stdev_he_weight / (hypergraph.numNodes() - 1));
 
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
-  std::cout << "# HEs: " << hypergraph.numEdges()
-  << "\t HE size:   [min: " << std::setw(5) << std::left
-  << (he_sizes.empty() ? 0 : he_sizes[0])
-  << "avg: " << std::setw(10) << std::left << metrics::avgHyperedgeDegree(hypergraph)
-  << "max: " << std::setw(10) << std::left
-  << (he_sizes.empty() ? 0 : he_sizes[he_sizes.size() - 1])
-  << "sd: " << std::setw(10) << std::left << he_size_stdev
-  << "]" << std::endl;
-  std::cout << "# HNs: " << hypergraph.numNodes()
-  << "\t HN degree: [min: " << std::setw(5) << std::left
-  << (hn_degrees.empty() ? 0 : hn_degrees[0])
-  << "avg: " << std::setw(10) << std::left << metrics::avgHypernodeDegree(hypergraph)
-  << "max: " << std::setw(10) << std::left
-  << (hn_degrees.empty() ? 0 : hn_degrees[hn_degrees.size() - 1])
-  << "sd: " << std::setw(10) << std::left << hn_degree_stdev
-  << "]" << std::endl;
-  std::cout << "-->" << "HN weight: avg: " << std::setw(10) << std::left
-  << metrics::avgHypernodeWeight(hypergraph)
-  << "sd: " << std::setw(10) << std::left << hn_weight_stdev << std::endl;
+  std::cout << "# HEs: " << hypergraph.numEdges() << std::endl;
+  printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size, firstAndThirdQuartile(he_sizes));
+  printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
+             firstAndThirdQuartile(he_weights));
+  std::cout << "# HNs: " << hypergraph.numNodes() << std::endl;
+  printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
+             firstAndThirdQuartile(hn_degrees));
+  printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
+             firstAndThirdQuartile(hn_weights));
 }
 
 template <class Configuration>
