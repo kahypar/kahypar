@@ -13,6 +13,7 @@
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/PairingHeapWrapper.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "tools/RandomFunctions.h"
@@ -20,6 +21,7 @@
 using defs::PartitionID;
 using datastructure::NoDataBinaryMaxHeap;
 using datastructure::EnhancedBucketQueue;
+using datastructure::PairingHeapWrapper;
 using external::ArrayStorage;
 
 namespace datastructure {
