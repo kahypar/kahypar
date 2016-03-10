@@ -11,6 +11,7 @@
 #ifndef SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_
 #define SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -19,22 +20,26 @@
 
 namespace datastructure {
 template <typename Key = Mandatory,
-          typename Value = Mandatory >
+          typename Value = Mandatory>
 class SparseMap {
  private:
   struct MapElement {
-    const Key key;
+    Key key;
     Value value;
 
     MapElement(Key k, Value val) :
-        key(k),
-        value(val) {}
+      key(k),
+      value(val) { }
+
+    MapElement(MapElement&&) = default;
+    MapElement& operator= (MapElement&&) = default;
   };
 
  public:
   explicit SparseMap(Key universe_size) :
     _dense(),
-    _sparse(std::make_unique<size_t[]>(universe_size)) { }
+    _sparse(std::make_unique<size_t[]>(universe_size)),
+    _size(0) { }
 
   SparseMap(const SparseMap&) = delete;
   SparseMap& operator= (const SparseMap&) = delete;
@@ -42,43 +47,53 @@ class SparseMap {
   SparseMap(SparseMap&&) = default;
   SparseMap& operator= (SparseMap&&) = default;
 
+  void swap(SparseMap& other) noexcept {
+    using std::swap;
+    swap(_dense, other._dense);
+    swap(_sparse, other._sparse);
+    swap(_size, other._size);
+  }
+
   bool contains(const Key key) const {
     const size_t index = _sparse[key];
-    return index < _dense.size() && _dense[index].key == key;
+    return index < _size && _dense[index].key == key;
   }
 
   Value& operator[] (const Key key) {
     const size_t index = _sparse[key];
-    const size_t n = _dense.size();
-    if (index >= n || _dense[index].key != key) {
-      _sparse[key] = _dense.size();
-      _dense.emplace_back(key, 0);
+    if (index >= _size || _dense[index].key != key) {
+      _sparse[key] = _size++;
+      _dense.emplace_back(key, Value());
       return _dense.back().value;
     }
     return _dense[index].value;
   }
 
+  const Value & get(const Key key) const {
+    ASSERT(contains(key), V(key));
+    return _dense[_sparse[key]].value;
+  }
+
   void add(const Key key, const Value value) {
     const size_t index = _sparse[key];
-    const size_t n = _dense.size();
-    if (index >= n || _dense[index].key != key) {
-      _sparse[key] = _dense.size();
-      _dense.emplace_back(key,value);
+    if (index >= _size || _dense[index].key != key) {
+      _sparse[key] = _size++;
+      _dense.emplace_back(key, value);
     }
   }
 
   void remove(const Key key) {
     const size_t index = _sparse[key];
-    if (index <= _dense.size() - 1 && _dense[index].key == key) {
-      const MapElement e = _dense.back();
-      _dense[index] = e;
-      _sparse[e] = index;
+    if (index <= _size - 1 && _dense[index].key == key) {
+      std::swap(_dense[index], _dense.back());
+      _sparse[_dense[index].key] = index;
       _dense.pop_back();
+      --_size;
     }
   }
 
   size_t size() const {
-    return _dense.size();
+    return _size;
   }
 
   auto begin() const {
@@ -99,11 +114,19 @@ class SparseMap {
 
   void clear() {
     _dense.clear();
+    _size = 0;
   }
 
  private:
   std::vector<MapElement> _dense;
   std::unique_ptr<size_t[]> _sparse;
+  size_t _size;
 };
+
+template <typename Key, typename Value>
+void swap(SparseMap<Key, Value>& a,
+          SparseMap<Key, Value>& b) noexcept {
+  a.swap(b);
+}
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_
