@@ -959,15 +959,12 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(gain_delta != 0, V(gain_delta));
     ASSERT(!_hg.marked(pin),
            " Trying to update marked HN " << pin << " in PQ " << target_part);
+    ASSERT(_gain_cache[pin] != kNotCached, "Error" << V(pin));
     DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
         << " from gain " << _pq.key(pin, target_part) << " to "
         << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
 
     _pq.updateKeyBy(pin, target_part, gain_delta);
-    if (global_rebalancing && _rebalance_pqs[target_part].contains(pin)) {
-      _rebalance_pqs[target_part].updateKeyBy(pin, gain_delta);
-    }
-    ASSERT(_gain_cache[pin] != kNotCached, "Error" << V(pin));
     _rollback_delta_cache.update(pin, -gain_delta);
     _gain_cache[pin] += gain_delta;
   }
