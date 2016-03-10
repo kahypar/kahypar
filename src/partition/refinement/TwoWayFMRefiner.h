@@ -568,11 +568,8 @@ class TwoWayFMRefiner final : public IRefiner,
 
     // TODO(schlag): implement locking of HEs!
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-      if (_locked_hes.get(he) != kLocked) {
-        deltaUpdate<true>(from_part, to_part, he);
-      } else {
-        deltaUpdate<true, false>(from_part, to_part, he);
-      }
+      ASSERT(_locked_hes.get(he) != kLocked, V(he));
+      deltaUpdate<true>(from_part, to_part, he);
     }
 
     ASSERT(num_pq_elements_before_update == _pq.size(),
