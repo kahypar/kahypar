@@ -738,7 +738,10 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void updateGainCache(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
     _rollback_delta_cache.update(pin, -gain_delta);
-    _gain_cache[pin] += (_gain_cache[pin] != kNotCached ? gain_delta : 0);
+    // Only _gain_cache[moved_hn] = kNotCached, all other entries are cached.
+    // However we set _gain_cache[moved_hn] to the correct value after all neighbors
+    // are updated.
+    _gain_cache[pin] += gain_delta;
 
     if (global_rebalancing && !_disabled_rebalance_hns.contains(pin)) {
       ASSERT(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin), V(pin));
