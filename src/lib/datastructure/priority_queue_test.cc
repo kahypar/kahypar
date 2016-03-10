@@ -6,6 +6,7 @@
 
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/heaps/PairingHeapWrapper.h"
 #include "lib/definitions.h"
 
 using::testing::Eq;
@@ -15,6 +16,7 @@ using::testing::Test;
 namespace datastructure {
 using MaxHeapQueue = NoDataBinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<defs::HypernodeID, defs::HyperedgeWeight>;
+using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
 
 template <typename T>
 class APriorityQueue : public Test {
@@ -26,7 +28,7 @@ class APriorityQueue : public Test {
   T prio_queue;
 };
 
-typedef::testing::Types<BucketQueue, MaxHeapQueue> Implementations;
+typedef::testing::Types<BucketQueue, MaxHeapQueue, PairingHeapQueue> Implementations;
 
 TYPED_TEST_CASE(APriorityQueue, Implementations);
 
@@ -165,11 +167,11 @@ TYPED_TEST(APriorityQueue, HandleDuplicateKeys) {
   ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(4));
 
   this->prio_queue.deleteMax();
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(3));
+  ASSERT_TRUE(this->prio_queue.getMax() == 3 || this->prio_queue.getMax() == 2);
   ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
 
   this->prio_queue.deleteMax();
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(2));
+  ASSERT_TRUE(this->prio_queue.getMax() == 2 || this->prio_queue.getMax() == 3);
   ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
 }
 
@@ -210,4 +212,27 @@ TEST(ABucketQueue, ChangesPositionOfElementsOnZeroGainUpdate) {
   ASSERT_THAT(bucket_pq.getMax(), Eq(0));
   ASSERT_THAT(bucket_pq.getMaxKey(), Eq(10));
 }
+
+TYPED_TEST(APriorityQueue, IsSwappable) {
+  // special type TypeParam is used to get current
+  // implementation type
+  std::vector<TypeParam> _pqs;
+
+  _pqs.emplace_back(360, 200);
+  _pqs.emplace_back(360, 200);
+
+  _pqs[0].push(257,0);
+  _pqs[0].push(310,0);
+  _pqs[0].push(197,0);
+  _pqs[0].push(243,0);
+
+  ASSERT_THAT(_pqs[0].getKey(257), Eq(0));
+
+  using std::swap;
+  swap(_pqs[0],_pqs[1]);
+
+  ASSERT_THAT(_pqs[1].getKey(257), Eq(0));
+
+}
+
 }  // namespace datastructure
