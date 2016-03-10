@@ -306,7 +306,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
           << " to " << to_part << " (gain= " << max_gain
-          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")");
+          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")" << V(used_rebalance_pqs));
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
@@ -610,13 +610,12 @@ class TwoWayFMRefiner final : public IRefiner,
               }
             }
             // If the pin is either marked as moved or active, it should not be contained in the
-            // rebalacing PQ: (active <--> !contained) OR (marked <--> !contained).
+            // rebalacing PQ:  (active OR marked) <---> !contained
             // Here no check for global_rebalancing is necessary, because this method is only called
             // when global rebalancing is active!
-            ASSERT(((!_hg.active(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) &&
-                   (_hg.active(pin) || _rebalance_pqs[1 - _hg.partID(pin)].contains(pin))) ||
-                   ((!_hg.marked(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) &&
-                    (_hg.marked(pin) || _rebalance_pqs[1 - _hg.partID(pin)].contains(pin))), V(pin));
+            ASSERT(((_hg.active(pin) && !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) ||
+                    (!_hg.active(pin) && !_hg.marked(pin) && _rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) ||
+                    (_hg.marked(pin) && !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin))), V(pin));
             // Gain calculation needs to be consistent in cache and rebalance pq
             ASSERT((_gain_cache[pin] == kNotCached) || _gain_cache[pin] == computeGain(pin),
                    V(pin) << V(_gain_cache[pin]) << V(computeGain(pin)));
@@ -714,12 +713,11 @@ class TwoWayFMRefiner final : public IRefiner,
               }
             }
             // If the pin is either marked as moved or active, it should not be contained in the
-            // rebalacing PQ: (active <--> !contained) OR (marked <--> !contained)
+            // rebalacing PQ: (active OR marked) <---> !contained
             ASSERT(!global_rebalancing ||
-                   ((!_hg.active(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) &&
-                    (_hg.active(pin) || _rebalance_pqs[1 - _hg.partID(pin)].contains(pin))) ||
-                    ((!_hg.marked(pin) || !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) &&
-                    (_hg.marked(pin) || _rebalance_pqs[1 - _hg.partID(pin)].contains(pin))), V(pin));
+                   ((_hg.active(pin) && !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) ||
+                    (!_hg.active(pin) && !_hg.marked(pin) && _rebalance_pqs[1 - _hg.partID(pin)].contains(pin)) ||
+                    (_hg.marked(pin) && !_rebalance_pqs[1 - _hg.partID(pin)].contains(pin))), V(pin));
             // Gain calculation needs to be consistent in cache and rebalance pq
             ASSERT((_gain_cache[pin] == kNotCached) || _gain_cache[pin] == computeGain(pin),
                    V(pin) << V(_gain_cache[pin]) << V(computeGain(pin)));
