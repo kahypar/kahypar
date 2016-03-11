@@ -221,18 +221,50 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
   _pqs.emplace_back(360, 200);
   _pqs.emplace_back(360, 200);
 
-  _pqs[0].push(257,0);
-  _pqs[0].push(310,0);
-  _pqs[0].push(197,0);
-  _pqs[0].push(243,0);
+  _pqs[0].push(257, 0);
+  _pqs[0].push(310, 0);
+  _pqs[0].push(197, 0);
+  _pqs[0].push(243, 0);
 
   ASSERT_THAT(_pqs[0].getKey(257), Eq(0));
 
   using std::swap;
-  swap(_pqs[0],_pqs[1]);
+  swap(_pqs[0], _pqs[1]);
 
   ASSERT_THAT(_pqs[1].getKey(257), Eq(0));
-
 }
 
+TEST(TwoPairingHeaps, CanBeMerged) {
+  PairingHeapQueue first_pq(10, 100);
+  PairingHeapQueue second_pq(10, 100);
+
+  first_pq.push(4, 88);
+  first_pq.push(1, 12);
+  first_pq.push(3, 2);
+
+  second_pq.push(5, 99);
+  second_pq.push(9, 6);
+
+  first_pq.merge(second_pq);
+
+  // check that mapping remains valid
+  ASSERT_TRUE(first_pq.contains(4));
+  ASSERT_TRUE(first_pq.contains(1));
+  ASSERT_TRUE(first_pq.contains(3));
+  ASSERT_TRUE(first_pq.contains(5));
+  ASSERT_TRUE(first_pq.contains(9));
+
+  // check that second pq is empty
+  ASSERT_TRUE(second_pq.empty());
+  ASSERT_FALSE(second_pq.contains(5));
+  ASSERT_FALSE(second_pq.contains(9));
+
+  // check that first pq contains elements of second pq
+  ASSERT_THAT(first_pq.getKey(5), Eq(99));
+  ASSERT_THAT(first_pq.getKey(9), Eq(6));
+
+  // verify that max is correct
+  ASSERT_THAT(first_pq.getMax(), Eq(5));
+  ASSERT_THAT(first_pq.getMaxKey(), Eq(99));
+}
 }  // namespace datastructure
