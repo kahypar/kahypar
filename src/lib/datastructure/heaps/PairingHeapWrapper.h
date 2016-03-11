@@ -89,10 +89,12 @@ class PairingHeapWrapper {
   }
 
   inline const id_slot & getMax() const noexcept {
+    ASSERT(contains(_heap.top().first), V(_heap.top().first));
     return _heap.top().first;
   }
 
   inline const key_slot & getMaxKey() const noexcept {
+    ASSERT(contains(_heap.top().first), V(_heap.top().first));
     return _heap.top().second;
   }
 
@@ -149,11 +151,16 @@ class PairingHeapWrapper {
 
   inline void merge(PairingHeapWrapper& other) {
     _heap.join(other._heap);
+    ASSERT(other._heap.empty(), "Joined heap not empty");
     for (const auto& new_element : other._updates) {
-      _map[new_element] = other._map[new_element];
-      _updates.push_back(new_element);
+      if (other._map[new_element] != nullptr) {
+        ASSERT(!contains(new_element), V(new_element));
+        _map[new_element] = other._map[new_element];
+        other._map[new_element] = nullptr;
+        _updates.push_back(new_element);
+      }
     }
-    other.clear();
+    other._updates.clear();
   }
 
  private:
