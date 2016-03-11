@@ -151,10 +151,9 @@ class PairingHeapWrapper {
     _heap.join(other._heap);
     for (const auto& new_element : other._updates) {
       _map[new_element] = other._map[new_element];
-      other._map[new_element] = nullptr;
       _updates.push_back(new_element);
     }
-    other._updates.clear();
+    other.clear();
   }
 
  private:
