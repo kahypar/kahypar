@@ -374,17 +374,20 @@ class TwoWayFMRefiner final : public IRefiner,
 
     if (global_rebalancing) {
       restoreRebalancePQ();
-      ASSERT([&]() {
-          for (const HypernodeID hn : _hg.nodes()) {
-            ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
-          }
-          return true;
-        } (), "Rebalance PQ inconsistent");
     }
 
     rollback(num_moves - 1, min_cut_index);
     _rollback_delta_cache.resetUsedEntries<global_rebalancing>(_gain_cache, _rebalance_pqs, _hg);
 
+    if (global_rebalancing) {
+      ASSERT([&]() {
+          for (const HypernodeID hn : _hg.nodes()) {
+            ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
+            ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].getKey(hn) == _gain_cache[hn], V(hn));
+          }
+          return true;
+        } (), "Rebalance PQ inconsistent");
+    }
 
     ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
     ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
@@ -1003,7 +1006,7 @@ class TwoWayFMRefiner final : public IRefiner,
   KWayRefinementPQ _pq;
   std::array<RebalancePQ, 2> _rebalance_pqs;
   FastResetBitVector<> _he_fully_active;
-  FastResetBitVector<> _hns_in_activation_vector; // faster than using a SparseSet in this case
+  FastResetBitVector<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
   std::vector<HypernodeID> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
