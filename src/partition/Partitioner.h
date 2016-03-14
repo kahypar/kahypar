@@ -216,6 +216,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   config.fm_local_search.max_number_of_fruitless_moves = 50;
   config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
   config.fm_local_search.alpha = 8;
+  // Since initial partitioning starts local search with all HNs, global
+  // rebalancing doesn't do anything is this case and just induces additional
+  // overhead.
+  config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
   config.her_fm.num_repetitions = -1;
   config.her_fm.max_number_of_fruitless_moves = 10;
   config.lp_refiner.max_number_iterations = 3;
