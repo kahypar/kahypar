@@ -367,7 +367,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.refinement_algorithm =
           RefinementAlgorithm::label_propagation;
       } else {
-        std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+        std::cout << "Illegal local search option! Exiting..." << std::endl;
         exit(0);
       }
     }
