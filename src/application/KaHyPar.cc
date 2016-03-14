@@ -54,10 +54,12 @@ using partition::RandomWinsHeuristicCoarsener;
 using partition::TwoWayFMFactoryDispatcher;
 using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
+using partition::KWayKMinusOneFactoryDispatcher;
 using partition::MaxGainNodeKWayFMFactoryDispatcher;
 using partition::TwoWayFMFactoryExecutor;
 using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
+using partition::KWayKMinusOneFactoryExecutor;
 using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
 using partition::DoNothingRefiner;
@@ -352,6 +354,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       } else if (vm["rtype"].as<std::string>() == "kway_fm") {
         config.partition.refinement_algorithm =
           RefinementAlgorithm::kway_fm;
+      } else if (vm["rtype"].as<std::string>() == "kway_fm_km1") {
+        config.partition.refinement_algorithm =
+          RefinementAlgorithm::kway_fm_km1;
       } else if (vm["rtype"].as<std::string>() == "kway_fm_maxgain") {
         config.partition.refinement_algorithm =
           RefinementAlgorithm::kway_fm_maxgain;
@@ -470,6 +475,16 @@ static Registrar<RefinerFactory> reg_kway_fm_local_search(
       config.fm_local_search.stopping_rule),
     NullPolicy(),
     KWayFMFactoryExecutor(), hypergraph, config);
+});
+
+static Registrar<RefinerFactory> reg_kway_km1_local_search(
+  RefinementAlgorithm::kway_fm_km1,
+  [](Hypergraph& hypergraph, const Configuration& config) {
+  return KWayKMinusOneFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.fm_local_search.stopping_rule),
+    NullPolicy(),
+    KWayKMinusOneFactoryExecutor(), hypergraph, config);
 });
 
 static Registrar<RefinerFactory> reg_lp_local_search(

@@ -49,6 +49,7 @@ enum class RefinementAlgorithm : std::uint8_t {
   twoway_fm,
   kway_fm,
   kway_fm_maxgain,
+  kway_fm_km1,
   hyperedge,
   label_propagation,
   do_nothing
@@ -152,6 +153,8 @@ static std::string toString(const RefinementAlgorithm& algo) {
       return std::string("kway_fm");
     case RefinementAlgorithm::kway_fm_maxgain:
       return std::string("kway_fm_maxgain");
+    case RefinementAlgorithm::kway_fm_km1:
+      return std::string("kway_fm_km1");
     case RefinementAlgorithm::hyperedge:
       return std::string("hyperedge");
     case RefinementAlgorithm::label_propagation:

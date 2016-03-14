@@ -22,6 +22,7 @@
 #include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
+#include "partition/refinement/KWayKMinusOneRefiner.h"
 #include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
@@ -76,6 +77,15 @@ using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
                                                           nGPRandomWalkStopsSearch>,
                                                  Typelist<NullPolicy>,
                                                  IRefiner*>;
+
+using KWayKMinusOneFactoryExecutor = KFMFactoryExecutor<KWayKMinusOneRefiner>;
+using KWayKMinusOneFactoryDispatcher = StaticDispatcher<KWayKMinusOneFactoryExecutor,
+                                                        Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                                 RandomWalkModelStopsSearch,
+                                                                 nGPRandomWalkStopsSearch>,
+                                                        Typelist<NullPolicy>,
+                                                        IRefiner*>;
+
 using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
 using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
                                                             Typelist<NumberOfFruitlessMovesStopsSearch,
