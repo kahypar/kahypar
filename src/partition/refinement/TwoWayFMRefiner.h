@@ -589,7 +589,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
-            const PartitionID other_part = _hg.partID(pin) ^ 1;
+            const PartitionID other_part = 1 - _hg.partID(pin);
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
               ASSERT(!_pq.contains(pin, other_part), V(pin));
@@ -693,7 +693,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID pin : _hg.pins(he)) {
-            const PartitionID other_part = _hg.partID(pin) ^ 1;
+            const PartitionID other_part = 1 - _hg.partID(pin);
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
               ASSERT(!_pq.contains(pin, other_part), V(pin));
@@ -759,7 +759,7 @@ class TwoWayFMRefiner final : public IRefiner,
     if (!_hg.marked(pin)) {
       if (!_hg.active(pin)) {
         if (!_hns_in_activation_vector[pin]) {
-          ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+          ASSERT(!_pq.contains(pin, (1 - _hg.partID(pin))), V(pin) << V((1 - _hg.partID(pin))));
           ++num_active_pins;  // since we do lazy activation!
           _hns_to_activate.push_back(pin);
           _hns_in_activation_vector.setBit(pin, true);
@@ -830,7 +830,7 @@ class TwoWayFMRefiner final : public IRefiner,
           if (!_hg.marked(pin)) {
             if (!_hg.active(pin)) {
               if (!_hns_in_activation_vector[pin]) {
-                ASSERT(!_pq.contains(pin, (_hg.partID(pin) ^ 1)), V(pin) << V((_hg.partID(pin) ^ 1)));
+                ASSERT(!_pq.contains(pin, (1 - _hg.partID(pin))), V(pin) << V((1 - _hg.partID(pin))));
                 ++num_active_pins;  // since we do lazy activation!
                 _hns_to_activate.push_back(pin);
                 _hns_in_activation_vector.setBit(pin, true);
@@ -953,7 +953,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
-    const PartitionID target_part = _hg.partID(pin) ^ 1;
+    const PartitionID target_part = 1 - _hg.partID(pin);
     ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
     ASSERT(!global_rebalancing || !_rebalance_pqs[_hg.partID(pin)].contains(pin), V(pin));
