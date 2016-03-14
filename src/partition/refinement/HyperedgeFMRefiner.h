@@ -133,15 +133,15 @@ class HyperedgeFMRefiner final : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
+                  Metrics& best_metrics) noexcept override final {
     ONLYDEBUG(max_allowed_part_weights);
     ASSERT(_is_initialized, "initialize() has to be called before refine");
-    ASSERT(best_cut == metrics::hyperedgeCut(_hg),
-           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
+    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
+           "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
-    ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
+    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(calculateImbalance())),
-           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
+           "initial best_imbalance " << best_metrics.imbalance << "does not equal imbalance induced"
            << " by hypergraph " << calculateImbalance());
 
     _pq[0]->clear();
@@ -156,20 +156,20 @@ class HyperedgeFMRefiner final : public IRefiner,
     //    << _pq[1]->size() << "----------------------");
 
 #ifndef NDEBUG
-    HyperedgeWeight initial_cut = best_cut;
+    HyperedgeWeight initial_cut = best_metrics.cut;
 #endif
 
-    HyperedgeWeight cut = best_cut;
+    HyperedgeWeight cut = best_metrics.cut;
     int min_cut_index = -1;
-    double imbalance = best_imbalance;
+    double imbalance = best_metrics.imbalance;
 
     int step = 0;
     int num_moves_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
     const double beta = log(_hg.numNodes());
-    while (!queuesAreEmpty() && (best_cut == cut ||
+    while (!queuesAreEmpty() && (best_metrics.cut == cut ||
                                  !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
-                                                                    _config, beta, best_cut, cut))) {
+                                                                    _config, beta, best_metrics.cut, cut))) {
       ASSERT(cut == metrics::hyperedgeCut(_hg),
              "Precondition failed: calculated cut (" << cut << ") and cut induced by hypergraph ("
              << metrics::hyperedgeCut(_hg) << ") do not match");
@@ -216,21 +216,21 @@ class HyperedgeFMRefiner final : public IRefiner,
       updateNeighbours(max_gain_hyperedge);
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      bool improved_cut_within_balance = (cut < best_cut) &&
+      bool improved_cut_within_balance = (cut < best_metrics.cut) &&
                                          (imbalance < _config.partition.epsilon);
-      bool improved_balance_equal_cut = (imbalance < best_imbalance) && (cut <= best_cut);
+      bool improved_balance_equal_cut = (imbalance < best_metrics.imbalance) && (cut <= best_metrics.cut);
 
       ++num_moves_since_last_improvement;
       if (improved_balance_equal_cut || improved_cut_within_balance) {
-        ASSERT(cut <= best_cut, "Accepted a HE move which decreased cut");
-        if (cut < best_cut) {
+        ASSERT(cut <= best_metrics.cut, "Accepted a HE move which decreased cut");
+        if (cut < best_metrics.cut) {
           DBG(dbg_refinement_he_fm_improvements,
-              "HER-FM improved cut from " << best_cut << " to " << cut);
+              "HER-FM improved cut from " << best_metrics.cut << " to " << cut);
         }
         DBG(dbg_refinement_he_fm_improvements,
-            "HER-FM improved imbalance from " << best_imbalance << " to " << imbalance);
-        best_imbalance = imbalance;
-        best_cut = cut;
+            "HER-FM improved imbalance from " << best_metrics.imbalance << " to " << imbalance);
+        best_metrics.imbalance = imbalance;
+        best_metrics.cut = cut;
         min_cut_index = step;
         _stopping_policy.resetStatistics();
         num_moves_since_last_improvement = 0;
@@ -240,9 +240,9 @@ class HyperedgeFMRefiner final : public IRefiner,
 
     rollback(step - 1, min_cut_index, _hg);
 
-    ASSERT(best_cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
-    ASSERT(best_cut <= initial_cut, "Cut quality decreased from "
-           << initial_cut << " to" << best_cut);
+    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), "Incorrect rollback operation");
+    ASSERT(best_metrics.cut <= initial_cut, "Cut quality decreased from "
+           << initial_cut << " to" << best_metrics.cut);
     if (min_cut_index != -1) {
       return true;
     }

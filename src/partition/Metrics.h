@@ -25,6 +25,12 @@ using partition::Configuration;
 namespace metrics {
 static const bool dbg_metrics_hyperedge_cut = false;
 
+struct Metrics {
+  HyperedgeWeight cut;
+  HyperedgeWeight km1;
+  double imbalance;
+};
+
 static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID he : hg.edges()) {

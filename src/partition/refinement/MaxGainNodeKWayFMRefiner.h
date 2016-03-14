@@ -131,11 +131,11 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut, double& best_imbalance) noexcept override final {
-    ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
-    ASSERT(FloatingPoint<double>(best_imbalance).AlmostEquals(
+                  Metrics& best_metrics) noexcept override final {
+    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
+    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
-           "initial best_imbalance " << best_imbalance << "does not equal imbalance induced"
+           "initial best_metrics.imbalance " << best_metrics.imbalance << "does not equal imbalance induced"
            << " by hypergraph " << metrics::imbalance(_hg, _config));
 
     _pq.clear();
@@ -146,10 +146,10 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
       activate(hn, max_allowed_part_weights[0]);
     }
 
-    const HyperedgeWeight initial_cut = best_cut;
-    const double initial_imbalance = best_imbalance;
-    HyperedgeWeight current_cut = best_cut;
-    double current_imbalance = best_imbalance;
+    const HyperedgeWeight initial_cut = best_metrics.cut;
+    const double initial_imbalance = best_metrics.imbalance;
+    HyperedgeWeight current_cut = best_metrics.cut;
+    double current_imbalance = best_metrics.imbalance;
 
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
@@ -161,7 +161,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
     const double beta = log(_hg.numNodes());
     while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
-                                                              _config, beta, best_cut, current_cut)) {
+                                                              _config, beta, best_metrics.cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -226,19 +226,19 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
-                                               (current_cut < best_cut);
-      const bool improved_balance_less_equal_cut = (current_imbalance < best_imbalance) &&
-                                                   (current_cut <= best_cut);
+                                               (current_cut < best_metrics.cut);
+      const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
+                                                   (current_cut <= best_metrics.cut);
 
       ++num_moves_since_last_improvement;
       if (improved_cut_within_balance || improved_balance_less_equal_cut) {
         DBG(dbg_refinement_kway_fm_improvements_balance && max_gain == 0,
             "MaxGainNodeKWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
-        DBG(dbg_refinement_kway_fm_improvements_cut && current_cut < best_cut,
-            "MaxGainNodeKWayFM improved cut from " << best_cut << " to " << current_cut);
-        best_cut = current_cut;
-        best_imbalance = current_imbalance;
+        DBG(dbg_refinement_kway_fm_improvements_cut && current_cut < best_metrics.cut,
+            "MaxGainNodeKWayFM improved cut from " << best_metrics.cut << " to " << current_cut);
+        best_metrics.cut = current_cut;
+        best_metrics.imbalance = current_imbalance;
         _stopping_policy.resetStatistics();
         min_cut_index = num_moves;
         num_moves_since_last_improvement = 0;
@@ -251,13 +251,13 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     DBG(dbg_refinement_kway_fm_stopping_crit, "MaxGainKWayFM performed " << num_moves
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
-                                              best_cut, current_cut)
+                                              best_metrics.cut, current_cut)
             == true ? "policy " : "empty queue ") << V(num_moves_since_last_improvement));
 
     rollback(num_moves - 1, min_cut_index);
-    ASSERT(best_cut == metrics::hyperedgeCut(_hg), V(best_cut) << V(metrics::hyperedgeCut(_hg)));
-    ASSERT(best_cut <= initial_cut, V(best_cut) << V(initial_cut));
-    return FMImprovementPolicy::improvementFound(best_cut, initial_cut, best_imbalance,
+    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
+    ASSERT(best_metrics.cut <= initial_cut, V(best_metrics.cut) << V(initial_cut));
+    return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut, best_metrics.imbalance,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 

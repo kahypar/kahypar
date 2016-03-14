@@ -86,14 +86,15 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   }
 
   bool doUncoarsen(IRefiner& refiner) noexcept {
-    double current_imbalance = metrics::imbalance(_hg, _config);
-    HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
-    const HyperedgeWeight initial_cut = current_cut;
+    Metrics current_metrics = { metrics::hyperedgeCut(_hg),
+                                metrics::kMinus1(_hg),
+                                metrics::imbalance(_hg, _config) };
+    const HyperedgeWeight initial_cut = current_metrics.cut;
 
     Stats::instance().add(_config, "initialCut", initial_cut);
-    Stats::instance().add(_config, "initialImbalance", current_imbalance);
-    LOG("initial cut =" << current_cut);
-    LOG("initial imbalance=" << current_imbalance);
+    Stats::instance().add(_config, "initialImbalance", current_metrics.imbalance);
+    LOG("initial cut =" << initial_cut);
+    LOG("initial imbalance=" << current_metrics.imbalance);
     LOG("target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
         << " w(1)=" << _config.partition.max_part_weights[1]);
     LOG("initial weights (RB): w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
@@ -119,10 +120,10 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
       if (refiner.supportsDeltaGain()) {
         const std::pair<HyperedgeWeight, HyperedgeWeight> changes = _hg.uncontract<true>(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, current_imbalance, current_cut, changes);
+        performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       } else {
         _hg.uncontract<false>(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, current_imbalance, current_cut, std::make_pair(0, 0));
+        performLocalSearch(refiner, refinement_nodes, current_metrics, std::make_pair(0, 0));
       }
 
       _history.pop_back();
@@ -134,12 +135,12 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
     //        << " > " << _config.partition.epsilon);
-    Stats::instance().add(_config, "finalCut", current_cut);
-    Stats::instance().add(_config, "finaleImbalance", current_imbalance);
-    LOG("final cut: " << current_cut);
-    LOG("final imbalance: " << current_imbalance);
+    Stats::instance().add(_config, "finalCut", current_metrics.cut);
+    Stats::instance().add(_config, "finaleImbalance", current_metrics.imbalance);
+    LOG("final cut: " << current_metrics.cut);
+    LOG("final imbalance: " << current_metrics.imbalance);
     LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
-    return current_cut < initial_cut;
+    return current_metrics.cut < initial_cut;
   }
 
   template <typename Map>

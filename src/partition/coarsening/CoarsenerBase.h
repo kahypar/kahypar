@@ -115,33 +115,31 @@ class CoarsenerBase {
   }
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
-                          double& current_imbalance,
-                          HyperedgeWeight& current_cut,
+                          Metrics& current_metrics,
                           const std::pair<HyperedgeWeight, HyperedgeWeight>& changes) noexcept {
-    HyperedgeWeight old_cut = current_cut;
+    HyperedgeWeight old_cut = current_metrics.cut;
     int iteration = 0;
     bool improvement_found = false;
 
     std::pair<HyperedgeWeight, HyperedgeWeight> current_changes = changes;
     do {
-      old_cut = current_cut;
+      old_cut = current_metrics.cut;
       improvement_found = refiner.refine(refinement_nodes,
                                          { _config.partition.max_part_weights[0]
                                            + _max_hn_weights.back().max_weight,
                                            _config.partition.max_part_weights[1]
                                            + _max_hn_weights.back().max_weight },
                                          current_changes,
-                                         current_cut,
-                                         current_imbalance);
+                                         current_metrics);
 
       // uncontraction changes should only be applied once!
       current_changes.first = 0;
       current_changes.second = 0;
 
-      ASSERT(current_cut <= old_cut, "Cut increased during uncontraction");
-      ASSERT(current_cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
+      ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
+      ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
       DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
-          << current_cut);
+          << current_metrics.cut);
       ++iteration;
     } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }

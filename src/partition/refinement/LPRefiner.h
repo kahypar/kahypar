@@ -54,14 +54,13 @@ class LPRefiner final : public IRefiner {
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
-                  HyperedgeWeight& best_cut,
-                  double __attribute__ ((unused))& best_imbalance) noexcept override final {
+                  Metrics& best_metrics) noexcept override final {
     assert(metrics::imbalance(_hg, _config) < _config.partition.epsilon);
-    ASSERT(best_cut == metrics::hyperedgeCut(_hg),
-           "initial best_cut " << best_cut << "does not equal cut induced by hypergraph "
+    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
+           "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
 
-    auto in_cut = best_cut;
+    auto in_cut = best_metrics.cut;
 
     // Each hyperedge with only be considered once in a refinement run
     _bitset_he.resetAllBitsToFalse();
@@ -82,12 +81,12 @@ class LPRefiner final : public IRefiner {
 
         const bool move_successful = moveHypernode(hn, _hg.partID(hn), gain_pair.second);
         if (move_successful) {
-          best_cut -= gain_pair.first;
+          best_metrics.cut -= gain_pair.first;
 
           assert(_hg.partWeight(gain_pair.second) <= _config.partition.max_part_weights[0]);
-          assert(best_cut <= in_cut);
+          assert(best_metrics.cut <= in_cut);
           assert(gain_pair.first >= 0);
-          assert(best_cut == metrics::hyperedgeCut(_hg));
+          assert(best_metrics.cut == metrics::hyperedgeCut(_hg));
           assert(metrics::imbalance(_hg, _config) <= _config.partition.epsilon);
 
           // add adjacent pins to next iteration
@@ -112,7 +111,7 @@ class LPRefiner final : public IRefiner {
       _contained_cur_queue.swap(_contained_next_queue);
     }
     // std::cout << " " << i;
-    return best_cut < in_cut;
+    return best_metrics.cut < in_cut;
   }
 
   int numRepetitionsImpl() const noexcept override final {

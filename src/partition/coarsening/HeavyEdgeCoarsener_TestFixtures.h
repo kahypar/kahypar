@@ -13,6 +13,7 @@
 
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
+#include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/IRefiner.h"
 
 using::testing::AnyOf;
@@ -30,22 +31,6 @@ using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 
 namespace partition {
-class DummyRefiner : public IRefiner {
- public:
-  DummyRefiner() { }
-  void initializeImpl() noexcept {
-    _is_initialized = true;
-  }
-  void initializeImpl(const HyperedgeWeight)  noexcept {
-    _is_initialized = true;
-  }
-  bool refineImpl(std::vector<HypernodeID>&, const std::array<HypernodeWeight, 2>&,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>&, HyperedgeWeight&, double&)
-  noexcept final { return true; }
-  int numRepetitionsImpl() const noexcept final { return 1; }
-  std::string policyStringImpl() const noexcept final { return std::string(""); }
-};
-
 template <class CoarsenerType>
 class ACoarsenerBase : public Test {
  public:
@@ -55,7 +40,7 @@ class ACoarsenerBase : public Test {
     hypergraph(graph),
     config(),
     coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
-    refiner(new DummyRefiner()) {
+    refiner(new DoNothingRefiner()) {
     refiner->initialize();
     config.partition.epsilon = 0.3;
     config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
@@ -193,7 +178,7 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
-  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+  std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
   refiner->initialize();
 
   coarsener.coarsen(2);
@@ -234,7 +219,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
                                          * config.partition.perfect_balance_part_weights[1];
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
-  std::unique_ptr<IRefiner> refiner(new DummyRefiner());
+  std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
   refiner->initialize();
 
   coarsener.coarsen(2);

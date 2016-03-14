@@ -105,8 +105,9 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 }
 
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
-  double old_imbalance = metrics::imbalance(*hypergraph, config);
-  HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
+  Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
+                          metrics::kMinus1(*hypergraph),
+                          metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
   #ifdef USE_BUCKET_PQ
@@ -114,10 +115,10 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config),
-                      old_imbalance);
+                      old_metrics.imbalance);
 }
 
 
@@ -139,8 +140,9 @@ TEST_F(ATwoWayFMRefiner, UpdatesNodeCountsOnNodeMovements) {
 TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
-  double old_imbalance = metrics::imbalance(*hypergraph, config);
-  HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
+  Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
+                          metrics::kMinus1(*hypergraph),
+                          metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
 #ifdef USE_BUCKET_PQ
@@ -148,7 +150,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
@@ -166,19 +168,21 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
   refiner->initialize();
 #endif  // already done above
 
-  double old_imbalance = metrics::imbalance(*hypergraph, config);
-  HyperedgeWeight old_cut = metrics::hyperedgeCut(*hypergraph);
+  Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
+                          metrics::kMinus1(*hypergraph),
+                          metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_cut, old_imbalance);
+  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
 
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
 }
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
-  double old_imbalance = metrics::imbalance(*hypergraph, config);
-  HyperedgeWeight cut = metrics::hyperedgeCut(*hypergraph);
+  Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
+                          metrics::kMinus1(*hypergraph),
+                          metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
 #ifdef USE_BUCKET_PQ
@@ -186,9 +190,9 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, cut, old_imbalance);
+  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
 
-  ASSERT_THAT(cut, Eq(metrics::hyperedgeCut(*hypergraph)));
+  ASSERT_THAT(old_metrics.cut, Eq(metrics::hyperedgeCut(*hypergraph)));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));
   ASSERT_THAT(hypergraph->partID(5), Eq(1));
 }

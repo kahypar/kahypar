@@ -13,12 +13,14 @@
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "lib/utils/Stats.h"
+#include "partition/Metrics.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using utils::Stats;
+using Metrics = metrics::Metrics;
 
 namespace partition {
 class IRefiner {
@@ -31,11 +33,11 @@ class IRefiner {
   bool refine(std::vector<HypernodeID>& refinement_nodes,
               const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
               const std::pair<HyperedgeWeight, HyperedgeWeight>& uncontraction_changes,
-              HyperedgeWeight& best_cut, double& best_imbalance) noexcept {
+              Metrics& best_metrics) noexcept {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     return refineImpl(refinement_nodes, max_allowed_part_weights,
                       uncontraction_changes,
-                      best_cut, best_imbalance);
+                      best_metrics);
   }
 
   void initialize() noexcept {
@@ -69,8 +71,7 @@ class IRefiner {
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                           const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                           const std::pair<HyperedgeWeight, HyperedgeWeight>& uncontraction_changes,
-                          HyperedgeWeight& best_cut,
-                          double& best_imbalance) noexcept = 0;
+                          Metrics& best_metrics) noexcept = 0;
   virtual void initializeImpl() noexcept { }
   virtual void initializeImpl(const HyperedgeWeight) noexcept { }
   virtual int numRepetitionsImpl() const noexcept = 0;
