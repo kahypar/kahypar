@@ -213,10 +213,10 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   refiner._disabled_rebalance_hns.add(0);
   refiner._rebalance_pqs[1].deleteNode(1);
   refiner._disabled_rebalance_hns.add(1);
-  refiner._gain_cache[0] = refiner.computeGain(0);
-  refiner._gain_cache[1] = refiner.computeGain(1);
-  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
-  refiner._pq.insert(1, 1, refiner._gain_cache[0]);
+  refiner._gain_cache.setValue(0, refiner.computeGain(0));
+  refiner._gain_cache.setValue(1, refiner.computeGain(1));
+  refiner._pq.insert(0, 1, refiner._gain_cache.value(0));
+  refiner._pq.insert(1, 1, refiner._gain_cache.value(0));
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -285,14 +285,14 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner._disabled_rebalance_hns.add(2);
   refiner._rebalance_pqs[1].deleteNode(3);
   refiner._disabled_rebalance_hns.add(3);
-  refiner._gain_cache[0] = refiner.computeGain(0);
-  refiner._gain_cache[1] = refiner.computeGain(1);
-  refiner._gain_cache[2] = refiner.computeGain(2);
-  refiner._gain_cache[3] = refiner.computeGain(3);
-  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
-  refiner._pq.insert(1, 1, refiner._gain_cache[1]);
-  refiner._pq.insert(2, 1, refiner._gain_cache[2]);
-  refiner._pq.insert(3, 1, refiner._gain_cache[3]);
+  refiner._gain_cache.setValue(0, refiner.computeGain(0));
+  refiner._gain_cache.setValue(1, refiner.computeGain(1));
+  refiner._gain_cache.setValue(2, refiner.computeGain(2));
+  refiner._gain_cache.setValue(3, refiner.computeGain(3));
+  refiner._pq.insert(0, 1, refiner._gain_cache.value(0));
+  refiner._pq.insert(1, 1, refiner._gain_cache.value(1));
+  refiner._pq.insert(2, 1, refiner._gain_cache.value(2));
+  refiner._pq.insert(3, 1, refiner._gain_cache.value(3));
   refiner._pq.enablePart(1);
 
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
@@ -325,11 +325,11 @@ TEST_F(AGainUpdateMethod, HandlesCase1To0) {
   refiner.initialize();
 #endif
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._gain_cache[0] = refiner.computeGain(0);
-  refiner._gain_cache[1] = refiner.computeGain(1);
-  refiner._gain_cache[2] = refiner.computeGain(2);
-  refiner._gain_cache[3] = refiner.computeGain(3);
-  refiner._gain_cache[4] = refiner.computeGain(4);
+  refiner._gain_cache.setValue(0, refiner.computeGain(0));
+  refiner._gain_cache.setValue(1, refiner.computeGain(1));
+  refiner._gain_cache.setValue(2, refiner.computeGain(2));
+  refiner._gain_cache.setValue(3, refiner.computeGain(3));
+  refiner._gain_cache.setValue(4, refiner.computeGain(4));
   refiner.activate(0,  /* dummy max-part-weight */ { 42, 42 });
   refiner.activate(1,  /* dummy max-part-weight */ { 42, 42 });
   refiner.activate(2,  /* dummy max-part-weight */ { 42, 42 });
@@ -485,10 +485,10 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   refiner.initialize();
 #endif
   // bypassing activate since neither 0 nor 1 is actually a border node
-  refiner._gain_cache[0] = refiner.computeGain(0);
-  refiner._gain_cache[1] = refiner.computeGain(1);
-  refiner._pq.insert(0, 1, refiner._gain_cache[0]);
-  refiner._pq.insert(1, 1, refiner._gain_cache[1]);
+  refiner._gain_cache.setValue(0, refiner.computeGain(0));
+  refiner._gain_cache.setValue(1, refiner.computeGain(1));
+  refiner._pq.insert(0, 1, refiner._gain_cache.value(0));
+  refiner._pq.insert(1, 1, refiner._gain_cache.value(1));
   refiner._hg.activate(0);
   refiner._hg.activate(1);
   refiner._rebalance_pqs[1].deleteNode(0);
@@ -529,7 +529,7 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
 
   // bypassing activate
   refiner._pq.insert(2, 1, refiner.computeGain(2));
-  refiner._gain_cache[2] = refiner.computeGain(2);
+  refiner._gain_cache.setValue(2, refiner.computeGain(2));
   refiner._hg.activate(2);
   refiner._rebalance_pqs[1].deleteNode(2);
   refiner._disabled_rebalance_hns.add(2);
