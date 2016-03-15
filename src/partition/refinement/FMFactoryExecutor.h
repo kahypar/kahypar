@@ -12,28 +12,6 @@
 #include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 
 namespace partition {
-template <template <class,
-                    template <class> class,
-                    class
-                    > class Refiner>
-class FMFactoryExecutor {
- public:
-  template <typename StoppingPolicy, typename CloggingPolicy,
-            typename ... Parameters>
-  IRefiner* fire(StoppingPolicy&, CloggingPolicy&, Parameters&& ... parameters) {
-    return new Refiner<StoppingPolicy,
-                       EligibleTopGain,
-                       CloggingPolicy>(std::forward<Parameters>(parameters) ...);
-  }
-
-  template <typename StoppingPolicy, typename Dummy,
-            typename ... Parameters>
-  IRefiner* onError(StoppingPolicy&, Dummy&, Parameters&& ...) {
-    std::cout << "error" << std::endl;
-    return nullptr;
-  }
-};
-
 template <
   template <class,
             bool,

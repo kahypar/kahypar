@@ -20,6 +20,9 @@
 #include "partition/Configuration.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
+#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
+#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "tools/RandomFunctions.h"
 
 using datastructure::NoDataBinaryMaxHeap;
@@ -46,9 +49,8 @@ static const bool dbg_refinement_he_fm_eligible_pqs = false;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
-          template <class> class QueueSelectionPolicy = MandatoryTemplate,
-          class QueueCloggingPolicy = Mandatory
-          >
+          bool global_rebalancing = false,
+          class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class HyperedgeFMRefiner final : public IRefiner,
                                  private FMRefinerBase {
  private:
@@ -91,7 +93,6 @@ class HyperedgeFMRefiner final : public IRefiner,
     _contained_hypernodes(_hg.initialNumNodes(), false),
     _movement_indices(),
     _performed_moves(),
-    _is_initialized(false),
     _stopping_policy() {
     _movement_indices.reserve(_hg.initialNumEdges() + 1);
     _movement_indices[0] = 0;
@@ -183,8 +184,8 @@ class HyperedgeFMRefiner final : public IRefiner,
       //     improvement. Thus we might need to "increment step by 1". However we'd need
       //     another counting variable that only counts the loop iterations to do that, since
       //     step currently refers to the number of actual moves that are performed.
-      if (QueueCloggingPolicy::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
-                                                          _pq[0], _pq[1])) {
+      if (OnlyRemoveIfBothQueuesClogged::removeCloggingQueueEntries(pq0_eligible, pq1_eligible,
+                                                                    _pq[0], _pq[1])) {
         continue;
       }
 
@@ -309,8 +310,8 @@ class HyperedgeFMRefiner final : public IRefiner,
   }
 
   std::string policyStringImpl() const noexcept override final {
-    return std::string(templateToString<QueueSelectionPolicy<Gain> >()
-                       + templateToString<QueueCloggingPolicy>()
+    return std::string(templateToString<EligibleTopGain<Gain> >()
+                       + templateToString<OnlyRemoveIfBothQueuesClogged>()
                        + templateToString<StoppingPolicy>());
   }
 
@@ -372,7 +373,7 @@ class HyperedgeFMRefiner final : public IRefiner,
         << (pq0_eligible ? "" : " NOT ") << " eligable in PQ0, gain=" << _pq[0]->getMaxKey());
     DBG(dbg_refinement_he_fm_eligible_pqs, "HE " << _pq[1]->getMax() << " is "
         << (pq1_eligible ? "" : " NOT ") << " eligable in PQ1, gain=" << _pq[1]->getMaxKey());
-    return QueueSelectionPolicy<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
+    return EligibleTopGain<Gain>::selectQueue(pq0_eligible, pq1_eligible, _pq[0], _pq[1]);
   }
 
   bool movePreservesBalanceConstraint(HyperedgeID he, PartitionID from,
@@ -547,7 +548,6 @@ class HyperedgeFMRefiner final : public IRefiner,
   FastResetBitVector<> _contained_hypernodes;
   std::vector<size_t> _movement_indices;
   std::vector<HypernodeID> _performed_moves;
-  bool _is_initialized;
   StoppingPolicy _stopping_policy;
 };
 #pragma GCC diagnostic pop

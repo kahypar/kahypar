@@ -62,12 +62,12 @@ using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
                                                    Typelist<GlobalRebalancing, NoGlobalRebalancing>,
                                                    IRefiner*>;
 
-using HyperedgeFMFactoryExecutor = FMFactoryExecutor<HyperedgeFMRefiner>;
+using HyperedgeFMFactoryExecutor = KFMFactoryExecutor<HyperedgeFMRefiner>;
 using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                       Typelist<NumberOfFruitlessMovesStopsSearch,
                                                                RandomWalkModelStopsSearch,
                                                                nGPRandomWalkStopsSearch>,
-                                                      Typelist<OnlyRemoveIfBothQueuesClogged>,
+                                                      Typelist<NullPolicy>,
                                                       IRefiner*>;
 
 using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
