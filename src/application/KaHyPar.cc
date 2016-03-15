@@ -153,7 +153,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.mode = Mode::recursive_bisection;
       } else if (vm["mode"].as<std::string>() == "direct") {
         config.partition.mode = Mode::direct_kway;
-      }  else {
+      } else {
         std::cout << "Illegal partitioning mode ! Exiting..." << std::endl;
         exit(0);
       }
@@ -209,19 +209,20 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
             vm["init-alpha"].as<double>();
         }
 
-        // If we use the n-Level recursive bisection partitioner the initial partitioner is only
-        // call for k=2.
+        // If KaHyPar is used in recursive bisection mode, the initial partitioner is only
+        // called for k=2. Therefore initial partitioning should work in direct_kway mode.
         if (config.partition.mode == Mode::recursive_bisection &&
-            config.initial_partitioning.mode
-            == Mode::recursive_bisection) {
+            config.initial_partitioning.mode == Mode::recursive_bisection) {
           config.initial_partitioning.mode = Mode::direct_kway;
         }
 
+        // If initial partitioning is set to direct k-way, it does not make sense to use
+        // multilevel as initial partitioning technique, because in this case KaHyPar
+        // could just do the additional multilevel coarsening and then call the initial
+        // partitioning algorithm as a flat algorithm.
         if (config.initial_partitioning.mode == Mode::direct_kway &&
-            config.initial_partitioning.technique
-            == InitialPartitioningTechnique::multilevel) {
-          config.initial_partitioning.technique =
-            InitialPartitioningTechnique::flat;
+            config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel) {
+          config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
         }
       }
     }
