@@ -153,6 +153,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.mode = Mode::recursive_bisection;
       } else if (vm["mode"].as<std::string>() == "direct") {
         config.partition.mode = Mode::direct_kway;
+      }  else {
+        std::cout << "Illegal partitioning mode ! Exiting..." << std::endl;
+        exit(0);
       }
     }
 
