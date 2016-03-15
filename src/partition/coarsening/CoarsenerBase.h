@@ -118,12 +118,14 @@ class CoarsenerBase {
                           Metrics& current_metrics,
                           const std::pair<HyperedgeWeight, HyperedgeWeight>& changes) noexcept {
     HyperedgeWeight old_cut = current_metrics.cut;
+    HyperedgeWeight old_km1 = current_metrics.km1;
     int iteration = 0;
     bool improvement_found = false;
 
     std::pair<HyperedgeWeight, HyperedgeWeight> current_changes = changes;
     do {
       old_cut = current_metrics.cut;
+      old_km1 = current_metrics.km1;
       improvement_found = refiner.refine(refinement_nodes,
                                          { _config.partition.max_part_weights[0]
                                            + _max_hn_weights.back().max_weight,
@@ -136,7 +138,11 @@ class CoarsenerBase {
       current_changes.first = 0;
       current_changes.second = 0;
 
-      ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
+      ASSERT(_config.partition.objective != Objective::cut || current_metrics.cut <= old_cut,
+             V(current_metrics.cut) << V(old_cut));
+      ASSERT(_config.partition.objective != Objective::connectivityMinusOne ||
+             current_metrics.km1 <= old_km1,
+             V(current_metrics.km1) << V(old_km1));
       ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
       DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
           << current_metrics.cut);
