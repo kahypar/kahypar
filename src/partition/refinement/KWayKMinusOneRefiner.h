@@ -141,7 +141,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
       activate(hn, max_allowed_part_weights[0]);
     }
 
-    const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
     HyperedgeWeight current_cut = best_metrics.cut;
     double current_imbalance = best_metrics.imbalance;
@@ -312,8 +311,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
     PartitionID source_part = _hg.partID(pin);
-    HypernodeID pin_count_in_part = _hg.pinCountInPart(he, source_part);
-
     if (pin_count_source_part_before_move == 2 && source_part == from_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
         if (_pq_contains[pin * _config.partition.k + k]) {
