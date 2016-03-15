@@ -694,6 +694,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
               current_config.partition.refinement_algorithm,
               current_hypergraph, current_config));
 
+          ASSERT(coarsener.get() != nullptr, "coarsener not found");
+          ASSERT(refiner.get() != nullptr, "refiner not found");
+
           // TODO(schlag): find better solution
           if (_internals.empty()) {
             _internals.append(
