@@ -84,7 +84,7 @@ enum class GlobalRebalancingMode : bool {
 
 enum class Objective : std::uint8_t {
   cut,
-  connectivityMinusOne
+  km1
 };
 
 static std::string toString(const Mode& mode) {
@@ -101,8 +101,8 @@ static std::string toString(const Objective& objective) {
   switch (objective) {
     case Objective::cut:
       return std::string("cut");
-    case Objective::connectivityMinusOne:
-      return std::string("connectivityMinusOne");
+    case Objective::km1:
+      return std::string("km1");
   }
   return std::string("UNDEFINED");
 }

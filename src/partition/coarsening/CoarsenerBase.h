@@ -140,7 +140,7 @@ class CoarsenerBase {
 
       ASSERT(_config.partition.objective != Objective::cut || current_metrics.cut <= old_cut,
              V(current_metrics.cut) << V(old_cut));
-      ASSERT(_config.partition.objective != Objective::connectivityMinusOne ||
+      ASSERT(_config.partition.objective != Objective::km1 ||
              current_metrics.km1 <= old_km1,
              V(current_metrics.km1) << V(old_km1));
       ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");

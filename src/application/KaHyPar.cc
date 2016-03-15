@@ -159,8 +159,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     if (vm.count("obj")) {
       if (vm["obj"].as<std::string>() == "cut") {
         config.partition.objective = Objective::cut;
-      } else if (vm["obj"].as<std::string>() == "connectivityMinusOne") {
-        config.partition.objective = Objective::connectivityMinusOne;
+      } else if (vm["obj"].as<std::string>() == "km1") {
+        config.partition.objective = Objective::km1;
       } else {
         std::cout << "No valid objective function." << std::endl;
         exit(0);
@@ -620,7 +620,7 @@ int main(int argc, char* argv[]) {
   desc.add_options()("help", "show help message")
     ("verbose", po::value<bool>(), "Verbose partitioner output")
     ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
-    ("obj", po::value<std::string>(), "Objective: cut, connectivityMinusOne")
+    ("obj", po::value<std::string>(), "Objective: cut, km1")
     ("k", po::value<PartitionID>(), "Number of partitions")
     ("e", po::value<double>(), "Imbalance parameter epsilon")
     ("seed", po::value<int>(), "Seed for random number generator")

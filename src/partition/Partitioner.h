@@ -709,7 +709,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           std::cout << "-------------------------------------------------------------" << std::endl;
           auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(
-            current_hypergraph, 1, current_config.partition.objective == Objective::connectivityMinusOne ? true : false);
+            current_hypergraph, 1, current_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state =
@@ -723,7 +723,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 0, original_config.partition.objective == Objective::connectivityMinusOne ? true : false);
+              current_hypergraph, 0, original_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(
