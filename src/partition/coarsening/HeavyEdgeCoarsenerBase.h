@@ -89,11 +89,25 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     Metrics current_metrics = { metrics::hyperedgeCut(_hg),
                                 metrics::kMinus1(_hg),
                                 metrics::imbalance(_hg, _config) };
-    const HyperedgeWeight initial_cut = current_metrics.cut;
+    HyperedgeWeight initial_objective = std::numeric_limits<HyperedgeWeight>::min();
 
-    Stats::instance().add(_config, "initialCut", initial_cut);
+    switch (_config.partition.objective) {
+      case Objective::cut:
+        initial_objective = current_metrics.cut;
+        Stats::instance().add(_config, "initialCut", initial_objective);
+        LOG("initial cut =" << initial_objective);
+        break;
+      case Objective::km1:
+        initial_objective = current_metrics.km1;
+        Stats::instance().add(_config, "initialKm1", initial_objective);
+        LOG("initial km1 =" << initial_objective);
+        break;
+      default:
+        LOG("Unknown Objective");
+        exit(-1);
+    }
+
     Stats::instance().add(_config, "initialImbalance", current_metrics.imbalance);
-    LOG("initial cut =" << initial_cut);
     LOG("initial imbalance=" << current_metrics.imbalance);
     LOG("target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
         << " w(1)=" << _config.partition.max_part_weights[1]);
@@ -135,12 +149,26 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
     //        << " > " << _config.partition.epsilon);
-    Stats::instance().add(_config, "finalCut", current_metrics.cut);
     Stats::instance().add(_config, "finaleImbalance", current_metrics.imbalance);
-    LOG("final cut: " << current_metrics.cut);
-    LOG("final imbalance: " << current_metrics.imbalance);
     LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
-    return current_metrics.cut < initial_cut;
+    bool improvement_found = false;
+    switch (_config.partition.objective) {
+      case Objective::cut:
+        Stats::instance().add(_config, "finalCut", current_metrics.cut);
+        LOG("final cut: " << current_metrics.cut);
+        improvement_found = initial_objective < current_metrics.cut;
+        break;
+      case Objective::km1:
+        Stats::instance().add(_config, "finalKm1", current_metrics.km1);
+        LOG("final km1: " << current_metrics.km1);
+        improvement_found = initial_objective < current_metrics.km1;
+        break;
+      default:
+        LOG("Unknown Objective");
+        exit(-1);
+    }
+
+    return improvement_found;
   }
 
   template <typename Map>

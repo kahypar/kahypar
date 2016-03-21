@@ -144,8 +144,10 @@ class CoarsenerBase {
              current_metrics.km1 <= old_km1,
              V(current_metrics.km1) << V(old_km1));
       ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
-      DBG(dbg_coarsening_uncoarsen, "Iteration " << iteration << ": " << old_cut << "-->"
-          << current_metrics.cut);
+      DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
+          "Iteration " << iteration << ": " << old_cut << "-->" << current_metrics.cut);
+      DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
+          "Iteration " << iteration << ": " << old_km1 << "-->" << current_metrics.km1);
       ++iteration;
     } while ((iteration < refiner.numRepetitions()) && improvement_found);
   }
