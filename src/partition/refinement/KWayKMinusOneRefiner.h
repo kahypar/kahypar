@@ -163,7 +163,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
       _pq_contains.setBit(max_gain_node * _config.partition.k + to_part, false);
-      PartitionID from_part = _hg.partID(max_gain_node);
+      const PartitionID from_part = _hg.partID(max_gain_node);
 
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
@@ -207,7 +207,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
 
-      Gain fm_gain = updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights[0]);
+      const Gain fm_gain = updateNeighbours(max_gain_node, from_part, to_part,
+                                            max_allowed_part_weights[0]);
 
       current_cut -= fm_gain;
       current_kminusone -= max_gain;
@@ -221,13 +222,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
              V(current_imbalance) << V(metrics::imbalance(_hg, _config)));
 
       // right now, we do not allow a decrease in cut in favor of an increase in balance
-      const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
+      const bool improved_km1_within_balance = (current_imbalance <= _config.partition.epsilon) &&
                                                (current_kminusone < best_metrics.km1);
-      const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
+      const bool improved_balance_less_equal_km1 = (current_imbalance < best_metrics.imbalance) &&
                                                    (current_kminusone <= best_metrics.km1);
 
       ++num_moves_since_last_improvement;
-      if (improved_cut_within_balance || improved_balance_less_equal_cut) {
+      if (improved_km1_within_balance || improved_balance_less_equal_km1) {
         DBG(dbg_refinement_kway_kminusone_fm_improvements_balance && max_gain == 0,
             "KWayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
