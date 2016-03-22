@@ -80,9 +80,9 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
   refiner->initialize(100);
 
-  refiner->_hn_state.activate(0);
+  refiner->_hg.activate(0);
   hypergraph->changeNodePart(0, 0, 1);
-  refiner->_hn_state.mark(0);
+  refiner->_hg.mark(0);
 
   refiner->fullUpdate(0, 0, 1, 0, 42);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
