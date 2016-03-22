@@ -6,6 +6,7 @@
 #define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
 
 #include <algorithm>
+#include <limits>
 #include <stack>
 #include <unordered_map>
 #include <utility>
@@ -149,7 +150,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
     //        << " > " << _config.partition.epsilon);
-    Stats::instance().add(_config, "finaleImbalance", current_metrics.imbalance);
+    Stats::instance().add(_config, "finalImbalance", current_metrics.imbalance);
     LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
     bool improvement_found = false;
     switch (_config.partition.objective) {
@@ -159,6 +160,15 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         improvement_found = initial_objective < current_metrics.cut;
         break;
       case Objective::km1:
+        if (_config.partition.mode == Mode::recursive_bisection) {
+          // In recursive bisection-based (initial) partitioning, km1
+          // is optimized using TwoWayFM and cut-net splitting. Since
+          // TwoWayFM optimizes cut, current_metrics.km1 is not updated
+          // during local search (it is currently only updated/maintained
+          // during k-way k-1 refinement). In order to provide correct outputs,
+          // we explicitly calculated the metric after uncoarsening.
+          current_metrics.km1 = metrics::kMinus1(_hg);
+        }
         Stats::instance().add(_config, "finalKm1", current_metrics.km1);
         LOG("final km1: " << current_metrics.km1);
         improvement_found = initial_objective < current_metrics.km1;
