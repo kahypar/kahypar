@@ -85,6 +85,8 @@ class FMRefinerBase {
       heaviest_part = to_part;
       heaviest_part_weight = _hg.partWeight(to_part);
     }
+    ASSERT(heaviest_part_weight == _hg.partWeight(heaviestPart()),
+           V(heaviest_part) << V(heaviestPart()));
   }
 
   Hypergraph& _hg;
