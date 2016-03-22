@@ -708,9 +708,8 @@ int main(int argc, char* argv[]) {
                                          * config.partition.perfect_balance_part_weights[0];
   config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
 
-  config.coarsening.max_allowed_node_weight =
-    config.coarsening.hypernode_weight_fraction
-    * config.partition.total_graph_weight;
+  config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
+                                                   * config.partition.total_graph_weight);
   config.fm_local_search.beta = log(hypergraph.numNodes());
 
 // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts

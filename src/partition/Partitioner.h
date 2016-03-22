@@ -226,15 +226,12 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 
   // Hypergraph depending parameters
   config.partition.total_graph_weight = hg.totalWeight();
-  config.coarsening.contraction_limit =
-    config.coarsening.contraction_limit_multiplier
-    * config.initial_partitioning.k;
-  config.coarsening.hypernode_weight_fraction =
-    config.coarsening.max_allowed_weight_multiplier
-    / config.coarsening.contraction_limit;
-  config.coarsening.max_allowed_node_weight =
-    config.coarsening.hypernode_weight_fraction
-    * config.partition.total_graph_weight;
+  config.coarsening.contraction_limit = config.coarsening.contraction_limit_multiplier
+                                        * config.initial_partitioning.k;
+  config.coarsening.hypernode_weight_fraction = config.coarsening.max_allowed_weight_multiplier
+                                                / config.coarsening.contraction_limit;
+  config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
+                                                   * config.partition.total_graph_weight);
   config.fm_local_search.beta = log(hg.numNodes());
 
   // Reconfiguring the partitioner to act as an initial partitioner
@@ -605,9 +602,9 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     current_config.coarsening.max_allowed_weight_multiplier
     / current_config.coarsening.contraction_limit;
 
-  current_config.coarsening.max_allowed_node_weight =
+  current_config.coarsening.max_allowed_node_weight = ceil(
     current_config.coarsening.hypernode_weight_fraction
-    * current_config.partition.total_graph_weight;
+    * current_config.partition.total_graph_weight);
 
   current_config.fm_local_search.beta = log(current_hypergraph.numNodes());
 
