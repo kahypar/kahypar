@@ -19,6 +19,7 @@
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
+#include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -31,6 +32,7 @@
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
+using datastructure::InsertOnlyConnectivitySet;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -71,18 +73,16 @@ class KWayFMRefiner final : public IRefiner,
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    _seen(_config.partition.k, false),
     _he_fully_active(_hg.initialNumEdges(), false),
     _pq_contains(_hg.initialNumNodes() * _config.partition.k, false),
     _tmp_gains(_config.partition.k, 0),
-    _tmp_target_parts(),
+    _tmp_target_parts(_config.partition.k),
     _performed_moves(),
     _hns_to_activate(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
     _stopping_policy() {
-    _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
     _hns_to_activate.reserve(_hg.initialNumNodes());
   }
@@ -882,7 +882,6 @@ class KWayFMRefiner final : public IRefiner,
     HyperedgeWeight internal_weight = 0;
 
     _tmp_target_parts.clear();
-    _seen.resetAllBitsToFalse();
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -893,10 +892,7 @@ class KWayFMRefiner final : public IRefiner,
           break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
-            if (!_seen[part]) {
-              _seen.setBit(part, true);
-              _tmp_target_parts.push_back(part);
-            }
+            _tmp_target_parts.add(part);
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
               _tmp_gains[part] += he_weight;
             }
@@ -904,10 +900,7 @@ class KWayFMRefiner final : public IRefiner,
           break;
         default:
           for (const PartitionID part : _hg.connectivitySet(he)) {
-            if (likely(!_seen[part])) {
-              _seen.setBit(part, true);
-              _tmp_target_parts.push_back(part);
-            }
+            _tmp_target_parts.add(part);
           }
           break;
       }
@@ -932,12 +925,11 @@ class KWayFMRefiner final : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  FastResetBitVector<> _seen;
 
   FastResetBitVector<> _he_fully_active;
   FastResetBitVector<> _pq_contains;
   std::vector<Gain> _tmp_gains;
-  std::vector<PartitionID> _tmp_target_parts;
+  InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
 

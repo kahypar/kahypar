@@ -20,6 +20,7 @@
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
+#include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -32,6 +33,7 @@
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
+using datastructure::InsertOnlyConnectivitySet;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -74,18 +76,16 @@ class KWayKMinusOneRefiner final : public IRefiner,
  public:
   KWayKMinusOneRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    _seen(_config.partition.k, false),
     _he_fully_active(_hg.initialNumEdges(), false),
     _pq_contains(_hg.initialNumNodes() * _config.partition.k, false),
     _tmp_gains(_config.partition.k, 0),
-    _tmp_target_parts(),
+    _tmp_target_parts(_config.partition.k),
     _performed_moves(),
     _hns_to_activate(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
     _stopping_policy() {
-    _tmp_target_parts.reserve(_config.partition.k);
     _performed_moves.reserve(_hg.initialNumNodes());
     _hns_to_activate.reserve(_hg.initialNumNodes());
   }
@@ -648,15 +648,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
                               const PartitionID target_part) const noexcept {
     const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, _hg.partID(hn));
     const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
-    Gain gain = 0;
-    if (pins_in_source_part == 1) {
-      // Hypergraph should not contain single-node HEs
-      ASSERT(_hg.connectivity(he) > 1, V(he));
-      gain += _hg.edgeWeight(he);
-    }
-    if (pins_in_target_part == 0) {
-      gain -= _hg.edgeWeight(he);
-    }
+    const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+    Gain gain = pins_in_source_part == 1 ? he_weight : 0;
+    gain -= pins_in_target_part == 0 ? he_weight : 0;
     return gain;
   }
 
@@ -685,14 +679,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const PartitionID source_part = _hg.partID(hn);
 
     _tmp_target_parts.clear();
-    _seen.resetAllBitsToFalse();
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       for (const PartitionID part : _hg.connectivitySet(he)) {
-        if (likely(!_seen[part])) {
-          _seen.setBit(part, true);
-          _tmp_target_parts.push_back(part);
-        }
+        _tmp_target_parts.add(part);
       }
     }
 
@@ -726,12 +716,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  FastResetBitVector<> _seen;
 
   FastResetBitVector<> _he_fully_active;
   FastResetBitVector<> _pq_contains;
   std::vector<Gain> _tmp_gains;
-  std::vector<PartitionID> _tmp_target_parts;
+  InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
 
