@@ -74,11 +74,6 @@ class ConnectivitySet {
     return _size;
   }
 
-
-  std::pair<T*, T*> iterators() const {
-    return std::make_pair(_dense, _dense + _size);
-  }
-
   auto begin() const {
     return _dense;
   }

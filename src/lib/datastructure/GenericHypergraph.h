@@ -550,7 +550,7 @@ class GenericHypergraph {
   // is now linear in _k instead of being linear in |connected blocks|.
   std::pair<PartitionID*, PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return _connectivity_sets[he].iterators();
+    return std::make_pair(_connectivity_sets[he].begin(), _connectivity_sets[he].end());
   }
 
   Memento contract(const HypernodeID u, const HypernodeID v) noexcept {
