@@ -5,66 +5,78 @@
 #ifndef SRC_LIB_DATASTRUCTURE_CONNECTIVITYSET_H_
 #define SRC_LIB_DATASTRUCTURE_CONNECTIVITYSET_H_
 
-#include <memory>
 #include <limits>
+#include <memory>
+#include <utility>
 
-#include "lib/definitions.h"
-
-using defs::PartitionID;
+#include "lib/macros.h"
 
 namespace datastructure {
+template <typename T,
+          bool allow_duplicate_ops = false>
 class ConnectivitySet {
  public:
-  explicit ConnectivitySet(const PartitionID k) :
-      _size(nullptr),
-      _sparse(nullptr),
+  explicit ConnectivitySet(const T k) :
+    _size(0),
+    _sparse(nullptr),
     _dense(nullptr) {
-    PartitionID* raw = static_cast<PartitionID*>(malloc(((2*k) + 1) * sizeof(PartitionID)));
-    new(raw) PartitionID(0);
-    for (PartitionID i = 1; i < 2*k+1; ++i) {
-      new(raw+i) PartitionID(std::numeric_limits<PartitionID>::max());
+    T* raw = static_cast<T*>(malloc(((2 * k)) * sizeof(T)));
+    for (T i = 0; i < 2 * k; ++i) {
+      new(raw + i)T(std::numeric_limits<T>::max());
     }
-    _size = raw;
-    _sparse = raw+1;
-    _dense = raw+k+1;
+    _sparse = raw;
+    _dense = raw + k;
   }
 
   ~ConnectivitySet() {
-    free(_size);
+    free(_sparse);
   }
 
   ConnectivitySet(const ConnectivitySet&) = delete;
   ConnectivitySet& operator= (const ConnectivitySet&) = delete;
 
-  ConnectivitySet(ConnectivitySet&&) = default;
-  ConnectivitySet& operator= (ConnectivitySet&&) = default;
-
-  bool contains(const PartitionID value) const {
-    const PartitionID index = _sparse[value];
-    return index < *_size && _dense[index] == value;
+  ConnectivitySet(ConnectivitySet&& other) :
+    _size(other._size),
+    _sparse(other._sparse),
+    _dense(other._dense) {
+    other._size = 0;
+    other._sparse = nullptr;
+    other._dense = nullptr;
   }
 
-  void add(const PartitionID value) {
-    const PartitionID index = _sparse[value];
-    const PartitionID n = *_size;
-    if (index >= n || _dense[index] != value) {
-      _sparse[value] = n;
-      _dense[n] = value;
-      ++*_size;
+  ConnectivitySet& operator= (ConnectivitySet&&) = delete;
+
+  bool contains(const T value) const {
+    const T index = _sparse[value];
+    return index < _size && _dense[index] == value;
+  }
+
+  void add(const T value) {
+    const T index = _sparse[value];
+    if (!allow_duplicate_ops || (index >= _size || _dense[index] != value)) {
+      ASSERT(index >= _size || _dense[index] != value, V(value));
+      _sparse[value] = _size;
+      _dense[_size++] = value;
     }
   }
 
-  void remove(const PartitionID value) {
-    const PartitionID index = _sparse[value];
-    if (index <= (*_size) - 1 && _dense[index] == value) {
-      const PartitionID e = _dense[--(*_size)];
+  void remove(const T value) {
+    const T index = _sparse[value];
+    if (!allow_duplicate_ops || (index < _size && _dense[index] == value)) {
+      ASSERT(index < _size && _dense[index] == value, V(value));
+      const T e = _dense[--_size];
       _dense[index] = e;
       _sparse[e] = index;
     }
   }
 
-  PartitionID size() const {
-    return *_size;
+  T size() const {
+    return _size;
+  }
+
+
+  std::pair<T*, T*> iterators() const {
+    return std::make_pair(_dense, _dense + _size);
   }
 
   auto begin() const {
@@ -72,20 +84,18 @@ class ConnectivitySet {
   }
 
   auto end() const {
-    return &_dense[*_size];
+    return _dense + _size;
   }
 
   void clear() {
-    *_size = 0;
+    _size = 0;
   }
 
  private:
-  PartitionID* _size;
-  PartitionID* _sparse;
-  PartitionID* _dense;
-
+  T _size;
+  T* _sparse;
+  T* _dense;
 };
+}  // namespace datastructure
 
-}
-
-#endif // SRC_LIB_DATASTRUCTURE_CONNECTIVITYSET_H_
+#endif  // SRC_LIB_DATASTRUCTURE_CONNECTIVITYSET_H_
