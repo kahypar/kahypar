@@ -30,12 +30,12 @@ using core::Empty;
 namespace datastructure {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator, Iterator>& x) {
-  return std::move(x.first);
+  return x.first;
 }
 
 template <typename Iterator>
 Iterator end(std::pair<Iterator, Iterator>& x) {
-  return std::move(x.second);
+  return x.second;
 }
 
 static const bool dbg_hypergraph_uncontraction = false;
@@ -245,8 +245,8 @@ class GenericHypergraph {
     using ConstPointer = typename ContainerType::const_pointer;
 
  public:
-    VertexIterator(const VertexIterator& other) = delete;
-    VertexIterator& operator= (const VertexIterator& other) = delete;
+    VertexIterator(const VertexIterator& other) = default;
+    VertexIterator& operator= (const VertexIterator& other) = default;
 
     VertexIterator(VertexIterator&& other) = default;
     VertexIterator& operator= (VertexIterator&& other) = default;
@@ -520,26 +520,26 @@ class GenericHypergraph {
 
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    return std::move(std::make_pair(_incidence_array.cbegin() + hypernode(u).firstEntry(),
-                                    _incidence_array.cbegin() + hypernode(u).firstInvalidEntry()));
+    return std::make_pair(_incidence_array.cbegin() + hypernode(u).firstEntry(),
+                          _incidence_array.cbegin() + hypernode(u).firstInvalidEntry());
   }
 
   std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e) const noexcept {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
-    return std::move(std::make_pair(_incidence_array.cbegin() + hyperedge(e).firstEntry(),
-                                    _incidence_array.cbegin() + hyperedge(e).firstInvalidEntry()));
+    return std::make_pair(_incidence_array.cbegin() + hyperedge(e).firstEntry(),
+                          _incidence_array.cbegin() + hyperedge(e).firstInvalidEntry());
   }
 
   std::pair<HypernodeIterator, HypernodeIterator> nodes() const noexcept {
-    return std::move(std::make_pair(HypernodeIterator(_hypernodes.data(), 0, _num_hypernodes),
-                                    HypernodeIterator((_hypernodes.data() + _num_hypernodes),
-                                                      _num_hypernodes, _num_hypernodes)));
+    return std::make_pair(HypernodeIterator(_hypernodes.data(), 0, _num_hypernodes),
+                          HypernodeIterator((_hypernodes.data() + _num_hypernodes),
+                                            _num_hypernodes, _num_hypernodes));
   }
 
   std::pair<HyperedgeIterator, HyperedgeIterator> edges() const noexcept {
-    return std::move(std::make_pair(HyperedgeIterator(_hyperedges.data(), 0, _num_hyperedges),
-                                    HyperedgeIterator((_hyperedges.data() + _num_hyperedges),
-                                                      _num_hyperedges, _num_hyperedges)));
+    return std::make_pair(HyperedgeIterator(_hyperedges.data(), 0, _num_hyperedges),
+                          HyperedgeIterator((_hyperedges.data() + _num_hyperedges),
+                                            _num_hyperedges, _num_hyperedges));
   }
 
   // We currently do not store the connectivity set explicitly, due to its maintenance overhead and
@@ -1514,8 +1514,8 @@ class GenericHypergraph {
 
   // Accessor for handles of hypernodes contained in hyperedge (aka pins)
   std::pair<PinHandleIterator, PinHandleIterator> pinHandles(const HyperedgeID he) noexcept {
-    return std::move(std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
-                                    _incidence_array.begin() + hyperedge(he).firstInvalidEntry()));
+    return std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
+                          _incidence_array.begin() + hyperedge(he).firstInvalidEntry());
   }
 
   // Accessor for hypernode-related information
