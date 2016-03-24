@@ -6,7 +6,7 @@
 
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-#include "lib/datastructure/heaps/PairingHeapWrapper.h"
+//#include "lib/datastructure/heaps/PairingHeapWrapper.h"
 #include "lib/definitions.h"
 
 using::testing::Eq;
@@ -16,7 +16,7 @@ using::testing::Test;
 namespace datastructure {
 using MaxHeapQueue = NoDataBinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<defs::HypernodeID, defs::HyperedgeWeight>;
-using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
+//using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
 
 template <typename T>
 class APriorityQueue : public Test {
