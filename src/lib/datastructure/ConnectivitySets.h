@@ -13,7 +13,8 @@
 
 namespace datastructure {
 template <typename PartitionID,
-          typename HyperedgeID>
+          typename HyperedgeID,
+          typename HypernodeID>
 class ConnectivitySets final {
  private:
   using Byte = char;
@@ -27,19 +28,26 @@ class ConnectivitySets final {
     PartitionID _size;
     // After _size are the _dense and _sparse arrays.
 
-    ConnectivitySetArena(const PartitionID k) :
+    explicit ConnectivitySetArena(const PartitionID k) :
       _k(k),
       _size(0) {
       for (PartitionID i = 0; i < 2 * _k; ++i) {
         new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
       }
+      for (PartitionID i = 0; i < _k; ++i) {
+        new(reinterpret_cast<HypernodeID*>(&_size + 1 + 2 * _k) + i)HypernodeID(0);
+      }
     }
 
-    ConnectivitySetArena(const ConnectivitySets&) = delete;
-    ConnectivitySetArena& operator= (const ConnectivitySets&) = delete;
+    ConnectivitySetArena(const ConnectivitySetArena&) = delete;
+    ConnectivitySetArena& operator= (const ConnectivitySetArena&) = delete;
 
-    ConnectivitySetArena(ConnectivitySets&& other) = delete;
-    ConnectivitySetArena& operator= (ConnectivitySets&&) = delete;
+    ConnectivitySetArena(ConnectivitySetArena&& other) = delete;
+    ConnectivitySetArena& operator= (ConnectivitySetArena&&) = delete;
+
+    PartitionID connectivity() const {
+      return _size;
+    }
 
     PartitionID* dense() {
       return &_size + 1;
@@ -47,6 +55,43 @@ class ConnectivitySets final {
 
     PartitionID* sparse() {
       return &_size + 1 + _k;
+    }
+
+    HypernodeID pinCountIn(const PartitionID part) const {
+      return *(reinterpret_cast<const HypernodeID*>(&_size + 1 + 2 * _k) + part);
+    }
+
+    HypernodeID* pinsIn(const PartitionID part) {
+      return reinterpret_cast<HypernodeID*>(&_size + 1 + 2 * _k) + part;
+    }
+
+    bool increasePinsIn(const PartitionID part) {
+      HypernodeID* num_pins = pinsIn(part);
+      ++(*num_pins);
+      if (*num_pins == 1) {
+        add(part);
+        return true;
+      }
+      return false;
+    }
+
+    bool decreasePinsIn(const PartitionID part) {
+      HypernodeID* num_pins = pinsIn(part);
+      ASSERT(*num_pins > 0, V(part));
+      --(*num_pins);
+      if (*num_pins == 0) {
+        remove(part);
+        return true;
+      }
+      return false;
+    }
+
+    void invalidatePinCounts() {
+      memset(pinsIn(0), std::numeric_limits<HypernodeID>::max(), _k * sizeof(HypernodeID));
+    }
+
+    void resetPinCounts() {
+      memset(pinsIn(0), 0, _k * sizeof(HypernodeID));
     }
 
     const PartitionID* begin()  const {
@@ -143,7 +188,7 @@ class ConnectivitySets final {
   }
 
   Byte sizeOfConnectivitySet() const {
-    return (sizeof(ConnectivitySet) + 2 * _k * sizeof(PartitionID));
+    return (sizeof(ConnectivitySet) + (2 * _k * sizeof(PartitionID)) + (_k * sizeof(HypernodeID)));
   }
 
   PartitionID _k;
