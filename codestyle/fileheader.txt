@@ -1,4 +1,4 @@
 /***************************************************************************
- *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
