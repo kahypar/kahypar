@@ -538,13 +538,8 @@ class GenericHypergraph {
                                             _num_hyperedges, _num_hyperedges));
   }
 
-  // We currently do not store the connectivity set explicitly, due to its maintenance overhead and
-  // the fact that it is not needed for RB-based partitioning. Instead we provide custom iterators
-  // that iterator over _pins_in_part and skip block ids, where _pins_in_part[he*_k + block_id]
-  // equals zero (i.e., a block that is not in the connectivity set).
-  // While this eases maintenance, it also means that iterating over the connectivity set
-  // is now linear in _k instead of being linear in |connected blocks|.
-  const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet & connectivitySet(const HyperedgeID he) const noexcept {
+  const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet &
+  connectivitySet(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
     return _connectivity_sets[he];
   }
