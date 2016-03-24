@@ -491,7 +491,7 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.removeEdge(1, false);
 
   for (PartitionID part = 0; part < hypergraph._k; ++part) {
-    const HypernodeID num_pins = hypergraph._pins_in_part[1 * hypergraph._k + part];
+    const HypernodeID num_pins = hypergraph.pinCountInPart(1, part);
     ASSERT_THAT(num_pins, Eq(hypergraph.kInvalidCount));
   }
 }
@@ -726,7 +726,6 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
   auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
 
   ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
-  ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
 
   for (const HyperedgeID he: extr_part0.first->edges()) {
     ASSERT_THAT(extr_part0.first->connectivity(he), Eq(0));

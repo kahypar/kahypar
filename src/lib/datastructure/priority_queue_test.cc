@@ -6,7 +6,7 @@
 
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
-//#include "lib/datastructure/heaps/PairingHeapWrapper.h"
+// #include "lib/datastructure/heaps/PairingHeapWrapper.h"
 #include "lib/definitions.h"
 
 using::testing::Eq;
@@ -16,7 +16,7 @@ using::testing::Test;
 namespace datastructure {
 using MaxHeapQueue = NoDataBinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<defs::HypernodeID, defs::HyperedgeWeight>;
-//using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
+// using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
 
 template <typename T>
 class APriorityQueue : public Test {
@@ -28,7 +28,7 @@ class APriorityQueue : public Test {
   T prio_queue;
 };
 
-typedef::testing::Types<BucketQueue, MaxHeapQueue, PairingHeapQueue> Implementations;
+typedef::testing::Types<BucketQueue, MaxHeapQueue> Implementations;
 
 TYPED_TEST_CASE(APriorityQueue, Implementations);
 
@@ -234,37 +234,37 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
   ASSERT_THAT(_pqs[1].getKey(257), Eq(0));
 }
 
-TEST(TwoPairingHeaps, CanBeMerged) {
-  PairingHeapQueue first_pq(10, 100);
-  PairingHeapQueue second_pq(10, 100);
+// TEST(TwoPairingHeaps, CanBeMerged) {
+//   PairingHeapQueue first_pq(10, 100);
+//   PairingHeapQueue second_pq(10, 100);
 
-  first_pq.push(4, 88);
-  first_pq.push(1, 12);
-  first_pq.push(3, 2);
+//   first_pq.push(4, 88);
+//   first_pq.push(1, 12);
+//   first_pq.push(3, 2);
 
-  second_pq.push(5, 99);
-  second_pq.push(9, 6);
+//   second_pq.push(5, 99);
+//   second_pq.push(9, 6);
 
-  first_pq.merge(second_pq);
+//   first_pq.merge(second_pq);
 
-  // check that mapping remains valid
-  ASSERT_TRUE(first_pq.contains(4));
-  ASSERT_TRUE(first_pq.contains(1));
-  ASSERT_TRUE(first_pq.contains(3));
-  ASSERT_TRUE(first_pq.contains(5));
-  ASSERT_TRUE(first_pq.contains(9));
+//   // check that mapping remains valid
+//   ASSERT_TRUE(first_pq.contains(4));
+//   ASSERT_TRUE(first_pq.contains(1));
+//   ASSERT_TRUE(first_pq.contains(3));
+//   ASSERT_TRUE(first_pq.contains(5));
+//   ASSERT_TRUE(first_pq.contains(9));
 
-  // check that second pq is empty
-  ASSERT_TRUE(second_pq.empty());
-  ASSERT_FALSE(second_pq.contains(5));
-  ASSERT_FALSE(second_pq.contains(9));
+//   // check that second pq is empty
+//   ASSERT_TRUE(second_pq.empty());
+//   ASSERT_FALSE(second_pq.contains(5));
+//   ASSERT_FALSE(second_pq.contains(9));
 
-  // check that first pq contains elements of second pq
-  ASSERT_THAT(first_pq.getKey(5), Eq(99));
-  ASSERT_THAT(first_pq.getKey(9), Eq(6));
+//   // check that first pq contains elements of second pq
+//   ASSERT_THAT(first_pq.getKey(5), Eq(99));
+//   ASSERT_THAT(first_pq.getKey(9), Eq(6));
 
-  // verify that max is correct
-  ASSERT_THAT(first_pq.getMax(), Eq(5));
-  ASSERT_THAT(first_pq.getMaxKey(), Eq(99));
-}
+//   // verify that max is correct
+//   ASSERT_THAT(first_pq.getMax(), Eq(5));
+//   ASSERT_THAT(first_pq.getMaxKey(), Eq(99));
+// }
 }  // namespace datastructure
