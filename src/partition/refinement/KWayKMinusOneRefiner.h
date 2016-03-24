@@ -676,21 +676,16 @@ class KWayKMinusOneRefiner final : public IRefiner,
         return true;
       } () == true, "_tmp_gains not initialized correctly");
 
-    const PartitionID source_part = _hg.partID(hn);
-
     _tmp_target_parts.clear();
 
+    const PartitionID source_part = _hg.partID(hn);
+    HyperedgeWeight internal = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+      internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
       for (const PartitionID part : _hg.connectivitySet(he)) {
         _tmp_target_parts.add(part);
-      }
-    }
-
-    for (const PartitionID target_part : _tmp_target_parts) {
-      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-        if (target_part != source_part) {
-          _tmp_gains[target_part] += gainInducedByHyperedge(hn, he, target_part);
-        }
+        _tmp_gains[part] += he_weight;
       }
     }
 
@@ -699,6 +694,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         _tmp_gains[source_part] = 0;
         continue;
       }
+      _tmp_gains[target_part] -= internal;
       ASSERT(_tmp_gains[target_part] == gainInducedByHypergraph(hn, target_part),
              "Gain calculation failed! Should be " << V(gainInducedByHypergraph(hn, target_part))
              << " but currently it is " << V(_tmp_gains[target_part]));
