@@ -317,8 +317,8 @@ class GenericHypergraph {
     Memento(Memento&& other) = default;
     Memento& operator= (Memento&& other) = default;
 
-    Memento(HypernodeID u_, HypernodeID u_first_entry_, HypernodeID u_size_,
-            HypernodeID v_) noexcept :
+    Memento(const HypernodeID u_, const HypernodeID u_first_entry_,
+            const HypernodeID u_size_, const HypernodeID v_) noexcept :
       u(u_),
       u_first_entry(u_first_entry_),
       u_size(u_size_),
@@ -350,10 +350,11 @@ class GenericHypergraph {
   };
 
  public:
-  GenericHypergraph(HypernodeID num_hypernodes, HyperedgeID num_hyperedges,
+  GenericHypergraph(const HypernodeID num_hypernodes,
+                    const HyperedgeID num_hyperedges,
                     const HyperedgeIndexVector& index_vector,
                     const HyperedgeVector& edge_vector,
-                    PartitionID k = 2,
+                    const PartitionID k = 2,
                     const HyperedgeWeightVector* hyperedge_weights = nullptr,
                     const HypernodeWeightVector* hypernode_weights = nullptr) noexcept :
     _num_hypernodes(num_hypernodes),
