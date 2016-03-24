@@ -149,7 +149,7 @@ class LPRefiner final : public IRefiner {
     PartitionID num_hes_with_only_hn_in_source_part = 0;
     for (const auto& he : _hg.incidentEdges(hn)) {
       if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1) {
-        assert((*_hg.connectivitySet(he).first) == source_part);
+        assert((*_hg.connectivitySet(he).begin()) == source_part);
         internal_weight += _hg.edgeWeight(he);
       } else {
         const bool move_decreases_connectivity = _hg.pinCountInPart(he, source_part) == 1;

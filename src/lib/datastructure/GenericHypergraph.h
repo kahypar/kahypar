@@ -20,7 +20,7 @@
 #include "gtest/gtest_prod.h"
 #include "lib/core/Empty.h"
 #include "lib/core/Mandatory.h"
-#include "lib/datastructure/ConnectivitySet.h"
+#include "lib/datastructure/ConnectivitySets.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
@@ -374,7 +374,7 @@ class GenericHypergraph {
     _incidence_array(2 * _num_pins, 0),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
-    _connectivity_sets(),
+    _connectivity_sets(_num_hyperedges, k),
     _hes_not_containing_u(_num_hyperedges, false) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -420,10 +420,6 @@ class GenericHypergraph {
       }
     } else {
       _total_weight = _num_hypernodes;
-    }
-
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      _connectivity_sets.emplace_back(k);
     }
 
     if (has_hyperedge_weights && has_hypernode_weights) {
@@ -548,9 +544,9 @@ class GenericHypergraph {
   // equals zero (i.e., a block that is not in the connectivity set).
   // While this eases maintenance, it also means that iterating over the connectivity set
   // is now linear in _k instead of being linear in |connected blocks|.
-  std::pair<PartitionID*, PartitionID*> connectivitySet(const HyperedgeID he) const noexcept {
+  const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet & connectivitySet(const HyperedgeID he) const noexcept {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    return std::make_pair(_connectivity_sets[he].begin(), _connectivity_sets[he].end());
+    return _connectivity_sets[he];
   }
 
   Memento contract(const HypernodeID u, const HypernodeID v) noexcept {
@@ -1561,7 +1557,7 @@ class GenericHypergraph {
   // for each hyperedge we store the connectivity set,
   // i.e. the parts it connects and the number of pins in that part
   std::vector<HypernodeID> _pins_in_part;
-  std::vector<ConnectivitySet<PartitionID> > _connectivity_sets;
+  ConnectivitySets<PartitionID, HyperedgeID> _connectivity_sets;
 
   // Used during uncontraction to decide how to perform the uncontraction operation.
   // Incident HEs of the representative either already contained u and v before the contraction
@@ -1714,9 +1710,7 @@ reindex(const Hypergraph& hypergraph) {
   reindexed_hypergraph->_pins_in_part.resize(num_hyperedges * hypergraph._k);
   reindexed_hypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
-  for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
-    reindexed_hypergraph->_connectivity_sets.emplace_back(hypergraph._k);
-  }
+  reindexed_hypergraph->_connectivity_sets.initialize(num_hyperedges, hypergraph._k);
 
   reindexed_hypergraph->hypernode(0).setFirstEntry(num_pins);
   for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
@@ -1777,7 +1771,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       // Cut-Net Splitting is used to optimize connectivity-1 metric.
       for (const HyperedgeID he : hypergraph.edges()) {
         ASSERT(hypergraph.edgeSize(he) > 1, V(he));
-        if (hypergraph.connectivity(he) == 1 && *hypergraph.connectivitySet(he).first != part) {
+        if (hypergraph.connectivity(he) == 1 && *hypergraph.connectivitySet(he).begin() != part) {
           // HE is completely contained in one of the other parts
           continue;
         }
@@ -1806,7 +1800,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
         if (hypergraph.connectivity(he) > 1) {
           continue;
         }
-        if (*hypergraph.connectivitySet(he).first == part) {
+        if (*hypergraph.connectivitySet(he).begin() == part) {
           ASSERT(hypergraph.hyperedge(he).connectivity == 1,
                  V(he) << V(hypergraph.hyperedge(he).connectivity));
           ASSERT(hypergraph.edgeSize(he) > 1, V(he));
@@ -1837,9 +1831,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     subhypergraph->_pins_in_part.resize(num_hyperedges * 2);
     subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
-    for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
-      subhypergraph->_connectivity_sets.emplace_back(2);
-    }
+    subhypergraph->_connectivity_sets.initialize(num_hyperedges, 2);
 
     subhypergraph->hypernode(0).setFirstEntry(num_pins);
     for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {

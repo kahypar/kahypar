@@ -74,11 +74,11 @@ class ConnectivitySet {
     return _size;
   }
 
-  T* begin() const {
+  const T* begin() const {
     return _dense;
   }
 
-  T* end() const {
+  const T* end() const {
     return _dense + _size;
   }
 
