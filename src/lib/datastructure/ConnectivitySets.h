@@ -9,20 +9,21 @@
 #include <memory>
 #include <utility>
 
+#include "lib/core/Mandatory.h"
 #include "lib/macros.h"
 
 namespace datastructure {
-template <typename PartitionID,
-          typename HyperedgeID,
-          typename HypernodeID>
+template <typename PartitionID = Mandatory,
+          typename HyperedgeID = Mandatory,
+          typename HypernodeID = Mandatory>
 class ConnectivitySets final {
  private:
   using Byte = char;
 
   // Internal structure for connectivity sets.
   // Each contains the size of the connectivity set as  the header
-  // and afterwards the _dense and sparse arrays. This memory is allocated
-  // outside the structure.
+  // and afterwards the _dense and sparse arrays and the partition pin counts.
+  // This memory is allocated outside the structure.
   struct ConnectivitySetArena {
     const PartitionID _k;
     PartitionID _size;
@@ -144,6 +145,7 @@ class ConnectivitySets final {
     // Since ConnectivitySet only contains PartitionIDs and these are PODs,
     // we do not need to call destructors of ConnectivitySet get(i)->~ConnectivitySet();
     static_assert(std::is_pod<PartitionID>::value, "PartitionID is not a POD");
+    static_assert(std::is_pod<HypernodeID>::value, "HypernodeID is not a POD");
     free(_connectivity_sets);
   }
 
