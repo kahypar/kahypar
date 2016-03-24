@@ -122,8 +122,8 @@ class GenericHypergraph {
     using WeightType = typename VertexTypeTraits::WeightType;
     using IDType = typename VertexTypeTraits::IDType;
 
-    InternalVertex(IDType begin, IDType size,
-                   WeightType weight) noexcept :
+    InternalVertex(const IDType begin, const IDType size,
+                   const WeightType weight) noexcept :
       _begin(begin),
       _size(size),
       _weight(weight),
@@ -135,18 +135,10 @@ class GenericHypergraph {
       _weight(1),
       _valid(true) { }
 
-    InternalVertex(InternalVertex&& other) noexcept  :
-      _begin(std::forward<IDType>(other._begin)),
-      _size(std::forward<IDType>(other._size)),
-      _weight(std::forward<WeightType>(other._weight)),
-      _valid(std::forward<bool>(other._valid)) { }
+    InternalVertex(const InternalVertex&) = default;
+    InternalVertex& operator= (const InternalVertex&) = default;
 
-    InternalVertex(const InternalVertex& other) noexcept  :
-      _begin(other._begin),
-      _size(other._size),
-      _weight(other._weight),
-      _valid(other._valid) { }
-
+    InternalVertex(InternalVertex&&) = default;
     InternalVertex& operator= (InternalVertex&&) = default;
 
     void disable() noexcept {
