@@ -20,16 +20,17 @@ class ConnectivitySets final {
  private:
   using Byte = char;
 
+ public:
   // Internal structure for connectivity sets.
   // Each contains the size of the connectivity set as  the header
   // and afterwards the _dense and sparse arrays and the partition pin counts.
-  // This memory is allocated outside the structure.
-  struct ConnectivitySetArena {
+  // This memory is allocated outside the structure using a memory arena.
+  struct ConnectivitySet {
     const PartitionID _k;
     PartitionID _size;
     // After _size are the _dense and _sparse arrays.
 
-    explicit ConnectivitySetArena(const PartitionID k) :
+    explicit ConnectivitySet(const PartitionID k) :
       _k(k),
       _size(0) {
       for (PartitionID i = 0; i < 2 * _k; ++i) {
@@ -40,11 +41,11 @@ class ConnectivitySets final {
       }
     }
 
-    ConnectivitySetArena(const ConnectivitySetArena&) = delete;
-    ConnectivitySetArena& operator= (const ConnectivitySetArena&) = delete;
+    ConnectivitySet(const ConnectivitySet&) = delete;
+    ConnectivitySet& operator= (const ConnectivitySet&) = delete;
 
-    ConnectivitySetArena(ConnectivitySetArena&& other) = delete;
-    ConnectivitySetArena& operator= (ConnectivitySetArena&&) = delete;
+    ConnectivitySet(ConnectivitySet&& other) = delete;
+    ConnectivitySet& operator= (ConnectivitySet&&) = delete;
 
     PartitionID connectivity() const {
       return _size;
@@ -127,8 +128,6 @@ class ConnectivitySets final {
     }
   };
 
- public:
-  using ConnectivitySet = ConnectivitySetArena;
 
   explicit ConnectivitySets(const HyperedgeID num_hyperedges, const PartitionID k) :
     _k(k),
