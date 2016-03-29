@@ -13,7 +13,6 @@
 #include "lib/macros.h"
 
 namespace datastructure {
-<<<<<<< HEAD
 template <typename PartitionID = Mandatory,
           typename HyperedgeID = Mandatory,
 class ConnectivitySets final {
