@@ -13,9 +13,9 @@
 #include "lib/macros.h"
 
 namespace datastructure {
+<<<<<<< HEAD
 template <typename PartitionID = Mandatory,
           typename HyperedgeID = Mandatory,
-          typename HypernodeID = Mandatory>
 class ConnectivitySets final {
  private:
   using Byte = char;
@@ -36,9 +36,6 @@ class ConnectivitySets final {
       for (PartitionID i = 0; i < 2 * _k; ++i) {
         new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
       }
-      for (PartitionID i = 0; i < _k; ++i) {
-        new(reinterpret_cast<HypernodeID*>(&_size + 1 + 2 * _k) + i)HypernodeID(0);
-      }
     }
 
     ConnectivitySet(const ConnectivitySet&) = delete;
@@ -47,53 +44,12 @@ class ConnectivitySets final {
     ConnectivitySet(ConnectivitySet&& other) = delete;
     ConnectivitySet& operator= (ConnectivitySet&&) = delete;
 
-    PartitionID connectivity() const {
-      return _size;
-    }
-
     PartitionID* dense() {
       return &_size + 1;
     }
 
     PartitionID* sparse() {
       return &_size + 1 + _k;
-    }
-
-    HypernodeID pinCountIn(const PartitionID part) const {
-      return *(reinterpret_cast<const HypernodeID*>(&_size + 1 + 2 * _k) + part);
-    }
-
-    HypernodeID* pinsIn(const PartitionID part) {
-      return reinterpret_cast<HypernodeID*>(&_size + 1 + 2 * _k) + part;
-    }
-
-    bool increasePinsIn(const PartitionID part) {
-      HypernodeID* num_pins = pinsIn(part);
-      ++(*num_pins);
-      if (*num_pins == 1) {
-        add(part);
-        return true;
-      }
-      return false;
-    }
-
-    bool decreasePinsIn(const PartitionID part) {
-      HypernodeID* num_pins = pinsIn(part);
-      ASSERT(*num_pins > 0, V(part));
-      --(*num_pins);
-      if (*num_pins == 0) {
-        remove(part);
-        return true;
-      }
-      return false;
-    }
-
-    void invalidatePinCounts() {
-      memset(pinsIn(0), std::numeric_limits<HypernodeID>::max(), _k * sizeof(HypernodeID));
-    }
-
-    void resetPinCounts() {
-      memset(pinsIn(0), 0, _k * sizeof(HypernodeID));
     }
 
     const PartitionID* begin()  const {
@@ -189,7 +145,7 @@ class ConnectivitySets final {
   }
 
   Byte sizeOfConnectivitySet() const {
-    return (sizeof(ConnectivitySet) + (2 * _k * sizeof(PartitionID)) + (_k * sizeof(HypernodeID)));
+    return (sizeof(ConnectivitySet) + 2 * _k * sizeof(PartitionID));
   }
 
   PartitionID _k;
