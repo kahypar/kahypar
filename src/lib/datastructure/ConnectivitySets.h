@@ -60,11 +60,11 @@ class ConnectivitySets final {
     }
 
     HypernodeID pinCountIn(const PartitionID part) const {
-      return *(reinterpret_cast<const HypernodeID*>(&_size + 1 + (_k << 1)) + part);
+      return *(reinterpret_cast<const HypernodeID*>(&_size + 1 + 2 * _k) + part);
     }
 
     HypernodeID* pinsIn(const PartitionID part) {
-      return reinterpret_cast<HypernodeID*>(&_size + 1 + (_k << 1)) + part;
+      return reinterpret_cast<HypernodeID*>(&_size + 1 + 2 * _k) + part;
     }
 
     bool increasePinsIn(const PartitionID part) {
