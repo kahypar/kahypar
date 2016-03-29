@@ -3,8 +3,8 @@
  **************************************************************************/
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
@@ -38,14 +38,14 @@ int main(int argc, char* argv[]) {
                          index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
-  std::map<HyperedgeID,HyperedgeID> node_degrees;
-  std::map<HypernodeID,HypernodeID> edge_sizes;
+  std::map<HyperedgeID, HyperedgeID> node_degrees;
+  std::map<HypernodeID, HypernodeID> edge_sizes;
 
-  for (const auto hn : hypergraph.nodes())  {
+  for (const auto hn : hypergraph.nodes()) {
     ++node_degrees[hypergraph.nodeDegree(hn)];
   }
 
-  for (const auto he : hypergraph.edges())  {
+  for (const auto he : hypergraph.edges()) {
     ++edge_sizes[hypergraph.edgeSize(he)];
   }
 
@@ -55,13 +55,13 @@ int main(int argc, char* argv[]) {
   std::ofstream out_stream_hns(hn_output.c_str(), std::ofstream::out);
   std::ofstream out_stream_hes(he_output.c_str(), std::ofstream::out);
 
-  out_stream_hns << "\"degree\"" << "," << "\"count\"" <<  std::endl;
-  for (const auto deg : node_degrees)  {
+  out_stream_hns << "\"degree\"" << "," << "\"count\"" << std::endl;
+  for (const auto deg : node_degrees) {
     out_stream_hns << deg.first << ", " << deg.second << std::endl;
   }
 
   out_stream_hes << "\"edgesize\"" << "," << "\"count\"" << std::endl;
-  for (const auto size : edge_sizes)  {
+  for (const auto size : edge_sizes) {
     out_stream_hes << size.first << ", " << size.second << std::endl;
   }
 

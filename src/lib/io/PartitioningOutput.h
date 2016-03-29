@@ -51,10 +51,9 @@ inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec
       third_quartile = vec[MU];
     }
     return std::make_pair(first_quartile, third_quartile);
-  } else{
+  } else {
     return std::make_pair(0.0, 0.0);
   }
-
 }
 
 template <typename T>
