@@ -178,6 +178,7 @@ class KwayGainCache {
         entryOf(hn, part) = delta;
       }
     }
+    _deltas.clear();
   }
 
   void resetDelta() {
