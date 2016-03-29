@@ -14,7 +14,7 @@
 
 namespace datastructure {
 template <typename PartitionID = Mandatory,
-          typename HyperedgeID = Mandatory,
+          typename HyperedgeID = Mandatory>
 class ConnectivitySets final {
  private:
   using Byte = char;
@@ -99,7 +99,6 @@ class ConnectivitySets final {
     // Since ConnectivitySet only contains PartitionIDs and these are PODs,
     // we do not need to call destructors of ConnectivitySet get(i)->~ConnectivitySet();
     static_assert(std::is_pod<PartitionID>::value, "PartitionID is not a POD");
-    static_assert(std::is_pod<HypernodeID>::value, "HypernodeID is not a POD");
     free(_connectivity_sets);
   }
 
