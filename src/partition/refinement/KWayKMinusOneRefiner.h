@@ -367,9 +367,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
             _gain_cache.updateEntryAndDelta(pin, k, he_weight);
           }
         } else {
-          if (_pq_contains[pin * _config.partition.k + k]) {
-            updatePin(pin, k, he, he_weight, max_allowed_part_weight);
-          }
+          updatePin(pin, k, he, he_weight, max_allowed_part_weight);
         }
       }
     }
@@ -380,9 +378,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
           _gain_cache.updateEntryAndDelta(pin, from_part, -he_weight);
         }
       } else {
-        if (_pq_contains[pin * _config.partition.k + from_part]) {
-          updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
-        }
+        updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
       }
     }
 
@@ -392,9 +388,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
           _gain_cache.updateEntryAndDelta(pin, to_part, he_weight);
         }
       } else {
-        if (_pq_contains[pin * _config.partition.k + to_part]) {
-          updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
-        }
+        updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
       }
     }
 
@@ -405,9 +399,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
             _gain_cache.updateEntryAndDelta(pin, k, -he_weight);
           }
         } else {
-          if (_pq_contains[pin * _config.partition.k + k]) {
-            updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
-          }
+          updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
         }
       }
     }
@@ -760,8 +752,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
           << " from gain " << _pq.key(pin, part) << " to " << _pq.key(pin, part) + delta << " (to_part="
           << part << ", ExpectedGain=" << gainInducedByHypergraph(pin, part) << ")");
       _pq.updateKeyBy(pin, part, delta);
-    }
-    if (_already_processed_part.get(pin) != part) {
       _gain_cache.updateEntryAndDelta(pin, part, delta);
     }
   }
