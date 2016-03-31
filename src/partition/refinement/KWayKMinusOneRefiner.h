@@ -363,8 +363,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     if (pin_count_source_part_before_move == 2 && source_part == from_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
         if (update_cache_only) {
-          if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) {
-            _gain_cache.updateEntryAndDelta(pin, k, he_weight);
+          if (_already_processed_part.get(pin) != k) {
+            _gain_cache.updateEntryIfItExists(pin, k, he_weight);
           }
         } else {
           updatePin(pin, k, he, he_weight, max_allowed_part_weight);
@@ -374,9 +374,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     if (pin_count_source_part_before_move == 1) {
       if (update_cache_only) {
-        if (_gain_cache.entryExists(pin, from_part)) {
-          _gain_cache.updateEntryAndDelta(pin, from_part, -he_weight);
-        }
+        _gain_cache.updateEntryIfItExists(pin, from_part, -he_weight);
       } else {
         updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
       }
@@ -384,8 +382,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     if (pin_count_target_part_after_move == 1) {
       if (update_cache_only) {
-        if (_gain_cache.entryExists(pin, to_part) && _already_processed_part.get(pin) != to_part) {
-          _gain_cache.updateEntryAndDelta(pin, to_part, he_weight);
+        if (_already_processed_part.get(pin) != to_part) {
+          _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
         }
       } else {
         updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
@@ -395,8 +393,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     if (pin_count_target_part_after_move == 2 && source_part == to_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
         if (update_cache_only) {
-          if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) {
-            _gain_cache.updateEntryAndDelta(pin, k, -he_weight);
+          if (_already_processed_part.get(pin) != k) {
+            _gain_cache.updateEntryIfItExists(pin, k, -he_weight);
           }
         } else {
           updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
@@ -560,18 +558,18 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
       if (pins_in_source_part_after == 0 && _hg.pinCountInPart(he, to_part) != 1) {
         for (PartitionID part = 0; part < _config.partition.k; ++part) {
-          if (part != from_part && part != to_part && _gain_cache.entryExists(moved_hn, part)) {
+          if (part != from_part && part != to_part) {
             // LOG(V(he) << " "  << V(part) << "---> " << -_hg.edgeWeight(he));
-            _gain_cache.updateEntryAndDelta(moved_hn, part, -_hg.edgeWeight(he));
+            _gain_cache.updateEntryIfItExists(moved_hn, part, -_hg.edgeWeight(he));
           }
         }
       }
 
       if (pins_in_source_part_after != 0 && _hg.pinCountInPart(he, to_part) == 1) {
         for (PartitionID part = 0; part < _config.partition.k; ++part) {
-          if (part != from_part && part != to_part && _gain_cache.entryExists(moved_hn, part)) {
+          if (part != from_part && part != to_part) {
             // LOG(V(he) << " " << V(part) << "---> " << _hg.edgeWeight(he));
-            _gain_cache.updateEntryAndDelta(moved_hn, part, _hg.edgeWeight(he));
+            _gain_cache.updateEntryIfItExists(moved_hn, part, _hg.edgeWeight(he));
           }
         }
       }
@@ -752,7 +750,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
           << " from gain " << _pq.key(pin, part) << " to " << _pq.key(pin, part) + delta << " (to_part="
           << part << ", ExpectedGain=" << gainInducedByHypergraph(pin, part) << ")");
       _pq.updateKeyBy(pin, part, delta);
-      _gain_cache.updateEntryAndDelta(pin, part, delta);
+      _gain_cache.updateExistingEntry(pin, part, delta);
     }
   }
 
