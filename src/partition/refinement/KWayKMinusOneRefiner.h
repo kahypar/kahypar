@@ -362,10 +362,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     PartitionID source_part = _hg.partID(pin);
     if (pin_count_source_part_before_move == 2 && source_part == from_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (update_cache_only) {
-          if (_already_processed_part.get(pin) != k) {
-            _gain_cache.updateEntryIfItExists(pin, k, he_weight);
-          }
+        if (update_cache_only & _already_processed_part.get(pin) != k) {
+          _gain_cache.updateEntryIfItExists(pin, k, he_weight);
         } else {
           updatePin(pin, k, he, he_weight, max_allowed_part_weight);
         }
@@ -381,10 +379,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
 
     if (pin_count_target_part_after_move == 1) {
-      if (update_cache_only) {
-        if (_already_processed_part.get(pin) != to_part) {
-          _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
-        }
+      if (update_cache_only && _already_processed_part.get(pin) != to_part) {
+        _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
       } else {
         updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
       }
@@ -392,10 +388,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     if (pin_count_target_part_after_move == 2 && source_part == to_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (update_cache_only) {
-          if (_already_processed_part.get(pin) != k) {
-            _gain_cache.updateEntryIfItExists(pin, k, -he_weight);
-          }
+        if (update_cache_only && _already_processed_part.get(pin) != k) {
+          _gain_cache.updateEntryIfItExists(pin, k, -he_weight);
         } else {
           updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
         }
