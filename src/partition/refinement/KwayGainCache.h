@@ -12,11 +12,16 @@
 #include "lib/core/Mandatory.h"
 
 namespace partition {
+
+static HypernodeID hn_to_debug2 = 5589;
+
 template <typename HypernodeID = Mandatory,
           typename PartitionID = Mandatory,
           typename Gain = Mandatory>
 class KwayGainCache {
  private:
+  static const bool debug = false;
+
   using Byte = char;
 
   struct RollbackElement {
@@ -66,8 +71,11 @@ class KwayGainCache {
       _valid = true;
     }
 
-    void setInvalid() {
+    void setInvalid(PartitionID k) {
       _valid = false;
+      for (PartitionID i = 0; i < k; ++i) {
+        operator[](i) = kNotCached;
+      }
     }
 
     bool valid() const {
@@ -108,13 +116,14 @@ class KwayGainCache {
 
   void appendDelta(const HypernodeID hn, const PartitionID part, const Gain value) {
     ASSERT(part < _k, V(part));
-    ASSERT(entryExists(hn, part), V(hn) << V(part));
-    _deltas.emplace_back(hn, part, -value);
+    //ASSERT(entryExists(hn, part), V(hn) << V(part));
+    _deltas.emplace_back(hn, part, value);
   }
 
   void removeEntry(const HypernodeID hn, const PartitionID part) {
     ASSERT(part < _k, V(part));
-    ASSERT(entryExists(hn, part), V(hn) << V(part));
+    //ASSERT(entryExists(hn, part), V(hn) << V(part));
+    DBG(debug && (hn == hn_to_debug2), "removeEntry(" << hn << "," << part << ")");
     entryOf(hn, part) = kNotCached;
   }
 
@@ -125,8 +134,11 @@ class KwayGainCache {
 
   void removeEntryDueToConnectivityDecrease(const HypernodeID hn, const PartitionID part) {
     ASSERT(part < _k, V(part));
-    ASSERT(entryExists(hn, part), V(hn) << V(part));
+    //////////ASSERT(entryExists(hn, part), V(hn) << V(part));
     _deltas.emplace_back(hn, part, entryOf(hn, part));
+    DBG(debug && (hn == hn_to_debug2),"removeEntryDueToConnectivityDecrease for " << hn
+        << "and part " << part << " previous cache entry =" << entryOf(hn, part)
+        << " now= " << kNotCached);
     entryOf(hn, part) = kNotCached;
   }
 
@@ -134,16 +146,33 @@ class KwayGainCache {
     ASSERT(part < _k, V(part));
     ASSERT(!entryExists(hn, part), V(hn) << V(part));
     entryOf(hn, part) = gain;
+    DBG(debug && (hn == hn_to_debug2),"addEntryDueToConnectivityIncrease for " << hn
+        << "and part " << part << " new cache entry =" << entryOf(hn, part));
+    DBG(debug && (hn == hn_to_debug2),"delta emplace = "<< kNotCached - gain);
     _deltas.emplace_back(hn, part, kNotCached - gain);
   }
+
+  void updateFromAndToPartOfMovedHN(const HypernodeID moved_hn, const PartitionID from_part,
+                                    const PartitionID to_part,
+                                    const bool moved_hn_remains_conntected_to_from_part) {
+    if (moved_hn_remains_conntected_to_from_part) {
+      setEntryAndDelta(moved_hn, from_part, -entryOf(moved_hn, to_part));
+    } else {
+      removeEntryDueToConnectivityDecrease(moved_hn, from_part);
+    }
+    removeEntryDueToConnectivityDecrease(moved_hn, to_part);
+  }
+
 
   void setValid(const HypernodeID hn) {
     cacheElement(hn)->setValid();
   }
 
   void setInvalid(const HypernodeID hn) {
-    cacheElement(hn)->setInvalid();
+    DBG(debug && (hn == hn_to_debug2),"setInvalid(" << hn  << ")");
+    cacheElement(hn)->setInvalid(_k);
   }
+
 
   bool valid(const HypernodeID hn) const {
     return cacheElement(hn)->valid();
@@ -151,18 +180,29 @@ class KwayGainCache {
 
   void setEntry(const HypernodeID hn, const PartitionID part, const Gain value) {
     ASSERT(part < _k, V(part));
+    DBG(debug && (hn == hn_to_debug2),"setEntry(" << hn << "," << part << "," << value << ")");
+    entryOf(hn, part) = value;
+  }
+
+  void setEntryAndDelta(const HypernodeID hn, const PartitionID part, const Gain value) {
+    ASSERT(part < _k, V(part));
+    //ASSERT(entryOf(hn, part) != kNotCached, V(hn) << V(part));
+    DBG(debug && (hn == hn_to_debug2),"setEntryAndDelta(" << hn << "," << part << "," << value << ")");
+    _deltas.emplace_back(hn, part, entryOf(hn, part) - value);
     entryOf(hn, part) = value;
   }
 
   void updateEntry(const HypernodeID hn, const PartitionID part, const Gain value) {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
+    DBG(debug && (hn == hn_to_debug2),"updateEntry(" << hn << ", " << part << "," << value <<")");
     entryOf(hn, part) += value;
   }
 
   void updateEntryAndDelta(const HypernodeID hn, const PartitionID part, const Gain delta) {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
+    DBG(debug && (hn == hn_to_debug2),"updateEntryAndDelta(" << hn << ", " << part << "," << delta <<")");
     entryOf(hn, part) += delta;
     _deltas.emplace_back(hn, part, -delta);
   }
@@ -173,8 +213,12 @@ class KwayGainCache {
       const PartitionID part = rit->part;
       const Gain delta = rit->delta;
       if (entryExists(hn, part)) {
+          DBG(debug && (hn == hn_to_debug2), "rollback: " << "G[" <<hn <<"," << part << "]=" <<
+              entryOf(hn, part) << "+" << delta << "=" << (entryOf(hn, part)+delta));
         entryOf(hn, part) += delta;
       } else {
+        DBG(debug && (hn == hn_to_debug2), "rollback: " << "set G[" <<hn <<"," << part << "]=" <<
+            delta);
         entryOf(hn, part) = delta;
       }
     }
