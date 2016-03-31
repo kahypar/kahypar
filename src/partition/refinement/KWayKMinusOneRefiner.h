@@ -354,7 +354,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   template <bool update_cache_only = true>
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
-                        const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
+                        const PartitionID to_part, const HyperedgeID he,
                         const HyperedgeWeight he_weight,
                         const HypernodeID pin_count_source_part_before_move,
                         const HypernodeID pin_count_target_part_after_move,
@@ -402,6 +402,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                   const PartitionID to_part, const HyperedgeID he,
                                   const bool move_decreased_connectivity,
                                   const bool move_increased_connectivity) noexcept {
+    ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
       // LOG("removing cache entry for HN " << pin << " part=" << from_part);
@@ -479,7 +480,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_decreased_connectivity = pin_count_source_part_after_move == 0;
     const bool move_increased_connectivity = pin_count_target_part_after_move == 1;
 
-    const HypernodeID he_size = _hg.edgeSize(he);
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
     for (const HypernodeID pin : _hg.pins(he)) {
@@ -497,7 +497,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                move_increased_connectivity,
                                max_allowed_part_weight);
             // false indicates that we use this method to also update the PQ.
-            deltaGainUpdates<false>(pin, from_part, to_part, he, he_size, he_weight,
+            deltaGainUpdates<false>(pin, from_part, to_part, he, he_weight,
                                     pin_count_source_part_before_move,
                                     pin_count_target_part_after_move,
                                     max_allowed_part_weight);
@@ -510,7 +510,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                    move_decreased_connectivity,
                                    move_increased_connectivity);
         // true indicates that we only want to update cache entries
-        deltaGainUpdates<true>(pin, from_part, to_part, he, he_size, he_weight,
+        deltaGainUpdates<true>(pin, from_part, to_part, he, he_weight,
                                pin_count_source_part_before_move,
                                pin_count_target_part_after_move,
                                max_allowed_part_weight);
