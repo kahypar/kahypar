@@ -415,6 +415,25 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
+
+  void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
+                                  const PartitionID to_part, const HyperedgeID he,
+                                  const bool move_decreased_connectivity,
+                                  const bool move_increased_connectivity) noexcept {
+    if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
+        !hypernodeIsConnectedToPart(pin, from_part)) {
+      //LOG("removing cache entry for HN " << pin << " part=" << from_part);
+      _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
+    }
+    if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
+      ASSERT(_hg.connectivity(he) >= 2, V(_hg.connectivity(he)));
+      //LOG("adding cache entry for HN " << pin << " part=" << to_part << " gain=");
+      _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part,  gainInducedByHypergraph(pin, to_part));
+      _already_processed_part.set(pin, to_part);
+    }
+  }
+
+
   void connectivityUpdate(const HypernodeID pin, const PartitionID from_part,
                           const PartitionID to_part, const HyperedgeID he,
                           const bool move_decreased_connectivity,
@@ -515,25 +534,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                               max_allowed_part_weight);
       }
 
-    }
-  }
-
-  void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
-                                  const PartitionID to_part, const HyperedgeID he,
-                                  const bool move_decreased_connectivity,
-                                  const bool move_increased_connectivity) noexcept {
-    if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
-        !hypernodeIsConnectedToPart(pin, from_part)) {
-      //LOG("removing cache entry for HN " << pin << " part=" << from_part);
-      _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
-    }
-    if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
-      ASSERT(_hg.connectivity(he) >= 2, V(_hg.connectivity(he)));
-      //LOG("adding cache entry for HN " << pin << " part=" << to_part << " gain=");
-      const Gain gain = gainInducedByHypergraph(pin, to_part);
-      //LOGVAR(gain);
-      _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part, gain);
-      _already_processed_part.set(pin, to_part);
     }
   }
 
