@@ -229,7 +229,7 @@ class KwayGainCache {
     return const_cast<CacheElement*>(static_cast<const KwayGainCache&>(*this).cacheElement(he));
   }
 
-  Byte sizeOfCacheElement() const {
+  size_t sizeOfCacheElement() const {
     return sizeof(CacheElement) + _k * sizeof(Gain);
   }
 
