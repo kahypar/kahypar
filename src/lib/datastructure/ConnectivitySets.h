@@ -142,7 +142,7 @@ class ConnectivitySets final {
     return const_cast<ConnectivitySet*>(static_cast<const ConnectivitySets&>(*this).get(he));
   }
 
-  Byte sizeOfConnectivitySet() const {
+  size_t sizeOfConnectivitySet() const {
     return (sizeof(ConnectivitySet) + 2 * _k * sizeof(PartitionID));
   }
 
