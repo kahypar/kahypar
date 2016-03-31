@@ -353,6 +353,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       } (), "Error");
   }
 
+  template<bool update_cache_only = true>
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
                         const HyperedgeWeight he_weight,
@@ -362,28 +363,53 @@ class KWayKMinusOneRefiner final : public IRefiner,
     PartitionID source_part = _hg.partID(pin);
     if (pin_count_source_part_before_move == 2 && source_part == from_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (_pq_contains[pin * _config.partition.k + k]) {
+        if (update_cache_only) {
+          if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) { ///////// braucht man alreadyprocessd check?
+          _gain_cache.updateEntryAndDelta(pin, k, he_weight);
+          }
+        } else {
+          if (_pq_contains[pin * _config.partition.k + k]) {
           updatePin(pin, k, he, he_weight, max_allowed_part_weight);
+          }
         }
       }
     }
 
     if (pin_count_source_part_before_move == 1) {
-      if (_pq_contains[pin * _config.partition.k + from_part]) {
-        updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
+      if (update_cache_only) {
+        if (_gain_cache.entryExists(pin, from_part)) {
+          _gain_cache.updateEntryAndDelta(pin, from_part, -he_weight);
+        }
+      } else {
+        if (_pq_contains[pin * _config.partition.k + from_part]) {
+          updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
+        }
       }
     }
 
     if (pin_count_target_part_after_move == 1) {
-      if (_pq_contains[pin * _config.partition.k + to_part]) {
-        updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+      if (update_cache_only) {
+          if (_gain_cache.entryExists(pin, to_part) && _already_processed_part.get(pin) != to_part) {
+            _gain_cache.updateEntryAndDelta(pin, to_part, he_weight);
+          }
+      } else {
+        if (_pq_contains[pin * _config.partition.k + to_part]) {
+          updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+        }
       }
+
     }
 
     if (pin_count_target_part_after_move == 2 && source_part == to_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (_pq_contains[pin * _config.partition.k + k]) {
-          updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
+        if (update_cache_only) {
+          if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) {
+          _gain_cache.updateEntryAndDelta(pin, k, -he_weight);
+          }
+        } else {
+          if (_pq_contains[pin * _config.partition.k + k]) {
+            updatePin(pin, k, he, -he_weight, max_allowed_part_weight);
+          }
         }
       }
     }
@@ -469,7 +495,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                move_decreased_connectivity,
                                move_increased_connectivity,
                                max_allowed_part_weight);
-            deltaGainUpdates(pin, from_part, to_part, he, he_size, he_weight,
+            // false indicates that we use this method to also update the PQ.
+            deltaGainUpdates<false>(pin, from_part, to_part, he, he_size, he_weight,
                              pin_count_source_part_before_move,
                              pin_count_target_part_after_move,
                              max_allowed_part_weight);
@@ -481,10 +508,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
         connectivityUpdateForCache(pin, from_part, to_part, he,
                                    move_decreased_connectivity,
                                    move_increased_connectivity);
-        deltaGainUpdateForCache(pin, from_part, to_part, he, he_size, he_weight,
-                                pin_count_source_part_before_move,
-                                pin_count_target_part_after_move,
-                                max_allowed_part_weight);
+        // true indicates that we only want to update cache entries
+        deltaGainUpdates<true>(pin, from_part, to_part, he, he_size, he_weight,
+                              pin_count_source_part_before_move,
+                              pin_count_target_part_after_move,
+                              max_allowed_part_weight);
       }
 
     }
@@ -510,42 +538,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   }
 
 
-  void deltaGainUpdateForCache(const HypernodeID pin, const PartitionID from_part,
-                               const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
-                               const HyperedgeWeight he_weight,
-                               const HypernodeID pin_count_source_part_before_move,
-                               const HypernodeID pin_count_target_part_after_move,
-                               const HypernodeWeight max_allowed_part_weight) noexcept {
-    const PartitionID source_part = _hg.partID(pin);
-    if (pin_count_source_part_before_move == 2 && source_part == from_part) {
-      for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) {
-          _gain_cache.updateEntryAndDelta(pin, k, he_weight);
-        }
-      }
-    }
 
-    if (pin_count_source_part_before_move == 1) {
-      if (_gain_cache.entryExists(pin, from_part)) {
-        _gain_cache.updateEntryAndDelta(pin, from_part, -he_weight);
-      }
-    }
-
-    if (pin_count_target_part_after_move == 1) {
-      if (_gain_cache.entryExists(pin, to_part) && _already_processed_part.get(pin) != to_part) {
-        _gain_cache.updateEntryAndDelta(pin, to_part, he_weight);
-      }
-    }
-
-    if (pin_count_target_part_after_move == 2 && source_part == to_part) {
-      for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (_gain_cache.entryExists(pin, k) && _already_processed_part.get(pin) != k) {
-          _gain_cache.updateEntryAndDelta(pin, k, -he_weight);
-        }
-
-      }
-    }
-  }
 
 
   Gain updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
