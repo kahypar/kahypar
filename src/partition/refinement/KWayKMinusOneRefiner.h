@@ -58,7 +58,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_kminusone_fm_stopping_crit = false;
   static const bool dbg_refinement_kway_kminusone_fm_gain_update = false;
   static const bool dbg_refinement_kway_kminusone_fm_gain_comp = false;
-  static const bool dbg_refinement_kway_kminusone_locked_hes = false;
   static const bool dbg_refinement_kway_kminusone_infeasible_moves = false;
   static const bool dbg_refinement_kway_kminusone_gain_caching = false;
   static const HypernodeID hn_to_debug = 5589;
@@ -74,9 +73,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     PartitionID to_part;
   };
 
-  static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
-  static const PartitionID kFree = -1;
-
  public:
   KWayKMinusOneRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -86,7 +82,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
-    _locked_hes(_hg.initialNumEdges(), kFree),
     _pq(_config.partition.k),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() {
@@ -137,7 +132,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _pq.clear();
     _hg.resetHypernodeState();
     _pq_contains.resetAllBitsToFalse();
-    _locked_hes.resetUsedEntries();
 
     Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
@@ -586,7 +580,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                     LOG("actual key=" << _pq.key(pin, part));
                     LOG("from_part=" << _hg.partID(pin));
                     LOG("to part = " << part);
-                    LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
                     return false;
                   }
                   if (_hg.partWeight(part) < max_allowed_part_weight &&
@@ -613,7 +606,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                     LOG("from_part=" << _hg.partID(pin));
                     LOG("to_part=" << part);
                     LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
-                    LOG("_locked_hes[" << he << "]=" << _locked_hes.get(he));
                     return false;
                   }
                   if (_hg.marked(pin)) {
@@ -900,14 +892,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // delta-gain updates for this part.
   FastResetVector<PartitionID> _already_processed_part;
 
-  FastResetVector<PartitionID> _locked_hes;
   KWayRefinementPQ _pq;
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 };
-
-template <class T, bool b, class U>
-const PartitionID KWayKMinusOneRefiner<T, b, U>::kFree;
 #pragma GCC diagnostic pop
 }  // namespace partition
 #endif  // SRC_PARTITION_REFINEMENT_KWAYKMINUSONEREFINER_H_
