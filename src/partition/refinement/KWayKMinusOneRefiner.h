@@ -359,10 +359,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
                         const HypernodeID pin_count_source_part_before_move,
                         const HypernodeID pin_count_target_part_after_move,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
-    PartitionID source_part = _hg.partID(pin);
+    const PartitionID source_part = _hg.partID(pin);
     if (pin_count_source_part_before_move == 2 && source_part == from_part) {
       for (PartitionID k = 0; k < _config.partition.k; ++k) {
-        if (update_cache_only & _already_processed_part.get(pin) != k) {
+        if (update_cache_only && _already_processed_part.get(pin) != k) {
           _gain_cache.updateEntryIfItExists(pin, k, he_weight);
         } else {
           updatePin(pin, k, he, he_weight, max_allowed_part_weight);
