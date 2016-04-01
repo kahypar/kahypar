@@ -33,8 +33,6 @@ using core::Empty;
 using core::Int2Type;
 using partition::RefinementAlgorithm;
 
-struct UncontractionGainChanges;
-
 namespace datastructure {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator, Iterator>& x) {
