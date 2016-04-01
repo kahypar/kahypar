@@ -607,7 +607,8 @@ class GenericHypergraph {
   }
 
   template <typename GainChanges>
-  void uncontract(const Memento& memento, GainChanges& changes, Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) noexcept {
+  void uncontract(const Memento& memento, GainChanges& changes,
+                  Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) noexcept {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
     ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
@@ -718,15 +719,21 @@ class GenericHypergraph {
     }
 
     ASSERT(hypernode(memento.u).num_incident_cut_hes == numIncidentCutHEs(memento.u),
-           V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes) << V(numIncidentCutHEs(memento.u)));
+           V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes)
+           << V(numIncidentCutHEs(memento.u)));
     ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
-           V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
+           V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes)
+           << V(numIncidentCutHEs(memento.v)));
   }
 
 
   template <typename GainChanges>
-  void uncontract(const Memento& memento, GainChanges& changes, Int2Type<static_cast<int>(RefinementAlgorithm::kway_fm_km1)>) noexcept {
+  void uncontract(const Memento& memento, GainChanges& changes,
+                  Int2Type<static_cast<int>(RefinementAlgorithm::kway_fm_km1)>) noexcept {
     LOG("yeah");
+    // TODO(schlag): Maybe we can extract the handling of the 3 cases in which the gain needs to be
+    // adapted into policies. Then we could use one uncontract for the tag versions
+    // and only change the policy.
     exit(0);
   }
 
