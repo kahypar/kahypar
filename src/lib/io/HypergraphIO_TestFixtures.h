@@ -219,6 +219,7 @@ class APartitionOfAHypergraph : public Test {
     _config.partition.rb_upper_k = _config.partition.k - 1;
     _config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     _config.partition.total_graph_weight = 7;
+    _config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
     _config.coarsening.contraction_limit = 2;
     _config.coarsening.max_allowed_node_weight = 5;
     _config.partition.graph_filename = "APartitionOfAHypergraphTest";

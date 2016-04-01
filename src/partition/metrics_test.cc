@@ -67,6 +67,7 @@ class APartitionedHypergraph : public Test {
     coarsener(new FirstWinsCoarsener(hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(hypergraph, config)) {
     config.partition.k = 2;
+    config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
     config.coarsening.contraction_limit = 2;
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;

@@ -17,15 +17,21 @@
 #include <utility>
 #include <vector>
 
+#include "partition/ConfigurationEnumClasses.h"
+
 #include "gtest/gtest_prod.h"
 #include "lib/core/Empty.h"
+#include "lib/core/Int2Type.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/ConnectivitySets.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 
+
 using core::Empty;
+using core::Int2Type;
+using partition::RefinementAlgorithm;
 
 struct UncontractionGainChanges;
 
@@ -601,7 +607,7 @@ class GenericHypergraph {
   }
 
   template <typename GainChanges>
-  void uncontract(const Memento& memento, GainChanges& changes) noexcept {
+  void uncontract(const Memento& memento, GainChanges& changes, Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) noexcept {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
     ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
@@ -715,6 +721,13 @@ class GenericHypergraph {
            V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes) << V(numIncidentCutHEs(memento.u)));
     ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
            V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
+  }
+
+
+  template <typename GainChanges>
+  void uncontract(const Memento& memento, GainChanges& changes, Int2Type<static_cast<int>(RefinementAlgorithm::kway_fm_km1)>) noexcept {
+    LOG("yeah");
+    exit(0);
   }
 
   void uncontract(const Memento& memento) noexcept {

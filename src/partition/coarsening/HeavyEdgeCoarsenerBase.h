@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
+#include "lib/core/Int2Type.h"
 #include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
@@ -21,6 +21,7 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
+using core::Int2Type;
 using datastructure::NoDataBinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -135,7 +136,19 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       }
 
       if (refiner.supportsDeltaGain()) {
-        _hg.uncontract(_history.back().contraction_memento, changes);
+        switch (_config.partition.refinement_algorithm) {
+          case RefinementAlgorithm::twoway_fm:
+            _hg.uncontract(_history.back().contraction_memento, changes,
+                           Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+            break;
+          case RefinementAlgorithm::kway_fm_km1:
+            _hg.uncontract(_history.back().contraction_memento, changes,
+                           Int2Type<static_cast<int>(RefinementAlgorithm::kway_fm_km1)>());
+            break;
+          default:
+            LOG("Uncontract with delta-gain support not implemented for refinement algorithm");
+            exit(-1);
+        }
         performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       } else {
         _hg.uncontract(_history.back().contraction_memento);

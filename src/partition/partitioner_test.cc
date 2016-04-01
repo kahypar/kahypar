@@ -37,6 +37,7 @@ class APartitioner : public Test {
     coarsener(new FirstWinsCoarsener(*hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(*hypergraph, config)) {
     config.coarsening.contraction_limit = 2;
+    config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     config.partition.graph_filename = "PartitionerTest.hgr";
