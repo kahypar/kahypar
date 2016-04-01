@@ -18,22 +18,17 @@
 // #define GATHER_STATS
 
 namespace defs {
-using hypernode_id_t = std::uint32_t;
-using hyperedge_id_t = std::uint32_t;
-using hypernode_weight_t = std::uint32_t;
-using hyperedge_weight_t = std::int32_t;
-using partition_id_t = std::int32_t;
+using HypernodeID = std::uint32_t;
+using HyperedgeID = std::uint32_t;
+using HypernodeWeight = std::uint32_t;
+using HyperedgeWeight = std::int32_t;
+using PartitionID = std::int32_t;
 
-using Hypergraph = datastructure::GenericHypergraph<hypernode_id_t,
-                                                    hyperedge_id_t, hypernode_weight_t,
-                                                    hyperedge_weight_t, partition_id_t>;
+using Hypergraph = datastructure::GenericHypergraph<HypernodeID,
+                                                    HyperedgeID, HypernodeWeight,
+                                                    HyperedgeWeight, PartitionID>;
 
 using RatingType = double;
-using HypernodeID = Hypergraph::HypernodeID;
-using HyperedgeID = Hypergraph::HyperedgeID;
-using PartitionID = Hypergraph::PartitionID;
-using HypernodeWeight = Hypergraph::HypernodeWeight;
-using HyperedgeWeight = Hypergraph::HyperedgeWeight;
 using HypergraphType = Hypergraph::Type;
 using HyperedgeIndexVector = Hypergraph::HyperedgeIndexVector;
 using HyperedgeVector = Hypergraph::HyperedgeVector;
