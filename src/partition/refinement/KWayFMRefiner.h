@@ -119,7 +119,7 @@ class KWayFMRefiner final : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
+                  const UncontractionGainChanges& UNUSED(changes),
                   Metrics& best_metrics) noexcept override final {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "

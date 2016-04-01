@@ -116,40 +116,49 @@ class CoarsenerBase {
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           Metrics& current_metrics,
-                          const std::pair<HyperedgeWeight, HyperedgeWeight>& changes) noexcept {
-    HyperedgeWeight old_cut = current_metrics.cut;
-    HyperedgeWeight old_km1 = current_metrics.km1;
-    int iteration = 0;
-    bool improvement_found = false;
+                          const UncontractionGainChanges& changes) noexcept {
+    ASSERT(changes.representative.size() != 0, "0");
+    ASSERT(changes.contraction_partner.size() != 0, "0");
 
-    std::pair<HyperedgeWeight, HyperedgeWeight> current_changes = changes;
-    do {
-      old_cut = current_metrics.cut;
-      old_km1 = current_metrics.km1;
-      improvement_found = refiner.refine(refinement_nodes,
-                                         { _config.partition.max_part_weights[0]
-                                           + _max_hn_weights.back().max_weight,
-                                           _config.partition.max_part_weights[1]
-                                           + _max_hn_weights.back().max_weight },
-                                         current_changes,
-                                         current_metrics);
+    bool improvement_found = performLocalSearchIteration(refiner, refinement_nodes, changes,
+                                                         current_metrics);
 
-      // uncontraction changes should only be applied once!
-      current_changes.first = 0;
-      current_changes.second = 0;
+    UncontractionGainChanges no_changes;
+    no_changes.representative.push_back(0);
+    no_changes.contraction_partner.push_back(0);
 
-      ASSERT(_config.partition.objective != Objective::cut || current_metrics.cut <= old_cut,
-             V(current_metrics.cut) << V(old_cut));
-      ASSERT(_config.partition.objective != Objective::km1 ||
-             current_metrics.km1 <= old_km1,
-             V(current_metrics.km1) << V(old_km1));
-      ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
-      DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
-          "Iteration " << iteration << ": " << old_cut << "-->" << current_metrics.cut);
-      DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
-          "Iteration " << iteration << ": " << old_km1 << "-->" << current_metrics.km1);
+    int iteration = 1;
+    while ((iteration < refiner.numRepetitions()) && improvement_found) {
+      improvement_found = performLocalSearchIteration(refiner, refinement_nodes, no_changes,
+                                                      current_metrics);
       ++iteration;
-    } while ((iteration < refiner.numRepetitions()) && improvement_found);
+    }
+  }
+
+  bool performLocalSearchIteration(IRefiner& refiner,
+                                   std::vector<HypernodeID>& refinement_nodes,
+                                   const UncontractionGainChanges& current_changes,
+                                   Metrics& current_metrics) {
+    const HyperedgeWeight old_cut = current_metrics.cut;
+    const HyperedgeWeight old_km1 = current_metrics.km1;
+    bool improvement_found = refiner.refine(refinement_nodes,
+                                            { _config.partition.max_part_weights[0]
+                                              + _max_hn_weights.back().max_weight,
+                                              _config.partition.max_part_weights[1]
+                                              + _max_hn_weights.back().max_weight },
+                                            current_changes,
+                                            current_metrics);
+    ASSERT(_config.partition.objective != Objective::cut || current_metrics.cut <= old_cut,
+           V(current_metrics.cut) << V(old_cut));
+    ASSERT(_config.partition.objective != Objective::km1 ||
+           current_metrics.km1 <= old_km1,
+           V(current_metrics.km1) << V(old_km1));
+    ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
+    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
+        old_cut << "-->" << current_metrics.cut);
+    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
+        old_km1 << "-->" << current_metrics.km1);
+    return improvement_found;
   }
 
   Hypergraph& _hg;

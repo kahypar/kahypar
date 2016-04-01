@@ -28,7 +28,8 @@ class ATwoWayFMRefiner : public Test {
     hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     config(),
-    refiner(nullptr) {
+    refiner(nullptr),
+    changes() {
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 1);
     hypergraph->setNodePart(2, 1);
@@ -49,11 +50,14 @@ class ATwoWayFMRefiner : public Test {
     config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
     config.fm_local_search.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, config);
+    changes.representative.push_back(0);
+    changes.contraction_partner.push_back(0);
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
   Configuration config;
   std::unique_ptr<TwoWayFMRefinerSimpleStopping> refiner;
+  UncontractionGainChanges changes;
 };
 
 class AGainUpdateMethod : public Test {
@@ -115,7 +119,7 @@ TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
+  refiner->refine(refinement_nodes, { 42, 42 }, changes, old_metrics);
 
   EXPECT_PRED_FORMAT2(::testing::DoubleLE, metrics::imbalance(*hypergraph, config),
                       old_metrics.imbalance);
@@ -150,7 +154,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
+  refiner->refine(refinement_nodes, { 42, 42 }, changes, old_metrics);
 
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
@@ -173,7 +177,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
                           metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
+  refiner->refine(refinement_nodes, { 42, 42 }, changes, old_metrics);
 
   ASSERT_THAT(hypergraph->partID(6), Eq(1));
   ASSERT_THAT(hypergraph->partID(2), Eq(1));
@@ -190,7 +194,7 @@ TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
 #else
   refiner->initialize();
 #endif
-  refiner->refine(refinement_nodes, { 42, 42 }, { 0, 0 }, old_metrics);
+  refiner->refine(refinement_nodes, { 42, 42 }, changes, old_metrics);
 
   ASSERT_THAT(old_metrics.cut, Eq(metrics::hyperedgeCut(*hypergraph)));
   ASSERT_THAT(hypergraph->partID(1), Eq(0));

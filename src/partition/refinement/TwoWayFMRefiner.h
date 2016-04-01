@@ -185,7 +185,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& changes,
+                  const UncontractionGainChanges& changes,
                   Metrics& best_metrics) noexcept override final {
     // LOG("------------------------------------------------------------------------> NEW REFINE");
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
@@ -202,14 +202,17 @@ class TwoWayFMRefiner final : public IRefiner,
 
     // Will always be the case in the first FM pass, since the just uncontracted HN
     // was not seen before.
+    ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
+    ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
     if (!_gain_cache.isCached(refinement_nodes[1])) {
       // In further FM passes, changes will be set to 0 by the caller.
       if (_gain_cache.isCached(refinement_nodes[0])) {
-        _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0]) + changes.second);
-        _gain_cache.updateValue(refinement_nodes[0], changes.first);
+        _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
+                             + changes.contraction_partner[0]);
+        _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
         if (global_rebalancing) {
           _rebalance_pqs[1 - _hg.partID(refinement_nodes[0])].updateKeyBy(refinement_nodes[0],
-                                                                          changes.first);
+                                                                          changes.representative[0]);
           _rebalance_pqs[1 - _hg.partID(refinement_nodes[1])].push(refinement_nodes[1],
                                                                    _gain_cache.value(refinement_nodes[1]));
         }

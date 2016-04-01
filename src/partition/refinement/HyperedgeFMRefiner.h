@@ -133,7 +133,7 @@ class HyperedgeFMRefiner final : public IRefiner,
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-                  const std::pair<HyperedgeWeight, HyperedgeWeight>& UNUSED(changes),
+                  const UncontractionGainChanges& UNUSED(changes),
                   Metrics& best_metrics) noexcept override final {
     ONLYDEBUG(max_allowed_part_weights);
     ASSERT(_is_initialized, "initialize() has to be called before refine");

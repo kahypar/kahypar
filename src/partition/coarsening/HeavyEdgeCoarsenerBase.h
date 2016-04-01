@@ -116,7 +116,9 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
-
+    UncontractionGainChanges changes;
+    changes.representative.push_back(0);
+    changes.contraction_partner.push_back(0);
     while (!_history.empty()) {
       restoreParallelHyperedges();
       restoreSingleNodeHyperedges();
@@ -132,15 +134,15 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         _max_hn_weights.pop_back();
       }
 
-
       if (refiner.supportsDeltaGain()) {
-        const std::pair<HyperedgeWeight, HyperedgeWeight> changes = _hg.uncontract<true>(_history.back().contraction_memento);
+        _hg.uncontract(_history.back().contraction_memento, changes);
         performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       } else {
-        _hg.uncontract<false>(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, current_metrics, std::make_pair(0, 0));
+        _hg.uncontract(_history.back().contraction_memento);
+        performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       }
-
+      changes.representative[0] = 0;
+      changes.contraction_partner[0] = 0;
       _history.pop_back();
     }
 

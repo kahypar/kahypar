@@ -107,6 +107,11 @@ class InitialPartitionerBase {
 
       bool improvement_found = false;
       int iteration = 0;
+
+      UncontractionGainChanges changes;
+      changes.representative.push_back(0);
+      changes.contraction_partner.push_back(0);
+
       do {
         refinement_nodes.clear();
         for (const HypernodeID hn : _hg.nodes()) {
@@ -123,7 +128,7 @@ class InitialPartitionerBase {
                           { _config.initial_partitioning.upper_allowed_partition_weight[0]
                             + _max_hypernode_weight,
                             _config.initial_partitioning.upper_allowed_partition_weight[1]
-                            + _max_hypernode_weight }, { 0, 0 }, current_metrics);
+                            + _max_hypernode_weight }, changes, current_metrics);
         ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
         ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
 #ifndef NDEBUG
