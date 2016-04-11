@@ -267,10 +267,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                  _config.partition.epsilon);
   }
 
-  int numRepetitionsImpl() const noexcept override final {
-    return _config.fm_local_search.num_repetitions;
-  }
-
   std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
@@ -440,7 +436,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     for (const HypernodeID pin : _hg.pins(he)) {
       // LOG(V(pin) << V(_hg.active(pin)) << V(_hg.isBorderNode(pin)));
-      if (!_hg.marked(pin)) {
+      if (unlikely(!_hg.marked(pin))) {
         ASSERT(pin != moved_hn, V(pin));
         if (!_hg.active(pin)) {
           _hns_to_activate.push_back(pin);

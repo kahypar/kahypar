@@ -305,10 +305,6 @@ class HyperedgeFMRefiner final : public IRefiner,
     return true;
   }
 
-  int numRepetitionsImpl() const noexcept override final {
-    return _config.her_fm.num_repetitions;
-  }
-
   std::string policyStringImpl() const noexcept override final {
     return std::string(templateToString<EligibleTopGain<Gain> >()
                        + templateToString<OnlyRemoveIfBothQueuesClogged>()

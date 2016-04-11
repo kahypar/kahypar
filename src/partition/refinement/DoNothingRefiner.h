@@ -38,7 +38,6 @@ class DoNothingRefiner final : public IRefiner {
   void initializeImpl(const HyperedgeWeight) noexcept override final {
     _is_initialized = true;
   }
-  int numRepetitionsImpl() const noexcept override final { return 0; }
   std::string policyStringImpl() const noexcept override final { return std::string(""); }
 
   using IRefiner::_is_initialized;

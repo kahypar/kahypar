@@ -50,10 +50,6 @@ class IRefiner {
     initializeImpl(max_gain);
   }
 
-  int numRepetitions() const noexcept {
-    return numRepetitionsImpl();
-  }
-
   std::string policyString() const noexcept {
     return policyStringImpl();
   }
@@ -76,7 +72,6 @@ class IRefiner {
                           Metrics& best_metrics) noexcept = 0;
   virtual void initializeImpl() noexcept { }
   virtual void initializeImpl(const HyperedgeWeight) noexcept { }
-  virtual int numRepetitionsImpl() const noexcept = 0;
   virtual std::string policyStringImpl() const noexcept = 0;
 };
 }  // namespace partition

@@ -938,10 +938,6 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
-  int numRepetitionsImpl() const noexcept override final {
-    return _config.fm_local_search.num_repetitions;
-  }
-
   std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerGlobalRebalacing=" + templateToString<global_rebalancing>() +

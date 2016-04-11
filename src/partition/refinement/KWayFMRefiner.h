@@ -257,10 +257,6 @@ class KWayFMRefiner final : public IRefiner,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  int numRepetitionsImpl() const noexcept override final {
-    return _config.fm_local_search.num_repetitions;
-  }
-
   std::string policyStringImpl() const noexcept override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +

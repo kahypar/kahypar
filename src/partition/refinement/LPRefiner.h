@@ -114,10 +114,6 @@ class LPRefiner final : public IRefiner {
     return best_metrics.cut < in_cut;
   }
 
-  int numRepetitionsImpl() const noexcept override final {
-    return 0;
-  }
-
   std::string policyStringImpl() const noexcept override final {
     return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
   }

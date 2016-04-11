@@ -128,7 +128,7 @@ class CoarsenerBase {
     no_changes.contraction_partner.push_back(0);
 
     int iteration = 1;
-    while ((iteration < refiner.numRepetitions()) && improvement_found) {
+    while ((iteration < _config.fm_local_search.num_repetitions) && improvement_found) {
       improvement_found = performLocalSearchIteration(refiner, refinement_nodes, no_changes,
                                                       current_metrics);
       ++iteration;
