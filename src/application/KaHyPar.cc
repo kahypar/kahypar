@@ -395,12 +395,12 @@ void setDefaults(Configuration& config) {
     std::numeric_limits<HyperedgeID>::max();
   config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
   config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-  config.initial_partitioning.pool_type = 1975;
-  config.initial_partitioning.technique =
-    InitialPartitioningTechnique::flat;
+  config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
   config.initial_partitioning.mode = Mode::recursive_bisection;
   config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+  config.initial_partitioning.pool_type = 1975;
   config.initial_partitioning.init_alpha = 1.0;
+  config.initial_partitioning.local_search_repetitions = std::numeric_limits<int>::max();
   config.coarsening.contraction_limit_multiplier = 160;
   config.coarsening.max_allowed_weight_multiplier = 2.5;
   config.coarsening.contraction_limit =

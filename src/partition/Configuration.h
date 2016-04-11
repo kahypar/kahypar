@@ -48,7 +48,7 @@ struct Configuration {
       perfect_balance_partition_weight(),
       nruns(20),
       unassigned_part(1),
-      local_search_repetitions(1),
+      local_search_repetitions(std::numeric_limits<int>::max()),
       init_alpha(1.0),
       seed(1),
       pool_type(1975),
