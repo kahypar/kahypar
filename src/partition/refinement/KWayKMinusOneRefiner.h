@@ -73,6 +73,20 @@ class KWayKMinusOneRefiner final : public IRefiner,
     PartitionID to_part;
   };
 
+  struct PinState {
+    char one_pin_in_from_part_before : 1;
+    char one_pin_in_to_part_after : 1;
+    char two_pins_in_from_part_before : 1;
+    char two_pins_in_to_part_after : 1;
+
+    PinState(const bool one_in_from_before, const bool one_in_to_after,
+             const bool two_in_from_before, const bool two_in_to_after) :
+        one_pin_in_from_part_before(one_in_from_before),
+        one_pin_in_to_part_after(one_in_to_after),
+        two_pins_in_from_part_before(two_in_from_before),
+        two_pins_in_to_part_after(two_in_to_after) { }
+  };
+
  public:
   KWayKMinusOneRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
@@ -308,16 +322,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void deltaGainUpdatesForCacheOnly(const HypernodeID pin, const PartitionID from_part,
                                     const PartitionID to_part, const HyperedgeID he,
                                     const HyperedgeWeight he_weight,
-                                    const bool one_pin_in_from_part_before,
-                                    const bool one_pin_in_to_part_after,
-                                    const bool two_pins_in_from_part_before,
-                                    const bool two_pins_in_to_part_after,
+                                    const PinState pin_state,
                                     const HypernodeWeight max_allowed_part_weight) noexcept {
     deltaGainUpdates<true>(pin, from_part, to_part, he, he_weight,
-                           one_pin_in_from_part_before,
-                           one_pin_in_to_part_after,
-                           two_pins_in_from_part_before,
-                           two_pins_in_to_part_after,
+                           pin_state,
                            max_allowed_part_weight);
   }
 
@@ -325,16 +333,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void deltaGainUpdatesForPQandCache(const HypernodeID pin, const PartitionID from_part,
                                      const PartitionID to_part, const HyperedgeID he,
                                      const HyperedgeWeight he_weight,
-                                     const bool one_pin_in_from_part_before,
-                                     const bool one_pin_in_to_part_after,
-                                     const bool two_pins_in_from_part_before,
-                                     const bool two_pins_in_to_part_after,
+                                     const PinState pin_state,
                                      const HypernodeWeight max_allowed_part_weight) noexcept {
     deltaGainUpdates<false>(pin, from_part, to_part, he, he_weight,
-                            one_pin_in_from_part_before,
-                            one_pin_in_to_part_after,
-                            two_pins_in_from_part_before,
-                            two_pins_in_to_part_after,
+                            pin_state,
                             max_allowed_part_weight);
   }
 
@@ -343,14 +345,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he,
                         const HyperedgeWeight he_weight,
-                        const bool one_pin_in_from_part_before,
-                        const bool one_pin_in_to_part_after,
-                        const bool two_pins_in_from_part_before,
-                        const bool two_pins_in_to_part_after,
+                        const PinState pin_state,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
     const PartitionID source_part = _hg.partID(pin);
     if (source_part == from_part) {
-      if (two_pins_in_from_part_before) {
+      if (pin_state.two_pins_in_from_part_before) {
         for (PartitionID k = 0; k < _config.partition.k; ++k) {
           if (update_cache_only && _already_processed_part.get(pin) != k) {
             _gain_cache.updateEntryIfItExists(pin, k, he_weight);
@@ -360,7 +359,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
     } else if (source_part == to_part) {
-      if (two_pins_in_to_part_after) {
+      if (pin_state.two_pins_in_to_part_after) {
         for (PartitionID k = 0; k < _config.partition.k; ++k) {
           if (update_cache_only && _already_processed_part.get(pin) != k) {
             _gain_cache.updateEntryIfItExists(pin, k, -he_weight);
@@ -371,7 +370,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     }
 
-    if (one_pin_in_from_part_before) {
+    if (pin_state.one_pin_in_from_part_before) {
       if (update_cache_only) {
         _gain_cache.updateEntryIfItExists(pin, from_part, -he_weight);
       } else {
@@ -379,7 +378,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     }
 
-    if (one_pin_in_to_part_after) {
+    if (pin_state.one_pin_in_to_part_after) {
       if (update_cache_only && _already_processed_part.get(pin) != to_part) {
         _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
       } else {
@@ -472,14 +471,12 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    const bool one_pin_in_from_part_before = pin_count_from_part_before_move == 1;
-    const bool one_pin_in_to_part_after = pin_count_to_part_after_move == 1;
-    const bool two_pins_in_from_part_before = pin_count_from_part_before_move == 2;
-    const bool two_pins_in_to_part_after = pin_count_to_part_after_move == 2;
+    const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
+                              pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
 
     for (const HypernodeID pin : _hg.pins(he)) {
       // LOG(V(pin) << V(_hg.active(pin)) << V(_hg.isBorderNode(pin)));
-      if (unlikely(!_hg.marked(pin))) {
+      if (!_hg.marked(pin)) {
         ASSERT(pin != moved_hn, V(pin));
         if (!_hg.active(pin)) {
           _hns_to_activate.push_back(pin);
@@ -492,10 +489,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                move_increased_connectivity,
                                max_allowed_part_weight);
             deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                          one_pin_in_from_part_before,
-                                          one_pin_in_to_part_after,
-                                          two_pins_in_from_part_before,
-                                          two_pins_in_to_part_after,
+                                          pin_state,
                                           max_allowed_part_weight);
             continue;
           }
@@ -508,10 +502,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                    move_decreased_connectivity,
                                    move_increased_connectivity);
         deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                     one_pin_in_from_part_before,
-                                     one_pin_in_to_part_after,
-                                     two_pins_in_from_part_before,
-                                     two_pins_in_to_part_after,
+                                     pin_state,
                                      max_allowed_part_weight);
       }
     }
@@ -531,10 +522,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    const bool one_pin_in_from_part_before = pin_count_from_part_before_move == 1;
-    const bool one_pin_in_to_part_after = pin_count_to_part_after_move == 1;
-    const bool two_pins_in_from_part_before = pin_count_from_part_before_move == 2;
-    const bool two_pins_in_to_part_after = pin_count_to_part_after_move == 2;
+    const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
+                              pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
 
     if (move_decreased_connectivity || move_increased_connectivity) {
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -551,10 +540,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                max_allowed_part_weight);
             // false indicates that we use this method to also update the PQ.
             deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                          one_pin_in_from_part_before,
-                                          one_pin_in_to_part_after,
-                                          two_pins_in_from_part_before,
-                                          two_pins_in_to_part_after,
+                                          pin_state,
                                           max_allowed_part_weight);
             continue;
           }
@@ -567,10 +553,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                      move_increased_connectivity);
           // true indicates that we only want to update cache entries
           deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                       one_pin_in_from_part_before,
-                                       one_pin_in_to_part_after,
-                                       two_pins_in_from_part_before,
-                                       two_pins_in_to_part_after,
+                                       pin_state,
                                        max_allowed_part_weight);
         }
       }
@@ -584,18 +567,12 @@ class KWayKMinusOneRefiner final : public IRefiner,
             if (move_from_unremovable_to_removable_part) {
               ASSERT(pin != moved_hn, V(pin) << V(moved_hn));
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                           one_pin_in_from_part_before,
-                                           one_pin_in_to_part_after,
-                                           two_pins_in_from_part_before,
-                                           two_pins_in_to_part_after,
+                                           pin_state,
                                            max_allowed_part_weight);
               break;
             } else if (!move_from_unremovable_to_removable_part && _hg.active(pin)) {
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                            one_pin_in_from_part_before,
-                                            one_pin_in_to_part_after,
-                                            two_pins_in_from_part_before,
-                                            two_pins_in_to_part_after,
+                                            pin_state,
                                             max_allowed_part_weight);
               break;
             }
@@ -607,19 +584,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
           if (_hg.partID(pin) == to_part) {
             if (!move_from_unremovable_to_removable_part && pin != moved_hn && _hg.marked(pin)) {
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                           one_pin_in_from_part_before,
-                                           one_pin_in_to_part_after,
-                                           two_pins_in_from_part_before,
-                                           two_pins_in_to_part_after,
+                                           pin_state,
                                            max_allowed_part_weight);
               break;
             } else if (move_from_unremovable_to_removable_part && _hg.active(pin)) {
               ASSERT(!_hg.marked(pin), V(pin));
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                            one_pin_in_from_part_before,
-                                            one_pin_in_to_part_after,
-                                            two_pins_in_from_part_before,
-                                            two_pins_in_to_part_after,
+                                            pin_state,
                                             max_allowed_part_weight);
               break;
             }
@@ -648,29 +619,21 @@ class KWayKMinusOneRefiner final : public IRefiner,
     num_pins_to_update += pin_count_to_part_after_move == 2 ? 1 : 0;
 
     if (pin_count_from_part_after_move == 1 || pin_count_to_part_after_move == 2) {
-      const bool one_pin_in_from_part_before = pin_count_from_part_before_move == 1;
-      const bool one_pin_in_to_part_after = pin_count_to_part_after_move == 1;
-      const bool two_pins_in_from_part_before = pin_count_from_part_before_move == 2;
-      const bool two_pins_in_to_part_after = pin_count_to_part_after_move == 2;
+      const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
+                                pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       for (const HypernodeID pin : _hg.pins(he)) {
         if (pin_count_to_part_after_move == 2 &&
             _hg.partID(pin) == to_part && pin != moved_hn) {
           deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                       one_pin_in_from_part_before,
-                                       one_pin_in_to_part_after,
-                                       two_pins_in_from_part_before,
-                                       two_pins_in_to_part_after,
+                                       pin_state,
                                        max_allowed_part_weight);
 
           --num_pins_to_update;
         } else if (pin_count_from_part_after_move == 1 && _hg.partID(pin) == from_part) {
           deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                       one_pin_in_from_part_before,
-                                       one_pin_in_to_part_after,
-                                       two_pins_in_from_part_before,
-                                       two_pins_in_to_part_after,
+                                       pin_state,
                                        max_allowed_part_weight);
           --num_pins_to_update;
         }
