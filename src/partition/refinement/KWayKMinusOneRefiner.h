@@ -82,6 +82,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
+    _unremovable_he_parts(_hg.initialNumEdges() * config.partition.k, 0),
     _pq(_config.partition.k),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() {
@@ -132,6 +133,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _pq.clear();
     _hg.resetHypernodeState();
     _pq_contains.resetAllBitsToFalse();
+    _unremovable_he_parts.resetAllBitsToFalse();
 
     Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
@@ -303,6 +305,40 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
+  void deltaGainUpdatesForCacheOnly(const HypernodeID pin, const PartitionID from_part,
+                                    const PartitionID to_part, const HyperedgeID he,
+                                    const HyperedgeWeight he_weight,
+                                    const bool one_pin_in_from_part_before,
+                                    const bool one_pin_in_to_part_after,
+                                    const bool two_pins_in_from_part_before,
+                                    const bool two_pins_in_to_part_after,
+                                    const HypernodeWeight max_allowed_part_weight) noexcept {
+    deltaGainUpdates<true>(pin, from_part, to_part, he, he_weight,
+                           one_pin_in_from_part_before,
+                           one_pin_in_to_part_after,
+                           two_pins_in_from_part_before,
+                           two_pins_in_to_part_after,
+                           max_allowed_part_weight);
+  }
+
+
+  void deltaGainUpdatesForPQandCache(const HypernodeID pin, const PartitionID from_part,
+                                     const PartitionID to_part, const HyperedgeID he,
+                                     const HyperedgeWeight he_weight,
+                                     const bool one_pin_in_from_part_before,
+                                     const bool one_pin_in_to_part_after,
+                                     const bool two_pins_in_from_part_before,
+                                     const bool two_pins_in_to_part_after,
+                                     const HypernodeWeight max_allowed_part_weight) noexcept {
+    deltaGainUpdates<false>(pin, from_part, to_part, he, he_weight,
+                            one_pin_in_from_part_before,
+                            one_pin_in_to_part_after,
+                            two_pins_in_from_part_before,
+                            two_pins_in_to_part_after,
+                            max_allowed_part_weight);
+  }
+
+
   template <bool update_cache_only = true>
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he,
@@ -455,13 +491,12 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                move_decreased_connectivity,
                                move_increased_connectivity,
                                max_allowed_part_weight);
-            // false indicates that we use this method to also update the PQ.
-            deltaGainUpdates<false>(pin, from_part, to_part, he, he_weight,
-                                    one_pin_in_from_part_before,
-                                    one_pin_in_to_part_after,
-                                    two_pins_in_from_part_before,
-                                    two_pins_in_to_part_after,
-                                    max_allowed_part_weight);
+            deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                          one_pin_in_from_part_before,
+                                          one_pin_in_to_part_after,
+                                          two_pins_in_from_part_before,
+                                          two_pins_in_to_part_after,
+                                          max_allowed_part_weight);
             continue;
           }
         }
@@ -472,15 +507,198 @@ class KWayKMinusOneRefiner final : public IRefiner,
         connectivityUpdateForCache(pin, from_part, to_part, he,
                                    move_decreased_connectivity,
                                    move_increased_connectivity);
-        // true indicates that we only want to update cache entries
-        deltaGainUpdates<true>(pin, from_part, to_part, he, he_weight,
-                               one_pin_in_from_part_before,
-                               one_pin_in_to_part_after,
-                               two_pins_in_from_part_before,
-                               two_pins_in_to_part_after,
-                               max_allowed_part_weight);
+        deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                     one_pin_in_from_part_before,
+                                     one_pin_in_to_part_after,
+                                     two_pins_in_from_part_before,
+                                     two_pins_in_to_part_after,
+                                     max_allowed_part_weight);
       }
     }
+  }
+
+
+  // UR -> R and R -> UR
+  void updateForHEwithUnequalPartState(const HypernodeID moved_hn,
+                                       const PartitionID from_part,
+                                       const PartitionID to_part,
+                                       const HyperedgeID he,
+                                       const HypernodeWeight max_allowed_part_weight) noexcept {
+    const HypernodeID pin_count_from_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+    const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
+    const HypernodeID pin_count_from_part_after_move = pin_count_from_part_before_move - 1;
+    const bool move_decreased_connectivity = pin_count_from_part_before_move - 1 == 0;
+    const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
+    const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+    const bool one_pin_in_from_part_before = pin_count_from_part_before_move == 1;
+    const bool one_pin_in_to_part_after = pin_count_to_part_after_move == 1;
+    const bool two_pins_in_from_part_before = pin_count_from_part_before_move == 2;
+    const bool two_pins_in_to_part_after = pin_count_to_part_after_move == 2;
+
+    if (move_decreased_connectivity || move_increased_connectivity) {
+      for (const HypernodeID pin : _hg.pins(he)) {
+        if (!_hg.marked(pin)) {
+          ASSERT(pin != moved_hn, V(pin));
+          if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
+            removeHypernodeMovementsFromPQ(pin);
+          } else if (move_increased_connectivity && !_hg.active(pin)) {
+            _hns_to_activate.push_back(pin);
+          } else if (_hg.active(pin)) {
+            connectivityUpdate(pin, from_part, to_part, he,
+                               move_decreased_connectivity,
+                               move_increased_connectivity,
+                               max_allowed_part_weight);
+            // false indicates that we use this method to also update the PQ.
+            deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                          one_pin_in_from_part_before,
+                                          one_pin_in_to_part_after,
+                                          two_pins_in_from_part_before,
+                                          two_pins_in_to_part_after,
+                                          max_allowed_part_weight);
+            continue;
+          }
+        }
+        // currently necessary because we set all cache entries of moved_hn to invalid -->
+        // if we can do correct delta-gain updates for moved hn, than this if can be removed!
+        if (pin != moved_hn) {
+          connectivityUpdateForCache(pin, from_part, to_part, he,
+                                     move_decreased_connectivity,
+                                     move_increased_connectivity);
+          // true indicates that we only want to update cache entries
+          deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                       one_pin_in_from_part_before,
+                                       one_pin_in_to_part_after,
+                                       two_pins_in_from_part_before,
+                                       two_pins_in_to_part_after,
+                                       max_allowed_part_weight);
+        }
+      }
+    } else {
+      const bool move_from_unremovable_to_removable_part =
+        moveFromRemovableToUnRemovablePart(he, from_part, to_part);
+
+      if (pin_count_from_part_after_move == 1) {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (_hg.partID(pin) == from_part) {
+            if (move_from_unremovable_to_removable_part) {
+              ASSERT(pin != moved_hn, V(pin) << V(moved_hn));
+              deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                           one_pin_in_from_part_before,
+                                           one_pin_in_to_part_after,
+                                           two_pins_in_from_part_before,
+                                           two_pins_in_to_part_after,
+                                           max_allowed_part_weight);
+              break;
+            } else if (!move_from_unremovable_to_removable_part && _hg.active(pin)) {
+              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                            one_pin_in_from_part_before,
+                                            one_pin_in_to_part_after,
+                                            two_pins_in_from_part_before,
+                                            two_pins_in_to_part_after,
+                                            max_allowed_part_weight);
+              break;
+            }
+          }
+        }
+      }
+      if (pin_count_to_part_after_move == 2) {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (_hg.partID(pin) == to_part) {
+            if (!move_from_unremovable_to_removable_part && pin != moved_hn && _hg.marked(pin)) {
+              deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                           one_pin_in_from_part_before,
+                                           one_pin_in_to_part_after,
+                                           two_pins_in_from_part_before,
+                                           two_pins_in_to_part_after,
+                                           max_allowed_part_weight);
+              break;
+            } else if (move_from_unremovable_to_removable_part && _hg.active(pin)) {
+              ASSERT(!_hg.marked(pin), V(pin));
+              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                            one_pin_in_from_part_before,
+                                            one_pin_in_to_part_after,
+                                            two_pins_in_from_part_before,
+                                            two_pins_in_to_part_after,
+                                            max_allowed_part_weight);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  void updateForHEwithUnremovableFromAndToPart(const HypernodeID moved_hn,
+                                               const PartitionID from_part,
+                                               const PartitionID to_part,
+                                               const HyperedgeID he,
+                                               const HypernodeWeight max_allowed_part_weight) noexcept {
+    const HypernodeID pin_count_from_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
+    const HypernodeID pin_count_to_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
+    const HypernodeID pin_count_from_part_after_move = pin_count_from_part_before_move - 1;
+    const HypernodeID pin_count_to_part_after_move = pin_count_to_part_before_move + 1;
+
+    ASSERT(pin_count_from_part_after_move != 0, V("move decreased connectivity"));
+    ASSERT(pin_count_to_part_after_move != 1, V("move increased connectivity"));
+
+
+    HypernodeID num_pins_to_update = pin_count_from_part_after_move == 1 ? 1 : 0;
+    num_pins_to_update += pin_count_to_part_after_move == 2 ? 1 : 0;
+
+    if (pin_count_from_part_after_move == 1 || pin_count_to_part_after_move == 2) {
+      const bool one_pin_in_from_part_before = pin_count_from_part_before_move == 1;
+      const bool one_pin_in_to_part_after = pin_count_to_part_after_move == 1;
+      const bool two_pins_in_from_part_before = pin_count_from_part_before_move == 2;
+      const bool two_pins_in_to_part_after = pin_count_to_part_after_move == 2;
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+      for (const HypernodeID pin : _hg.pins(he)) {
+        if (pin_count_to_part_after_move == 2 &&
+            _hg.partID(pin) == to_part && pin != moved_hn) {
+          deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                       one_pin_in_from_part_before,
+                                       one_pin_in_to_part_after,
+                                       two_pins_in_from_part_before,
+                                       two_pins_in_to_part_after,
+                                       max_allowed_part_weight);
+
+          --num_pins_to_update;
+        } else if (pin_count_from_part_after_move == 1 && _hg.partID(pin) == from_part) {
+          deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                       one_pin_in_from_part_before,
+                                       one_pin_in_to_part_after,
+                                       two_pins_in_from_part_before,
+                                       two_pins_in_to_part_after,
+                                       max_allowed_part_weight);
+          --num_pins_to_update;
+        }
+        if (num_pins_to_update == 0) {
+          break;
+        }
+      }
+    }
+  }
+
+  bool fromAndToPartAreUnremovable(const HyperedgeID he, const PartitionID from_part,
+                                   const PartitionID to_part) const {
+    return _unremovable_he_parts[he * _config.partition.k + from_part] &&
+           _unremovable_he_parts[he * _config.partition.k + to_part];
+  }
+
+  bool fromAndToPartHaveUnequalStates(const HyperedgeID he, const PartitionID from_part,
+                                      const PartitionID to_part) const {
+    return (!_unremovable_he_parts[he * _config.partition.k + from_part] &&
+            _unremovable_he_parts[he * _config.partition.k + to_part]) ||
+           (_unremovable_he_parts[he * _config.partition.k + from_part] &&
+            !_unremovable_he_parts[he * _config.partition.k + to_part]);
+  }
+
+  bool moveFromRemovableToUnRemovablePart(const HyperedgeID he, const PartitionID from_part,
+                                          const PartitionID to_part) const {
+    return _unremovable_he_parts[he * _config.partition.k + from_part] &&
+           !_unremovable_he_parts[he * _config.partition.k + to_part];
   }
 
 
@@ -527,7 +745,31 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
 
-      fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+      if (fromAndToPartAreUnremovable(he, from_part, to_part)) {
+        updateForHEwithUnremovableFromAndToPart(moved_hn, from_part, to_part, he,
+                                                max_allowed_part_weight);
+      } else if (fromAndToPartHaveUnequalStates(he, from_part, to_part)) {
+        updateForHEwithUnequalPartState(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+      } else {
+        fullUpdate(moved_hn, from_part, to_part, he, max_allowed_part_weight);
+      }
+      _unremovable_he_parts.setBit(he * _config.partition.k + to_part, 1);
+
+      ASSERT([&]() {
+          // Search parts of hyperedge he which are unremoveable
+          std::vector<bool> ur_parts(_config.partition.k, false);
+          for (const HypernodeID pin : _hg.pins(he)) {
+            if (_hg.marked(pin)) {
+              ur_parts[_hg.partID(pin)] = true;
+            }
+          }
+          // _unremovable_he_parts should have the same bits set as ur_parts
+          for (PartitionID k = 0; k < _config.partition.k; k++) {
+            ASSERT(ur_parts[k] == _unremovable_he_parts[he * _config.partition.k + k],
+                   V(ur_parts[k]) << V(_unremovable_he_parts[he * _config.partition.k + k]));
+          }
+          return true;
+        } (), "Error in locking of he/parts!");
     }
 
     _gain_cache.updateFromAndToPartOfMovedHN(moved_hn, from_part, to_part,
@@ -898,6 +1140,12 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // we store the newly encountered part in this vector and do not perform
   // delta-gain updates for this part.
   FastResetVector<PartitionID> _already_processed_part;
+
+  // 'Locking' of hyperedges for K-1 metric. When optimizing this metric,
+  // each part of a hyperedge becomes unremovable, as soon as one of its
+  // pins is moved to that part. For each HE e, this bitvector stores whether
+  // or not a part in the connectivity set of e is unremovable.
+  FastResetBitVector<> _unremovable_he_parts;
 
   KWayRefinementPQ _pq;
   GainCache _gain_cache;
