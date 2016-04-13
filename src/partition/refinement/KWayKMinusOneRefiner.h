@@ -391,7 +391,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
                                   const PartitionID to_part, const HyperedgeID he,
                                   const bool move_decreased_connectivity,
-                                  const bool move_increased_connectivity) noexcept {
+                                  const bool move_increased_connectivity) noexcept __attribute__ ((always_inline))  {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
@@ -414,7 +414,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                           const PartitionID to_part, const HyperedgeID he,
                           const bool move_decreased_connectivity,
                           const bool move_increased_connectivity,
-                          const HypernodeWeight max_allowed_part_weight) noexcept {
+                          const HypernodeWeight max_allowed_part_weight) noexcept __attribute__ ((always_inline))  {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _pq_contains[pin * _config.partition.k + from_part] &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
