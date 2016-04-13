@@ -81,10 +81,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     PinState(const bool one_in_from_before, const bool one_in_to_after,
              const bool two_in_from_before, const bool two_in_to_after) :
-        one_pin_in_from_part_before(one_in_from_before),
-        one_pin_in_to_part_after(one_in_to_after),
-        two_pins_in_from_part_before(two_in_from_before),
-        two_pins_in_to_part_after(two_in_to_after) { }
+      one_pin_in_from_part_before(one_in_from_before),
+      one_pin_in_to_part_after(one_in_to_after),
+      two_pins_in_from_part_before(two_in_from_before),
+      two_pins_in_to_part_after(two_in_to_after) { }
   };
 
  public:
@@ -319,22 +319,26 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
-  void deltaGainUpdatesForCacheOnly(const HypernodeID pin, const PartitionID from_part,
-                                    const PartitionID to_part, const HyperedgeID he,
-                                    const HyperedgeWeight he_weight,
-                                    const PinState pin_state,
-                                    const HypernodeWeight max_allowed_part_weight) noexcept {
+  __attribute__ ((always_inline)) void deltaGainUpdatesForCacheOnly(const HypernodeID pin,
+                                                                    const PartitionID from_part,
+                                                                    const PartitionID to_part,
+                                                                    const HyperedgeID he,
+                                                                    const HyperedgeWeight he_weight,
+                                                                    const PinState pin_state,
+                                                                    const HypernodeWeight max_allowed_part_weight) noexcept {
     deltaGainUpdates<true>(pin, from_part, to_part, he, he_weight,
                            pin_state,
                            max_allowed_part_weight);
   }
 
 
-  void deltaGainUpdatesForPQandCache(const HypernodeID pin, const PartitionID from_part,
-                                     const PartitionID to_part, const HyperedgeID he,
-                                     const HyperedgeWeight he_weight,
-                                     const PinState pin_state,
-                                     const HypernodeWeight max_allowed_part_weight) noexcept {
+  __attribute__ ((always_inline)) void deltaGainUpdatesForPQandCache(const HypernodeID pin,
+                                                                     const PartitionID from_part,
+                                                                     const PartitionID to_part,
+                                                                     const HyperedgeID he,
+                                                                     const HyperedgeWeight he_weight,
+                                                                     const PinState pin_state,
+                                                                     const HypernodeWeight max_allowed_part_weight) noexcept {
     deltaGainUpdates<false>(pin, from_part, to_part, he, he_weight,
                             pin_state,
                             max_allowed_part_weight);
@@ -342,11 +346,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
   template <bool update_cache_only = true>
-  void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
-                        const PartitionID to_part, const HyperedgeID he,
-                        const HyperedgeWeight he_weight,
-                        const PinState pin_state,
-                        const HypernodeWeight max_allowed_part_weight) noexcept {
+  __attribute__ ((always_inline)) void deltaGainUpdates(const HypernodeID pin,
+                                                        const PartitionID from_part,
+                                                        const PartitionID to_part,
+                                                        const HyperedgeID he,
+                                                        const HyperedgeWeight he_weight,
+                                                        const PinState pin_state,
+                                                        const HypernodeWeight max_allowed_part_weight) noexcept {
     const PartitionID source_part = _hg.partID(pin);
     if (source_part == from_part) {
       if (pin_state.two_pins_in_from_part_before) {
@@ -391,7 +397,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
                                   const PartitionID to_part, const HyperedgeID he,
                                   const bool move_decreased_connectivity,
-                                  const bool move_increased_connectivity) noexcept __attribute__ ((always_inline))  {
+                                  const bool move_increased_connectivity) noexcept __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
@@ -414,7 +420,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                           const PartitionID to_part, const HyperedgeID he,
                           const bool move_decreased_connectivity,
                           const bool move_increased_connectivity,
-                          const HypernodeWeight max_allowed_part_weight) noexcept __attribute__ ((always_inline))  {
+                          const HypernodeWeight max_allowed_part_weight) noexcept __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _pq_contains[pin * _config.partition.k + from_part] &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
@@ -471,8 +477,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
-                              pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
+    const PinState pin_state(pin_count_from_part_before_move == 1, pin_count_to_part_after_move == 1,
+                             pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
 
     for (const HypernodeID pin : _hg.pins(he)) {
       // LOG(V(pin) << V(_hg.active(pin)) << V(_hg.isBorderNode(pin)));
@@ -522,8 +528,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
-                              pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
+    const PinState pin_state(pin_count_from_part_before_move == 1, pin_count_to_part_after_move == 1,
+                             pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
 
     if (move_decreased_connectivity || move_increased_connectivity) {
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -619,8 +625,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     num_pins_to_update += pin_count_to_part_after_move == 2 ? 1 : 0;
 
     if (pin_count_from_part_after_move == 1 || pin_count_to_part_after_move == 2) {
-      const PinState pin_state( pin_count_from_part_before_move == 1,  pin_count_to_part_after_move == 1,
-                                pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
+      const PinState pin_state(pin_count_from_part_before_move == 1, pin_count_to_part_after_move == 1,
+                               pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -882,8 +888,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
     return fm_gain;
   }
 
-  void updatePin(const HypernodeID pin, const PartitionID part, const HyperedgeID he,
-                 const Gain delta, const HypernodeWeight max_allowed_part_weight) noexcept {
+  __attribute__ ((always_inline)) void updatePin(const HypernodeID pin, const PartitionID part,
+                                                 const HyperedgeID he, const Gain delta,
+                                                 const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     ONLYDEBUG(max_allowed_part_weight);
     if (_pq_contains[pin * _config.partition.k + part] && _already_processed_part.get(pin) != part) {
@@ -992,7 +999,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
   }
 
 
-  void insertHNintoPQ(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
+  __attribute__ ((always_inline)) void insertHNintoPQ(const HypernodeID hn,
+                                                      const HypernodeWeight max_allowed_part_weight) noexcept {
     ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
