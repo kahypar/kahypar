@@ -241,6 +241,7 @@ class KWayPriorityQueue {
   __attribute__ ((always_inline)) void clear() noexcept {
     for (size_t i = 0; i < _queues.size(); ++i) {
       _mapping[i] = { kInvalidPart, kInvalidIndex };
+      _queues[i].clear();  // eager clear, NOOP in case of ArrayStorage
     }
     _num_entries = 0;
     _num_nonempty_pqs = 0;
