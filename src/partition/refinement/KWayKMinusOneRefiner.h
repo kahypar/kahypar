@@ -925,9 +925,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       _gain_cache.setInvalid(hn);
       initializeGainCacheFor(hn);
     }
-
     if (_hg.isBorderNode(hn)) {
-      DBG(false && hn == 12518, " activating " << V(hn));
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), "Hypernode" << hn << " is already marked");
       insertHNintoPQ(hn, max_allowed_part_weight);
@@ -1000,61 +998,20 @@ class KWayKMinusOneRefiner final : public IRefiner,
     ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
-    if (_gain_cache.valid(hn)) {
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
-        ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
-        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-               V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)));
-        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-        DBG(false && hn == 12518, " inserting " << V(hn) << V(part)
-            << V(_gain_cache.entry(hn, part)));
-        _pq.insert(hn, part, _gain_cache.entry(hn, part));
-        _pq_contains.setBit(hn * _config.partition.k + part, true);
-        if (_hg.partWeight(part) < max_allowed_part_weight) {
-          _pq.enablePart(part);
-        }
+    ASSERT(_gain_cache.valid(hn), V(hn));
+    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
+      ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+             V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+             V(gainInducedByHypergraph(hn, part)));
+      ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+      DBG(false && hn == 12518, " inserting " << V(hn) << V(part)
+          << V(_gain_cache.entry(hn, part)));
+      _pq.insert(hn, part, _gain_cache.entry(hn, part));
+      _pq_contains.setBit(hn * _config.partition.k + part, true);
+      if (_hg.partWeight(part) < max_allowed_part_weight) {
+        _pq.enablePart(part);
       }
-    } else {
-      _tmp_target_parts.clear();
-      const PartitionID source_part = _hg.partID(hn);
-      HyperedgeWeight internal = 0;
-      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-        const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-        internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
-        for (const PartitionID part : _hg.connectivitySet(he)) {
-          _tmp_target_parts.add(part);
-          _tmp_gains[part] += he_weight;
-        }
-      }
-
-      ASSERT(!_gain_cache.valid(hn), V(hn));
-      for (const PartitionID target_part : _tmp_target_parts) {
-        if (target_part == source_part) {
-          _tmp_gains[source_part] = 0;
-          ASSERT(!_gain_cache.entryExists(hn, source_part), V(hn) << V(source_part));
-          continue;
-        }
-        _tmp_gains[target_part] -= internal;
-        ASSERT(_tmp_gains[target_part] == gainInducedByHypergraph(hn, target_part),
-               "Gain calculation failed! Should be " << V(gainInducedByHypergraph(hn, target_part))
-               << " but currently it is " << V(_tmp_gains[target_part]));
-        DBG(dbg_refinement_kway_kminusone_fm_gain_comp, "inserting HN " << hn << " with gain "
-            << (_tmp_gains[target_part]) << " (ExpectedGain="
-            << gainInducedByHypergraph(hn, target_part) << ") sourcePart=" << _hg.partID(hn)
-            << " targetPart= " << target_part);
-        DBG(dbg_refinement_kway_kminusone_gain_caching && (hn == hn_to_debug),
-            V(target_part) << V(_tmp_gains[target_part]));
-
-        _pq.insert(hn, target_part, _tmp_gains[target_part]);
-        _gain_cache.initializeEntry(hn, target_part, _tmp_gains[target_part]);
-        _pq_contains.setBit(hn * _config.partition.k + target_part, true);
-        _tmp_gains[target_part] = 0;
-        if (_hg.partWeight(target_part) < max_allowed_part_weight) {
-          _pq.enablePart(target_part);
-        }
-      }
-      _gain_cache.setValid(hn);
     }
   }
 
