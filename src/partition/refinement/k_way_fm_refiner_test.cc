@@ -47,11 +47,6 @@ class AKwayFMRefiner : public Test {
     hypergraph->initializeNumCutHyperedges();
 
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-#ifdef USE_BUCKET_PQ
-    refiner->initialize(100);
-#else
-    refiner->initialize();
-#endif
   }
 
   Configuration config;
@@ -62,11 +57,19 @@ class AKwayFMRefiner : public Test {
 using AKwayFMRefinerDeathTest = AKwayFMRefiner;
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation) {
-  ASSERT_DEBUG_DEATH(refiner->insertHNintoPQ(0, 10), ".*");
+#ifdef USE_BUCKET_PQ
+  ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
+#else
+  ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
+#endif
 }
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation) {
-  ASSERT_DEBUG_DEATH(refiner->gainInducedByHypergraph(0, 0), ".*");
+#ifdef USE_BUCKET_PQ
+  ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
+#else
+  ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
+#endif
 }
 
 TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
