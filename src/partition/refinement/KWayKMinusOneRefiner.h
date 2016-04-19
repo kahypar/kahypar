@@ -356,7 +356,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const PartitionID source_part = _hg.partID(pin);
     if (source_part == from_part) {
       if (pin_state.two_pins_in_from_part_before) {
-        for (const PartitionID part : _gain_cache.cachedParts(pin)) {
+        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
           if (update_cache_only) {
             if (_already_processed_part.get(pin) != part) {
               _gain_cache.updateExistingEntry(pin, part, he_weight);
@@ -368,7 +368,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     } else if (source_part == to_part) {
       if (pin_state.two_pins_in_to_part_after) {
-        for (const PartitionID part : _gain_cache.cachedParts(pin)) {
+        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
           if (update_cache_only) {
             if (_already_processed_part.get(pin) != part) {
               _gain_cache.updateExistingEntry(pin, part, -he_weight);
@@ -707,13 +707,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
 
       if (pins_in_source_part_after == 0 && _hg.pinCountInPart(he, to_part) != 1) {
-        for (const PartitionID part : _gain_cache.cachedParts(moved_hn)) {
+        for (const PartitionID part : _gain_cache.adjacentParts(moved_hn)) {
           if (part != from_part && part != to_part) {
             _gain_cache.updateExistingEntry(moved_hn, part, -_hg.edgeWeight(he));
           }
         }
       } else if (pins_in_source_part_after != 0 && _hg.pinCountInPart(he, to_part) == 1) {
-        for (const PartitionID part : _gain_cache.cachedParts(moved_hn)) {
+        for (const PartitionID part : _gain_cache.adjacentParts(moved_hn)) {
           if (part != from_part && part != to_part) {
             _gain_cache.updateExistingEntry(moved_hn, part, _hg.edgeWeight(he));
           }
@@ -1001,7 +1001,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
     if (_gain_cache.valid(hn)) {
-      for (const PartitionID part : _gain_cache.cachedParts(hn)) {
+      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
         ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
@@ -1094,7 +1094,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                V(hn) << V(part));
       }
     }
-    for (const PartitionID part : _gain_cache.cachedParts(hn)) {
+    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
       ASSERT(adjacent_parts[part], V(part));
     }
   }

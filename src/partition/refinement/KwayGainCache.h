@@ -358,7 +358,7 @@ class KwayGainCache {
     _deltas.clear();
   }
 
-  const CacheElement & cachedParts(const HypernodeID hn) const {
+  const CacheElement & adjacentParts(const HypernodeID hn) const {
     return *cacheElement(hn);
   }
 
