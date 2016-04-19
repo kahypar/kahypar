@@ -119,12 +119,13 @@ class KWayPriorityQueue {
                                               const KeyType key) noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
-    if (isUnused(part)) {
-      ASSERT(_mapping[_num_nonempty_pqs].part == kInvalidPart, V(_mapping[_num_nonempty_pqs].part));
-      _mapping[_num_nonempty_pqs].part = part;
-      _queues[_num_nonempty_pqs].clear();  // lazy clear, NOOP in case of ArrayStorage
-      _mapping[part].index = _num_nonempty_pqs++;
-    }
+    ASSERT((_mapping[part].index != kInvalidIndex) ||
+            (_mapping[_num_nonempty_pqs].part == kInvalidPart),
+           V(_mapping[_num_nonempty_pqs].part));
+    _mapping[_num_nonempty_pqs].part = (_mapping[part].index == kInvalidIndex) ? part :
+                                       _mapping[_num_nonempty_pqs].part;
+    _mapping[part].index = (_mapping[part].index == kInvalidIndex) ? _num_nonempty_pqs++ :
+                           _mapping[part].index;
     _queues[_mapping[part].index].push(id, key);
     ++_num_entries;
   }
@@ -229,6 +230,7 @@ class KWayPriorityQueue {
         --_num_enabled_pqs;  // now points to the last enabled pq
         swap(_mapping[part].index, _num_enabled_pqs);
       }
+      _queues[_mapping[part].index].clear();  // eager clear, NOOP in case of ArrayStorage
       --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
       swap(_mapping[part].index, _num_nonempty_pqs);
       markUnused(part);
