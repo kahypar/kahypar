@@ -1101,68 +1101,20 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
-    if (_gain_cache.valid(hn)) {
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
-        ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
-        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-               V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)));
-        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-        DBG(false && hn == 7684, " inserting " << V(hn) << V(part)
-            << V(_gain_cache.entry(hn, part)));
-        _pq.insert(hn, part, _gain_cache.entry(hn, part));
-        _pq_contains.setBit(hn * _config.partition.k + part, true);
-        if (_hg.partWeight(part) < max_allowed_part_weight) {
-          _pq.enablePart(part);
-        }
+    ASSERT(_gain_cache.valid(hn), V(hn));
+    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
+      ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+             V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+             V(gainInducedByHypergraph(hn, part)));
+      ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+      DBG(false && hn == 7684, " inserting " << V(hn) << V(part)
+          << V(_gain_cache.entry(hn, part)));
+      _pq.insert(hn, part, _gain_cache.entry(hn, part));
+      _pq_contains.setBit(hn * _config.partition.k + part, true);
+      if (_hg.partWeight(part) < max_allowed_part_weight) {
+        _pq.enablePart(part);
       }
-    } else {
-      const PartitionID source_part = _hg.partID(hn);
-      HyperedgeWeight internal_weight = 0;
-
-      _tmp_target_parts.clear();
-
-      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-        const HyperedgeWeight he_weight = _hg.edgeWeight(he);
-        switch (_hg.connectivity(he)) {
-          case 1:
-            ASSERT(_hg.edgeSize(he) > 1, V(he));
-            internal_weight += he_weight;
-            break;
-          case 2:
-            for (const PartitionID part : _hg.connectivitySet(he)) {
-              _tmp_target_parts.add(part);
-              if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
-                _tmp_gains[part] += he_weight;
-              }
-            }
-            break;
-          default:
-            for (const PartitionID part : _hg.connectivitySet(he)) {
-              _tmp_target_parts.add(part);
-            }
-            break;
-        }
-      }
-
-      ASSERT(!_gain_cache.valid(hn), V(hn));
-      for (const PartitionID target_part : _tmp_target_parts) {
-        if (target_part == source_part) {
-          _tmp_gains[source_part] = 0;
-          continue;
-        }
-        DBG(dbg_refinement_kway_fm_gain_comp == false, "inserting HN " << hn << " with gain "
-            << (_tmp_gains[target_part] - internal_weight) << " sourcePart=" << _hg.partID(hn)
-            << " targetPart= " << target_part);
-        _pq.insert(hn, target_part, _tmp_gains[target_part] - internal_weight);
-        _gain_cache.initializeEntry(hn, target_part, _tmp_gains[target_part] - internal_weight);
-        _pq_contains.setBit(hn * _config.partition.k + target_part, true);
-        _tmp_gains[target_part] = 0;
-        if (_hg.partWeight(target_part) < max_allowed_part_weight) {
-          _pq.enablePart(target_part);
-        }
-      }
-      _gain_cache.setValid(hn);
     }
   }
 
