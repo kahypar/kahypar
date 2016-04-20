@@ -393,7 +393,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
       if (update_cache_only) {
         _gain_cache.updateEntryIfItExists(pin, from_part, -he_weight);
       } else {
-        updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
+        if (_gain_cache.entryExists(pin, from_part)) {
+          updatePin(pin, from_part, he, -he_weight, max_allowed_part_weight);
+        }
       }
     }
 
@@ -404,7 +406,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       } else {
         if (_already_processed_part.get(pin) != to_part) {
-          updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+          if (_gain_cache.entryExists(pin, to_part)) {
+            updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+          }
         }
       }
     }
@@ -882,25 +886,24 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                  const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     ONLYDEBUG(max_allowed_part_weight);
-    if (_gain_cache.entryExists(pin, part)) {
-      ASSERT(_already_processed_part.get(pin) != part, V(pin) << V(part));
-      ASSERT(!_hg.marked(pin), " Trying to update marked HN " << pin << " part=" << part);
-      ASSERT(_hg.active(pin), "Trying to update inactive HN " << pin << " part=" << part);
-      ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
-      ASSERT((_hg.partWeight(part) < max_allowed_part_weight ?
-              _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
-      // Assert that we only perform delta-gain updates on moves that are not stale!
-      ASSERT(hypernodeIsConnectedToPart(pin, part), V(pin) << V(part));
-      ASSERT(_hg.partID(pin) != part, V(pin) << V(part));
+    ASSERT(_gain_cache.entryExists(pin, part), V(pin) << V(part));
+    ASSERT(_already_processed_part.get(pin) != part, V(pin) << V(part));
+    ASSERT(!_hg.marked(pin), " Trying to update marked HN " << pin << " part=" << part);
+    ASSERT(_hg.active(pin), "Trying to update inactive HN " << pin << " part=" << part);
+    ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
+    ASSERT((_hg.partWeight(part) < max_allowed_part_weight ?
+            _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
+    // Assert that we only perform delta-gain updates on moves that are not stale!
+    ASSERT(hypernodeIsConnectedToPart(pin, part), V(pin) << V(part));
+    ASSERT(_hg.partID(pin) != part, V(pin) << V(part));
 
-      DBG(dbg_refinement_kway_kminusone_fm_gain_update,
-          "updating gain of HN " << pin
-          << " from gain " << _pq.key(pin, part) << " to " << _pq.key(pin, part) + delta
-          << " (to_part=" << part << ", ExpectedGain="
-          << gainInducedByHypergraph(pin, part) << ")");
-      _pq.updateKeyBy(pin, part, delta);
-      _gain_cache.updateExistingEntry(pin, part, delta);
-    }
+    DBG(dbg_refinement_kway_kminusone_fm_gain_update,
+        "updating gain of HN " << pin
+        << " from gain " << _pq.key(pin, part) << " to " << _pq.key(pin, part) + delta
+        << " (to_part=" << part << ", ExpectedGain="
+        << gainInducedByHypergraph(pin, part) << ")");
+    _pq.updateKeyBy(pin, part, delta);
+    _gain_cache.updateExistingEntry(pin, part, delta);
   }
 
   template <bool invalidate_hn = false>
