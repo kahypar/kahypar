@@ -373,7 +373,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
               _gain_cache.updateExistingEntry(pin, part, he_weight);
             }
           } else {
-            updatePin(pin, part, he, he_weight, max_allowed_part_weight);
+            if (_already_processed_part.get(pin) != part) {
+              updatePin(pin, part, he, he_weight, max_allowed_part_weight);
+            }
           }
         }
       }
@@ -385,7 +387,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
               _gain_cache.updateExistingEntry(pin, part, -he_weight);
             }
           } else {
-            updatePin(pin, part, he, -he_weight, max_allowed_part_weight);
+            if (_already_processed_part.get(pin) != part) {
+              updatePin(pin, part, he, -he_weight, max_allowed_part_weight);
+            }
           }
         }
       }
@@ -405,7 +409,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
           _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
         }
       } else {
-        updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+        if (_already_processed_part.get(pin) != to_part) {
+          updatePin(pin, to_part, he, he_weight, max_allowed_part_weight);
+        }
       }
     }
   }
@@ -543,8 +549,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const bool move_increased_connectivity = pin_count_to_part_after_move == 1;
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
-    const PinState pin_state(pin_count_from_part_before_move == 1, pin_count_to_part_after_move == 1,
-                             pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
+    const PinState pin_state(pin_count_from_part_before_move == 1,
+                             pin_count_to_part_after_move == 1,
+                             pin_count_from_part_before_move == 2,
+                             pin_count_to_part_after_move == 2);
 
     if (move_decreased_connectivity || move_increased_connectivity) {
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -640,8 +648,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     num_pins_to_update += pin_count_to_part_after_move == 2 ? 1 : 0;
 
     if (pin_count_from_part_after_move == 1 || pin_count_to_part_after_move == 2) {
-      const PinState pin_state(pin_count_from_part_before_move == 1, pin_count_to_part_after_move == 1,
-                               pin_count_from_part_before_move == 2, pin_count_to_part_after_move == 2);
+      const PinState pin_state(pin_count_from_part_before_move == 1,
+                               pin_count_to_part_after_move == 1,
+                               pin_count_from_part_before_move == 2,
+                               pin_count_to_part_after_move == 2);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       for (const HypernodeID pin : _hg.pins(he)) {
@@ -897,7 +907,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                  const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     ONLYDEBUG(max_allowed_part_weight);
-    if (_gain_cache.entryExists(pin, part) && _already_processed_part.get(pin) != part) {
+    if (_gain_cache.entryExists(pin, part)) {
+      ASSERT(_already_processed_part.get(pin) != part, V(pin) << V(part));
       ASSERT(!_hg.marked(pin), " Trying to update marked HN " << pin << " part=" << part);
       ASSERT(_hg.active(pin), "Trying to update inactive HN " << pin << " part=" << part);
       ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
