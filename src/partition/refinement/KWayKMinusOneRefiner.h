@@ -90,7 +90,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
  public:
   KWayKMinusOneRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    _pq_contains(_hg.initialNumNodes() * _config.partition.k, false),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k),
     _performed_moves(),
@@ -146,7 +145,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     _pq.clear();
     _hg.resetHypernodeState();
-    _pq_contains.resetAllBitsToFalse();
     _unremovable_he_parts.resetAllBitsToFalse();
 
     Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
@@ -181,7 +179,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
       _pq.deleteMax(max_gain_node, max_gain, to_part);
-      _pq_contains.setBit(max_gain_node * _config.partition.k + to_part, false);
       const PartitionID from_part = _hg.partID(max_gain_node);
 
       DBG(false, "cut=" << current_cut << " max_gain_node=" << max_gain_node
@@ -219,12 +216,20 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                _config.partition.k) - 1.0;
 
       // remove all other possible moves of the current max_gain_node
-      for (PartitionID part = 0; part < _config.partition.k; ++part) {
-        if (_pq_contains[max_gain_node * _config.partition.k + part]) {
-          _pq.remove(max_gain_node, part);
-          _pq_contains.setBit(max_gain_node * _config.partition.k + part, false);
+      for (const PartitionID part : _gain_cache.adjacentParts(max_gain_node)) {
+        if (part == to_part) {
+          continue;
         }
+        _pq.remove(max_gain_node, part);
       }
+      ASSERT([&]() {
+          for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            if (_pq.contains(max_gain_node, part)) {
+              return false;
+            }
+          }
+          return true;
+        } (), V(max_gain_node));
 
       const Gain fm_gain = updateNeighbours(max_gain_node, from_part, to_part,
                                             max_allowed_part_weights[0]);
@@ -310,12 +315,18 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) noexcept {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);
-      for (PartitionID part = 0; part < _config.partition.k; ++part) {
-        if (_pq_contains[hn * _config.partition.k + part]) {
-          _pq.remove(hn, part);
-          _pq_contains.setBit(hn * _config.partition.k + part, false);
-        }
+      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+        ASSERT(_pq.contains(hn, part), V(hn) << V(part));
+        _pq.remove(hn, part);
       }
+      ASSERT([&]() {
+          for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            if (_pq.contains(hn, part)) {
+              return false;
+            }
+          }
+          return true;
+        } (), V(hn));
     }
   }
 
@@ -428,10 +439,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
                           const bool move_increased_connectivity,
                           const HypernodeWeight max_allowed_part_weight) noexcept __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
-    if (move_decreased_connectivity && _pq_contains[pin * _config.partition.k + from_part] &&
+    if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
       _pq.remove(pin, from_part);
-      _pq_contains.setBit(pin * _config.partition.k + from_part, false);
       _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
       // LOG("normal connectivity decrease for " << pin);
       // Now pq might actually not contain any moves for HN pin.
@@ -442,7 +452,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       // internal and the "other" pin of the border HE (which has size 2) is
       // moved from one part to another.
     }
-    if (move_increased_connectivity && !_pq_contains[pin * _config.partition.k + to_part]) {
+    if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
       ASSERT(_hg.connectivity(he) >= 2, V(_hg.connectivity(he)));
       ASSERT(_already_processed_part.get(pin) == Hypergraph::kInvalidPartition,
              V(_already_processed_part.get(pin)));
@@ -457,7 +467,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
         _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part, gain);
       }
       _pq.insert(pin, to_part, gain);
-      _pq_contains.setBit(pin * _config.partition.k + to_part, true);
       _already_processed_part.set(pin, to_part);
 
       if (_hg.partWeight(to_part) < max_allowed_part_weight) {
@@ -888,7 +897,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                  const HypernodeWeight max_allowed_part_weight) noexcept {
     ONLYDEBUG(he);
     ONLYDEBUG(max_allowed_part_weight);
-    if (_pq_contains[pin * _config.partition.k + part] && _already_processed_part.get(pin) != part) {
+    if (_gain_cache.entryExists(pin, part) && _already_processed_part.get(pin) != part) {
       ASSERT(!_hg.marked(pin), " Trying to update marked HN " << pin << " part=" << part);
       ASSERT(_hg.active(pin), "Trying to update inactive HN " << pin << " part=" << part);
       ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
@@ -1008,7 +1017,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
       DBG(false && hn == 12518, " inserting " << V(hn) << V(part)
           << V(_gain_cache.entry(hn, part)));
       _pq.insert(hn, part, _gain_cache.entry(hn, part));
-      _pq_contains.setBit(hn * _config.partition.k + part, true);
       if (_hg.partWeight(part) < max_allowed_part_weight) {
         _pq.enablePart(part);
       }
@@ -1069,7 +1077,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
 
-  FastResetBitVector<> _pq_contains;
   std::vector<Gain> _tmp_gains;
   InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;
