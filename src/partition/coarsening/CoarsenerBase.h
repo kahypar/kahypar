@@ -148,12 +148,17 @@ class CoarsenerBase {
                                               + _max_hn_weights.back().max_weight },
                                             current_changes,
                                             current_metrics);
-    ASSERT(_config.partition.objective != Objective::cut || current_metrics.cut <= old_cut,
+
+    ASSERT(_config.partition.objective != Objective::cut ||
+           (current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)),
            V(current_metrics.cut) << V(old_cut));
-    ASSERT(_config.partition.objective != Objective::km1 ||
-           current_metrics.km1 <= old_km1,
-           V(current_metrics.km1) << V(old_km1));
-    ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
+    // Km1 is optimized indirectly in recursive bisection mode via cut-net splitting and optimizing
+    // cut. In this case current_metrics.km1 is not used.
+    ASSERT((_config.partition.mode != Mode::direct_kway ||
+            _config.partition.objective != Objective::km1) ||
+           (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::kMinus1(_hg)),
+           V(current_metrics.km1) << V(old_km1) << V(metrics::kMinus1(_hg)));
+
     DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
         old_cut << "-->" << current_metrics.cut);
     DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
