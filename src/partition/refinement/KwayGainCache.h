@@ -18,7 +18,7 @@ template <typename HypernodeID = Mandatory,
 class KwayGainCache {
  private:
   static const bool debug = false;
-  static const HypernodeID hn_to_debug = 8;
+  static const HypernodeID hn_to_debug = 2225;
 
   using Byte = char;
 
@@ -111,11 +111,14 @@ class KwayGainCache {
       ASSERT(part < _k, V(part));
       const PartitionID index = sparse(part).index;
       ASSERT(index < _size && dense(index) == part, V(part));
-      sparse(part).gain = kNotCached;
+      ASSERT(_size > 0, V(_size));
       const PartitionID e = dense(--_size);
+      ASSERT(_size >= 0, V(_size));
       dense(index) = e;
       sparse(e).index = index;
-      ASSERT(_size >= 0, V(_size));
+      // This has to be done here in case there is only one element!
+      sparse(part).index = kInvalidPart;
+      sparse(part).gain = kNotCached;
     }
 
     Gain gain(const PartitionID part) const {
@@ -156,13 +159,13 @@ class KwayGainCache {
           }
           return true;
         } (), "Cache Element Inconsistent");
-      return sparse(part).gain != kNotCached;
+      return sparse(part).index != kInvalidPart;
     }
 
-    void setInvalid() {
+    void clear() {
       _size = 0;
       for (PartitionID i = 0; i < _k; ++i) {
-        sparse(i).gain = kNotCached;
+        sparse(i) = { kInvalidPart, kNotCached };
       }
     }
 
@@ -221,6 +224,7 @@ class KwayGainCache {
   KwayGainCache& operator= (KwayGainCache&&) = default;
 
   __attribute__ ((always_inline)) Gain entry(const HypernodeID hn, const PartitionID part) const {
+    DBG(debug && (hn == hn_to_debug), "entry access for HN " << hn << " and part " << part);
     ASSERT(part < _k, V(part));
     return cacheElement(hn)->gain(part);
   }
@@ -228,7 +232,8 @@ class KwayGainCache {
   __attribute__ ((always_inline)) bool entryExists(const HypernodeID hn,
                                                    const PartitionID part) const {
     ASSERT(part < _k, V(part));
-    // LOG("existence check for HN " << hn << " and part " << part);
+    DBG(debug && (hn == hn_to_debug), "existence check for HN " << hn << " and part " << part
+        << "=" << cacheElement(hn)->contains(part));
     return cacheElement(hn)->contains(part);
   }
 
@@ -259,6 +264,8 @@ class KwayGainCache {
                                                                     const PartitionID to_part,
                                                                     const bool remains_connected_to_from_part) {
     if (remains_connected_to_from_part) {
+      DBG(debug && (moved_hn == hn_to_debug),
+          "updateFromAndToPartOfMovedHN(" << moved_hn << "," << from_part << "," << to_part << ")");
       const Gain to_part_gain = cacheElement(moved_hn)->gain(to_part);
       _deltas.emplace_back(moved_hn, from_part,
                            cacheElement(moved_hn)->gain(from_part) + to_part_gain,
@@ -275,9 +282,9 @@ class KwayGainCache {
   }
 
 
-  __attribute__ ((always_inline)) void setInvalid(const HypernodeID hn) {
-    DBG(debug && (hn == hn_to_debug), "setInvalid(" << hn << ")");
-    cacheElement(hn)->setInvalid();
+  __attribute__ ((always_inline)) void clear(const HypernodeID hn) {
+    DBG(debug && (hn == hn_to_debug), "clear(" << hn << ")");
+    cacheElement(hn)->clear();
   }
 
   void initializeEntry(const HypernodeID hn, const PartitionID part, const Gain value) {
@@ -301,7 +308,7 @@ class KwayGainCache {
                                                            const Gain delta) {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
-    ASSERT(cacheElement(hn)->gain(part) != kNotCached, V(part));
+    ASSERT(cacheElement(hn)->gain(part) != kNotCached, V(hn) << V(part));
     DBG(debug && (hn == hn_to_debug),
         "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")");
     cacheElement(hn)->update(part, delta);

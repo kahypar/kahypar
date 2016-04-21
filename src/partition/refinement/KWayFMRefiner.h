@@ -1018,7 +1018,7 @@ class KWayFMRefiner final : public IRefiner,
     // from the uncontraction itself (this is still a todo). Therefore, these activations
     // have to invalidate and recalculate the gains.
     if (invalidate_hn) {
-      _gain_cache.setInvalid(hn);
+      _gain_cache.clear(hn);
       initializeGainCacheFor(hn);
     }
 
@@ -1084,7 +1084,6 @@ class KWayFMRefiner final : public IRefiner,
       }
     }
 
-    ASSERT(!_gain_cache.valid(hn), V(hn));
     for (const PartitionID target_part : _tmp_target_parts) {
       if (target_part == source_part) {
         _tmp_gains[source_part] = 0;
@@ -1093,7 +1092,6 @@ class KWayFMRefiner final : public IRefiner,
       _gain_cache.initializeEntry(hn, target_part, _tmp_gains[target_part] - internal_weight);
       _tmp_gains[target_part] = 0;
     }
-    _gain_cache.setValid(hn);
   }
 
 
@@ -1103,7 +1101,6 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
-    ASSERT(_gain_cache.valid(hn), V(hn));
     for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
       ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
       ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
@@ -1131,7 +1128,6 @@ class KWayFMRefiner final : public IRefiner,
   // TODO(schlag): Some of these assertions could easily be converted
   // into unit tests.
   void ASSERT_THAT_CACHE_IS_VALID_FOR_HN(const HypernodeID hn) const {
-    ASSERT(_gain_cache.valid(hn), V(hn));
     std::vector<bool> adjacent_parts(_config.partition.k, false);
     for (PartitionID part = 0; part < _config.partition.k; ++part) {
       if (hypernodeIsConnectedToPart(hn, part)) {
