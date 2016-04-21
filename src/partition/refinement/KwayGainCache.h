@@ -65,7 +65,6 @@ class KwayGainCache {
  public:
     explicit CacheElement(const PartitionID k) :
       _k(k),
-      _valid(false),
       _size(0) {
       static_assert(sizeof(Gain) == sizeof(PartitionID), "Size is not correct");
       for (PartitionID i = 0; i < k; ++i) {
@@ -160,20 +159,11 @@ class KwayGainCache {
       return sparse(part).gain != kNotCached;
     }
 
-    void setValid() {
-      _valid = true;
-    }
-
     void setInvalid() {
       _size = 0;
-      _valid = false;
       for (PartitionID i = 0; i < _k; ++i) {
         sparse(i).gain = kNotCached;
       }
-    }
-
-    bool valid() const {
-      return _valid;
     }
 
  private:
@@ -198,7 +188,6 @@ class KwayGainCache {
     }
 
     const PartitionID _k;
-    Gain _valid;
     PartitionID _size;
     // The cache entries follow after size
   };
@@ -286,18 +275,9 @@ class KwayGainCache {
   }
 
 
-  __attribute__ ((always_inline)) void setValid(const HypernodeID hn) {
-    cacheElement(hn)->setValid();
-  }
-
   __attribute__ ((always_inline)) void setInvalid(const HypernodeID hn) {
     DBG(debug && (hn == hn_to_debug), "setInvalid(" << hn << ")");
     cacheElement(hn)->setInvalid();
-  }
-
-
-  __attribute__ ((always_inline)) bool valid(const HypernodeID hn) const {
-    return cacheElement(hn)->valid();
   }
 
   void initializeEntry(const HypernodeID hn, const PartitionID part, const Gain value) {
@@ -334,12 +314,13 @@ class KwayGainCache {
       const HypernodeID hn = rit->hn;
       const PartitionID part = rit->part;
       const Gain delta = rit->delta;
-      if (cacheElement(hn)->gain(part) != kNotCached) {
+      if (cacheElement(hn)->contains(part)) {
         DBG(debug && (hn == hn_to_debug), "rollback: " << "G[" << hn << "," << part << "]="
             << cacheElement(hn)->gain(part) << "+" << delta << "="
             << (cacheElement(hn)->gain(part) + delta));
         cacheElement(hn)->update(part, delta);
-        if (cacheElement(hn)->gain(part) == kNotCached) {
+        if (rit->action == RollbackAction::do_remove) {
+          ASSERT(cacheElement(hn)->gain(part) == kNotCached, V(hn));
           cacheElement(hn)->remove(part);
         }
       } else {
