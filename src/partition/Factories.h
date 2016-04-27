@@ -15,6 +15,7 @@
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
+#include "partition/coarsening/MLCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/refinement/DoNothingRefiner.h"
@@ -99,5 +100,6 @@ using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
 using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
 using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
+using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRater>;
 }  // namespace partition
 #endif  // SRC_PARTITION_FACTORIES_H_

@@ -51,6 +51,7 @@ using partition::DoNothingCoarsener;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
+using partition::RandomWinsMLCoarsener;
 using partition::TwoWayFMFactoryDispatcher;
 using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
@@ -265,6 +266,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       } else if (vm["ctype"].as<std::string>() == "heavy_lazy") {
         config.partition.coarsening_algorithm =
           CoarseningAlgorithm::heavy_lazy;
+      } else if (vm["ctype"].as<std::string>() == "ml_style") {
+        config.partition.coarsening_algorithm =
+          CoarseningAlgorithm::ml_style;
       } else if (vm["ctype"].as<std::string>() == "hyperedge") {
         config.partition.coarsening_algorithm =
           CoarseningAlgorithm::hyperedge;
@@ -438,6 +442,13 @@ static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
   [](Hypergraph& hypergraph, const Configuration& config,
      const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
   return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
+});
+
+static Registrar<CoarsenerFactory> reg_ml_coarsener(
+  CoarseningAlgorithm::ml_style,
+  [](Hypergraph& hypergraph, const Configuration& config,
+     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
+  return new RandomWinsMLCoarsener(hypergraph, config, weight_of_heaviest_node);
 });
 
 static Registrar<CoarsenerFactory> reg_do_nothing_coarsener(

@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #ifndef SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_
 #define SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_
 
@@ -24,6 +28,7 @@ enum class CoarseningAlgorithm : std::uint8_t {
   heavy_full,
   heavy_partial,
   heavy_lazy,
+  ml_style,
   hyperedge,
   do_nothing
 };
@@ -120,6 +125,8 @@ static std::string toString(const CoarseningAlgorithm& algo) {
       return std::string("heavy_partial");
     case CoarseningAlgorithm::heavy_lazy:
       return std::string("heavy_lazy");
+    case CoarseningAlgorithm::ml_style:
+      return std::string("ml_style");
     case CoarseningAlgorithm::hyperedge:
       return std::string("hyperedge");
     case CoarseningAlgorithm::do_nothing:
@@ -201,7 +208,6 @@ static std::string toString(const GlobalRebalancingMode& state) {
   }
   return std::string("UNDEFINED");
 }
-
-}
+}  // namespace partition
 
 #endif  // SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_
