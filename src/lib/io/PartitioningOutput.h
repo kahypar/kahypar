@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <numeric>
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
