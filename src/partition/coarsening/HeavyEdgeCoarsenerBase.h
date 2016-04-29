@@ -135,25 +135,15 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         _max_hn_weights.pop_back();
       }
 
-      if (refiner.supportsDeltaGain()) {
-        switch (_config.partition.refinement_algorithm) {
-          case RefinementAlgorithm::twoway_fm:
-            _hg.uncontract(_history.back().contraction_memento, changes,
-                           Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
-            break;
-          case RefinementAlgorithm::kway_fm_km1:
-            _hg.uncontract(_history.back().contraction_memento, changes,
-                           Int2Type<static_cast<int>(RefinementAlgorithm::kway_fm_km1)>());
-            break;
-          default:
-            LOG("Uncontract with delta-gain support not implemented for refinement algorithm");
-            exit(-1);
-        }
-        performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
-      } else {
-        _hg.uncontract(_history.back().contraction_memento);
-        performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
+      switch (_config.partition.refinement_algorithm) {
+        case RefinementAlgorithm::twoway_fm:
+          _hg.uncontract(_history.back().contraction_memento, changes,
+                         Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+          break;
+        default:
+          _hg.uncontract(_history.back().contraction_memento);
       }
+      performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
       _history.pop_back();

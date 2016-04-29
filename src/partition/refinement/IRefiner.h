@@ -54,16 +54,11 @@ class IRefiner {
     return policyStringImpl();
   }
 
-  bool supportsDeltaGain() const noexcept {
-    return _delta_gain_support;
-  }
-
   virtual ~IRefiner() { }
 
  protected:
   IRefiner() noexcept { }
   bool _is_initialized = false;
-  bool _delta_gain_support = false;
 
  private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
