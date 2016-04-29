@@ -4,6 +4,17 @@ project(hypergraphpartitioning CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
+site_name(HOSTNAME)
+if(${HOSTNAME} MATCHES "i10pc.*")
+message(STATUS "hostname: ${HOSTNAME}")
+set(CMAKE_CXX_COMPILER "/software/gcc/6.1.0/bin/g++")
+message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
+set(ENV{LD_LIBRARY_PATH} "/software/gcc/6.1.0/lib64")
+message(STATUS "Setting LD_LIBRARY_PATH to $ENV{LD_LIBRARY_PATH}")
+set(BOOST_ROOT "/software/boost_1_60_0")
+message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
+endif(${HOSTNAME} MATCHES "i10pc.*")
+
 #ensure that gmock is built before tests are executed
 include(${CMAKE_SOURCE_DIR}/cmake/modules/ExternalProject.cmake)
 ExternalProject_Add(gmock
@@ -12,17 +23,6 @@ ExternalProject_Add(gmock
 ExternalProject_Add(gtest
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gtest"
   INSTALL_COMMAND "")
-
-site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc.*")
-message(STATUS "hostname: ${HOSTNAME}")
-set(CMAKE_CXX_COMPILER "/software/gcc/4.9.1/bin/g++")
-message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
-set(ENV{LD_LIBRARY_PATH} "/software/gcc/4.9.1/lib64")
-message(STATUS "Setting LD_LIBRARY_PATH to $ENV{LD_LIBRARY_PATH}")
-set(BOOST_ROOT "/software/boost_1_55_0")
-message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
-endif(${HOSTNAME} MATCHES "i10pc.*")
 
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
