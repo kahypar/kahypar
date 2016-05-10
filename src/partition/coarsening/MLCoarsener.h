@@ -13,6 +13,9 @@
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
+#include "lib/datastructure/FastResetBitVector.h"
+
+using datastructure::FastResetBitVector;
 
 namespace partition {
 using defs::RatingType;
@@ -73,10 +76,12 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) noexcept override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
+    FastResetBitVector<> already_matched(_hg.initialNumNodes(), false);
     while (_hg.numNodes() > limit) {
       LOGVAR(pass_nr);
       LOGVAR(_hg.numNodes());
 
+      already_matched.resetAllBitsToFalse();
       current_hns.clear();
 
       const HypernodeID num_hns_before_pass = _hg.numNodes();
@@ -91,9 +96,11 @@ class MLCoarsener final : public ICoarsener,
 
       for (const HypernodeID hn : current_hns) {
         if (_hg.nodeIsEnabled(hn)) {
-          const Rating rating = contractionPartner(hn);
+          const Rating rating = contractionPartner(hn, already_matched);
 
           if (rating.target != kInvalidTarget) {
+            already_matched.setBit(hn, true);
+            already_matched.setBit(rating.target, true);
             performContraction(hn, rating.target);
             removeSingleNodeHyperedges(hn);
             removeParallelHyperedges(hn);
@@ -112,7 +119,7 @@ class MLCoarsener final : public ICoarsener,
     }
   }
 
-  Rating contractionPartner(const HypernodeID u) {
+  Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
@@ -135,7 +142,7 @@ class MLCoarsener final : public ICoarsener,
       const RatingType tmp = it->value /
                              (weight_u * _hg.nodeWeight(tmp_target));
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
-      if (acceptRating(tmp, max_rating)) {
+      if (acceptRating(tmp, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp;
         target = tmp_target;
       }
@@ -174,8 +181,17 @@ class MLCoarsener final : public ICoarsener,
     return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(const RatingType tmp, const RatingType max_rating) const noexcept {
-    return max_rating < tmp || (max_rating == tmp && RandomRatingWins::acceptEqual());
+  bool acceptRating(const RatingType tmp, const RatingType max_rating,
+                    const HypernodeID old_target, const HypernodeID new_target,
+                    const FastResetBitVector<>& already_matched) const noexcept {
+    return max_rating < tmp ||
+                        ((max_rating == tmp) &&
+                         ((already_matched[old_target] && !already_matched[new_target]) ||
+                         (already_matched[old_target] && already_matched[new_target] &&
+                          RandomRatingWins::acceptEqual()) ||
+                          (!already_matched[old_target] && !already_matched[new_target] &&
+                          RandomRatingWins::acceptEqual())
+                          ));
   }
 
   using Base::_pq;
