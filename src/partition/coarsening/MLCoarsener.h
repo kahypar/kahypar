@@ -139,8 +139,8 @@ class MLCoarsener final : public ICoarsener,
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.crbegin(); it != _tmp_ratings.crend(); ++it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp = it->value /
-                             (weight_u * _hg.nodeWeight(tmp_target));
+      const RatingType tmp = it->value;//  /
+                             // (weight_u * _hg.nodeWeight(tmp_target));
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
       if (acceptRating(tmp, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp;
