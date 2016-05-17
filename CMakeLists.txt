@@ -19,9 +19,11 @@ endif(${HOSTNAME} MATCHES "i10pc.*")
 include(${CMAKE_SOURCE_DIR}/cmake/modules/ExternalProject.cmake)
 ExternalProject_Add(gmock
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gmock"
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
   INSTALL_COMMAND "")
 ExternalProject_Add(gtest
   SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gtest"
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
   INSTALL_COMMAND "")
 
 set(BOOST_MIN_VERSION "1.48.0")
