@@ -8,6 +8,7 @@ add_executable(HypergraphStats HypergraphStats.cc)
 add_executable(HypergraphAnalyzer HypergraphAnalyzer.cc)
 add_executable(HgrToHypergraphML HgrToHypergraphMLConverter.cc)
 add_executable(HgrToBipartiteGraphML HgrToBipartiteGraphMLConverter.cc)
+add_executable(HgrToBipartiteMetisGraph HgrToBipartiteMetisGraphConverter.cc)
 
 # This test needs test instance files, so we copy them to the corresponding build dir
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
