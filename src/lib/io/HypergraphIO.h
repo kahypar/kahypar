@@ -212,7 +212,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
     out_stream << "<node id=\"h" << he << "\">"  << std::endl;
     // out_stream << "<data key=\"d3\">"<< std::endl;
     out_stream << "<data key=\"d0\">red</data>" << std::endl;
-        out_stream << "<data key=\"d1\">" << 1 << "</data>" << std::endl;
+        out_stream << "<data key=\"d1\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
     // out_stream << "<y:ShapeNode><y:Fill color=\"#000CFA\" transparent=\"false\"/></y:ShapeNode>"
     //            << std::endl;
     // out_stream << "</data>" << std::endl;
