@@ -176,29 +176,30 @@ static inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::
 
 static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
                                                 const std::string& filename) {
-
   std::ofstream out_stream(filename.c_str());
 
   out_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
-             << " <graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\""
-             << " xmlns:java=\"http://www.yworks.com/xml/yfiles-common/1.0/java\""
-             << " xmlns:sys=\"http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0\""
-             << " xmlns:x=\"http://www.yworks.com/xml/yfiles-common/markup/2.0\""
-             << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-             << " xmlns:y=\"http://www.yworks.com/xml/graphml\""
-             << " xmlns:yed=\"http://www.yworks.com/xml/yed/3\""
-             << " xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns"
-             << "http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">"
-             << std::endl;
+  << " <graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\""
+  << " xmlns:java=\"http://www.yworks.com/xml/yfiles-common/1.0/java\""
+  << " xmlns:sys=\"http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0\""
+  << " xmlns:x=\"http://www.yworks.com/xml/yfiles-common/markup/2.0\""
+  << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+  << " xmlns:y=\"http://www.yworks.com/xml/graphml\""
+  << " xmlns:yed=\"http://www.yworks.com/xml/yed/3\""
+  << " xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns"
+  << "http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">"
+  << std::endl;
 
   out_stream << "<key id=\"d0\" for=\"node\" attr.name=\"color\" attr.type=\"string\">" << std::endl;
   out_stream << "<key id=\"d1\" for=\"node\" attr.name=\"weight\" attr.type=\"double\"/>" << std::endl;
+  out_stream << "<key id=\"d2\" for=\"node\" attr.name=\"part\" attr.type=\"int\"/>" << std::endl;
   out_stream << "<default>yellow</default></key>" << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
-  for (const defs::HypernodeID hn : hypergraph.nodes()){
-    out_stream << "<node id=\"n" << hn << "\">"  << std::endl;
+  for (const defs::HypernodeID hn : hypergraph.nodes()) {
+    out_stream << "<node id=\"n" << hn << "\">" << std::endl;
     out_stream << "<data key=\"d0\">blue</data>" << std::endl;
     out_stream << "<data key=\"d1\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
+    out_stream << "<data key=\"d2\">" << hypergraph.partID(hn) << "</data>" << std::endl;
     // out_stream << "<data key=\"d3\">"<< std::endl;
     // out_stream << "<y:ShapeNode><y:Fill color=\"#FA0000\" transparent=\"false\"/></y:ShapeNode>"
     //            << std::endl;
@@ -208,18 +209,19 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
 
   HyperedgeID edge_id = 0;
   for (const defs::HyperedgeID he : hypergraph.edges()) {
-    //const HyperedgeID he_id = hypergraph.numNodes() + he;
-    out_stream << "<node id=\"h" << he << "\">"  << std::endl;
+    // const HyperedgeID he_id = hypergraph.numNodes() + he;
+    out_stream << "<node id=\"h" << he << "\">" << std::endl;
     // out_stream << "<data key=\"d3\">"<< std::endl;
     out_stream << "<data key=\"d0\">red</data>" << std::endl;
-        out_stream << "<data key=\"d1\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
+    out_stream << "<data key=\"d1\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
+    out_stream << "<data key=\"d2\">" << -1 << "</data>" << std::endl;
     // out_stream << "<y:ShapeNode><y:Fill color=\"#000CFA\" transparent=\"false\"/></y:ShapeNode>"
     //            << std::endl;
     // out_stream << "</data>" << std::endl;
-    out_stream << "</node>"   << std::endl;
+    out_stream << "</node>" << std::endl;
     for (const defs::HypernodeID pin : hypergraph.pins(he)) {
-      out_stream << "<edge id=\"e" << edge_id++  << "\" source=\"n" << pin << "\" target=\"h"
-                 << he << "\"/>" << std::endl;
+      out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
+      << he << "\"/>" << std::endl;
     }
   }
 
