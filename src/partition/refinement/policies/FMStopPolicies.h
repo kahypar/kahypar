@@ -93,11 +93,13 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
   bool searchShouldStop(const int num_moves_since_last_improvement,
                         const Configuration& config, const double beta,
                         const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
-    return num_moves_since_last_improvement
-           >= config.fm_local_search.alpha * ((_sum_gains_squared * num_moves_since_last_improvement)
-                                              / (2.0 * (static_cast<double>(best_cut) - cut)
-                                                 * (static_cast<double>(best_cut) - cut) - 0.5)
-                                              + beta);
+    // When statistics are reset best_cut = cut and therefore we should not stop
+    return !!(best_cut - cut) && (num_moves_since_last_improvement
+                                  >= config.fm_local_search.alpha *
+                                  ((_sum_gains_squared * num_moves_since_last_improvement)
+                                   / (2.0 * (static_cast<double>(best_cut) - cut)
+                                      * (static_cast<double>(best_cut) - cut) - 0.5)
+                                   + beta));
   }
 
   void resetStatistics() noexcept {
