@@ -138,7 +138,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");
 #ifdef GATHER_STATS
-      Stats::instance().add(config, "numHNsWithoutValidContractionPartner", 1);
+      Stats::instance().add(_config, "numHNsWithoutValidContractionPartner", 1);
 #endif
     }
   }
