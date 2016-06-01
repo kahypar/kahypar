@@ -52,13 +52,11 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   using Base = CoarsenerBase<CoarseningMemento>;
   using Base::_hg;
   using Base::_config;
-  using Base::_history;
-  using Base::_max_hn_weights;
-  using Base::CurrentMaxNodeWeight;
   using Base::restoreSingleNodeHyperedges;
   using Base::restoreParallelHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
+  using Base::performContraction;
   using Rating = typename Rater::Rating;
   using RatingType = typename Rater::RatingType;
 
@@ -79,13 +77,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
 
  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
-
-  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
-    _history.emplace_back(_hg.contract(rep_node, contracted_node));
-    if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
-      _max_hn_weights.emplace_back(_hg.numNodes(), _hg.nodeWeight(rep_node));
-    }
-  }
 
   bool doUncoarsen(IRefiner& refiner) noexcept {
     Metrics current_metrics = { metrics::hyperedgeCut(_hg),

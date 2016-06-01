@@ -68,6 +68,13 @@ class CoarsenerBase {
   CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
  protected:
+  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
+    _history.emplace_back(_hg.contract(rep_node, contracted_node));
+    if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
+      _max_hn_weights.emplace_back(_hg.numNodes(), _hg.nodeWeight(rep_node));
+    }
+  }
+
   void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
     HyperedgeWeight removed_he_weight =
       _hypergraph_pruner.removeSingleNodeHyperedges(_hg, rep_node,
@@ -159,7 +166,7 @@ class CoarsenerBase {
            (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::kMinus1(_hg)),
            V(current_metrics.km1) << V(old_km1) << V(metrics::kMinus1(_hg)));
 
-    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
+    DBG(dbg_coarsening_uncoarsen == false && (_config.partition.objective == Objective::cut),
         old_cut << "-->" << current_metrics.cut);
     DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
         old_km1 << "-->" << current_metrics.km1);
