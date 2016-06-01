@@ -166,7 +166,7 @@ class CoarsenerBase {
            (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::kMinus1(_hg)),
            V(current_metrics.km1) << V(old_km1) << V(metrics::kMinus1(_hg)));
 
-    DBG(dbg_coarsening_uncoarsen == false && (_config.partition.objective == Objective::cut),
+    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
         old_cut << "-->" << current_metrics.cut);
     DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
         old_km1 << "-->" << current_metrics.km1);
