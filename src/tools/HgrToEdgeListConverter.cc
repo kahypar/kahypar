@@ -7,11 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "lib/macros.h"
-#include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-
-using defs::Hypergraph;
+#include "lib/macros.h"
+#include "tools/HgrToEdgeListConversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -20,20 +18,13 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string graphml_filename(hgr_filename + ".edgelist");
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename,2));
+  EdgeVector edges = createEdgeVector(io::createHypergraphFromFile(hgr_filename, 2));
 
   std::ofstream out_stream(graphml_filename.c_str());
-
-  for (const defs::HypernodeID hn : hypergraph.nodes()){
-    // vertex ids start with 0
-    for (const defs::HyperedgeID he : hypergraph.incidentEdges(hn)) {
-      const defs::HyperedgeID he_id = hypergraph.numNodes() + he;
-      out_stream << hn << " " << he_id << std::endl;
-    }
+  for (const Edge edge : edges) {
+    out_stream << edge.src << " " << edge.dest << std::endl;
   }
-  //backwards edges are 
 
   out_stream.close();
-  std::cout << 'done' << std::endl;
-
+  std::cout << "done" << std::endl;
 }
