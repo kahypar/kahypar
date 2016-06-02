@@ -1,0 +1,18 @@
+% hypergraph for which edge-based coarsening scheme may yield a bad coarsening
+% source: [KarKu22000]
+15 10
+1 2 3 4 5
+1 3
+1 2
+2 4
+3 4
+1 3 5
+3 5
+5 6
+6 7
+7 9
+7 8
+8 10
+9 10
+6 7 9
+6 7 8 9 10
