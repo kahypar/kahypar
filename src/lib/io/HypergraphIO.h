@@ -190,20 +190,15 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   << "http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">"
   << std::endl;
 
-  out_stream << "<key id=\"d0\" for=\"node\" attr.name=\"color\" attr.type=\"string\">" << std::endl;
-  out_stream << "<key id=\"d1\" for=\"node\" attr.name=\"weight\" attr.type=\"double\"/>" << std::endl;
-  out_stream << "<key id=\"d2\" for=\"node\" attr.name=\"part\" attr.type=\"int\"/>" << std::endl;
-  out_stream << "<default>yellow</default></key>" << std::endl;
+  out_stream << "<key id=\"d0\" for=\"node\" attr.name=\"weight\" attr.type=\"double\"/>" << std::endl;
+  out_stream << "<key id=\"d1\" for=\"node\" attr.name=\"part\" attr.type=\"int\"/>" << std::endl;
+  out_stream << "<key id=\"d2\" for=\"node\" attr.name=\"iscutedge\" attr.type=\"int\"/>" << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
   for (const defs::HypernodeID hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\">" << std::endl;
-    out_stream << "<data key=\"d0\">blue</data>" << std::endl;
-    out_stream << "<data key=\"d1\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
-    out_stream << "<data key=\"d2\">" << hypergraph.partID(hn) << "</data>" << std::endl;
-    // out_stream << "<data key=\"d3\">"<< std::endl;
-    // out_stream << "<y:ShapeNode><y:Fill color=\"#FA0000\" transparent=\"false\"/></y:ShapeNode>"
-    //            << std::endl;
-    // out_stream << "</data>" << std::endl;
+    out_stream << "<data key=\"d0\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
+    out_stream << "<data key=\"d1\">" << hypergraph.partID(hn) << "</data>" << std::endl;
+    out_stream << "<data key=\"d2\">" << 42 << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
   }
 
@@ -211,13 +206,9 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   for (const defs::HyperedgeID he : hypergraph.edges()) {
     // const HyperedgeID he_id = hypergraph.numNodes() + he;
     out_stream << "<node id=\"h" << he << "\">" << std::endl;
-    // out_stream << "<data key=\"d3\">"<< std::endl;
-    out_stream << "<data key=\"d0\">red</data>" << std::endl;
-    out_stream << "<data key=\"d1\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
-    out_stream << "<data key=\"d2\">" << -1 << "</data>" << std::endl;
-    // out_stream << "<y:ShapeNode><y:Fill color=\"#000CFA\" transparent=\"false\"/></y:ShapeNode>"
-    //            << std::endl;
-    // out_stream << "</data>" << std::endl;
+    out_stream << "<data key=\"d0\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
+    out_stream << "<data key=\"d1\">" << -1 << "</data>" << std::endl;
+    out_stream << "<data key=\"d2\">" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
     for (const defs::HypernodeID pin : hypergraph.pins(he)) {
       out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
