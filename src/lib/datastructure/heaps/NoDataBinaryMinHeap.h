@@ -28,7 +28,6 @@ template <typename id_slot, typename key_slot,
           typename storage_slot = ArrayStorage<id_slot> >
 class NoDataBinaryMinHeap {
  private:
-  void operator= (const NoDataBinaryMinHeap&) { }    // really, do not copy
   using Storage = storage_slot;
 
  protected:
@@ -54,7 +53,7 @@ class NoDataBinaryMinHeap {
   using meta_key_type = meta_key_slot;
   using data_type = void;
 
-  NoDataBinaryMinHeap(const id_slot& storage_initializer) noexcept :
+  explicit NoDataBinaryMinHeap(const id_slot& storage_initializer) noexcept :
     handles(storage_initializer),
     max_size(storage_initializer + 1) {
     next_slot = 0;
@@ -151,14 +150,12 @@ class NoDataBinaryMinHeap {
   }
 
   inline const key_slot & getCurrentKey(const id_slot& id) const noexcept {
-    GUARANTEE(isReached(id), std::runtime_error,
-              "[error] BinaryHeap::getCurrentKey - Accessing invalid element")
+    ASSERT(isReached(id), "Accessing invalid element:" << id);
     return heap[handles[id]].key;
   }
 
   inline const key_slot & getKey(const id_slot& id) const noexcept {
-    GUARANTEE(isReached(id), std::runtime_error,
-              "[error] BinaryHeap::getCurrentKey - Accessing invalid element")
+    ASSERT(isReached(id), "Accessing invalid element:" << id);
     return heap[handles[id]].key;
   }
 
