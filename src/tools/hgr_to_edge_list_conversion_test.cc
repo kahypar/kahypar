@@ -26,7 +26,7 @@ class HypergraphToEdgeListConversion : public Test {
 
 TEST_F(HypergraphToEdgeListConversion, OutputsCorrectNumberOfEdges) {
   EdgeVector edges = createEdgeVector(hypergraph);
-  ASSERT_THAT(edges.size(), Eq(hypergraph.numPins()));
+  ASSERT_THAT(edges.size(), Eq(hypergraph.initialNumPins()));
 }
 
 TEST_F(HypergraphToEdgeListConversion, KeepsHypernodeIDsForSourceNodes) {

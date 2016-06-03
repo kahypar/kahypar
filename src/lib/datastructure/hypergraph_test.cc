@@ -24,7 +24,7 @@ using Memento = Hypergraph::ContractionMemento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
   ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
   ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
   ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
   ASSERT_THAT(hypergraph.nodeDegree(2), Eq(2));
@@ -66,7 +66,7 @@ TEST_F(AHypergraph, ReturnsNumberOfHyperedges) {
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfPins) {
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfHypernodesOnHypernodeRemoval) {
@@ -76,9 +76,9 @@ TEST_F(AHypergraph, DecrementsNumberOfHypernodesOnHypernodeRemoval) {
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHypernodeRemoval) {
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
   hypergraph.removeNode(6);
-  ASSERT_THAT(hypergraph.numPins(), Eq(10));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
 }
 
 TEST_F(AHypergraph, DecrementsSizeOfAffectedHyperedgesOnHypernodeRemoval) {
@@ -108,9 +108,9 @@ TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHyperedgeRemoval) {
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
   hypergraph.removeEdge(2, false);
-  ASSERT_THAT(hypergraph.numPins(), Eq(9));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(9));
 }
 
 TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemoval) {
@@ -149,9 +149,9 @@ TEST_F(AHypergraph, ReducesHyperedgeSizeOfHyperedgesAffectedByContraction) {
 }
 
 TEST_F(AHypergraph, ReducesNumberOfPinsOnContraction) {
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
   hypergraph.contract(3, 4);
-  ASSERT_THAT(hypergraph.numPins(), Eq(10));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
 }
 
 TEST_F(AHypergraph, ReducesTheNumberOfHypernodesOnContraction) {
@@ -356,7 +356,7 @@ TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAlredyExistin
 
 TEST_F(AnUncontractionOperation, RestoresNumberOfPinsOnUncontraction) {
   hypergraph.uncontract(hypergraph.contract(3, 4));
-  ASSERT_THAT(hypergraph.numPins(), Eq(12));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
 }
 
 TEST_F(AnUncontractionOperation, RestoresHyperedgeSizeOfHyperedgesAffectedByContraction) {

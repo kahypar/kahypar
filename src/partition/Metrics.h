@@ -203,11 +203,11 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
 }
 
 static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
-  return static_cast<double>(hypergraph.numPins()) / hypergraph.currentNumEdges();
+  return static_cast<double>(hypergraph.currentNumPins()) / hypergraph.currentNumEdges();
 }
 
 static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
-  return static_cast<double>(hypergraph.numPins()) / hypergraph.currentNumNodes();
+  return static_cast<double>(hypergraph.currentNumPins()) / hypergraph.currentNumNodes();
 }
 
 static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {

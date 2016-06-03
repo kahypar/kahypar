@@ -254,7 +254,7 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   ASSERT(!filename.empty(), "No filename for PaToH initial partitioning file specified");
   std::ofstream out_stream(filename.c_str());
   out_stream << 1;                     // 1-based indexing
-  out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.currentNumEdges() << " " << hypergraph.numPins();
+  out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.currentNumEdges() << " " << hypergraph.currentNumPins();
   out_stream << " " << 3 << std::endl;  // weighting scheme: both edge and node weights
 
   for (const HyperedgeID he : hypergraph.edges()) {

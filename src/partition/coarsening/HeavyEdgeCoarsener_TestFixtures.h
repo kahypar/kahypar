@@ -72,7 +72,7 @@ void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener,
   coarsener.coarsen(6);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
 
-  ASSERT_THAT(hypergraph->numPins(), Eq(10));
+  ASSERT_THAT(hypergraph->currentNumPins(), Eq(10));
 }
 
 template <class Coarsener, class HypergraphT, class Refiner>
@@ -131,7 +131,7 @@ void decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(Coarsener& coarsener,
 template <class Coarsener, class Hypergraph>
 void decreasesNumberOfPinsOnParallelHyperedgeRemoval(Coarsener& coarsener, Hypergraph& hypergraph) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->numPins(), Eq(2));
+  ASSERT_THAT(hypergraph->currentNumPins(), Eq(2));
 }
 
 

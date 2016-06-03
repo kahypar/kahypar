@@ -21,7 +21,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
   defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(8));
-  ASSERT_THAT(hypergraph.numPins(), Eq(9));
+  ASSERT_THAT(hypergraph.initialNumPins(), Eq(9));
   ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
 
   std::vector<HypernodeID> pins_he_0({ 0, 1, 2 });

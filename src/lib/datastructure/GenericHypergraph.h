@@ -1151,7 +1151,7 @@ class GenericHypergraph {
     return _current_num_hyperedges;
   }
 
-  HypernodeID numPins() const noexcept {
+  HypernodeID currentNumPins() const noexcept {
     return _current_num_pins;
   }
 
