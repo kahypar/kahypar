@@ -125,7 +125,7 @@ template <class Coarsener, class Hypergraph>
 void decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(Coarsener& coarsener,
                                                            Hypergraph& hypergraph) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->numEdges(), Eq(1));
+  ASSERT_THAT(hypergraph->currentNumEdges(), Eq(1));
 }
 
 template <class Coarsener, class Hypergraph>

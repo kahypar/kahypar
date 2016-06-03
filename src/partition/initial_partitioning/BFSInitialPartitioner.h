@@ -27,7 +27,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _queues(),
     _hypernode_in_queue(config.initial_partitioning.k * hypergraph.initialNumNodes(), false),
-    _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.numEdges(), false) { }
+    _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.initialNumEdges(), false) { }
 
   ~BFSInitialPartitioner() { }
 
@@ -47,7 +47,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
                                        const HypernodeID hn) {
     const PartitionID part = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      if (!_hyperedge_in_queue[part * _hg.numEdges() + he]) {
+      if (!_hyperedge_in_queue[part * _hg.initialNumEdges() + he]) {
         for (const HypernodeID pin : _hg.pins(he)) {
           if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
               !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
@@ -55,7 +55,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             _hypernode_in_queue.setBit(part * _hg.initialNumNodes() + pin, true);
           }
         }
-        _hyperedge_in_queue.setBit(part * _hg.numEdges() + he, true);
+        _hyperedge_in_queue.setBit(part * _hg.initialNumEdges() + he, true);
       }
     }
 

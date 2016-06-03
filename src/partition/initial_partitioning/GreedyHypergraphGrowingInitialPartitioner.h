@@ -272,7 +272,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // TODO(heuer): Shouldn't it be possible to do this within the deltaGainUpdate function?
     if (insert) {
       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-        if (!_hyperedge_in_queue[target_part * _hg.numEdges() + he]) {
+        if (!_hyperedge_in_queue[target_part * _hg.initialNumEdges() + he]) {
           for (const HypernodeID pin : _hg.pins(he)) {
             if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
               insertNodeIntoPQ(pin, target_part);
@@ -280,7 +280,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                      "PQ of partition " << target_part << " should contain hypernode " << pin << "!");
             }
           }
-          _hyperedge_in_queue.setBit(target_part * _hg.numEdges() + he, true);
+          _hyperedge_in_queue.setBit(target_part * _hg.initialNumEdges() + he, true);
         }
       }
     }

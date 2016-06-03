@@ -231,7 +231,7 @@ static inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hyperg
   std::ofstream out_stream(filename.c_str());
 
   // coarse graphs always have edge and node weights, even if graph wasn't coarsend
-  out_stream << hypergraph.numEdges() << " " << hypergraph.currentNumNodes() << " ";
+  out_stream << hypergraph.currentNumEdges() << " " << hypergraph.currentNumNodes() << " ";
   out_stream << static_cast<int>(HypergraphType::EdgeAndNodeWeights);
   out_stream << std::endl;
 
@@ -254,7 +254,7 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   ASSERT(!filename.empty(), "No filename for PaToH initial partitioning file specified");
   std::ofstream out_stream(filename.c_str());
   out_stream << 1;                     // 1-based indexing
-  out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.numEdges() << " " << hypergraph.initialNumPins();
+  out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.currentNumEdges() << " " << hypergraph.numPins();
   out_stream << " " << 3 << std::endl;  // weighting scheme: both edge and node weights
 
   for (const HyperedgeID he : hypergraph.edges()) {

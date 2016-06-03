@@ -102,7 +102,7 @@ TEST_F(AHypergraphFileWithoutHyperedges, CanBeParsedIntoAHypergraphIfFileContain
   Hypergraph hypergraph(_num_hypernodes, _num_hyperedges, index_vector, edge_vector,
                         2, &hyperedge_weights, &hypernode_weights);
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
-  ASSERT_THAT(hypergraph.numEdges(), Eq(0));
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(0));
   for (const HypernodeID hn : hypergraph.nodes()) {
     ASSERT_THAT(hypergraph.nodeWeight(hn), Eq(_control_hypernode_weights[hn]));
   }

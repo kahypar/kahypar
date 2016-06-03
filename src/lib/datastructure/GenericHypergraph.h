@@ -1128,7 +1128,7 @@ class GenericHypergraph {
     return _current_num_hypernodes;
   }
 
-  HyperedgeID numEdges() const noexcept {
+  HyperedgeID currentNumEdges() const noexcept {
     ASSERT([&]() {
         HyperedgeID count = 0;
         for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {

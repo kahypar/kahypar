@@ -22,7 +22,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
 
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(8));
   ASSERT_THAT(hypergraph.numPins(), Eq(9));
-  ASSERT_THAT(hypergraph.numEdges(), Eq(3));
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
 
   std::vector<HypernodeID> pins_he_0({ 0, 1, 2 });
   size_t i = 0;

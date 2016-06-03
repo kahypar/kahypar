@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "lib/macros.h"
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
+#include "lib/macros.h"
 
 using defs::Hypergraph;
 
@@ -20,19 +20,19 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string graphml_filename(hgr_filename + ".graph");
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename,2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
 
   std::ofstream out_stream(graphml_filename.c_str());
 
   // Vertices: hypernodes + hyperedges
   // Edges: One edge for each pin!
 
-  out_stream << hypergraph.numNodes() + hypergraph.numEdges() << " " << hypergraph.numPins() << std::endl;
+  out_stream << hypergraph.initialNumNodes() + hypergraph.initialNumEdges() << " " << hypergraph.initialNumPins() << std::endl;
 
-  for (const defs::HypernodeID hn : hypergraph.nodes()){
+  for (const defs::HypernodeID hn : hypergraph.nodes()) {
     // vertex ids start with 1
     for (const defs::HyperedgeID he : hypergraph.incidentEdges(hn)) {
-      const defs::HyperedgeID he_id = hypergraph.numNodes() + he + 1;
+      const defs::HyperedgeID he_id = hypergraph.initialNumNodes() + he + 1;
       out_stream << he_id << " ";
     }
     out_stream << std::endl;

@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <vector>
-#include <numeric>
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
@@ -77,8 +77,8 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::vector<HyperedgeWeight> he_weights;
   std::vector<HyperedgeID> hn_degrees;
   std::vector<HypernodeWeight> hn_weights;
-  he_sizes.reserve(hypergraph.numEdges());
-  he_weights.reserve(hypergraph.numEdges());
+  he_sizes.reserve(hypergraph.currentNumEdges());
+  he_weights.reserve(hypergraph.currentNumEdges());
   hn_degrees.reserve(hypergraph.currentNumNodes());
   hn_weights.reserve(hypergraph.currentNumNodes());
 
@@ -101,7 +101,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
     stdev_he_size += (hypergraph.edgeSize(he) - avg_he_size) *
                      (hypergraph.edgeSize(he) - avg_he_size);
   }
-  stdev_he_size = std::sqrt(stdev_he_size / (hypergraph.numEdges() - 1));
+  stdev_he_size = std::sqrt(stdev_he_size / (hypergraph.currentNumEdges() - 1));
 
   std::sort(he_sizes.begin(), he_sizes.end());
   std::sort(he_weights.begin(), he_weights.end());
@@ -128,7 +128,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "***********************Hypergraph Information************************" << std::endl;
   std::cout << "Name : " << name << std::endl;
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
-  std::cout << "# HEs: " << hypergraph.numEdges() << std::endl;
+  std::cout << "# HEs: " << hypergraph.currentNumEdges() << std::endl;
   printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size, firstAndThirdQuartile(he_sizes));
   printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
              firstAndThirdQuartile(he_weights));

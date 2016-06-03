@@ -203,7 +203,7 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
 }
 
 static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
-  return static_cast<double>(hypergraph.numPins()) / hypergraph.numEdges();
+  return static_cast<double>(hypergraph.numPins()) / hypergraph.currentNumEdges();
 }
 
 static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
@@ -248,12 +248,12 @@ static inline double hyperedgeSizeVariance(const Hypergraph& hypergraph) {
     accum += (hypergraph.edgeSize(he) - m) * (hypergraph.edgeSize(he) - m);
   }
 
-  return accum / (hypergraph.numEdges() - 1);
+  return accum / (hypergraph.currentNumEdges() - 1);
 }
 
 static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HypernodeID> he_sizes;
-  he_sizes.reserve(hypergraph.numEdges());
+  he_sizes.reserve(hypergraph.currentNumEdges());
   for (auto he : hypergraph.edges()) {
     he_sizes.push_back(hypergraph.edgeSize(he));
   }
