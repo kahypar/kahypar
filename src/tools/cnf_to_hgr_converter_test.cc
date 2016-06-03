@@ -20,7 +20,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
 
   defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
-  ASSERT_THAT(hypergraph.numNodes(), Eq(8));
+  ASSERT_THAT(hypergraph.initialNumNodes(), Eq(8));
   ASSERT_THAT(hypergraph.numPins(), Eq(9));
   ASSERT_THAT(hypergraph.numEdges(), Eq(3));
 

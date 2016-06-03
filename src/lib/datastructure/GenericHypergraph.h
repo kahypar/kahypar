@@ -1105,7 +1105,7 @@ class GenericHypergraph {
     return _num_pins;
   }
 
-  HypernodeID numNodes() const noexcept {
+  HypernodeID currentNumNodes() const noexcept {
     ASSERT([&]() {
         HypernodeID count = 0;
         for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
@@ -1153,6 +1153,11 @@ class GenericHypergraph {
 
   HypernodeID numPins() const noexcept {
     return _current_num_pins;
+  }
+
+  bool isModified() const noexcept {
+    return _current_num_pins != _num_pins || _current_num_hypernodes != _num_hypernodes ||
+           _current_num_hyperedges != _num_hyperedges;
   }
 
   PartitionID k() const noexcept {
@@ -1389,11 +1394,6 @@ class GenericHypergraph {
     for (PartitionID part = 0; part < _k; ++part) {
       _pins_in_part[he * _k + part] = 0;
     }
-  }
-
-  bool isModified() const noexcept {
-    return _current_num_pins != _num_pins || _current_num_hypernodes != _num_hypernodes ||
-           _current_num_hyperedges != _num_hyperedges;
   }
 
   void enableEdge(const HyperedgeID e) noexcept {

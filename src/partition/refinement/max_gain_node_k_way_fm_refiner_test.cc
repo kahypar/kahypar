@@ -119,9 +119,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
 
-  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
@@ -210,9 +210,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
   config.partition.rb_lower_k = 0;
   config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
@@ -251,9 +251,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
   config.partition.rb_lower_k = 0;
   config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
@@ -282,9 +282,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   config.partition.rb_lower_k = 0;
   config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)
@@ -324,9 +324,9 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
   config.partition.rb_lower_k = 0;
   config.partition.rb_upper_k = config.partition.k - 1;
   config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[0] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->numNodes()
+  config.partition.perfect_balance_part_weights[1] = ceil(hypergraph->initialNumNodes()
                                                           / static_cast<double>(config.partition.k));
   config.partition.max_part_weights[0] =
     (1 + config.partition.epsilon)

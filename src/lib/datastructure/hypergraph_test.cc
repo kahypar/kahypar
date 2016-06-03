@@ -22,7 +22,7 @@ using defs::PartitionID;
 namespace datastructure {
 using Memento = Hypergraph::ContractionMemento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
-  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
   ASSERT_THAT(hypergraph.numEdges(), Eq(4));
   ASSERT_THAT(hypergraph.numPins(), Eq(12));
   ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
@@ -58,7 +58,7 @@ TEST_F(AHypergraph, SetsAndGetsHyperEdgeWeight) {
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfHypernodes) {
-  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
 }
 
 TEST_F(AHypergraph, ReturnsNumberOfHyperedges) {
@@ -70,9 +70,9 @@ TEST_F(AHypergraph, ReturnsNumberOfPins) {
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfHypernodesOnHypernodeRemoval) {
-  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
   hypergraph.removeNode(6);
-  ASSERT_THAT(hypergraph.numNodes(), Eq(6));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(6));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHypernodeRemoval) {
@@ -155,9 +155,9 @@ TEST_F(AHypergraph, ReducesNumberOfPinsOnContraction) {
 }
 
 TEST_F(AHypergraph, ReducesTheNumberOfHypernodesOnContraction) {
-  ASSERT_THAT(hypergraph.numNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
   hypergraph.contract(3, 4);
-  ASSERT_THAT(hypergraph.numNodes(), Eq(6));
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(6));
 }
 
 TEST_F(AHypergraph, DoesNotRemoveParallelHyperedgesOnContraction) {
@@ -688,8 +688,8 @@ TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
   Hypergraph& part0_hypergraph = *extr_part0.first;
   Hypergraph& part1_hypergraph = *extr_part1.first;
 
-  ASSERT_THAT(part0_hypergraph.numNodes(), Eq(4));
-  ASSERT_THAT(part1_hypergraph.numNodes(), Eq(3));
+  ASSERT_THAT(part0_hypergraph.initialNumNodes(), Eq(4));
+  ASSERT_THAT(part1_hypergraph.initialNumNodes(), Eq(3));
 
   ASSERT_THAT(part0_hypergraph.numEdges(), Eq(1));
   ASSERT_THAT(part1_hypergraph.numEdges(), Eq(1));
@@ -760,7 +760,7 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasCorrectNumberOfHyperno
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 0);
   auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
-  ASSERT_THAT(extr_part0.first->numNodes(), Eq(5));
+  ASSERT_THAT(extr_part0.first->initialNumNodes(), Eq(5));
 }
 
 TEST_F(AHypergraph, CanBeDecomposedIntoHypergraphsUsingCutNetSplitting) {
@@ -776,8 +776,8 @@ TEST_F(AHypergraph, CanBeDecomposedIntoHypergraphsUsingCutNetSplitting) {
   Hypergraph& part0_hypergraph = *extr_part0.first;
   Hypergraph& part1_hypergraph = *extr_part1.first;
 
-  ASSERT_THAT(part0_hypergraph.numNodes(), Eq(4));
-  ASSERT_THAT(part1_hypergraph.numNodes(), Eq(3));
+  ASSERT_THAT(part0_hypergraph.initialNumNodes(), Eq(4));
+  ASSERT_THAT(part1_hypergraph.initialNumNodes(), Eq(3));
 
   ASSERT_THAT(part0_hypergraph.numEdges(), Eq(2));
   ASSERT_THAT(part1_hypergraph.numEdges(), Eq(1));
@@ -804,7 +804,7 @@ TEST_F(AHypergraph, WithContractedHypernodesCanBeReindexed) {
 
   auto reindexed = reindex(hypergraph);
 
-  ASSERT_THAT(reindexed.first->numNodes(), Eq(5));
+  ASSERT_THAT(reindexed.first->initialNumNodes(), Eq(5));
   ASSERT_THAT(reindexed.first->numEdges(), Eq(3));
   ASSERT_THAT(reindexed.second.size(), Eq(5));
   ASSERT_THAT(reindexed.second, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 5, 6 }));

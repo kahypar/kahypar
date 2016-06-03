@@ -246,7 +246,7 @@ void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hyper
   for (const HypernodeID hn : hypergraph->nodes()) {
     ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));
   }
-  ASSERT_THAT(hypergraph->numNodes(), Eq(3));
+  ASSERT_THAT(hypergraph->currentNumNodes(), Eq(3));
 }
 }  // namespace partition
 

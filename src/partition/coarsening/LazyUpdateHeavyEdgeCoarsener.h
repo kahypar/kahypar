@@ -64,7 +64,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
     NullMap null_map;
     rateAllHypernodes(_target, null_map);
 
-    while (!_pq.empty() && _hg.numNodes() > limit) {
+    while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.getMax();
 
       if (_outdated_rating[rep_node]) {
@@ -133,7 +133,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
       ASSERT(_pq.contains(hn),
              "Trying to remove rating of HN " << hn << " which is not in PQ");
       _pq.deleteNode(hn);
-      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
+      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");

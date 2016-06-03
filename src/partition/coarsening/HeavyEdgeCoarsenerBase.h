@@ -122,7 +122,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
       refinement_nodes.push_back(_history.back().contraction_memento.u);
       refinement_nodes.push_back(_history.back().contraction_memento.v);
 
-      if (_hg.numNodes() > _max_hn_weights.back().num_nodes) {
+      if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
         _max_hn_weights.pop_back();
       }
 

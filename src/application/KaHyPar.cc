@@ -721,7 +721,7 @@ int main(int argc, char* argv[]) {
 
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.fm_local_search.beta = log(hypergraph.numNodes());
+  config.fm_local_search.beta = log(hypergraph.initialNumNodes());
 
 // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
 // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.

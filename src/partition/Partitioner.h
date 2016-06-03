@@ -232,7 +232,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                 / config.coarsening.contraction_limit;
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.fm_local_search.beta = log(hg.numNodes());
+  config.fm_local_search.beta = log(hg.currentNumNodes());
 
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration
@@ -408,7 +408,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
       return count;
     } ()));
 
-  HmetisToCoarsenedMapping hmetis_to_hg(hg.numNodes(), 0);
+  HmetisToCoarsenedMapping hmetis_to_hg(hg.currentNumNodes(), 0);
   CoarsenedToHmetisMapping hg_to_hmetis;
   createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
@@ -427,8 +427,8 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
 
   std::vector<PartitionID> partitioning;
   std::vector<PartitionID> best_partitioning;
-  partitioning.reserve(hg.numNodes());
-  best_partitioning.reserve(hg.numNodes());
+  partitioning.reserve(hg.currentNumNodes());
+  best_partitioning.reserve(hg.currentNumNodes());
 
   HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight current_cut =
@@ -473,7 +473,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
     std::system(initial_partitioner_call.c_str());
 
     io::readPartitionFile(config.partition.coarse_graph_partition_filename, partitioning);
-    ASSERT(partitioning.size() == hg.numNodes(), "Partition file has incorrect size");
+    ASSERT(partitioning.size() == hg.currentNumNodes(), "Partition file has incorrect size");
 
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
     DBG(dbg_partition_initial_partitioning,
@@ -509,7 +509,7 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
   double init_alpha = config.initial_partitioning.init_alpha;
   double best_imbalance = std::numeric_limits<double>::max();
   std::vector<PartitionID> best_imbalanced_partition(
-    extracted_init_hypergraph.first->numNodes(), 0);
+    extracted_init_hypergraph.first->initialNumNodes(), 0);
 
   do {
     extracted_init_hypergraph.first->resetPartitioning();
@@ -606,7 +606,7 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     current_config.coarsening.hypernode_weight_fraction
     * current_config.partition.total_graph_weight);
 
-  current_config.fm_local_search.beta = log(current_hypergraph.numNodes());
+  current_config.fm_local_search.beta = log(current_hypergraph.currentNumNodes());
 
   current_config.partition.hmetis_ub_factor =
     100.0

@@ -167,7 +167,7 @@ class HyperedgeFMRefiner final : public IRefiner,
     int step = 0;
     int num_moves_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
-    const double beta = log(_hg.numNodes());
+    const double beta = log(_hg.currentNumNodes());
     while (!queuesAreEmpty() && (best_metrics.cut == cut ||
                                  !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
                                                                     _config, beta, best_metrics.cut, cut))) {

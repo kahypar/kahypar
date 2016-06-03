@@ -135,7 +135,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         }
       }
 
-      ASSERT(current_hn < _hg.numNodes(),
+      ASSERT(current_hn < _hg.initialNumNodes(),
              "Current Hypernode " << current_hn << " is not a valid hypernode!");
       ASSERT(current_id != -1, "Part " << current_id << " is no valid part!");
       ASSERT(_hg.partID(current_hn) == _config.initial_partitioning.unassigned_part,

@@ -113,7 +113,7 @@ TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.numNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1, 0,
                                            visit);
   ASSERT_EQ(pq.key(0, 1), -1);
@@ -138,7 +138,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
   hypergraph.setNodePart(0, 1);
   pq.remove(0, 1);
-  FastResetBitVector<> visit(hypergraph.numNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 0, -1, 1,
                                            visit);
 
@@ -185,7 +185,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.numNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
   MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);
@@ -212,7 +212,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.numNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
   MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);

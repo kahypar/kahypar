@@ -68,7 +68,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
     // PQ because they are heavier than allowed.
     FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes(), false);
 
-    while (!_pq.empty() && _hg.numNodes() > limit) {
+    while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.getMax();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
@@ -146,7 +146,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       _pq.deleteNode(hn);
       invalid_hypernodes.setBit(hn, true);
       _target[hn] = std::numeric_limits<HypernodeID>::max();
-      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
+      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");

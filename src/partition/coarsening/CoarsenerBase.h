@@ -56,7 +56,7 @@ class CoarsenerBase {
     _hypergraph_pruner(_hg.initialNumNodes()) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
-    _max_hn_weights.emplace_back(_hg.numNodes(), weight_of_heaviest_node);
+    _max_hn_weights.emplace_back(_hg.initialNumNodes(), weight_of_heaviest_node);
   }
 
   virtual ~CoarsenerBase() { }
@@ -71,7 +71,7 @@ class CoarsenerBase {
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
     _history.emplace_back(_hg.contract(rep_node, contracted_node));
     if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
-      _max_hn_weights.emplace_back(_hg.numNodes(), _hg.nodeWeight(rep_node));
+      _max_hn_weights.emplace_back(_hg.currentNumNodes(), _hg.nodeWeight(rep_node));
     }
   }
 

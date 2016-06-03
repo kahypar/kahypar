@@ -25,10 +25,10 @@ struct BFSStartNodeSelectionPolicy {
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     HypernodeID start_hn = 0;
     if (UseRandomStartHypernode) {
-      start_hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
+      start_hn = Randomize::getRandomInt(0, hg.initialNumNodes() - 1);
     }
     start_nodes.push_back(start_hn);
-    FastResetBitVector<> in_queue(hg.numNodes(), false);
+    FastResetBitVector<> in_queue(hg.initialNumNodes(), false);
     FastResetBitVector<> hyperedge_in_queue(hg.numEdges(), false);
 
     while (start_nodes.size() != static_cast<size_t>(k)) {
@@ -57,7 +57,7 @@ struct BFSStartNodeSelectionPolicy {
             hyperedge_in_queue.setBit(he, true);
           }
         }
-        if (bfs.empty() && visited_nodes != hg.numNodes()) {
+        if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
           for (const HypernodeID hn : hg.nodes()) {
             if (!in_queue[hn]) {
               bfs.push(hn);
@@ -77,13 +77,13 @@ struct RandomStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     if (k == 2) {
-      startNodes.push_back(Randomize::getRandomInt(0, hg.numNodes() - 1));
+      startNodes.push_back(Randomize::getRandomInt(0, hg.initialNumNodes() - 1));
       return;
     }
 
     for (PartitionID i = 0; i < k; ++i) {
       while (true) {
-        HypernodeID hn = Randomize::getRandomInt(0, hg.numNodes() - 1);
+        HypernodeID hn = Randomize::getRandomInt(0, hg.initialNumNodes() - 1);
         auto node = std::find(startNodes.begin(), startNodes.end(), hn);
         if (node == startNodes.end()) {
           startNodes.push_back(hn);

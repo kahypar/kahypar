@@ -207,7 +207,7 @@ static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
 }
 
 static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
-  return static_cast<double>(hypergraph.numPins()) / hypergraph.numNodes();
+  return static_cast<double>(hypergraph.numPins()) / hypergraph.currentNumNodes();
 }
 
 static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {
@@ -215,7 +215,7 @@ static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {
   for (const HypernodeID hn : hypergraph.nodes()) {
     sum += hypergraph.nodeWeight(hn);
   }
-  return sum / hypergraph.numNodes();
+  return sum / hypergraph.currentNumNodes();
 }
 
 static inline double hypernodeWeightVariance(const Hypergraph& hypergraph) {
@@ -226,7 +226,7 @@ static inline double hypernodeWeightVariance(const Hypergraph& hypergraph) {
     accum += (hypergraph.nodeWeight(hn) - m) * (hypergraph.nodeWeight(hn) - m);
   }
 
-  return accum / (hypergraph.numNodes() - 1);
+  return accum / (hypergraph.currentNumNodes() - 1);
 }
 
 static inline double hypernodeDegreeVariance(const Hypergraph& hypergraph) {
@@ -237,7 +237,7 @@ static inline double hypernodeDegreeVariance(const Hypergraph& hypergraph) {
     accum += (hypergraph.nodeDegree(hn) - m) * (hypergraph.nodeDegree(hn) - m);
   }
 
-  return accum / (hypergraph.numNodes() - 1);
+  return accum / (hypergraph.currentNumNodes() - 1);
 }
 
 static inline double hyperedgeSizeVariance(const Hypergraph& hypergraph) {
@@ -267,7 +267,7 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
 
 static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HyperedgeID> hn_degrees;
-  hn_degrees.reserve(hypergraph.numNodes());
+  hn_degrees.reserve(hypergraph.currentNumNodes());
   for (auto hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
   }

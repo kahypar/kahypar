@@ -51,9 +51,9 @@ static EdgeVector createEdgeVector(const Hypergraph& hypergraph) {
   EdgeVector edges;
   for (const HypernodeID hn : hypergraph.nodes()) {
     // Hypernode-vertex IDs start with 0
-    // Hyperedge-vertex IDs start with |V|=numNodes()
+    // Hyperedge-vertex IDs start with |V|
     for (const HyperedgeID he : hypergraph.incidentEdges(hn)) {
-      const HyperedgeID he_id = hypergraph.numNodes() + he;
+      const HyperedgeID he_id = hypergraph.initialNumNodes() + he;
       edges.emplace_back(hn, he_id);
     }
   }

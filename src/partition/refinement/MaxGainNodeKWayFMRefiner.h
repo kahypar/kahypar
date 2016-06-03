@@ -156,7 +156,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     int num_moves_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
 
-    const double beta = log(_hg.numNodes());
+    const double beta = log(_hg.currentNumNodes());
     while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
                                                               _config, beta, best_metrics.cut, current_cut)) {
       Gain max_gain = kInvalidGain;

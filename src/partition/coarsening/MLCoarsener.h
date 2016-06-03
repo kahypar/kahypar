@@ -77,14 +77,14 @@ class MLCoarsener final : public ICoarsener,
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
     FastResetBitVector<> already_matched(_hg.initialNumNodes(), false);
-    while (_hg.numNodes() > limit) {
+    while (_hg.currentNumNodes() > limit) {
       LOGVAR(pass_nr);
-      LOGVAR(_hg.numNodes());
+      LOGVAR(_hg.currentNumNodes());
 
       already_matched.resetAllBitsToFalse();
       current_hns.clear();
 
-      const HypernodeID num_hns_before_pass = _hg.numNodes();
+      const HypernodeID num_hns_before_pass = _hg.currentNumNodes();
       for (const HypernodeID hn : _hg.nodes()) {
         current_hns.push_back(hn);
       }
@@ -106,12 +106,12 @@ class MLCoarsener final : public ICoarsener,
             removeParallelHyperedges(hn);
           }
 
-          if (_hg.numNodes() <= limit) {
+          if (_hg.currentNumNodes() <= limit) {
             break;
           }
         }
       }
-      if (num_hns_before_pass == _hg.numNodes()) {
+      if (num_hns_before_pass == _hg.currentNumNodes()) {
         break;
       }
 

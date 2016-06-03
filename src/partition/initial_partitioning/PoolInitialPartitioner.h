@@ -83,7 +83,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
                                      kInvalidImbalance);
     PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut, -0.1);
 
-    std::vector<PartitionID> best_partition(_hg.numNodes());
+    std::vector<PartitionID> best_partition(_hg.initialNumNodes());
     unsigned int n = _partitioner_pool.size() - 1;
     for (unsigned int i = 0; i <= n; ++i) {
       // If the (n-i)th bit of pool_type is set we execute the corresponding

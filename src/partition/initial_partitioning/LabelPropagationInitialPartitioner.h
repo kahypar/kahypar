@@ -37,7 +37,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                      Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
     _valid_parts(config.initial_partitioning.k, false),
-    _in_queue(hypergraph.numNodes(), false),
+    _in_queue(hypergraph.initialNumNodes(), false),
     _tmp_scores(_config.initial_partitioning.k, 0) { }
 
   ~LabelPropagationInitialPartitioner() { }
@@ -54,13 +54,13 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
 
-    std::vector<HypernodeID> nodes(_hg.numNodes(), 0);
+    std::vector<HypernodeID> nodes(_hg.initialNumNodes(), 0);
     for (const HypernodeID hn : _hg.nodes()) {
       nodes[hn] = hn;
     }
 
     int connected_nodes = std::max(std::min(_config.initial_partitioning.lp_assign_vertex_to_part,
-                                            static_cast<int>(_hg.numNodes()
+                                            static_cast<int>(_hg.initialNumNodes()
                                                              / _config.initial_partitioning.k)), 1);
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _hg,

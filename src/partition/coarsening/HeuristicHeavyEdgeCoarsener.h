@@ -62,7 +62,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
 
     rateAllHypernodes(_target, _sources);
 
-    while (!_pq.empty() && _hg.numNodes() > limit) {
+    while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.getMax();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
@@ -163,7 +163,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
       // restriction that only hypernodes within the same part can be contracted.
       _pq.deleteNode(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
-      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.numNodes() << "/"
+      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.");
