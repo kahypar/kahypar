@@ -49,7 +49,7 @@ class KWayPriorityQueue {
  public:
   explicit KWayPriorityQueue(const PartitionID k) noexcept :
     _queues(),
-    _mapping(k, { kInvalidPart, kInvalidIndex }),
+    _mapping(k +  /* sentinel */ 1, { kInvalidPart, kInvalidIndex }),
     _ties(k),
     _num_entries(0),
     _num_nonempty_pqs(0),
@@ -64,7 +64,8 @@ class KWayPriorityQueue {
   // PQ implementation might need different parameters for construction
   template <typename ... PQParameters>
   void initialize(PQParameters&& ... parameters) noexcept {
-    for (size_t i = 0; i < _mapping.size(); ++i) {
+    // k = mapping.size() - 1. Last element in mapping is used as a sentinel.
+    for (size_t i = 0; i < _mapping.size() - 1; ++i) {
       _queues.emplace_back(std::forward<PQParameters>(parameters) ...);
     }
   }
@@ -81,6 +82,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) bool empty(const PartitionID part) const noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return isUnused(part);
   }
 
@@ -97,10 +99,12 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) bool isEnabled(const PartitionID part) const noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return _mapping[part].index < _num_enabled_pqs;
   }
 
   __attribute__ ((always_inline)) void enablePart(const PartitionID part) noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     if (!isUnused(part) && !isEnabled(part)) {
       swap(_mapping[part].index, _num_enabled_pqs);
       ++_num_enabled_pqs;
@@ -109,6 +113,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) void disablePart(const PartitionID part) noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     if (isEnabled(part)) {
       --_num_enabled_pqs;
       swap(_mapping[part].index, _num_enabled_pqs);
@@ -120,8 +125,10 @@ class KWayPriorityQueue {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
     ASSERT((_mapping[part].index != kInvalidIndex) ||
-            (_mapping[_num_nonempty_pqs].part == kInvalidPart),
+           (_mapping[_num_nonempty_pqs].part == kInvalidPart),
            V(_mapping[_num_nonempty_pqs].part));
+    // In order to get rid of the explicit branch, we have to use a sentinel
+    // element at _mapping[k].
     _mapping[_num_nonempty_pqs].part = (_mapping[part].index == kInvalidIndex) ? part :
                                        _mapping[_num_nonempty_pqs].part;
     _mapping[part].index = (_mapping[part].index == kInvalidIndex) ? _num_nonempty_pqs++ :
@@ -143,6 +150,7 @@ class KWayPriorityQueue {
     ASSERT(max_index != kInvalidIndex, V(max_index));
     ASSERT(max_key != MetaKey::max(), V(max_key));
     ASSERT(max_part != kInvalidPart, V(max_part) << V(max_id));
+    ASSERT(static_cast<unsigned int>(max_part) < _queues.size(), "Invalid " << V(max_part));
 
     _queues[max_index].deleteMax();
     if (_queues[max_index].empty()) {
@@ -158,6 +166,7 @@ class KWayPriorityQueue {
 
   __attribute__ ((always_inline)) void deleteMaxFromPartition(IDType& max_id, KeyType& max_key,
                                                               PartitionID part) noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     size_t part_index = _mapping[part].index;
     ASSERT(part_index < _num_enabled_pqs, V(part_index));
 
@@ -254,6 +263,7 @@ class KWayPriorityQueue {
   }
 
   IDType max(PartitionID part) const noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].getMax();
   }
@@ -264,6 +274,7 @@ class KWayPriorityQueue {
   }
 
   KeyType maxKey(PartitionID part) const noexcept {
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].getMaxKey();
   }
