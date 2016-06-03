@@ -37,7 +37,7 @@ inline double median(const std::vector<T>& vec) {
 // based on: http://mathalope.co.uk/2014/07/18/accelerated-c-solution-to-exercise-3-2/
 template <typename T>
 inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec) {
-  if (!vec.empty()) {
+  if (vec.size() > 1) {
     const size_t size_mod_4 = vec.size() % 4;
     const size_t M = vec.size() / 2;
     const size_t ML = M / 2;
