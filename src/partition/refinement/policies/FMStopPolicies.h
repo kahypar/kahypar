@@ -41,47 +41,44 @@ class RandomWalkModelStopsSearch : public StoppingPolicy {
   bool searchShouldStop(const int, const Configuration& config, const double beta,
                         const HyperedgeWeight, const HyperedgeWeight) noexcept {
     DBG(false, "step=" << _num_steps);
-    DBG(false, _num_steps << "*" << _expected_gain << "^2=" << _num_steps * _expected_gain * _expected_gain);
-    DBG(false, config.fm_local_search.alpha << "*" << _expected_variance << "+" << beta << "="
-        << config.fm_local_search.alpha * _expected_variance + beta);
-    DBG(false, "return=" << ((_num_steps * _expected_gain * _expected_gain >
-                              config.fm_local_search.alpha * _expected_variance + beta) && (_num_steps != 1)));
-    return (_num_steps * _expected_gain * _expected_gain >
-            config.fm_local_search.alpha * _expected_variance + beta) && (_num_steps != 1);
+    DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
+    DBG(false, config.fm_local_search.alpha << "*" << _variance << "+" << beta << "="
+        << config.fm_local_search.alpha * _variance + beta);
+    DBG(false, "return=" << ((_num_steps * _Mk * _Mk >
+                              config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1)));
+    return (_num_steps * _Mk * _Mk >
+            config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1);
   }
 
   void resetStatistics() noexcept {
     _num_steps = 0;
-    _expected_gain = 0.0;
-    _expected_variance = 0.0;
-    _sum_gains = 0.0;
+    _variance = 0.0;
   }
 
   template <typename Gain>
   void updateStatistics(const Gain gain) noexcept {
     ++_num_steps;
-    _sum_gains += gain;
-    _expected_gain = _sum_gains / _num_steps;
-    // http://de.wikipedia.org/wiki/Standardabweichung#Berechnung_f.C3.BCr_auflaufende_Messwerte
-    if (_num_steps > 1) {
-      _MkMinus1 = _Mk;
-      _Mk = _MkMinus1 + (gain - _MkMinus1) / _num_steps;
-      _SkMinus1 = _Sk;
-      _Sk = _SkMinus1 + (gain - _MkMinus1) * (gain - _Mk);
-      _expected_variance = _Sk / (_num_steps - 1);
+    // See Knuth TAOCP vol 2, 3rd edition, page 232 or
+    // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    if (_num_steps == 1) {
+      _MkMinus1 = static_cast<double>(gain);
+      _Mk = _MkMinus1;
+      _SkMinus1 = 0.0;
     } else {
-      // everything else is already reset in resetStatistics
-      _Mk = static_cast<double>(gain);
-      _Sk = 0.0;
+      _Mk = _MkMinus1 + (gain - _MkMinus1) / _num_steps;
+      _Sk = _SkMinus1 + (gain - _MkMinus1) * (gain - _Mk);
+      _variance = _Sk / (_num_steps - 1.0);
+
+      // prepare for next iteration:
+      _MkMinus1 = _Mk;
+      _SkMinus1 = _Sk;
     }
   }
 
  private:
   int _num_steps = 0;
-  double _expected_gain = 0.0;
-  double _expected_variance = 0.0;
-  double _sum_gains = 0.0;
-  double _Mk = 0.0;
+  double _variance = 0.0;
+  double _Mk = 0.0; // = mean
   double _MkMinus1 = 0.0;
   double _Sk = 0.0;
   double _SkMinus1 = 0.0;
