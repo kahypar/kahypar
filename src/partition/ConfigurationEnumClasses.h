@@ -61,6 +61,7 @@ enum class InitialPartitionerAlgorithm : std::uint8_t {
 
 enum class RefinementStoppingRule : std::uint8_t {
   simple,
+  adaptive_opt,
   adaptive1,
   adaptive2
 };
@@ -191,6 +192,8 @@ static std::string toString(const RefinementStoppingRule& algo) {
   switch (algo) {
     case RefinementStoppingRule::simple:
       return std::string("simple");
+    case RefinementStoppingRule::adaptive_opt:
+      return std::string("adaptive_opt");
     case RefinementStoppingRule::adaptive1:
       return std::string("adaptive1");
     case RefinementStoppingRule::adaptive2:

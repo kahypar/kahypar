@@ -290,6 +290,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.fm_local_search.stopping_rule =
           RefinementStoppingRule::simple;
         config.her_fm.stopping_rule = RefinementStoppingRule::simple;
+      } else if (vm["stopFM"].as<std::string>() == "adaptive_opt") {
+        config.fm_local_search.stopping_rule =
+          RefinementStoppingRule::adaptive_opt;
+        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
       } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
         config.fm_local_search.stopping_rule =
           RefinementStoppingRule::adaptive1;
@@ -529,6 +533,9 @@ static Registrar<RefinerFactory> reg_hyperedge_local_search(
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_simple_stopping(
   RefinementStoppingRule::simple,
   new NumberOfFruitlessMovesStopsSearch());
+
+static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive_opt_stopping(
+  RefinementStoppingRule::adaptive_opt, new AdvancedRandomWalkModelStopsSearch());
 
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive1_stopping(
   RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());

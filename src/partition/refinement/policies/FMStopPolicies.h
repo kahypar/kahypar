@@ -36,20 +36,9 @@ class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
   int _num_moves = 0;
 };
 
-class RandomWalkModelStopsSearch : public StoppingPolicy {
- public:
-  bool searchShouldStop(const int, const Configuration& config, const double beta,
-                        const HyperedgeWeight, const HyperedgeWeight) noexcept {
-    DBG(false, "step=" << _num_steps);
-    DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
-    DBG(false, config.fm_local_search.alpha << "*" << _variance << "+" << beta << "="
-        << config.fm_local_search.alpha * _variance + beta);
-    DBG(false, "return=" << ((_num_steps * _Mk * _Mk >
-                              config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1)));
-    return (_num_steps * _Mk * _Mk >
-            config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1);
-  }
 
+class RandomWalkModel {
+ public:
   void resetStatistics() noexcept {
     _num_steps = 0;
     _variance = 0.0;
@@ -75,13 +64,48 @@ class RandomWalkModelStopsSearch : public StoppingPolicy {
     }
   }
 
- private:
+ protected:
   int _num_steps = 0;
   double _variance = 0.0;
-  double _Mk = 0.0; // = mean
+  double _Mk = 0.0;  // = mean
   double _MkMinus1 = 0.0;
   double _Sk = 0.0;
   double _SkMinus1 = 0.0;
+};
+
+
+class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
+                                           private RandomWalkModel {
+ public:
+  bool searchShouldStop(const int, const Configuration& config, const double beta,
+                        const HyperedgeWeight, const HyperedgeWeight) noexcept {
+    DBG(false, "step=" << _num_steps);
+    DBG(false, "(" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2))=" << ((_variance / (4.0 * _Mk * _Mk))));
+    DBG(false, "return=" << ((_num_steps > beta) && ((_Mk == 0) || (_num_steps >= (_variance / (4.0 * _Mk * _Mk))))));
+    return _Mk > 0 ? false : (_num_steps > beta) && ((_Mk == 0) || (_num_steps >= (_variance / (4.0 * _Mk * _Mk))));
+  }
+  using RandomWalkModel::resetStatistics;
+  using RandomWalkModel::updateStatistics;
+};
+
+
+class RandomWalkModelStopsSearch : public StoppingPolicy,
+                                   private RandomWalkModel {
+ public:
+  bool searchShouldStop(const int, const Configuration& config, const double beta,
+                        const HyperedgeWeight, const HyperedgeWeight) noexcept {
+    DBG(false, "step=" << _num_steps);
+    DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
+    DBG(false, config.fm_local_search.alpha << "*" << _variance << "+" << beta << "="
+        << config.fm_local_search.alpha * _variance + beta);
+    DBG(false, "return=" << ((_num_steps * _Mk * _Mk >
+                              config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1)));
+    return (_num_steps * _Mk * _Mk >
+            config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1);
+  }
+
+  using RandomWalkModel::resetStatistics;
+  using RandomWalkModel::updateStatistics;
 };
 
 

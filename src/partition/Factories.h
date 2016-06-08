@@ -37,6 +37,7 @@ using core::PolicyRegistry;
 using core::NullPolicy;
 using core::StaticDispatcher;
 using core::Typelist;
+using partition::AdvancedRandomWalkModelStopsSearch;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;
 using partition::nGPRandomWalkStopsSearch;
@@ -58,6 +59,7 @@ using InitialPartitioningFactory = Factory<InitialPartitionerAlgorithm,
 using TwoWayFMFactoryExecutor = KFMFactoryExecutor<TwoWayFMRefiner>;
 using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
                                                    Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                            AdvancedRandomWalkModelStopsSearch,
                                                             RandomWalkModelStopsSearch,
                                                             nGPRandomWalkStopsSearch>,
                                                    Typelist<GlobalRebalancing, NoGlobalRebalancing>,
@@ -66,6 +68,7 @@ using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
 using HyperedgeFMFactoryExecutor = KFMFactoryExecutor<HyperedgeFMRefiner>;
 using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
                                                       Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                               AdvancedRandomWalkModelStopsSearch,
                                                                RandomWalkModelStopsSearch,
                                                                nGPRandomWalkStopsSearch>,
                                                       Typelist<NullPolicy>,
@@ -74,6 +77,7 @@ using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor
 using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
 using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
                                                  Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                          AdvancedRandomWalkModelStopsSearch,
                                                           RandomWalkModelStopsSearch,
                                                           nGPRandomWalkStopsSearch>,
                                                  Typelist<NullPolicy>,
