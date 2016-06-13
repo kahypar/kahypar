@@ -80,9 +80,8 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
   bool searchShouldStop(const int, const Configuration& config, const double beta,
                         const HyperedgeWeight, const HyperedgeWeight) noexcept {
     static double factor = (config.fm_local_search.alpha / 2.0) - 0.25;
-    DBG(false, "step=" << _num_steps);
-    DBG(false, "(" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2))="
-        << ((_variance / (_Mk * _Mk)) * factor));
+    DBG(false, V(_num_steps) <<  " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
+        << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
     const bool ret = _Mk > 0 ? false : (_num_steps > beta) &&
                      ((_Mk == 0) || (_num_steps >= (_variance / (_Mk * _Mk)) * factor));
     DBG(false, "return=" << ret);
