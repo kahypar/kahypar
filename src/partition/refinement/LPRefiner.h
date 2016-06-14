@@ -59,7 +59,8 @@ class LPRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const UncontractionGainChanges& UNUSED(changes),
                   Metrics& best_metrics) noexcept override final {
-    assert(metrics::imbalance(_hg, _config) < _config.partition.epsilon);
+    ASSERT(metrics::imbalance(_hg, _config) <= _config.partition.epsilon,
+           V(metrics::imbalance(_hg, _config)));
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
@@ -71,7 +72,10 @@ class LPRefiner final : public IRefiner {
 
     for (const HypernodeID cur_node : refinement_nodes) {
       if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
-        assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weights[_hg.partID(cur_node) % 2]);
+        ASSERT(_hg.partWeight(_hg.partID(cur_node))
+               <= _config.partition.max_part_weights[_hg.partID(cur_node) % 2],
+               V(_hg.partWeight(_hg.partID(cur_node)))
+               << V(_config.partition.max_part_weights[_hg.partID(cur_node) % 2]));
 
         _cur_queue.push_back(cur_node);
         _contained_cur_queue.setBit(cur_node, true);
@@ -87,11 +91,14 @@ class LPRefiner final : public IRefiner {
         if (move_successful) {
           best_metrics.cut -= gain_pair.first;
 
-          assert(_hg.partWeight(gain_pair.second) <= _config.partition.max_part_weights[gain_pair.second % 2]);
-          assert(best_metrics.cut <= in_cut);
-          assert(gain_pair.first >= 0);
-          assert(best_metrics.cut == metrics::hyperedgeCut(_hg));
-          assert(metrics::imbalance(_hg, _config) <= _config.partition.epsilon);
+          ASSERT(_hg.partWeight(gain_pair.second)
+                 <= _config.partition.max_part_weights[gain_pair.second % 2],
+                 V(_hg.partWeight(gain_pair.second)));
+          ASSERT(best_metrics.cut <= in_cut, V(best_metrics.cut) << V(in_cut));
+          ASSERT(gain_pair.first >= 0, V(gain_pair.first));
+          ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut));
+          ASSERT(metrics::imbalance(_hg, _config) <= _config.partition.epsilon,
+                 V(metrics::imbalance(_hg, _config)));
 
           // add adjacent pins to next iteration
           for (const auto& he : _hg.incidentEdges(hn)) {
@@ -150,7 +157,8 @@ class LPRefiner final : public IRefiner {
     PartitionID num_hes_with_only_hn_in_source_part = 0;
     for (const auto& he : _hg.incidentEdges(hn)) {
       if (_hg.connectivity(he) == 1 && _hg.edgeSize(he) > 1) {
-        assert((*_hg.connectivitySet(he).begin()) == source_part);
+        ASSERT((*_hg.connectivitySet(he).begin()) == source_part,
+               V((*_hg.connectivitySet(he).begin()) << V(source_part)));
         internal_weight += _hg.edgeWeight(he);
       } else {
         const bool move_decreases_connectivity = _hg.pinCountInPart(he, source_part) == 1;
@@ -177,7 +185,8 @@ class LPRefiner final : public IRefiner {
           // optimized version of the code below
           // the connectivity for target_part for this he can not increase, since target_part is
           // in the connectivity set of he!
-          ASSERT(pins_in_target_part != 0, "part is in connectivity set of he, but he has 0 pins in part!");
+          ASSERT(pins_in_target_part != 0,
+                 "part is in connectivity set of he, but he has 0 pins in part!");
           ++_tmp_connectivity_decrease_[target_part];
         }
       }
@@ -215,11 +224,14 @@ class LPRefiner final : public IRefiner {
 
           // the move to partition target_part should decrease the connectivity by
           // _tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
-          if (old_connectivity - new_connectivity != _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part) {
+          if (old_connectivity - new_connectivity !=
+              _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part) {
             std::cout << "part: " << target_part << std::endl;
-            std::cout << "old_connectivity: " << old_connectivity << " new_connectivity: " << new_connectivity << std::endl;
+            std::cout << "old_connectivity: " << old_connectivity
+            << " new_connectivity: " << new_connectivity << std::endl;
             std::cout << "real decrease: " << old_connectivity - new_connectivity << std::endl;
-            std::cout << "my decrease: " << _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part << std::endl;
+            std::cout << "my decrease: " << _tmp_connectivity_decrease_[target_part] +
+            num_hes_with_only_hn_in_source_part << std::endl;
             return false;
           }
         }
@@ -230,7 +242,8 @@ class LPRefiner final : public IRefiner {
     Gain max_gain = 0;
     PartitionID max_connectivity_decrease = 0;
     const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-    const bool source_part_imbalanced = _hg.partWeight(source_part) > _config.partition.max_part_weights[source_part % 2];
+    const bool source_part_imbalanced = _hg.partWeight(source_part) >
+                                        _config.partition.max_part_weights[source_part % 2];
 
     std::vector<PartitionID> max_score;
     max_score.push_back(source_part);
@@ -241,7 +254,8 @@ class LPRefiner final : public IRefiner {
       }
 
       const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
+      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part]
+                                                            + num_hes_with_only_hn_in_source_part;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
 
@@ -275,7 +289,7 @@ class LPRefiner final : public IRefiner {
   }
 
 
-  bool moveHypernode(const HypernodeID& hn, const PartitionID& from_part, const PartitionID& to_part) noexcept {
+  bool moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) noexcept {
     if (from_part == to_part) {
       return false;
     }
