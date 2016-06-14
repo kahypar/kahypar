@@ -42,7 +42,7 @@ class LPRefiner final : public IRefiner {
     _contained_next_queue(hg.initialNumNodes(), false),
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
     _max_score(),
-    _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
+    _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k),
     _bitset_he(hg.initialNumEdges(), false) {
     ASSERT(_config.partition.mode != Mode::direct_kway ||
@@ -149,7 +149,7 @@ class LPRefiner final : public IRefiner {
     // assume each move is a 0 gain move
     std::fill(std::begin(_tmp_gains), std::end(_tmp_gains), 0);
     // assume each move will increase in each edge the connectivity
-    std::fill(std::begin(_tmp_connectivity_decrease_), std::end(_tmp_connectivity_decrease_), -_hg.nodeDegree(hn));
+    std::fill(std::begin(_tmp_connectivity_decrease), std::end(_tmp_connectivity_decrease), -_hg.nodeDegree(hn));
 
     _tmp_target_parts.clear();
     _max_score.clear();
@@ -190,13 +190,13 @@ class LPRefiner final : public IRefiner {
           // in the connectivity set of he!
           ASSERT(pins_in_target_part != 0,
                  "part is in connectivity set of he, but he has 0 pins in part!");
-          ++_tmp_connectivity_decrease_[target_part];
+          ++_tmp_connectivity_decrease[target_part];
         }
       }
     }
 
     _tmp_gains[source_part] = std::numeric_limits<Gain>::min();
-    _tmp_connectivity_decrease_[source_part] = std::numeric_limits<PartitionID>::min();
+    _tmp_connectivity_decrease[source_part] = std::numeric_limits<PartitionID>::min();
 
     // validate the connectivity decrease
     ASSERT([&]() {
@@ -226,14 +226,14 @@ class LPRefiner final : public IRefiner {
           _hg.changeNodePart(hn, target_part, source_part);
 
           // the move to partition target_part should decrease the connectivity by
-          // _tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
+          // _tmp_connectivity_decrease + num_hes_with_only_hn_in_source_part
           if (old_connectivity - new_connectivity !=
-              _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part) {
+              _tmp_connectivity_decrease[target_part] + num_hes_with_only_hn_in_source_part) {
             std::cout << "part: " << target_part << std::endl;
             std::cout << "old_connectivity: " << old_connectivity
             << " new_connectivity: " << new_connectivity << std::endl;
             std::cout << "real decrease: " << old_connectivity - new_connectivity << std::endl;
-            std::cout << "my decrease: " << _tmp_connectivity_decrease_[target_part] +
+            std::cout << "my decrease: " << _tmp_connectivity_decrease[target_part] +
             num_hes_with_only_hn_in_source_part << std::endl;
             return false;
           }
@@ -257,7 +257,7 @@ class LPRefiner final : public IRefiner {
       }
 
       const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
-      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part]
+      const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease[target_part]
                                                             + num_hes_with_only_hn_in_source_part;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
@@ -318,7 +318,7 @@ class LPRefiner final : public IRefiner {
 
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _max_score;
-  std::vector<PartitionID> _tmp_connectivity_decrease_;
+  std::vector<PartitionID> _tmp_connectivity_decrease;
   InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
 
   FastResetBitVector<> _bitset_he;
