@@ -41,8 +41,9 @@ class LPRefiner final : public IRefiner {
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
     _bitset_he(hg.initialNumEdges(), false) {
-    ALWAYS_ASSERT(_config.partition.mode == Mode::direct_kway,
-                  "LP Refiner should not be used in RB, because L_max is not used for both parts");
+      ASSERT(_config.partition.mode != Mode::direct_kway ||
+             (_config.partition.max_part_weights[0] == _config.partition.max_part_weights[1]),
+             "Lmax values should be equal for k-way partitioning");
   }
 
   LPRefiner(const LPRefiner&) = delete;
@@ -67,7 +68,7 @@ class LPRefiner final : public IRefiner {
 
     for (const HypernodeID cur_node : refinement_nodes) {
       if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
-        assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weights[0]);
+        assert(_hg.partWeight(_hg.partID(cur_node)) <= _config.partition.max_part_weights[_hg.partID(cur_node) % 2]);
 
         _cur_queue.push_back(cur_node);
         _contained_cur_queue.setBit(cur_node, true);
@@ -83,7 +84,7 @@ class LPRefiner final : public IRefiner {
         if (move_successful) {
           best_metrics.cut -= gain_pair.first;
 
-          assert(_hg.partWeight(gain_pair.second) <= _config.partition.max_part_weights[0]);
+          assert(_hg.partWeight(gain_pair.second) <= _config.partition.max_part_weights[gain_pair.second % 2]);
           assert(best_metrics.cut <= in_cut);
           assert(gain_pair.first >= 0);
           assert(best_metrics.cut == metrics::hyperedgeCut(_hg));
@@ -224,7 +225,7 @@ class LPRefiner final : public IRefiner {
     Gain max_gain = 0;
     PartitionID max_connectivity_decrease = 0;
     const HypernodeWeight node_weight = _hg.nodeWeight(hn);
-    const bool source_part_imbalanced = _hg.partWeight(source_part) > _config.partition.max_part_weights[0];
+    const bool source_part_imbalanced = _hg.partWeight(source_part) > _config.partition.max_part_weights[source_part % 2];
 
     std::vector<PartitionID> max_score;
     max_score.push_back(source_part);
@@ -242,7 +243,7 @@ class LPRefiner final : public IRefiner {
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
 
-      if (target_part_weight + node_weight <= _config.partition.max_part_weights[0]) {
+      if (target_part_weight + node_weight <= _config.partition.max_part_weights[target_part % 2]) {
         if (target_part_gain > max_gain) {
           max_score.clear();
           max_gain = target_part_gain;
@@ -277,7 +278,7 @@ class LPRefiner final : public IRefiner {
       return false;
     }
 
-    ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weights[0],
+    ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weights[to_part % 2],
            "a move in refinement produced imbalanced parts");
 
     if (_hg.partSize(from_part) == 1) {
