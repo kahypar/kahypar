@@ -41,12 +41,14 @@ class LPRefiner final : public IRefiner {
     _contained_cur_queue(hg.initialNumNodes(), false),
     _contained_next_queue(hg.initialNumNodes(), false),
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
+    _max_score(),
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k),
     _bitset_he(hg.initialNumEdges(), false) {
     ASSERT(_config.partition.mode != Mode::direct_kway ||
            (_config.partition.max_part_weights[0] == _config.partition.max_part_weights[1]),
            "Lmax values should be equal for k-way partitioning");
+    _max_score.reserve(configuration.partition.k);
   }
 
   LPRefiner(const LPRefiner&) = delete;
@@ -150,6 +152,7 @@ class LPRefiner final : public IRefiner {
     std::fill(std::begin(_tmp_connectivity_decrease_), std::end(_tmp_connectivity_decrease_), -_hg.nodeDegree(hn));
 
     _tmp_target_parts.clear();
+    _max_score.clear();
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
@@ -245,8 +248,8 @@ class LPRefiner final : public IRefiner {
     const bool source_part_imbalanced = _hg.partWeight(source_part) >
                                         _config.partition.max_part_weights[source_part % 2];
 
-    std::vector<PartitionID> max_score;
-    max_score.push_back(source_part);
+
+    _max_score.push_back(source_part);
 
     for (const PartitionID target_part : _tmp_target_parts) {
       if (target_part == source_part) {
@@ -261,27 +264,27 @@ class LPRefiner final : public IRefiner {
 
       if (target_part_weight + node_weight <= _config.partition.max_part_weights[target_part % 2]) {
         if (target_part_gain > max_gain) {
-          max_score.clear();
+          _max_score.clear();
           max_gain = target_part_gain;
           max_connectivity_decrease = target_part_connectivity_decrease;
-          max_score.push_back(target_part);
+          _max_score.push_back(target_part);
         } else if (target_part_gain == max_gain) {
           if (target_part_connectivity_decrease > max_connectivity_decrease) {
             max_connectivity_decrease = target_part_connectivity_decrease;
-            max_score.clear();
-            max_score.push_back(target_part);
+            _max_score.clear();
+            _max_score.push_back(target_part);
           } else if (target_part_connectivity_decrease == max_connectivity_decrease) {
-            max_score.push_back(target_part);
+            _max_score.push_back(target_part);
           }
         } else if (source_part_imbalanced && target_part_weight < _hg.partWeight(max_gain_part)) {
-          max_score.clear();
+          _max_score.clear();
           max_gain = target_part_gain;
           max_connectivity_decrease = target_part_connectivity_decrease;
-          max_score.push_back(target_part);
+          _max_score.push_back(target_part);
         }
       }
     }
-    max_gain_part = max_score[(Randomize::getRandomInt(0, max_score.size() - 1))];
+    max_gain_part = _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))];
 
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
 
@@ -314,6 +317,7 @@ class LPRefiner final : public IRefiner {
   FastResetBitVector<> _contained_next_queue;
 
   std::vector<Gain> _tmp_gains;
+  std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease_;
   InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
 
