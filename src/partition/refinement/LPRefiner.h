@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -24,6 +25,7 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
+using datastructure::InsertOnlyConnectivitySet;
 
 namespace partition {
 class LPRefiner final : public IRefiner {
@@ -40,11 +42,11 @@ class LPRefiner final : public IRefiner {
     _contained_next_queue(hg.initialNumNodes(), false),
     _tmp_gains(configuration.partition.k, std::numeric_limits<Gain>::min()),
     _tmp_connectivity_decrease_(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
-    _tmp_target_parts(configuration.partition.k, Hypergraph::kInvalidPartition),
+    _tmp_target_parts(configuration.partition.k),
     _bitset_he(hg.initialNumEdges(), false) {
-      ASSERT(_config.partition.mode != Mode::direct_kway ||
-             (_config.partition.max_part_weights[0] == _config.partition.max_part_weights[1]),
-             "Lmax values should be equal for k-way partitioning");
+    ASSERT(_config.partition.mode != Mode::direct_kway ||
+           (_config.partition.max_part_weights[0] == _config.partition.max_part_weights[1]),
+           "Lmax values should be equal for k-way partitioning");
   }
 
   LPRefiner(const LPRefiner&) = delete;
@@ -139,7 +141,8 @@ class LPRefiner final : public IRefiner {
     std::fill(std::begin(_tmp_gains), std::end(_tmp_gains), 0);
     // assume each move will increase in each edge the connectivity
     std::fill(std::begin(_tmp_connectivity_decrease_), std::end(_tmp_connectivity_decrease_), -_hg.nodeDegree(hn));
-    std::fill(std::begin(_tmp_target_parts), std::end(_tmp_target_parts), Hypergraph::kInvalidPartition);
+
+    _tmp_target_parts.clear();
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
@@ -163,7 +166,7 @@ class LPRefiner final : public IRefiner {
 
         for (const PartitionID con : _hg.connectivitySet(he)) {
           const auto& target_part = con;
-          _tmp_target_parts[target_part] = target_part;
+          _tmp_target_parts.add(target_part);
 
           const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
 
@@ -180,7 +183,6 @@ class LPRefiner final : public IRefiner {
       }
     }
 
-    _tmp_target_parts[source_part] = Hypergraph::kInvalidPartition;
     _tmp_gains[source_part] = std::numeric_limits<Gain>::min();
     _tmp_connectivity_decrease_[source_part] = std::numeric_limits<PartitionID>::min();
 
@@ -202,8 +204,10 @@ class LPRefiner final : public IRefiner {
 
         PartitionID old_connectivity = compute_connectivity();
         // simulate the move
-        for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
-          if (_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition) continue;
+        for (const PartitionID target_part : _tmp_target_parts) {
+          if (target_part == source_part) {
+            continue;
+          }
 
           _hg.changeNodePart(hn, source_part, target_part);
           PartitionID new_connectivity = compute_connectivity();
@@ -211,11 +215,11 @@ class LPRefiner final : public IRefiner {
 
           // the move to partition target_part should decrease the connectivity by
           // _tmp_connectivity_decrease_ + num_hes_with_only_hn_in_source_part
-          if (old_connectivity - new_connectivity != _tmp_connectivity_decrease_[_tmp_target_parts[target_part]] + num_hes_with_only_hn_in_source_part) {
+          if (old_connectivity - new_connectivity != _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part) {
             std::cout << "part: " << target_part << std::endl;
             std::cout << "old_connectivity: " << old_connectivity << " new_connectivity: " << new_connectivity << std::endl;
             std::cout << "real decrease: " << old_connectivity - new_connectivity << std::endl;
-            std::cout << "my decrease: " << _tmp_connectivity_decrease_[_tmp_target_parts[target_part]] + num_hes_with_only_hn_in_source_part << std::endl;
+            std::cout << "my decrease: " << _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part << std::endl;
             return false;
           }
         }
@@ -231,13 +235,10 @@ class LPRefiner final : public IRefiner {
     std::vector<PartitionID> max_score;
     max_score.push_back(source_part);
 
-    for (PartitionID target_part = 0; target_part < _config.partition.k; ++target_part) {
-      assert(_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition ||
-             _tmp_target_parts[target_part] == target_part);
-
-
-      // assure that target_part is incident to us
-      if (_tmp_target_parts[target_part] == Hypergraph::kInvalidPartition) continue;
+    for (const PartitionID target_part : _tmp_target_parts) {
+      if (target_part == source_part) {
+        continue;
+      }
 
       const Gain target_part_gain = _tmp_gains[target_part] - internal_weight;
       const PartitionID target_part_connectivity_decrease = _tmp_connectivity_decrease_[target_part] + num_hes_with_only_hn_in_source_part;
@@ -300,7 +301,7 @@ class LPRefiner final : public IRefiner {
 
   std::vector<Gain> _tmp_gains;
   std::vector<PartitionID> _tmp_connectivity_decrease_;
-  std::vector<PartitionID> _tmp_target_parts;
+  InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
 
   FastResetBitVector<> _bitset_he;
 };
