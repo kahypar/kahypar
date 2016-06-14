@@ -1,5 +1,6 @@
 /***************************************************************************
- *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2015 Vitali Henne <vitali.henne@gmail.com>
  **************************************************************************/
 
 #ifndef SRC_PARTITION_REFINEMENT_LPREFINER_H_
