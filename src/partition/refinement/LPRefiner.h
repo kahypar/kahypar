@@ -32,7 +32,7 @@ namespace partition {
 class LPRefiner final : public IRefiner {
   using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
-  using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
+  using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain, false>;
 
  public:
   LPRefiner(Hypergraph& hg, const Configuration& configuration) noexcept :
