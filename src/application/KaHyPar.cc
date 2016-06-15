@@ -315,12 +315,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       }
     }
     if (vm.count("FMreps")) {
-      config.fm_local_search.num_repetitions = vm["FMreps"].as<int>();
-      config.her_fm.num_repetitions = vm["FMreps"].as<int>();
-      if (config.fm_local_search.num_repetitions == -1) {
-        config.fm_local_search.num_repetitions =
-          std::numeric_limits<int>::max();
-        config.her_fm.num_repetitions = std::numeric_limits<int>::max();
+      config.partition.num_local_search_repetitions = vm["FMreps"].as<int>();
+      if (config.partition.num_local_search_repetitions == -1) {
+        config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
       }
     }
     if (vm.count("init-FMreps")) {
@@ -397,6 +394,7 @@ void setDefaults(Configuration& config) {
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
   config.partition.initial_partitioning_attempts = 20;
+  config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
   config.initial_partitioning.nruns = 20;
   config.partition.global_search_iterations = 1;
   config.partition.hyperedge_size_threshold =
@@ -417,11 +415,9 @@ void setDefaults(Configuration& config) {
     config.coarsening.max_allowed_weight_multiplier
     / config.coarsening.contraction_limit;
   config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
-  config.fm_local_search.num_repetitions = -1;
   config.fm_local_search.max_number_of_fruitless_moves = 200;
   config.fm_local_search.alpha = 8;
   config.her_fm.stopping_rule = RefinementStoppingRule::simple;
-  config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
   config.lp_refiner.max_number_iterations = 3;
 }
