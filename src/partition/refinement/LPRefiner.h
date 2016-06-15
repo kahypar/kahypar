@@ -430,7 +430,9 @@ class LPRefiner final : public IRefiner {
       }
       _tmp_gains[target_part] = 0;
     }
-    max_gain_part = _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))];
+    max_gain_part = (max_gain > 0 || source_part_imbalanced) ?
+                    _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))] : source_part;
+
 
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
 
