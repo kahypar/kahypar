@@ -314,8 +314,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
       }
     }
-    if (vm.count("FMreps")) {
-      config.partition.num_local_search_repetitions = vm["FMreps"].as<int>();
+    if (vm.count("ls-reps")) {
+      config.partition.num_local_search_repetitions = vm["ls-reps"].as<int>();
       if (config.partition.num_local_search_repetitions == -1) {
         config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
       }
@@ -661,7 +661,7 @@ int main(int argc, char* argv[]) {
     ("sclap_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
-    ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
+    ("ls-reps", po::value<int>(), "max. # of local search repetitions on each level (default: no limit = -1)")
     ("init-FMreps", po::value<int>(), "local search repetitions during initial partitioning (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
