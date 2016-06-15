@@ -14,7 +14,8 @@
 namespace partition {
 template <typename HypernodeID = Mandatory,
           typename PartitionID = Mandatory,
-          typename Gain = Mandatory>
+          typename Gain = Mandatory,
+          bool rollback_enabled = true>
 class KwayGainCache {
  private:
   static const bool debug = false;
@@ -240,7 +241,9 @@ class KwayGainCache {
   __attribute__ ((always_inline)) void removeEntryDueToConnectivityDecrease(const HypernodeID hn,
                                                                             const PartitionID part) {
     ASSERT(part < _k, V(part));
-    _deltas.emplace_back(hn, part, cacheElement(hn)->gain(part), RollbackAction::do_add);
+    if (rollback_enabled) {
+      _deltas.emplace_back(hn, part, cacheElement(hn)->gain(part), RollbackAction::do_add);
+    }
     DBG(debug && (hn == hn_to_debug), "removeEntryDueToConnectivityDecrease for " << hn
         << "and part " << part << " previous cache entry =" << cacheElement(hn)->gain(part)
         << " now= " << kNotCached);
@@ -256,7 +259,9 @@ class KwayGainCache {
     DBG(debug && (hn == hn_to_debug), "addEntryDueToConnectivityIncrease for " << hn
         << "and part " << part << " new cache entry =" << cacheElement(hn)->gain(part));
     DBG(debug && (hn == hn_to_debug), "delta emplace = " << kNotCached - gain);
-    _deltas.emplace_back(hn, part, kNotCached - gain, RollbackAction::do_remove);
+    if (rollback_enabled) {
+      _deltas.emplace_back(hn, part, kNotCached - gain, RollbackAction::do_remove);
+    }
   }
 
   __attribute__ ((always_inline)) void updateFromAndToPartOfMovedHN(const HypernodeID moved_hn,
@@ -267,9 +272,11 @@ class KwayGainCache {
       DBG(debug && (moved_hn == hn_to_debug),
           "updateFromAndToPartOfMovedHN(" << moved_hn << "," << from_part << "," << to_part << ")");
       const Gain to_part_gain = cacheElement(moved_hn)->gain(to_part);
-      _deltas.emplace_back(moved_hn, from_part,
-                           cacheElement(moved_hn)->gain(from_part) + to_part_gain,
-                           RollbackAction::do_remove);
+      if (rollback_enabled) {
+        _deltas.emplace_back(moved_hn, from_part,
+                             cacheElement(moved_hn)->gain(from_part) + to_part_gain,
+                             RollbackAction::do_remove);
+      }
       cacheElement(moved_hn)->add(from_part, -to_part_gain);
     } else {
       DBG(debug && (moved_hn == hn_to_debug), "pseudoremove  for " << moved_hn
@@ -312,38 +319,44 @@ class KwayGainCache {
     DBG(debug && (hn == hn_to_debug),
         "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")");
     cacheElement(hn)->update(part, delta);
-    _deltas.emplace_back(hn, part, -delta, RollbackAction::do_nothing);
+    if (rollback_enabled) {
+      _deltas.emplace_back(hn, part, -delta, RollbackAction::do_nothing);
+    }
   }
 
 
   void rollbackDelta() {
-    for (auto rit = _deltas.crbegin(); rit != _deltas.crend(); ++rit) {
-      const HypernodeID hn = rit->hn;
-      const PartitionID part = rit->part;
-      const Gain delta = rit->delta;
-      if (cacheElement(hn)->contains(part)) {
-        DBG(debug && (hn == hn_to_debug), "rollback: " << "G[" << hn << "," << part << "]="
-            << cacheElement(hn)->gain(part) << "+" << delta << "="
-            << (cacheElement(hn)->gain(part) + delta));
-        cacheElement(hn)->update(part, delta);
-        if (rit->action == RollbackAction::do_remove) {
-          ASSERT(cacheElement(hn)->gain(part) == kNotCached, V(hn));
-          cacheElement(hn)->remove(part);
-        }
-      } else {
-        DBG(debug && (hn == hn_to_debug), "rollback: SET " << "set G[" << hn << "," << part << "]="
-            << delta);
-        cacheElement(hn)->set(part, delta);
-        if (rit->action == RollbackAction::do_add) {
-          cacheElement(hn)->addToActiveParts(part);
+    if (rollback_enabled) {
+      for (auto rit = _deltas.crbegin(); rit != _deltas.crend(); ++rit) {
+        const HypernodeID hn = rit->hn;
+        const PartitionID part = rit->part;
+        const Gain delta = rit->delta;
+        if (cacheElement(hn)->contains(part)) {
+          DBG(debug && (hn == hn_to_debug), "rollback: " << "G[" << hn << "," << part << "]="
+              << cacheElement(hn)->gain(part) << "+" << delta << "="
+              << (cacheElement(hn)->gain(part) + delta));
+          cacheElement(hn)->update(part, delta);
+          if (rit->action == RollbackAction::do_remove) {
+            ASSERT(cacheElement(hn)->gain(part) == kNotCached, V(hn));
+            cacheElement(hn)->remove(part);
+          }
+        } else {
+          DBG(debug && (hn == hn_to_debug), "rollback: SET " << "set G[" << hn << "," << part << "]="
+              << delta);
+          cacheElement(hn)->set(part, delta);
+          if (rit->action == RollbackAction::do_add) {
+            cacheElement(hn)->addToActiveParts(part);
+          }
         }
       }
+      _deltas.clear();
     }
-    _deltas.clear();
   }
 
   void resetDelta() {
-    _deltas.clear();
+    if (rollback_enabled) {
+      _deltas.clear();
+    }
   }
 
   const CacheElement & adjacentParts(const HypernodeID hn) const {

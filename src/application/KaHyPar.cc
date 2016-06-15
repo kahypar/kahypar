@@ -314,13 +314,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
       }
     }
-    if (vm.count("FMreps")) {
-      config.fm_local_search.num_repetitions = vm["FMreps"].as<int>();
-      config.her_fm.num_repetitions = vm["FMreps"].as<int>();
-      if (config.fm_local_search.num_repetitions == -1) {
-        config.fm_local_search.num_repetitions =
-          std::numeric_limits<int>::max();
-        config.her_fm.num_repetitions = std::numeric_limits<int>::max();
+    if (vm.count("ls-reps")) {
+      config.partition.num_local_search_repetitions = vm["ls-reps"].as<int>();
+      if (config.partition.num_local_search_repetitions == -1) {
+        config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
       }
     }
     if (vm.count("init-FMreps")) {
@@ -355,9 +352,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         vm["remove-always-cut-hes"].as<bool>();
     }
 
-    if (vm.count("lp_refiner_max_iterations")) {
+    if (vm.count("sclap-max-iterations")) {
       config.lp_refiner.max_number_iterations =
-        vm["lp_refiner_max_iterations"].as<int>();
+        vm["sclap-max-iterations"].as<int>();
     }
     if (vm.count("rtype")) {
       if (vm["rtype"].as<std::string>() == "twoway_fm") {
@@ -397,6 +394,7 @@ void setDefaults(Configuration& config) {
   config.partition.epsilon = 0.05;
   config.partition.seed = -1;
   config.partition.initial_partitioning_attempts = 20;
+  config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
   config.initial_partitioning.nruns = 20;
   config.partition.global_search_iterations = 1;
   config.partition.hyperedge_size_threshold =
@@ -417,11 +415,9 @@ void setDefaults(Configuration& config) {
     config.coarsening.max_allowed_weight_multiplier
     / config.coarsening.contraction_limit;
   config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
-  config.fm_local_search.num_repetitions = -1;
   config.fm_local_search.max_number_of_fruitless_moves = 200;
   config.fm_local_search.alpha = 8;
   config.her_fm.stopping_rule = RefinementStoppingRule::simple;
-  config.her_fm.num_repetitions = 1;
   config.her_fm.max_number_of_fruitless_moves = 10;
   config.lp_refiner.max_number_iterations = 3;
 }
@@ -662,10 +658,10 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
-    ("lp_refiner_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
+    ("sclap-max-iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
-    ("FMreps", po::value<int>(), "2-Way-FM | HER-FM: max. # of local search repetitions on each level (default:1, no limit:-1)")
+    ("ls-reps", po::value<int>(), "max. # of local search repetitions on each level (default: no limit = -1)")
     ("init-FMreps", po::value<int>(), "local search repetitions during initial partitioning (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")

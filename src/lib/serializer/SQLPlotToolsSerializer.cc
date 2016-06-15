@@ -57,11 +57,11 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
   << " coarseningContractionLimit=" << config.coarsening.contraction_limit
   << Stats::instance().toString()
-  << " refinementAlgo=" << toString(config.partition.refinement_algorithm);
+  << " refinementAlgo=" << toString(config.partition.refinement_algorithm)
+  << " numLocalSearchRepetitions=" << config.partition.num_local_search_repetitions;
   if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
       config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm) {
-    oss << " FMNumRepetitions=" << config.fm_local_search.num_repetitions
-    << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
+    oss << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
     << " FMGlobalRebalancing=" << toString(config.fm_local_search.global_rebalancing)
     << " FMalpha=" << config.fm_local_search.alpha
     << " FMbeta=" << config.fm_local_search.beta;

@@ -126,16 +126,14 @@ class CoarsenerBase {
                           const UncontractionGainChanges& changes) noexcept {
     ASSERT(changes.representative.size() != 0, "0");
     ASSERT(changes.contraction_partner.size() != 0, "0");
-
     bool improvement_found = performLocalSearchIteration(refiner, refinement_nodes, changes,
                                                          current_metrics);
-
     UncontractionGainChanges no_changes;
     no_changes.representative.push_back(0);
     no_changes.contraction_partner.push_back(0);
 
     int iteration = 1;
-    while ((iteration < _config.fm_local_search.num_repetitions) && improvement_found) {
+    while ((iteration < _config.partition.num_local_search_repetitions) && improvement_found) {
       improvement_found = performLocalSearchIteration(refiner, refinement_nodes, no_changes,
                                                       current_metrics);
       ++iteration;

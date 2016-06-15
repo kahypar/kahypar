@@ -212,7 +212,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 
   // Refinement-Parameters
   config.partition.global_search_iterations = 0;
-  config.fm_local_search.num_repetitions = -1;
+  config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
   config.fm_local_search.max_number_of_fruitless_moves = 50;
   config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
   config.fm_local_search.alpha = 8;
@@ -220,7 +220,6 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   // rebalancing doesn't do anything is this case and just induces additional
   // overhead.
   config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
-  config.her_fm.num_repetitions = -1;
   config.her_fm.max_number_of_fruitless_moves = 10;
   config.lp_refiner.max_number_iterations = 3;
 

@@ -90,6 +90,7 @@ struct Configuration {
       initial_partitioning_attempts(1),
       global_search_iterations(1),
       current_v_cycle(0),
+      num_local_search_repetitions(std::numeric_limits<int>::max()),
       epsilon(1.0),
       hmetis_ub_factor(-1.0),
       perfect_balance_part_weights({
@@ -122,6 +123,7 @@ struct Configuration {
     int initial_partitioning_attempts;
     int global_search_iterations;
     int current_v_cycle;
+    int num_local_search_repetitions;
     double epsilon;
     double hmetis_ub_factor;
     std::array<HypernodeWeight, 2> perfect_balance_part_weights;
@@ -146,14 +148,12 @@ struct Configuration {
   struct FMParameters {
     FMParameters() :
       max_number_of_fruitless_moves(50),
-      num_repetitions(1),
       alpha(4),
       beta(0.0),
       stopping_rule(RefinementStoppingRule::simple),
       global_rebalancing(GlobalRebalancingMode::off) { }
 
     int max_number_of_fruitless_moves;
-    int num_repetitions;
     double alpha;
     double beta;
     RefinementStoppingRule stopping_rule;
@@ -163,11 +163,9 @@ struct Configuration {
   struct HERFMParameters {
     HERFMParameters() :
       max_number_of_fruitless_moves(10),
-      num_repetitions(1),
       stopping_rule(RefinementStoppingRule::simple) { }
 
     int max_number_of_fruitless_moves;
-    int num_repetitions;
     RefinementStoppingRule stopping_rule;
   };
 
@@ -273,8 +271,6 @@ inline std::string toString(const Configuration& config) {
     << toString(config.fm_local_search.stopping_rule) << std::endl;
     oss << std::setw(35) << "  use global rebalancing: "
     << toString(config.fm_local_search.global_rebalancing) << std::endl;
-    oss << std::setw(35) << "  max. # repetitions: "
-    << config.fm_local_search.num_repetitions << std::endl;
     oss << std::setw(35) << "  max. # fruitless moves: "
     << config.fm_local_search.max_number_of_fruitless_moves
     << std::endl;
@@ -287,8 +283,6 @@ inline std::string toString(const Configuration& config) {
       == RefinementAlgorithm::hyperedge) {
     oss << std::setw(35) << "  stopping rule: "
     << toString(config.her_fm.stopping_rule) << std::endl;
-    oss << std::setw(35) << "  max. # repetitions: "
-    << config.her_fm.num_repetitions << std::endl;
     oss << std::setw(35) << "  max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
   }
@@ -297,6 +291,8 @@ inline std::string toString(const Configuration& config) {
     oss << std::setw(35) << "  max. # iterations: "
     << config.lp_refiner.max_number_iterations << std::endl;
   }
+  oss << std::setw(35) << "  max. # local search repetitions: "
+    << config.partition.num_local_search_repetitions << std::endl;
   return oss.str();
 }
 }  // namespace partition
