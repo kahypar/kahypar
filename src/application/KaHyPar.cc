@@ -171,43 +171,43 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       }
     }
 
-    if (vm.count("part")) {
-      if (vm["part"].as<std::string>() == "hMetis") {
+    if (vm.count("ip")) {
+      if (vm["ip"].as<std::string>() == "hMetis") {
         config.partition.initial_partitioner =
           InitialPartitioner::hMetis;
-      } else if (vm["part"].as<std::string>() == "PaToH") {
+      } else if (vm["ip"].as<std::string>() == "PaToH") {
         config.partition.initial_partitioner =
           InitialPartitioner::PaToH;
-      } else if (vm["part"].as<std::string>() == "KaHyPar") {
+      } else if (vm["ip"].as<std::string>() == "KaHyPar") {
         config.partition.initial_partitioner =
           InitialPartitioner::KaHyPar;
-        if (vm.count("init-mode")) {
-          if (vm["init-mode"].as<std::string>() == "rb") {
+        if (vm.count("ip-mode")) {
+          if (vm["ip-mode"].as<std::string>() == "rb") {
             config.initial_partitioning.mode =
               Mode::recursive_bisection;
-          } else if (vm["init-mode"].as<std::string>() == "direct") {
+          } else if (vm["ip-mode"].as<std::string>() == "direct") {
             config.initial_partitioning.mode =
               Mode::direct_kway;
           }
         }
-        if (vm.count("init-technique")) {
-          if (vm["init-technique"].as<std::string>() == "flat") {
+        if (vm.count("ip-technique")) {
+          if (vm["ip-technique"].as<std::string>() == "flat") {
             config.initial_partitioning.technique =
               InitialPartitioningTechnique::flat;
-          } else if (vm["init-technique"].as<std::string>()
+          } else if (vm["ip-technique"].as<std::string>()
                      == "multi") {
             config.initial_partitioning.technique =
               InitialPartitioningTechnique::multilevel;
           }
         }
-        if (vm.count("init-algo")) {
+        if (vm.count("ip-algo")) {
           config.initial_partitioning.algo =
             stringToInitialPartitionerAlgorithm(
-              vm["init-algo"].as<std::string>());
+              vm["ip-algo"].as<std::string>());
         }
-        if (vm.count("init-alpha")) {
+        if (vm.count("ip-alpha")) {
           config.initial_partitioning.init_alpha =
-            vm["init-alpha"].as<double>();
+            vm["ip-alpha"].as<double>();
         }
 
         // If KaHyPar is used in recursive bisection mode, the initial partitioner is only
@@ -227,8 +227,8 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         }
       }
     }
-    if (vm.count("part-path")) {
-      config.partition.initial_partitioner_path = vm["part-path"].as<
+    if (vm.count("ip-path")) {
+      config.partition.initial_partitioner_path = vm["ip-path"].as<
         std::string>();
     } else {
       switch (config.partition.initial_partitioner) {
@@ -320,9 +320,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
       }
     }
-    if (vm.count("init-FMreps")) {
+    if (vm.count("ip-FMreps")) {
       config.initial_partitioning.local_search_repetitions =
-        vm["init-FMreps"].as<int>();
+        vm["ip-FMreps"].as<int>();
       if (config.initial_partitioning.local_search_repetitions == -1) {
         config.initial_partitioning.local_search_repetitions =
           std::numeric_limits<int>::max();
@@ -645,12 +645,13 @@ int main(int argc, char* argv[]) {
     ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
     ("nruns", po::value<int>(), "# initial partition trials, the final bisection correspondsto the one with the smallest cut")
-    ("part", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
-    ("init-technique", po::value<std::string>(), "If part=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
-    ("init-mode", po::value<std::string>(), "If part=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
-    ("init-algo", po::value<std::string>(), "If part=KaHyPar, used initial partitioning algorithm")
-    ("init-alpha", po::value<double>(), "Restrict initial partitioning epsilon to init-alpha*epsilon")
-    ("part-path", po::value<std::string>(), "Path to Initial Partitioner Binary")
+    ("ip", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
+    ("ip-technique", po::value<std::string>(), "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
+    ("ip-mode", po::value<std::string>(), "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
+    ("ip-algo", po::value<std::string>(), "If ip=KaHyPar: used initial partitioning algorithm")
+    ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
+    ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
+    ("ip-FMreps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
@@ -662,7 +663,6 @@ int main(int argc, char* argv[]) {
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
     ("ls-reps", po::value<int>(), "max. # of local search repetitions on each level (default: no limit = -1)")
-    ("init-FMreps", po::value<int>(), "local search repetitions during initial partitioning (default:1, no limit:-1)")
     ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
     ("file", po::value<std::string>(), "filename of result file");
