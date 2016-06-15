@@ -296,7 +296,14 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       config.partition.coarsening_algorithm =
         stringToCoarseningAlgorithm(vm["ctype"].as<std::string>());
     } else {
-      std::cout << "Illegal ctype option! Exiting..." << std::endl;
+      std::cout << "Missing ctype option!" << std::endl;
+      exit(0);
+    }
+    if (vm.count("ip-ctype")) {
+      config.initial_partitioning.coarsening_algorithm =
+        stringToCoarseningAlgorithm(vm["ip-ctype"].as<std::string>());
+    } else {
+      std::cout << "Missing ip-ctype option!" << std::endl;
       exit(0);
     }
     if (vm.count("s")) {
@@ -382,7 +389,14 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       config.partition.refinement_algorithm =
         stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
     } else {
-      std::cout << "Illegal local search option! Exiting..." << std::endl;
+      std::cout << "Missing rtype option!" << std::endl;
+      exit(0);
+    }
+    if (vm.count("ip-rtype")) {
+      config.initial_partitioning.refinement_algorithm =
+        stringToRefinementAlgorithm(vm["ip-rtype"].as<std::string>());
+    } else {
+      std::cout << "Missing ip-rtype option!" << std::endl;
       exit(0);
     }
   } else {
@@ -654,6 +668,8 @@ int main(int argc, char* argv[]) {
     ("ip-technique", po::value<std::string>(), "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
     ("ip-mode", po::value<std::string>(), "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
     ("ip-algo", po::value<std::string>(), "If ip=KaHyPar: used initial partitioning algorithm")
+    ("ip-ctype", po::value<std::string>(), "If ip=KaHyPar: used coarsening algorithm for multilevel initial partitioning")
+    ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
     ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
     ("ip-FMreps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
