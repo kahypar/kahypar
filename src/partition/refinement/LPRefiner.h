@@ -102,10 +102,16 @@ class LPRefiner final : public IRefiner {
         const auto& gain_pair = computeMaxGainMove(hn);
         const PartitionID from_part = _hg.partID(hn);
         const PartitionID to_part = gain_pair.second;
+
+        DBG(false, "cut=" << best_metrics.cut << " max_gain_node=" << hn
+          << " gain=" << gain_pair.first << " source_part=" << from_part
+                    << " target_part=" << to_part);
+
         const bool move_successful = moveHypernode(hn, from_part, gain_pair.second);
         if (move_successful) {
           reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
                                               from_part, to_part);
+
           best_metrics.cut -= gain_pair.first;
           best_metrics.imbalance =  static_cast<double>(heaviest_part_weight) /
                                     ceil(static_cast<double>(_config.partition.total_graph_weight) /
