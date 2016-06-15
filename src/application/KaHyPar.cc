@@ -88,7 +88,7 @@ using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
 
-InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(std::string mode) {
+InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(const std::string& mode) {
   if (mode.compare("greedy_sequential") == 0) {
     return InitialPartitionerAlgorithm::greedy_sequential;
   } else if (mode.compare("greedy_global") == 0) {
@@ -117,6 +117,42 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(std::string mode
     return InitialPartitionerAlgorithm::pool;
   }
   return InitialPartitionerAlgorithm::greedy_global;
+}
+
+RefinementAlgorithm stringToRefinementAlgorithm(const std::string& type) {
+  if (type == "twoway_fm") {
+    return RefinementAlgorithm::twoway_fm;
+  } else if (type == "kway_fm") {
+    return RefinementAlgorithm::kway_fm;
+  } else if (type == "kway_fm_km1") {
+    return RefinementAlgorithm::kway_fm_km1;
+  } else if (type == "kway_fm_maxgain") {
+    return RefinementAlgorithm::kway_fm_maxgain;
+  } else if (type == "hyperedge") {
+    return RefinementAlgorithm::hyperedge;
+  } else if (type == "sclap") {
+    return RefinementAlgorithm::label_propagation;
+  }
+  std::cout << "Illegal option:" << type << std::endl;
+  exit(0);
+  return RefinementAlgorithm::kway_fm;
+}
+
+CoarseningAlgorithm stringToCoarseningAlgorithm(const std::string& type) {
+  if (type == "heavy_full") {
+    return CoarseningAlgorithm::heavy_full;
+  } else if (type == "heavy_partial") {
+    return CoarseningAlgorithm::heavy_partial;
+  } else if (type == "heavy_lazy") {
+    return CoarseningAlgorithm::heavy_lazy;
+  } else if (type == "ml_style") {
+    return CoarseningAlgorithm::ml_style;
+  } else if (type == "hyperedge") {
+    return CoarseningAlgorithm::hyperedge;
+  }
+  std::cout << "Illegal option:" << type << std::endl;
+  exit(0);
+  return CoarseningAlgorithm::heavy_lazy;
 }
 
 void configurePartitionerFromCommandLineInput(Configuration& config,
@@ -257,25 +293,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       }
     }
     if (vm.count("ctype")) {
-      if (vm["ctype"].as<std::string>() == "heavy_full") {
-        config.partition.coarsening_algorithm =
-          CoarseningAlgorithm::heavy_full;
-      } else if (vm["ctype"].as<std::string>() == "heavy_partial") {
-        config.partition.coarsening_algorithm =
-          CoarseningAlgorithm::heavy_partial;
-      } else if (vm["ctype"].as<std::string>() == "heavy_lazy") {
-        config.partition.coarsening_algorithm =
-          CoarseningAlgorithm::heavy_lazy;
-      } else if (vm["ctype"].as<std::string>() == "ml_style") {
-        config.partition.coarsening_algorithm =
-          CoarseningAlgorithm::ml_style;
-      } else if (vm["ctype"].as<std::string>() == "hyperedge") {
-        config.partition.coarsening_algorithm =
-          CoarseningAlgorithm::hyperedge;
-      } else {
-        std::cout << "Illegal ctype option! Exiting..." << std::endl;
-        exit(0);
-      }
+      config.partition.coarsening_algorithm =
+        stringToCoarseningAlgorithm(vm["ctype"].as<std::string>());
+    } else {
+      std::cout << "Illegal ctype option! Exiting..." << std::endl;
+      exit(0);
     }
     if (vm.count("s")) {
       config.coarsening.max_allowed_weight_multiplier =
@@ -357,28 +379,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         vm["sclap-max-iterations"].as<int>();
     }
     if (vm.count("rtype")) {
-      if (vm["rtype"].as<std::string>() == "twoway_fm") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::twoway_fm;
-      } else if (vm["rtype"].as<std::string>() == "kway_fm") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::kway_fm;
-      } else if (vm["rtype"].as<std::string>() == "kway_fm_km1") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::kway_fm_km1;
-      } else if (vm["rtype"].as<std::string>() == "kway_fm_maxgain") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::kway_fm_maxgain;
-      } else if (vm["rtype"].as<std::string>() == "hyperedge") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::hyperedge;
-      } else if (vm["rtype"].as<std::string>() == "sclap") {
-        config.partition.refinement_algorithm =
-          RefinementAlgorithm::label_propagation;
-      } else {
-        std::cout << "Illegal local search option! Exiting..." << std::endl;
-        exit(0);
-      }
+      config.partition.refinement_algorithm =
+        stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
+    } else {
+      std::cout << "Illegal local search option! Exiting..." << std::endl;
+      exit(0);
     }
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
