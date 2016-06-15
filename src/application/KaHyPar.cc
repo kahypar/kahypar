@@ -119,6 +119,82 @@ InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(const std::strin
   return InitialPartitionerAlgorithm::greedy_global;
 }
 
+void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
+  if (algo == RefinementAlgorithm::kway_fm) {
+    std::cout << "WARNING: local search algorithm is set to "
+    << toString(algo)
+    << ". However " << toString(RefinementAlgorithm::twoway_fm)
+    << "  is better and faster." << std::endl;
+    std::cout << "Should the local search algorithm be changed to "
+    << toString(RefinementAlgorithm::twoway_fm) << " (Y/N)?" << std::endl;
+    char answer = 'N';
+    std::cin >> answer;
+    answer = std::toupper(answer);
+    if (answer == 'Y') {
+      std::cout << "Changing local search algorithm to "
+      << toString(RefinementAlgorithm::twoway_fm) << std::endl;
+      algo = RefinementAlgorithm::twoway_fm;
+    }
+  }
+}
+
+void checkDirectKwayMode(RefinementAlgorithm& algo) {
+  if (algo == RefinementAlgorithm::twoway_fm) {
+    std::cout << "WARNING: local search algorithm is set to "
+    << toString(algo)
+    << ". This algorithm cannot be used for direct k-way partitioning with k>2."
+    << std::endl;
+    std::cout << "Should the local search algorithm be changed to "
+    << toString(RefinementAlgorithm::kway_fm) << " (Y/N)?" << std::endl;
+    char answer = 'N';
+    std::cin >> answer;
+    answer = std::toupper(answer);
+    if (answer == 'Y') {
+      std::cout << "Changing local search algorithm to "
+      << toString(RefinementAlgorithm::kway_fm) << std::endl;
+      algo = RefinementAlgorithm::kway_fm;
+    }
+  }
+}
+
+
+void sanityCheck(Configuration& config) {
+  switch (config.partition.mode) {
+    case Mode::recursive_bisection:
+      // Prevent configurations that currently don't make sense.
+      // If KaHyPar operates in recursive bisection mode, than the
+      // initial partitioning algorithm is called on the coarsest graph to
+      // create a bipartition (i.e. it is only called for k=2).
+      // Therefore, the initial partitioning algorithm
+      // should run in direct mode and not in recursive bisection mode (since there
+      // is nothing left to bisect).
+      ALWAYS_ASSERT(config.initial_partitioning.mode == Mode::direct_kway,
+                    toString(config.initial_partitioning.mode));
+      // Furthermore, the IP algorithm should not use the multilevel technique itself,
+      // because the hypergraph is already coarse enough for initial partitioning.
+      // Therefore we prevent further coarsening by enforcing flat rather than multilevel.
+      // If initial partitioning is set to direct k-way, it does not make sense to use
+      // multilevel as initial partitioning technique, because in this case KaHyPar
+      // could just do the additional multilevel coarsening and then call the initial
+      // partitioning algorithm as a flat algorithm.
+      ALWAYS_ASSERT(config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
+                    toString(config.initial_partitioning.technique));
+      checkRecursiveBisectionMode(config.partition.refinement_algorithm);
+      break;
+    case Mode::direct_kway:
+      checkDirectKwayMode(config.partition.refinement_algorithm);
+      break;
+  }
+  switch (config.initial_partitioning.mode) {
+    case Mode::recursive_bisection:
+      checkRecursiveBisectionMode(config.initial_partitioning.refinement_algorithm);
+      break;
+    case Mode::direct_kway:
+      checkDirectKwayMode(config.initial_partitioning.refinement_algorithm);
+      break;
+  }
+}
+
 RefinementAlgorithm stringToRefinementAlgorithm(const std::string& type) {
   if (type == "twoway_fm") {
     return RefinementAlgorithm::twoway_fm;
@@ -244,22 +320,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         if (vm.count("ip-alpha")) {
           config.initial_partitioning.init_alpha =
             vm["ip-alpha"].as<double>();
-        }
-
-        // If KaHyPar is used in recursive bisection mode, the initial partitioner is only
-        // called for k=2. Therefore initial partitioning should work in direct_kway mode.
-        if (config.partition.mode == Mode::recursive_bisection &&
-            config.initial_partitioning.mode == Mode::recursive_bisection) {
-          config.initial_partitioning.mode = Mode::direct_kway;
-        }
-
-        // If initial partitioning is set to direct k-way, it does not make sense to use
-        // multilevel as initial partitioning technique, because in this case KaHyPar
-        // could just do the additional multilevel coarsening and then call the initial
-        // partitioning algorithm as a flat algorithm.
-        if (config.initial_partitioning.mode == Mode::direct_kway &&
-            config.initial_partitioning.technique == InitialPartitioningTechnique::multilevel) {
-          config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
         }
       }
     }
@@ -704,6 +764,7 @@ int main(int argc, char* argv[]) {
   Configuration config;
   setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
+  sanityCheck(config);
 
   Randomize::setSeed(config.partition.seed);
 
