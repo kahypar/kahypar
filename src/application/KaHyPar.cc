@@ -352,9 +352,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         vm["remove-always-cut-hes"].as<bool>();
     }
 
-    if (vm.count("sclap_max_iterations")) {
+    if (vm.count("sclap-max-iterations")) {
       config.lp_refiner.max_number_iterations =
-        vm["sclap_max_iterations"].as<int>();
+        vm["sclap-max-iterations"].as<int>();
     }
     if (vm.count("rtype")) {
       if (vm["rtype"].as<std::string>() == "twoway_fm") {
@@ -658,7 +658,7 @@ int main(int argc, char* argv[]) {
     ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
-    ("sclap_max_iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
+    ("sclap-max-iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
     ("ls-reps", po::value<int>(), "max. # of local search repetitions on each level (default: no limit = -1)")
