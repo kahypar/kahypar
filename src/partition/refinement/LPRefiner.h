@@ -18,6 +18,7 @@
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KwayGainCache.h"
+#include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
 
 using defs::Hypergraph;
@@ -33,7 +34,7 @@ class LPRefiner final : public IRefiner {
   using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain, false>;
-
+  using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
  public:
   LPRefiner(Hypergraph& hg, const Configuration& configuration) noexcept :
     _hg(hg),
@@ -72,7 +73,10 @@ class LPRefiner final : public IRefiner {
            "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
 
-    auto in_cut = best_metrics.cut;
+    const HyperedgeWeight initial_cut = best_metrics.cut;
+    const double initial_imbalance = best_metrics.imbalance;
+    PartitionID heaviest_part = heaviestPart();
+    HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     // Each hyperedge with only be considered once in a refinement run
     _bitset_he.resetAllBitsToFalse();
@@ -100,17 +104,21 @@ class LPRefiner final : public IRefiner {
         const PartitionID to_part = gain_pair.second;
         const bool move_successful = moveHypernode(hn, from_part, gain_pair.second);
         if (move_successful) {
+          reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
+                                              from_part, to_part);
           best_metrics.cut -= gain_pair.first;
+          best_metrics.imbalance =  static_cast<double>(heaviest_part_weight) /
+                                    ceil(static_cast<double>(_config.partition.total_graph_weight) /
+                                         _config.partition.k) - 1.0;
 
           ASSERT(_hg.partWeight(gain_pair.second)
                  <= _config.partition.max_part_weights[gain_pair.second % 2],
                  V(_hg.partWeight(gain_pair.second)));
-          ASSERT(best_metrics.cut <= in_cut, V(best_metrics.cut) << V(in_cut));
+          ASSERT(best_metrics.cut <= initial_cut, V(best_metrics.cut) << V(initial_cut));
           ASSERT(gain_pair.first >= 0, V(gain_pair.first));
           ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut));
-          ASSERT(metrics::imbalance(_hg, _config) <= _config.partition.epsilon,
-                 V(metrics::imbalance(_hg, _config)));
-
+          ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _config),
+             V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
           _already_processed_part.resetUsedEntries();
           bool moved_hn_remains_conntected_to_from_part = false;
@@ -165,8 +173,9 @@ class LPRefiner final : public IRefiner {
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    // std::cout << " " << i;
-    return best_metrics.cut < in_cut;
+    return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
+                                                 best_metrics.imbalance,
+                                                 initial_imbalance, _config.partition.epsilon);
   }
 
   std::string policyStringImpl() const noexcept override final {
@@ -176,6 +185,43 @@ class LPRefiner final : public IRefiner {
  private:
   inline bool isCutHyperedge(HyperedgeID he) const noexcept {
     return _hg.connectivity(he) > 1;
+  }
+
+  PartitionID heaviestPart() const noexcept {
+    PartitionID heaviest_part = 0;
+    for (PartitionID part = 1; part < _config.partition.k; ++part) {
+      if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
+        heaviest_part = part;
+      }
+    }
+    return heaviest_part;
+  }
+
+  void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
+                                           HypernodeWeight& heaviest_part_weight,
+                                           const PartitionID from_part,
+                                           const PartitionID to_part) const noexcept {
+    if (heaviest_part == from_part) {
+      heaviest_part = heaviestPart();
+      heaviest_part_weight = _hg.partWeight(heaviest_part);
+    } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
+      heaviest_part = to_part;
+      heaviest_part_weight = _hg.partWeight(to_part);
+    }
+    ASSERT([&](){
+        PartitionID heaviest = 0;
+        HypernodeWeight max_weight = _hg.partWeight(heaviest);
+        for (PartitionID part = 1; part < _config.partition.k; ++part) {
+          if (_hg.partWeight(part) > max_weight) {
+            heaviest = part;
+            max_weight = _hg.partWeight(heaviest);
+          }
+        }
+        if (max_weight != heaviest_part_weight) {
+          return false;
+        }
+        return true;
+      }(), "");
   }
 
 
