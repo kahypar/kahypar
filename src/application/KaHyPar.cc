@@ -182,6 +182,15 @@ void sanityCheck(Configuration& config) {
       checkRecursiveBisectionMode(config.partition.refinement_algorithm);
       break;
     case Mode::direct_kway:
+      // When KaHyPar runs in direct k-way mode, it makes no sense to use the initial
+      // partitioner in direct multilevel mode, because we could essentially get the same
+      // behavior if we would just use a smaller contraction limit in the main partitioner.
+      // Since the contraction limits for main and initial partitioner are specifically tuned,
+      // we currently forbid this configuration.
+      ALWAYS_ASSERT(config.initial_partitioning.mode != Mode::direct_kway ||
+                    config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
+                    toString(config.initial_partitioning.mode)
+                    << " " << toString(config.initial_partitioning.technique));
       checkDirectKwayMode(config.partition.refinement_algorithm);
       break;
   }
