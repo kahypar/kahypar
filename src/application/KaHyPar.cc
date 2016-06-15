@@ -264,11 +264,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     if (vm.count("seed")) {
       config.partition.seed = vm["seed"].as<int>();
     }
-    if (vm.count("nruns")) {
-      config.partition.initial_partitioning_attempts =
-        vm["nruns"].as<int>();
-      config.initial_partitioning.nruns = vm["nruns"].as<int>();
-    }
 
     if (vm.count("mode")) {
       if (vm["mode"].as<std::string>() == "rb") {
@@ -290,6 +285,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         std::cout << "No valid objective function." << std::endl;
         exit(0);
       }
+    }
+
+    if (vm.count("init-remove-hes")) {
+      config.partition.initial_parallel_he_removal =
+        vm["init-remove-hes"].as<bool>();
+    }
+    if (vm.count("remove-always-cut-hes")) {
+      config.partition.remove_hes_that_always_will_be_cut =
+        vm["remove-always-cut-hes"].as<bool>();
     }
 
     if (vm.count("ip")) {
@@ -331,25 +335,54 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
             vm["ip-alpha"].as<double>();
         }
       }
-    }
-    if (vm.count("ip-path")) {
-      config.partition.initial_partitioner_path = vm["ip-path"].as<
-        std::string>();
-    } else {
-      switch (config.partition.initial_partitioner) {
-        case InitialPartitioner::hMetis:
-          config.partition.initial_partitioner_path =
-            "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
-          break;
-        case InitialPartitioner::PaToH:
-          config.partition.initial_partitioner_path =
-            "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
-          break;
-        case InitialPartitioner::KaHyPar:
-          config.partition.initial_partitioner_path = "";
-          break;
+      if (vm.count("ip-ctype")) {
+        config.initial_partitioning.coarsening_algorithm =
+          stringToCoarseningAlgorithm(vm["ip-ctype"].as<std::string>());
+      } else {
+        std::cout << "Missing ip-ctype option!" << std::endl;
+        exit(0);
+      }
+
+      if (vm.count("ip-path")) {
+        config.partition.initial_partitioner_path = vm["ip-path"].as<
+          std::string>();
+      } else {
+        switch (config.partition.initial_partitioner) {
+          case InitialPartitioner::hMetis:
+            config.partition.initial_partitioner_path =
+              "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+            break;
+          case InitialPartitioner::PaToH:
+            config.partition.initial_partitioner_path =
+              "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+            break;
+          case InitialPartitioner::KaHyPar:
+            config.partition.initial_partitioner_path = "";
+            break;
+        }
+      }
+      if (vm.count("ip-nruns")) {
+        config.partition.initial_partitioning_attempts =
+          vm["ip-nruns"].as<int>();
+        config.initial_partitioning.nruns = vm["ip-nruns"].as<int>();
+      }
+      if (vm.count("ip-FMreps")) {
+        config.initial_partitioning.local_search_repetitions =
+          vm["ip-FMreps"].as<int>();
+        if (config.initial_partitioning.local_search_repetitions == -1) {
+          config.initial_partitioning.local_search_repetitions =
+            std::numeric_limits<int>::max();
+        }
+      }
+      if (vm.count("ip-rtype")) {
+        config.initial_partitioning.refinement_algorithm =
+          stringToRefinementAlgorithm(vm["ip-rtype"].as<std::string>());
+      } else {
+        std::cout << "Missing ip-rtype option!" << std::endl;
+        exit(0);
       }
     }
+
     if (vm.count("vcycles")) {
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
     }
@@ -368,13 +401,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       std::cout << "Missing ctype option!" << std::endl;
       exit(0);
     }
-    if (vm.count("ip-ctype")) {
-      config.initial_partitioning.coarsening_algorithm =
-        stringToCoarseningAlgorithm(vm["ip-ctype"].as<std::string>());
-    } else {
-      std::cout << "Missing ip-ctype option!" << std::endl;
-      exit(0);
-    }
+
     if (vm.count("s")) {
       config.coarsening.max_allowed_weight_multiplier =
         vm["s"].as<double>();
@@ -383,6 +410,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       config.coarsening.contraction_limit_multiplier = vm["t"].as<
         HypernodeID>();
     }
+
+    if (vm.count("rtype")) {
+      config.partition.refinement_algorithm =
+        stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
+    } else {
+      std::cout << "Missing rtype option!" << std::endl;
+      exit(0);
+    }
+
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {
         config.fm_local_search.stopping_rule =
@@ -418,14 +454,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
       }
     }
-    if (vm.count("ip-FMreps")) {
-      config.initial_partitioning.local_search_repetitions =
-        vm["ip-FMreps"].as<int>();
-      if (config.initial_partitioning.local_search_repetitions == -1) {
-        config.initial_partitioning.local_search_repetitions =
-          std::numeric_limits<int>::max();
-      }
-    }
+
     if (vm.count("i")) {
       config.fm_local_search.max_number_of_fruitless_moves = vm["i"].as<
         int>();
@@ -441,32 +470,10 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     if (vm.count("verbose")) {
       config.partition.verbose_output = vm["verbose"].as<bool>();
     }
-    if (vm.count("init-remove-hes")) {
-      config.partition.initial_parallel_he_removal =
-        vm["init-remove-hes"].as<bool>();
-    }
-    if (vm.count("remove-always-cut-hes")) {
-      config.partition.remove_hes_that_always_will_be_cut =
-        vm["remove-always-cut-hes"].as<bool>();
-    }
 
     if (vm.count("sclap-max-iterations")) {
       config.lp_refiner.max_number_iterations =
         vm["sclap-max-iterations"].as<int>();
-    }
-    if (vm.count("rtype")) {
-      config.partition.refinement_algorithm =
-        stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
-    } else {
-      std::cout << "Missing rtype option!" << std::endl;
-      exit(0);
-    }
-    if (vm.count("ip-rtype")) {
-      config.initial_partitioning.refinement_algorithm =
-        stringToRefinementAlgorithm(vm["ip-rtype"].as<std::string>());
-    } else {
-      std::cout << "Missing ip-rtype option!" << std::endl;
-      exit(0);
     }
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
@@ -732,8 +739,8 @@ int main(int argc, char* argv[]) {
     ("seed", po::value<int>(), "Seed for random number generator")
     ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
     ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
-    ("nruns", po::value<int>(), "# initial partition trials, the final bisection correspondsto the one with the smallest cut")
     ("ip", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
+    ("ip-nruns", po::value<int>(), "# initial partition trials")
     ("ip-technique", po::value<std::string>(), "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
     ("ip-mode", po::value<std::string>(), "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
     ("ip-algo", po::value<std::string>(), "If ip=KaHyPar: used initial partitioning algorithm")
