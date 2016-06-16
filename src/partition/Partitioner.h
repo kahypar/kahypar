@@ -241,24 +241,21 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   // original_config.
   switch (original_config.initial_partitioning.technique) {
     case InitialPartitioningTechnique::multilevel:
-      // Multi-level initial partitioning always uses heavy_lazy coarsening
-      config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
+      config.partition.coarsening_algorithm = config.initial_partitioning.coarsening_algorithm;
       switch (original_config.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           config.partition.mode = Mode::recursive_bisection;
-          config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
           break;
         case Mode::direct_kway:
           // Currently a bad configuration (see KaHyPar.cc). The same behaviour as this
-          // initial partitioning method is archieve, if we use a smaller contraction limit
+          // initial partitioning method is achieved, if we use a smaller contraction limit
           // in the main partitioner. But the currently used contraction limit is optimized in
           // several experiments => It makes no sense to further coarsen the hypergraph after
           // coarsening phase.
           config.partition.mode = Mode::direct_kway;
-          config.partition.refinement_algorithm =
-            config.partition.k > 2 ? RefinementAlgorithm::kway_fm : RefinementAlgorithm::twoway_fm;
           break;
       }
+      config.partition.refinement_algorithm = config.initial_partitioning.refinement_algorithm;
       break;
     case InitialPartitioningTechnique::flat:
       // No more coarsening in this case. Since KaHyPar is designed to be an n-level partitioner,
@@ -270,7 +267,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
       // flat partitioner do also nothing, since there is no uncoarsening phase in which
       // a local search algorithm could further improve the solution.
       config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
-      config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+      config.partition.refinement_algorithm = config.initial_partitioning.refinement_algorithm;
       switch (original_config.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           config.partition.mode = Mode::recursive_bisection;
