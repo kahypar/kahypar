@@ -760,7 +760,7 @@ int main(int argc, char* argv[]) {
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: 2way_fm (default for k=2), her_fm, max_gain_kfm, kfm, lp_refiner")
+    ("rtype", po::value<std::string>(), "Refinement: twoway_fm, kway_fm, kway_fm_maxgain, kway_fm_km1, sclap")
     ("sclap-max-iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
     ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
