@@ -366,9 +366,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
           vm["ip-nruns"].as<int>();
         config.initial_partitioning.nruns = vm["ip-nruns"].as<int>();
       }
-      if (vm.count("ip-FMreps")) {
+      if (vm.count("ip-ls-reps")) {
         config.initial_partitioning.local_search_repetitions =
-          vm["ip-FMreps"].as<int>();
+          vm["ip-ls-reps"].as<int>();
         if (config.initial_partitioning.local_search_repetitions == -1) {
           config.initial_partitioning.local_search_repetitions =
             std::numeric_limits<int>::max();
@@ -748,7 +748,7 @@ int main(int argc, char* argv[]) {
     ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
     ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
-    ("ip-FMreps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
+    ("ip-ls-reps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
     ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
