@@ -53,15 +53,15 @@ using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
 using partition::RandomWinsMLCoarsener;
 using partition::TwoWayFMFactoryDispatcher;
-using partition::HyperedgeFMFactoryDispatcher;
+// using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
 using partition::KWayKMinusOneFactoryDispatcher;
-using partition::MaxGainNodeKWayFMFactoryDispatcher;
+// using partition::MaxGainNodeKWayFMFactoryDispatcher;
 using partition::TwoWayFMFactoryExecutor;
-using partition::HyperedgeFMFactoryExecutor;
+// using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::KWayKMinusOneFactoryExecutor;
-using partition::MaxGainNodeKWayFMFactoryExecutor;
+// using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
 using partition::DoNothingRefiner;
 using partition::IInitialPartitioner;
@@ -572,15 +572,15 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
     TwoWayFMFactoryExecutor(), hypergraph, config);
 });
 
-static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
-  RefinementAlgorithm::kway_fm_maxgain,
-  [](Hypergraph& hypergraph, const Configuration& config) {
-  return MaxGainNodeKWayFMFactoryDispatcher::go(
-    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.fm_local_search.stopping_rule),
-    NullPolicy(),
-    MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
-});
+// static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
+//   RefinementAlgorithm::kway_fm_maxgain,
+//   [](Hypergraph& hypergraph, const Configuration& config) {
+//   return MaxGainNodeKWayFMFactoryDispatcher::go(
+//     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+//       config.fm_local_search.stopping_rule),
+//     NullPolicy(),
+//     MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
+// });
 
 static Registrar<RefinerFactory> reg_kway_fm_local_search(
   RefinementAlgorithm::kway_fm,
@@ -616,15 +616,15 @@ static Registrar<RefinerFactory> reg_do_nothing_refiner(
   return new DoNothingRefiner();
 });
 
-static Registrar<RefinerFactory> reg_hyperedge_local_search(
-  RefinementAlgorithm::hyperedge,
-  [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
-  return HyperedgeFMFactoryDispatcher::go(
-    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.her_fm.stopping_rule),
-    NullPolicy(),
-    HyperedgeFMFactoryExecutor(), hypergraph, config);
-});
+// static Registrar<RefinerFactory> reg_hyperedge_local_search(
+//   RefinementAlgorithm::hyperedge,
+//   [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
+//   return HyperedgeFMFactoryDispatcher::go(
+//     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+//       config.her_fm.stopping_rule),
+//     NullPolicy(),
+//     HyperedgeFMFactoryExecutor(), hypergraph, config);
+// });
 
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_simple_stopping(
   RefinementStoppingRule::simple,
