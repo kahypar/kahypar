@@ -164,7 +164,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         if (_config.partition.verbose_output) {
           LOG("final cut: " << current_metrics.cut);
         }
-        improvement_found = initial_objective < current_metrics.cut;
+        improvement_found = current_metrics.cut < initial_objective;
         break;
       case Objective::km1:
         if (_config.partition.mode == Mode::recursive_bisection) {
@@ -180,7 +180,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         if (_config.partition.verbose_output) {
           LOG("final km1: " << current_metrics.km1);
         }
-        improvement_found = initial_objective < current_metrics.km1;
+        improvement_found = current_metrics.km1 < initial_objective;
         break;
       default:
         LOG("Unknown Objective");
