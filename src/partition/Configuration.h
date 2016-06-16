@@ -265,10 +265,10 @@ inline std::string toString(const Configuration& config) {
   << toString(config.initial_partitioning.technique) << std::endl;
   oss << std::setw(37) << "    IP Coarsening Algorithm: "
   << toString(config.initial_partitioning.coarsening_algorithm) << std::endl;
+   oss << std::setw(37) << "      max-allowed-weight-multiplier: "
+  << config.initial_partitioning.max_allowed_weight_multiplier << std::endl;
   oss << std::setw(37) << "      contraction-limit-multiplier: "
   << config.initial_partitioning.contraction_limit_multiplier << std::endl;
-  oss << std::setw(37) << "      max-allowed-weight-multiplier: "
-  << config.initial_partitioning.max_allowed_weight_multiplier << std::endl;
   oss << std::setw(37) << "    IP Algorithm: "
   << toString(config.initial_partitioning.algo) << std::endl;
   oss << std::setw(37) << "    IP Refinement Algorithm: "
