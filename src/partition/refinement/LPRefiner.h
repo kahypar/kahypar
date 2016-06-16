@@ -321,8 +321,9 @@ class LPRefiner final : public IRefiner {
       _cur_queue.reserve(_hg.initialNumNodes());
       _next_queue.clear();
       _next_queue.reserve(_hg.initialNumNodes());
-      initializeGainCache();
     }
+    _gain_cache.clear();
+    initializeGainCache();
   }
 
   void initializeGainCache() {

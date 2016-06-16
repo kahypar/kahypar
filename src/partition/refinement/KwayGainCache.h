@@ -202,10 +202,11 @@ class KwayGainCache {
 
   KwayGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
+    _num_hns(num_hns),
     _cache(nullptr),
     _deltas() {
     _cache = static_cast<Byte*>(malloc(num_hns * sizeOfCacheElement()));
-    for (HypernodeID hn = 0; hn < num_hns; ++hn) {
+    for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
       new(cacheElement(hn))CacheElement(k);
     }
   }
@@ -363,6 +364,12 @@ class KwayGainCache {
     return *cacheElement(hn);
   }
 
+  void clear() {
+    for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
+      new(cacheElement(hn))CacheElement(_k);
+    }
+  }
+
  private:
   const CacheElement* cacheElement(const HypernodeID hn) const {
     return reinterpret_cast<CacheElement*>(_cache + hn * sizeOfCacheElement());
@@ -378,6 +385,7 @@ class KwayGainCache {
   }
 
   PartitionID _k;
+  HypernodeID _num_hns;
   Byte* _cache;
   std::vector<RollbackElement> _deltas;
 };

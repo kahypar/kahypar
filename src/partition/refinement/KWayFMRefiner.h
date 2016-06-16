@@ -110,17 +110,19 @@ class KWayFMRefiner final : public IRefiner,
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       // _pq.initialize(_hg.initialNumNodes());
-      initializeGainCache();
       _is_initialized = true;
     }
+    _gain_cache.clear();
+    initializeGainCache();
   }
 #else
   void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
-      initializeGainCache();
       _is_initialized = true;
     }
+    _gain_cache.clear();
+    initializeGainCache();
   }
 #endif
 

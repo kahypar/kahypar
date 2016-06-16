@@ -158,6 +158,11 @@ class TwoWayFMRefiner final : public IRefiner,
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
     }
+    if (global_rebalancing) {
+      _rebalance_pqs[0].clear();
+      _rebalance_pqs[1].clear();
+    }
+    _gain_cache.clear();
     for (const HypernodeID hn : _hg.nodes()) {
       _gain_cache.setValue(hn, computeGain(hn));
       if (global_rebalancing) {
@@ -171,6 +176,11 @@ class TwoWayFMRefiner final : public IRefiner,
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
+    }
+    _gain_cache.clear();
+    if (global_rebalancing) {
+      _rebalance_pqs[0].clear();
+      _rebalance_pqs[1].clear();
     }
     for (const HypernodeID hn : _hg.nodes()) {
       _gain_cache.setValue(hn, computeGain(hn));

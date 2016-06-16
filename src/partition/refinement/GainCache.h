@@ -116,6 +116,12 @@ class GainCache {
     _used_delta_entries.clear();
   }
 
+  void clear() {
+    for (size_t i = 0; i < _size; ++i) {
+      _cache[i] = CacheElement();
+    }
+  }
+
  private:
   const size_t _size;
   std::unique_ptr<CacheElement[]> _cache;

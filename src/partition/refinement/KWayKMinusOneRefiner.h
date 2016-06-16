@@ -117,16 +117,18 @@ class KWayKMinusOneRefiner final : public IRefiner,
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
-      initializeGainCache();
     }
+    _gain_cache.clear();
+    initializeGainCache();
   }
 #else
   void initializeImpl() noexcept override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
-      initializeGainCache();
     }
+    _gain_cache.clear();
+    initializeGainCache();
   }
 #endif
 
