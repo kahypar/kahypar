@@ -199,7 +199,12 @@ void sanityCheck(Configuration& config) {
       checkRecursiveBisectionMode(config.initial_partitioning.refinement_algorithm);
       break;
     case Mode::direct_kway:
-      checkDirectKwayMode(config.initial_partitioning.refinement_algorithm);
+      // If the main partitioner runs in recursive bisection mode, then the initial
+      // partitioner running in direct mode can use two-way FM as a local search
+      // algorithm because we only perform bisections.
+      if (config.partition.mode != Mode::recursive_bisection) {
+        checkDirectKwayMode(config.initial_partitioning.refinement_algorithm);
+      }
       break;
   }
 }
