@@ -43,6 +43,8 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " IPtechnique=" << toString(config.initial_partitioning.technique)
   << " IPalgorithm=" << toString(config.initial_partitioning.algo)
   << " IPcoarseningAlgorithm=" << toString(config.initial_partitioning.coarsening_algorithm)
+  << " IPcoarseningMaxAllowedWeightMultiplier=" << config.initial_partitioning.max_allowed_weight_multiplier
+  << " IPcoarseningContractionLimitMultiplier=" << config.initial_partitioning.contraction_limit_multiplier
   << " IPrefinementAlgorithm=" << toString(config.initial_partitioning.refinement_algorithm)
   << " IPnumRepetitions=" << config.initial_partitioning.local_search_repetitions
   << " IPpoolType=" << config.initial_partitioning.pool_type

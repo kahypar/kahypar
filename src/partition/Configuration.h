@@ -204,103 +204,107 @@ inline std::string toString(const Configuration& config) {
   std::ostringstream oss;
   oss << std::left;
   oss << "Partitioning Parameters:" << std::endl;
-  oss << std::setw(35) << "  Hypergraph: " << config.partition.graph_filename
+  oss << std::setw(37) << "  Hypergraph: " << config.partition.graph_filename
   << std::endl;
-  oss << std::setw(35) << "  Partition File: "
+  oss << std::setw(37) << "  Partition File: "
   << config.partition.graph_partition_filename << std::endl;
-  oss << std::setw(35) << "  Coarsened Hypergraph: "
+  oss << std::setw(37) << "  Coarsened Hypergraph: "
   << config.partition.coarse_graph_filename << std::endl;
-  oss << std::setw(35) << "  Coarsened Partition File: "
+  oss << std::setw(37) << "  Coarsened Partition File: "
   << config.partition.coarse_graph_partition_filename << std::endl;
-  oss << std::setw(35) << "  Objective: " << toString(config.partition.objective) << std::endl;
-  oss << std::setw(35) << "  k: " << config.partition.k << std::endl;
-  oss << std::setw(35) << "  epsilon: " << config.partition.epsilon
+  oss << std::setw(37) << "  Objective: " << toString(config.partition.objective) << std::endl;
+  oss << std::setw(37) << "  k: " << config.partition.k << std::endl;
+  oss << std::setw(37) << "  epsilon: " << config.partition.epsilon
   << std::endl;
-  oss << std::setw(35) << "  seed: " << config.partition.seed << std::endl;
-  oss << std::setw(35) << "  # global search iterations: "
+  oss << std::setw(37) << "  seed: " << config.partition.seed << std::endl;
+  oss << std::setw(37) << "  # global search iterations: "
   << config.partition.global_search_iterations << std::endl;
-  oss << std::setw(35) << "  hyperedge size threshold: "
+  oss << std::setw(37) << "  hyperedge size threshold: "
   << config.partition.hyperedge_size_threshold << std::endl;
-  oss << std::setw(35) << "  initially remove parallel HEs: "
+  oss << std::setw(37) << "  initially remove parallel HEs: "
   << std::boolalpha << config.partition.initial_parallel_he_removal
   << std::endl;
-  oss << std::setw(35) << "  remove HEs that always will be cut HEs: "
+  oss << std::setw(37) << "  remove HEs that always will be cut: "
   << std::boolalpha
   << config.partition.remove_hes_that_always_will_be_cut << std::endl;
-  oss << std::setw(35) << "  total_graph_weight: "
+  oss << std::setw(37) << "  total_graph_weight: "
   << config.partition.total_graph_weight << std::endl;
-  oss << std::setw(35) << "  L_opt0: "
+  oss << std::setw(37) << "  L_opt0: "
   << config.partition.perfect_balance_part_weights[0] << std::endl;
-  oss << std::setw(35) << "  L_opt1: "
+  oss << std::setw(37) << "  L_opt1: "
   << config.partition.perfect_balance_part_weights[1] << std::endl;
-  oss << std::setw(35) << "  L_max0: " << config.partition.max_part_weights[0]
+  oss << std::setw(37) << "  L_max0: " << config.partition.max_part_weights[0]
   << std::endl;
-  oss << std::setw(35) << "  L_max1: " << config.partition.max_part_weights[1]
+  oss << std::setw(37) << "  L_max1: " << config.partition.max_part_weights[1]
   << std::endl;
-  oss << std::setw(35) << " Mode: " << toString(config.partition.mode)
+  oss << std::setw(37) << " Mode: " << toString(config.partition.mode)
   << std::endl;
-  oss << std::setw(35) << "  Coarsening Algorithm: "
+  oss << std::setw(37) << "  Coarsening Algorithm: "
   << toString(config.partition.coarsening_algorithm) << std::endl;
-  oss << std::setw(35) << "    max-allowed-weight-multiplier: "
+  oss << std::setw(37) << "    max-allowed-weight-multiplier: "
   << config.coarsening.max_allowed_weight_multiplier << std::endl;
-  oss << std::setw(35) << "    contraction-limit-multiplier: "
+  oss << std::setw(37) << "    contraction-limit-multiplier: "
   << config.coarsening.contraction_limit_multiplier << std::endl;
-  oss << std::setw(35) << "    hypernode weight fraction: "
+  oss << std::setw(37) << "    hypernode weight fraction: "
   << config.coarsening.hypernode_weight_fraction << std::endl;
-  oss << std::setw(35) << "    max. allowed hypernode weight: "
+  oss << std::setw(37) << "    max. allowed hypernode weight: "
   << config.coarsening.max_allowed_node_weight << std::endl;
-  oss << std::setw(35) << "    contraction limit: "
+  oss << std::setw(37) << "    contraction limit: "
   << config.coarsening.contraction_limit << std::endl;
-  oss << std::setw(35) << "  Initial Partitioner (IP): "
+  oss << std::setw(37) << "  Initial Partitioner (IP): "
   << toString(config.partition.initial_partitioner) << std::endl;
-  oss << std::setw(35) << "    hmetis_ub_factor: "
+  oss << std::setw(37) << "    hmetis_ub_factor: "
   << config.partition.hmetis_ub_factor << std::endl;
-  oss << std::setw(35) << "    # initial partitionings: "
+  oss << std::setw(37) << "    # initial partitionings: "
   << config.partition.initial_partitioning_attempts << std::endl;
-  oss << std::setw(35) << "    initial partitioner path: "
+  oss << std::setw(37) << "    initial partitioner path: "
   << config.partition.initial_partitioner_path << std::endl;
-  oss << std::setw(35) << "    IP Mode: "
+  oss << std::setw(37) << "    IP Mode: "
   << toString(config.initial_partitioning.mode) << std::endl;
-  oss << std::setw(35) << "    IP Technique: "
+  oss << std::setw(37) << "    IP Technique: "
   << toString(config.initial_partitioning.technique) << std::endl;
-  oss << std::setw(35) << "    IP Coarsening Algorithm: "
+  oss << std::setw(37) << "    IP Coarsening Algorithm: "
   << toString(config.initial_partitioning.coarsening_algorithm) << std::endl;
-  oss << std::setw(35) << "    IP Algorithm: "
+  oss << std::setw(37) << "      contraction-limit-multiplier: "
+  << config.initial_partitioning.contraction_limit_multiplier << std::endl;
+  oss << std::setw(37) << "      max-allowed-weight-multiplier: "
+  << config.initial_partitioning.max_allowed_weight_multiplier << std::endl;
+  oss << std::setw(37) << "    IP Algorithm: "
   << toString(config.initial_partitioning.algo) << std::endl;
-  oss << std::setw(35) << "    IP Refinement Algorithm: "
+  oss << std::setw(37) << "    IP Refinement Algorithm: "
   << toString(config.initial_partitioning.refinement_algorithm) << std::endl;
-  oss << std::setw(35) << "  Refinement Algorithm: "
+  oss << std::setw(37) << "  Refinement Algorithm: "
   << toString(config.partition.refinement_algorithm) << std::endl;
   if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
       config.partition.refinement_algorithm
       == RefinementAlgorithm::kway_fm ||
       config.partition.refinement_algorithm
       == RefinementAlgorithm::kway_fm_maxgain) {
-    oss << std::setw(35) << "    stopping rule: "
+    oss << std::setw(37) << "    stopping rule: "
     << toString(config.fm_local_search.stopping_rule) << std::endl;
-    oss << std::setw(35) << "    use global rebalancing: "
+    oss << std::setw(37) << "    use global rebalancing: "
     << toString(config.fm_local_search.global_rebalancing) << std::endl;
-    oss << std::setw(35) << "    max. # fruitless moves: "
+    oss << std::setw(37) << "    max. # fruitless moves: "
     << config.fm_local_search.max_number_of_fruitless_moves
     << std::endl;
-    oss << std::setw(35) << "    random walk stop alpha: "
+    oss << std::setw(37) << "    random walk stop alpha: "
     << config.fm_local_search.alpha << std::endl;
-    oss << std::setw(35) << "    random walk stop beta : "
+    oss << std::setw(37) << "    random walk stop beta : "
     << config.fm_local_search.beta << std::endl;
   }
   if (config.partition.refinement_algorithm
       == RefinementAlgorithm::hyperedge) {
-    oss << std::setw(35) << "    stopping rule: "
+    oss << std::setw(37) << "    stopping rule: "
     << toString(config.her_fm.stopping_rule) << std::endl;
-    oss << std::setw(35) << "    max. # fruitless moves: "
+    oss << std::setw(37) << "    max. # fruitless moves: "
     << config.her_fm.max_number_of_fruitless_moves << std::endl;
   }
   if (config.partition.refinement_algorithm
       == RefinementAlgorithm::label_propagation) {
-    oss << std::setw(35) << "    max. # iterations: "
+    oss << std::setw(37) << "    max. # iterations: "
     << config.lp_refiner.max_number_iterations << std::endl;
   }
-  oss << std::setw(35) << "    max. # local search reps: "
+  oss << std::setw(37) << "    max. # local search reps: "
   << config.partition.num_local_search_repetitions << std::endl;
   return oss.str();
 }
