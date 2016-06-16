@@ -855,9 +855,11 @@ int main(int argc, char* argv[]) {
       << "\033[0m");
   }
 
-  io::printHypergraphInfo(hypergraph,
-                          config.partition.graph_filename.substr(
-                            config.partition.graph_filename.find_last_of("/") + 1));
+  if (config.partition.verbose_output) {
+    io::printHypergraphInfo(hypergraph,
+                            config.partition.graph_filename.substr(
+                              config.partition.graph_filename.find_last_of("/") + 1));
+  }
 
 // the main partitioner should track stats
   config.partition.collect_stats = true;

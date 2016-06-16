@@ -127,15 +127,17 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
     }
 
-    std::cout << "\n*********************************Pool-Initial-Partitioner-Result***************"
-    << "******************" << std::endl;
-    best_cut.print_result("Best Cut");
-    min_cut.print_result("Minimum Cut");
-    max_cut.print_result("Maximum Cut");
-    min_imbalance.print_result("Minimum Imbalance");
-    max_imbalance.print_result("Maximum Imbalance");
-    std::cout << "**********************************************************************************"
-    << "**************\n" << std::endl;
+    if (_config.partition.verbose_output) {
+      std::cout << "\n*********************************Pool-Initial-Partitioner-Result*************"
+      << "********************" << std::endl;
+      best_cut.print_result("Best Cut");
+      min_cut.print_result("Minimum Cut");
+      max_cut.print_result("Maximum Cut");
+      min_imbalance.print_result("Minimum Imbalance");
+      max_imbalance.print_result("Maximum Imbalance");
+      std::cout << "*******************************************************************************"
+      << "*****************\n" << std::endl;
+    }
 
 
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;

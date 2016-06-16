@@ -171,10 +171,12 @@ class Partitioner {
 };
 
 inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
-  io::printHypergraphInfo(hg,
-                          config.partition.coarse_graph_filename.substr(
-                            config.partition.coarse_graph_filename.find_last_of("/")
-                            + 1));
+  if (config.partition.verbose_output) {
+    io::printHypergraphInfo(hg,
+                            config.partition.coarse_graph_filename.substr(
+                              config.partition.coarse_graph_filename.find_last_of("/")
+                              + 1));
+  }
   if (config.partition.initial_partitioner == InitialPartitioner::hMetis ||
       config.partition.initial_partitioner == InitialPartitioner::PaToH) {
     initialPartitioningViaExternalTools(hg, config);
@@ -518,11 +520,13 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
     init_config.initial_partitioning.seed = int_dist(generator);
     init_config.partition.seed = init_config.initial_partitioning.seed;
 
-    LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
-        << " " << toString(config.initial_partitioning.mode) << " "
-        << toString(config.initial_partitioning.algo)
-        << " (k=" << init_config.initial_partitioning.k << ", epsilon="
-        << init_config.initial_partitioning.epsilon << ")");
+    if (config.partition.verbose_output) {
+      LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
+          << " " << toString(config.initial_partitioning.mode) << " "
+          << toString(config.initial_partitioning.algo)
+          << " (k=" << init_config.initial_partitioning.k << ", epsilon="
+          << init_config.initial_partitioning.epsilon << ")");
+    }
     if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
         config.initial_partitioning.mode == Mode::direct_kway) {
       // If the direct k-way flat initial partitioner is used we call the
@@ -576,7 +580,9 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     original_hypergraph.totalWeight(), current_hypergraph.totalWeight(),
     current_k, original_config);
   ASSERT(current_config.partition.epsilon > 0.0, "start partition already too imbalanced");
-  LOG(V(current_config.partition.epsilon));
+  if (current_config.partition.verbose_output) {
+    LOG(V(current_config.partition.epsilon));
+  }
   current_config.partition.total_graph_weight =
     current_hypergraph.totalWeight();
 
@@ -700,13 +706,18 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
               + refiner->policyString());
           }
 
-          io::printHypergraphInfo(current_hypergraph, "---");
+          if (current_config.partition.verbose_output) {
+            io::printHypergraphInfo(current_hypergraph, "---");
+          }
 
           // TODO(schlag): we could integrate v-cycles in a similar fashion as is
           // performDirectKwayPartitioning
           partition(current_hypergraph, *coarsener, *refiner, current_config, k1, k2);
 
-          std::cout << "-------------------------------------------------------------" << std::endl;
+          if (current_config.partition.verbose_output) {
+            LOG("-------------------------------------------------------------");
+          }
+
           auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1, current_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
