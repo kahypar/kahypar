@@ -371,6 +371,14 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
           vm["ip-nruns"].as<int>();
         config.initial_partitioning.nruns = vm["ip-nruns"].as<int>();
       }
+
+      if (vm.count("ip-s")) {
+        config.initial_partitioning.max_allowed_weight_multiplier = vm["ip-s"].as<double>();
+      }
+      if (vm.count("ip-t")) {
+        config.initial_partitioning.contraction_limit_multiplier = vm["ip-t"].as<HypernodeID>();
+      }
+
       if (vm.count("ip-ls-reps")) {
         config.initial_partitioning.local_search_repetitions =
           vm["ip-ls-reps"].as<int>();
@@ -750,6 +758,8 @@ int main(int argc, char* argv[]) {
     ("ip-mode", po::value<std::string>(), "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
     ("ip-algo", po::value<std::string>(), "If ip=KaHyPar: used initial partitioning algorithm")
     ("ip-ctype", po::value<std::string>(), "If ip=KaHyPar: used coarsening algorithm for multilevel initial partitioning")
+    ("ip-s", po::value<double>(), "If ip=KaHyPar: IP Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
+    ("ip-t", po::value<HypernodeID>(), "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
     ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
