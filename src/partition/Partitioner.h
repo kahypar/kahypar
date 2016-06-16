@@ -209,8 +209,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   }
 
   // Coarsening-Parameters
-  config.coarsening.contraction_limit_multiplier = 150;
-  config.coarsening.max_allowed_weight_multiplier = 2.5;
+  config.coarsening.contraction_limit_multiplier =
+    config.initial_partitioning.contraction_limit_multiplier;
+  config.coarsening.max_allowed_weight_multiplier =
+    config.initial_partitioning.max_allowed_weight_multiplier;
 
   // Refinement-Parameters
   config.partition.global_search_iterations = 0;

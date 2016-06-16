@@ -44,6 +44,8 @@ struct Configuration {
       technique(InitialPartitioningTechnique::flat),
       mode(Mode::recursive_bisection),
       coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
+      contraction_limit_multiplier(150),
+      max_allowed_weight_multiplier(2.5),
       algo(InitialPartitionerAlgorithm::pool),
       refinement_algorithm(RefinementAlgorithm::twoway_fm),
       upper_allowed_partition_weight(),
@@ -63,6 +65,8 @@ struct Configuration {
     InitialPartitioningTechnique technique;
     Mode mode;
     CoarseningAlgorithm coarsening_algorithm;
+    HypernodeID contraction_limit_multiplier;
+    double max_allowed_weight_multiplier;
     InitialPartitionerAlgorithm algo;
     RefinementAlgorithm refinement_algorithm;
     HypernodeWeightVector upper_allowed_partition_weight;
