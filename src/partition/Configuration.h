@@ -256,7 +256,8 @@ inline std::string toString(const Configuration& config) {
   oss << std::setw(35) << "    initial partitioner path: "
   << config.partition.initial_partitioner_path << std::endl;
   oss << std::setw(35) << "    IP Mode: "
-  << toString(config.initial_partitioning.mode) << " "
+  << toString(config.initial_partitioning.mode) << std::endl;
+  oss << std::setw(35) << "    IP Technique: "
   << toString(config.initial_partitioning.technique) << std::endl;
   oss << std::setw(35) << "    IP Coarsening Algorithm: "
   << toString(config.initial_partitioning.coarsening_algorithm) << std::endl;
