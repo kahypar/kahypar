@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 
+#include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/SparseMap.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
-#include "lib/datastructure/FastResetBitVector.h"
 
 using datastructure::FastResetBitVector;
 
@@ -139,8 +139,8 @@ class MLCoarsener final : public ICoarsener,
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.crbegin(); it != _tmp_ratings.crend(); ++it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp = it->value;//  /
-                             // (weight_u * _hg.nodeWeight(tmp_target));
+      const RatingType tmp = it->value;  //  /
+      // (weight_u * _hg.nodeWeight(tmp_target));
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
       if (acceptRating(tmp, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp;
@@ -185,13 +185,13 @@ class MLCoarsener final : public ICoarsener,
                     const HypernodeID old_target, const HypernodeID new_target,
                     const FastResetBitVector<>& already_matched) const noexcept {
     return max_rating < tmp ||
-                        ((max_rating == tmp) &&
-                         ((already_matched[old_target] && !already_matched[new_target]) ||
-                         (already_matched[old_target] && already_matched[new_target] &&
-                          RandomRatingWins::acceptEqual()) ||
-                          (!already_matched[old_target] && !already_matched[new_target] &&
-                          RandomRatingWins::acceptEqual())
-                          ));
+           ((max_rating == tmp) &&
+            ((already_matched[old_target] && !already_matched[new_target]) ||
+             (already_matched[old_target] && already_matched[new_target] &&
+              RandomRatingWins::acceptEqual()) ||
+             (!already_matched[old_target] && !already_matched[new_target] &&
+              RandomRatingWins::acceptEqual())
+            ));
   }
 
   using Base::_pq;
