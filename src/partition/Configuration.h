@@ -26,9 +26,9 @@ struct Configuration {
     CoarseningParameters() :
       max_allowed_node_weight(0),
       contraction_limit(0),
-      contraction_limit_multiplier(0),
+      contraction_limit_multiplier(160),
       hypernode_weight_fraction(0.0),
-      max_allowed_weight_multiplier(0.0) { }
+      max_allowed_weight_multiplier(3.25) { }
 
     HypernodeWeight max_allowed_node_weight;
     HypernodeID contraction_limit;
@@ -95,11 +95,11 @@ struct Configuration {
       rb_lower_k(0),
       rb_upper_k(1),
       seed(0),
-      initial_partitioning_attempts(1),
-      global_search_iterations(1),
+      initial_partitioning_attempts(20),
+      global_search_iterations(0),
       current_v_cycle(0),
       num_local_search_repetitions(std::numeric_limits<int>::max()),
-      epsilon(1.0),
+      epsilon(0.03),
       hmetis_ub_factor(-1.0),
       perfect_balance_part_weights({
         std::numeric_limits<HypernodeWeight>::max(),
@@ -108,14 +108,14 @@ struct Configuration {
       max_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
                          std::numeric_limits<HypernodeWeight>::max() }),
       total_graph_weight(0),
-      hyperedge_size_threshold(-1),
+      hyperedge_size_threshold(std::numeric_limits<HypernodeID>::max()),
       remove_hes_that_always_will_be_cut(false),
       initial_parallel_he_removal(false),
       verbose_output(false),
       collect_stats(false),
       mode(Mode::direct_kway),
       coarsening_algorithm(CoarseningAlgorithm::heavy_lazy),
-      initial_partitioner(InitialPartitioner::hMetis),
+      initial_partitioner(InitialPartitioner::KaHyPar),
       refinement_algorithm(RefinementAlgorithm::kway_fm),
       graph_filename(),
       graph_partition_filename(),
@@ -155,8 +155,8 @@ struct Configuration {
 
   struct FMParameters {
     FMParameters() :
-      max_number_of_fruitless_moves(50),
-      alpha(4),
+      max_number_of_fruitless_moves(350),
+      alpha(8),
       beta(0.0),
       stopping_rule(RefinementStoppingRule::simple),
       global_rebalancing(GlobalRebalancingMode::off) { }
@@ -179,7 +179,7 @@ struct Configuration {
 
   struct LPRefinementParameters {
     LPRefinementParameters() :
-      max_number_iterations(3) { }
+      max_number_iterations(std::numeric_limits<int>::max()) { }
 
     int max_number_iterations;
   };

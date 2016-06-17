@@ -494,42 +494,6 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
   }
 }
 
-void setDefaults(Configuration& config) {
-  config.partition.k = 2;
-  config.partition.objective = Objective::cut;
-  config.partition.rb_lower_k = 0;
-  config.partition.rb_upper_k = 1;
-  config.partition.epsilon = 0.05;
-  config.partition.seed = -1;
-  config.partition.initial_partitioning_attempts = 20;
-  config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
-  config.initial_partitioning.nruns = 20;
-  config.partition.global_search_iterations = 1;
-  config.partition.hyperedge_size_threshold =
-    std::numeric_limits<HyperedgeID>::max();
-  config.partition.coarsening_algorithm = CoarseningAlgorithm::heavy_lazy;
-  config.partition.refinement_algorithm = RefinementAlgorithm::kway_fm;
-  config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
-  config.initial_partitioning.mode = Mode::recursive_bisection;
-  config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
-  config.initial_partitioning.pool_type = 1975;
-  config.initial_partitioning.init_alpha = 1.0;
-  config.initial_partitioning.local_search_repetitions = std::numeric_limits<int>::max();
-  config.coarsening.contraction_limit_multiplier = 160;
-  config.coarsening.max_allowed_weight_multiplier = 2.5;
-  config.coarsening.contraction_limit =
-    config.coarsening.contraction_limit_multiplier * config.partition.k;
-  config.coarsening.hypernode_weight_fraction =
-    config.coarsening.max_allowed_weight_multiplier
-    / config.coarsening.contraction_limit;
-  config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
-  config.fm_local_search.max_number_of_fruitless_moves = 200;
-  config.fm_local_search.alpha = 8;
-  config.her_fm.stopping_rule = RefinementStoppingRule::simple;
-  config.her_fm.max_number_of_fruitless_moves = 10;
-  config.lp_refiner.max_number_iterations = 3;
-}
-
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
   CoarseningAlgorithm::heavy_lazy,
   [](Hypergraph& hypergraph, const Configuration& config,
