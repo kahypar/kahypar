@@ -35,6 +35,7 @@ class LPRefiner final : public IRefiner {
   using GainPartitionPair = std::pair<Gain, PartitionID>;
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain, false>;
   using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
+
  public:
   LPRefiner(Hypergraph& hg, const Configuration& configuration) noexcept :
     _hg(hg),
@@ -47,7 +48,6 @@ class LPRefiner final : public IRefiner {
     _max_score(),
     _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k),
-    _bitset_he(hg.initialNumEdges(), false),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition) {
     ASSERT(_config.partition.mode != Mode::direct_kway ||
@@ -78,9 +78,6 @@ class LPRefiner final : public IRefiner {
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
-    // Each hyperedge with only be considered once in a refinement run
-    _bitset_he.resetAllBitsToFalse();
-
     for (const HypernodeID cur_node : refinement_nodes) {
       _gain_cache.clear(cur_node);
       initializeGainCacheFor(cur_node);
@@ -104,8 +101,8 @@ class LPRefiner final : public IRefiner {
         const PartitionID to_part = gain_pair.second;
 
         DBG(false, "cut=" << best_metrics.cut << " max_gain_node=" << hn
-          << " gain=" << gain_pair.first << " source_part=" << from_part
-                    << " target_part=" << to_part);
+            << " gain=" << gain_pair.first << " source_part=" << from_part
+            << " target_part=" << to_part);
 
         const bool move_successful = moveHypernode(hn, from_part, gain_pair.second);
         if (move_successful) {
@@ -113,9 +110,9 @@ class LPRefiner final : public IRefiner {
                                               from_part, to_part);
 
           best_metrics.cut -= gain_pair.first;
-          best_metrics.imbalance =  static_cast<double>(heaviest_part_weight) /
-                                    ceil(static_cast<double>(_config.partition.total_graph_weight) /
-                                         _config.partition.k) - 1.0;
+          best_metrics.imbalance = static_cast<double>(heaviest_part_weight) /
+                                   ceil(static_cast<double>(_config.partition.total_graph_weight) /
+                                        _config.partition.k) - 1.0;
 
           ASSERT(_hg.partWeight(gain_pair.second)
                  <= _config.partition.max_part_weights[gain_pair.second % 2],
@@ -124,7 +121,7 @@ class LPRefiner final : public IRefiner {
           ASSERT(gain_pair.first >= 0, V(gain_pair.first));
           ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut));
           ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _config),
-             V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+                 V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
           _already_processed_part.resetUsedEntries();
           bool moved_hn_remains_conntected_to_from_part = false;
@@ -152,8 +149,7 @@ class LPRefiner final : public IRefiner {
               }
 
               // add adjacent pins to next iteration
-              if (_bitset_he[he] || _hg.connectivity(he) == 1) continue;
-              _bitset_he.setBit(he, true);
+              if (_hg.connectivity(he) == 1) continue;
               if (!_contained_next_queue[pin]) {
                 _contained_next_queue.setBit(pin, true);
                 _next_queue.push_back(pin);
@@ -214,7 +210,7 @@ class LPRefiner final : public IRefiner {
       heaviest_part = to_part;
       heaviest_part_weight = _hg.partWeight(to_part);
     }
-    ASSERT([&](){
+    ASSERT([&]() {
         PartitionID heaviest = 0;
         HypernodeWeight max_weight = _hg.partWeight(heaviest);
         for (PartitionID part = 1; part < _config.partition.k; ++part) {
@@ -227,7 +223,7 @@ class LPRefiner final : public IRefiner {
           return false;
         }
         return true;
-      }(), "");
+      } (), "");
   }
 
 
@@ -521,8 +517,6 @@ class LPRefiner final : public IRefiner {
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
   InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
-
-  FastResetBitVector<> _bitset_he;
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.
