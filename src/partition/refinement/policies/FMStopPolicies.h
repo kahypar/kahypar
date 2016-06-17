@@ -20,7 +20,7 @@ class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  public:
   bool searchShouldStop(const int, const Configuration& config,
                         const double, const HyperedgeWeight, const HyperedgeWeight) noexcept {
-    return _num_moves >= config.fm_local_search.max_number_of_fruitless_moves;
+    return _num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
   }
 
   void resetStatistics() noexcept {
@@ -79,7 +79,7 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
  public:
   bool searchShouldStop(const int, const Configuration& config, const double beta,
                         const HyperedgeWeight, const HyperedgeWeight) noexcept {
-    static double factor = (config.fm_local_search.alpha / 2.0) - 0.25;
+    static double factor = (config.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
     DBG(false, V(_num_steps) << " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
         << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
     const bool ret = _Mk > 0 ? false : (_num_steps > beta) &&
@@ -99,12 +99,11 @@ class RandomWalkModelStopsSearch : public StoppingPolicy,
                         const HyperedgeWeight, const HyperedgeWeight) noexcept {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
-    DBG(false, config.fm_local_search.alpha << "*" << _variance << "+" << beta << "="
-        << config.fm_local_search.alpha * _variance + beta);
+    DBG(false, config.local_search.fm.adaptive_stopping_alpha << "*" << _variance << "+" << beta << "="
+        << config.local_search.fm.adaptive_stopping_alpha * _variance + beta);
     DBG(false, "return=" << ((_num_steps * _Mk * _Mk >
-                              config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1)));
-    return (_num_steps * _Mk * _Mk >
-            config.fm_local_search.alpha * _variance + beta) && (_num_steps != 1);
+                              config.local_search.fm.adaptive_stopping_alpha * _variance + beta) && (_num_steps != 1)));
+    return (_num_steps * _Mk * _Mk > config.local_search.fm.adaptive_stopping_alpha * _variance + beta) && (_num_steps != 1);
   }
 
   using RandomWalkModel::resetStatistics;
@@ -119,7 +118,7 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
                         const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
     // When statistics are reset best_cut = cut and therefore we should not stop
     return !!(best_cut - cut) && (num_moves_since_last_improvement
-                                  >= config.fm_local_search.alpha *
+                                  >= config.local_search.fm.adaptive_stopping_alpha *
                                   ((_sum_gains_squared * num_moves_since_last_improvement)
                                    / (2.0 * (static_cast<double>(best_cut) - cut)
                                       * (static_cast<double>(best_cut) - cut) - 0.5)

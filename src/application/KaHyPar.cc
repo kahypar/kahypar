@@ -179,7 +179,7 @@ void sanityCheck(Configuration& config) {
       // partitioning algorithm as a flat algorithm.
       ALWAYS_ASSERT(config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
                     toString(config.initial_partitioning.technique));
-      checkRecursiveBisectionMode(config.partition.refinement_algorithm);
+      checkRecursiveBisectionMode(config.local_search.algorithm);
       break;
     case Mode::direct_kway:
       // When KaHyPar runs in direct k-way mode, it makes no sense to use the initial
@@ -191,19 +191,19 @@ void sanityCheck(Configuration& config) {
                     config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
                     toString(config.initial_partitioning.mode)
                     << " " << toString(config.initial_partitioning.technique));
-      checkDirectKwayMode(config.partition.refinement_algorithm);
+      checkDirectKwayMode(config.local_search.algorithm);
       break;
   }
   switch (config.initial_partitioning.mode) {
     case Mode::recursive_bisection:
-      checkRecursiveBisectionMode(config.initial_partitioning.refinement_algorithm);
+      checkRecursiveBisectionMode(config.initial_partitioning.local_search.algorithm);
       break;
     case Mode::direct_kway:
       // If the main partitioner runs in recursive bisection mode, then the initial
       // partitioner running in direct mode can use two-way FM as a local search
       // algorithm because we only perform bisections.
       if (config.partition.mode != Mode::recursive_bisection) {
-        checkDirectKwayMode(config.initial_partitioning.refinement_algorithm);
+        checkDirectKwayMode(config.initial_partitioning.local_search.algorithm);
       }
       break;
   }
@@ -263,8 +263,9 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     config.partition.coarse_graph_partition_filename =
       config.partition.coarse_graph_filename + ".part."
       + std::to_string(config.partition.k);
+
     config.partition.epsilon = vm["e"].as<double>();
-    config.initial_partitioning.epsilon = vm["e"].as<double>();
+    config.initial_partitioning.epsilon = config.partition.epsilon;
 
     if (vm.count("seed")) {
       config.partition.seed = vm["seed"].as<int>();
@@ -303,45 +304,39 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 
     if (vm.count("ip")) {
       if (vm["ip"].as<std::string>() == "hMetis") {
-        config.partition.initial_partitioner =
+        config.initial_partitioning.tool =
           InitialPartitioner::hMetis;
       } else if (vm["ip"].as<std::string>() == "PaToH") {
-        config.partition.initial_partitioner =
+        config.initial_partitioning.tool =
           InitialPartitioner::PaToH;
       } else if (vm["ip"].as<std::string>() == "KaHyPar") {
-        config.partition.initial_partitioner =
-          InitialPartitioner::KaHyPar;
+        config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
+
         if (vm.count("ip-mode")) {
           if (vm["ip-mode"].as<std::string>() == "rb") {
-            config.initial_partitioning.mode =
-              Mode::recursive_bisection;
+            config.initial_partitioning.mode = Mode::recursive_bisection;
           } else if (vm["ip-mode"].as<std::string>() == "direct") {
-            config.initial_partitioning.mode =
-              Mode::direct_kway;
+            config.initial_partitioning.mode = Mode::direct_kway;
           }
         }
         if (vm.count("ip-technique")) {
           if (vm["ip-technique"].as<std::string>() == "flat") {
-            config.initial_partitioning.technique =
-              InitialPartitioningTechnique::flat;
+            config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
           } else if (vm["ip-technique"].as<std::string>()
                      == "multi") {
-            config.initial_partitioning.technique =
-              InitialPartitioningTechnique::multilevel;
+            config.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
           }
         }
         if (vm.count("ip-algo")) {
           config.initial_partitioning.algo =
-            stringToInitialPartitionerAlgorithm(
-              vm["ip-algo"].as<std::string>());
+            stringToInitialPartitionerAlgorithm(vm["ip-algo"].as<std::string>());
         }
         if (vm.count("ip-alpha")) {
-          config.initial_partitioning.init_alpha =
-            vm["ip-alpha"].as<double>();
+          config.initial_partitioning.init_alpha = vm["ip-alpha"].as<double>();
         }
       }
       if (vm.count("ip-ctype")) {
-        config.initial_partitioning.coarsening_algorithm =
+        config.initial_partitioning.coarsening.algorithm =
           stringToCoarseningAlgorithm(vm["ip-ctype"].as<std::string>());
       } else {
         std::cout << "Missing ip-ctype option!" << std::endl;
@@ -349,46 +344,44 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       }
 
       if (vm.count("ip-path")) {
-        config.partition.initial_partitioner_path = vm["ip-path"].as<
-          std::string>();
+        config.initial_partitioning.tool_path = vm["ip-path"].as<std::string>();
       } else {
-        switch (config.partition.initial_partitioner) {
+        switch (config.initial_partitioning.tool) {
           case InitialPartitioner::hMetis:
-            config.partition.initial_partitioner_path =
+            config.initial_partitioning.tool_path =
               "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
             break;
           case InitialPartitioner::PaToH:
-            config.partition.initial_partitioner_path =
+            config.initial_partitioning.tool_path =
               "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
             break;
           case InitialPartitioner::KaHyPar:
-            config.partition.initial_partitioner_path = "";
+            config.initial_partitioning.tool_path = "-";
             break;
         }
       }
       if (vm.count("ip-nruns")) {
-        config.partition.initial_partitioning_attempts =
-          vm["ip-nruns"].as<int>();
         config.initial_partitioning.nruns = vm["ip-nruns"].as<int>();
       }
 
       if (vm.count("ip-s")) {
-        config.initial_partitioning.max_allowed_weight_multiplier = vm["ip-s"].as<double>();
+        config.initial_partitioning.coarsening.max_allowed_weight_multiplier =
+          vm["ip-s"].as<double>();
       }
       if (vm.count("ip-t")) {
-        config.initial_partitioning.contraction_limit_multiplier = vm["ip-t"].as<HypernodeID>();
+        config.initial_partitioning.coarsening.contraction_limit_multiplier =
+          vm["ip-t"].as<HypernodeID>();
       }
 
       if (vm.count("ip-ls-reps")) {
-        config.initial_partitioning.local_search_repetitions =
-          vm["ip-ls-reps"].as<int>();
-        if (config.initial_partitioning.local_search_repetitions == -1) {
-          config.initial_partitioning.local_search_repetitions =
+        config.initial_partitioning.local_search.iterations_per_level = vm["ip-ls-reps"].as<int>();
+        if (config.initial_partitioning.local_search.iterations_per_level == -1) {
+          config.initial_partitioning.local_search.iterations_per_level =
             std::numeric_limits<int>::max();
         }
       }
       if (vm.count("ip-rtype")) {
-        config.initial_partitioning.refinement_algorithm =
+        config.initial_partitioning.local_search.algorithm =
           stringToRefinementAlgorithm(vm["ip-rtype"].as<std::string>());
       } else {
         std::cout << "Missing ip-rtype option!" << std::endl;
@@ -400,15 +393,13 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
       config.partition.global_search_iterations = vm["vcycles"].as<int>();
     }
     if (vm.count("cmaxnet")) {
-      config.partition.hyperedge_size_threshold = vm["cmaxnet"].as<
-        HyperedgeID>();
+      config.partition.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
       if (config.partition.hyperedge_size_threshold == -1) {
-        config.partition.hyperedge_size_threshold = std::numeric_limits<
-          HyperedgeID>::max();
+        config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
       }
     }
     if (vm.count("ctype")) {
-      config.partition.coarsening_algorithm =
+      config.coarsening.algorithm =
         stringToCoarseningAlgorithm(vm["ctype"].as<std::string>());
     } else {
       std::cout << "Missing ctype option!" << std::endl;
@@ -416,17 +407,14 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     }
 
     if (vm.count("s")) {
-      config.coarsening.max_allowed_weight_multiplier =
-        vm["s"].as<double>();
+      config.coarsening.max_allowed_weight_multiplier = vm["s"].as<double>();
     }
     if (vm.count("t")) {
-      config.coarsening.contraction_limit_multiplier = vm["t"].as<
-        HypernodeID>();
+      config.coarsening.contraction_limit_multiplier = vm["t"].as<HypernodeID>();
     }
 
     if (vm.count("rtype")) {
-      config.partition.refinement_algorithm =
-        stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
+      config.local_search.algorithm = stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
     } else {
       std::cout << "Missing rtype option!" << std::endl;
       exit(0);
@@ -434,21 +422,17 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 
     if (vm.count("stopFM")) {
       if (vm["stopFM"].as<std::string>() == "simple") {
-        config.fm_local_search.stopping_rule =
-          RefinementStoppingRule::simple;
-        config.her_fm.stopping_rule = RefinementStoppingRule::simple;
+        config.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
+        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::simple;
       } else if (vm["stopFM"].as<std::string>() == "adaptive_opt") {
-        config.fm_local_search.stopping_rule =
-          RefinementStoppingRule::adaptive_opt;
-        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
+        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
+        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
       } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
-        config.fm_local_search.stopping_rule =
-          RefinementStoppingRule::adaptive1;
-        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive1;
+        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive1;
+        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive1;
       } else if (vm["stopFM"].as<std::string>() == "adaptive2") {
-        config.fm_local_search.stopping_rule =
-          RefinementStoppingRule::adaptive2;
-        config.her_fm.stopping_rule = RefinementStoppingRule::adaptive2;
+        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive2;
+        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive2;
       } else {
         std::cout << "Illegal stopFM option! Exiting..." << std::endl;
         exit(0);
@@ -456,28 +440,26 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     }
     if (vm.count("global-rebalancing")) {
       if (vm["global-rebalancing"].as<bool>()) {
-        config.fm_local_search.global_rebalancing = GlobalRebalancingMode::on;
+        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
       } else {
-        config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
+        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
       }
     }
     if (vm.count("ls-reps")) {
-      config.partition.num_local_search_repetitions = vm["ls-reps"].as<int>();
-      if (config.partition.num_local_search_repetitions == -1) {
-        config.partition.num_local_search_repetitions = std::numeric_limits<int>::max();
+      config.local_search.iterations_per_level = vm["ls-reps"].as<int>();
+      if (config.local_search.iterations_per_level == -1) {
+        config.local_search.iterations_per_level = std::numeric_limits<int>::max();
       }
     }
 
     if (vm.count("i")) {
-      config.fm_local_search.max_number_of_fruitless_moves = vm["i"].as<
-        int>();
-      config.her_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
+      config.local_search.fm.max_number_of_fruitless_moves = vm["i"].as<int>();
+      config.local_search.her_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
     }
     if (vm.count("alpha")) {
-      config.fm_local_search.alpha = vm["alpha"].as<double>();
-      if (config.fm_local_search.alpha == -1) {
-        config.fm_local_search.alpha =
-          std::numeric_limits<double>::max();
+      config.local_search.fm.adaptive_stopping_alpha = vm["alpha"].as<double>();
+      if (config.local_search.fm.adaptive_stopping_alpha == -1) {
+        config.local_search.fm.adaptive_stopping_alpha = std::numeric_limits<double>::max();
       }
     }
     if (vm.count("verbose")) {
@@ -485,8 +467,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     }
 
     if (vm.count("sclap-max-iterations")) {
-      config.lp_refiner.max_number_iterations =
-        vm["sclap-max-iterations"].as<int>();
+      config.local_search.sclap.max_number_iterations = vm["sclap-max-iterations"].as<int>();
     }
   } else {
     std::cout << "Parameter error! Exiting..." << std::endl;
@@ -538,9 +519,9 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
   [](Hypergraph& hypergraph, const Configuration& config) {
   return TwoWayFMFactoryDispatcher::go(
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.fm_local_search.stopping_rule),
+      config.local_search.fm.stopping_rule),
     PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
-      config.fm_local_search.global_rebalancing),
+      config.local_search.fm.global_rebalancing),
     TwoWayFMFactoryExecutor(), hypergraph, config);
 });
 
@@ -549,7 +530,7 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
 //   [](Hypergraph& hypergraph, const Configuration& config) {
 //   return MaxGainNodeKWayFMFactoryDispatcher::go(
 //     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-//       config.fm_local_search.stopping_rule),
+//       config.local_search.fm.stopping_rule),
 //     NullPolicy(),
 //     MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
 // });
@@ -559,7 +540,7 @@ static Registrar<RefinerFactory> reg_kway_fm_local_search(
   [](Hypergraph& hypergraph, const Configuration& config) {
   return KWayFMFactoryDispatcher::go(
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.fm_local_search.stopping_rule),
+      config.local_search.fm.stopping_rule),
     NullPolicy(),
     KWayFMFactoryExecutor(), hypergraph, config);
 });
@@ -569,7 +550,7 @@ static Registrar<RefinerFactory> reg_kway_km1_local_search(
   [](Hypergraph& hypergraph, const Configuration& config) {
   return KWayKMinusOneFactoryDispatcher::go(
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.fm_local_search.stopping_rule),
+      config.local_search.fm.stopping_rule),
     NullPolicy(),
     KWayKMinusOneFactoryExecutor(), hypergraph, config);
 });
@@ -757,7 +738,6 @@ int main(int argc, char* argv[]) {
   }
 
   Configuration config;
-  setDefaults(config);
   configurePartitionerFromCommandLineInput(config, vm);
   sanityCheck(config);
 
@@ -801,7 +781,7 @@ int main(int argc, char* argv[]) {
 
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.fm_local_search.beta = log(hypergraph.initialNumNodes());
+  config.local_search.fm.adaptive_stopping_beta = log(hypergraph.initialNumNodes());
 
 // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
 // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
@@ -809,7 +789,7 @@ int main(int argc, char* argv[]) {
 // the maximal allowed partiton size corresponds to our upper bound i.e.
 // (1+epsilon) * ceil(total_weight / k).
   double exp = 1.0 / log2(config.partition.k);
-  config.partition.hmetis_ub_factor =
+  config.initial_partitioning.hmetis_ub_factor =
     50.0
     * (2 * pow((1 + config.partition.epsilon), exp)
        * pow(

@@ -83,7 +83,7 @@ class InitialPartitionerBase {
   void performFMRefinement() {
     if (_config.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;
-      if (_config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm &&
+      if (_config.local_search.algorithm == RefinementAlgorithm::twoway_fm &&
           _config.initial_partitioning.k > 2) {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
@@ -91,7 +91,7 @@ class InitialPartitionerBase {
         LOG("WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.");
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
-                     _config.partition.refinement_algorithm,
+                     _config.local_search.algorithm,
                      _hg, _config));
       }
 
@@ -135,7 +135,7 @@ class InitialPartitionerBase {
         old_cut = current_metrics.cut;
 #endif
         ++iteration;
-      } while (iteration < _config.initial_partitioning.local_search_repetitions &&
+      } while (iteration < _config.initial_partitioning.local_search.iterations_per_level &&
                improvement_found);
     }
   }

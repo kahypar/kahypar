@@ -36,6 +36,7 @@ using partition::Configuration;
 using partition::Partitioner;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
+using partition::InitialPartitioner;
 
 namespace metrics {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
@@ -67,12 +68,13 @@ class APartitionedHypergraph : public Test {
     coarsener(new FirstWinsCoarsener(hypergraph, config,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(hypergraph, config)) {
     config.partition.k = 2;
-    config.partition.refinement_algorithm = RefinementAlgorithm::twoway_fm;
+    config.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     config.coarsening.contraction_limit = 2;
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "Test";
-    config.partition.initial_partitioner_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+    config.initial_partitioning.tool = InitialPartitioner::hMetis;
+    config.initial_partitioning.tool_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
@@ -84,7 +86,7 @@ class APartitionedHypergraph : public Test {
     config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
                                            * config.partition.perfect_balance_part_weights[1];
     double exp = 1.0 / log2(config.partition.k);
-    config.partition.hmetis_ub_factor =
+    config.initial_partitioning.hmetis_ub_factor =
       50.0 * (2 * pow((1 + config.partition.epsilon), exp)
               * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
                          / config.partition.k) / config.partition.total_graph_weight, exp) - 1);

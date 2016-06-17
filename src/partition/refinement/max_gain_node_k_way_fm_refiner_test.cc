@@ -40,7 +40,7 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     hypergraph->setNodePart(6, 3);
     hypergraph->setNodePart(7, 1);
     hypergraph->initializeNumCutHyperedges();
-    config.fm_local_search.max_number_of_fruitless_moves = 50;
+    config.local_search.fm.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
 #ifdef USE_BUCKET_PQ

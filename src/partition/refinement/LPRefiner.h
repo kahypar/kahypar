@@ -93,7 +93,8 @@ class LPRefiner final : public IRefiner {
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    for (int i = 0; !_cur_queue.empty() && i < _config.lp_refiner.max_number_iterations; ++i) {
+    for (int i = 0; !_cur_queue.empty() &&
+         i < _config.local_search.sclap.max_number_iterations; ++i) {
       Randomize::shuffleVector(_cur_queue, _cur_queue.size());
       for (const auto& hn : _cur_queue) {
         const auto& gain_pair = computeMaxGainMove(hn);
@@ -181,7 +182,8 @@ class LPRefiner final : public IRefiner {
   }
 
   std::string policyStringImpl() const noexcept override final {
-    return " lp_refiner_max_iterations=" + std::to_string(_config.lp_refiner.max_number_iterations);
+    return " lp_refiner_max_iterations=" +
+           std::to_string(_config.local_search.sclap.max_number_iterations);
   }
 
  private:

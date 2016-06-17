@@ -133,7 +133,7 @@ class CoarsenerBase {
     no_changes.contraction_partner.push_back(0);
 
     int iteration = 1;
-    while ((iteration < _config.partition.num_local_search_repetitions) && improvement_found) {
+    while ((iteration < _config.local_search.iterations_per_level) && improvement_found) {
       improvement_found = performLocalSearchIteration(refiner, refinement_nodes, no_changes,
                                                       current_metrics);
       ++iteration;

@@ -177,10 +177,10 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
                               config.partition.coarse_graph_filename.find_last_of("/")
                               + 1));
   }
-  if (config.partition.initial_partitioner == InitialPartitioner::hMetis ||
-      config.partition.initial_partitioner == InitialPartitioner::PaToH) {
+  if (config.initial_partitioning.tool == InitialPartitioner::hMetis ||
+      config.initial_partitioning.tool == InitialPartitioner::PaToH) {
     initialPartitioningViaExternalTools(hg, config);
-  } else if (config.partition.initial_partitioner == InitialPartitioner::KaHyPar) {
+  } else if (config.initial_partitioning.tool == InitialPartitioner::KaHyPar) {
     initialPartitioningViaKaHyPar(hg, config);
   }
   Stats::instance().addToTotal(config, "InitialCut", metrics::hyperedgeCut(hg));
@@ -194,6 +194,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 
   config.partition.epsilon = init_alpha * original_config.partition.epsilon;
   config.partition.collect_stats = false;
+  config.partition.global_search_iterations = 0;
 
   config.initial_partitioning.k = config.partition.k;
   config.initial_partitioning.epsilon = init_alpha * original_config.partition.epsilon;
@@ -209,19 +210,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   }
 
   // Coarsening-Parameters
-  config.coarsening.contraction_limit_multiplier =
-    config.initial_partitioning.contraction_limit_multiplier;
-  config.coarsening.max_allowed_weight_multiplier =
-    config.initial_partitioning.max_allowed_weight_multiplier;
+  config.coarsening = config.initial_partitioning.coarsening;
 
   // Refinement-Parameters
-  config.partition.global_search_iterations = 0;
-  config.fm_local_search.max_number_of_fruitless_moves = 50;
-  config.fm_local_search.stopping_rule = RefinementStoppingRule::simple;
-  // Since initial partitioning starts local search with all HNs, global
-  // rebalancing doesn't do anything is this case and just induces additional
-  // overhead.
-  config.fm_local_search.global_rebalancing = GlobalRebalancingMode::off;
+  config.local_search = config.initial_partitioning.local_search;
 
   // Hypergraph depending parameters
   config.partition.total_graph_weight = hg.totalWeight();
@@ -231,7 +223,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                 / config.coarsening.contraction_limit;
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.fm_local_search.beta = log(hg.currentNumNodes());
+  config.local_search.fm.adaptive_stopping_beta = log(hg.currentNumNodes());
 
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration
@@ -239,7 +231,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   // original_config.
   switch (original_config.initial_partitioning.technique) {
     case InitialPartitioningTechnique::multilevel:
-      config.partition.coarsening_algorithm = config.initial_partitioning.coarsening_algorithm;
+      config.coarsening.algorithm = config.initial_partitioning.coarsening.algorithm;
       switch (original_config.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           config.partition.mode = Mode::recursive_bisection;
@@ -253,7 +245,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           config.partition.mode = Mode::direct_kway;
           break;
       }
-      config.partition.refinement_algorithm = config.initial_partitioning.refinement_algorithm;
+      config.local_search.algorithm = config.initial_partitioning.local_search.algorithm;
       break;
     case InitialPartitioningTechnique::flat:
       // No more coarsening in this case. Since KaHyPar is designed to be an n-level partitioner,
@@ -264,8 +256,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
       // Since the coarsening algorithm does nothing, the twoway_fm algorithm in our "emulated"
       // flat partitioner do also nothing, since there is no uncoarsening phase in which
       // a local search algorithm could further improve the solution.
-      config.partition.coarsening_algorithm = CoarseningAlgorithm::do_nothing;
-      config.partition.refinement_algorithm = config.initial_partitioning.refinement_algorithm;
+      config.coarsening.algorithm = CoarseningAlgorithm::do_nothing;
+      config.local_search.algorithm = config.initial_partitioning.local_search.algorithm;
       switch (original_config.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           config.partition.mode = Mode::recursive_bisection;
@@ -408,7 +400,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
   CoarsenedToHmetisMapping hg_to_hmetis;
   createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
 
-  switch (config.partition.initial_partitioner) {
+  switch (config.initial_partitioning.tool) {
     case InitialPartitioner::hMetis:
       io::writeHypergraphForhMetisPartitioning(hg,
                                                config.partition.coarse_graph_filename, hg_to_hmetis);
@@ -430,25 +422,25 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
   HyperedgeWeight current_cut =
     std::numeric_limits<HyperedgeWeight>::max();
 
-  for (int attempt = 0; attempt < config.partition.initial_partitioning_attempts; ++attempt) {
+  for (int attempt = 0; attempt < config.initial_partitioning.nruns; ++attempt) {
     int seed = int_dist(generator);
     std::string initial_partitioner_call;
-    switch (config.partition.initial_partitioner) {
+    switch (config.initial_partitioning.tool) {
       case InitialPartitioner::hMetis:
-        initial_partitioner_call = config.partition.initial_partitioner_path + " "
+        initial_partitioner_call = config.initial_partitioning.tool_path + " "
                                    + config.partition.coarse_graph_filename + " "
                                    + std::to_string(config.partition.k) + " -seed="
                                    + std::to_string(seed) + " -ufactor="
                                    + std::to_string(
-          config.partition.hmetis_ub_factor
+          config.initial_partitioning.hmetis_ub_factor
           < 0.1 ?
           0.1 :
-          config.partition.hmetis_ub_factor)
+          config.initial_partitioning.hmetis_ub_factor)
                                    + (config.partition.verbose_output ?
                                       "" : " > /dev/null");
         break;
       case InitialPartitioner::PaToH:
-        initial_partitioner_call = config.partition.initial_partitioner_path + " "
+        initial_partitioner_call = config.initial_partitioning.tool_path + " "
                                    + config.partition.coarse_graph_filename + " "
                                    + std::to_string(config.partition.k) + " SD="
                                    + std::to_string(seed) + " FI="
@@ -465,7 +457,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
     }
 
     LOG(initial_partitioner_call);
-    LOGVAR(config.partition.hmetis_ub_factor);
+    LOGVAR(config.initial_partitioning.hmetis_ub_factor);
     std::system(initial_partitioner_call.c_str());
 
     io::readPartitionFile(config.partition.coarse_graph_partition_filename, partitioning);
@@ -606,9 +598,9 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     current_config.coarsening.hypernode_weight_fraction
     * current_config.partition.total_graph_weight);
 
-  current_config.fm_local_search.beta = log(current_hypergraph.currentNumNodes());
+  current_config.local_search.fm.adaptive_stopping_beta = log(current_hypergraph.currentNumNodes());
 
-  current_config.partition.hmetis_ub_factor =
+  current_config.initial_partitioning.hmetis_ub_factor =
     100.0
     * ((1 + current_config.partition.epsilon)
        * (ceil(
@@ -682,13 +674,13 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           std::unique_ptr<ICoarsener> coarsener(
             CoarsenerFactory::getInstance().createObject(
-              current_config.partition.coarsening_algorithm,
+              current_config.coarsening.algorithm,
               current_hypergraph, current_config,
               current_hypergraph.weightOfHeaviestNode()));
 
           std::unique_ptr<IRefiner> refiner(
             RefinerFactory::getInstance().createObject(
-              current_config.partition.refinement_algorithm,
+              current_config.local_search.algorithm,
               current_hypergraph, current_config));
 
           ASSERT(coarsener.get() != nullptr, "coarsener not found");
@@ -745,12 +737,12 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
                                                        const Configuration& config) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
-      config.partition.coarsening_algorithm, hypergraph, config,
+      config.coarsening.algorithm, hypergraph, config,
       hypergraph.weightOfHeaviestNode()));
 
   std::unique_ptr<IRefiner> refiner(
     RefinerFactory::getInstance().createObject(
-      config.partition.refinement_algorithm, hypergraph, config));
+      config.local_search.algorithm, hypergraph, config));
 
   // TODO(schlag): find better solution
   _internals.append(coarsener->policyString() + " " + refiner->policyString());

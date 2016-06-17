@@ -27,54 +27,90 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " numHNs=" << hypergraph.initialNumNodes()
   << " numHEs=" << hypergraph.initialNumEdges()
   << " " << hypergraph.typeAsString()
-  << " k=" << config.partition.k
+  << " mode=" << toString(config.partition.mode)
   << " objective=" << toString(config.partition.objective)
+  << " k=" << config.partition.k
   << " epsilon=" << config.partition.epsilon
-  << " totalGraphWeight=" << config.partition.total_graph_weight
+  << " seed=" << config.partition.seed
+  << " num_v_cycles=" << config.partition.global_search_iterations
+  << " he_size_threshold=" << config.partition.hyperedge_size_threshold
+  << " initially_remove_parallel_hes=" << std::boolalpha
+  << config.partition.initial_parallel_he_removal
+  << " remove_always_cut_hes=" << std::boolalpha
+  << config.partition.remove_hes_that_always_will_be_cut
+  << " total_graph_weight=" << config.partition.total_graph_weight
   << " L_opt0=" << config.partition.perfect_balance_part_weights[0]
   << " L_opt1=" << config.partition.perfect_balance_part_weights[1]
   << " L_max0=" << config.partition.max_part_weights[0]
   << " L_max1=" << config.partition.max_part_weights[1]
-  << " seed=" << config.partition.seed
-  << " hmetisUBFactor=" << config.partition.hmetis_ub_factor
-  << " numInitialPartitions=" << config.initial_partitioning.nruns
-  << " IP=" << toString(config.partition.initial_partitioner)
-  << " IPmode=" << toString(config.initial_partitioning.mode)
-  << " IPtechnique=" << toString(config.initial_partitioning.technique)
-  << " IPalgorithm=" << toString(config.initial_partitioning.algo)
-  << " IPcoarseningAlgorithm=" << toString(config.initial_partitioning.coarsening_algorithm)
-  << " IPcoarseningMaxAllowedWeightMultiplier=" << config.initial_partitioning.max_allowed_weight_multiplier
-  << " IPcoarseningContractionLimitMultiplier=" << config.initial_partitioning.contraction_limit_multiplier
-  << " IPrefinementAlgorithm=" << toString(config.initial_partitioning.refinement_algorithm)
-  << " IPnumRepetitions=" << config.initial_partitioning.local_search_repetitions
-  << " IPpoolType=" << config.initial_partitioning.pool_type
-  << " IPpath=" << config.partition.initial_partitioner_path
-  << " numVCycles=" << config.partition.global_search_iterations
-  << " HESizeThreshold=" << config.partition.hyperedge_size_threshold
-  << " initiallyRemoveParallelHEs=" << std::boolalpha << config.partition.initial_parallel_he_removal
-  << " removeHEsThatAlwaysWillBeCut=" << std::boolalpha << config.partition.remove_hes_that_always_will_be_cut
-  << " mode=" << toString(config.partition.mode)
-  << " coarseningAlgo=" << toString(config.partition.coarsening_algorithm)
-  << " coarseningMaxAllowedWeightMultiplier=" << config.coarsening.max_allowed_weight_multiplier
-  << " coarseningContractionLimitMultiplier=" << config.coarsening.contraction_limit_multiplier
-  << " coarseningNodeWeightFraction=" << config.coarsening.hypernode_weight_fraction
-  << " coarseningMaximumAllowedNodeWeight=" << config.coarsening.max_allowed_node_weight
-  << " coarseningContractionLimit=" << config.coarsening.contraction_limit
-  << Stats::instance().toString()
-  << " refinementAlgo=" << toString(config.partition.refinement_algorithm)
-  << " numLocalSearchRepetitions=" << config.partition.num_local_search_repetitions;
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::twoway_fm ||
-      config.partition.refinement_algorithm == RefinementAlgorithm::kway_fm) {
-    oss << " FMFruitlessMoves=" << config.fm_local_search.max_number_of_fruitless_moves
-    << " FMGlobalRebalancing=" << toString(config.fm_local_search.global_rebalancing)
-    << " FMalpha=" << config.fm_local_search.alpha
-    << " FMbeta=" << config.fm_local_search.beta;
+  << " coarsening_algo=" << toString(config.coarsening.algorithm)
+  << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
+  << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier
+  << " coarsening_hypernode_weight_fraction=" << config.coarsening.hypernode_weight_fraction
+  << " coarsening_max_allowed_node_weight=" << config.coarsening.max_allowed_node_weight
+  << " coarsening_contraction_limit=" << config.coarsening.contraction_limit
+  << " IP_tool=" << toString(config.initial_partitioning.tool)
+  << " IP_tool_path=" << config.initial_partitioning.tool_path
+  << " IP_hmetis_ub_factor=" << config.initial_partitioning.hmetis_ub_factor
+  << " IP_mode=" << toString(config.initial_partitioning.mode)
+  << " IP_technique=" << toString(config.initial_partitioning.technique)
+  << " IP_algorithm=" << toString(config.initial_partitioning.algo)
+  << " IP_pool_type=" << config.initial_partitioning.pool_type
+  << " IP_num_runs=" << config.initial_partitioning.nruns
+  << " IP_coarsening_algo=" << toString(config.initial_partitioning.coarsening.algorithm)
+  << " IP_coarsening_max_allowed_weight_multiplier="
+  << config.initial_partitioning.coarsening.max_allowed_weight_multiplier
+  << " IP_coarsening_contraction_limit_multiplier="
+  << config.initial_partitioning.coarsening.contraction_limit_multiplier
+  << " IP_local_search_algorithm=" << toString(config.initial_partitioning.local_search.algorithm)
+  << " IP_local_search_iterations_per_level="
+  << config.initial_partitioning.local_search.iterations_per_level;
+  if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
+      config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm ||
+      config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
+    oss << " IP_local_search_fm_stopping_rule="
+    << toString(config.initial_partitioning.local_search.fm.stopping_rule)
+    << " IP_local_search_fm_max_number_of_fruitless_moves="
+    << config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves
+    << " IP_local_search_fm_global_rebalancing="
+    << toString(config.initial_partitioning.local_search.fm.global_rebalancing)
+    << " IP_local_search_fm_adaptive_stopping_alpha="
+    << config.initial_partitioning.local_search.fm.adaptive_stopping_alpha
+    << " IP_local_search_fm_adaptive_stopping_beta="
+    << config.initial_partitioning.local_search.fm.adaptive_stopping_beta;
   }
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::hyperedge) {
-    oss << " herFMFruitlessMoves=" << config.her_fm.max_number_of_fruitless_moves;
+  if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::hyperedge) {
+    oss << " IP_local_search_herfm_stopping_rule="
+    << toString(config.initial_partitioning.local_search.her_fm.stopping_rule)
+    << " IP_local_search_herfm_max_number_of_fruitless_moves="
+    << config.initial_partitioning.local_search.her_fm.max_number_of_fruitless_moves;
   }
-  if (config.partition.refinement_algorithm == RefinementAlgorithm::label_propagation) {
-    oss << " lpMaxNumIterations=" << config.lp_refiner.max_number_iterations;
+  if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::label_propagation) {
+    oss << " IP_local_search_sclap_max_number_iterations="
+    << config.initial_partitioning.local_search.sclap.max_number_iterations;
+  }
+
+  oss << " local_search_algorithm=" << toString(config.local_search.algorithm)
+  << " local_search_iterations_per_level=" << config.local_search.iterations_per_level;
+  if (config.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
+      config.local_search.algorithm == RefinementAlgorithm::kway_fm ||
+      config.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
+    oss << " local_search_fm_stopping_rule=" << toString(config.local_search.fm.stopping_rule)
+    << " local_search_fm_max_number_of_fruitless_moves="
+    << config.local_search.fm.max_number_of_fruitless_moves
+    << " local_search_fm_global_rebalancing=" << toString(config.local_search.fm.global_rebalancing)
+    << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha
+    << " local_search_fm_adaptive_stopping_beta=" << config.local_search.fm.adaptive_stopping_beta;
+  }
+  if (config.local_search.algorithm == RefinementAlgorithm::hyperedge) {
+    oss << " local_search_herfm_stopping_rule="
+    << toString(config.local_search.her_fm.stopping_rule)
+    << " local_search_herfm_max_number_of_fruitless_moves="
+    << config.local_search.her_fm.max_number_of_fruitless_moves;
+  }
+  if (config.local_search.algorithm == RefinementAlgorithm::label_propagation) {
+    oss << " local_search_sclap_max_number_iterations="
+    << config.local_search.sclap.max_number_iterations;
   }
   oss << partitioner.internals();
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
@@ -96,6 +132,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   << " uncoarseningRefinementTime=" << Stats::instance().get("UncoarseningRefinement")
   << " initialParallelHErestoreTime=" << Stats::instance().get("InitialParallelHErestore")
   << " initialLargeHErestoreTime=" << Stats::instance().get("InitialLargeHErestore")
+  << Stats::instance().toString()
   << " git=" << STR(KaHyPar_BUILD_VERSION)
   << std::endl;
   if (!filename.empty()) {

@@ -133,7 +133,7 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
         _max_hn_weights.pop_back();
       }
 
-      switch (_config.partition.refinement_algorithm) {
+      switch (_config.local_search.algorithm) {
         case RefinementAlgorithm::twoway_fm:
           _hg.uncontract(_history.back().contraction_memento, changes,
                          Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
