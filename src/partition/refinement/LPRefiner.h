@@ -17,7 +17,7 @@
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
-#include "partition/refinement/KwayGainCache.h"
+#include "partition/refinement/LPGainCache.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "tools/RandomFunctions.h"
 
@@ -33,7 +33,8 @@ namespace partition {
 class LPRefiner final : public IRefiner {
   using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
-  using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain, false>;
+
+  using GainCache = LPGainCache<HypernodeID, PartitionID>;
   using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
 
  public:
@@ -44,7 +45,7 @@ class LPRefiner final : public IRefiner {
     _next_queue(),
     _contained_cur_queue(hg.initialNumNodes(), false),
     _contained_next_queue(hg.initialNumNodes(), false),
-    _tmp_gains(configuration.partition.k, 0),
+    _tmp_gains(configuration.partition.k, { 0, 0 }),
     _max_score(),
     _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
     _tmp_target_parts(configuration.partition.k),
@@ -77,8 +78,11 @@ class LPRefiner final : public IRefiner {
     _next_queue.clear();
     _contained_cur_queue.resetAllBitsToFalse();
     _contained_next_queue.resetAllBitsToFalse();
+
     const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
+    HyperedgeWeight current_cut = best_metrics.cut;
+    double current_imbalance = best_metrics.imbalance;
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
@@ -97,8 +101,12 @@ class LPRefiner final : public IRefiner {
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    for (int i = 0; !_cur_queue.empty() &&
-         i < _config.local_search.sclap.max_number_iterations; ++i) {
+    for (int i = 0;
+         (i == 0 || best_metrics.cut < current_cut || best_metrics.imbalance < current_imbalance) &&
+         !_cur_queue.empty() && i < _config.local_search.sclap.max_number_iterations; ++i) {
+      current_cut = best_metrics.cut;
+      current_imbalance = best_metrics.imbalance;
+
       Randomize::shuffleVector(_cur_queue, _cur_queue.size());
       for (const auto& hn : _cur_queue) {
         const auto& gain_pair = computeMaxGainMove(hn);
@@ -175,8 +183,11 @@ class LPRefiner final : public IRefiner {
 
       _cur_queue.swap(_next_queue);
       _contained_cur_queue.swap(_contained_next_queue);
+      // LOGVAR(i);
+      // LOG(V(best_metrics.cut) << "<" V(current_cut));
+      // LOG(V(best_metrics.imbalance) << "<" V(initial_imbalance));
     }
-
+    // LOG("-----------------------------------");
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
@@ -242,7 +253,7 @@ class LPRefiner final : public IRefiner {
     }
     if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
       _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part,
-                                                    gainInducedByHypergraph(pin, to_part));
+                                                    { gainInducedByHypergraph(pin, to_part), kM1gainInducedByHypergraph(pin, to_part) });  ///////////////////////////////////////////////////////////// FIX THIS
       _already_processed_part.set(pin, to_part);
     }
   }
@@ -257,7 +268,7 @@ class LPRefiner final : public IRefiner {
       for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
         if (part != from_part && part != to_part) {
           ASSERT(_already_processed_part.get(hn) != part, "Argh");
-          _gain_cache.updateExistingEntry(hn, part, he_weight);
+          _gain_cache.updateExistingEntry(hn, part, { he_weight, 0 });
         }
       }
     }
@@ -265,7 +276,23 @@ class LPRefiner final : public IRefiner {
       // Update pin of a HE that is removed from the cut.
       for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
         if (part != to_part && part != from_part) {
-          _gain_cache.updateExistingEntry(hn, part, -he_weight);
+          _gain_cache.updateExistingEntry(hn, part, { -he_weight, 0 });
+        }
+      }
+    }
+
+
+    // km1 update
+    if (pin_count_source_part_before_move - 1 == 0 && pin_count_target_part_after_move != 1) {
+      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+        if (part != from_part && part != to_part) {
+          _gain_cache.updateExistingEntry(hn, part, { 0, -he_weight });
+        }
+      }
+    } else if (pin_count_source_part_before_move - 1 != 0 && pin_count_target_part_after_move == 1) {
+      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+        if (part != from_part && part != to_part) {
+          _gain_cache.updateExistingEntry(hn, part, { 0, he_weight });
         }
       }
     }
@@ -284,7 +311,7 @@ class LPRefiner final : public IRefiner {
       for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
         if (part != from_part) {
           if (_already_processed_part.get(pin) != part) {
-            _gain_cache.updateExistingEntry(pin, part, he_weight);
+            _gain_cache.updateExistingEntry(pin, part, { he_weight, 0 });
           }
         }
       }
@@ -295,7 +322,7 @@ class LPRefiner final : public IRefiner {
       ASSERT(pin_count_source_part_before_move == 1, V(pin_count_source_part_before_move));
       for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
         if (part != to_part) {
-          _gain_cache.updateExistingEntry(pin, part, -he_weight);
+          _gain_cache.updateExistingEntry(pin, part, { -he_weight, 0 });
         }
       }
     }
@@ -303,15 +330,43 @@ class LPRefiner final : public IRefiner {
       if (_hg.partID(pin) != to_part) {
         // Update single pin that remains outside of to_part after applying the move
         if (_already_processed_part.get(pin) != to_part) {
-          _gain_cache.updateEntryIfItExists(pin, to_part, he_weight);
+          _gain_cache.updateEntryIfItExists(pin, to_part, { he_weight, 0 });
         }
       }
     }
 
     if (pin_count_source_part_before_move == he_size - 1) {
       if (_hg.partID(pin) != from_part) {
-        _gain_cache.updateEntryIfItExists(pin, from_part, -he_weight);
+        _gain_cache.updateEntryIfItExists(pin, from_part, { -he_weight, 0 });
       }
+    }
+
+    // km1 updates
+    const PartitionID source_part = _hg.partID(pin);
+    if (source_part == from_part) {
+      if (pin_count_source_part_before_move == 2) {
+        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+          if (_already_processed_part.get(pin) != part) {  // hier war new ajacent part!!!!!!
+            _gain_cache.updateExistingEntry(pin, part, { 0, he_weight });
+          }
+        }
+      }
+    } else if (source_part == to_part) {
+      if (pin_count_target_part_after_move == 2) {
+        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+          if (_already_processed_part.get(pin) != part) {  // hier war new ajacent part!!!!!!
+            _gain_cache.updateExistingEntry(pin, part, { 0, -he_weight });
+          }
+        }
+      }
+    }
+
+    if (pin_count_source_part_before_move == 1 && _gain_cache.entryExists(pin, from_part)) {
+      _gain_cache.updateExistingEntry(pin, from_part, { 0, -he_weight });
+    }
+
+    if (pin_count_target_part_after_move == 1 && _already_processed_part.get(pin) != to_part) {  /// und hier
+      _gain_cache.updateExistingEntry(pin, to_part, { 0, he_weight });
     }
   }
 
@@ -365,11 +420,13 @@ class LPRefiner final : public IRefiner {
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
+    HyperedgeWeight internal = 0;
 
     _tmp_target_parts.clear();
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+      internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
       switch (_hg.connectivity(he)) {
         case 1:
           ASSERT(_hg.edgeSize(he) > 1, V(he));
@@ -378,13 +435,15 @@ class LPRefiner final : public IRefiner {
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             _tmp_target_parts.add(part);
+            _tmp_gains[part].km1 += he_weight;
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
-              _tmp_gains[part] += he_weight;
+              _tmp_gains[part].cut += he_weight;
             }
           }
           break;
         default:
           for (const PartitionID part : _hg.connectivitySet(he)) {
+            _tmp_gains[part].km1 += he_weight;
             _tmp_target_parts.add(part);
           }
           break;
@@ -393,18 +452,44 @@ class LPRefiner final : public IRefiner {
 
     for (const PartitionID target_part : _tmp_target_parts) {
       if (target_part == source_part) {
-        _tmp_gains[source_part] = 0;
+        _tmp_gains[source_part].cut = 0;
+        _tmp_gains[source_part].km1 = 0;
         continue;
       }
-      _gain_cache.initializeEntry(hn, target_part, _tmp_gains[target_part] - internal_weight);
-      _tmp_gains[target_part] = 0;
+      ASSERT(_tmp_gains[target_part].km1 - internal == kM1gainInducedByHypergraph(hn, target_part),
+             "Gain calculation failed! Should be " << V(kM1gainInducedByHypergraph(hn, target_part)));
+      _gain_cache.initializeEntry(hn, target_part, { _tmp_gains[target_part].cut - internal_weight,
+                                                     _tmp_gains[target_part].km1 - internal });
+      _tmp_gains[target_part].cut = 0;
+      _tmp_gains[target_part].km1 = 0;
     }
+  }
+
+
+  Gain kM1gainInducedByHyperedge(const HypernodeID hn, const HyperedgeID he,
+                                 const PartitionID target_part) const noexcept {
+    const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, _hg.partID(hn));
+    const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
+    const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+    Gain gain = pins_in_source_part == 1 ? he_weight : 0;
+    gain -= pins_in_target_part == 0 ? he_weight : 0;
+    return gain;
+  }
+
+  Gain kM1gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const noexcept {
+    ASSERT(target_part != _hg.partID(hn), V(hn) << V(target_part));
+    Gain gain = 0;
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      gain += kM1gainInducedByHyperedge(hn, he, target_part);
+    }
+    return gain;
   }
 
   void ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO() {
     ASSERT([&]() {
-        for (Gain gain : _tmp_gains) {
-          ASSERT(gain == 0, V(gain));
+        for (const GGain& gain : _tmp_gains) {
+          ASSERT(gain == GGain(0, 0), V(gain));
         }
         return true;
       } (), "_tmp_gains not initialized correctly");
@@ -425,21 +510,26 @@ class LPRefiner final : public IRefiner {
       if (hypernodeIsConnectedToPart(hn, part)) {
         adjacent_parts[part] = true;
       }
-      if (_gain_cache.entry(hn, part) != GainCache::kNotCached) {
+      if (_gain_cache.entry(hn, part).cut != GainCache::kNotCached) {
         ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
-        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+        ASSERT(_gain_cache.entry(hn, part).cut == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
                V(gainInducedByHypergraph(hn, part)));
         ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        ASSERT(_gain_cache.entry(hn, part).km1 == kM1gainInducedByHypergraph(hn, part), V(hn)
+               << V(part));
       } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
                << "_hg.partID(hn) != part");
-        ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached, V(hn) << V(part));
+        ASSERT(_gain_cache.entry(hn, part).cut == GainCache::kNotCached, V(hn) << V(part));
+        ASSERT(_gain_cache.entry(hn, part).km1 == GainCache::kNotCached, V(hn) << V(part));
       }
       if (_hg.partID(hn) == part) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
                << "_hg.partID(hn) == part");
-        ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached,
+        ASSERT(_gain_cache.entry(hn, part).cut == GainCache::kNotCached,
+               V(hn) << V(part));
+        ASSERT(_gain_cache.entry(hn, part).km1 == GainCache::kNotCached,
                V(hn) << V(part));
       }
     }
@@ -454,6 +544,7 @@ class LPRefiner final : public IRefiner {
     const PartitionID source_part = _hg.partID(hn);
     PartitionID max_gain_part = source_part;
     Gain max_gain = 0;
+    Gain max_connectivity_decrease = 0;
     const HypernodeWeight node_weight = _hg.nodeWeight(hn);
     const bool source_part_imbalanced = _hg.partWeight(source_part) >
                                         _config.partition.max_part_weights[source_part % 2];
@@ -462,11 +553,15 @@ class LPRefiner final : public IRefiner {
     _max_score.push_back(source_part);
 
     for (const PartitionID target_part : _gain_cache.adjacentParts(hn)) {
-      ASSERT(_gain_cache.entry(hn, target_part) == gainInducedByHypergraph(hn, target_part),
+      ASSERT(_gain_cache.entry(hn, target_part).cut == gainInducedByHypergraph(hn, target_part),
              V(hn) << V(target_part) << V(_gain_cache.entry(hn, target_part)) <<
              V(gainInducedByHypergraph(hn, target_part)));
+      ASSERT(_gain_cache.entry(hn, target_part).km1 == kM1gainInducedByHypergraph(hn, target_part),
+             V(hn) << V(target_part) << V(_gain_cache.entry(hn, target_part)) <<
+             V(kM1gainInducedByHypergraph(hn, target_part)));
       ASSERT(hypernodeIsConnectedToPart(hn, target_part), V(hn) << V(target_part));
-      const Gain target_part_gain = _gain_cache.entry(hn, target_part);
+      const Gain target_part_gain = _gain_cache.entry(hn, target_part).cut;
+      const Gain target_part_connectivity_decrease = _gain_cache.entry(hn, target_part).km1;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
       if (target_part_weight + node_weight <= _config.partition.max_part_weights[target_part % 2]) {
@@ -475,18 +570,23 @@ class LPRefiner final : public IRefiner {
           max_gain = target_part_gain;
           _max_score.push_back(target_part);
         } else if (target_part_gain == max_gain) {
-          _max_score.push_back(target_part);
+          if (target_part_connectivity_decrease > max_connectivity_decrease) {
+            max_connectivity_decrease = target_part_connectivity_decrease;
+            _max_score.clear();
+            _max_score.push_back(target_part);
+          } else if (target_part_connectivity_decrease == max_connectivity_decrease) {
+            _max_score.push_back(target_part);
+          }
         } else if (source_part_imbalanced && target_part_weight < _hg.partWeight(max_gain_part)) {
           _max_score.clear();
           max_gain = target_part_gain;
           _max_score.push_back(target_part);
         }
       }
-      _tmp_gains[target_part] = 0;
     }
-    max_gain_part = (max_gain > 0 || source_part_imbalanced) ?
-                    _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))] : source_part;
 
+    max_gain_part = (max_gain >= 0 || max_connectivity_decrease >= 0 || source_part_imbalanced) ?
+                    _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))] : source_part;
 
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
 
@@ -518,7 +618,7 @@ class LPRefiner final : public IRefiner {
   FastResetBitVector<> _contained_cur_queue;
   FastResetBitVector<> _contained_next_queue;
 
-  std::vector<Gain> _tmp_gains;
+  std::vector<GGain> _tmp_gains;
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
   InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
