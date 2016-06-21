@@ -387,6 +387,11 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         std::cout << "Missing ip-rtype option!" << std::endl;
         exit(0);
       }
+
+      if (vm.count("ip-i")) {
+        config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves =
+            vm["ip-i"].as<int>();
+      }
     }
 
     if (vm.count("vcycles")) {
@@ -706,6 +711,7 @@ int main(int argc, char* argv[]) {
     ("ip-s", po::value<double>(), "If ip=KaHyPar: IP Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
     ("ip-t", po::value<HypernodeID>(), "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
+    ("ip-i", po::value<int>(), "If ip=KaHyPar:  max. # fruitless moves before stopping local search (simple)")
     ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
     ("ip-ls-reps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
