@@ -73,6 +73,10 @@ class LPRefiner final : public IRefiner {
            "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
            << metrics::hyperedgeCut(_hg));
 
+    _cur_queue.clear();
+    _next_queue.clear();
+    _contained_cur_queue.resetAllBitsToFalse();
+    _contained_next_queue.resetAllBitsToFalse();
     const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
     PartitionID heaviest_part = heaviestPart();
