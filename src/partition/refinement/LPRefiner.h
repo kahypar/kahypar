@@ -154,7 +154,6 @@ class LPRefiner final : public IRefiner {
               }
 
               // add adjacent pins to next iteration
-              if (_hg.connectivity(he) == 1) continue;
               if (!_contained_next_queue[pin]) {
                 _contained_next_queue.setBit(pin, true);
                 _next_queue.push_back(pin);
