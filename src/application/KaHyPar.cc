@@ -390,7 +390,7 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
 
       if (vm.count("ip-i")) {
         config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves =
-            vm["ip-i"].as<int>();
+          vm["ip-i"].as<int>();
       }
     }
 
