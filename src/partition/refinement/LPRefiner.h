@@ -154,7 +154,7 @@ class LPRefiner final : public IRefiner {
               }
 
               // add adjacent pins to next iteration
-              if (!_contained_next_queue[pin]) {
+              if (!_contained_next_queue[pin] && _hg.isBorderNode(pin)) {
                 _contained_next_queue.setBit(pin, true);
                 _next_queue.push_back(pin);
               }
