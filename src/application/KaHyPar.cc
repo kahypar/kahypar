@@ -392,6 +392,25 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
         config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves =
           vm["ip-i"].as<int>();
       }
+
+      if (vm.count("ip-stopFM")) {
+        if (vm["ip-stopFM"].as<std::string>() == "simple") {
+          config.initial_partitioning.local_search.fm.stopping_rule =
+            RefinementStoppingRule::simple;
+        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive_opt") {
+          config.initial_partitioning.local_search.fm.stopping_rule =
+            RefinementStoppingRule::adaptive_opt;
+        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive1") {
+          config.initial_partitioning.local_search.fm.stopping_rule =
+            RefinementStoppingRule::adaptive1;
+        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive2") {
+          config.initial_partitioning.local_search.fm.stopping_rule =
+            RefinementStoppingRule::adaptive2;
+        } else {
+          std::cout << "Illegal stopFM option! Exiting..." << std::endl;
+          exit(0);
+        }
+      }
     }
 
     if (vm.count("vcycles")) {
@@ -712,6 +731,7 @@ int main(int argc, char* argv[]) {
     ("ip-t", po::value<HypernodeID>(), "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
     ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
     ("ip-i", po::value<int>(), "If ip=KaHyPar:  max. # fruitless moves before stopping local search (simple)")
+    ("ip-stopFM", po::value<std::string>(), "If ip=KaHyPar: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
     ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
     ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
     ("ip-ls-reps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")

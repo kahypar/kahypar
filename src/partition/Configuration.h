@@ -51,7 +51,7 @@ inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& 
 struct LocalSearchParameters {
   struct FM {
     int max_number_of_fruitless_moves = 350;
-    double adaptive_stopping_alpha = 8.0;
+    double adaptive_stopping_alpha = 1.0;
     double adaptive_stopping_beta = 0.0;
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::simple;
     GlobalRebalancingMode global_rebalancing = GlobalRebalancingMode::off;
