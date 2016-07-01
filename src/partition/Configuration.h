@@ -123,7 +123,6 @@ struct InitialPartitioningParameters {
     perfect_balance_partition_weight(),
     unassigned_part(1),
     init_alpha(1.0),
-    seed(1),
     pool_type(1975),
     lp_max_iteration(100),
     lp_assign_vertex_to_part(5),
@@ -166,7 +165,6 @@ struct InitialPartitioningParameters {
   // Is used to get a tighter balance constraint for initial partitioning.
   // Before initial partitioning epsilon is set to init_alpha*epsilon.
   double init_alpha = 1.0;
-  int seed = 1;
   // If pool initial partitioner is used, the first 12 bits of this number decides
   // which algorithms are used.
   unsigned int pool_type = 1975;

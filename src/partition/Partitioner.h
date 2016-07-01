@@ -490,7 +490,6 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
 inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
                                                        const Configuration& config) {
   std::uniform_int_distribution<int> int_dist;
-  std::mt19937 generator(config.partition.seed);
   auto extracted_init_hypergraph = reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
@@ -504,8 +503,6 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
     Configuration init_config = Partitioner::createConfigurationForInitialPartitioning(
       *extracted_init_hypergraph.first, config, init_alpha);
 
-    init_config.initial_partitioning.seed = int_dist(generator);
-    init_config.partition.seed = init_config.initial_partitioning.seed;
 
     if (config.partition.verbose_output) {
       LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
