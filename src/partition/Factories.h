@@ -85,7 +85,8 @@ using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,
 
 using KWayKMinusOneFactoryExecutor = KFMFactoryExecutor<KWayKMinusOneRefiner>;
 using KWayKMinusOneFactoryDispatcher = StaticDispatcher<KWayKMinusOneFactoryExecutor,
-                                                        Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                        Typelist<AdvancedRandomWalkModelStopsSearch,
+                                                                 NumberOfFruitlessMovesStopsSearch,
                                                                  RandomWalkModelStopsSearch,
                                                                  nGPRandomWalkStopsSearch>,
                                                         Typelist<NullPolicy>,
