@@ -91,13 +91,14 @@ using KWayKMinusOneFactoryDispatcher = StaticDispatcher<KWayKMinusOneFactoryExec
                                                         Typelist<NullPolicy>,
                                                         IRefiner*>;
 
-// using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
-// using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
-//                                                             Typelist<NumberOfFruitlessMovesStopsSearch,
-//                                                                      RandomWalkModelStopsSearch,
-//                                                                      nGPRandomWalkStopsSearch>,
-//                                                             Typelist<NullPolicy>,
-//                                                             IRefiner*>;
+using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
+using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
+                                                            Typelist<NumberOfFruitlessMovesStopsSearch,
+                                                                     AdvancedRandomWalkModelStopsSearch,
+                                                                     RandomWalkModelStopsSearch,
+                                                                     nGPRandomWalkStopsSearch>,
+                                                            Typelist<NullPolicy>,
+                                                            IRefiner*>;
 
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;

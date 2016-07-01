@@ -56,12 +56,12 @@ using partition::TwoWayFMFactoryDispatcher;
 // using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
 using partition::KWayKMinusOneFactoryDispatcher;
-// using partition::MaxGainNodeKWayFMFactoryDispatcher;
+using partition::MaxGainNodeKWayFMFactoryDispatcher;
 using partition::TwoWayFMFactoryExecutor;
 // using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::KWayKMinusOneFactoryExecutor;
-// using partition::MaxGainNodeKWayFMFactoryExecutor;
+using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
 using partition::DoNothingRefiner;
 using partition::IInitialPartitioner;
@@ -549,15 +549,15 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
     TwoWayFMFactoryExecutor(), hypergraph, config);
 });
 
-// static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
-//   RefinementAlgorithm::kway_fm_maxgain,
-//   [](Hypergraph& hypergraph, const Configuration& config) {
-//   return MaxGainNodeKWayFMFactoryDispatcher::go(
-//     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-//       config.local_search.fm.stopping_rule),
-//     NullPolicy(),
-//     MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
-// });
+static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
+  RefinementAlgorithm::kway_fm_maxgain,
+  [](Hypergraph& hypergraph, const Configuration& config) {
+  return MaxGainNodeKWayFMFactoryDispatcher::go(
+    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+      config.local_search.fm.stopping_rule),
+    NullPolicy(),
+    MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
+});
 
 static Registrar<RefinerFactory> reg_kway_fm_local_search(
   RefinementAlgorithm::kway_fm,
