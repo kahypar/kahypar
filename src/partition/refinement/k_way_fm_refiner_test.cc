@@ -87,7 +87,7 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);
 
-  refiner->fullUpdate(0, 0, 1, 0, 42);
+  refiner->fullUpdate(0, 0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
 }  // namespace partition

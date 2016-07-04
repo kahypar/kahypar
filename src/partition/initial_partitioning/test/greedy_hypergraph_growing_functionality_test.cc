@@ -42,7 +42,6 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
   config.partition.k = k;
   config.initial_partitioning.epsilon = 0.05;
   config.partition.epsilon = 0.05;
-  config.initial_partitioning.seed = 1;
   config.initial_partitioning.unassigned_part = 1;
   config.initial_partitioning.refinement = false;
   config.initial_partitioning.upper_allowed_partition_weight.resize(
@@ -66,7 +65,7 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
     config.initial_partitioning.upper_allowed_partition_weight[0];
   config.partition.max_part_weights[1] =
     config.initial_partitioning.upper_allowed_partition_weight[1];
-  Randomize::setSeed(config.initial_partitioning.seed);
+  Randomize::setSeed(config.partition.seed);
 }
 
 class AGreedyHypergraphGrowingFunctionalityTest : public Test {

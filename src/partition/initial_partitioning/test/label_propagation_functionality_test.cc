@@ -32,7 +32,6 @@ void initializeConfiguration(Configuration& config, PartitionID k,
   config.partition.k = k;
   config.initial_partitioning.epsilon = 1.0;
   config.partition.epsilon = 1.0;
-  config.initial_partitioning.seed = 1;
   config.initial_partitioning.refinement = false;
   config.initial_partitioning.upper_allowed_partition_weight.resize(
     config.initial_partitioning.k);

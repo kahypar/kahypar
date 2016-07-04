@@ -84,7 +84,6 @@ class AGreedyQueueSelectionTest : public Test {
     config.partition.k = k;
     config.initial_partitioning.epsilon = 0.05;
     config.partition.epsilon = 0.05;
-    config.initial_partitioning.seed = 1;
     config.initial_partitioning.upper_allowed_partition_weight.resize(k);
     config.initial_partitioning.perfect_balance_partition_weight.resize(k);
     for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
