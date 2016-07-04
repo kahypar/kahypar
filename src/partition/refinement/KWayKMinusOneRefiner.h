@@ -169,11 +169,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     int min_cut_index = -1;
-    int num_moves_since_last_improvement = 0;
+    int touched_hns_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.currentNumNodes());
-    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
                                                               _config, beta, best_metrics.km1,
                                                               current_km1)) {
       Gain max_gain = kInvalidGain;
@@ -213,6 +213,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
       _hg.mark(max_gain_node);
+      ++touched_hns_since_last_improvement;
 
       if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node) <= _config.partition.max_part_weights[0]) {
         // LOG("performed MOVE: " << V(max_gain_node) << V(from_part) << V(to_part));
@@ -248,7 +249,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
         const bool improved_balance_less_equal_km1 = (current_imbalance < best_metrics.imbalance) &&
                                                      (current_km1 <= best_metrics.km1);
 
-        ++num_moves_since_last_improvement;
         if (improved_km1_within_balance || improved_balance_less_equal_km1) {
           DBG(dbg_refinement_kway_kminusone_fm_improvements_balance && max_gain == 0,
               "KWayFM improved balance between " << from_part << " and " << to_part
@@ -259,10 +259,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
           best_metrics.imbalance = current_imbalance;
           _stopping_policy.resetStatistics();
           min_cut_index = _performed_moves.size();
-          num_moves_since_last_improvement = 0;
+          touched_hns_since_last_improvement = 0;
           _gain_cache.resetDelta();
         }
-        _performed_moves.emplace_back(RollbackInfo{ max_gain_node, from_part, to_part });
+        _performed_moves.emplace_back(RollbackInfo { max_gain_node, from_part, to_part });
       } else {
         // If the HN can't be moved to to_part, it locks all its incident
         // HEs in from_part (i.e., from_part becomes unremovable).
@@ -282,7 +282,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     DBG(dbg_refinement_kway_kminusone_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
                                               best_metrics.km1, current_km1)
             == true ? "policy" : "empty queue"));
 

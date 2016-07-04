@@ -160,11 +160,11 @@ class KWayFMRefiner final : public IRefiner,
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     int min_cut_index = -1;
-    int num_moves_since_last_improvement = 0;
+    int touched_hns_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.currentNumNodes());
-    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
                                                               _config, beta, best_metrics.cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
@@ -196,25 +196,25 @@ class KWayFMRefiner final : public IRefiner,
              << " to " << to_part << " is stale!");
 
       // remove all other possible moves of the current max_gain_node
-        for (const PartitionID part : _gain_cache.adjacentParts(max_gain_node)) {
-          if (part == to_part) {
-            continue;
-          }
-          _pq.remove(max_gain_node, part);
+      for (const PartitionID part : _gain_cache.adjacentParts(max_gain_node)) {
+        if (part == to_part) {
+          continue;
         }
-        ASSERT([&]() {
-            for (PartitionID part = 0; part < _config.partition.k; ++part) {
-              if (_pq.contains(max_gain_node, part)) {
-                return false;
-              }
+        _pq.remove(max_gain_node, part);
+      }
+      ASSERT([&]() {
+          for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            if (_pq.contains(max_gain_node, part)) {
+              return false;
             }
-            return true;
-          } (), V(max_gain_node));
+          }
+          return true;
+        } (), V(max_gain_node));
 
-        _hg.mark(max_gain_node);
+      _hg.mark(max_gain_node);
+      ++touched_hns_since_last_improvement;
 
       if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node) <= _config.partition.max_part_weights[0]) {
-
         moveHypernode(max_gain_node, from_part, to_part);
 
         if (_hg.partWeight(to_part) >= _config.partition.max_part_weights[0]) {
@@ -246,8 +246,6 @@ class KWayFMRefiner final : public IRefiner,
                                                  (current_cut < best_metrics.cut);
         const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
                                                      (current_cut <= best_metrics.cut);
-        ++num_moves_since_last_improvement;
-
         // if (current_cut < best_metrics.cut && current_imbalance > _config.partition.epsilon) {
         //   LOG(V(current_cut) << V(best_metrics.cut) << V(current_imbalance));
         // }
@@ -262,15 +260,15 @@ class KWayFMRefiner final : public IRefiner,
           best_metrics.imbalance = current_imbalance;
           _stopping_policy.resetStatistics();
           min_cut_index = _performed_moves.size();
-          num_moves_since_last_improvement = 0;
+          touched_hns_since_last_improvement = 0;
           _gain_cache.resetDelta();
         }
-        _performed_moves.emplace_back(RollbackInfo{max_gain_node, from_part, to_part});
+        _performed_moves.emplace_back(RollbackInfo { max_gain_node, from_part, to_part });
       }
     }
     DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
                                               best_metrics.cut, current_cut)
             == true ? "policy" : "empty queue"));
 
@@ -648,15 +646,15 @@ class KWayFMRefiner final : public IRefiner,
                                               const PartitionID to_part,
                                               const HyperedgeID he)
   noexcept {
-  //   ASSERT([&]() {
-  //       // Only the moved_node is marked
-  //       for (const HypernodeID pin : _hg.pins(he)) {
-  //         if (pin != moved_hn && _hg.marked(pin)) {
-  //           return false;
-  //         }
-  //       }
-  //       return true;
-  //     } (), "Encountered a free HE with more than one marked pins.");
+    //   ASSERT([&]() {
+    //       // Only the moved_node is marked
+    //       for (const HypernodeID pin : _hg.pins(he)) {
+    //         if (pin != moved_hn && _hg.marked(pin)) {
+    //           return false;
+    //         }
+    //       }
+    //       return true;
+    //     } (), "Encountered a free HE with more than one marked pins.");
 
     fullUpdate(moved_hn, from_part, to_part, he);
 

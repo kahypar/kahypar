@@ -18,22 +18,15 @@ struct StoppingPolicy : PolicyBase {
 
 class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  public:
-  bool searchShouldStop(const int, const Configuration& config,
+  bool searchShouldStop(const int num_moves, const Configuration& config,
                         const double, const HyperedgeWeight, const HyperedgeWeight) noexcept {
-    return _num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
+    return num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
   }
 
-  void resetStatistics() noexcept {
-    _num_moves = 0;
-  }
+  void resetStatistics() noexcept {}
 
   template <typename Gain>
-  void updateStatistics(const Gain) noexcept {
-    ++_num_moves;
-  }
-
- private:
-  int _num_moves = 0;
+  void updateStatistics(const Gain) noexcept {}
 };
 
 

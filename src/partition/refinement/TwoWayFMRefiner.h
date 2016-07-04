@@ -208,6 +208,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _hg.resetHypernodeState();
     _he_fully_active.resetAllBitsToFalse();
     _locked_hes.resetUsedEntries();
+    _performed_moves.clear();
 
     // Will always be the case in the first FM pass, since the just uncontracted HN
     // was not seen before.
@@ -259,12 +260,11 @@ class TwoWayFMRefiner final : public IRefiner,
     double current_imbalance = best_metrics.imbalance;
 
     int min_cut_index = -1;
-    int num_moves = 0;
-    int num_moves_since_last_improvement = 0;
+    int touched_hns_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
 
     const double beta = log(_hg.currentNumNodes());
-    while (!_pq.empty() && !_stopping_policy.searchShouldStop(num_moves_since_last_improvement,
+    while (!_pq.empty() && !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
                                                               _config, beta, best_metrics.cut, current_cut)) {
       ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1), "No PQ enabled");
 
@@ -340,15 +340,14 @@ class TwoWayFMRefiner final : public IRefiner,
         updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
       }
 
-      _performed_moves[num_moves] = max_gain_node;
-      ++num_moves;
+      _performed_moves.push_back(max_gain_node);
 
       if (global_rebalancing) {
         const bool part_0_imbalanced = _hg.partWeight(0) > _config.partition.max_part_weights[0];
         const bool part_1_imbalanced = _hg.partWeight(1) > _config.partition.max_part_weights[1];
         if (current_cut < best_metrics.cut && (part_0_imbalanced || part_1_imbalanced)) {
           performRebalancing(part_0_imbalanced, current_cut, current_imbalance,
-                             num_moves, max_allowed_part_weights);
+                             max_allowed_part_weights);
         }
       }
 
@@ -360,7 +359,7 @@ class TwoWayFMRefiner final : public IRefiner,
                                                 <= _config.partition.max_part_weights[1]);
       const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
                                                    (current_cut <= best_metrics.cut);
-      ++num_moves_since_last_improvement;
+      ++touched_hns_since_last_improvement;
       if (improved_cut_within_balance || improved_balance_less_equal_cut) {
         DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
             "2WayFM improved balance between " << from_part << " and " << to_part
@@ -370,15 +369,15 @@ class TwoWayFMRefiner final : public IRefiner,
         best_metrics.cut = current_cut;
         best_metrics.imbalance = current_imbalance;
         _stopping_policy.resetStatistics();
-        min_cut_index = num_moves - 1;
-        num_moves_since_last_improvement = 0;
+        min_cut_index = _performed_moves.size() - 1;
+        touched_hns_since_last_improvement = 0;
         _gain_cache.resetDelta();
       }
     }
 
-    DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << num_moves
+    DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
+        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
                                               best_metrics.cut, current_cut)
             == true ? "policy" : "empty queue"));
 
@@ -387,7 +386,7 @@ class TwoWayFMRefiner final : public IRefiner,
       restoreRebalancePQ();
     }
 
-    rollback(num_moves - 1, min_cut_index);
+    rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta<global_rebalancing>(_rebalance_pqs, _hg);
 
     if (global_rebalancing) {
@@ -423,7 +422,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
 
   void performRebalancing(const bool part_0_imbalanced, HyperedgeWeight& current_cut,
-                          double& current_imbalance, int& num_moves,
+                          double& current_imbalance,
                           const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
     ASSERT(global_rebalancing, "Method should only be called with active global rebalancing.");
     double imbalance_before_move = current_imbalance;
@@ -479,8 +478,7 @@ class TwoWayFMRefiner final : public IRefiner,
       updateNeighboursAfterRebalaceMove(max_gain_node, imbalanced_part, rebalance_to_part,
                                         max_allowed_part_weights);
 
-      _performed_moves[num_moves] = max_gain_node;
-      ++num_moves;
+      _performed_moves.push_back(max_gain_node);
     }
   }
 
