@@ -142,6 +142,7 @@ class KWayFMRefiner final : public IRefiner,
     _hg.resetHypernodeState();
     _he_fully_active.resetAllBitsToFalse();
     _locked_hes.resetUsedEntries();
+    _performed_moves.clear();
 
     Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
@@ -159,7 +160,6 @@ class KWayFMRefiner final : public IRefiner,
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     int min_cut_index = -1;
-    int num_moves = 0;
     int num_moves_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
 
@@ -261,21 +261,20 @@ class KWayFMRefiner final : public IRefiner,
           best_metrics.cut = current_cut;
           best_metrics.imbalance = current_imbalance;
           _stopping_policy.resetStatistics();
-          min_cut_index = num_moves;
+          min_cut_index = _performed_moves.size();
           num_moves_since_last_improvement = 0;
           _gain_cache.resetDelta();
         }
-        _performed_moves[num_moves] = { max_gain_node, from_part, to_part };
-        ++num_moves;
+        _performed_moves.emplace_back(RollbackInfo{max_gain_node, from_part, to_part});
       }
     }
-    DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << num_moves
+    DBG(dbg_refinement_kway_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (_stopping_policy.searchShouldStop(num_moves_since_last_improvement, _config, beta,
                                               best_metrics.cut, current_cut)
             == true ? "policy" : "empty queue"));
 
-    rollback(num_moves - 1, min_cut_index);
+    rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
