@@ -574,7 +574,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     } else {
       const bool move_from_unremovable_to_removable_part =
-        moveFromRemovableToUnRemovablePart(he, from_part, to_part);
+        moveFromUnremovableToRemovablePart(he, from_part, to_part);
 
       if (pin_count_from_part_after_move == 1) {
         for (const HypernodeID pin : _hg.pins(he)) {
@@ -675,7 +675,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
             !_unremovable_he_parts[he * _config.partition.k + to_part]);
   }
 
-  bool moveFromRemovableToUnRemovablePart(const HyperedgeID he, const PartitionID from_part,
+  bool moveFromUnremovableToRemovablePart(const HyperedgeID he, const PartitionID from_part,
                                           const PartitionID to_part) const {
     return _unremovable_he_parts[he * _config.partition.k + from_part] &&
            !_unremovable_he_parts[he * _config.partition.k + to_part];
