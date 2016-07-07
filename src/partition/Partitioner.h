@@ -820,9 +820,9 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& remov
       prefix_work.emplace_back(bin.first, work);
     }
     std::pair<HyperedgeID, double> cutoff = { 0, 0 };
-    for (size_t i = 0; i < prefix_work.size(); ++i) {
-      if (prefix_work[i].second >= config.partition.work_factor * hg.currentNumPins()) {
-        cutoff = prefix_work[i];
+    for (const auto& work : prefix_work) {
+      if (work.second >= config.partition.work_factor * hg.currentNumPins()) {
+        cutoff = work;
         break;
       }
     }
