@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <limits>
+#include <map>
 #include <memory>
 #include <random>
 #include <stack>
@@ -132,6 +133,10 @@ class Partitioner {
   inline void removeLargeHyperedges(Hypergraph& hg,
                                     Hyperedges& removed_hyperedges, const Configuration& config);
   inline void restoreLargeHyperedges(Hypergraph& hg, const Hyperedges& removed_hyperedges);
+
+  inline void removeHyperedgesLargerThan(Hypergraph& hg, Hyperedges& removed_hyperedges,
+                                         const HypernodeID threshold);
+
   inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                                    CoarsenedToHmetisMapping& hg_to_hmetis,
                                                    const Hypergraph& hg);
@@ -195,6 +200,9 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   config.partition.epsilon = init_alpha * original_config.partition.epsilon;
   config.partition.collect_stats = false;
   config.partition.global_search_iterations = 0;
+
+  // no more removal of large HEs
+  config.partition.work_factor = std::numeric_limits<double>::max();
 
   config.initial_partitioning.k = config.partition.k;
   config.initial_partitioning.epsilon = init_alpha * original_config.partition.epsilon;
@@ -783,19 +791,47 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
   }
 }
 
+inline void Partitioner::removeHyperedgesLargerThan(Hypergraph& hg, Hyperedges& removed_hyperedges,
+                                                    const HypernodeID threshold) {
+  for (const HyperedgeID he : hg.edges()) {
+    if (hg.edgeSize(he) > threshold) {
+      DBG(dbg_partition_large_he_removal,
+          "Hyperedge " << he << ": size (" << hg.edgeSize(he) << ")   exceeds threshold: "
+          << threshold);
+      removed_hyperedges.push_back(he);
+      hg.removeEdge(he, false);
+    }
+  }
+}
+
 inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
                                                const Configuration& config) {
-  if (config.partition.hyperedge_size_threshold
-      != std::numeric_limits<HyperedgeID>::max()) {
+  if (config.partition.work_factor != std::numeric_limits<double>::max()) {
+    std::map<HypernodeID, HypernodeID> histogram;
     for (const HyperedgeID he : hg.edges()) {
-      if (hg.edgeSize(he) > config.partition.hyperedge_size_threshold) {
-        DBG(dbg_partition_large_he_removal,
-            "Hyperedge " << he << ": size (" << hg.edgeSize(he) << ")   exceeds threshold: "
-            << config.partition.hyperedge_size_threshold);
-        removed_hyperedges.push_back(he);
-        hg.removeEdge(he, false);
+      const HypernodeID he_size = hg.edgeSize(he);
+      histogram[he_size] += he_size * he_size;
+    }
+
+    double work = 0;
+    std::vector<std::pair<HyperedgeID, double> > prefix_work;
+    for (const auto& bin : histogram) {
+      work += bin.second;
+      prefix_work.emplace_back(bin.first, work);
+    }
+    std::pair<HyperedgeID, double> cutoff = { 0, 0 };
+    for (size_t i = 0; i < prefix_work.size(); ++i) {
+      if (prefix_work[i].second >= config.partition.work_factor * hg.currentNumPins()) {
+        cutoff = prefix_work[i];
+        break;
       }
     }
+    LOG("cutoff size = " << cutoff.first << V(cutoff.second));
+    removeHyperedgesLargerThan(hg, removed_hyperedges, cutoff.first);
+  }
+
+  if (config.partition.hyperedge_size_threshold != std::numeric_limits<HyperedgeID>::max()) {
+    removeHyperedgesLargerThan(hg, removed_hyperedges, config.partition.hyperedge_size_threshold);
   }
 
   // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore

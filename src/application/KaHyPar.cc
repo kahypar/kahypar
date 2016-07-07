@@ -294,12 +294,15 @@ void configurePartitionerFromCommandLineInput(Configuration& config,
     }
 
     if (vm.count("init-remove-hes")) {
-      config.partition.initial_parallel_he_removal =
-        vm["init-remove-hes"].as<bool>();
+      config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
     }
+
+    if (vm.count("work-factor")) {
+      config.partition.work_factor = vm["work-factor"].as<double>();
+    }
+
     if (vm.count("remove-always-cut-hes")) {
-      config.partition.remove_hes_that_always_will_be_cut =
-        vm["remove-always-cut-hes"].as<bool>();
+      config.partition.remove_hes_that_always_will_be_cut = vm["remove-always-cut-hes"].as<bool>();
     }
 
     if (vm.count("ip")) {
@@ -737,6 +740,7 @@ int main(int argc, char* argv[]) {
     ("ip-ls-reps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
     ("vcycles", po::value<int>(), "# v-cycle iterations")
     ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
+    ("work-factor", po::value<double>(), "Any hyperedges incurring more than work-factor * |pins| work will be removed")
     ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
     ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
     ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
