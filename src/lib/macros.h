@@ -37,7 +37,7 @@
 #define LOG(X) DBG(true, X)
 #define LOGVAR(X) DBGVAR(true, X)
 
-#define V(X) #X << "=" << X << " "
+#define V(X) " " << #X << "=" << X << " "
 
 #ifdef USE_ASSERTIONS
   #define ASSERT(cond, msg)                            \
