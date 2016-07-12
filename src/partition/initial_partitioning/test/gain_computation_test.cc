@@ -37,7 +37,8 @@ class AGainComputationPolicy : public Test {
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
+    config(),
+    visit(hypergraph.initialNumNodes(), false) {
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
@@ -59,20 +60,13 @@ class AGainComputationPolicy : public Test {
     }
 
     if (push) {
-      pq.insert(0, 1,
-                GainComputationPolicy::calculateGain(hypergraph, 0, 1));
-      pq.insert(1, 1,
-                GainComputationPolicy::calculateGain(hypergraph, 1, 1));
-      pq.insert(2, 1,
-                GainComputationPolicy::calculateGain(hypergraph, 2, 1));
-      pq.insert(3, 0,
-                GainComputationPolicy::calculateGain(hypergraph, 3, 0));
-      pq.insert(4, 0,
-                GainComputationPolicy::calculateGain(hypergraph, 4, 0));
-      pq.insert(5, 0,
-                GainComputationPolicy::calculateGain(hypergraph, 5, 0));
-      pq.insert(6, 0,
-                GainComputationPolicy::calculateGain(hypergraph, 6, 0));
+      pq.insert(0, 1, GainComputationPolicy::calculateGain(hypergraph, 0, 1, visit));
+      pq.insert(1, 1, GainComputationPolicy::calculateGain(hypergraph, 1, 1, visit));
+      pq.insert(2, 1, GainComputationPolicy::calculateGain(hypergraph, 2, 1, visit));
+      pq.insert(3, 0, GainComputationPolicy::calculateGain(hypergraph, 3, 0, visit));
+      pq.insert(4, 0, GainComputationPolicy::calculateGain(hypergraph, 4, 0, visit));
+      pq.insert(5, 0, GainComputationPolicy::calculateGain(hypergraph, 5, 0, visit));
+      pq.insert(6, 0, GainComputationPolicy::calculateGain(hypergraph, 6, 0, visit));
     }
   }
 
@@ -94,17 +88,18 @@ class AGainComputationPolicy : public Test {
   KWayRefinementPQ pq;
   Hypergraph hypergraph;
   Configuration config;
+  FastResetBitVector<> visit;
 };
 
 TEST_F(AGainComputationPolicy, ComputesCorrectFMGains) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>(true, false);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 1), -1);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 1, 1), 0);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 2, 1), 0);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 3, 0), -1);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 4, 0), -1);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 5, 0), 0);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 6, 0), -1);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 1, visit), -1);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 1, 1, visit), 0);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 2, 1, visit), 0);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 3, 0, visit), -1);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 4, 0, visit), -1);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 5, 0, visit), 0);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 6, 0, visit), -1);
 }
 
 TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
@@ -164,19 +159,19 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
 TEST_F(AGainComputationPolicy, ComputesCorrectZeroGainForMovesToSameBlock) {
   pushAllHypernodesIntoQueue<FMGainComputationPolicy>(true, false);
-  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 0), 0);
+  ASSERT_EQ(FMGainComputationPolicy::calculateGain(hypergraph, 0, 0, visit), 0);
 }
 
 
 TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinGains) {
   pushAllHypernodesIntoQueue<MaxPinGainComputationPolicy>(true, false);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 0, 1), 2);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 1, 1), 2);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 2, 1), 2);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 3, 0), 2);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 4, 0), 2);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 5, 0), 1);
-  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 6, 0), 1);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 0, 1, visit), 2);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 1, 1, visit), 2);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 2, 1, visit), 2);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 3, 0, visit), 2);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 4, 0, visit), 2);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 5, 0, visit), 1);
+  ASSERT_EQ(MaxPinGainComputationPolicy::calculateGain(hypergraph, 6, 0, visit), 1);
 }
 
 TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
@@ -197,13 +192,13 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
 
 TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetGainGains) {
   pushAllHypernodesIntoQueue<MaxNetGainComputationPolicy>(true, false);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 0, 1), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 1, 1), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 2, 1), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 3, 0), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 4, 0), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 5, 0), 1);
-  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 6, 0), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 0, 1, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 1, 1, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 2, 1, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 3, 0, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 4, 0, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 5, 0, visit), 1);
+  ASSERT_EQ(MaxNetGainComputationPolicy::calculateGain(hypergraph, 6, 0, visit), 1);
 }
 
 TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {

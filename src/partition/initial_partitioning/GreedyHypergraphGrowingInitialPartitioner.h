@@ -115,8 +115,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         // Every part is disabled and the upper weight bound is released
         // to finish initial partitioning
         if (!is_upper_bound_released) {
-          InitialPartitionerBase::recalculateBalanceConstraints(
-            _config.initial_partitioning.epsilon);
+          InitialPartitionerBase::recalculateBalanceConstraints(_config.initial_partitioning.epsilon);
           is_upper_bound_released = true;
           for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
             if (part != _config.initial_partitioning.unassigned_part && !_pq.isEnabled(part) &&
@@ -209,8 +208,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
       while (hn != kInvalidNode) {
         if (_hg.partID(hn) == -1) {
-          const Gain gain0 = GainComputation::calculateGain(_hg, hn, 0);
-          const Gain gain1 = GainComputation::calculateGain(_hg, hn, 1);
+          const Gain gain0 = GainComputation::calculateGain(_hg, hn, 0, _visit);
+          const Gain gain1 = GainComputation::calculateGain(_hg, hn, 1, _visit);
           if (gain0 > gain1) {
             _hg.setNodePart(hn, 0);
           } else {
@@ -244,7 +243,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // into the corresponding PQ again
     if (_hg.partID(hn) != target_part) {
       if (!_pq.contains(hn, target_part)) {
-        const Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
+        const Gain gain = GainComputation::calculateGain(_hg, hn, target_part, _visit);
         _pq.insert(hn, target_part, gain);
 
         if (!_pq.isEnabled(target_part) &&
@@ -257,7 +256,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         ASSERT(_pq.isEnabled(target_part),
                "PQ " << target_part << " is disabled!");
       } else if (updateGain) {
-        const Gain gain = GainComputation::calculateGain(_hg, hn, target_part);
+        const Gain gain = GainComputation::calculateGain(_hg, hn, target_part, _visit);
         _pq.updateKey(hn, target_part, gain);
       }
     }

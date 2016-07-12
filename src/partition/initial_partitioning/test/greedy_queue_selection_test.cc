@@ -38,7 +38,12 @@ class AGreedyQueueSelectionTest : public Test {
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(), current_id(0), current_hn(-1), current_gain(-1), is_upper_bound_released(false) {
+    config(),
+    current_id(0),
+    current_hn(-1),
+    current_gain(-1),
+    is_upper_bound_released(false),
+    visit(hypergraph.initialNumNodes(), false) {
     PartitionID k = 4;
     pq.initialize(hypergraph.initialNumNodes());
     initializeConfiguration(k);
@@ -73,7 +78,7 @@ class AGreedyQueueSelectionTest : public Test {
 
   template <class GainComputationPolicy>
   void insertHypernodeIntoPQ(HypernodeID hn, PartitionID part) {
-    pq.insert(hn, part, GainComputationPolicy::calculateGain(hypergraph, hn, part));
+    pq.insert(hn, part, GainComputationPolicy::calculateGain(hypergraph, hn, part, visit));
     if (!pq.isEnabled(part)) {
       pq.enablePart(part);
     }
@@ -106,6 +111,7 @@ class AGreedyQueueSelectionTest : public Test {
   HypernodeID current_hn;
   Gain current_gain;
   bool is_upper_bound_released;
+  FastResetBitVector<> visit;
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
