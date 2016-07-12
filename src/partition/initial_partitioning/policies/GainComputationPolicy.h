@@ -211,13 +211,15 @@ struct MaxPinGainComputationPolicy {
                                    FastResetBitVector<>& visit) noexcept {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
-      for (const HypernodeID pin : hg.pins(he)) {
-        if (!visit[pin]) {
-          if (hg.partID(pin) == target_part) {
-            gain += hg.nodeWeight(pin);
+      if (hg.pinCountInPart(he, target_part) > 0) {
+        for (const HypernodeID pin : hg.pins(he)) {
+          if (!visit[pin]) {
+            if (hg.partID(pin) == target_part) {
+              gain += hg.nodeWeight(pin);
+            }
           }
+          visit.setBit(pin, true);
         }
-        visit.setBit(pin, true);
       }
     }
     visit.resetAllBitsToFalse();
