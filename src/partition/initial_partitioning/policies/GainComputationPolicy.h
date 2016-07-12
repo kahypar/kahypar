@@ -38,7 +38,8 @@ enum class GainType : std::uint8_t {
 };
 
 struct FMGainComputationPolicy {
-  static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
+  static inline Gain calculateGain(const Hypergraph& hg,
+                                   const HypernodeID& hn,
                                    const PartitionID& target_part) noexcept {
     const PartitionID source_part = hg.partID(hn);
     if (target_part == source_part) {
@@ -61,71 +62,140 @@ struct FMGainComputationPolicy {
     return gain;
   }
 
-  static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& config,
-                                     KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
-                                     PartitionID to, FastResetBitVector<>& UNUSED(visit)) {
+  static inline void deltaGainUpdateForUnassignedFromPart(Hypergraph& _hg,
+                                                          const Configuration& config,
+                                                          KWayRefinementPQ& pq,
+                                                          const HypernodeID hn,
+                                                          const PartitionID from,
+                                                          const PartitionID to) {
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-      HypernodeID pin_count_in_source_part_before = 0;
-      if (from != -1) {
-        pin_count_in_source_part_before = _hg.pinCountInPart(he, from) + 1;
-      }
-      HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he, to);
+      const HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he, to);
       const PartitionID connectivity = _hg.connectivity(he);
+      const HypernodeID he_size = _hg.edgeSize(he);
 
-      for (const HypernodeID node : _hg.pins(he)) {
-        if (node != hn) {
-          if (from == -1 && pin_count_in_target_part_after == 1 && connectivity == 1) {
-            for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-              if (i != to && pq.contains(node, i)) {
-                pq.updateKeyBy(node, i, -_hg.edgeWeight(he));
-              }
+      if (pin_count_in_target_part_after == 1) {
+         switch (connectivity) {
+           case 1: {
+             const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+             for (const HypernodeID node : _hg.pins(he)) {
+               if (node == hn) continue;
+               for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+                 if (i != to && pq.contains(node, i)) {
+                   pq.updateKeyBy(node, i, -he_weight);
+                 }
+               }
+             }
+             break;
+           }
+           case 2: {
+             const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+             for (const HypernodeID node : _hg.pins(he)) {
+               if (node == hn) continue;
+               for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+                 if (pq.contains(node, i) && (i == to || _hg.pinCountInPart(he,i) == 0)) {
+                   pq.updateKeyBy(node, i, he_weight);
+                 }
+               }
+             }
+              break;
+           }
+         }
+      }
+      if (connectivity == 2 && pin_count_in_target_part_after == he_size - 1) {
+        const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          if (_hg.partID(node) != to && pq.contains(node, to)) {
+            pq.updateKeyBy(node, to, he_weight);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  static inline void deltaGainUpdateforAssignedPart(Hypergraph& _hg,
+                                                    const Configuration& config,
+                                                    KWayRefinementPQ& pq,
+                                                    const HypernodeID hn,
+                                                    const PartitionID from,
+                                                    const PartitionID to) {
+    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+      const HypernodeID pin_count_in_source_part_before = _hg.pinCountInPart(he, from) + 1;
+      const HypernodeID pin_count_in_target_part_after = _hg.pinCountInPart(he, to);
+      const PartitionID connectivity = _hg.connectivity(he);
+      const HypernodeID he_size = _hg.edgeSize(he);
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
+
+      if (pin_count_in_target_part_after == he_size) {
+        // Update pin of a HE that is removed from the cut.
+        ASSERT(connectivity == 1, V(connectivity));
+        ASSERT(pin_count_in_source_part_before == 1, V(pin_count_in_source_part_before));
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+            if (i != to && pq.contains(node, i)) {
+              pq.updateKeyBy(node, i, -he_weight);
             }
           }
-
-          if (from == -1 && pin_count_in_target_part_after == 1 && connectivity == 2) {
-            for (const PartitionID i : _hg.connectivitySet(he)) {
-              if (i != to && pq.contains(node, i)) {
-                pq.updateKeyBy(node, i, -_hg.edgeWeight(he));
-              }
-            }
-            for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-              if (pq.contains(node, i)) {
-                pq.updateKeyBy(node, i, _hg.edgeWeight(he));
-              }
-            }
-          }
-
-          if (connectivity == 2 && pin_count_in_target_part_after == 1 &&
-              pin_count_in_source_part_before > 1) {
-            for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-              if (i != from && pq.contains(node, i)) {
-                pq.updateKeyBy(node, i, _hg.edgeWeight(he));
-              }
-            }
-          }
-
-          if (connectivity == 1 && pin_count_in_source_part_before == 1) {
-            for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-              if (i != to && pq.contains(node, i)) {
-                pq.updateKeyBy(node, i, -_hg.edgeWeight(he));
-              }
-            }
-          }
-
-          if (pin_count_in_target_part_after == _hg.edgeSize(he) - 1 &&
-              connectivity == 2) {
-            if (_hg.partID(node) != to && pq.contains(node, to)) {
-              pq.updateKeyBy(node, to, _hg.edgeWeight(he));
-            }
-          }
-
-          if (pin_count_in_source_part_before == _hg.edgeSize(he) - 1) {
-            if (_hg.partID(node) != from && pq.contains(node, from)) {
-              pq.updateKeyBy(node, from, -_hg.edgeWeight(he));
+        }
+      } else if(pin_count_in_source_part_before == he_size){
+        // Update pin of a HE that is not cut before applying the move.
+        ASSERT(connectivity == 2, V(connectivity));
+        ASSERT(pin_count_in_target_part_after ==1, V(pin_count_in_target_part_after));
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+            if (i != from && pq.contains(node, i)) {
+              pq.updateKeyBy(node, i, he_weight);
             }
           }
         }
       }
+
+      if (he_size == 3 && pin_count_in_target_part_after == he_size - 1 &&
+          pin_count_in_source_part_before == he_size - 1) {
+        // special case for HEs with 3 pins
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          if (_hg.partID(node) != to && pq.contains(node, to)) {
+            pq.updateKeyBy(node, to, he_weight);
+          }
+          if (_hg.partID(node) != from && pq.contains(node, from)) {
+            pq.updateKeyBy(node, from, -he_weight);
+          }
+        }
+      } else if (pin_count_in_target_part_after == he_size - 1) {
+        // Update single pin that remains outside of to_part after applying the move
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          if (_hg.partID(node) != to && pq.contains(node, to)) {
+            pq.updateKeyBy(node, to, he_weight);
+            break;
+          }
+        }
+      } else if (pin_count_in_source_part_before == he_size - 1) {
+        // Update single pin that was outside from_part before applying the move.
+        for (const HypernodeID node : _hg.pins(he)) {
+          if (node == hn) continue;
+          if (_hg.partID(node) != from && pq.contains(node, from)) {
+            pq.updateKeyBy(node, from, -he_weight);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+
+  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& config,
+                                     KWayRefinementPQ& pq, const HypernodeID hn,
+                                     const PartitionID from, const PartitionID to,
+                                     FastResetBitVector<>& UNUSED(visit)) {
+    if (from == -1) {
+      deltaGainUpdateForUnassignedFromPart(hg,config, pq, hn, from, to);
+    } else {
+      deltaGainUpdateforAssignedPart(hg,config, pq, hn, from, to);
     }
   }
 
@@ -136,8 +206,8 @@ struct FMGainComputationPolicy {
 
 
 struct MaxPinGainComputationPolicy {
-  static inline Gain calculateGain(const Hypergraph& hg,
-                                   const HypernodeID& hn, const PartitionID& target_part) noexcept {
+  static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
+                                   const PartitionID& target_part) noexcept {
     Gain gain = 0;
     std::set<HypernodeID> target_part_pins;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
@@ -153,9 +223,11 @@ struct MaxPinGainComputationPolicy {
     return gain;
   }
 
-  static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& UNUSED(config),
-                                     KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
-                                     PartitionID to, FastResetBitVector<>& visit) {
+  static inline void deltaGainUpdate(Hypergraph& _hg, const Configuration& UNUSED(config),
+                                     KWayRefinementPQ& pq,
+                                     const HypernodeID hn,
+                                     const PartitionID from,
+                                     const PartitionID to, FastResetBitVector<>& visit) {
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!visit[pin]) {
@@ -169,7 +241,7 @@ struct MaxPinGainComputationPolicy {
             }
           }
           visit.setBit(pin, true);
-        }
+      }
       }
     }
 
@@ -182,8 +254,8 @@ struct MaxPinGainComputationPolicy {
 };
 
 struct MaxNetGainComputationPolicy {
-  static inline Gain calculateGain(const Hypergraph& hg,
-                                   const HypernodeID& hn, const PartitionID& target_part) noexcept {
+  static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
+                                   const PartitionID& target_part) noexcept {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
@@ -193,9 +265,10 @@ struct MaxNetGainComputationPolicy {
     return gain;
   }
 
-  static inline void deltaGainUpdate(Hypergraph& _hg, Configuration& UNUSED(config),
-                                     KWayRefinementPQ& pq, HypernodeID hn, PartitionID from,
-                                     PartitionID to, FastResetBitVector<>& UNUSED(visit)) {
+  static inline void deltaGainUpdate(Hypergraph& _hg, const Configuration& UNUSED(config),
+                                     KWayRefinementPQ& pq,
+                                     const HypernodeID hn, const PartitionID from,
+                                     const PartitionID to, FastResetBitVector<>& UNUSED(visit)) {
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       Gain pins_in_source_part = -1;
       if (from != -1) {
