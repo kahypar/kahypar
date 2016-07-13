@@ -533,9 +533,11 @@ class LPRefiner final : public IRefiner {
                V(hn) << V(part));
       }
     }
+#ifndef NDEBUG
     for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
       ASSERT(adjacent_parts[part], V(part));
     }
+#endif
   }
 
   GainPartitionPair computeMaxGainMove(const HypernodeID& hn) noexcept {

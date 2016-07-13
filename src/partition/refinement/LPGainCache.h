@@ -63,7 +63,7 @@ namespace partition {
   }
 
  friend std::ostream& operator<< (std::ostream& str, const GGain& lhs) {
-   return str;
+   return str << V(lhs.cut) << V(lhs.km1);
  }
 
   };
