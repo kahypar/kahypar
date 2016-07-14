@@ -194,6 +194,16 @@ class KWayKMinusOneRefiner final : public IRefiner,
       ASSERT(hypernodeIsConnectedToPart(max_gain_node, to_part),
              "Move of HN " << max_gain_node << " from " << from_part
              << " to " << to_part << " is stale!");
+      // Active nodes cannot be incident only to HEs larger than the threshold, because these
+      // should never be activated.
+      ASSERT([&]() {
+          for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
+            if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+              return true;
+            }
+          }
+          return false;
+        } (), "HE threshold violated for " << V(max_gain_node));
 
       // remove all other possible moves of the current max_gain_node
       for (const PartitionID part : _gain_cache.adjacentParts(max_gain_node)) {
@@ -271,9 +281,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
         // all remaining border nodes, since HEs with unremovable parts do not
         // automatically trigger new activations.
         for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (!_hg.marked(pin) && !_hg.active(pin) && _hg.isBorderNode(pin)) {
-              activate(pin);
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              if (!_hg.marked(pin) && !_hg.active(pin) && _hg.isBorderNode(pin)) {
+                activate(pin);
+              }
             }
           }
           _unremovable_he_parts.setBit(he * _config.partition.k + from_part, 1);
@@ -422,7 +434,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
       ASSERT(_hg.connectivity(he) >= 2, V(_hg.connectivity(he)));
-      DBG(dbg_refinement_kway_kminusone_gain_caching && hn_to_debug == pin,
+      DBG(dbg_refinement_kway_kminusone_gain_caching && hn_to_debug == 8498,
           "adding cache entry for HN " << pin << " part=" << to_part << " gain=");
       _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part,
                                                     gainInducedByHypergraph(pin, to_part));
@@ -498,7 +510,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
       if (!_hg.marked(pin)) {
         ASSERT(pin != moved_hn, V(pin));
         if (!_hg.active(pin)) {
-          _hns_to_activate.push_back(pin);
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            _hns_to_activate.push_back(pin);
+          }
         } else {
           if (!_hg.isBorderNode(pin)) {
             removeHypernodeMovementsFromPQ(pin);
@@ -549,7 +563,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
           if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
             removeHypernodeMovementsFromPQ(pin);
           } else if (move_increased_connectivity && !_hg.active(pin)) {
-            _hns_to_activate.push_back(pin);
+            if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+              _hns_to_activate.push_back(pin);
+            }
           } else if (_hg.active(pin)) {
             connectivityUpdate(pin, from_part, to_part, he,
                                move_decreased_connectivity,
@@ -583,9 +599,14 @@ class KWayKMinusOneRefiner final : public IRefiner,
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
                                            pin_state);
               break;
-            } else if (!move_from_unremovable_to_removable_part && _hg.active(pin)) {
-              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                            pin_state);
+            } else if (!move_from_unremovable_to_removable_part) {
+              if (_hg.active(pin)) {
+                deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                              pin_state);
+              } else {
+                deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                             pin_state);
+              }
               break;
             }
           }
@@ -594,15 +615,20 @@ class KWayKMinusOneRefiner final : public IRefiner,
       if (pin_count_to_part_after_move == 2) {
         for (const HypernodeID pin : _hg.pins(he)) {
           if (_hg.partID(pin) == to_part) {
-            if (!move_from_unremovable_to_removable_part && pin != moved_hn && _hg.marked(pin)) {
+            if (!move_from_unremovable_to_removable_part && pin != moved_hn && (_hg.marked(pin) || !_hg.active(pin))) {
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
                                            pin_state);
               break;
-            } else if (move_from_unremovable_to_removable_part && _hg.active(pin)) {
-              ASSERT(!_hg.marked(pin), V(pin));
-              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                            pin_state);
-              break;
+            } else if (move_from_unremovable_to_removable_part) {
+              if (_hg.active(pin)) {
+                ASSERT(!_hg.marked(pin), V(pin));
+                deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                              pin_state);
+                break;
+              } else if (!_hg.marked(pin)) {
+                deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                             pin_state);
+              }
             }
           }
         }
@@ -792,6 +818,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   // if it is not in the PQ then either the HN has already been marked as moved
                   // or we currently look at the source partition of pin.
                   valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin));
+                  valid = valid || _hg.edgeSize(he) > _config.partition.hyperedge_size_threshold;
                   if (!valid) {
                     LOG("HN " << pin << " not in PQ but also not marked");
                     LOG("gain=" << gainInducedByHypergraph(pin, part));
@@ -1012,7 +1039,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)));
+               V(gainInducedByHypergraph(hn, part)) << V(_hg.partID(hn)));
         ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
       } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
