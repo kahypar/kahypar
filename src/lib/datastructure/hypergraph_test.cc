@@ -847,6 +847,39 @@ TEST_F(AHypergraph, SupportsIsolationOfHypernodes) {
 
 }
 
+TEST_F(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation) {
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
+  ASSERT_THAT(!hypergraph.hyperedge(0).isDisabled(), Eq(true));
+
+  hypergraph.isolateNode(0);
+  hypergraph.isolateNode(2);
+
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
+  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(true));
+}
+
+TEST_F(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes) {
+  ASSERT_THAT(*hypergraph.pins(0).first, Eq(0));
+  ASSERT_THAT(*(hypergraph.pins(0).first + 1), Eq(2));
+  const HyperedgeID old_degree_0 = hypergraph.isolateNode(0);
+  const HyperedgeID old_degree_2 = hypergraph.isolateNode(2);
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
+  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(true));
+
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 0);
+  // reverse order!
+  hypergraph.reconnectIsolatedNode(2, old_degree_2);
+  hypergraph.reconnectIsolatedNode(0, old_degree_0);
+
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
+  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(false));
+  ASSERT_THAT(*hypergraph.pins(0).first, Eq(2));
+  ASSERT_THAT(*(hypergraph.pins(0).first + 1), Eq(0));
+}
+
+
 TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
   const HyperedgeID old_degree = hypergraph.isolateNode(0);
   ASSERT_THAT(hypergraph.nodeDegree(0), Eq(0));

@@ -933,12 +933,16 @@ class GenericHypergraph {
   // This operation can be undone after partitioning using reconnectIsolatedNode.
   HyperedgeID isolateNode(const HypernodeID u) noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
-    for (const HyperedgeID e : incidentEdges(u)) {
-      removeInternalEdge(e, u, _hyperedges);
+    for (const HyperedgeID he : incidentEdges(u)) {
+      removeInternalEdge(he, u, _hyperedges);
       if (partID(u) != kInvalidPartition) {
-        decreasePinCountInPart(e, partID(u));
+        decreasePinCountInPart(he, partID(u));
       }
       --_current_num_pins;
+      if (edgeSize(he) == 0) {
+        hyperedge(he).disable();
+        --_current_num_hyperedges;
+      }
     }
     const HyperedgeID degree = hypernode(u).size();
     hypernode(u).setSize(0);
@@ -956,6 +960,10 @@ class GenericHypergraph {
              "HN " << u << " is already connected to HE " << he);
       ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry()] == u,
              V(_incidence_array[hyperedge(he).firstInvalidEntry()]) << V(u));
+      if (hyperedge(he).isDisabled()) {
+        hyperedge(he).enable();
+        ++_current_num_hyperedges;
+      }
       hyperedge(he).increaseSize();
       ASSERT(partID(u) != kInvalidPartition, V(kInvalidPartition));
       increasePinCountInPart(he, partID(u));
@@ -1319,6 +1327,8 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, CalculatesPinCountsOfAHyperedge);
   FRIEND_TEST(APartitionedHypergraph, StoresPartitionPinCountsForHyperedges);
   FRIEND_TEST(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation);
+  FRIEND_TEST(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation);
+  FRIEND_TEST(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes);
 
   GenericHypergraph() noexcept :
     _num_hypernodes(0),
