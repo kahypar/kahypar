@@ -298,7 +298,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           for (const HypernodeID pin : _hg.pins(he)) {
             for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
               if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
-                const Gain gain = GainComputation::calculateGain(_hg, pin, i);
+                const Gain gain = GainComputation::calculateGain(_hg, pin, i, _visit);
                 if (gain != _pq.key(pin, i)) {
                   return false;
                 }
