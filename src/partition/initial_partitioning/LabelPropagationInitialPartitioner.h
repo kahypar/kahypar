@@ -64,7 +64,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                             static_cast<int>(_hg.initialNumNodes()
                                                              / _config.initial_partitioning.k)), 1);
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _hg,
+    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg,
                                             _config.initial_partitioning.k);
     for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
@@ -343,10 +343,12 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _hg.setNodePart(node, p);
         ++assigned_nodes;
         for (const HyperedgeID he : _hg.incidentEdges(node)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
-              _bfs_queue.push(pin);
-              _in_queue.setBit(pin, true);
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
+                _bfs_queue.push(pin);
+                _in_queue.setBit(pin, true);
+              }
             }
           }
         }
