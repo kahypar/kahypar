@@ -826,4 +826,45 @@ TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
   ASSERT_THAT(hypergraph.isBorderNode(5), Eq(false));
   ASSERT_THAT(hypergraph.isBorderNode(6), Eq(true));
 }
+
+TEST_F(AHypergraph, SupportsIsolationOfHypernodes) {
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
+
+  const HyperedgeID old_degree = hypergraph.isolateNode(0);
+
+  ASSERT_THAT(old_degree, Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(0));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(1));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(3));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
+  ASSERT_THAT(std::find(hypergraph.pins(0).first, hypergraph.pins(0).second, 0) ==
+              hypergraph.pins(0).second, Eq(true));
+  ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) ==
+              hypergraph.pins(1).second, Eq(true));
+
+}
+
+TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
+  const HyperedgeID old_degree = hypergraph.isolateNode(0);
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(0));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(1));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(3));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
+
+  hypergraph.setNodePart(0, 0);
+  hypergraph.reconnectIsolatedNode(0, old_degree);
+
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
+  ASSERT_THAT(std::find(hypergraph.pins(0).first, hypergraph.pins(0).second, 0) !=
+              hypergraph.pins(0).second, Eq(true));
+  ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) !=
+              hypergraph.pins(1).second, Eq(true));
+}
+
 }  // namespace datastructure

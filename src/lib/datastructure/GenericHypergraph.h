@@ -928,6 +928,41 @@ class GenericHypergraph {
     --_current_num_hypernodes;
   }
 
+  // In order to remove high degree vertices from the hypergraph, a hypernode can
+  // be isolated, i.e., it can be removed from all of its incident hyperedges.
+  // This operation can be undone after partitioning using reconnectIsolatedNode.
+  HyperedgeID isolateNode(const HypernodeID u) noexcept {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
+    for (const HyperedgeID e : incidentEdges(u)) {
+      removeInternalEdge(e, u, _hyperedges);
+      if (partID(u) != kInvalidPartition) {
+        decreasePinCountInPart(e, partID(u));
+      }
+      --_current_num_pins;
+    }
+    const HyperedgeID degree = hypernode(u).size();
+    hypernode(u).setSize(0);
+    return degree;
+  }
+
+  void reconnectIsolatedNode(const HypernodeID u, const HyperedgeID old_degree) {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
+    ASSERT(hypernode(u).size() == 0, V(hypernode(u).size()));
+    hypernode(u).setSize(old_degree);
+    for (const HyperedgeID he : incidentEdges(u)) {
+      ASSERT(std::count(_incidence_array.begin() + hyperedge(he).firstEntry(),
+                        _incidence_array.begin() + hyperedge(he).firstInvalidEntry(), u)
+             == 0,
+             "HN " << u << " is already connected to HE " << he);
+      ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry()] == u,
+             V(_incidence_array[hyperedge(he).firstInvalidEntry()]) << V(u));
+      hyperedge(he).increaseSize();
+      ASSERT(partID(u) != kInvalidPartition, V(kInvalidPartition));
+      increasePinCountInPart(he, partID(u));
+      ++_current_num_pins;
+    }
+  }
+
   // Deleting a hyperedge amounts to removing the undirected internal edge between
   // the hypernode vertex and each of its incident hyperedge vertices as well as
   // disabling the hypernode vertex itself.
