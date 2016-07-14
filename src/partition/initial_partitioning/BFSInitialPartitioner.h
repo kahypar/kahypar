@@ -48,11 +48,13 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     const PartitionID part = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       if (!_hyperedge_in_queue[part * _hg.initialNumEdges() + he]) {
-        for (const HypernodeID pin : _hg.pins(he)) {
-          if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
-              !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
-            q.push(pin);
-            _hypernode_in_queue.setBit(part * _hg.initialNumNodes() + pin, true);
+        if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+          for (const HypernodeID pin : _hg.pins(he)) {
+            if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
+                !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
+              q.push(pin);
+              _hypernode_in_queue.setBit(part * _hg.initialNumNodes() + pin, true);
+            }
           }
         }
         _hyperedge_in_queue.setBit(part * _hg.initialNumEdges() + he, true);
@@ -61,10 +63,12 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
-                !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
-              return false;
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
+                  !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
+                return false;
+              }
             }
           }
         }
@@ -103,7 +107,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     // Calculate Startnodes and push them into the queues.
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _hg, _config.initial_partitioning.k);
+    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg, _config.initial_partitioning.k);
     for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.setBit(k * _hg.initialNumNodes() + startNodes[k], true);
