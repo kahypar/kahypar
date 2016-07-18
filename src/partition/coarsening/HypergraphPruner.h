@@ -253,7 +253,7 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  FastResetBitVector<> _contained_hypernodes;
+  FastResetBitVector<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition
 
