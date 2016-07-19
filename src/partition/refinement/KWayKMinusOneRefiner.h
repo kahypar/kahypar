@@ -556,35 +556,63 @@ class KWayKMinusOneRefiner final : public IRefiner,
                              pin_count_from_part_before_move == 2,
                              pin_count_to_part_after_move == 2);
 
+    // TODO(schlag): Extract duplicated code into own method
     if (move_decreased_connectivity || move_increased_connectivity) {
-      for (const HypernodeID pin : _hg.pins(he)) {
-        if (!_hg.marked(pin)) {
-          ASSERT(pin != moved_hn, V(pin));
-          if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
-            removeHypernodeMovementsFromPQ(pin);
-          } else if (move_increased_connectivity && !_hg.active(pin)) {
-            if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+      if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (!_hg.marked(pin)) {
+            ASSERT(pin != moved_hn, V(pin));
+            if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
+              removeHypernodeMovementsFromPQ(pin);
+            } else if (move_increased_connectivity && !_hg.active(pin)) {
               _hns_to_activate.push_back(pin);
+            } else if (_hg.active(pin)) {
+              connectivityUpdate(pin, from_part, to_part, he,
+                                 move_decreased_connectivity,
+                                 move_increased_connectivity);
+              // false indicates that we use this method to also update the PQ.
+              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                            pin_state);
+              continue;
             }
-          } else if (_hg.active(pin)) {
-            connectivityUpdate(pin, from_part, to_part, he,
-                               move_decreased_connectivity,
-                               move_increased_connectivity);
-            // false indicates that we use this method to also update the PQ.
-            deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                                          pin_state);
-            continue;
+          }
+          // currently necessary because we set all cache entries of moved_hn to invalid -->
+          // if we can do correct delta-gain updates for moved hn, than this if can be removed!
+          if (pin != moved_hn) {
+            connectivityUpdateForCache(pin, from_part, to_part, he,
+                                       move_decreased_connectivity,
+                                       move_increased_connectivity);
+            // true indicates that we only want to update cache entries
+            deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                         pin_state);
           }
         }
-        // currently necessary because we set all cache entries of moved_hn to invalid -->
-        // if we can do correct delta-gain updates for moved hn, than this if can be removed!
-        if (pin != moved_hn) {
-          connectivityUpdateForCache(pin, from_part, to_part, he,
-                                     move_decreased_connectivity,
-                                     move_increased_connectivity);
-          // true indicates that we only want to update cache entries
-          deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
-                                       pin_state);
+      } else {
+        for (const HypernodeID pin : _hg.pins(he)) {
+          if (!_hg.marked(pin)) {
+            ASSERT(pin != moved_hn, V(pin));
+            if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
+              removeHypernodeMovementsFromPQ(pin);
+            } else if (_hg.active(pin)) {
+              connectivityUpdate(pin, from_part, to_part, he,
+                                 move_decreased_connectivity,
+                                 move_increased_connectivity);
+              // false indicates that we use this method to also update the PQ.
+              deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
+                                            pin_state);
+              continue;
+            }
+          }
+          // currently necessary because we set all cache entries of moved_hn to invalid -->
+          // if we can do correct delta-gain updates for moved hn, than this if can be removed!
+          if (pin != moved_hn) {
+            connectivityUpdateForCache(pin, from_part, to_part, he,
+                                       move_decreased_connectivity,
+                                       move_increased_connectivity);
+            // true indicates that we only want to update cache entries
+            deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
+                                         pin_state);
+          }
         }
       }
     } else {
