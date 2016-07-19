@@ -829,12 +829,12 @@ class TwoWayFMRefiner final : public IRefiner,
           // Before move, there were two pins (moved_node and the current pin) in from_part.
           // After moving moved_node to to_part, the gain of the remaining pin in
           // from_part increases by w(he).
-          Gain factor = _hg.partID(pin) == from_part && increase_necessary ? 1 : 0;
+          Gain factor = increase_necessary && _hg.partID(pin) == from_part ? 1 : 0;
           // Before move, pin was the only HN in to_part. It thus had a
           // positive gain, because moving it to from_part would have removed
           // the HE from the cut. Now, after the move, pin becomes a 0-gain HN
           // because now there are pins in both parts.
-          factor = _hg.partID(pin) != from_part && decrease_necessary ? -1 : factor;
+          factor = decrease_necessary && _hg.partID(pin) != from_part ? -1 : factor;
           if (!_hg.marked(pin)) {
             if (!_hg.active(pin)) {
               if (!_hns_in_activation_vector[pin]) {
