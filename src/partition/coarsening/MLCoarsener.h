@@ -136,17 +136,17 @@ class MLCoarsener final : public ICoarsener,
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (const HypernodeID v : _hg.pins(he)) {
-        if (v != u &&
-            belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
-            (part_u == _hg.partID(v))) {
+        if ((_tmp_ratings.contains(v) || belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)))) {
           _tmp_ratings[v] += score;
         }
       }
     }
+    if (_tmp_ratings.contains(u)){
+      _tmp_ratings.remove(u);
+    }
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
-    
     for (auto it = _tmp_ratings.crbegin(); it != _tmp_ratings.crend(); ++it) {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value;
