@@ -42,10 +42,10 @@ class DenseArray {
   explicit DenseArray(DataType size) :
     _size(size) {
     for (size_t i = 0; i < _size; ++i) {
-      operator[](i) = std::numeric_limits<DataType>::max();
+      operator[] (i) = std::numeric_limits<DataType>::max();
     }
     // sentinel for peek() operation of incidence set
-    operator[](_size) = std::numeric_limits<DataType>::max();
+    operator[] (_size) = std::numeric_limits<DataType>::max();
   }
 
   DenseArray(const DenseArray&) = delete;
@@ -180,7 +180,7 @@ class IncidenceSet {
     _size(0),
     _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
-    _memory = static_cast<Byte*>(malloc(sizeof(Dense) + _max_size * sizeof(T) + 1 /*sentinel for peek */ +
+    _memory = static_cast<Byte*>(malloc(sizeof(Dense) + _max_size * sizeof(T) + 1  /*sentinel for peek */ +
                                         sizeof(Sparse) + InitialSizeFactor * _max_size * sizeof(std::pair<T, size_t>)));
     new(dense2())Dense(_max_size);
     new(sparse())Sparse(_max_size);
