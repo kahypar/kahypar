@@ -101,9 +101,11 @@ class MLCoarsener final : public ICoarsener,
           if (rating.target != kInvalidTarget) {
             already_matched.setBit(hn, true);
             already_matched.setBit(rating.target, true);
-            performContraction(hn, rating.target);
-            removeSingleNodeHyperedges(hn);
-            removeParallelHyperedges(hn);
+            if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
+              contract(hn, rating.target);
+            } else {
+              contract(rating.target, hn);
+            }
           }
 
           if (_hg.currentNumNodes() <= limit) {
@@ -117,6 +119,12 @@ class MLCoarsener final : public ICoarsener,
 
       ++pass_nr;
     }
+  }
+
+  void contract(const HypernodeID representative, const HypernodeID contraction_partner) {
+    performContraction(representative, contraction_partner);
+    removeSingleNodeHyperedges(representative);
+    removeParallelHyperedges(representative);
   }
 
   Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
