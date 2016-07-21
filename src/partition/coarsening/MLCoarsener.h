@@ -60,7 +60,8 @@ class MLCoarsener final : public ICoarsener,
   MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
               const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
-    _tmp_ratings(_hg.initialNumNodes()) { }
+        _tmp_ratings(_hg.initialNumNodes()),
+        _ties() { }
 
   // TODO(schlag): i.e. min degree ordering
 
@@ -145,24 +146,41 @@ class MLCoarsener final : public ICoarsener,
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
+    
     for (auto it = _tmp_ratings.crbegin(); it != _tmp_ratings.crend(); ++it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp = it->value;  //  /
-      // (weight_u * _hg.nodeWeight(tmp_target));
-      DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
-      if (acceptRating(tmp, max_rating, target, tmp_target, already_matched)) {
-        max_rating = tmp;
+      const RatingType tmp_rating = it->value;
+      DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp_rating);
+
+      if (tmp_rating > max_rating) {
+        _ties.clear();
+        max_rating = tmp_rating;
         target = tmp_target;
+      } else if (tmp_rating == max_rating) {
+        if (already_matched[target] && !already_matched[tmp_target]) {
+          _ties.clear();
+          target = tmp_target;
+        } else {
+          _ties.push_back(tmp_target);
+        }
       }
     }
-    _tmp_ratings.clear();
+    if (_ties.size() > 0) {
+      target = _ties[(Randomize::getRandomInt(0, _ties.size() - 1))];
+    }
+
     Rating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
+      ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
     }
+
+    _tmp_ratings.clear();
+    _ties.clear();
+
     ASSERT([&]() {
         bool flag = true;
         if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
@@ -189,25 +207,13 @@ class MLCoarsener final : public ICoarsener,
     return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(const RatingType tmp, const RatingType max_rating,
-                    const HypernodeID old_target, const HypernodeID new_target,
-                    const FastResetBitVector<>& already_matched) const noexcept {
-    return max_rating < tmp ||
-           ((max_rating == tmp) &&
-            ((already_matched[old_target] && !already_matched[new_target]) ||
-             (already_matched[old_target] && already_matched[new_target] &&
-              RandomRatingWins::acceptEqual()) ||
-             (!already_matched[old_target] && !already_matched[new_target] &&
-              RandomRatingWins::acceptEqual())
-            ));
-  }
-
   using Base::_pq;
   using Base::_hg;
   using Base::_config;
   using Base::_rater;
   using Base::_history;
   SparseMap<HypernodeID, RatingType> _tmp_ratings;
+  std::vector<HypernodeID> _ties;
 };
 }  // namespace partition
 
