@@ -148,13 +148,14 @@ class HypergraphPruner {
               _fingerprints[i].hash << "==" << _fingerprints[j].hash);
           DBG(dbg_coarsening_fingerprinting,
               "Size:" << _fingerprints[i].size << "==" << _fingerprints[j].size);
-          fillProbeBitset(hypergraph, _fingerprints[i].id);
           if (_fingerprints[i].size == _fingerprints[j].size &&
-              hypergraph.edgeIsEnabled(_fingerprints[j].id) &&
-              isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
-            removed_parallel_hes += 1;
-            removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
-            ++size;
+              hypergraph.edgeIsEnabled(_fingerprints[j].id)) {
+            fillProbeBitset(hypergraph, _fingerprints[i].id);
+            if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
+                removed_parallel_hes += 1;
+                removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
+                ++size;
+            }
           }
           ++j;
         }
