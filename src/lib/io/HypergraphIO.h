@@ -131,8 +131,8 @@ static inline Hypergraph createHypergraphFromFile(const std::string& filename,
   HyperedgeWeightVector hyperedge_weights;
   readHypergraphFile(filename, num_hypernodes, num_hyperedges,
                      index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
-  return std::move(Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
-                              num_parts, &hyperedge_weights, &hypernode_weights));
+  return Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                    num_parts, &hyperedge_weights, &hypernode_weights);
 }
 
 
