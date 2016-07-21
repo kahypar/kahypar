@@ -213,21 +213,21 @@ class GenericHypergraph {
       return !operator== (this, rhs);
     }
 
-    bool operator< (const InternalVertex& rhs) const noexcept {
-      return _begin < rhs._begin;
-    }
+    // bool operator< (const InternalVertex& rhs) const noexcept {
+    //   return _begin < rhs._begin;
+    // }
 
-    bool operator> (const InternalVertex& rhs) const noexcept {
-      return operator< (rhs, this);
-    }
+    // bool operator> (const InternalVertex& rhs) const noexcept {
+    //   return operator< (rhs, this);
+    // }
 
-    bool operator<= (const InternalVertex& rhs) const noexcept {
-      return !operator> (this, rhs);
-    }
+    // bool operator<= (const InternalVertex& rhs) const noexcept {
+    //   return !operator> (this, rhs);
+    // }
 
-    bool operator>= (const InternalVertex& rhs) const noexcept {
-      return !operator< (this, rhs);
-    }
+    // bool operator>= (const InternalVertex& rhs) const noexcept {
+    //   return !operator< (this, rhs);
+    // }
 
  private:
     IDType _begin;
@@ -1016,20 +1016,20 @@ class GenericHypergraph {
     // iterate over the pins of the first HE. For each of these pins, we will then
     // remove all parallel HE IDs from the incident edges of the pin.
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
-    for (const HypernodeID pin : pins(he)){
+    for (const HypernodeID pin : pins(he)) {
       // batch removal of internal edge
       size_t size = num_entries;
       size_t last = _hypernodes[pin].firstInvalidEntry() - 1;
-      for(size_t begin = _hypernodes[pin].firstEntry();
-          begin <= last || size == 0 ; ++begin) {
+      for (size_t begin = _hypernodes[pin].firstEntry();
+           begin <= last || size == 0; ++begin) {
         if (parallel_hes[_incidence_array[begin]]) {
-          swap(_incidence_array[begin],_incidence_array[last]);
+          swap(_incidence_array[begin], _incidence_array[last]);
           _hypernodes[pin].decreaseSize();
           --last;
           --size;
           --begin;
         }
-        ASSERT(begin <=  _hypernodes[pin].firstInvalidEntry(), "Iterator out of bounds");
+        ASSERT(begin <= _hypernodes[pin].firstInvalidEntry(), "Iterator out of bounds");
       }
 
       /////////////////////////////////////////////
