@@ -2,13 +2,17 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_HASHMAP_H_
-#define SRC_LIB_DATASTRUCTURE_HASHMAP_H_
+#ifndef SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_
+#define SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_
+
+#include <x86intrin.h>
+
+#include <algorithm>
+#include <limits>
+#include <utility>
 
 #include "lib/macros.h"
 #include "lib/utils/Math.h"
-
-#include <x86intrin.h>
 
 namespace datastructure {
 template <typename T>
@@ -31,36 +35,6 @@ struct ROLhash {
     return utils::_rol(x);
   }
 };
-
-template <typename DataType>
-class DenseArray {
- public:
-  explicit DenseArray(DataType size) :
-    _size(size) {
-    for (size_t i = 0; i < _size; ++i) {
-      operator[] (i) = std::numeric_limits<DataType>::max();
-    }
-    // sentinel for peek() operation of incidence set
-    operator[] (_size) = std::numeric_limits<DataType>::max();
-  }
-
-  DenseArray(const DenseArray&) = delete;
-  DenseArray& operator= (const DenseArray&) = delete;
-
-  DenseArray(DenseArray&& other) = default;
-  DenseArray& operator= (DenseArray&&) = default;
-
-  const DataType* begin() const {
-    return &_size + 1;
-  }
-
-  DataType& operator[] (const DataType& index) {
-    return *(&_size + 1 + index);
-  }
-
-  DataType _size;
-};
-
 
 template <typename KeyType, typename ValueType, size_t SizeFactor,
           KeyType empty = std::numeric_limits<KeyType>::max(),
@@ -112,16 +86,8 @@ class HashMap {
     data()[find(key)].second = value;
   }
 
-  const Element& operator[] (const KeyType& key) const {
+  const Element & get(const KeyType& key) const {
     return data()[find(key)];
-  }
-
-  const Element* begin() const {
-    return data();
-  }
-
-  const Element* end() const {
-    return data() + _max_size;
   }
 
  private:
@@ -166,9 +132,7 @@ class HashMap {
 template <typename T, size_t InitialSizeFactor = 2>
 class IncidenceSet {
  private:
-  using Byte = char;
   using Sparse = HashMap<T, size_t, InitialSizeFactor>;
-  using Dense = DenseArray<T>;
 
  public:
   explicit IncidenceSet(const T max_size) :
@@ -176,13 +140,19 @@ class IncidenceSet {
     _size(0),
     _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
-    _memory = static_cast<Byte*>(malloc(sizeof(Dense) + _max_size * sizeof(T) + 1  /*sentinel for peek */ +
-                                        sizeof(Sparse) + InitialSizeFactor * _max_size * sizeof(std::pair<T, size_t>)));
-    new(dense2())Dense(_max_size);
+    _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
+
+    for (size_t i = 0; i < _max_size; ++i) {
+      new(dense() + i)T(std::numeric_limits<T>::max());
+    }
+    // sentinel for peek() operation of incidence set
+    new(dense() + _max_size)T(std::numeric_limits<T>::max());
+
     new(sparse())Sparse(_max_size);
   }
 
   ~IncidenceSet() {
+    sparse()->~Sparse();
     free(_memory);
   }
 
@@ -228,11 +198,11 @@ class IncidenceSet {
 
   void swapToEnd(const T v) {
     using std::swap;
-    const T index_v = sparse()->operator[] (v).second;
+    const T index_v = sparse()->get(v).second;
     swap(dense()[index_v], dense()[_size - 1]);
     sparse()->update(dense()[index_v], index_v);
     sparse()->update(v, _size - 1);
-    ASSERT(sparse()->operator[] (v).second == _size - 1, V(v));
+    ASSERT(sparse()->get(v).second == _size - 1, V(v));
   }
 
   void removeAtEnd(const T v) {
@@ -244,7 +214,7 @@ class IncidenceSet {
 
   // reuse position of v to store u
   void reuse(const T u, const T v) {
-    ASSERT(sparse()->operator[] (v).second == _size - 1, V(v));
+    ASSERT(sparse()->get(v).second == _size - 1, V(v));
     const T index = sparse()->remove(v);
     ASSERT(index == _size - 1, V(index));
     sparse()->insert(u, index);
@@ -280,11 +250,11 @@ class IncidenceSet {
   }
 
   const T* begin() const {
-    return dense()->begin();
+    return dense();
   }
 
   const T* end() const {
-    return dense()->begin() + _size;
+    return dense() + _size;
   }
 
   T capacity() const {
@@ -298,6 +268,15 @@ class IncidenceSet {
   }
 
  private:
+  size_t sizeOfDense() const {
+    return (_max_size + 1  /*sentinel for peek */) * sizeof(T);
+  }
+
+  size_t sizeOfSparse() const {
+    return sizeof(Sparse) + InitialSizeFactor * _max_size * sizeof(std::pair<T, size_t>);
+  }
+
+
   void resize() {
     IncidenceSet new_set(_max_size + 1);
     for (const auto e : * this) {
@@ -306,33 +285,26 @@ class IncidenceSet {
     swap(new_set);
   }
 
+  T* dense() {
+    return _memory;
+  }
+
+  const T* dense() const {
+    return _memory;
+  }
+
   Sparse* sparse() {
-    return reinterpret_cast<Sparse*>(_memory + sizeof(Dense) + _max_size * sizeof(T));
+    return reinterpret_cast<Sparse*>(dense() + _max_size + 1);
   }
 
   const Sparse* sparse() const {
-    return reinterpret_cast<const Sparse*>(_memory + sizeof(Dense) + _max_size * sizeof(T));
+    return reinterpret_cast<const Sparse*>(dense() + _max_size + 1);
   }
 
-  Dense & dense() {
-    return reinterpret_cast<Dense&>(*(_memory));
-  }
-
-
-  const Dense* dense() const {
-    return reinterpret_cast<const Dense*>(_memory);
-  }
-
-
-  Dense* dense2() {
-    return reinterpret_cast<Dense*>(_memory);
-  }
-
-
-  Byte* _memory;
+  T* _memory;
   T _size;
   T _max_size;
 };
-}  // namespace datastrucuture
+}  // namespace datastructure
 
-#endif  // SRC_LIB_DATASTRUCTURE_HASHMAP_H_
+#endif  // SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_
