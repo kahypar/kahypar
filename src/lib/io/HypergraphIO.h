@@ -177,7 +177,9 @@ static inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::
 
 
 static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
-                                                const std::string& filename) {
+                                                const std::string& filename,
+                                                const std::vector<PartitionID>* hn_cluster_ids = nullptr,
+                                                const std::vector<PartitionID>* he_cluster_ids = nullptr) {
   std::ofstream out_stream(filename.c_str());
 
   out_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
@@ -195,22 +197,35 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   out_stream << "<key id=\"d0\" for=\"node\" attr.name=\"weight\" attr.type=\"double\"/>" << std::endl;
   out_stream << "<key id=\"d1\" for=\"node\" attr.name=\"part\" attr.type=\"int\"/>" << std::endl;
   out_stream << "<key id=\"d2\" for=\"node\" attr.name=\"iscutedge\" attr.type=\"int\"/>" << std::endl;
+  out_stream << "<key id=\"d7\" for=\"node\" attr.name=\"modclass\" attr.type=\"int\"/>" << std::endl;
+  out_stream << "<key id=\"d8\" for=\"node\" attr.name=\"color\" attr.type=\"string\"/>" << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
   for (const defs::HypernodeID hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
-    out_stream << "<data key=\"d1\">" << hypergraph.partID(hn) << "</data>" << std::endl;
+    if (hn_cluster_ids != nullptr) {
+      out_stream << "<data key=\"d7\">" << (*hn_cluster_ids)[hn] << "</data>" << std::endl;
+    } else {
+      out_stream << "<data key=\"d1\">" << hypergraph.partID(hn) << "</data>" << std::endl;
+    }
+
     out_stream << "<data key=\"d2\">" << 42 << "</data>" << std::endl;
+    out_stream << "<data key=\"d8\">" << "blue" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
   }
 
   HyperedgeID edge_id = 0;
   for (const defs::HyperedgeID he : hypergraph.edges()) {
-    // const HyperedgeID he_id = hypergraph.numNodes() + he;
+    // const HyperedgeID he_id = hypergraph.initialNumNodes() + he;
     out_stream << "<node id=\"h" << he << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
-    out_stream << "<data key=\"d1\">" << -1 << "</data>" << std::endl;
+    if (he_cluster_ids != nullptr) {
+      out_stream << "<data key=\"d7\">" << (*he_cluster_ids)[he] << "</data>" << std::endl;
+    } else {
+      out_stream << "<data key=\"d1\">" << -1 << "</data>" << std::endl;
+    }
     out_stream << "<data key=\"d2\">" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
+    out_stream << "<data key=\"d8\">" << "red" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
     for (const defs::HypernodeID pin : hypergraph.pins(he)) {
       out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
