@@ -9,8 +9,10 @@
 #include <string>
 #include <vector>
 
+
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
+#include "lib/utils/Math.h"
 #include "lib/utils/Stats.h"
 
 using defs::Hypergraph;
@@ -29,12 +31,12 @@ static const bool dbg_coarsening_fingerprinting = false;
 class HypergraphPruner {
  private:
   struct Fingerprint {
-    Fingerprint(HyperedgeID id_, HyperedgeID hash_, HypernodeID size_) noexcept :
+    Fingerprint(HyperedgeID id_, size_t hash_, HypernodeID size_) noexcept :
       id(id_),
       hash(hash_),
       size(size_) { }
     HyperedgeID id;
-    HyperedgeID hash;
+    size_t hash;
     HypernodeID size;
   };
 
@@ -152,9 +154,9 @@ class HypergraphPruner {
               hypergraph.edgeIsEnabled(_fingerprints[j].id)) {
             fillProbeBitset(hypergraph, _fingerprints[i].id);
             if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
-                removed_parallel_hes += 1;
-                removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
-                ++size;
+              removed_parallel_hes += 1;
+              removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
+              ++size;
             }
           }
           ++j;
@@ -163,6 +165,7 @@ class HypergraphPruner {
       // We need pairwise comparisons for all HEs with same hash.
       ++i;
     }
+
 
     ASSERT([&]() {
         for (auto edge_it = hypergraph.incidentEdges(u).first;
@@ -232,9 +235,9 @@ class HypergraphPruner {
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) noexcept {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
-      HyperedgeID hash =  /* seed */ 42;
+      size_t hash =  /* seed */ 42;
       for (const HypernodeID pin : hypergraph.pins(he)) {
-        hash ^= pin;
+        hash ^= utils::_rol(pin);
       }
       DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
           << "= {" << he << "," << hash << "," << hypergraph.edgeSize(he) << "}");

@@ -28,11 +28,7 @@ struct CRChash {
 template <typename T>
 struct ROLhash {
   size_t operator() (const T& x) const {
-    return _rol(x, x & (sizeof(T) * 8 - 1));
-  }
-
-  T _rol(const T x, const uint r) const {
-    return (x << r) | (x >> (sizeof(T) * 8 - r));
+    return utils::_rol(x);
   }
 };
 
