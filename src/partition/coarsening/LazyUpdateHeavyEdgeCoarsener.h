@@ -45,7 +45,11 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
     Base(hypergraph, config, weight_of_heaviest_node),
     _outdated_rating(hypergraph.initialNumNodes(), false),
     _target(_hg.initialNumNodes())
-  { }
+  {
+    LOG("Coarsener does not choose highest degree node as representative!");
+    LOG("This could be slow on instances with skewed incidence structure.");
+    LOG("Press any key to continue.");
+  }
 
   virtual ~LazyUpdateHeavyEdgeCoarsener() { }
 
