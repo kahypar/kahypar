@@ -88,7 +88,7 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
     PartitionID partition = partitioning[hg_to_hmetis[*begin]];
     ++begin;
 
-    for (IncidenceIterator pin_it = begin; pin_it != end; ++pin_it) {
+    for (auto pin_it = begin; pin_it != end; ++pin_it) {
       if (partition != partitioning[hg_to_hmetis[*pin_it]]) {
         DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
         cut += hg.edgeWeight(he);
