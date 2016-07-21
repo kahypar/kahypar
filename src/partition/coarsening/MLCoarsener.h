@@ -143,6 +143,9 @@ class MLCoarsener final : public ICoarsener,
         }
       }
     }
+    if (_tmp_ratings.contains(u)){
+      _tmp_ratings.remove(u);
+    }
 
     if (_tmp_ratings.contains(u)){
       _tmp_ratings.remove(u);
