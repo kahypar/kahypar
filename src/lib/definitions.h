@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "lib/datastructure/GenericHypergraph.h"
+// #include "lib/datastructure/GenericHypergraph2.h"
 
 // Use bucket PQ for FM refinement.
 // #define USE_BUCKET_PQ
@@ -48,5 +49,13 @@ static defs::IncidenceIterator begin(std::pair<defs::IncidenceIterator, defs::In
 static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::IncidenceIterator>& x) {
   return x.second;
 }
+
+// static const defs::HypernodeID* begin(std::pair<const defs::HypernodeID*, const defs::HypernodeID*>& x) {
+//   return x.first;
+// }
+
+// static const defs::HypernodeID* end(std::pair<const defs::HypernodeID*, const defs::HypernodeID*>& x) {
+//   return x.second;
+// }
 }  // namespace std
 #endif  // SRC_LIB_DEFINITIONS_H_
