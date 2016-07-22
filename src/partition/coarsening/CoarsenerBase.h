@@ -53,7 +53,7 @@ class CoarsenerBase {
     _config(config),
     _history(),
     _max_hn_weights(),
-    _hypergraph_pruner(_hg.initialNumNodes()) {
+    _hypergraph_pruner(_hg.initialNumNodes(), _hg.initialNumEdges()) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
     _max_hn_weights.emplace_back(_hg.initialNumNodes(), weight_of_heaviest_node);
@@ -83,9 +83,10 @@ class CoarsenerBase {
     Stats::instance().add(_config, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
-  void removeParallelHyperedges(const HypernodeID rep_node) noexcept {
+  void removeParallelHyperedges(const HypernodeID rep_node,
+                                const HypernodeID contracted_node) noexcept {
     HyperedgeID removed_parallel_hes =
-      _hypergraph_pruner.removeParallelHyperedges(_hg, rep_node,
+      _hypergraph_pruner.removeParallelHyperedges(_hg, rep_node, contracted_node,
                                                   _history.back().parallel_hes_begin,
                                                   _history.back().parallel_hes_size);
     Stats::instance().add(_config, "numRemovedParalellHEs", removed_parallel_hes);

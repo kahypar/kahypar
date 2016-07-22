@@ -60,8 +60,8 @@ class MLCoarsener final : public ICoarsener,
   MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
               const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
-        _tmp_ratings(_hg.initialNumNodes()),
-        _ties() { }
+    _tmp_ratings(_hg.initialNumNodes()),
+    _ties() { }
 
   // TODO(schlag): i.e. min degree ordering
 
@@ -125,7 +125,7 @@ class MLCoarsener final : public ICoarsener,
   void contract(const HypernodeID representative, const HypernodeID contraction_partner) {
     performContraction(representative, contraction_partner);
     removeSingleNodeHyperedges(representative);
-    removeParallelHyperedges(representative);
+    removeParallelHyperedges(representative, contraction_partner);
   }
 
   Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {

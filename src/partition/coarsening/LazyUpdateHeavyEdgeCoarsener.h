@@ -44,8 +44,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
                                const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _outdated_rating(hypergraph.initialNumNodes(), false),
-    _target(_hg.initialNumNodes())
-  {
+    _target(_hg.initialNumNodes()) {
     LOG("Coarsener does not choose highest degree node as representative!");
     LOG("This could be slow on instances with skewed incidence structure.");
     LOG("Press any key to continue.");
@@ -97,7 +96,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
         _pq.deleteNode(contracted_node);
 
         removeSingleNodeHyperedges(rep_node);
-        removeParallelHyperedges(rep_node);
+        removeParallelHyperedges(rep_node, contracted_node);
 
         // this also invalidates rep_node, however rep_node
         // will be re-rated and updated afterwards
