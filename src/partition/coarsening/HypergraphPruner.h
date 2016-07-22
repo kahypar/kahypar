@@ -145,15 +145,17 @@ class HypergraphPruner {
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
       DBG(dbg_coarsening_fingerprinting, "i=" << i << ", j=" << j);
-      if (hypergraph.edgeIsEnabled(_fingerprints[i].id)) {
+      if (_fingerprints[i].id != -1) {
+        ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
           DBG(dbg_coarsening_fingerprinting,
               _fingerprints[i].hash << "==" << _fingerprints[j].hash);
           DBG(dbg_coarsening_fingerprinting,
               "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
               << hypergraph.edgeSize(_fingerprints[j].id));
-          if (hypergraph.edgeIsEnabled(_fingerprints[j].id) &&
+          if (_fingerprints[j].id != -1 &&
               hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id)) {
+            ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
             if (!filled_probe_bitset) {
               fillProbeBitset(hypergraph, _fingerprints[i].id);
               filled_probe_bitset = true;
@@ -161,6 +163,7 @@ class HypergraphPruner {
             if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
               removed_parallel_hes += 1;
               removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
+              _fingerprints[j].id = -1;
               ++size;
             }
           }
