@@ -27,6 +27,7 @@
 #include "lib/datastructure/IncidenceSet.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
+#include "lib/utils/Math.h"
 
 
 using core::Empty;
@@ -75,7 +76,13 @@ class GenericHypergraph2 {
     Unweighted = 0,
     EdgeWeights = 1,
     NodeWeights = 10,
-    EdgeAndNodeWeights = 11,
+    EdgeAndNodeWeights = 11
+  };
+
+  enum class ContractionType : size_t {
+    Initial = 0,
+    Case1 = 1,
+    Case2 = 2
   };
 
  private:
@@ -91,6 +98,8 @@ class GenericHypergraph2 {
 
   struct AdditionalHyperedgeData : public HyperedgeData {
     PartitionID connectivity = 0;
+    size_t hash = 42;
+    ContractionType contraction_type = ContractionType::Initial;
   };
 
   struct AdditionalHypernodeData : public HypernodeData {
@@ -345,6 +354,7 @@ class GenericHypergraph2 {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         hyperedge(i).incidenceStructure().insertIfNotContained(edge_vector[pin_index]);
+        hyperedge(i).hash ^= utils::_rol(edge_vector[pin_index]);
         hypernode(edge_vector[pin_index]).incidenceStructure().insertIfNotContained(i);
       }
     }
@@ -500,6 +510,7 @@ class GenericHypergraph2 {
     DBG(dbg_hypergraph_contraction, "contracting (" << u << "," << v << ")");
 
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
+
     for (const HyperedgeID he : incidentEdges(v)) {
       // LOG(V(he));
       hyperedge(he).incidenceStructure().swapToEnd(v);
@@ -508,6 +519,7 @@ class GenericHypergraph2 {
         // Case 2:
         // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
         // This reuses the pin slot of v.
+        hyperedge(he).contraction_type = ContractionType::Case2;
         hyperedge(he).incidenceStructure().reuse(u, v);
         hypernode(u).incidenceStructure().add(he);
         // LOG("CASE 2 DONE");
@@ -516,6 +528,7 @@ class GenericHypergraph2 {
         // Case 1:
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
+        hyperedge(he).contraction_type = ContractionType::Case1;
         hyperedge(he).incidenceStructure().removeAtEnd(v);
         if (partID(v) != kInvalidPartition) {
           decreasePinCountInPart(he, partID(v));
@@ -989,6 +1002,21 @@ class GenericHypergraph2 {
   HypernodeID edgeSize(const HyperedgeID e) const noexcept {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
     return hyperedge(e).size();
+  }
+
+  size_t & edgeHash(const HyperedgeID e) noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    return hyperedge(e).hash;
+  }
+
+  ContractionType edgeContractionType(const HyperedgeID e) const noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    return hyperedge(e).contraction_type;
+  }
+
+  void resetEdgeContractionType(const HyperedgeID e) noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    hyperedge(e).contraction_type = ContractionType::Initial;
   }
 
   HypernodeWeight nodeWeight(const HypernodeID u) const noexcept {
@@ -1548,6 +1576,7 @@ reindex(const Hypergraph& hypergraph) {
     ++reindexed_hypergraph->_num_hyperedges;
     for (const HypernodeID pin : hypergraph.pins(he)) {
       reindexed_hypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(original_to_reindexed[pin]);
+      reindexed_hypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(original_to_reindexed[pin]);
       reindexed_hypergraph->hypernode(original_to_reindexed[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
       ++pin_index;
     }
@@ -1625,6 +1654,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
         for (const HypernodeID pin : hypergraph.pins(he)) {
           if (hypergraph.partID(pin) == part) {
             subhypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
             ++pin_index;
           }
@@ -1646,6 +1676,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
           for (const HypernodeID pin : hypergraph.pins(he)) {
             ASSERT(hypergraph.partID(pin) == part, V(pin));
             subhypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
             ++pin_index;
           }
