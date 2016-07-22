@@ -15,106 +15,20 @@
 #include "lib/utils/Math.h"
 
 namespace datastructure {
-template <typename KeyType, typename ValueType, size_t SizeFactor,
-          KeyType empty = std::numeric_limits<KeyType>::max(),
-          KeyType deleted = std::numeric_limits<KeyType>::max() - 1>
-class HashMap {
- public:
-  using Element = std::pair<KeyType, ValueType>;
-
-  explicit HashMap(size_t max_size) :
-    _max_size(max_size * SizeFactor) {
-    static_assert(std::is_pod<KeyType>::value, "KeyType is not a POD");
-    static_assert(std::is_pod<ValueType>::value, "ValueType is not a POD");
-    for (size_t i = 0; i < _max_size; ++i) {
-      new (data() + i)Element(empty, empty);
-    }
-  }
-
-  HashMap(const HashMap&) = delete;
-  HashMap& operator= (const HashMap&) = delete;
-
-  HashMap(HashMap&& other) = default;
-  HashMap& operator= (HashMap&&) = default;
-
-  bool contains(const KeyType key) const {
-    const Position position = find(key);
-    if (position == -1 || data()[position].first == empty) {
-      return false;
-    }
-    return true;
-  }
-
-  void insert(const KeyType key, const ValueType value) {
-    ASSERT(!contains(key), V(key));
-    data()[nextFreeSlot(key)] = { key, value };
-  }
-
-  ValueType remove(const KeyType key) {
-    ASSERT(contains(key), V(key));
-    const Position position = find(key);
-    data()[position].first = deleted;
-    return data()[position].second;
-  }
-
-  void update(const KeyType key, const ValueType value) {
-    ASSERT(contains(key), V(key));
-    ASSERT(data()[find(key)].first == key, V(key));
-    data()[find(key)].second = value;
-  }
-
-  const Element & get(const KeyType& key) const {
-    return data()[find(key)];
-  }
-
- private:
-  using Position = size_t;
-
-  Position find(const KeyType key) const {
-    const Position start_position = utils::crc32(key) % _max_size;
-    const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
-    for (Position position = start_position; position < _max_size; position = (position + 1) % _max_size) {
-      if (data()[position].first == empty || data()[position].first == key) {
-        return position;
-      } else if (position == before) {
-        return -1;
-      }
-    }
-    ASSERT(true == false, "This should never happen.");
-  }
-
-  Position nextFreeSlot(const KeyType key) {
-    const Position start_position = utils::crc32(key) % _max_size;
-    for (Position position = start_position; position < _max_size; position = (position + 1) % _max_size) {
-      if (data()[position].first == empty || data()[position].first == deleted) {
-        return position;
-      }
-    }
-    ASSERT(true == false, "This should never happen.");
-  }
-
-  Element* data() {
-    return reinterpret_cast<Element*>(&_max_size + 1);
-  }
-
-  const Element* data() const {
-    return reinterpret_cast<const Element*>(&_max_size + 1);
-  }
-
-  Position _max_size;
-};
-
-
-template <typename T, size_t InitialSizeFactor = 2>
+template <typename T, size_t InitialSizeFactor = 2,
+          T empty = std::numeric_limits<T>::max(),
+          T deleted = std::numeric_limits<T>::max() - 1>
 class IncidenceSet {
  private:
-  using Sparse = HashMap<T, size_t, InitialSizeFactor>;
+  using Element = std::pair<T, size_t>;
+  using Position = size_t;
 
  public:
   explicit IncidenceSet(const T max_size) :
     _memory(nullptr),
     _size(0),
-    _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)) {
+    _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)),
+    _max_sparse_size(InitialSizeFactor * _max_size) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
     _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
 
@@ -124,11 +38,12 @@ class IncidenceSet {
     // sentinel for peek() operation of incidence set
     new(dense() + _max_size)T(std::numeric_limits<T>::max());
 
-    new(sparse())Sparse(_max_size);
+    for (size_t i = 0; i < _max_sparse_size; ++i) {
+      new (sparse() + i)Element(empty, empty);
+    }
   }
 
   ~IncidenceSet() {
-    sparse()->~Sparse();
     free(_memory);
   }
 
@@ -140,9 +55,11 @@ class IncidenceSet {
   IncidenceSet(IncidenceSet&& other) :
     _memory(other._memory),
     _size(other._size),
-    _max_size(other._max_size) {
+    _max_size(other._max_size),
+    _max_sparse_size(other._max_sparse_size) {
     other._size = 0;
     other._max_size = 0;
+    other._max_sparse_size = 0;
     other._memory = nullptr;
   }
 
@@ -152,7 +69,7 @@ class IncidenceSet {
       resize();
     }
 
-    sparse()->insert(element, _size);
+    insert(element, _size);
     dense()[_size++] = element;
   }
 
@@ -168,32 +85,32 @@ class IncidenceSet {
   }
 
   void undoRemoval(const T element) {
-    sparse()->insert(element, _size);
+    insert(element, _size);
     dense()[_size++] = element;
   }
 
   void swapToEnd(const T v) {
     using std::swap;
-    const T index_v = sparse()->get(v).second;
+    const T index_v = get(v).second;
     swap(dense()[index_v], dense()[_size - 1]);
-    sparse()->update(dense()[index_v], index_v);
-    sparse()->update(v, _size - 1);
-    ASSERT(sparse()->get(v).second == _size - 1, V(v));
+    update(dense()[index_v], index_v);
+    update(v, _size - 1);
+    ASSERT(get(v).second == _size - 1, V(v));
   }
 
   void removeAtEnd(const T v) {
     ASSERT(dense()[_size - 1] == v, V(v));
-    sparse()->remove(v);
+    remove2(v);
     // ASSERT(v_index == _size - 1, V(v));
     --_size;
   }
 
   // reuse position of v to store u
   void reuse(const T u, const T v) {
-    ASSERT(sparse()->get(v).second == _size - 1, V(v));
-    const T index = sparse()->remove(v);
+    ASSERT(get(v).second == _size - 1, V(v));
+    const T index = remove2(v);
     ASSERT(index == _size - 1, V(index));
-    sparse()->insert(u, index);
+    insert(u, index);
     dense()[index] = u;
   }
 
@@ -205,8 +122,8 @@ class IncidenceSet {
   }
 
   void undoReuse(const T u, const T v) {
-    const T index = sparse()->remove(u);
-    sparse()->insert(v, index);
+    const T index = remove2(u);
+    insert(v, index);
     dense()[index] = v;
   }
 
@@ -215,10 +132,15 @@ class IncidenceSet {
     swap(_memory, other._memory);
     swap(_size, other._size);
     swap(_max_size, other._max_size);
+    swap(_max_sparse_size, other._max_sparse_size);
   }
 
-  bool contains(const T element) const {
-    return sparse()->contains(element);
+  bool contains(const T key) const {
+    const Position position = find(key);
+    if (position == -1 || sparse()[position].first == empty) {
+      return false;
+    }
+    return true;
   }
 
   T size() const {
@@ -244,12 +166,58 @@ class IncidenceSet {
   }
 
  private:
+  void insert(const T key, const size_t value) {
+    ASSERT(!contains(key), V(key));
+    sparse()[nextFreeSlot(key)] = { key, value };
+  }
+
+  size_t remove2(const T key) {
+    ASSERT(contains(key), V(key));
+    const Position position = find(key);
+    sparse()[position].first = deleted;
+    return sparse()[position].second;
+  }
+
+  void update(const T key, const size_t value) {
+    ASSERT(contains(key), V(key));
+    ASSERT(sparse()[find(key)].first == key, V(key));
+    sparse()[find(key)].second = value;
+  }
+
+  const Element & get(const T& key) const {
+    return sparse()[find(key)];
+  }
+
+  Position find(const T key) const {
+    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
+    for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
+      if (sparse()[position].first == empty || sparse()[position].first == key) {
+        return position;
+      } else if (position == before) {
+        return -1;
+      }
+    }
+    ASSERT(true == false, "This should never happen.");
+  }
+
+  Position nextFreeSlot(const T key) {
+    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
+      if (sparse()[position].first == empty || sparse()[position].first == deleted) {
+        return position;
+      }
+    }
+    ASSERT(true == false, "This should never happen.");
+  }
+
+
   size_t sizeOfDense() const {
     return (_max_size + 1  /*sentinel for peek */) * sizeof(T);
   }
 
   size_t sizeOfSparse() const {
-    return sizeof(Sparse) + InitialSizeFactor * _max_size * sizeof(std::pair<T, size_t>);
+    return _max_sparse_size * sizeof(std::pair<T, size_t>);
   }
 
 
@@ -269,17 +237,18 @@ class IncidenceSet {
     return _memory;
   }
 
-  Sparse* sparse() {
-    return reinterpret_cast<Sparse*>(dense() + _max_size + 1);
+  Element* sparse() {
+    return reinterpret_cast<Element*>(dense() + _max_size + 1);
   }
 
-  const Sparse* sparse() const {
-    return reinterpret_cast<const Sparse*>(dense() + _max_size + 1);
+  const Element* sparse() const {
+    return reinterpret_cast<const Element*>(dense() + _max_size + 1);
   }
 
   T* _memory;
   T _size;
   T _max_size;
+  T _max_sparse_size;
 };
 }  // namespace datastructure
 
