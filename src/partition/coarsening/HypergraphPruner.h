@@ -152,8 +152,8 @@ class HypergraphPruner {
           DBG(dbg_coarsening_fingerprinting,
               "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
               << hypergraph.edgeSize(_fingerprints[j].id));
-          if (hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id) &&
-              hypergraph.edgeIsEnabled(_fingerprints[j].id)) {
+          if (hypergraph.edgeIsEnabled(_fingerprints[j].id) &&
+              hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id)) {
             if (!filled_probe_bitset) {
               fillProbeBitset(hypergraph, _fingerprints[i].id);
               filled_probe_bitset = true;
