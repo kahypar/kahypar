@@ -12,6 +12,11 @@ static inline T nextPowerOfTwoCeiled(T x) {
   return 0x80000000 >> (__builtin_clz(x - 1) - 1);
 }
 
+template <typename T, typename U>
+static inline T nearestMultipleOf(T num, U multiple) {
+  return (num + multiple - 1) & ~(multiple - 1);
+}
+
 template <typename T>
 static inline T _rol(const T x, const uint r) {
   return (x << r) | (x >> (sizeof(T) * 8 - r));
