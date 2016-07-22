@@ -6,9 +6,9 @@
 #define SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <vector>
-
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
@@ -49,10 +49,12 @@ class HypergraphPruner {
   };
 
  public:
-  explicit HypergraphPruner(const HypernodeID max_num_nodes) noexcept :
+  explicit HypergraphPruner(const HypernodeID max_num_nodes,
+                            const HyperedgeID max_num_edges) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
+    _hash_cache(max_num_edges, std::numeric_limits<size_t>::max()),
     _contained_hypernodes(max_num_nodes, false) { }
 
   HypergraphPruner(const HypergraphPruner&) = delete;
@@ -120,13 +122,13 @@ class HypergraphPruner {
   // This check is only performed, if the sizes of both HEs match - otherwise they can't be
   // parallel. In case we detect a parallel HE, it is removed from the graph and we proceed by
   // checking if there are more fingerprints with the same hash value.
-  HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph,
-                                       const HypernodeID u, int& begin, int& size) noexcept {
+  HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph, const HypernodeID u,
+                                       const HypernodeID v, int& begin, int& size) noexcept {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
     begin = _removed_parallel_hyperedges.size();
 
-    createFingerprints(hypergraph, u);
+    createFingerprints(hypergraph, u, v);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
@@ -232,12 +234,24 @@ class HypergraphPruner {
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
   }
 
-  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) noexcept {
+  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) noexcept {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
       size_t hash =  /* seed */ 42;
-      for (const HypernodeID pin : hypergraph.pins(he)) {
-        hash ^= utils::_rol(pin);
+      if (unlikely(_hash_cache[he] == std::numeric_limits<size_t>::max())) {
+        for (const HypernodeID pin : hypergraph.pins(he)) {
+          hash ^= utils::_rol(pin);
+        }
+      } else {
+        _hash_cache[he] ^= utils::_rol(v);
+        hash = _hash_cache[he];
+        ASSERT([&]() {
+            size_t correct_hash = 42;
+            for (const HypernodeID pin : hypergraph.pins(he)) {
+              correct_hash ^= utils::_rol(pin);
+            }
+            return correct_hash == _hash_cache[he];
+          } (), V(he));
       }
       DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
           << "= {" << he << "," << hash << "," << hypergraph.edgeSize(he) << "}");
@@ -257,6 +271,7 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
+  std::vector<size_t> _hash_cache;
   FastResetBitVector<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition

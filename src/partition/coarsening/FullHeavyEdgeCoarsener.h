@@ -94,7 +94,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       _pq.deleteNode(contracted_node);
 
       removeSingleNodeHyperedges(rep_node);
-      removeParallelHyperedges(rep_node);
+      removeParallelHyperedges(rep_node, contracted_node);
 
       // We re-rate the representative HN here, because it might not have any incident HEs left.
       // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.

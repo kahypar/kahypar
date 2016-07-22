@@ -86,7 +86,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
       removeMappingEntryOfNode(contracted_node, _target[contracted_node]);
 
       removeSingleNodeHyperedges(rep_node);
-      removeParallelHyperedges(rep_node);
+      removeParallelHyperedges(rep_node, contracted_node);
 
       updatePQandMappings(rep_node, _rater.rate(rep_node));
 
