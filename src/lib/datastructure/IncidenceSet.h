@@ -15,37 +15,14 @@
 #include "lib/utils/Math.h"
 
 namespace datastructure {
-template <typename T>
-struct SimpleHash {
-  size_t operator() (const T& x) const {
-    return x;
-  }
-};
-
-template <typename T>
-struct CRChash {
-  size_t operator() (const T& x) const {
-    return _mm_crc32_u32((size_t)28475421, x);
-  }
-};
-
-template <typename T>
-struct ROLhash {
-  size_t operator() (const T& x) const {
-    return utils::_rol(x);
-  }
-};
-
 template <typename KeyType, typename ValueType, size_t SizeFactor,
           KeyType empty = std::numeric_limits<KeyType>::max(),
-          KeyType deleted = std::numeric_limits<KeyType>::max() - 1,
-          typename HashFunction = CRChash<ValueType> >
+          KeyType deleted = std::numeric_limits<KeyType>::max() - 1>
 class HashMap {
  public:
   using Element = std::pair<KeyType, ValueType>;
 
   explicit HashMap(size_t max_size) :
-    _hash_function(),
     _max_size(max_size * SizeFactor) {
     static_assert(std::is_pod<KeyType>::value, "KeyType is not a POD");
     static_assert(std::is_pod<ValueType>::value, "ValueType is not a POD");
@@ -94,7 +71,7 @@ class HashMap {
   using Position = size_t;
 
   Position find(const KeyType key) const {
-    const Position start_position = _hash_function(key) % _max_size;
+    const Position start_position = utils::crc32(key) % _max_size;
     const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
     for (Position position = start_position; position < _max_size; position = (position + 1) % _max_size) {
       if (data()[position].first == empty || data()[position].first == key) {
@@ -107,7 +84,7 @@ class HashMap {
   }
 
   Position nextFreeSlot(const KeyType key) {
-    const Position start_position = _hash_function(key) % _max_size;
+    const Position start_position = utils::crc32(key) % _max_size;
     for (Position position = start_position; position < _max_size; position = (position + 1) % _max_size) {
       if (data()[position].first == empty || data()[position].first == deleted) {
         return position;
@@ -124,7 +101,6 @@ class HashMap {
     return reinterpret_cast<const Element*>(&_max_size + 1);
   }
 
-  const HashFunction _hash_function;
   Position _max_size;
 };
 
