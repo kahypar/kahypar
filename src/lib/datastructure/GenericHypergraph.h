@@ -27,6 +27,7 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
+#include "lib/utils/Math.h"
 
 
 using core::Empty;
@@ -78,6 +79,12 @@ class GenericHypergraph {
     EdgeAndNodeWeights = 11,
   };
 
+  enum class ContractionType : size_t {
+    Initial = 0,
+    Case1 = 1,
+    Case2 = 2
+  };
+
  private:
   // forward delarations
   struct Memento;
@@ -91,6 +98,8 @@ class GenericHypergraph {
 
   struct AdditionalHyperedgeData : public HyperedgeData {
     PartitionID connectivity = 0;
+    size_t hash = 42;
+    ContractionType contraction_type = ContractionType::Initial;
   };
 
   struct AdditionalHypernodeData : public HypernodeData {
@@ -380,6 +389,7 @@ class GenericHypergraph {
       hyperedge(i).setFirstEntry(edge_vector_index);
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         hyperedge(i).increaseSize();
+        hyperedge(i).hash ^= utils::_rol(edge_vector[pin_index]);
         _incidence_array[pin_index] = edge_vector[pin_index];
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
@@ -587,6 +597,7 @@ class GenericHypergraph {
         // Case 1:
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
+        hyperedge(_incidence_array[he_it]).contraction_type = ContractionType::Case1;
         hyperedge(_incidence_array[he_it]).decreaseSize();
         if (partID(v) != kInvalidPartition) {
           decreasePinCountInPart(_incidence_array[he_it], partID(v));
@@ -596,6 +607,7 @@ class GenericHypergraph {
         // Case 2:
         // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
         // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
+        hyperedge(_incidence_array[he_it]).contraction_type = ContractionType::Case2;
         connectHyperedgeToRepresentative(_incidence_array[he_it], u, first_call);
       }
     }
@@ -1137,6 +1149,21 @@ class GenericHypergraph {
     return hyperedge(e).size();
   }
 
+  size_t & edgeHash(const HyperedgeID e) noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    return hyperedge(e).hash;
+  }
+
+  ContractionType edgeContractionType(const HyperedgeID e) const noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    return hyperedge(e).contraction_type;
+  }
+
+  void resetEdgeContractionType(const HyperedgeID e) noexcept {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    hyperedge(e).contraction_type = ContractionType::Initial;
+  }
+
   HypernodeWeight nodeWeight(const HypernodeID u) const noexcept {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
     return hypernode(u).weight();
@@ -1641,10 +1668,9 @@ class GenericHypergraph {
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> >
-  extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                   const typename Hypergraph::PartitionID part,
-                                                   const bool split_nets);
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    const typename Hypergraph::PartitionID part,
+                                                                                                                    const bool split_nets);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -1766,6 +1792,7 @@ reindex(const Hypergraph& hypergraph) {
     reindexed_hypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
     for (const HypernodeID pin : hypergraph.pins(he)) {
       reindexed_hypergraph->hyperedge(num_hyperedges).increaseSize();
+      reindexed_hypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(original_to_reindexed[pin]);
       reindexed_hypergraph->_incidence_array.push_back(original_to_reindexed[pin]);
       reindexed_hypergraph->hypernode(original_to_reindexed[pin]).increaseSize();
       ++pin_index;
@@ -1861,6 +1888,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
         for (const HypernodeID pin : hypergraph.pins(he)) {
           if (hypergraph.partID(pin) == part) {
             subhypergraph->hyperedge(num_hyperedges).increaseSize();
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
             subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
             ++pin_index;
@@ -1884,6 +1912,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
           for (const HypernodeID pin : hypergraph.pins(he)) {
             ASSERT(hypergraph.partID(pin) == part, V(pin));
             subhypergraph->hyperedge(num_hyperedges).increaseSize();
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
             subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
             ++pin_index;

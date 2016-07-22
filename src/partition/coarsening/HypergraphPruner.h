@@ -237,25 +237,28 @@ class HypergraphPruner {
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) noexcept {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
-      size_t hash =  /* seed */ 42;
-      if (unlikely(_hash_cache[he] == std::numeric_limits<size_t>::max())) {
-        for (const HypernodeID pin : hypergraph.pins(he)) {
-          hash ^= utils::_rol(pin);
-        }
-      } else {
-        _hash_cache[he] ^= utils::_rol(v);
-        hash = _hash_cache[he];
-        ASSERT([&]() {
-            size_t correct_hash = 42;
-            for (const HypernodeID pin : hypergraph.pins(he)) {
-              correct_hash ^= utils::_rol(pin);
-            }
-            return correct_hash == _hash_cache[he];
-          } (), V(he));
+      if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
+        hypergraph.edgeHash(he) ^= utils::_rol(v);
+        hypergraph.edgeHash(he) ^= utils::_rol(u);
+      } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
+        hypergraph.edgeHash(he) ^= utils::_rol(v);
       }
+      hypergraph.resetEdgeContractionType(he);
+      ASSERT([&]() {
+          size_t correct_hash = 42;
+          for (const HypernodeID pin : hypergraph.pins(he)) {
+            correct_hash ^= utils::_rol(pin);
+          }
+          if (correct_hash != hypergraph.edgeHash(he)) {
+            LOGVAR(correct_hash);
+            LOGVAR(hypergraph.edgeHash(he));
+            return false;
+          }
+          return true;
+        } (), V(he));
       DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
-          << "= {" << he << "," << hash << "," << hypergraph.edgeSize(he) << "}");
-      _fingerprints.emplace_back(he, hash, hypergraph.edgeSize(he));
+          << "= {" << he << "," << hypergraph.edgeHash(he) << "," << hypergraph.edgeSize(he) << "}");
+      _fingerprints.emplace_back(he, hypergraph.edgeHash(he), hypergraph.edgeSize(he));
     }
   }
 
