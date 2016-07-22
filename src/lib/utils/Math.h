@@ -21,5 +21,17 @@ template <typename T>
 static inline T _rol(const T x) {
   return _rol(x, x & (sizeof(T) * 8 - 1));
 }
+
+template <typename T>
+static inline T crc32(const T& x) {
+  return _mm_crc32_u32((size_t)28475421, x);
+}
+
+template <typename T>
+static inline T identity(const T& x) {
+  return x;
+}
+
+
 }  // namespace utils
 #endif  // SRC_LIB_UTILS_MATH_H_
