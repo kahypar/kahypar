@@ -26,11 +26,12 @@ class IncidenceSet {
  public:
   explicit IncidenceSet(const T max_size) :
     _memory(nullptr),
-    _size(0),
+    _end(nullptr),
     _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)),
     _max_sparse_size(InitialSizeFactor * _max_size) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
     _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
+    _end = _memory;
 
     for (size_t i = 0; i < _max_size; ++i) {
       new(dense() + i)T(std::numeric_limits<T>::max());
@@ -54,10 +55,10 @@ class IncidenceSet {
 
   IncidenceSet(IncidenceSet&& other) :
     _memory(other._memory),
-    _size(other._size),
+    _end(other._end),
     _max_size(other._max_size),
     _max_sparse_size(other._max_sparse_size) {
-    other._size = 0;
+    other._end = nullptr;
     other._max_size = 0;
     other._max_sparse_size = 0;
     other._memory = nullptr;
@@ -65,12 +66,13 @@ class IncidenceSet {
 
   void add(const T element) {
     ASSERT(!contains(element), V(element));
-    if (_size == _max_size) {
+    if (size() == _max_size) {
       resize();
     }
 
-    insert(element, _size);
-    dense()[_size++] = element;
+    insert(element, size());
+    dense()[size()] = element;
+    ++_end;
   }
 
   void insertIfNotContained(const T element) {
@@ -80,22 +82,23 @@ class IncidenceSet {
   }
 
   void undoRemoval(const T element) {
-    insert(element, _size);
-    dense()[_size++] = element;
+    insert(element, size());
+    dense()[size()] = element;
+    ++_end;
   }
 
   void remove(const T v) {
     using std::swap;
     ASSERT(contains(v), V(v));
 
-    //swap v with element at end
+    // swap v with element at end
     Element& sparse_v = sparse()[find(v)];
-    swap(dense()[sparse_v.second], dense()[_size - 1]);
+    swap(dense()[sparse_v.second], dense()[size() - 1]);
     update(dense()[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
-    --_size;
+    --_end;
   }
 
   // reuse position of v to store u
@@ -103,24 +106,24 @@ class IncidenceSet {
     using std::swap;
     ASSERT(contains(v), V(v));
 
-    //swap v with element at end
+    // swap v with element at end
     Element& sparse_v = sparse()[find(v)];
-    swap(dense()[sparse_v.second], dense()[_size - 1]);
+    swap(dense()[sparse_v.second], dense()[size() - 1]);
     update(dense()[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
 
     // add u at v's place in dense
-    insert(u, _size - 1);
-    dense()[_size - 1] = u;
+    insert(u, size() - 1);
+    dense()[size() - 1] = u;
   }
 
   T peek() const {
     // This works, because we ensure that 'one past the current size'
     // is an element of dense(). In case dense is full, there is
     // a sentinel in place to ensure correct behavior.
-    return dense()[_size];
+    return *_end;
   }
 
   void undoReuse(const T u, const T v) {
@@ -138,7 +141,7 @@ class IncidenceSet {
   void swap(IncidenceSet& other) noexcept {
     using std::swap;
     swap(_memory, other._memory);
-    swap(_size, other._size);
+    swap(_end, other._end);
     swap(_max_size, other._max_size);
     swap(_max_sparse_size, other._max_sparse_size);
   }
@@ -158,7 +161,7 @@ class IncidenceSet {
   }
 
   T size() const {
-    return _size;
+    return end() - begin();
   }
 
   const T* begin() const {
@@ -166,7 +169,7 @@ class IncidenceSet {
   }
 
   const T* end() const {
-    return dense() + _size;
+    return _end;
   }
 
   T capacity() const {
@@ -174,7 +177,7 @@ class IncidenceSet {
   }
 
   void printAll() const {
-    for (auto it = begin(); it != begin() + _size; ++it) {
+    for (auto it = begin(); it != end(); ++it) {
       LOGVAR(*it);
     }
   }
@@ -250,7 +253,7 @@ class IncidenceSet {
   }
 
   T* _memory;
-  T _size;
+  T* _end;
   T _max_size;
   T _max_sparse_size;
 };
