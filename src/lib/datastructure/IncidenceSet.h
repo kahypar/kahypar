@@ -79,42 +79,44 @@ class IncidenceSet {
     }
   }
 
-  void remove(const T element) {
-    swapToEnd(element);
-    removeAtEnd(element);
-  }
-
   void undoRemoval(const T element) {
     insert(element, _size);
     dense()[_size++] = element;
   }
 
-  void swapToEnd(const T v) {
+  void remove(const T v) {
     using std::swap;
-    const T index_v = get(v).second;
-    swap(dense()[index_v], dense()[_size - 1]);
-    update(dense()[index_v], index_v);
-    update(v, _size - 1);
-    ASSERT(get(v).second == _size - 1, V(v));
-  }
+    ASSERT(contains(v), V(v));
 
-  void removeAtEnd(const T v) {
-    ASSERT(dense()[_size - 1] == v, V(v));
-    remove2(v);
-    // ASSERT(v_index == _size - 1, V(v));
+    //swap v with element at end
+    Element& sparse_v = sparse()[find(v)];
+    swap(dense()[sparse_v.second], dense()[_size - 1]);
+    update(dense()[sparse_v.second], sparse_v.second);
+
+    // delete v
+    sparse_v.first = deleted;
     --_size;
   }
 
   // reuse position of v to store u
   void reuse(const T u, const T v) {
-    ASSERT(get(v).second == _size - 1, V(v));
-    const T index = remove2(v);
-    ASSERT(index == _size - 1, V(index));
-    insert(u, index);
-    dense()[index] = u;
+    using std::swap;
+    ASSERT(contains(v), V(v));
+
+    //swap v with element at end
+    Element& sparse_v = sparse()[find(v)];
+    swap(dense()[sparse_v.second], dense()[_size - 1]);
+    update(dense()[sparse_v.second], sparse_v.second);
+
+    // delete v
+    sparse_v.first = deleted;
+
+    // add u at v's place in dense
+    insert(u, _size - 1);
+    dense()[_size - 1] = u;
   }
 
-  T peek() {
+  T peek() const {
     // This works, because we ensure that 'one past the current size'
     // is an element of dense(). In case dense is full, there is
     // a sentinel in place to ensure correct behavior.
@@ -122,9 +124,15 @@ class IncidenceSet {
   }
 
   void undoReuse(const T u, const T v) {
-    const T index = remove2(u);
-    insert(v, index);
-    dense()[index] = v;
+    ASSERT(contains(u), V(u));
+
+    // remove u
+    Element& sparse_u = sparse()[find(u)];
+    sparse_u.first = deleted;
+
+    // replace u with v in dense
+    insert(v, sparse_u.second);
+    dense()[sparse_u.second] = v;
   }
 
   void swap(IncidenceSet& other) noexcept {
@@ -136,11 +144,17 @@ class IncidenceSet {
   }
 
   bool contains(const T key) const {
-    const Position position = find(key);
-    if (position == -1 || sparse()[position].first == empty) {
-      return false;
+    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
+    for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
+      if (sparse()[position].first == empty) {
+        return false;
+      } else if (sparse()[position].first == key) {
+        return true;
+      } else if (position == before) {
+        return false;
+      }
     }
-    return true;
   }
 
   T size() const {
@@ -171,22 +185,12 @@ class IncidenceSet {
     sparse()[nextFreeSlot(key)] = { key, value };
   }
 
-  size_t remove2(const T key) {
-    ASSERT(contains(key), V(key));
-    const Position position = find(key);
-    sparse()[position].first = deleted;
-    return sparse()[position].second;
-  }
-
   void update(const T key, const size_t value) {
     ASSERT(contains(key), V(key));
     ASSERT(sparse()[find(key)].first == key, V(key));
     sparse()[find(key)].second = value;
   }
 
-  const Element & get(const T& key) const {
-    return sparse()[find(key)];
-  }
 
   Position find(const T key) const {
     const Position start_position = utils::crc32(key) % _max_sparse_size;
