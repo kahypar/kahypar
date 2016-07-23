@@ -529,7 +529,6 @@ class GenericHypergraph2 {
 
     for (const HyperedgeID he : incidentEdges(v)) {
       // LOG(V(he));
-      hyperedge(he).incidenceStructure().swapToEnd(v);
       if (!hyperedge(he).incidenceStructure().contains(u)) {
         // LOG("CASE 2");
         // Case 2:
@@ -545,7 +544,7 @@ class GenericHypergraph2 {
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
         hyperedge(he).contraction_type = ContractionType::Case1;
-        hyperedge(he).incidenceStructure().removeAtEnd(v);
+        hyperedge(he).incidenceStructure().remove(v);
         if (partID(v) != kInvalidPartition) {
           decreasePinCountInPart(he, partID(v));
         }
