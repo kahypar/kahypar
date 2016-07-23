@@ -208,7 +208,8 @@ class IncidenceSet {
   Position nextFreeSlot(const T key) {
     const Position start_position = utils::crc32(key) % _max_sparse_size;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
-      if (sparse()[position].first == empty || sparse()[position].first == deleted) {
+      if (sparse()[position].first >= deleted) {
+        ASSERT(sparse()[position].first == empty || sparse()[position].first == deleted, V(position));
         return position;
       }
     }
