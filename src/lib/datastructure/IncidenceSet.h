@@ -197,15 +197,12 @@ class IncidenceSet {
 
   Position find(const T key) const {
     const Position start_position = utils::crc32(key) % _max_sparse_size;
-    const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
-      if (sparse()[position].first == empty || sparse()[position].first == key) {
+      if (sparse()[position].first == key) {
         return position;
-      } else if (position == before) {
-        return -1;
       }
     }
-    ASSERT(true == false, "This should never happen.");
+    return std::numeric_limits<Position>::max();
   }
 
   Position nextFreeSlot(const T key) {
