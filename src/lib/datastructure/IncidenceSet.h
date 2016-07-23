@@ -20,8 +20,8 @@ template <typename T, size_t InitialSizeFactor = 2,
           T deleted = std::numeric_limits<T>::max() - 1>
 class IncidenceSet {
  private:
-  using Element = std::pair<T, size_t>;
-  using Position = size_t;
+  using Element = std::pair<T, T>;
+  using Position = T;
 
  public:
   explicit IncidenceSet(const T max_size) :
@@ -33,13 +33,13 @@ class IncidenceSet {
     _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
     _end = _memory;
 
-    for (size_t i = 0; i < _max_size; ++i) {
+    for (T i = 0; i < _max_size; ++i) {
       new(dense() + i)T(std::numeric_limits<T>::max());
     }
     // sentinel for peek() operation of incidence set
     new(dense() + _max_size)T(std::numeric_limits<T>::max());
 
-    for (size_t i = 0; i < _max_sparse_size; ++i) {
+    for (T i = 0; i < _max_sparse_size; ++i) {
       new (sparse() + i)Element(empty, empty);
     }
   }
@@ -183,12 +183,12 @@ class IncidenceSet {
   }
 
  private:
-  void insert(const T key, const size_t value) {
+  void insert(const T key, const T value) {
     ASSERT(!contains(key), V(key));
     sparse()[nextFreeSlot(key)] = { key, value };
   }
 
-  void update(const T key, const size_t value) {
+  void update(const T key, const T value) {
     ASSERT(contains(key), V(key));
     ASSERT(sparse()[find(key)].first == key, V(key));
     sparse()[find(key)].second = value;
@@ -205,7 +205,7 @@ class IncidenceSet {
     return std::numeric_limits<Position>::max();
   }
 
-  Position nextFreeSlot(const T key) {
+  Position nextFreeSlot(const T key) const {
     const Position start_position = utils::crc32(key) % _max_sparse_size;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first >= deleted) {
@@ -222,7 +222,7 @@ class IncidenceSet {
   }
 
   size_t sizeOfSparse() const {
-    return _max_sparse_size * sizeof(std::pair<T, size_t>);
+    return _max_sparse_size * sizeof(std::pair<T, T>);
   }
 
 
