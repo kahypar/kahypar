@@ -140,7 +140,12 @@ class GenericHypergraph2 {
     using IncidenceType = typename VertexTypeTraits::IncidenceType;
     using IncidenceStructure = IncidenceSet<IncidenceType>;
 
-    InternalVertex(const WeightType weight) noexcept :
+    InternalVertex(const WeightType weight, size_t z) noexcept :
+      _incidence_structure(z),
+      _weight(weight),
+      _valid(true) { }
+
+     InternalVertex(const WeightType weight) noexcept :
       _incidence_structure(5),
       _weight(weight),
       _valid(true) { }
@@ -343,12 +348,23 @@ class GenericHypergraph2 {
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k) {
+
+      std::vector<HypernodeID> degs(num_hypernodes,0);
+      std::vector<HypernodeID> sizes(num_hyperedges,0);
+     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
+         ++sizes[i];
+         ++degs[edge_vector[pin_index]];
+       }
+     }
+
+
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      _hyperedges.emplace_back(1);
+      _hyperedges.emplace_back(1, sizes[i]);
     }
 
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      _hypernodes.emplace_back(1);
+      _hypernodes.emplace_back(1, degs[i]);
     }
 
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
