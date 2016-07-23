@@ -27,6 +27,7 @@ class IncidenceSet {
   explicit IncidenceSet(const T max_size) :
     _memory(nullptr),
     _end(nullptr),
+    _size(0),
     _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)),
     _max_sparse_size(InitialSizeFactor * _max_size) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
@@ -56,22 +57,25 @@ class IncidenceSet {
   IncidenceSet(IncidenceSet&& other) :
     _memory(other._memory),
     _end(other._end),
+    _size(other._size),
     _max_size(other._max_size),
     _max_sparse_size(other._max_sparse_size) {
     other._end = nullptr;
     other._max_size = 0;
+    other._size = 0;
     other._max_sparse_size = 0;
     other._memory = nullptr;
   }
 
   void add(const T element) {
     ASSERT(!contains(element), V(element));
-    if (size() == _max_size) {
+    if (_size == _max_size) {
       resize();
     }
 
-    insert(element, size());
-    dense()[size()] = element;
+    insert(element, _size);
+    dense()[_size] = element;
+    ++_size;
     ++_end;
   }
 
@@ -82,8 +86,9 @@ class IncidenceSet {
   }
 
   void undoRemoval(const T element) {
-    insert(element, size());
-    dense()[size()] = element;
+    insert(element, _size);
+    dense()[_size] = element;
+    ++_size;
     ++_end;
   }
 
@@ -93,12 +98,13 @@ class IncidenceSet {
 
     // swap v with element at end
     Element& sparse_v = sparse()[find(v)];
-    swap(dense()[sparse_v.second], dense()[size() - 1]);
+    swap(dense()[sparse_v.second], dense()[_size - 1]);
     update(dense()[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
     --_end;
+    --_size;
   }
 
   // reuse position of v to store u
@@ -108,15 +114,15 @@ class IncidenceSet {
 
     // swap v with element at end
     Element& sparse_v = sparse()[find(v)];
-    swap(dense()[sparse_v.second], dense()[size() - 1]);
+    swap(dense()[sparse_v.second], dense()[_size - 1]);
     update(dense()[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
 
     // add u at v's place in dense
-    insert(u, size() - 1);
-    dense()[size() - 1] = u;
+    insert(u, _size - 1);
+    dense()[_size - 1] = u;
   }
 
   T peek() const {
@@ -142,6 +148,7 @@ class IncidenceSet {
     using std::swap;
     swap(_memory, other._memory);
     swap(_end, other._end);
+    swap(_size, other._size);
     swap(_max_size, other._max_size);
     swap(_max_sparse_size, other._max_sparse_size);
   }
@@ -161,7 +168,7 @@ class IncidenceSet {
   }
 
   T size() const {
-    return end() - begin();
+    return _size;
   }
 
   const T* begin() const {
@@ -252,6 +259,7 @@ class IncidenceSet {
 
   T* _memory;
   T* _end;
+  T _size;
   T _max_size;
   T _max_sparse_size;
 };
