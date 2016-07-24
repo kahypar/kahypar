@@ -39,7 +39,10 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _valid_parts(config.initial_partitioning.k, false),
     _in_queue(hypergraph.initialNumNodes(), false),
-    _tmp_scores(_config.initial_partitioning.k, 0) {
+    _tmp_scores(_config.initial_partitioning.k, 0),
+    _unassigned_nodes(),
+    _unconnected_nodes(),
+    _unassigned_node_bound(0){
     for (const HypernodeID hn : _hg.nodes()) {
       if (_hg.nodeDegree(hn > 0)) {
         _unassigned_nodes.push_back(hn);
