@@ -155,7 +155,7 @@ class IncidenceSet {
 
   bool contains(const T key) const {
     const Position start_position = utils::crc32(key) % _max_sparse_size;
-    const Position before = start_position != 0 ? start_position - 1 : _max_size - 1;
+    const Position before = start_position != 0 ? start_position - 1 : _max_sparse_size - 1;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first == empty) {
         return false;
