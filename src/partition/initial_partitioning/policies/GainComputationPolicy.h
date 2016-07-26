@@ -224,12 +224,36 @@ struct FMGainComputationPolicy {
   static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& config,
                                      KWayRefinementPQ& pq, const HypernodeID hn,
                                      const PartitionID from, const PartitionID to,
-                                     const FastResetBitVector<>&) {
+                                     const FastResetBitVector<>& foo) {
     if (from == -1) {
       deltaGainUpdateForUnassignedFromPart(hg, config, pq, hn, to);
     } else {
       deltaGainUpdateforAssignedPart(hg, config, pq, hn, from, to);
     }
+    ASSERT([&]() {
+        for (const HyperedgeID he : hg.incidentEdges(hn)) {
+          for (const HypernodeID node : hg.pins(he)) {
+            if (node != hn) {
+              for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+                if (pq.contains(node, i)) {
+                  const Gain gain = calculateGain(hg, node, i, foo);
+                  if (pq.key(node, i) != gain) {
+                    LOGVAR(hn);
+                    LOGVAR(from);
+                    LOGVAR(to);
+                    LOGVAR(node);
+                    LOGVAR(i);
+                    LOGVAR(gain);
+                    LOGVAR(pq.key(node, i));
+                    return false;
+                  }
+                }
+              }
+            }
+          }
+        }
+        return true;
+      } (), "Error");
   }
 
   static GainType getType() {
