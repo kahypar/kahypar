@@ -104,11 +104,6 @@ class PoolInitialPartitioner : public IInitialPartitioner,
             if (current_imbalance > best_cut.imbalance) {
               apply_best_partition = false;
             }
-          } else if (current_cut == best_cut.cut) {
-            if ((current_imbalance > best_cut.imbalance) ||
-                (current_imbalance == best_cut.imbalance && Randomize::flipCoin())) {
-              apply_best_partition = false;
-            }
           }
         }
         if (apply_best_partition) {
