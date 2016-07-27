@@ -389,7 +389,7 @@ class GenericHypergraph {
       hyperedge(i).setFirstEntry(edge_vector_index);
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         hyperedge(i).increaseSize();
-        hyperedge(i).hash ^= utils::_rol(edge_vector[pin_index]);
+        hyperedge(i).hash ^= utils::hash(edge_vector[pin_index]);
         _incidence_array[pin_index] = edge_vector[pin_index];
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
@@ -1792,7 +1792,7 @@ reindex(const Hypergraph& hypergraph) {
     reindexed_hypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
     for (const HypernodeID pin : hypergraph.pins(he)) {
       reindexed_hypergraph->hyperedge(num_hyperedges).increaseSize();
-      reindexed_hypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(original_to_reindexed[pin]);
+      reindexed_hypergraph->hyperedge(num_hyperedges).hash ^= utils::hash(original_to_reindexed[pin]);
       reindexed_hypergraph->_incidence_array.push_back(original_to_reindexed[pin]);
       reindexed_hypergraph->hypernode(original_to_reindexed[pin]).increaseSize();
       ++pin_index;
@@ -1888,7 +1888,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
         for (const HypernodeID pin : hypergraph.pins(he)) {
           if (hypergraph.partID(pin) == part) {
             subhypergraph->hyperedge(num_hyperedges).increaseSize();
-            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::hash(hypergraph_to_subhypergraph[pin]);
             subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
             ++pin_index;
@@ -1912,7 +1912,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
           for (const HypernodeID pin : hypergraph.pins(he)) {
             ASSERT(hypergraph.partID(pin) == part, V(pin));
             subhypergraph->hyperedge(num_hyperedges).increaseSize();
-            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::hash(hypergraph_to_subhypergraph[pin]);
             subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).increaseSize();
             ++pin_index;

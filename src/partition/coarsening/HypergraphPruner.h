@@ -245,16 +245,16 @@ class HypergraphPruner {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
       if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
-        hypergraph.edgeHash(he) ^= utils::_rol(v);
-        hypergraph.edgeHash(he) ^= utils::_rol(u);
+        hypergraph.edgeHash(he) ^= utils::hash(v);
+        hypergraph.edgeHash(he) ^= utils::hash(u);
       } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
-        hypergraph.edgeHash(he) ^= utils::_rol(v);
+        hypergraph.edgeHash(he) ^= utils::hash(v);
       }
       hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = 42;
           for (const HypernodeID pin : hypergraph.pins(he)) {
-            correct_hash ^= utils::_rol(pin);
+            correct_hash ^= utils::hash(pin);
           }
           if (correct_hash != hypergraph.edgeHash(he)) {
             LOGVAR(correct_hash);

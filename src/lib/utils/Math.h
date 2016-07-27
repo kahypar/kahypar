@@ -38,5 +38,9 @@ static inline T identity(const T& x) {
 }
 
 
+template <typename T>
+static inline T hash(const T& x) {
+  return _rol(x);
+}
 }  // namespace utils
 #endif  // SRC_LIB_UTILS_MATH_H_
