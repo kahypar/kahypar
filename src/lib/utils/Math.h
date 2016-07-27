@@ -37,6 +37,11 @@ static inline T identity(const T& x) {
   return x;
 }
 
+template <typename T>
+static inline T cs2(const T& x) {
+  return x * x;
+}
+
 
 template <typename T>
 static inline T hash(const T& x) {
