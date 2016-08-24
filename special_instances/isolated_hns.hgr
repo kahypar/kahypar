@@ -1,0 +1,6 @@
+% hypergraph that contains isolated vertices and a single-node hyperedge
+4 9
+1 2 3
+3
+8 9
+7 8
