@@ -844,7 +844,6 @@ TEST_F(AHypergraph, SupportsIsolationOfHypernodes) {
               hypergraph.pins(0).second, Eq(true));
   ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) ==
               hypergraph.pins(1).second, Eq(true));
-
 }
 
 TEST_F(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation) {
@@ -899,5 +898,4 @@ TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
   ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) !=
               hypergraph.pins(1).second, Eq(true));
 }
-
 }  // namespace datastructure

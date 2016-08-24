@@ -626,7 +626,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
   // hypergraph is the input hypergraph, which is not supposed to be deleted.
   // All extracted hypergraphs however can be deleted as soon as they are not needed
   // anymore.
-  auto no_delete = [](Hypergraph*) { };
+  auto no_delete = [](Hypergraph* h) { };
   auto delete_hypergraph = [](Hypergraph* h) {
                              delete h;
                            };

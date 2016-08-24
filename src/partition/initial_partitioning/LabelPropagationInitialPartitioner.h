@@ -42,14 +42,13 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _tmp_scores(_config.initial_partitioning.k, 0),
     _unassigned_nodes(),
     _unconnected_nodes(),
-    _unassigned_node_bound(0){
+    _unassigned_node_bound(0) {
     for (const HypernodeID hn : _hg.nodes()) {
       if (_hg.nodeDegree(hn > 0)) {
         _unassigned_nodes.push_back(hn);
       } else {
         _unconnected_nodes.push_back(hn);
       }
-
     }
     _unassigned_node_bound = _unassigned_nodes.size();
   }
@@ -187,7 +186,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (_hg.partID(hn) == -1) {
         assignHypernodeToPartWithMinimumPartWeight(hn);
       }
-
     }
 
     _config.initial_partitioning.unassigned_part = unassigned_part;
@@ -386,9 +384,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         if (unassigned == kInvalidNode) {
           break;
         } else {
-_bfs_queue.push(unassigned);
+          _bfs_queue.push(unassigned);
         }
-
       }
     }
     _in_queue.resetAllBitsToFalse();
@@ -405,7 +402,7 @@ _bfs_queue.push(unassigned);
     _hg.setNodePart(hn, p);
   }
 
-   HypernodeID getUnassignedNode2() {
+  HypernodeID getUnassignedNode2() {
     HypernodeID unassigned_node = kInvalidNode;
     for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];

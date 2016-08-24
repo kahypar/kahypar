@@ -9,8 +9,8 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "lib/macros.h"
 #include "lib/io/PartitioningOutput.h"
+#include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
   }
 
   partition::Configuration config;
-  config.partition.k = max_part+1;
+  config.partition.k = max_part + 1;
 
   std::cout << "***********************" << hypergraph.k()
   << "-way Partition Result************************" << std::endl;

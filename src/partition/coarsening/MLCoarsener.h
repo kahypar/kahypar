@@ -102,7 +102,7 @@ class MLCoarsener final : public ICoarsener,
             already_matched.setBit(hn, true);
             already_matched.setBit(rating.target, true);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
-              contract(hn, rating.target);
+            contract(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
             // }
@@ -152,7 +152,7 @@ class MLCoarsener final : public ICoarsener,
       if (acceptRating(tmp_rating, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp_rating;
         target = tmp_target;
-    }
+      }
     }
 
     Rating ret;

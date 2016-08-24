@@ -258,7 +258,7 @@ class IncidenceSet {
   }
 
   std::int32_t mod(std::int32_t a, std::int32_t b) const {
-    return (a%b+b)%b;
+    return (a % b + b) % b;
   }
 
   T* _memory;
