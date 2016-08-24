@@ -17,8 +17,8 @@ TEST(NextPowerOfTwoCeiled, WorksAsExpected) {
 }
 
 TEST(NearestMultipleOf, WorksAsExpected) {
-  ASSERT_THAT(nearestMultipleOf(2,64), Eq(64));
-  ASSERT_THAT(nearestMultipleOf(64,64), Eq(64));
-  ASSERT_THAT(nearestMultipleOf(65,64), Eq(128));
+  ASSERT_THAT(nearestMultipleOf(2, 64), Eq(64));
+  ASSERT_THAT(nearestMultipleOf(64, 64), Eq(64));
+  ASSERT_THAT(nearestMultipleOf(65, 64), Eq(128));
 }
 }  // namespace utils

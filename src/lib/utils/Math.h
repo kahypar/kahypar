@@ -37,6 +37,14 @@ static inline T identity(const T& x) {
   return x;
 }
 
+template <typename T>
+static inline T cs2(const T& x) {
+  return x * x;
+}
 
+template <typename T>
+static inline T hash(const T& x) {
+  return cs2(x);
+}
 }  // namespace utils
 #endif  // SRC_LIB_UTILS_MATH_H_

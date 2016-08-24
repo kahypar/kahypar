@@ -23,10 +23,10 @@ class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
     return num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
   }
 
-  void resetStatistics() noexcept {}
+  void resetStatistics() noexcept { }
 
   template <typename Gain>
-  void updateStatistics(const Gain) noexcept {}
+  void updateStatistics(const Gain) noexcept { }
 };
 
 

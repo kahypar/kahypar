@@ -39,7 +39,19 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _valid_parts(config.initial_partitioning.k, false),
     _in_queue(hypergraph.initialNumNodes(), false),
-    _tmp_scores(_config.initial_partitioning.k, 0) { }
+    _tmp_scores(_config.initial_partitioning.k, 0),
+    _unassigned_nodes(),
+    _unconnected_nodes(),
+    _unassigned_node_bound(0) {
+    for (const HypernodeID hn : _hg.nodes()) {
+      if (_hg.nodeDegree(hn > 0)) {
+        _unassigned_nodes.push_back(hn);
+      } else {
+        _unconnected_nodes.push_back(hn);
+      }
+    }
+    _unassigned_node_bound = _unassigned_nodes.size();
+  }
 
   ~LabelPropagationInitialPartitioner() { }
 
@@ -54,18 +66,22 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
-
-    std::vector<HypernodeID> nodes(_hg.initialNumNodes(), 0);
+    _unassigned_node_bound = _unassigned_nodes.size();
+    std::vector<HypernodeID> nodes;
     for (const HypernodeID hn : _hg.nodes()) {
-      nodes[hn] = hn;
+      if (_hg.nodeDegree(hn) > 0) {
+        nodes.push_back(hn);
+      }
     }
 
     int connected_nodes = std::max(std::min(_config.initial_partitioning.lp_assign_vertex_to_part,
                                             static_cast<int>(_hg.initialNumNodes()
                                                              / _config.initial_partitioning.k)), 1);
+
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _hg,
+    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg,
                                             _config.initial_partitioning.k);
+
     for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
     }
@@ -83,6 +99,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
     bool converged = false;
     size_t iterations = 0;
+
     while (!converged &&
            iterations < static_cast<size_t>(_config.initial_partitioning.lp_max_iteration)) {
       converged = true;
@@ -142,13 +159,13 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         }
       }
       ++iterations;
-
       // If the algorithm is converged but there are still unassigned hypernodes left, we try to choose
       // five additional hypernodes and assign them to the part with minimum weight to continue with
       // Label Propagation.
-      if (converged && InitialPartitionerBase::getUnassignedNode() != kInvalidNode) {
+
+      if (converged && getUnassignedNode2() != kInvalidNode) {
         for (auto i = 0; i < _config.initial_partitioning.lp_assign_vertex_to_part; ++i) {
-          HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
+          HypernodeID hn = getUnassignedNode2();
           if (hn == kInvalidNode) {
             break;
           }
@@ -159,9 +176,16 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     }
 
     // If there are any unassigned hypernodes left, we assign them to a part with minimum weight.
-    while (InitialPartitionerBase::getUnassignedNode() != kInvalidNode) {
-      HypernodeID hn = InitialPartitionerBase::getUnassignedNode();
+    while (getUnassignedNode2() != kInvalidNode) {
+      HypernodeID hn = getUnassignedNode2();
       assignHypernodeToPartWithMinimumPartWeight(hn);
+    }
+
+    // If there are any unconnected hypernodes left, we assign them to a part with minimum weight.
+    for (const HypernodeID hn : _unconnected_nodes) {
+      if (_hg.partID(hn) == -1) {
+        assignHypernodeToPartWithMinimumPartWeight(hn);
+      }
     }
 
     _config.initial_partitioning.unassigned_part = unassigned_part;
@@ -343,10 +367,12 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _hg.setNodePart(node, p);
         ++assigned_nodes;
         for (const HyperedgeID he : _hg.incidentEdges(node)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
-              _bfs_queue.push(pin);
-              _in_queue.setBit(pin, true);
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
+                _bfs_queue.push(pin);
+                _in_queue.setBit(pin, true);
+              }
             }
           }
         }
@@ -354,7 +380,12 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (assigned_nodes == k) {
         break;
       } else if (_bfs_queue.empty()) {
-        _bfs_queue.push(InitialPartitionerBase::getUnassignedNode());
+        const HypernodeID unassigned = getUnassignedNode2();
+        if (unassigned == kInvalidNode) {
+          break;
+        } else {
+          _bfs_queue.push(unassigned);
+        }
       }
     }
     _in_queue.resetAllBitsToFalse();
@@ -371,6 +402,20 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _hg.setNodePart(hn, p);
   }
 
+  HypernodeID getUnassignedNode2() {
+    HypernodeID unassigned_node = kInvalidNode;
+    for (size_t i = 0; i < _unassigned_node_bound; ++i) {
+      HypernodeID hn = _unassigned_nodes[i];
+      if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
+        unassigned_node = hn;
+        break;
+      } else {
+        std::swap(_unassigned_nodes[i--], _unassigned_nodes[--_unassigned_node_bound]);
+      }
+    }
+    return unassigned_node;
+  }
+
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
   using InitialPartitionerBase::kInvalidNode;
@@ -378,6 +423,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   FastResetBitVector<> _valid_parts;
   FastResetBitVector<> _in_queue;
   std::vector<Gain> _tmp_scores;
+  std::vector<HypernodeID> _unassigned_nodes;
+  std::vector<HypernodeID> _unconnected_nodes;
+  unsigned int _unassigned_node_bound;
 };
 }  // namespace partition
 

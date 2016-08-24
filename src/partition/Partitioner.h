@@ -626,7 +626,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
   // hypergraph is the input hypergraph, which is not supposed to be deleted.
   // All extracted hypergraphs however can be deleted as soon as they are not needed
   // anymore.
-  auto no_delete = [](Hypergraph*) { };
+  auto no_delete = [](Hypergraph* h) { };
   auto delete_hypergraph = [](Hypergraph* h) {
                              delete h;
                            };
@@ -830,9 +830,9 @@ inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& remov
     removeHyperedgesLargerThan(hg, removed_hyperedges, cutoff.first);
   }
 
-  if (config.partition.hyperedge_size_threshold != std::numeric_limits<HyperedgeID>::max()) {
-    removeHyperedgesLargerThan(hg, removed_hyperedges, config.partition.hyperedge_size_threshold);
-  }
+  // if (config.partition.hyperedge_size_threshold != std::numeric_limits<HyperedgeID>::max()) {
+  //   removeHyperedgesLargerThan(hg, removed_hyperedges, config.partition.hyperedge_size_threshold);
+  // }
 
   // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
   // remove them from the graph, to make subsequent partitioning easier.

@@ -102,11 +102,11 @@ class MLCoarsener final : public ICoarsener,
           if (rating.target != kInvalidTarget) {
             already_matched.setBit(hn, true);
             already_matched.setBit(rating.target, true);
-            if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
-              contract(hn, rating.target);
-            } else {
-              contract(rating.target, hn);
-            }
+            // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
+            contract(hn, rating.target);
+            // } else {
+            //   contract(rating.target, hn);
+            // }
           }
 
           if (_hg.currentNumNodes() <= limit) {
@@ -134,10 +134,12 @@ class MLCoarsener final : public ICoarsener,
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
-      const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
-      for (const HypernodeID v : _hg.pins(he)) {
-        if ((_tmp_ratings.contains(v) || belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)))) {
-          _tmp_ratings[v] += score;
+      if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+        const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
+        for (const HypernodeID v : _hg.pins(he)) {
+          if ((v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)))) {
+            _tmp_ratings[v] += score;
+          }
         }
       }
     }
@@ -151,9 +153,7 @@ class MLCoarsener final : public ICoarsener,
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value;
       DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp_rating);
-
-      if (tmp_rating > max_rating) {
-        _ties.clear();
+      if (acceptRating(tmp_rating, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp_rating;
         target = tmp_target;
       } else if (tmp_rating == max_rating) {
@@ -164,9 +164,6 @@ class MLCoarsener final : public ICoarsener,
           _ties.push_back(tmp_target);
         }
       }
-    }
-    if (_ties.size() > 0) {
-      target = _ties[(Randomize::getRandomInt(0, _ties.size() - 1))];
     }
 
     Rating ret;
@@ -179,7 +176,6 @@ class MLCoarsener final : public ICoarsener,
     }
 
     _tmp_ratings.clear();
-    _ties.clear();
 
     ASSERT([&]() {
         bool flag = true;
@@ -192,6 +188,19 @@ class MLCoarsener final : public ICoarsener,
     DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
         << ret.valid << ")");
     return ret;
+  }
+
+  bool acceptRating(const RatingType tmp, const RatingType max_rating,
+                    const HypernodeID old_target, const HypernodeID new_target,
+                    const FastResetBitVector<>& already_matched) const noexcept {
+    return max_rating < tmp ||
+           ((max_rating == tmp) &&
+            ((already_matched[old_target] && !already_matched[new_target]) ||
+             (already_matched[old_target] && already_matched[new_target] &&
+              RandomRatingWins::acceptEqual()) ||
+             (!already_matched[old_target] && !already_matched[new_target] &&
+              RandomRatingWins::acceptEqual())
+            ));
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept override final {

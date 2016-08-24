@@ -92,11 +92,17 @@ class PoolInitialPartitioner : public IInitialPartitioner,
         continue;
       }
       InitialPartitionerAlgorithm algo = _partitioner_pool[i];
+      if (algo == InitialPartitionerAlgorithm::greedy_round_maxpin || algo == InitialPartitionerAlgorithm::greedy_global_maxpin ||
+          algo == InitialPartitionerAlgorithm::greedy_sequential_maxpin) {
+        LOG("skipping maxpin");
+        continue;
+      }
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(algo, _hg, _config));
       partitioner->partition(_hg, _config);
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _config);
+      LOG(toString(algo) << V(current_cut) << V(current_imbalance));
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
         if (best_cut.cut != kInvalidCut) {

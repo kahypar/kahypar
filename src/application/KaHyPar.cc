@@ -771,7 +771,7 @@ int main(int argc, char* argv[]) {
   configurePartitionerFromCommandLineInput(config, vm);
   sanityCheck(config);
 
-  if (config.partition.global_search_iterations != 0){
+  if (config.partition.global_search_iterations != 0) {
     LOG("Coarsener does not check if HNs are in same part.");
     LOG("Therefore v-cycles are currently disabled.");
     exit(0);

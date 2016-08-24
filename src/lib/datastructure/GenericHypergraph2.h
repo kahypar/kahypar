@@ -145,7 +145,7 @@ class GenericHypergraph2 {
       _weight(weight),
       _valid(true) { }
 
-     InternalVertex(const WeightType weight) noexcept :
+    InternalVertex(const WeightType weight) noexcept :
       _incidence_structure(5),
       _weight(weight),
       _valid(true) { }
@@ -348,16 +348,14 @@ class GenericHypergraph2 {
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k) {
-
-      std::vector<HypernodeID> degs(num_hypernodes,0);
-      std::vector<HypernodeID> sizes(num_hyperedges,0);
-     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
-         ++sizes[i];
-         ++degs[edge_vector[pin_index]];
-       }
-     }
-
+    std::vector<HypernodeID> degs(num_hypernodes, 0);
+    std::vector<HypernodeID> sizes(num_hyperedges, 0);
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
+        ++sizes[i];
+        ++degs[edge_vector[pin_index]];
+      }
+    }
 
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       _hyperedges.emplace_back(1, sizes[i]);
@@ -370,7 +368,7 @@ class GenericHypergraph2 {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       for (VertexID pin_index = index_vector[i]; pin_index < index_vector[i + 1]; ++pin_index) {
         hyperedge(i).incidenceStructure().insertIfNotContained(edge_vector[pin_index]);
-        hyperedge(i).hash ^= utils::_rol(edge_vector[pin_index]);
+        hyperedge(i).hash += utils::hash(edge_vector[pin_index]);
         hypernode(edge_vector[pin_index]).incidenceStructure().insertIfNotContained(i);
       }
     }
@@ -1591,7 +1589,7 @@ reindex(const Hypergraph& hypergraph) {
     ++reindexed_hypergraph->_num_hyperedges;
     for (const HypernodeID pin : hypergraph.pins(he)) {
       reindexed_hypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(original_to_reindexed[pin]);
-      reindexed_hypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(original_to_reindexed[pin]);
+      reindexed_hypergraph->hyperedge(num_hyperedges).hash += utils::hash(original_to_reindexed[pin]);
       reindexed_hypergraph->hypernode(original_to_reindexed[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
       ++pin_index;
     }
@@ -1669,7 +1667,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
         for (const HypernodeID pin : hypergraph.pins(he)) {
           if (hypergraph.partID(pin) == part) {
             subhypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(hypergraph_to_subhypergraph[pin]);
-            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash += utils::hash(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
             ++pin_index;
           }
@@ -1691,7 +1689,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
           for (const HypernodeID pin : hypergraph.pins(he)) {
             ASSERT(hypergraph.partID(pin) == part, V(pin));
             subhypergraph->hyperedge(num_hyperedges).incidenceStructure().insertIfNotContained(hypergraph_to_subhypergraph[pin]);
-            subhypergraph->hyperedge(num_hyperedges).hash ^= utils::_rol(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hyperedge(num_hyperedges).hash += utils::hash(hypergraph_to_subhypergraph[pin]);
             subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).incidenceStructure().insertIfNotContained(num_hyperedges);
             ++pin_index;
           }

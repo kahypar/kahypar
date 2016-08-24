@@ -21,7 +21,7 @@ using defs::Hypergraph;
 namespace partition {
 template <bool UseRandomStartHypernode = true>
 struct BFSStartNodeSelectionPolicy {
-  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes,
+  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Configuration& config,
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     HypernodeID start_hn = 0;
     if (UseRandomStartHypernode) {
@@ -48,10 +48,12 @@ struct BFSStartNodeSelectionPolicy {
         visited_nodes++;
         for (const HyperedgeID he : hg.incidentEdges(lastHypernode)) {
           if (!hyperedge_in_queue[he]) {
-            for (const HypernodeID pin : hg.pins(he)) {
-              if (!in_queue[pin]) {
-                bfs.push(pin);
-                in_queue.setBit(pin, true);
+            if (hg.edgeSize(he) <= config.partition.hyperedge_size_threshold) {
+              for (const HypernodeID pin : hg.pins(he)) {
+                if (!in_queue[pin]) {
+                  bfs.push(pin);
+                  in_queue.setBit(pin, true);
+                }
               }
             }
             hyperedge_in_queue.setBit(he, true);
@@ -74,7 +76,7 @@ struct BFSStartNodeSelectionPolicy {
 };
 
 struct RandomStartNodeSelectionPolicy {
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes,
+  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration& UNUSED(config),
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     if (k == 2) {
       startNodes.push_back(Randomize::getRandomInt(0, hg.initialNumNodes() - 1));

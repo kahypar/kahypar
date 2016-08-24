@@ -272,11 +272,13 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     if (insert) {
       for (const HyperedgeID he : _hg.incidentEdges(hn)) {
         if (!_hyperedge_in_queue[target_part * _hg.initialNumEdges() + he]) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
-              insertNodeIntoPQ(pin, target_part);
-              ASSERT(_pq.contains(pin, target_part),
-                     "PQ of partition " << target_part << " should contain hypernode " << pin << "!");
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
+                insertNodeIntoPQ(pin, target_part);
+                ASSERT(_pq.contains(pin, target_part),
+                       "PQ of partition " << target_part << " should contain hypernode " << pin << "!");
+              }
             }
           }
           _hyperedge_in_queue.setBit(target_part * _hg.initialNumEdges() + he, true);
@@ -295,12 +297,14 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
     ASSERT([&]() {
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
-            for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-              if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
-                const Gain gain = GainComputation::calculateGain(_hg, pin, i, _visit);
-                if (gain != _pq.key(pin, i)) {
-                  return false;
+          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+            for (const HypernodeID pin : _hg.pins(he)) {
+              for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+                if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
+                  const Gain gain = GainComputation::calculateGain(_hg, pin, i, _visit);
+                  if (gain != _pq.key(pin, i)) {
+                    return false;
+                  }
                 }
               }
             }
@@ -333,7 +337,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
 
   void calculateStartNodes() {
-    StartNodeSelection::calculateStartNodes(_start_nodes, _hg,
+    StartNodeSelection::calculateStartNodes(_start_nodes, _config, _hg,
                                             _config.initial_partitioning.k);
 
     const int start_node_size = _start_nodes.size();

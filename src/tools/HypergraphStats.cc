@@ -9,6 +9,7 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
+#include "lib/io/PartitioningOutput.h"
 #include "partition/Metrics.h"
 
 using defs::HypernodeID;
@@ -43,7 +44,10 @@ int main(int argc, char* argv[]) {
   HyperedgeID min_hn_degree = std::numeric_limits<HyperedgeID>::max();
   double avg_hn_degree = metrics::avgHypernodeDegree(hypergraph);
   double sd_hn_degree = 0.0;
+  std::vector<HyperedgeID> hn_degrees;
+  hn_degrees.reserve(hypergraph.currentNumNodes());
   for (auto hn : hypergraph.nodes()) {
+    hn_degrees.push_back(hypergraph.nodeDegree(hn));
     max_hn_degree = std::max(max_hn_degree, hypergraph.nodeDegree(hn));
     min_hn_degree = std::min(min_hn_degree, hypergraph.nodeDegree(hn));
     sd_hn_degree += std::pow(hypergraph.nodeDegree(hn), 2);
@@ -59,16 +63,25 @@ int main(int argc, char* argv[]) {
   HypernodeID min_he_size = std::numeric_limits<HypernodeID>::max();
   double avg_he_size = metrics::avgHyperedgeDegree(hypergraph);
   double sd_he_size = 0.0;
+  std::vector<HypernodeID> he_sizes;
+  he_sizes.reserve(hypergraph.currentNumEdges());
   for (auto he : hypergraph.edges()) {
     if (hypergraph.edgeSize(he) == 1) {
       ++num_single_node_hes;
     }
+    he_sizes.push_back(hypergraph.edgeSize(he));
     max_he_size = std::max(max_he_size, hypergraph.edgeSize(he));
     min_he_size = std::min(min_he_size, hypergraph.edgeSize(he));
     sd_he_size += std::pow(hypergraph.edgeSize(he), 2);
   }
 
   sd_he_size = std::sqrt((sd_he_size / num_hyperedges) - std::pow(avg_he_size, 2));
+
+  std::sort(he_sizes.begin(), he_sizes.end());
+  std::sort(hn_degrees.begin(), hn_degrees.end());
+
+  auto he_size_quartiles = io::firstAndThirdQuartile(he_sizes);
+  auto hn_deg_quartiles = io::firstAndThirdQuartile(hn_degrees);
 
   out_stream << "RESULT graph=" << graph_name
   << " HNs=" << num_hypernodes
@@ -79,12 +92,18 @@ int main(int argc, char* argv[]) {
   << " sdHEsize=" << sd_he_size
   << " minHEsize=" << min_he_size
   << " heSize90thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 90)
+  << " Q1HEsize=" << he_size_quartiles.first
+  << " medHEsize=" << io::median(he_sizes)
+  << " Q3HEsize=" << he_size_quartiles.second
   << " maxHEsize=" << max_he_size
   << " avgHNdegree=" << avg_hn_degree
   << " sdHNdegree=" << sd_hn_degree
   << " minHnDegree=" << min_hn_degree
   << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
   << " maxHnDegree=" << max_hn_degree
+  << " Q1HNdegree=" << hn_deg_quartiles.first
+  << " medHNdegree=" << io::median(hn_degrees)
+  << " Q3HNdegree=" << hn_deg_quartiles.second
   << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
   << std::endl;
   out_stream.flush();

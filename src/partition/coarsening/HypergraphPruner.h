@@ -148,6 +148,8 @@ class HypergraphPruner {
       if (_fingerprints[i].id != -1) {
         ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
+          // If we are here, then we have a hash collision for _fingerprints[i].id and
+          // _fingerprints[j].id.
           DBG(dbg_coarsening_fingerprinting,
               _fingerprints[i].hash << "==" << _fingerprints[j].hash);
           DBG(dbg_coarsening_fingerprinting,
@@ -245,16 +247,16 @@ class HypergraphPruner {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
       if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
-        hypergraph.edgeHash(he) ^= utils::_rol(v);
-        hypergraph.edgeHash(he) ^= utils::_rol(u);
+        hypergraph.edgeHash(he) -= utils::hash(v);
+        hypergraph.edgeHash(he) += utils::hash(u);
       } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
-        hypergraph.edgeHash(he) ^= utils::_rol(v);
+        hypergraph.edgeHash(he) -= utils::hash(v);
       }
       hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = 42;
           for (const HypernodeID pin : hypergraph.pins(he)) {
-            correct_hash ^= utils::_rol(pin);
+            correct_hash += utils::hash(pin);
           }
           if (correct_hash != hypergraph.edgeHash(he)) {
             LOGVAR(correct_hash);

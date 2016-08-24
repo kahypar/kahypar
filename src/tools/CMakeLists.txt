@@ -10,6 +10,8 @@ add_executable(HgrToHypergraphML HgrToHypergraphMLConverter.cc)
 add_executable(HgrToBipartiteGraphML HgrToBipartiteGraphMLConverter.cc)
 add_executable(HgrToBipartiteMetisGraph HgrToBipartiteMetisGraphConverter.cc)
 add_executable(HgrToEdgeList HgrToEdgeListConverter.cc)
+add_executable(HgrToPaToH HgrToPaToHConverter.cc)
+add_executable(VerifyPartition VerifyPartition.cc)
 
 # This test needs test instance files, so we copy them to the corresponding build dir
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
