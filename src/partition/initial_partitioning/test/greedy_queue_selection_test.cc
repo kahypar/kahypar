@@ -43,7 +43,7 @@ class AGreedyQueueSelectionTest : public Test {
     current_hn(-1),
     current_gain(-1),
     is_upper_bound_released(false),
-    visit(hypergraph.initialNumNodes(), false) {
+    visit(hypergraph.initialNumNodes()) {
     PartitionID k = 4;
     pq.initialize(hypergraph.initialNumNodes());
     initializeConfiguration(k);

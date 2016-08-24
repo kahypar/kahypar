@@ -95,7 +95,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _new_adjacent_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
-    _unremovable_he_parts(_hg.initialNumEdges() * config.partition.k, 0),
+    _unremovable_he_parts(_hg.initialNumEdges() * config.partition.k),
     _pq(_config.partition.k),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() {
@@ -147,7 +147,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     _pq.clear();
     _hg.resetHypernodeState();
-    _unremovable_he_parts.resetAllBitsToFalse();
+    _unremovable_he_parts.reset();
     _performed_moves.clear();
 
     Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
@@ -288,7 +288,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
               }
             }
           }
-          _unremovable_he_parts.setBit(he * _config.partition.k + from_part, 1);
+          _unremovable_he_parts.set(he * _config.partition.k + from_part, 1);
         }
       }
     }
@@ -704,7 +704,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       } else {
         fullUpdate(moved_hn, from_part, to_part, he);
       }
-      _unremovable_he_parts.setBit(he * _config.partition.k + to_part, 1);
+      _unremovable_he_parts.set(he * _config.partition.k + to_part, 1);
 
       ASSERT([&]() {
           // Search parts of hyperedge he which are unremoveable

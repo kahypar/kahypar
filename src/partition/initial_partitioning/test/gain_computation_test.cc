@@ -38,7 +38,7 @@ class AGainComputationPolicy : public Test {
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config(),
-    visit(hypergraph.initialNumNodes(), false) {
+    visit(hypergraph.initialNumNodes()) {
     HypernodeWeight hypergraph_weight = 0;
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
@@ -107,7 +107,7 @@ TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes());
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1, 0,
                                            visit);
   ASSERT_EQ(pq.key(0, 1), -1);
@@ -132,7 +132,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
   hypergraph.setNodePart(0, 1);
   pq.remove(0, 1);
-  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes());
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 0, -1, 1,
                                            visit);
 
@@ -179,7 +179,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes());
   MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);
@@ -206,7 +206,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetBitVector<> visit(hypergraph.initialNumNodes(), false);
+  FastResetBitVector<> visit(hypergraph.initialNumNodes());
   MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);

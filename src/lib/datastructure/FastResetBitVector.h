@@ -14,18 +14,15 @@
 
 // based on http://upcoder.com/9/fast-resettable-flag-vector/
 
-using std::size_t;
-using std::uint16_t;
-
 namespace datastructure {
 template <typename UnderlyingType = std::uint16_t>
 class FastResetBitVector {
  public:
-  FastResetBitVector(const size_t size, const bool initialiser = false) :
+  explicit FastResetBitVector(const size_t size) :
     _v(std::make_unique<UnderlyingType[]>(size)),
     _threshold(1),
     _size(size) {
-    memset(_v.get(), (initialiser ? 1 : 0), size * sizeof(UnderlyingType));
+    memset(_v.get(), 0, size * sizeof(UnderlyingType));
   }
 
   FastResetBitVector() :
@@ -49,11 +46,11 @@ class FastResetBitVector {
     return isSet(i);
   }
 
-  void setBit(const size_t i, const bool value) {
+  void set(const size_t i, const bool value) {
     _v[i] = value ? _threshold : 0;
   }
 
-  void resetAllBitsToFalse() {
+  void reset() {
     if (_threshold == std::numeric_limits<UnderlyingType>::max()) {
       for (size_t i = 0; i != _size; ++i) {
         _v[i] = 0;

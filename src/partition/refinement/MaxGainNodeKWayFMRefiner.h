@@ -73,8 +73,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     _target_parts(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _tmp_max_gain_target_parts(),
     _pq(_config.partition.k),
-    _just_updated(_hg.initialNumNodes(), false),
-    _seen_as_max_part(_config.partition.k, false),
+    _just_updated(_hg.initialNumNodes()),
+    _seen_as_max_part(_config.partition.k),
     _performed_moves(),
     _stopping_policy() {
     _performed_moves.reserve(_hg.initialNumNodes());
@@ -283,7 +283,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
   void updateNeighbours(const HypernodeID moved_hn,
                         const HypernodeWeight max_allowed_part_weight) noexcept {
-    _just_updated.resetAllBitsToFalse();
+    _just_updated.reset();
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!_hg.marked(pin) && !_just_updated[pin]) {
@@ -415,7 +415,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
         _pq.enablePart(pair.second);
       }
     }
-    _just_updated.setBit(pin, true);
+    _just_updated.set(pin, true);
   }
 
   void activate(const HypernodeID hn, const HypernodeWeight max_allowed_part_weight) noexcept {
@@ -428,7 +428,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
           << " targetPart= " << pair.second);
       _pq.insert(hn, pair.second, pair.first);
       _target_parts[hn] = pair.second;
-      _just_updated.setBit(hn, true);
+      _just_updated.set(hn, true);
       _hg.activate(hn);
       if (_hg.partWeight(pair.second) < max_allowed_part_weight) {
         _pq.enablePart(pair.second);
@@ -438,7 +438,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
   GainPartitionPair computeMaxGainMove(const HypernodeID hn) noexcept {
     ASSERT(_hg.isBorderNode(hn), V(hn));
-    _seen_as_max_part.resetAllBitsToFalse();
+    _seen_as_max_part.reset();
     _tmp_max_gain_target_parts.clear();
 
     // slightly faster than lazy reset in inner loop;
@@ -484,13 +484,13 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
                 _tmp_gains[part].gain += he_weight;
                 if (_tmp_gains[part].gain > max_gain) {
                   max_gain = _tmp_gains[part].gain;
-                  _seen_as_max_part.resetAllBitsToFalse();
-                  _seen_as_max_part.setBit(part, true);
+                  _seen_as_max_part.reset();
+                  _seen_as_max_part.set(part, true);
                   _tmp_max_gain_target_parts.clear();
                   _tmp_max_gain_target_parts.push_back(part);
                 }
               } else if (_tmp_gains[part].gain == max_gain && !_seen_as_max_part[part]) {
-                _seen_as_max_part.setBit(part, true);
+                _seen_as_max_part.set(part, true);
                 _tmp_max_gain_target_parts.push_back(part);
               }
             }
@@ -514,7 +514,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
               _tmp_gains[part].connectivity_decrease += 1;
 
               if (!_seen_as_max_part[part] && _tmp_gains[part].gain == max_gain) {
-                _seen_as_max_part.setBit(part, true);
+                _seen_as_max_part.set(part, true);
                 _tmp_max_gain_target_parts.push_back(part);
               }
             }
@@ -524,14 +524,14 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
     // Validate the connectivity decrease
     ASSERT([&]() {
-        FastResetBitVector<> connectivity_superset(_config.partition.k, false);
+        FastResetBitVector<> connectivity_superset(_config.partition.k);
         PartitionID old_connectivity = 0;
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-          connectivity_superset.resetAllBitsToFalse();
+          connectivity_superset.reset();
           for (const PartitionID part : _hg.connectivitySet(he)) {
             if (!connectivity_superset[part]) {
               old_connectivity += 1;
-              connectivity_superset.setBit(part, true);
+              connectivity_superset.set(part, true);
             }
           }
         }
@@ -541,11 +541,11 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
             _hg.changeNodePart(hn, source_part, target_part);
             PartitionID new_connectivity = 0;
             for (const HyperedgeID he : _hg.incidentEdges(hn)) {
-              connectivity_superset.resetAllBitsToFalse();
+              connectivity_superset.reset();
               for (const PartitionID part : _hg.connectivitySet(he)) {
                 if (!connectivity_superset[part]) {
                   new_connectivity += 1;
-                  connectivity_superset.setBit(part, true);
+                  connectivity_superset.set(part, true);
                 }
               }
             }

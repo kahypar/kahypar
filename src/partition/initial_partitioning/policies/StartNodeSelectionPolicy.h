@@ -28,8 +28,8 @@ struct BFSStartNodeSelectionPolicy {
       start_hn = Randomize::getRandomInt(0, hg.initialNumNodes() - 1);
     }
     start_nodes.push_back(start_hn);
-    FastResetBitVector<> in_queue(hg.initialNumNodes(), false);
-    FastResetBitVector<> hyperedge_in_queue(hg.initialNumEdges(), false);
+    FastResetBitVector<> in_queue(hg.initialNumNodes());
+    FastResetBitVector<> hyperedge_in_queue(hg.initialNumEdges());
 
     while (start_nodes.size() != static_cast<size_t>(k)) {
       std::queue<HypernodeID> bfs;
@@ -37,7 +37,7 @@ struct BFSStartNodeSelectionPolicy {
       size_t visited_nodes = 0;
       for (const HypernodeID start_node : start_nodes) {
         bfs.push(start_node);
-        in_queue.setBit(start_node, true);
+        in_queue.set(start_node, true);
       }
 
 
@@ -52,25 +52,25 @@ struct BFSStartNodeSelectionPolicy {
               for (const HypernodeID pin : hg.pins(he)) {
                 if (!in_queue[pin]) {
                   bfs.push(pin);
-                  in_queue.setBit(pin, true);
+                  in_queue.set(pin, true);
                 }
               }
             }
-            hyperedge_in_queue.setBit(he, true);
+            hyperedge_in_queue.set(he, true);
           }
         }
         if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
           for (const HypernodeID hn : hg.nodes()) {
             if (!in_queue[hn]) {
               bfs.push(hn);
-              in_queue.setBit(hn, true);
+              in_queue.set(hn, true);
             }
           }
         }
       }
       start_nodes.push_back(lastHypernode);
-      in_queue.resetAllBitsToFalse();
-      hyperedge_in_queue.resetAllBitsToFalse();
+      in_queue.reset();
+      hyperedge_in_queue.reset();
     }
   }
 };

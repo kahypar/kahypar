@@ -43,7 +43,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                                const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
-    _outdated_rating(hypergraph.initialNumNodes(), false),
+    _outdated_rating(hypergraph.initialNumNodes()),
     _target(_hg.initialNumNodes()) {
     LOG("Coarsener does not choose highest degree node as representative!");
     LOG("This could be slow on instances with skewed incidence structure.");
@@ -118,13 +118,13 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   void invalidateAffectedHypernodes(const HypernodeID rep_node) noexcept {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
-        _outdated_rating.setBit(pin, true);
+        _outdated_rating.set(pin, true);
       }
     }
   }
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) noexcept {
-    _outdated_rating.setBit(hn, false);
+    _outdated_rating.set(hn, false);
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

@@ -26,8 +26,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   BFSInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
     _queues(),
-    _hypernode_in_queue(config.initial_partitioning.k * hypergraph.initialNumNodes(), false),
-    _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.initialNumEdges(), false) { }
+    _hypernode_in_queue(config.initial_partitioning.k * hypergraph.initialNumNodes()),
+    _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.initialNumEdges()) { }
 
   ~BFSInitialPartitioner() { }
 
@@ -53,11 +53,11 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
                 !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
               q.push(pin);
-              _hypernode_in_queue.setBit(part * _hg.initialNumNodes() + pin, true);
+              _hypernode_in_queue.set(part * _hg.initialNumNodes() + pin, true);
             }
           }
         }
-        _hyperedge_in_queue.setBit(part * _hg.initialNumEdges() + he, true);
+        _hyperedge_in_queue.set(part * _hg.initialNumEdges() + he, true);
       }
     }
 
@@ -102,15 +102,15 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     }
 
 
-    _hypernode_in_queue.resetAllBitsToFalse();
-    _hyperedge_in_queue.resetAllBitsToFalse();
+    _hypernode_in_queue.reset();
+    _hyperedge_in_queue.reset();
 
     // Calculate Startnodes and push them into the queues.
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _config, _hg, _config.initial_partitioning.k);
     for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
-      _hypernode_in_queue.setBit(k * _hg.initialNumNodes() + startNodes[k], true);
+      _hypernode_in_queue.set(k * _hg.initialNumNodes() + startNodes[k], true);
     }
 
     while (assigned_nodes_weight < _hg.totalWeight()) {
@@ -137,7 +137,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           }
 
           if (hn != kInvalidNode) {
-            _hypernode_in_queue.setBit(part * _hg.initialNumNodes() + hn, true);
+            _hypernode_in_queue.set(part * _hg.initialNumNodes() + hn, true);
             ASSERT(_hg.partID(hn) == unassigned_part,
                    "Hypernode " << hn << " isn't a node from an unassigned part.");
 

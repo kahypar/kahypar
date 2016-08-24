@@ -74,8 +74,8 @@ class TwoWayFMRefiner final : public IRefiner,
     FMRefinerBase(hypergraph, config),
     _pq(2),
     _rebalance_pqs({ RebalancePQ(_hg.initialNumNodes()), RebalancePQ(_hg.initialNumNodes()) }),
-    _he_fully_active(_hg.initialNumEdges(), false),
-    _hns_in_activation_vector(_hg.initialNumNodes(), false),
+    _he_fully_active(_hg.initialNumEdges()),
+    _hns_in_activation_vector(_hg.initialNumNodes()),
     _performed_moves(),
     _hns_to_activate(),
     _non_border_hns_to_remove(),
@@ -206,7 +206,7 @@ class TwoWayFMRefiner final : public IRefiner,
            << " by hypergraph " << metrics::imbalance(_hg, _config));
     _pq.clear();
     _hg.resetHypernodeState();
-    _he_fully_active.resetAllBitsToFalse();
+    _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
     _performed_moves.clear();
 
@@ -687,7 +687,7 @@ class TwoWayFMRefiner final : public IRefiner,
       activate(hn, max_allowed_part_weights);
     }
     _hns_to_activate.clear();
-    _hns_in_activation_vector.resetAllBitsToFalse();
+    _hns_in_activation_vector.reset();
 
     // changeNodePart collects all pins that become non-border hns after the move
     // Previously, these nodes were removed directly in fullUpdate. While this is
@@ -770,7 +770,7 @@ class TwoWayFMRefiner final : public IRefiner,
           ASSERT(!_pq.contains(pin, (1 - _hg.partID(pin))), V(pin) << V((1 - _hg.partID(pin))));
           ++num_active_pins;  // since we do lazy activation!
           _hns_to_activate.push_back(pin);
-          _hns_in_activation_vector.setBit(pin, true);
+          _hns_in_activation_vector.set(pin, true);
         }
       } else {
         updatePin(pin, gain_delta);
@@ -841,7 +841,7 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(!_pq.contains(pin, (1 - _hg.partID(pin))), V(pin) << V((1 - _hg.partID(pin))));
                 ++num_active_pins;  // since we do lazy activation!
                 _hns_to_activate.push_back(pin);
-                _hns_in_activation_vector.setBit(pin, true);
+                _hns_in_activation_vector.set(pin, true);
               }
             } else {
               if (factor != 0) {
@@ -856,7 +856,7 @@ class TwoWayFMRefiner final : public IRefiner,
           }
         }
       }
-      _he_fully_active.setBit(he, (_hg.edgeSize(he) == num_active_pins));
+      _he_fully_active.set(he, (_hg.edgeSize(he) == num_active_pins));
     }
   }
 

@@ -43,7 +43,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
     HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
-    _just_updated(_hg.initialNumNodes(), false) { }
+    _just_updated(_hg.initialNumNodes()) { }
 
   virtual ~HeuristicHeavyEdgeCoarsener() { }
 
@@ -117,7 +117,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByParallelHyperedgeRemoval() noexcept {
-    _just_updated.resetAllBitsToFalse();
+    _just_updated.reset();
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
          _history.back().parallel_hes_size; ++i) {
@@ -125,7 +125,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
         if (!_just_updated[pin]) {
           const Rating rating = _rater.rate(pin);
           updatePQandMappings(pin, rating);
-          _just_updated.setBit(pin, true);
+          _just_updated.set(pin, true);
         }
       }
     }

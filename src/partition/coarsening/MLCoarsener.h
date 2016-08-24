@@ -74,12 +74,12 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) noexcept override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
-    FastResetBitVector<> already_matched(_hg.initialNumNodes(), false);
+    FastResetBitVector<> already_matched(_hg.initialNumNodes());
     while (_hg.currentNumNodes() > limit) {
       LOGVAR(pass_nr);
       LOGVAR(_hg.currentNumNodes());
 
-      already_matched.resetAllBitsToFalse();
+      already_matched.reset();
       current_hns.clear();
 
       const HypernodeID num_hns_before_pass = _hg.currentNumNodes();
@@ -97,8 +97,8 @@ class MLCoarsener final : public ICoarsener,
           const Rating rating = contractionPartner(hn, already_matched);
 
           if (rating.target != kInvalidTarget) {
-            already_matched.setBit(hn, true);
-            already_matched.setBit(rating.target, true);
+            already_matched.set(hn, true);
+            already_matched.set(rating.target, true);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
             contract(hn, rating.target);
             // } else {

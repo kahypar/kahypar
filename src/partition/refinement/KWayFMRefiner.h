@@ -78,7 +78,7 @@ class KWayFMRefiner final : public IRefiner,
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    _he_fully_active(_hg.initialNumEdges(), false),
+    _he_fully_active(_hg.initialNumEdges()),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k),
     _performed_moves(),
@@ -140,7 +140,7 @@ class KWayFMRefiner final : public IRefiner,
 
     _pq.clear();
     _hg.resetHypernodeState();
-    _he_fully_active.resetAllBitsToFalse();
+    _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
     _performed_moves.clear();
 
@@ -546,7 +546,7 @@ class KWayFMRefiner final : public IRefiner,
         }
         num_active_pins += _hg.marked(pin) || _hg.active(pin);
       }
-      _he_fully_active.setBit(he, (num_active_pins == he_size));
+      _he_fully_active.set(he, (num_active_pins == he_size));
     }
   }
 

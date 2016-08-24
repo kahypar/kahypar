@@ -38,8 +38,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
                                      Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
-    _valid_parts(config.initial_partitioning.k, false),
-    _in_queue(hypergraph.initialNumNodes(), false),
+    _valid_parts(config.initial_partitioning.k),
+    _in_queue(hypergraph.initialNumNodes()),
     _tmp_scores(_config.initial_partitioning.k, 0),
     _unassigned_nodes(),
     _unconnected_nodes(),
@@ -221,19 +221,19 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   std::pair<const PartitionID, const Gain> computeMaxGainMoveForUnassignedSourcePart(const HypernodeID hn) {
     ASSERT(std::all_of(_tmp_scores.begin(), _tmp_scores.end(), [](Gain i) { return i == 0; }),
            "Temp gain array not initialized properly");
-    _valid_parts.resetAllBitsToFalse();
+    _valid_parts.reset();
 
     HyperedgeWeight internal_weight = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       if (_hg.connectivity(he) == 1) {
         const PartitionID connected_part = *_hg.connectivitySet(he).begin();
-        _valid_parts.setBit(connected_part, true);
+        _valid_parts.set(connected_part, true);
         internal_weight += he_weight;
         _tmp_scores[connected_part] += he_weight;
       } else {
         for (const PartitionID target_part : _hg.connectivitySet(he)) {
-          _valid_parts.setBit(target_part, true);
+          _valid_parts.set(target_part, true);
         }
       }
     }
@@ -246,7 +246,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetBitVector<> bv(_hg.initialNumNodes(), false);
+            FastResetBitVector<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
@@ -279,7 +279,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   std::pair<const PartitionID, const Gain> computeMaxGainMoveForAssignedSourcePart(const HypernodeID hn) {
     ASSERT(std::all_of(_tmp_scores.begin(), _tmp_scores.end(), [](Gain i) { return i == 0; }),
            "Temp gain array not initialized properly");
-    _valid_parts.resetAllBitsToFalse();
+    _valid_parts.reset();
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
@@ -295,7 +295,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           break;
         case 2:
           for (const PartitionID target_part : _hg.connectivitySet(he)) {
-            _valid_parts.setBit(target_part, true);
+            _valid_parts.set(target_part, true);
             if (pins_in_source_part == 1 && _hg.pinCountInPart(he, target_part) != 0) {
               _tmp_scores[target_part] += he_weight;
             }
@@ -303,7 +303,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           break;
         default:
           for (const PartitionID target_part : _hg.connectivitySet(he)) {
-            _valid_parts.setBit(target_part, true);
+            _valid_parts.set(target_part, true);
           }
           break;
       }
@@ -312,14 +312,14 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     const HypernodeWeight hn_weight = _hg.nodeWeight(hn);
     PartitionID max_part = source_part;
     Gain max_score = 0;
-    _valid_parts.setBit(source_part, false);
+    _valid_parts.set(source_part, false);
     for (PartitionID target_part = 0; target_part < _config.initial_partitioning.k; ++target_part) {
       if (_valid_parts[target_part]) {
         ASSERT(target_part != source_part, V(target_part));
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetBitVector<> bv(_hg.initialNumNodes(), false);
+            FastResetBitVector<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
@@ -363,7 +363,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     std::queue<HypernodeID> _bfs_queue;
     int assigned_nodes = 0;
     _bfs_queue.push(hn);
-    _in_queue.setBit(hn, true);
+    _in_queue.set(hn, true);
     while (!_bfs_queue.empty()) {
       HypernodeID node = _bfs_queue.front();
       _bfs_queue.pop();
@@ -375,7 +375,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             for (const HypernodeID pin : _hg.pins(he)) {
               if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
                 _bfs_queue.push(pin);
-                _in_queue.setBit(pin, true);
+                _in_queue.set(pin, true);
               }
             }
           }
@@ -392,7 +392,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         }
       }
     }
-    _in_queue.resetAllBitsToFalse();
+    _in_queue.reset();
   }
 
   void assignHypernodeToPartWithMinimumPartWeight(const HypernodeID hn) {

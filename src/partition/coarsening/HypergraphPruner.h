@@ -53,7 +53,7 @@ class HypergraphPruner {
     _removed_parallel_hyperedges(),
     _fingerprints(),
     _hash_cache(max_num_edges, std::numeric_limits<size_t>::max()),
-    _contained_hypernodes(max_num_nodes, false) { }
+    _contained_hypernodes(max_num_nodes) { }
 
   HypergraphPruner(const HypergraphPruner&) = delete;
   HypergraphPruner& operator= (const HypergraphPruner&) = delete;
@@ -181,9 +181,9 @@ class HypergraphPruner {
     ASSERT([&]() {
         for (auto edge_it = hypergraph.incidentEdges(u).first;
              edge_it != hypergraph.incidentEdges(u).second; ++edge_it) {
-          _contained_hypernodes.resetAllBitsToFalse();
+          _contained_hypernodes.reset();
           for (const HypernodeID pin : hypergraph.pins(*edge_it)) {
-            _contained_hypernodes.setBit(pin, 1);
+            _contained_hypernodes.set(pin, 1);
           }
 
           for (auto next_edge_it = edge_it + 1; next_edge_it != hypergraph.incidentEdges(u).second;
@@ -223,11 +223,11 @@ class HypergraphPruner {
   }
 
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) noexcept {
-    _contained_hypernodes.resetAllBitsToFalse();
+    _contained_hypernodes.reset();
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
     for (const HypernodeID pin : hypergraph.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
-      _contained_hypernodes.setBit(pin, 1);
+      _contained_hypernodes.set(pin, 1);
     }
   }
 

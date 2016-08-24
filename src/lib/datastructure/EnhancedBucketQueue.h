@@ -39,8 +39,8 @@ class EnhancedBucketQueue {
     _max_address(kInvalidAddress),
     _index(),
     _repository(),
-    _contains(max_size, false),
-    _valid(2 * max_gain + 1, false),
+    _contains(max_size),
+    _valid(2 * max_gain + 1),
     _buckets(std::make_unique<std::vector<IDType>[]>(2 * max_gain + 1)) {
     _repository.reserve(max_size);
     static_assert(std::is_integral<KeyType>::value, "Integer required.");
@@ -87,14 +87,14 @@ class EnhancedBucketQueue {
       ASSERT(_index.find(address) == _index.end(), V(address));
       _index.insert(address);
       _buckets[address].clear();
-      _valid.setBit(address, true);
+      _valid.set(address, true);
     }
     if (address > _max_address) {
       ASSERT(_index.find(address) != _index.end(), V(address));
       _max_address = address;
     }
     _buckets[address].push_back(id);
-    _contains.setBit(id, true);
+    _contains.set(id, true);
     _repository[id] = { _buckets[address].size() - 1, key };
     ++_num_elements;
   }
@@ -103,8 +103,8 @@ class EnhancedBucketQueue {
     _num_elements = 0;
     _max_address = kInvalidAddress;
     _index.clear();
-    _contains.resetAllBitsToFalse();
-    _valid.resetAllBitsToFalse();
+    _contains.reset();
+    _valid.reset();
   }
 
   KeyType getMaxKey() const noexcept {
@@ -133,12 +133,12 @@ class EnhancedBucketQueue {
     ASSERT(_contains[_buckets[_max_address].back()], V(_buckets[_max_address].back()));
     ASSERT(_repository[_buckets[_max_address].back()].second + _key_range == _max_address,
            V(_repository[_buckets[_max_address].back()].second + _key_range) << V(_max_address));
-    _contains.setBit(_buckets[_max_address].back(), false);
+    _contains.set(_buckets[_max_address].back(), false);
     _buckets[_max_address].pop_back();
     --_num_elements;
     if (_buckets[_max_address].size() == 0) {
       _index.erase(_max_address);
-      _valid.setBit(_max_address, false);
+      _valid.set(_max_address, false);
       updateMaxAddress();
     }
   }
@@ -202,7 +202,7 @@ class EnhancedBucketQueue {
         updateMaxAddress();
       }
     }
-    _contains.setBit(id, false);
+    _contains.set(id, false);
   }
 
   bool contains(const IDType id) const noexcept {
@@ -233,7 +233,7 @@ class EnhancedBucketQueue {
   void invalidateBucket(const KeyType address) {
     _buckets[address].pop_back();
     _index.erase(address);
-    _valid.setBit(address, false);
+    _valid.set(address, false);
   }
 
   void updateKeyInternal(const IDType id, const size_t in_bucket_index, const KeyType new_address,
@@ -248,7 +248,7 @@ class EnhancedBucketQueue {
       ASSERT(_index.find(new_address) == _index.end(), V(new_address));
       _index.insert(new_address);
       _buckets[new_address].clear();
-      _valid.setBit(new_address, true);
+      _valid.set(new_address, true);
     }
 
     if (new_address > _max_address) {

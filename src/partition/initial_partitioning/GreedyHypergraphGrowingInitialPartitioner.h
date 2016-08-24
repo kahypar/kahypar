@@ -40,8 +40,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _start_nodes(),
     _pq(config.initial_partitioning.k),
-    _visit(_hg.initialNumNodes(), false),
-    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges(), false) {
+    _visit(_hg.initialNumNodes()),
+    _hyperedge_in_queue(config.initial_partitioning.k * _hg.initialNumEdges()) {
     _pq.initialize(_hg.initialNumNodes());
   }
 
@@ -232,8 +232,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void reset() {
     _start_nodes.clear();
-    _visit.resetAllBitsToFalse();
-    _hyperedge_in_queue.resetAllBitsToFalse();
+    _visit.reset();
+    _hyperedge_in_queue.reset();
     _pq.clear();
   }
 
@@ -281,7 +281,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               }
             }
           }
-          _hyperedge_in_queue.setBit(target_part * _hg.initialNumEdges() + he, true);
+          _hyperedge_in_queue.set(target_part * _hg.initialNumEdges() + he, true);
         }
       }
     }

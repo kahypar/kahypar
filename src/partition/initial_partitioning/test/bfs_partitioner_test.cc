@@ -142,7 +142,7 @@ TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
 TEST_F(ABFSBisectionInitialPartioner,
        HasCorrectInQueueMapValuesAfterPushingIncidentHypernodesNodesIntoQueue) {
   std::queue<HypernodeID> q;
-  partitioner->_hypernode_in_queue.setBit(0, true);
+  partitioner->_hypernode_in_queue.set(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
   config.initial_partitioning.unassigned_part = -1;
@@ -157,7 +157,7 @@ TEST_F(ABFSBisectionInitialPartioner,
 
 TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingIncidentHypernodesIntoQueue) {
   std::queue<HypernodeID> q;
-  partitioner->_hypernode_in_queue.setBit(0, true);
+  partitioner->_hypernode_in_queue.set(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
   config.initial_partitioning.unassigned_part = -1;

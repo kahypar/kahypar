@@ -43,8 +43,8 @@ class LPRefiner final : public IRefiner {
     _config(configuration),
     _cur_queue(),
     _next_queue(),
-    _contained_cur_queue(hg.initialNumNodes(), false),
-    _contained_next_queue(hg.initialNumNodes(), false),
+    _contained_cur_queue(hg.initialNumNodes()),
+    _contained_next_queue(hg.initialNumNodes()),
     _tmp_gains(configuration.partition.k, { 0, 0 }),
     _max_score(),
     _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
@@ -76,8 +76,8 @@ class LPRefiner final : public IRefiner {
 
     _cur_queue.clear();
     _next_queue.clear();
-    _contained_cur_queue.resetAllBitsToFalse();
-    _contained_next_queue.resetAllBitsToFalse();
+    _contained_cur_queue.reset();
+    _contained_next_queue.reset();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
@@ -95,7 +95,7 @@ class LPRefiner final : public IRefiner {
                V(_hg.partWeight(_hg.partID(cur_node)))
                << V(_config.partition.max_part_weights[_hg.partID(cur_node) % 2]));
         _cur_queue.push_back(cur_node);
-        _contained_cur_queue.setBit(cur_node, true);
+        _contained_cur_queue.set(cur_node, true);
       }
     }
 
@@ -163,7 +163,7 @@ class LPRefiner final : public IRefiner {
 
               // add adjacent pins to next iteration
               if (!_contained_next_queue[pin] && _hg.isBorderNode(pin)) {
-                _contained_next_queue.setBit(pin, true);
+                _contained_next_queue.set(pin, true);
                 _next_queue.push_back(pin);
               }
             }
@@ -178,7 +178,7 @@ class LPRefiner final : public IRefiner {
       }
 
       // clear the current queue data structures
-      _contained_cur_queue.resetAllBitsToFalse();
+      _contained_cur_queue.reset();
       _cur_queue.clear();
 
       _cur_queue.swap(_next_queue);

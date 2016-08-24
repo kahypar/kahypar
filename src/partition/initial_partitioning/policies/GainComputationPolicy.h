@@ -275,11 +275,11 @@ struct MaxPinGainComputationPolicy {
               gain += hg.nodeWeight(pin);
             }
           }
-          visit.setBit(pin, true);
+          visit.set(pin, true);
         }
       }
     }
-    visit.resetAllBitsToFalse();
+    visit.reset();
     return gain;
   }
 
@@ -295,7 +295,7 @@ struct MaxPinGainComputationPolicy {
             if (pq.contains(pin, to)) {
               pq.updateKeyBy(pin, to, hg.nodeWeight(hn));
             }
-            visit.setBit(pin, true);
+            visit.set(pin, true);
           }
         }
       }
@@ -309,12 +309,12 @@ struct MaxPinGainComputationPolicy {
             if (pq.contains(pin, from)) {
               pq.updateKeyBy(pin, from, -hg.nodeWeight(hn));
             }
-            visit.setBit(pin, true);
+            visit.set(pin, true);
           }
         }
       }
     }
-    visit.resetAllBitsToFalse();
+    visit.reset();
   }
 
   static GainType getType() {

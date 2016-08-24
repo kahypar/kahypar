@@ -63,10 +63,10 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
     NullMap null_map;
     rateAllHypernodes(_target, null_map);
 
-    FastResetBitVector<> rerated_hypernodes(_hg.initialNumNodes(), false);
+    FastResetBitVector<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
-    FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes(), false);
+    FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.getMax();
@@ -99,7 +99,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       // We re-rate the representative HN here, because it might not have any incident HEs left.
       // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
       updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
-      rerated_hypernodes.setBit(rep_node, true);
+      rerated_hypernodes.set(rep_node, true);
 
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
@@ -121,12 +121,12 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           const Rating rating = _rater.rate(pin);
-          rerated_hypernodes.setBit(pin, true);
+          rerated_hypernodes.set(pin, true);
           updatePQandContractionTarget(pin, rating, invalid_hypernodes);
         }
       }
     }
-    rerated_hypernodes.resetAllBitsToFalse();
+    rerated_hypernodes.reset();
   }
 
 
@@ -144,7 +144,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       // all hypernodes will be inserted into the PQ at the beginning, because of the
       // restriction that only hypernodes within the same part can be contracted.
       _pq.deleteNode(hn);
-      invalid_hypernodes.setBit(hn, true);
+      invalid_hypernodes.set(hn, true);
       _target[hn] = std::numeric_limits<HypernodeID>::max();
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn

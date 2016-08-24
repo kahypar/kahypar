@@ -383,7 +383,7 @@ class GenericHypergraph {
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
-    _hes_not_containing_u(_num_hyperedges, false) {
+    _hes_not_containing_u(_num_hyperedges) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).setFirstEntry(edge_vector_index);
@@ -638,10 +638,10 @@ class GenericHypergraph {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    _hes_not_containing_u.resetAllBitsToFalse();
+    _hes_not_containing_u.reset();
     // Assume all HEs did not contain u and we have to undo Case 2 operations.
     for (const HyperedgeID he : incidentEdges(memento.v)) {
-      _hes_not_containing_u.setBit(he, true);
+      _hes_not_containing_u.set(he, true);
     }
 
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
@@ -659,7 +659,7 @@ class GenericHypergraph {
         }
       }
       // Those HEs actually contained u and therefore will result in a Case 1 undo operation.
-      _hes_not_containing_u.setBit(he, false);
+      _hes_not_containing_u.set(he, false);
     }
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {
@@ -751,16 +751,16 @@ class GenericHypergraph {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    _hes_not_containing_u.resetAllBitsToFalse();
+    _hes_not_containing_u.reset();
     // Assume all HEs did not contain u and we have to undo Case 2 operations.
     for (const HyperedgeID he : incidentEdges(memento.v)) {
-      _hes_not_containing_u.setBit(he, true);
+      _hes_not_containing_u.set(he, true);
     }
 
     for (HyperedgeID i = memento.u_first_entry; i < memento.u_first_entry + memento.u_size; ++i) {
       const HyperedgeID he = _incidence_array[i];
       // Those HEs actually contained u and therefore will result in a Case 1 undo operation.
-      _hes_not_containing_u.setBit(he, false);
+      _hes_not_containing_u.set(he, false);
     }
 
     if (hypernode(memento.u).size() - memento.u_size > 0) {

@@ -63,12 +63,12 @@ class HyperedgeFMRefiner final : public IRefiner,
   class HyperedgeEvalIndicator {
  public:
     explicit HyperedgeEvalIndicator(HyperedgeID size) noexcept :
-      _bitvector(size, false) { }
+      _bitvector(size) { }
 
     void markAsEvaluated(HyperedgeID id) noexcept {
       ASSERT(!_bitvector[id], "HE " << id << " is already marked as evaluated");
       DBG(false, "Marking HE " << id << " as evaluated");
-      _bitvector.setBit(id, true);
+      _bitvector.set(id, true);
     }
 
     bool isAlreadyEvaluated(HyperedgeID id) const {
@@ -76,7 +76,7 @@ class HyperedgeFMRefiner final : public IRefiner,
     }
 
     void reset() noexcept {
-      _bitvector.resetAllBitsToFalse();
+      _bitvector.reset();
     }
 
  private:
@@ -87,10 +87,10 @@ class HyperedgeFMRefiner final : public IRefiner,
   HyperedgeFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
     _pq{new HyperedgeFMPQ(_hg.initialNumEdges()), new HyperedgeFMPQ(_hg.initialNumEdges())},
-    _marked_HEs(_hg.initialNumEdges(), false),
+    _marked_HEs(_hg.initialNumEdges()),
     _gain_indicator(_hg.initialNumEdges()),
     _update_indicator(_hg.initialNumEdges()),
-    _contained_hypernodes(_hg.initialNumNodes(), false),
+    _contained_hypernodes(_hg.initialNumNodes()),
     _movement_indices(),
     _performed_moves(),
     _stopping_policy() {
@@ -512,7 +512,7 @@ class HyperedgeFMRefiner final : public IRefiner,
 
   void markAsContained(HypernodeID hn) noexcept {
     ASSERT(!_contained_hypernodes[hn], "HN " << hn << " is already marked as contained");
-    _contained_hypernodes.setBit(hn, true);
+    _contained_hypernodes.set(hn, true);
   }
 
   bool isContained(HypernodeID hn) const noexcept {
@@ -520,7 +520,7 @@ class HyperedgeFMRefiner final : public IRefiner,
   }
 
   void resetContainedHypernodes() noexcept {
-    _contained_hypernodes.resetAllBitsToFalse();
+    _contained_hypernodes.reset();
   }
 
   bool isMarkedAsMoved(HyperedgeID he) const noexcept {
@@ -528,11 +528,11 @@ class HyperedgeFMRefiner final : public IRefiner,
   }
 
   void markAsMoved(HyperedgeID he) noexcept {
-    _marked_HEs.setBit(he, true);
+    _marked_HEs.set(he, true);
   }
 
   void resetMarkedHyperedges() noexcept {
-    _marked_HEs.resetAllBitsToFalse();
+    _marked_HEs.reset();
   }
 
   using FMRefinerBase::_hg;
