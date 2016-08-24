@@ -204,7 +204,6 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
 ///////////////////////////////////////////////
   const HyperedgeID old_size_0 = hypernodes[0]->size();
   for (const HyperedgeID he : incident_edges_4) {
-    hyperedges[he]->swapToEnd(4);
     LOG("looking at HE " << he);
     if (!hyperedges[he]->contains(0)) {
       LOG("Case 2 removal for HE " << he);
@@ -212,7 +211,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
       hypernodes[0]->add(he);
     } else {
       LOG("Case 1 removal for HE " << he);
-      hyperedges[he]->removeAtEnd(4);
+      hyperedges[he]->remove(4);
     }
   }
 

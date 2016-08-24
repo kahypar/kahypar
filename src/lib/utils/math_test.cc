@@ -10,7 +10,7 @@ using::testing::Eq;
 
 namespace utils {
 TEST(NextPowerOfTwoCeiled, WorksAsExpected) {
-  ASSERT_THAT(nextPowerOfTwoCeiled(1), Eq(1));
+  ASSERT_THAT(nextPowerOfTwoCeiled(1), Eq(2));
   ASSERT_THAT(nextPowerOfTwoCeiled(4), Eq(4));
   ASSERT_THAT(nextPowerOfTwoCeiled(26), Eq(32));
   ASSERT_THAT(nextPowerOfTwoCeiled(65), Eq(128));

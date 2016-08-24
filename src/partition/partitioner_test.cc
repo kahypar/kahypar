@@ -112,29 +112,6 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(3));
 }
 
-TEST_F(APartitionerWithHyperedgeSizeThreshold,
-       RemovesHyperedgesExceedingThreshold) {
-  std::vector<HyperedgeID> removed_hyperedges;
-  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges, config);
-
-  ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(false));
-}
-
-TEST_F(APartitionerWithHyperedgeSizeThreshold,
-       RestoresHyperedgesExceedingThreshold) {
-  std::vector<HyperedgeID> removed_hyperedges;
-  partitioner.removeLargeHyperedges(*hypergraph, removed_hyperedges, config);
-  hypergraph->setNodePart(0, 0);
-  hypergraph->setNodePart(2, 1);
-  hypergraph->setNodePart(3, 0);
-  hypergraph->setNodePart(4, 0);
-  hypergraph->setNodePart(5, 1);
-  hypergraph->setNodePart(6, 1);
-
-  partitioner.restoreLargeHyperedges(*hypergraph, removed_hyperedges);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
-}
-
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;

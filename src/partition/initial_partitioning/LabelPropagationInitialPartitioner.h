@@ -19,6 +19,7 @@
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
+#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 #include "tools/RandomFunctions.h"
 
 using defs::Hypergraph;
@@ -43,6 +44,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _unassigned_nodes(),
     _unconnected_nodes(),
     _unassigned_node_bound(0) {
+    static_assert(std::is_same<GainComputation, FMGainComputationPolicy>::value,
+                  "ScLaP-IP only supports FM gain");
     for (const HypernodeID hn : _hg.nodes()) {
       if (_hg.nodeDegree(hn > 0)) {
         _unassigned_nodes.push_back(hn);
@@ -243,8 +246,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            Gain gain = GainComputation::calculateGain(_hg, hn, target_part,
-                                                       FastResetBitVector<>(1, false));
+            FastResetBitVector<> bv(_hg.initialNumNodes(), false);
+            Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
               LOGVAR(_hg.partID(hn));
@@ -316,7 +319,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            Gain gain = GainComputation::calculateGain(_hg, hn, target_part, FastResetBitVector<>(1, false));
+            FastResetBitVector<> bv(_hg.initialNumNodes(), false);
+            Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
               LOGVAR(_hg.partID(hn));

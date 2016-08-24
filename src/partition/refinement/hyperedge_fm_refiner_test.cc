@@ -294,7 +294,7 @@ TEST_F(AHyperedgeFMRefiner, ActivatesCutHyperedgesOnlyOnce) {
   hyperedge_fm_refiner.activateIncidentCutHyperedges(1);
 }
 
-TEST_F(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove) {
+TEST_F(AHyperedgeFMRefiner, DISABLED_ChoosesHyperedgeWithHighestGainAsNextMove) {
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 4 },
                                   HyperedgeVector { 2, 3, 0, 1 }));
   hypergraph->setNodePart(0, 0);
@@ -525,7 +525,7 @@ TEST_F(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved) {
 }
 
 
-TEST_F(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
+TEST_F(AHyperedgeMovementOperation, DISABLED_ChoosesTheMaxGainMoveIfBothPQsAreEligible) {
   hypergraph.reset(new Hypergraph(4, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 4 },
                                   HyperedgeVector { 0, 1, 2, 3 }));
   hypergraph->setNodePart(0, 0);

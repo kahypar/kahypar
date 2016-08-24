@@ -315,13 +315,13 @@ class HyperedgeFMRefiner final : public IRefiner,
   FRIEND_TEST(AHyperedgeFMRefiner, MaintainsSizeOfPartitionsWhichAreInitializedByCallingInitialize);
   FRIEND_TEST(AHyperedgeFMRefiner, ActivatesOnlyCutHyperedgesByInsertingThemIntoPQ);
   FRIEND_TEST(AHyperedgeFMRefiner, ChecksIfHyperedgeMovePreservesBalanceConstraint);
-  FRIEND_TEST(AHyperedgeFMRefiner, ChoosesHyperedgeWithHighestGainAsNextMove);
+  FRIEND_TEST(AHyperedgeFMRefiner, DISABLED_ChoosesHyperedgeWithHighestGainAsNextMove);
   FRIEND_TEST(AHyperedgeFMRefiner, RemovesHyperedgeMovesFromPQsIfBothPQsAreNotEligible);
   FRIEND_TEST(AHyperedgeMovementOperation, UpdatesPartitionSizes);
   FRIEND_TEST(AHyperedgeMovementOperation, DeletesTheRemaningPQEntry);
   FRIEND_TEST(AHyperedgeMovementOperation, LocksHyperedgeAfterPinsAreMoved);
   FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveFromEligiblePQ);
-  FRIEND_TEST(AHyperedgeMovementOperation, ChoosesTheMaxGainMoveIfBothPQsAreEligible);
+  FRIEND_TEST(AHyperedgeMovementOperation, DISABLED_ChoosesTheMaxGainMoveIfBothPQsAreEligible);
   FRIEND_TEST(TheUpdateGainsMethod, IgnoresLockedHyperedges);
   FRIEND_TEST(TheUpdateGainsMethod, EvaluatedEachHyperedgeOnlyOnce);
   FRIEND_TEST(TheUpdateGainsMethod, RemovesHyperedgesThatAreNoLongerCutHyperedgesFromPQs);
