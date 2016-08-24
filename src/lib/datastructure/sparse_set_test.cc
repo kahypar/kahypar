@@ -4,7 +4,6 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/ConnectivitySet.h"
 #include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/datastructure/SparseSet.h"
 #include "lib/definitions.h"
@@ -32,11 +31,10 @@ class ASparseSetSupportingDeletions : public Test {
   T sparse_set;
 };
 
-typedef::testing::Types<SparseSet<defs::HypernodeID>, ConnectivitySet<defs::PartitionID>,
+typedef::testing::Types<SparseSet<defs::HypernodeID>,
                         InsertOnlyConnectivitySet<defs::PartitionID> > Implementations;
 
-typedef::testing::Types<SparseSet<defs::HypernodeID>, ConnectivitySet<defs::PartitionID> >
-  ImplementationsWithDeletion;
+typedef::testing::Types<SparseSet<defs::HypernodeID> > ImplementationsWithDeletion;
 
 TYPED_TEST_CASE(ASparseSet, Implementations);
 

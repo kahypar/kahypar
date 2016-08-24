@@ -11,33 +11,54 @@
 #ifndef SRC_LIB_DATASTRUCTURE_SPARSESET_H_
 #define SRC_LIB_DATASTRUCTURE_SPARSESET_H_
 
+#include <limits>
 #include <memory>
-#include <vector>
+#include <utility>
 
 #include "lib/core/Mandatory.h"
+#include "lib/macros.h"
 
 namespace datastructure {
 template <typename T = Mandatory>
 class SparseSet {
  public:
-  explicit SparseSet(T universe_size) :
-    _dense(std::make_unique<T[]>(universe_size)),
-    _sparse(std::make_unique<size_t[]>(universe_size)),
-    _size(0) { }
+  explicit SparseSet(const T k) :
+    _size(0),
+    _sparse(nullptr),
+    _dense(nullptr) {
+    T* raw = static_cast<T*>(malloc(((2 * k)) * sizeof(T)));
+    for (T i = 0; i < 2 * k; ++i) {
+      new(raw + i)T(std::numeric_limits<T>::max());
+    }
+    _sparse = raw;
+    _dense = raw + k;
+  }
+
+  ~SparseSet() {
+    free(_sparse);
+  }
 
   SparseSet(const SparseSet&) = delete;
   SparseSet& operator= (const SparseSet&) = delete;
 
-  SparseSet(SparseSet&&) = default;
-  SparseSet& operator= (SparseSet&&) = default;
+  SparseSet(SparseSet&& other) :
+    _size(other._size),
+    _sparse(other._sparse),
+    _dense(other._dense) {
+    other._size = 0;
+    other._sparse = nullptr;
+    other._dense = nullptr;
+  }
+
+  SparseSet& operator= (SparseSet&&) = delete;
 
   bool contains(const T value) const {
-    const size_t index = _sparse[value];
+    const T index = _sparse[value];
     return index < _size && _dense[index] == value;
   }
 
   void add(const T value) {
-    const size_t index = _sparse[value];
+    const T index = _sparse[value];
     if (index >= _size || _dense[index] != value) {
       _sparse[value] = _size;
       _dense[_size++] = value;
@@ -45,25 +66,24 @@ class SparseSet {
   }
 
   void remove(const T value) {
-    const size_t index = _sparse[value];
-    if (index <= _size - 1 && _dense[index] == value) {
-      const T e = _dense[_size - 1];
+    const T index = _sparse[value];
+    if (index < _size && _dense[index] == value) {
+      const T e = _dense[--_size];
       _dense[index] = e;
       _sparse[e] = index;
-      --_size;
     }
   }
 
-  size_t size() const {
+  T size() const {
     return _size;
   }
 
-  auto begin() const {
-    return _dense.get();
+  const T* begin() const {
+    return _dense;
   }
 
-  auto end() const {
-    return _dense.get() + _size;
+  const T* end() const {
+    return _dense + _size;
   }
 
   void clear() {
@@ -71,9 +91,9 @@ class SparseSet {
   }
 
  private:
-  std::unique_ptr<T[]> _dense;
-  std::unique_ptr<size_t[]> _sparse;
-  size_t _size;
+  T _size;
+  T* _sparse;
+  T* _dense;
 };
 }  // namespace datastructure
 #endif  // SRC_LIB_DATASTRUCTURE_SPARSESET_H_
