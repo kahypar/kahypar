@@ -148,6 +148,8 @@ class HypergraphPruner {
       if (_fingerprints[i].id != -1) {
         ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
+          // If we are here, then we have a hash collision for _fingerprints[i].id and
+          // _fingerprints[j].id.
           DBG(dbg_coarsening_fingerprinting,
               _fingerprints[i].hash << "==" << _fingerprints[j].hash);
           DBG(dbg_coarsening_fingerprinting,
