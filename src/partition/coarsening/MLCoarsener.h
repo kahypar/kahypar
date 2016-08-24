@@ -60,10 +60,7 @@ class MLCoarsener final : public ICoarsener,
   MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
               const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
-    _tmp_ratings(_hg.initialNumNodes()),
-    _ties() { }
-
-  // TODO(schlag): i.e. min degree ordering
+    _tmp_ratings(_hg.initialNumNodes()) { }
 
   virtual ~MLCoarsener() { }
 
@@ -156,13 +153,6 @@ class MLCoarsener final : public ICoarsener,
       if (acceptRating(tmp_rating, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp_rating;
         target = tmp_target;
-      } else if (tmp_rating == max_rating) {
-        if (already_matched[target] && !already_matched[tmp_target]) {
-          _ties.clear();
-          target = tmp_target;
-        } else {
-          _ties.push_back(tmp_target);
-        }
       }
     }
 
@@ -222,7 +212,6 @@ class MLCoarsener final : public ICoarsener,
   using Base::_rater;
   using Base::_history;
   SparseMap<HypernodeID, RatingType> _tmp_ratings;
-  std::vector<HypernodeID> _ties;
 };
 }  // namespace partition
 
