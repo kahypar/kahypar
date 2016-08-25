@@ -20,7 +20,6 @@
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/FMFactoryExecutor.h"
-#include "partition/refinement/HyperedgeFMRefiner.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/KWayFMRefiner.h"
 #include "partition/refinement/KWayKMinusOneRefiner.h"
@@ -65,14 +64,6 @@ using TwoWayFMFactoryDispatcher = StaticDispatcher<TwoWayFMFactoryExecutor,
                                                    Typelist<GlobalRebalancing, NoGlobalRebalancing>,
                                                    IRefiner*>;
 
-// using HyperedgeFMFactoryExecutor = KFMFactoryExecutor<HyperedgeFMRefiner>;
-// using HyperedgeFMFactoryDispatcher = StaticDispatcher<HyperedgeFMFactoryExecutor,
-//                                                       Typelist<NumberOfFruitlessMovesStopsSearch,
-//                                                                AdvancedRandomWalkModelStopsSearch,
-//                                                                RandomWalkModelStopsSearch,
-//                                                                nGPRandomWalkStopsSearch>,
-//                                                       Typelist<NullPolicy>,
-//                                                       IRefiner*>;
 
 using KWayFMFactoryExecutor = KFMFactoryExecutor<KWayFMRefiner>;
 using KWayFMFactoryDispatcher = StaticDispatcher<KWayFMFactoryExecutor,

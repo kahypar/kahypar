@@ -53,12 +53,10 @@ using partition::RandomWinsLazyUpdateCoarsener;
 using partition::RandomWinsHeuristicCoarsener;
 using partition::RandomWinsMLCoarsener;
 using partition::TwoWayFMFactoryDispatcher;
-// using partition::HyperedgeFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
 using partition::KWayKMinusOneFactoryDispatcher;
 // using partition::MaxGainNodeKWayFMFactoryDispatcher;
 using partition::TwoWayFMFactoryExecutor;
-// using partition::HyperedgeFMFactoryExecutor;
 using partition::KWayFMFactoryExecutor;
 using partition::KWayKMinusOneFactoryExecutor;
 // using partition::MaxGainNodeKWayFMFactoryExecutor;
@@ -595,16 +593,6 @@ static Registrar<RefinerFactory> reg_do_nothing_refiner(
   (void)config;                  // Fixing unused parameter warning
   return new DoNothingRefiner();
 });
-
-// static Registrar<RefinerFactory> reg_hyperedge_local_search(
-//   RefinementAlgorithm::hyperedge,
-//   [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
-//   return HyperedgeFMFactoryDispatcher::go(
-//     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-//       config.her_fm.stopping_rule),
-//     NullPolicy(),
-//     HyperedgeFMFactoryExecutor(), hypergraph, config);
-// });
 
 static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_simple_stopping(
   RefinementStoppingRule::simple,
