@@ -46,9 +46,10 @@ class HypergraphPruner {
     const HyperedgeID removed_id;
   };
 
+  static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
+
  public:
-  explicit HypergraphPruner(const HypernodeID max_num_nodes,
-                            const HyperedgeID max_num_edges) noexcept :
+  explicit HypergraphPruner(const HypernodeID max_num_nodes) noexcept :
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
@@ -144,7 +145,7 @@ class HypergraphPruner {
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
       DBG(dbg_coarsening_fingerprinting, "i=" << i << ", j=" << j);
-      if (_fingerprints[i].id != -1) {
+      if (_fingerprints[i].id != kInvalidID) {
         ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
           // If we are here, then we have a hash collision for _fingerprints[i].id and
@@ -154,7 +155,7 @@ class HypergraphPruner {
           DBG(dbg_coarsening_fingerprinting,
               "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
               << hypergraph.edgeSize(_fingerprints[j].id));
-          if (_fingerprints[j].id != -1 &&
+          if (_fingerprints[j].id != kInvalidID &&
               hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id)) {
             ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
             if (!filled_probe_bitset) {
@@ -164,7 +165,7 @@ class HypergraphPruner {
             if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
               removed_parallel_hes += 1;
               removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
-              _fingerprints[j].id = -1;
+              _fingerprints[j].id = kInvalidID;
               ++size;
             }
           }

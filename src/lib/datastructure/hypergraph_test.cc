@@ -368,8 +368,7 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   std::vector<std::pair<HypernodeID, HypernodeID> > contractions { { 4, 6 }, { 3, 4 }, { 0, 2 },
                                                                    { 0, 1 }, { 0, 5 }, { 0, 3 } };
   std::stack<std::tuple<Memento, int, int> > contraction_history;
-  partition::HypergraphPruner hypergraph_pruner(modified_hypergraph.initialNumNodes(),
-                                                modified_hypergraph.initialNumEdges());
+  partition::HypergraphPruner hypergraph_pruner(modified_hypergraph.initialNumNodes());
   for (const auto& contraction : contractions) {
     contraction_history.emplace(modified_hypergraph.contract(contraction.first,
                                                              contraction.second), 0, 0);

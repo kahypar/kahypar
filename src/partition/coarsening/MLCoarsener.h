@@ -128,7 +128,6 @@ class MLCoarsener final : public ICoarsener,
   Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
-    const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
