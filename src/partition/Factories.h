@@ -26,7 +26,6 @@
 #include "partition/refinement/LPRefiner.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "partition/refinement/policies/TwoFMRebalancePolicies.h"
 

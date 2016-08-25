@@ -9,7 +9,6 @@
 
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
-#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 
 namespace partition {
 template <

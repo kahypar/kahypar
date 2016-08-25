@@ -13,8 +13,6 @@
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMQueueCloggingPolicies.h"
-#include "partition/refinement/policies/FMQueueSelectionPolicies.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 
 using::testing::Test;
