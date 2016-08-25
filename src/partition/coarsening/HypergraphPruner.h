@@ -52,7 +52,6 @@ class HypergraphPruner {
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
-    _hash_cache(max_num_edges, std::numeric_limits<size_t>::max()),
     _contained_hypernodes(max_num_nodes) { }
 
   HypergraphPruner(const HypergraphPruner&) = delete;
@@ -283,7 +282,6 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  std::vector<size_t> _hash_cache;
   FastResetBitVector<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition
