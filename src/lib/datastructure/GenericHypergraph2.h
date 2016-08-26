@@ -344,7 +344,6 @@ class GenericHypergraph2 {
     _threshold_marked(2),
     _hypernodes(),
     _hyperedges(),
-    _hes_to_remove(),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k) {
@@ -577,7 +576,11 @@ class GenericHypergraph2 {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    for (const HyperedgeID he : incidentEdges(memento.u)) {
+    auto incident_hes_it = hypernode(memento.u).incidenceStructure().begin();
+    auto incident_hes_end = hypernode(memento.u).incidenceStructure().end();
+
+    for(;incident_hes_it != incident_hes_end; ++incident_hes_it) {
+      const HyperedgeID he = *incident_hes_it;
       ASSERT(hyperedge(he).incidenceStructure().contains(memento.u), V(he));
       ASSERT(!hyperedge(he).incidenceStructure().contains(memento.v), V(he));
       if (hypernode(memento.v).incidenceStructure().contains(he)) {
@@ -600,7 +603,9 @@ class GenericHypergraph2 {
           changes_v -= pinCountInPart(he, partID(memento.u)) == 2 ? edgeWeight(he) : 0;
           ++_current_num_pins;
         } else {
-          _hes_to_remove.push_back(he);
+          hypernode(memento.u).incidenceStructure().remove(he);
+          --incident_hes_it;
+          --incident_hes_end;
           // LOG("UNDO CASE 2 " << V(he));
           // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u)
           hyperedge(he).incidenceStructure().undoReuse(memento.u, memento.v);
@@ -632,11 +637,6 @@ class GenericHypergraph2 {
       }
     }
 
-    for (const HyperedgeID he : _hes_to_remove) {
-      hypernode(memento.u).incidenceStructure().remove(he);
-    }
-    _hes_to_remove.clear();
-
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
 
     ASSERT(hypernode(memento.u).num_incident_cut_hes == numIncidentCutHEs(memento.u),
@@ -663,7 +663,11 @@ class GenericHypergraph2 {
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
            << memento.v);
 
-    for (const HyperedgeID he : incidentEdges(memento.u)) {
+    auto incident_hes_it = hypernode(memento.u).incidenceStructure().begin();
+    auto incident_hes_end = hypernode(memento.u).incidenceStructure().end();
+
+    for(;incident_hes_it != incident_hes_end; ++incident_hes_it) {
+      const HyperedgeID he = *incident_hes_it;
       ASSERT(hyperedge(he).incidenceStructure().contains(memento.u), V(he));
       ASSERT(!hyperedge(he).incidenceStructure().contains(memento.v), V(he));
       if (hypernode(memento.v).incidenceStructure().contains(he)) {
@@ -678,7 +682,9 @@ class GenericHypergraph2 {
           }
           ++_current_num_pins;
         } else {
-          _hes_to_remove.push_back(he);
+          hypernode(memento.u).incidenceStructure().remove(he);
+          --incident_hes_it;
+          --incident_hes_end;
           // LOG("UNDO CASE 2 " << V(he));
           // Undo case 2 opeations (i.e. Entry of pin v in HE e was reused to store connection to u)
           hyperedge(he).incidenceStructure().undoReuse(memento.u, memento.v);
@@ -689,11 +695,6 @@ class GenericHypergraph2 {
         }
       }
     }
-
-    for (const HyperedgeID he : _hes_to_remove) {
-      hypernode(memento.u).incidenceStructure().remove(he);
-    }
-    _hes_to_remove.clear();
 
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
 
@@ -1273,7 +1274,6 @@ class GenericHypergraph2 {
     _threshold_marked(2),
     _hypernodes(),
     _hyperedges(),
-    _hes_to_remove(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets() { }
@@ -1455,8 +1455,6 @@ class GenericHypergraph2 {
 
   std::vector<HypernodeVertex> _hypernodes;
   std::vector<HyperedgeVertex> _hyperedges;
-
-  std::vector<HyperedgeID> _hes_to_remove;
 
   std::vector<PartInfo> _part_info;
   // for each hyperedge we store the connectivity set,
