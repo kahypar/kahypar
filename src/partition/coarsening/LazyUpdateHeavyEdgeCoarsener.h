@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_LAZYUPDATEHEAVYEDGECOARSENER_H_
-#define SRC_PARTITION_COARSENING_LAZYUPDATEHEAVYEDGECOARSENER_H_
+#pragma once
 
 #include <string>
 #include <utility>
@@ -68,11 +67,11 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
     rateAllHypernodes(_target, null_map);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
-      const HypernodeID rep_node = _pq.getMax();
+      const HypernodeID rep_node = _pq.top();
 
       if (_outdated_rating[rep_node]) {
         DBG(dbg_coarsening_coarsen,
-            "Rating for HN" << rep_node << " is invalid: " << _pq.getMaxKey() << "--->"
+            "Rating for HN" << rep_node << " is invalid: " << _pq.topKey() << "--->"
             << _rater.rate(rep_node).value << " target=" << _rater.rate(rep_node).target
             << " valid= " << _rater.rate(rep_node).valid);
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
@@ -80,15 +79,15 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
         const HypernodeID contracted_node = _target[rep_node];
 
         DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-            << _target[rep_node] << ") prio: " << _pq.getMaxKey() <<
+            << _target[rep_node] << ") prio: " << _pq.topKey() <<
             " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
             " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node));
 
         ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
                <= _rater.thresholdNodeWeight(),
                "Trying to contract nodes violating maximum node weight");
-        ASSERT(_pq.getMaxKey() == _rater.rate(rep_node).value,
-               "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
+        ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
+               "Key in PQ != rating calculated by rater:" << _pq.topKey() << "!="
                << _rater.rate(rep_node).value);
 
         performContraction(rep_node, contracted_node);
@@ -155,6 +154,3 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   std::vector<HypernodeID> _target;
 };
 }              // namespace partition
-
-
-#endif  // SRC_PARTITION_COARSENING_LAZYUPDATEHEAVYEDGECOARSENER_H_

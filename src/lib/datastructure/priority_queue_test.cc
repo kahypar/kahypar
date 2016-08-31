@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/EnhancedBucketQueue.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 // #include "lib/datastructure/heaps/PairingHeapWrapper.h"
 #include "lib/definitions.h"
 
@@ -14,7 +14,7 @@ using::testing::DoubleEq;
 using::testing::Test;
 
 namespace datastructure {
-using MaxHeapQueue = NoDataBinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
+using MaxHeapQueue = BinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<defs::HypernodeID, defs::HyperedgeWeight>;
 // using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
 
@@ -49,73 +49,73 @@ TYPED_TEST(APriorityQueue, HasSizeOneAfterOneInsertion) {
 TYPED_TEST(APriorityQueue, ReturnsTheMaximumElement) {
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(0));
+  ASSERT_THAT(this->prio_queue.top(), Eq(0));
 }
 
 TYPED_TEST(APriorityQueue, ReturnsTheMaximumKey) {
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(4));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(4));
 }
 
 TYPED_TEST(APriorityQueue, BehavesAsExpectedOnUpdate) {
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(0));
+  ASSERT_THAT(this->prio_queue.top(), Eq(0));
   this->prio_queue.updateKey(0, -1);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(1));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(1));
+  ASSERT_THAT(this->prio_queue.top(), Eq(1));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(1));
 }
 
 TYPED_TEST(APriorityQueue, BehavesAsExpectedOnRemoval) {
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(0));
+  ASSERT_THAT(this->prio_queue.top(), Eq(0));
   this->prio_queue.deleteNode(0);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(1));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(1));
+  ASSERT_THAT(this->prio_queue.top(), Eq(1));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(1));
 }
 
 TYPED_TEST(APriorityQueue, CanIncreaseKeysByDelta) {
   this->prio_queue.push(0, 4);
   this->prio_queue.increaseKeyBy(0, 4);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(8));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(8));
 }
 
 TYPED_TEST(APriorityQueue, CanDecreaseKeysByDelta) {
   this->prio_queue.push(0, 4);
   this->prio_queue.decreaseKeyBy(0, 2);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(2));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(2));
 }
 
 TYPED_TEST(APriorityQueue, CanUpdateKeysByDelta) {
   this->prio_queue.push(0, 4);
   this->prio_queue.updateKeyBy(0, 2);
   this->prio_queue.updateKeyBy(0, -3);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(3));
 }
 
 TYPED_TEST(APriorityQueue, AllowsDecreaseKeyOperations) {
   this->prio_queue.push(1, 9);
   this->prio_queue.decreaseKey(1, 2);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(2));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(2));
 }
 
 TYPED_TEST(APriorityQueue, AllowsIncreaseKeyOperations) {
   this->prio_queue.push(1, 4);
   this->prio_queue.push(2, 5);
   this->prio_queue.increaseKey(1, 8);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(8));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(8));
 }
 
 TYPED_TEST(APriorityQueue, BehavesAsExpectedOnDeletionOfCurrentMaximum) {
   this->prio_queue.push(2, -1);
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(0));
-  this->prio_queue.deleteMax();
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(1));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(1));
+  ASSERT_THAT(this->prio_queue.top(), Eq(0));
+  this->prio_queue.pop();
+  ASSERT_THAT(this->prio_queue.top(), Eq(1));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(1));
 }
 
 TYPED_TEST(APriorityQueue, AlwaysReturnsMax) {
@@ -125,28 +125,28 @@ TYPED_TEST(APriorityQueue, AlwaysReturnsMax) {
   this->prio_queue.push(3, 7);
   this->prio_queue.push(1, 5);
 
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(2));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(10));
+  ASSERT_THAT(this->prio_queue.top(), Eq(2));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(10));
 
-  this->prio_queue.deleteMax();
+  this->prio_queue.pop();
 
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(3));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(7));
+  ASSERT_THAT(this->prio_queue.top(), Eq(3));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(7));
 
-  this->prio_queue.deleteMax();
+  this->prio_queue.pop();
 
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(1));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(5));
+  ASSERT_THAT(this->prio_queue.top(), Eq(1));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(5));
 
-  this->prio_queue.deleteMax();
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(0));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(4));
+  this->prio_queue.pop();
+  ASSERT_THAT(this->prio_queue.top(), Eq(0));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(4));
 
-  this->prio_queue.deleteMax();
-  ASSERT_THAT(this->prio_queue.getMax(), Eq(4));
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
+  this->prio_queue.pop();
+  ASSERT_THAT(this->prio_queue.top(), Eq(4));
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(3));
 
-  this->prio_queue.deleteMax();
+  this->prio_queue.pop();
   ASSERT_THAT(this->prio_queue.empty(), Eq(true));
 }
 
@@ -158,21 +158,21 @@ TYPED_TEST(APriorityQueue, HandleDuplicateKeys) {
   this->prio_queue.push(1, 4);
 
   // bucket queue should use LIFO and therefore return 1
-  ASSERT_TRUE(this->prio_queue.getMax() == 0 || this->prio_queue.getMax() == 1);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(4));
+  ASSERT_TRUE(this->prio_queue.top() == 0 || this->prio_queue.top() == 1);
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(4));
 
-  this->prio_queue.deleteMax();
+  this->prio_queue.pop();
   // bucket queue should use LIFO and therefore return 0
-  ASSERT_TRUE(this->prio_queue.getMax() == 1 || this->prio_queue.getMax() == 0);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(4));
+  ASSERT_TRUE(this->prio_queue.top() == 1 || this->prio_queue.top() == 0);
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(4));
 
-  this->prio_queue.deleteMax();
-  ASSERT_TRUE(this->prio_queue.getMax() == 3 || this->prio_queue.getMax() == 2);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
+  this->prio_queue.pop();
+  ASSERT_TRUE(this->prio_queue.top() == 3 || this->prio_queue.top() == 2);
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(3));
 
-  this->prio_queue.deleteMax();
-  ASSERT_TRUE(this->prio_queue.getMax() == 2 || this->prio_queue.getMax() == 3);
-  ASSERT_THAT(this->prio_queue.getMaxKey(), Eq(3));
+  this->prio_queue.pop();
+  ASSERT_TRUE(this->prio_queue.top() == 2 || this->prio_queue.top() == 3);
+  ASSERT_THAT(this->prio_queue.topKey(), Eq(3));
 }
 
 TYPED_TEST(APriorityQueue, IsEmptyAfterClearing) {
@@ -206,11 +206,11 @@ TEST(ABucketQueue, ChangesPositionOfElementsOnZeroGainUpdate) {
   bucket_pq.push(2, 3);
   bucket_pq.push(1, 10);
 
-  ASSERT_THAT(bucket_pq.getMax(), Eq(1));
-  ASSERT_THAT(bucket_pq.getMaxKey(), Eq(10));
+  ASSERT_THAT(bucket_pq.top(), Eq(1));
+  ASSERT_THAT(bucket_pq.topKey(), Eq(10));
   bucket_pq.updateKey(0, 10);
-  ASSERT_THAT(bucket_pq.getMax(), Eq(0));
-  ASSERT_THAT(bucket_pq.getMaxKey(), Eq(10));
+  ASSERT_THAT(bucket_pq.top(), Eq(0));
+  ASSERT_THAT(bucket_pq.topKey(), Eq(10));
 }
 
 TYPED_TEST(APriorityQueue, IsSwappable) {
@@ -264,7 +264,7 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
 //   ASSERT_THAT(first_pq.getKey(9), Eq(6));
 
 //   // verify that max is correct
-//   ASSERT_THAT(first_pq.getMax(), Eq(5));
-//   ASSERT_THAT(first_pq.getMaxKey(), Eq(99));
+//   ASSERT_THAT(first_pq.top(), Eq(5));
+//   ASSERT_THAT(first_pq.topKey(), Eq(99));
 // }
 }  // namespace datastructure

@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
-#define SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_
+#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -63,10 +62,10 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
     rateAllHypernodes(_target, _sources);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
-      const HypernodeID rep_node = _pq.getMax();
+      const HypernodeID rep_node = _pq.top();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.getMaxKey());
+          << _target[rep_node] << ") prio: " << _pq.topKey());
 
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
@@ -190,5 +189,3 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
   FastResetBitVector<> _just_updated;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_HEURISTICHEAVYEDGECOARSENER_H_

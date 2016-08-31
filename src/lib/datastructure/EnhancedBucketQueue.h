@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_ENHANCEDBUCKETQUEUE_H_
-#define SRC_LIB_DATASTRUCTURE_ENHANCEDBUCKETQUEUE_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -107,7 +106,7 @@ class EnhancedBucketQueue {
     _valid.reset();
   }
 
-  KeyType getMaxKey() const noexcept {
+  KeyType topKey() const noexcept {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(!empty(), "BucketQueue is empty");
@@ -117,7 +116,7 @@ class EnhancedBucketQueue {
     return _max_address - _key_range;
   }
 
-  KeyType getMax() const noexcept {
+  KeyType top() const noexcept {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(!empty(), "BucketQueue is empty");
@@ -127,7 +126,7 @@ class EnhancedBucketQueue {
     return _buckets[_max_address].back();
   }
 
-  void deleteMax() noexcept {
+  void pop() noexcept {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(_contains[_buckets[_max_address].back()], V(_buckets[_max_address].back()));
@@ -293,4 +292,3 @@ void swap(EnhancedBucketQueue<IDType, KeyType, MetaKey>& a,
   a.swap(b);
 }
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_ENHANCEDBUCKETQUEUE_H_

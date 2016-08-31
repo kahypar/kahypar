@@ -20,7 +20,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-using datastructure::NoDataBinaryMaxHeap;
+using datastructure::BinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;

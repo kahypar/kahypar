@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
-#define SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_
+#pragma once
 
 #include <limits>
 #include <string>
@@ -69,10 +68,10 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
     FastResetBitVector<> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
-      const HypernodeID rep_node = _pq.getMax();
+      const HypernodeID rep_node = _pq.top();
       const HypernodeID contracted_node = _target[rep_node];
       DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.getMaxKey() <<
+          << _target[rep_node] << ") prio: " << _pq.topKey() <<
           " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
           " w(" << rep_node << ")=" << _hg.nodeWeight(rep_node) <<
           " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node) <<
@@ -82,8 +81,8 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
       ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
              <= _rater.thresholdNodeWeight(),
              "Trying to contract nodes violating maximum node weight");
-      ASSERT(_pq.getMaxKey() == _rater.rate(rep_node).value,
-             "Key in PQ != rating calculated by rater:" << _pq.getMaxKey() << "!="
+      ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
+             "Key in PQ != rating calculated by rater:" << _pq.topKey() << "!="
              << _rater.rate(rep_node).value);
       ASSERT(!invalid_hypernodes[rep_node], "Representative HN " << rep_node << " is invalid");
       ASSERT(!invalid_hypernodes[contracted_node], "Contract HN " << contracted_node << " is invalid");
@@ -165,4 +164,3 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
   std::vector<HypernodeID> _target;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_COARSENING_FULLHEAVYEDGECOARSENER_H_

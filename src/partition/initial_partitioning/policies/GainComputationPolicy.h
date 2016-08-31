@@ -3,8 +3,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -28,8 +27,7 @@ using Gain = HyperedgeWeight;
 
 namespace partition {
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>,
-                                           ArrayStorage<HypernodeID>, true>;
+                                           std::numeric_limits<HyperedgeWeight>, true>;
 
 enum class GainType : std::uint8_t {
   fm_gain,
@@ -367,5 +365,3 @@ struct MaxNetGainComputationPolicy {
   }
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GAINCOMPUTATIONPOLICY_H_

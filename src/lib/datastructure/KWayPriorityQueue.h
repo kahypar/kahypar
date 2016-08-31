@@ -2,37 +2,33 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_
-#define SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
 #include <vector>
 
-#include "external/binary_heap/QueueStorages.hpp"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/EnhancedBucketQueue.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
 #include "tools/RandomFunctions.h"
 
 using defs::PartitionID;
-using datastructure::NoDataBinaryMaxHeap;
+using datastructure::BinaryMaxHeap;
 using datastructure::EnhancedBucketQueue;
-using external::ArrayStorage;
 
 namespace datastructure {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
-          typename Storage = ArrayStorage<IDType>,
           bool UseRandomTieBreaking = false>
 class KWayPriorityQueue {
 #ifdef USE_BUCKET_PQ
   using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
 #else
-  using Queue = NoDataBinaryMaxHeap<IDType, KeyType, MetaKey, Storage>;
+  using Queue = BinaryMaxHeap<IDType, KeyType>;
 #endif
 
   static const size_t kInvalidIndex = std::numeric_limits<size_t>::max();
@@ -143,8 +139,8 @@ class KWayPriorityQueue {
     ASSERT(max_index < _num_enabled_pqs, V(max_index));
 
     max_part = _mapping[max_index].part;
-    max_id = _queues[max_index].getMax();
-    max_key = _queues[max_index].getMaxKey();
+    max_id = _queues[max_index].top();
+    max_key = _queues[max_index].topKey();
 
     ASSERT(_mapping[_mapping[max_part].index].part == max_part, V(max_part));
     ASSERT(max_index != kInvalidIndex, V(max_index));
@@ -152,7 +148,7 @@ class KWayPriorityQueue {
     ASSERT(max_part != kInvalidPart, V(max_part) << V(max_id));
     ASSERT(static_cast<unsigned int>(max_part) < _queues.size(), "Invalid " << V(max_part));
 
-    _queues[max_index].deleteMax();
+    _queues[max_index].pop();
     if (_queues[max_index].empty()) {
       ASSERT(isEnabled(max_part), V(max_part));
       --_num_enabled_pqs;  // now points to the last enabled pq
@@ -170,15 +166,15 @@ class KWayPriorityQueue {
     size_t part_index = _mapping[part].index;
     ASSERT(part_index < _num_enabled_pqs, V(part_index));
 
-    max_id = _queues[part_index].getMax();
-    max_key = _queues[part_index].getMaxKey();
+    max_id = _queues[part_index].top();
+    max_key = _queues[part_index].topKey();
 
     ASSERT(_mapping[_mapping[part].index].part == part, V(part));
     ASSERT(part_index != kInvalidIndex, V(part_index));
     ASSERT(max_key != MetaKey::max(), V(max_key));
     ASSERT(part != kInvalidPart, V(part) << V(max_id));
 
-    _queues[part_index].deleteMax();
+    _queues[part_index].pop();
     if (_queues[part_index].empty()) {
       ASSERT(isEnabled(part), V(part));
       --_num_enabled_pqs;  // now points to the last enabled pq
@@ -259,24 +255,24 @@ class KWayPriorityQueue {
 
   IDType max() const noexcept {
     // Should only be used for testing
-    return _queues[maxIndex()].getMax();
+    return _queues[maxIndex()].top();
   }
 
   IDType max(PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
-    return _queues[_mapping[part].index].getMax();
+    return _queues[_mapping[part].index].top();
   }
 
   KeyType maxKey() const noexcept {
     // Should only be used for testing
-    return _queues[maxIndex()].getMaxKey();
+    return _queues[maxIndex()].topKey();
   }
 
   KeyType maxKey(PartitionID part) const noexcept {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
-    return _queues[_mapping[part].index].getMaxKey();
+    return _queues[_mapping[part].index].topKey();
   }
 
  private:
@@ -300,7 +296,7 @@ class KWayPriorityQueue {
     KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
       ASSERT(!_queues[index].empty(), V(index));
-      const KeyType key = _queues[index].getMaxKey();
+      const KeyType key = _queues[index].topKey();
       if (key > max_key) {
         max_key = key;
         max_index = index;
@@ -314,7 +310,7 @@ class KWayPriorityQueue {
     KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
       ASSERT(!_queues[index].empty(), V(index));
-      const KeyType key = _queues[index].getMaxKey();
+      const KeyType key = _queues[index].topKey();
       if (key > max_key) {
         max_key = key;
         _ties.clear();
@@ -347,17 +343,13 @@ class KWayPriorityQueue {
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage,
           bool UseRandomTieBreaking>
-constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey, Storage,
+constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey,
                                    UseRandomTieBreaking>::kInvalidIndex;
 template <typename IDType,
           typename KeyType,
           typename MetaKey,
-          class Storage,
           bool UseRandomTieBreaking>
-constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey, Storage,
+constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey,
                                         UseRandomTieBreaking>::kInvalidPart;
 }  // namespace datastructure
-
-#endif  // SRC_LIB_DATASTRUCTURE_KWAYPRIORITYQUEUE_H_

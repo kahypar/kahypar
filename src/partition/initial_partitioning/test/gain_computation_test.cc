@@ -7,9 +7,9 @@
 
 #include "gmock/gmock.h"
 
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 
@@ -27,8 +27,7 @@ using Gain = HyperedgeWeight;
 
 namespace partition {
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>,
-                                           ArrayStorage<HypernodeID>, true>;
+                                           std::numeric_limits<HyperedgeWeight>, true>;
 
 class AGainComputationPolicy : public Test {
  public:

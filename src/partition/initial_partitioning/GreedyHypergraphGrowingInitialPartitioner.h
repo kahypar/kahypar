@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -20,14 +19,12 @@
 
 using defs::HypernodeWeight;
 using datastructure::KWayPriorityQueue;
-using external::ArrayStorage;
 
 using Gain = HyperedgeWeight;
 
 namespace partition {
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>,
-                                           ArrayStorage<HypernodeID>, true>;
+                                           std::numeric_limits<HyperedgeWeight>, true>;
 
 template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory,
@@ -362,5 +359,3 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   FastResetBitVector<> _hyperedge_in_queue;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_GREEDYHYPERGRAPHGROWINGINITIALPARTITIONER_H_

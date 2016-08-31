@@ -1,9 +1,7 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
-
-#ifndef SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
-#define SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -17,11 +15,11 @@
 #include "external/fp_compare/Utils.h"
 #include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/SparseSet.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -43,7 +41,7 @@ using defs::PartitionID;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 using defs::IncidenceIterator;
-using datastructure::NoDataBinaryMaxHeap;
+using datastructure::BinaryMaxHeap;
 
 namespace partition {
 static const bool dbg_refinement_2way_fm_improvements_cut = false;
@@ -63,8 +61,7 @@ class TwoWayFMRefiner final : public IRefiner,
  private:
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                              std::numeric_limits<HyperedgeWeight> >;
-  using RebalancePQ = NoDataBinaryMaxHeap<HypernodeID, HyperedgeWeight,
-                                          std::numeric_limits<HyperedgeWeight> >;
+  using RebalancePQ = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 
   static constexpr char kLocked = std::numeric_limits<char>::max();
   static const char kFree = std::numeric_limits<char>::max() - 1;
@@ -433,8 +430,8 @@ class TwoWayFMRefiner final : public IRefiner,
            imbalance_before_move > imbalance_after_move) {
       imbalance_before_move = current_imbalance;
 
-      const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].getMaxKey();
-      const HypernodeID max_gain_node = _rebalance_pqs[rebalance_to_part].getMax();
+      const Gain rebalance_gain = _rebalance_pqs[rebalance_to_part].topKey();
+      const HypernodeID max_gain_node = _rebalance_pqs[rebalance_to_part].top();
 
       if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
           > _config.partition.max_part_weights[rebalance_to_part] ||
@@ -442,7 +439,7 @@ class TwoWayFMRefiner final : public IRefiner,
         break;
       }
 
-      _rebalance_pqs[rebalance_to_part].deleteMax();
+      _rebalance_pqs[rebalance_to_part].pop();
       _disabled_rebalance_hns.add(max_gain_node);
 
       // Rebalancing should not overlap with local search search space
@@ -530,31 +527,31 @@ class TwoWayFMRefiner final : public IRefiner,
     const bool rebalance_pq1_empty = _rebalance_pqs[1].empty();
 
     if (rebalance_pq0_empty && !rebalance_pq1_empty) {
-      max_gain = _rebalance_pqs[1].getMaxKey();
-      max_gain_node = _rebalance_pqs[1].getMax();
+      max_gain = _rebalance_pqs[1].topKey();
+      max_gain_node = _rebalance_pqs[1].top();
       to_part = 1;
     } else if (!rebalance_pq0_empty && rebalance_pq1_empty) {
-      max_gain = _rebalance_pqs[0].getMaxKey();
-      max_gain_node = _rebalance_pqs[0].getMax();
+      max_gain = _rebalance_pqs[0].topKey();
+      max_gain_node = _rebalance_pqs[0].top();
       to_part = 0;
     } else if (!rebalance_pq0_empty && !rebalance_pq1_empty) {
-      if (_rebalance_pqs[0].getMaxKey() > _rebalance_pqs[1].getMaxKey()) {
-        max_gain = _rebalance_pqs[0].getMaxKey();
-        max_gain_node = _rebalance_pqs[0].getMax();
+      if (_rebalance_pqs[0].topKey() > _rebalance_pqs[1].topKey()) {
+        max_gain = _rebalance_pqs[0].topKey();
+        max_gain_node = _rebalance_pqs[0].top();
         to_part = 0;
-      } else if (_rebalance_pqs[0].getMaxKey() == _rebalance_pqs[1].getMaxKey()) {
+      } else if (_rebalance_pqs[0].topKey() == _rebalance_pqs[1].topKey()) {
         if (_hg.partWeight(0) > _hg.partWeight(1)) {
-          max_gain = _rebalance_pqs[1].getMaxKey();
-          max_gain_node = _rebalance_pqs[1].getMax();
+          max_gain = _rebalance_pqs[1].topKey();
+          max_gain_node = _rebalance_pqs[1].top();
           to_part = 1;
         } else {
-          max_gain = _rebalance_pqs[0].getMaxKey();
-          max_gain_node = _rebalance_pqs[0].getMax();
+          max_gain = _rebalance_pqs[0].topKey();
+          max_gain_node = _rebalance_pqs[0].top();
           to_part = 0;
         }
       } else {
-        max_gain = _rebalance_pqs[1].getMaxKey();
-        max_gain_node = _rebalance_pqs[1].getMax();
+        max_gain = _rebalance_pqs[1].topKey();
+        max_gain_node = _rebalance_pqs[1].top();
         to_part = 1;
       }
     }
@@ -1024,5 +1021,3 @@ const char TwoWayFMRefiner<T, b, U>::kFree;
 
 #pragma GCC diagnostic pop
 }                                   // namespace partition
-
-#endif  // SRC_PARTITION_REFINEMENT_TWOWAYFMREFINER_H_

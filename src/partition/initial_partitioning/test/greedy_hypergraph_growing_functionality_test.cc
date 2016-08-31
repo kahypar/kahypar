@@ -9,8 +9,8 @@
 
 #include "gmock/gmock.h"
 
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
 #include "lib/io/HypergraphIO.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
@@ -24,7 +24,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-using datastructure::NoDataBinaryMaxHeap;
+using datastructure::BinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
 using defs::HyperedgeVector;

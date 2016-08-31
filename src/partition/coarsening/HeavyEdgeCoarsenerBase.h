@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
-#define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -13,7 +12,7 @@
 #include <vector>
 
 #include "lib/core/Int2Type.h"
-#include "lib/datastructure/heaps/NoDataBinaryMaxHeap.h"
+#include "lib/datastructure/BinaryHeap.h"
 #include "lib/definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
@@ -22,7 +21,7 @@
 #include "partition/refinement/IRefiner.h"
 
 using core::Int2Type;
-using datastructure::NoDataBinaryMaxHeap;
+using datastructure::BinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
@@ -45,8 +44,8 @@ struct CoarseningMemento {
 };
 
 template <class Rater = Mandatory,
-          class PrioQueue = NoDataBinaryMaxHeap<HypernodeID,
-                                                typename Rater::RatingType> >
+          class PrioQueue = BinaryMaxHeap<HypernodeID,
+                                          typename Rater::RatingType> >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
  protected:
   using Base = CoarsenerBase<CoarseningMemento>;
@@ -216,5 +215,3 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase<CoarseningMemento>{
   PrioQueue _pq;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENERBASE_H_

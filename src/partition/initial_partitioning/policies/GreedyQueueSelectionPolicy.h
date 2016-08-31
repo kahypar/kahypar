@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_
+#pragma once
 
 #include <limits>
 
@@ -21,8 +20,7 @@ using datastructure::KWayPriorityQueue;
 
 namespace partition {
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>,
-                                           ArrayStorage<HypernodeID>, true>;
+                                           std::numeric_limits<HyperedgeWeight>, true>;
 
 struct RoundRobinQueueSelectionPolicy {
   // Method returns the part which all hypernodes has to be assigned to before
@@ -161,5 +159,3 @@ struct SequentialQueueSelectionPolicy {
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POLICIES_GREEDYQUEUESELECTIONPOLICY_H_
