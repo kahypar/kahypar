@@ -25,7 +25,8 @@ class BinaryHeapBase {
 
  protected:
   struct HeapElement {
-    HeapElement(const KeyType& key_ = BinaryHeapTraits<Derived>::sentinel(), const IDType& id_ = 0) :
+    HeapElement(const KeyType& key_ = BinaryHeapTraits<Derived>::sentinel(),
+                const IDType& id_ = 0) :
       id(id_),
       key(key_) { }
 
