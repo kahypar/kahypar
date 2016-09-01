@@ -212,7 +212,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(ghg->_pq.contains(4));
   ASSERT_TRUE(ghg->_pq.contains(6));
 
-  ghg->deleteNodeInAllBucketQueues(2);
+  ghg->removeInAllBucketQueues(2);
 
   ASSERT_EQ(ghg->_pq.size(), 2);
   ASSERT_TRUE(!ghg->_pq.contains(2));
@@ -230,7 +230,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(ghg->_pq.contains(0, 0));
   ASSERT_TRUE(ghg->_pq.contains(0, 1));
 
-  ghg->deleteNodeInAllBucketQueues(0);
+  ghg->removeInAllBucketQueues(0);
   ghg->_partEnabled[0] = false;
   ASSERT_EQ(ghg->_pq.size(), 0);
   ghg->insertInAllEmptyEnabledQueuesAnUnassignedHypernode();

@@ -1,5 +1,5 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
 #pragma once
@@ -92,7 +92,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
 
         performContraction(rep_node, contracted_node);
         ASSERT(_pq.contains(contracted_node), V(contracted_node));
-        _pq.deleteNode(contracted_node);
+        _pq.remove(contracted_node);
 
         removeSingleNodeHyperedges(rep_node);
         removeParallelHyperedges(rep_node, contracted_node);
@@ -134,7 +134,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
       // method is only called on rep_node, which is definetly in the PQ.
       ASSERT(_pq.contains(hn),
              "Trying to remove rating of HN " << hn << " which is not in PQ");
-      _pq.deleteNode(hn);
+      _pq.remove(hn);
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
           << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)

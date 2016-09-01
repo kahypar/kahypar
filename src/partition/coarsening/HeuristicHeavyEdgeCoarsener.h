@@ -1,5 +1,5 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
 #pragma once
@@ -81,7 +81,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
       performContraction(rep_node, contracted_node);
 
       ASSERT(_pq.contains(contracted_node), V(contracted_node));
-      _pq.deleteNode(contracted_node);
+      _pq.remove(contracted_node);
       removeMappingEntryOfNode(contracted_node, _target[contracted_node]);
 
       removeSingleNodeHyperedges(rep_node);
@@ -160,7 +160,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
       // explicit containment check is necessary because of V-cycles. In this case, not
       // all hypernodes will be inserted into the PQ at the beginning, because of the
       // restriction that only hypernodes within the same part can be contracted.
-      _pq.deleteNode(hn);
+      _pq.remove(hn);
       removeMappingEntryOfNode(hn, _target[hn]);
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn

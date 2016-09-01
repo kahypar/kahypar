@@ -1,5 +1,5 @@
 /***************************************************************************
- *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2015-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
 #pragma once
@@ -179,7 +179,7 @@ class EnhancedBucketQueue {
   }
 
 
-  void deleteNode(const IDType id) noexcept {
+  void remove(const IDType id) noexcept {
     ASSERT(_contains[id], V(id));
     ASSERT(_buckets[_repository[id].second + _key_range][_repository[id].first] == id, V(id));
     --_num_elements;

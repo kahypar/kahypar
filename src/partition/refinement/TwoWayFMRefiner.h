@@ -114,7 +114,7 @@ class TwoWayFMRefiner final : public IRefiner,
       }
       _hg.activate(hn);
       if (global_rebalancing) {
-        _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+        _rebalance_pqs[1 - _hg.partID(hn)].remove(hn);
         _disabled_rebalance_hns.add(hn);
       }
     }
@@ -283,7 +283,7 @@ class TwoWayFMRefiner final : public IRefiner,
           if (_hg.active(max_gain_node)) {
             _pq.remove(max_gain_node, to_part);
           }
-          _rebalance_pqs[to_part].deleteNode(max_gain_node);
+          _rebalance_pqs[to_part].remove(max_gain_node);
           _disabled_rebalance_hns.add(max_gain_node);
           used_rebalance_pqs = true;
         }
@@ -979,7 +979,7 @@ class TwoWayFMRefiner final : public IRefiner,
         // Since the rollback_delta_cache maintains all delta changes, we have
         // to reuse the gain of the old pq here in order to get correct deltas
         _rebalance_pqs[_hg.partID(hn)].push(hn, _rebalance_pqs[1 - _hg.partID(hn)].getKey(hn));
-        _rebalance_pqs[1 - _hg.partID(hn)].deleteNode(hn);
+        _rebalance_pqs[1 - _hg.partID(hn)].remove(hn);
       }
       _hg.changeNodePart(hn, _hg.partID(hn), (_hg.partID(hn) ^ 1));
       --last_index;

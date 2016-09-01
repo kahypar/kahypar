@@ -71,7 +71,7 @@ TYPED_TEST(APriorityQueue, BehavesAsExpectedOnRemoval) {
   this->prio_queue.push(0, 4);
   this->prio_queue.push(1, 1);
   ASSERT_THAT(this->prio_queue.top(), Eq(0));
-  this->prio_queue.deleteNode(0);
+  this->prio_queue.remove(0);
   ASSERT_THAT(this->prio_queue.top(), Eq(1));
   ASSERT_THAT(this->prio_queue.topKey(), Eq(1));
 }

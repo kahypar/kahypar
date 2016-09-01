@@ -217,9 +217,9 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._hg.activate(0);
   refiner._hg.activate(1);
-  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._rebalance_pqs[1].remove(0);
   refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._rebalance_pqs[1].remove(1);
   refiner._disabled_rebalance_hns.add(1);
   refiner._gain_cache.setValue(0, refiner.computeGain(0));
   refiner._gain_cache.setValue(1, refiner.computeGain(1));
@@ -285,13 +285,13 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner._hg.activate(1);
   refiner._hg.activate(2);
   refiner._hg.activate(3);
-  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._rebalance_pqs[1].remove(0);
   refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._rebalance_pqs[1].remove(1);
   refiner._disabled_rebalance_hns.add(1);
-  refiner._rebalance_pqs[1].deleteNode(2);
+  refiner._rebalance_pqs[1].remove(2);
   refiner._disabled_rebalance_hns.add(2);
-  refiner._rebalance_pqs[1].deleteNode(3);
+  refiner._rebalance_pqs[1].remove(3);
   refiner._disabled_rebalance_hns.add(3);
   refiner._gain_cache.setValue(0, refiner.computeGain(0));
   refiner._gain_cache.setValue(1, refiner.computeGain(1));
@@ -499,9 +499,9 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   refiner._pq.insert(1, 1, refiner._gain_cache.value(1));
   refiner._hg.activate(0);
   refiner._hg.activate(1);
-  refiner._rebalance_pqs[1].deleteNode(0);
+  refiner._rebalance_pqs[1].remove(0);
   refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].deleteNode(1);
+  refiner._rebalance_pqs[1].remove(1);
   refiner._disabled_rebalance_hns.add(1);
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
@@ -539,7 +539,7 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   refiner._pq.insert(2, 1, refiner.computeGain(2));
   refiner._gain_cache.setValue(2, refiner.computeGain(2));
   refiner._hg.activate(2);
-  refiner._rebalance_pqs[1].deleteNode(2);
+  refiner._rebalance_pqs[1].remove(2);
   refiner._disabled_rebalance_hns.add(2);
   refiner._pq.enablePart(1);
   refiner.moveHypernode(2, 0, 1);
@@ -630,7 +630,7 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
 #endif
 
   refiner->_hg.activate(0);
-  refiner->_rebalance_pqs[1].deleteNode(0);
+  refiner->_rebalance_pqs[1].remove(0);
   refiner->_disabled_rebalance_hns.add(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);

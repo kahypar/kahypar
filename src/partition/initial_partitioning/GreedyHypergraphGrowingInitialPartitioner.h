@@ -1,5 +1,6 @@
 /***************************************************************************
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
 #pragma once
@@ -284,7 +285,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     }
 
     if (delete_nodes) {
-      deleteNodeInAllBucketQueues(hn);
+      removeInAllBucketQueues(hn);
     }
 
     if (!_pq.isEnabled(target_part)) {
@@ -312,7 +313,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
            "Gain value of a move of a hypernode isn't equal with the real gain.");
   }
 
-  void deleteNodeInAllBucketQueues(const HypernodeID hn) {
+  void removeInAllBucketQueues(const HypernodeID hn) {
     for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
       if (_pq.contains(hn, part)) {
         if (_pq.isEnabled(part) && _pq.size(part) == 1 && _hg.partID(hn) != part) {

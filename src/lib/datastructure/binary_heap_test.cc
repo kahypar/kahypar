@@ -85,7 +85,7 @@ TEST_F(AMaxHeap, BehavesAsExpectedOnRemoval) {
   this->_heap.push(0, 4);
   this->_heap.push(1, 1);
   ASSERT_THAT(this->_heap.top(), Eq(0));
-  this->_heap.deleteNode(0);
+  this->_heap.remove(0);
   ASSERT_THAT(this->_heap.top(), Eq(1));
   ASSERT_THAT(this->_heap.topKey(), Eq(1));
 }
@@ -257,7 +257,7 @@ TEST_F(AMinHeap, BehavesAsExpectedOnRemoval) {
   this->_heap.push(0, 1);
   this->_heap.push(1, 4);
   ASSERT_THAT(this->_heap.top(), Eq(0));
-  this->_heap.deleteNode(0);
+  this->_heap.remove(0);
   ASSERT_THAT(this->_heap.top(), Eq(1));
   ASSERT_THAT(this->_heap.topKey(), Eq(4));
 }

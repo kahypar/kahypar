@@ -148,7 +148,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void deleteNode(const IDType& id) noexcept {
+  inline void remove(const IDType& id) noexcept {
     ASSERT(contains(id), "trying to delete element not in heap: " << id);
 
     const size_t node_handle = _handles[id];

@@ -1,5 +1,5 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
 #pragma once
@@ -229,7 +229,7 @@ class KWayPriorityQueue {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_mapping[part].index].contains(id), V(id) << V(part));
-    _queues[_mapping[part].index].deleteNode(id);
+    _queues[_mapping[part].index].remove(id);
     if (_queues[_mapping[part].index].empty()) {
       if (isEnabled(part)) {
         --_num_enabled_pqs;  // now points to the last enabled pq
