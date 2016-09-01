@@ -5,11 +5,19 @@
 #ifndef SRC_LIB_UTILS_MATH_H_
 #define SRC_LIB_UTILS_MATH_H_
 
+#include <type_traits>
+
 namespace utils {
 // See: Warren, Henry S. Hacker's Delight (Second Edition), p.61
 template <typename T>
-static inline T nextPowerOfTwoCeiled(T x) {
-  return 0x80000000 >> (__builtin_clz(x - 1) - 1);
+static inline T nextPowerOfTwoCeiled(T n) {
+  static_assert(std::is_integral<T>::value, "Integer required.");
+  static_assert(std::is_unsigned<T>::value, "Incompatible type");
+  --n;
+  for (size_t k = 1; k != 8 * sizeof(n); k <<= 1) {
+    n |= n >> k;
+  }
+  return n + 1;
 }
 
 template <typename T, typename U>
