@@ -163,12 +163,9 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
       // instantiate the correct policies.
       return PrinterFactoryDispatcher::create(
         std::forward_as_tuple(a, b, s),                                // constructor arguments
-        PrinterPolicyRegistry::getInstance().getPolicy(
-          config.char_policy),
-        PrinterPolicyRegistry::getInstance().getPolicy(
-          config.int_policy),
-        PrinterPolicyRegistry::getInstance().getPolicy(
-          config.symbol_policy));
+        PrinterPolicyRegistry::getInstance().getPolicy(config.char_policy),
+        PrinterPolicyRegistry::getInstance().getPolicy(config.int_policy),
+        PrinterPolicyRegistry::getInstance().getPolicy(config.symbol_policy));
     });
 
   // Register a second printer that does not use the dispatcher.
