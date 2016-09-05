@@ -47,7 +47,7 @@ class Factory {
     if (creator != _callbacks.end()) {
       return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
-    throw std::invalid_argument(toString(id));
+    throw std::invalid_argument("Invalid identifier");
   }
 
   static Factory & getInstance() {
