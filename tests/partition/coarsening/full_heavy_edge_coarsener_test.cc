@@ -7,7 +7,7 @@
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
-#include "partition/coarsening/HeavyEdgeCoarsener_TestFixtures.h"
+#include "HeavyEdgeCoarsener_TestFixtures.h"
 
 using defs::Hypergraph;
 
