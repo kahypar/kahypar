@@ -29,7 +29,7 @@ struct safe_underlying_type<T, std::true_type>{
 };
 
 /*!
- * Generalization of StaticDispatcher to support 'true multiple' dispatch.
+ * Generalization of StaticDoubleDispatchFactory to support 'true multiple' dispatch.
  * The factory allows to instantiate a concrete Product that uses
  * an arbitrary number of Policies (where each policy can have multiple implementations)
  * at runtime.

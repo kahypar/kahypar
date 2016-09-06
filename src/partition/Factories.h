@@ -6,7 +6,7 @@
 
 #include "lib/core/Factory.h"
 #include "lib/core/PolicyRegistry.h"
-#include "lib/core/StaticDispatcher.h"
+#include "lib/core/StaticDoubleDispatchFactory.h"
 #include "lib/core/StaticMultiDispatchFactory.h"
 #include "lib/core/Typelist.h"
 #include "partition/coarsening/DoNothingCoarsener.h"
@@ -30,7 +30,7 @@
 using core::Factory;
 using core::PolicyRegistry;
 using core::NullPolicy;
-using core::StaticDispatcher;
+using core::StaticDoubleDispatchFactory;
 using core::StaticMultiDispatchFactory;
 using core::Typelist;
 using partition::AdvancedRandomWalkModelStopsSearch;
@@ -74,7 +74,7 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
                                                                   Typelist<StoppingPolicyClasses> >;
 
 // using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
-// using MaxGainNodeKWayFMFactoryDispatcher = StaticDispatcher<MaxGainNodeKWayFMFactoryExecutor,
+// using MaxGainNodeKWayFMFactoryDispatcher = StaticDoubleDispatchFactory<MaxGainNodeKWayFMFactoryExecutor,
 //                                                             Typelist<NumberOfFruitlessMovesStopsSearch,
 //                                                                      RandomWalkModelStopsSearch,
 //                                                                      nGPRandomWalkStopsSearch>,
