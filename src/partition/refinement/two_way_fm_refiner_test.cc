@@ -8,6 +8,7 @@
 #include "partition/Metrics.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/refinement/policies/TwoFMRebalancePolicies.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -20,7 +21,7 @@ using defs::HypernodeID;
 
 namespace partition {
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                                      /*global rebalancing */ true>;
+                                                      GlobalRebalancing>;
 
 class ATwoWayFMRefiner : public Test {
  public:

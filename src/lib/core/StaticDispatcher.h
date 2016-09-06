@@ -6,7 +6,6 @@
 #define SRC_LIB_CORE_STATICDISPATCHER_H_
 
 #include "lib/core/Mandatory.h"
-#include "lib/core/Parameters.h"
 #include "lib/core/Typelist.h"
 
 namespace core {

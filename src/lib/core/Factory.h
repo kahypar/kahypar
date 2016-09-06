@@ -9,7 +9,6 @@
 
 #include "lib/core/FunctionTraits.h"
 #include "lib/core/Mandatory.h"
-#include "lib/core/Parameters.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 

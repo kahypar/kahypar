@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
-#define SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_
+#pragma once
 
 #include <limits>
 #include <stack>
@@ -45,9 +44,7 @@ using defs::HypernodeWeight;
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-template <class StoppingPolicy = Mandatory,
-          // does nothing for KFM
-          bool global_rebalancing = false,
+template <class StoppingPolicy,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayFMRefiner final : public IRefiner,
                             private FMRefinerBase {
@@ -1171,8 +1168,7 @@ class KWayFMRefiner final : public IRefiner,
   StoppingPolicy _stopping_policy;
 };
 
-template <class T, bool b, class U>
-const PartitionID KWayFMRefiner<T, b, U>::kFree;
+template <class T, class U>
+const PartitionID KWayFMRefiner<T, U>::kFree;
 #pragma GCC diagnostic pop
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_KWAYFMREFINER_H_

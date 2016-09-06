@@ -3,8 +3,7 @@
  *  Copyright (C) 2016 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_KWAYKMINUSONEREFINER_H_
-#define SRC_PARTITION_REFINEMENT_KWAYKMINUSONEREFINER_H_
+#pragma once
 
 #include <limits>
 #include <stack>
@@ -47,8 +46,6 @@ namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
-          // does nothing for KFM
-          bool global_rebalancing = false,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayKMinusOneRefiner final : public IRefiner,
                                    private FMRefinerBase {
@@ -1070,4 +1067,3 @@ class KWayKMinusOneRefiner final : public IRefiner,
 };
 #pragma GCC diagnostic pop
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_KWAYKMINUSONEREFINER_H_

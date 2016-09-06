@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_GAINCACHE_H_
-#define SRC_PARTITION_REFINEMENT_GAINCACHE_H_
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -95,13 +94,13 @@ class GainCache {
     _cache[n].delta -= delta;
   }
 
-  template <bool use_pqs, class PQ, class Hypergraph>
+  template <typename use_pqs, class PQ, class Hypergraph>
   void rollbackDelta(PQ& rb_pq, Hypergraph& hg) {
     for (auto rit = _used_delta_entries.crbegin(); rit != _used_delta_entries.crend(); ++rit) {
       if (_cache[*rit].value != kNotCached) {
         _cache[*rit].value += _cache[*rit].delta;
       }
-      if (use_pqs) {
+      if (use_pqs()) {
         rb_pq[1 - hg.partID(*rit)].updateKeyBy(*rit, _cache[*rit].delta);
       }
       _cache[*rit].delta = 0;
@@ -128,4 +127,3 @@ class GainCache {
   std::vector<size_t> _used_delta_entries;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_GAINCACHE_H_

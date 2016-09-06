@@ -1,5 +1,5 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 #include <boost/program_options.hpp>
 
@@ -56,9 +56,6 @@ using partition::TwoWayFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
 using partition::KWayKMinusOneFactoryDispatcher;
 // using partition::MaxGainNodeKWayFMFactoryDispatcher;
-using partition::TwoWayFMFactoryExecutor;
-using partition::KWayFMFactoryExecutor;
-using partition::KWayKMinusOneFactoryExecutor;
 // using partition::MaxGainNodeKWayFMFactoryExecutor;
 using partition::LPRefiner;
 using partition::DoNothingRefiner;
@@ -542,12 +539,12 @@ static Registrar<CoarsenerFactory> reg_do_nothing_coarsener(
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
   RefinementAlgorithm::twoway_fm,
   [](Hypergraph& hypergraph, const Configuration& config) {
-  return TwoWayFMFactoryDispatcher::go(
+  return TwoWayFMFactoryDispatcher::create(
+    std::forward_as_tuple(hypergraph, config),
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
       config.local_search.fm.stopping_rule),
     PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
-      config.local_search.fm.global_rebalancing),
-    TwoWayFMFactoryExecutor(), hypergraph, config);
+      config.local_search.fm.global_rebalancing));
 });
 
 // static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
@@ -563,21 +560,20 @@ static Registrar<RefinerFactory> reg_twoway_fm_local_search(
 static Registrar<RefinerFactory> reg_kway_fm_local_search(
   RefinementAlgorithm::kway_fm,
   [](Hypergraph& hypergraph, const Configuration& config) {
-  return KWayFMFactoryDispatcher::go(
+  return KWayFMFactoryDispatcher::create(
+    std::forward_as_tuple(hypergraph, config),
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
       config.local_search.fm.stopping_rule),
-    NullPolicy(),
-    KWayFMFactoryExecutor(), hypergraph, config);
+    NullPolicy(), NullPolicy());
 });
 
 static Registrar<RefinerFactory> reg_kway_km1_local_search(
   RefinementAlgorithm::kway_fm_km1,
   [](Hypergraph& hypergraph, const Configuration& config) {
-  return KWayKMinusOneFactoryDispatcher::go(
+  return KWayKMinusOneFactoryDispatcher::create(
+    std::forward_as_tuple(hypergraph, config),
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.local_search.fm.stopping_rule),
-    NullPolicy(),
-    KWayKMinusOneFactoryExecutor(), hypergraph, config);
+      config.local_search.fm.stopping_rule));
 });
 
 static Registrar<RefinerFactory> reg_lp_local_search(
