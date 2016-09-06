@@ -15,11 +15,11 @@
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
+#include "lib/utils/RandomFunctions.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "tools/RandomFunctions.h"
 
 using defs::Hypergraph;
 using defs::HypernodeWeight;

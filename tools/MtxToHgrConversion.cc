@@ -2,12 +2,11 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include "tools/MtxToHgrConversion.h"
-
 #include <sstream>
 #include <string>
 
 #include "lib/macros.h"
+#include "MtxToHgrConversion.h"
 
 namespace mtxconversion {
 MatrixInfo parseHeader(std::ifstream& file) {

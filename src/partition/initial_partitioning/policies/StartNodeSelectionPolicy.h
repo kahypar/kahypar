@@ -10,7 +10,7 @@
 
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
-#include "tools/RandomFunctions.h"
+#include "lib/utils/RandomFunctions.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;

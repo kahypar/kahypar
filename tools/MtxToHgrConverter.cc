@@ -6,7 +6,7 @@
 #include <string>
 
 #include "lib/macros.h"
-#include "tools/MtxToHgrConversion.h"
+#include "MtxToHgrConversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

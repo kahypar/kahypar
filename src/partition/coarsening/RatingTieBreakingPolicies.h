@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "tools/RandomFunctions.h"
+#include "lib/utils/RandomFunctions.h"
 
 namespace partition {
 struct LastRatingWins {

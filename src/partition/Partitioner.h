@@ -21,13 +21,13 @@
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
+#include "lib/utils/RandomFunctions.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
 #include "partition/coarsening/HypergraphPruner.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
-#include "tools/RandomFunctions.h"
 
 #ifndef NDEBUG
 #include "partition/Metrics.h"

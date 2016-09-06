@@ -20,12 +20,12 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
-#include "tools/RandomFunctions.h"
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetBitVector;
 using defs::Hypergraph;

@@ -6,7 +6,7 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "tools/MtxToHgrConversion.h"
+#include "MtxToHgrConversion.h"
 
 using::testing::Test;
 using::testing::Eq;

@@ -13,12 +13,12 @@
 
 #include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/definitions.h"
+#include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/LPGainCache.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
-#include "tools/RandomFunctions.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;

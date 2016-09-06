@@ -13,10 +13,10 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/utils/RandomFunctions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "tools/RandomFunctions.h"
 
 using defs::HypernodeWeight;
 using datastructure::KWayPriorityQueue;

@@ -9,7 +9,7 @@
 
 #include "lib/io/HypergraphIO.h"
 #include "lib/macros.h"
-#include "tools/HgrToEdgeListConversion.h"
+#include "HgrToEdgeListConversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

@@ -6,7 +6,7 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "tools/CnfToHgrConversion.h"
+#include "CnfToHgrConversion.h"
 
 using::testing::Test;
 using::testing::Eq;

@@ -13,7 +13,7 @@
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
-#include "tools/RandomFunctions.h"
+#include "lib/utils/RandomFunctions.h"
 
 using defs::PartitionID;
 using datastructure::BinaryMaxHeap;

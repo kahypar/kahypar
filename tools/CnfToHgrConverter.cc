@@ -6,7 +6,7 @@
 #include <string>
 
 #include "lib/macros.h"
-#include "tools/CnfToHgrConversion.h"
+#include "CnfToHgrConversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

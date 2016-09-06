@@ -6,7 +6,7 @@
 
 #include "lib/definitions.h"
 #include "lib/macros.h"
-#include "tools/HgrToEdgeListConversion.h"
+#include "HgrToEdgeListConversion.h"
 
 using::testing::Test;
 using::testing::Eq;

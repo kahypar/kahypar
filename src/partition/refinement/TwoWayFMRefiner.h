@@ -22,6 +22,7 @@
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/datastructure/SparseSet.h"
 #include "lib/definitions.h"
+#include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/FMRefinerBase.h"
@@ -29,7 +30,6 @@
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/policies/FMImprovementPolicies.h"
 #include "partition/refinement/policies/TwoFMRebalancePolicies.h"
-#include "tools/RandomFunctions.h"
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
