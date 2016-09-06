@@ -8,7 +8,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/Hypergraph_TestFixtures.h"
+#include "Hypergraph_TestFixtures.h"
 #include "lib/definitions.h"
 #include "partition/coarsening/HypergraphPruner.h"
 

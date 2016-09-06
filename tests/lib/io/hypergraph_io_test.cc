@@ -3,7 +3,7 @@
  **************************************************************************/
 
 #include "lib/io/HypergraphIO.h"
-#include "lib/io/HypergraphIO_TestFixtures.h"
+#include "HypergraphIO_TestFixtures.h"
 
 #include "gmock/gmock.h"
 

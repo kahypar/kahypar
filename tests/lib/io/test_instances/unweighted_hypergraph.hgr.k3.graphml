@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlnshttp://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+<key id="d0" for="node" attr.name="weight" attr.type="double"/>
+<key id="d1" for="node" attr.name="part" attr.type="int"/>
+<key id="d2" for="node" attr.name="iscutedge" attr.type="int"/>
+<graph id="G" edgedefault="undirected">
+<node id="n0">
+<data key="d0">1</data>
+<data key="d1">0</data>
+<data key="d2">42</data>
+</node>
+<node id="n1">
+<data key="d0">1</data>
+<data key="d1">0</data>
+<data key="d2">42</data>
+</node>
+<node id="n2">
+<data key="d0">1</data>
+<data key="d1">2</data>
+<data key="d2">42</data>
+</node>
+<node id="n3">
+<data key="d0">1</data>
+<data key="d1">2</data>
+<data key="d2">42</data>
+</node>
+<node id="n4">
+<data key="d0">1</data>
+<data key="d1">1</data>
+<data key="d2">42</data>
+</node>
+<node id="n5">
+<data key="d0">1</data>
+<data key="d1">1</data>
+<data key="d2">42</data>
+</node>
+<node id="n6">
+<data key="d0">1</data>
+<data key="d1">1</data>
+<data key="d2">42</data>
+</node>
+<node id="h0">
+<data key="d0">1</data>
+<data key="d1">0</data>
+<data key="d2">0</data>
+</node>
+<edge id="e0" source="n0" target="h0"/>
+<edge id="e1" source="n1" target="h0"/>
+<node id="h1">
+<data key="d0">1</data>
+<data key="d1">1</data>
+<data key="d2">1</data>
+</node>
+<edge id="e2" source="n0" target="h1"/>
+<edge id="e3" source="n6" target="h1"/>
+<edge id="e4" source="n4" target="h1"/>
+<edge id="e5" source="n5" target="h1"/>
+<node id="h2">
+<data key="d0">1</data>
+<data key="d1">1</data>
+<data key="d2">1</data>
+</node>
+<edge id="e6" source="n4" target="h2"/>
+<edge id="e7" source="n5" target="h2"/>
+<edge id="e8" source="n3" target="h2"/>
+<node id="h3">
+<data key="d0">1</data>
+<data key="d1">2</data>
+<data key="d2">1</data>
+</node>
+<edge id="e9" source="n1" target="h3"/>
+<edge id="e10" source="n2" target="h3"/>
+<edge id="e11" source="n3" target="h3"/>
+</graph>
+	</graphml>
