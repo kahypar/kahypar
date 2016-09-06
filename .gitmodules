@@ -1,6 +1,3 @@
-[submodule "src/external/sqlplot-tools"]
-	path = src/external/sqlplot-tools
-	url = https://github.com/bingmann/sqlplot-tools.git
 [submodule "external_tools/uncrustify"]
 	path = external_tools/uncrustify
 	url = https://github.com/bengardner/uncrustify.git
@@ -10,3 +7,6 @@
 [submodule "external_tools/gtest"]
 	path = external_tools/gtest
 	url = https://chromium.googlesource.com/external/googletest
+[submodule "external_tools/sqlplot-tools"]
+	path = external_tools/sqlplot-tools
+	url = https://github.com/bingmann/sqlplot-tools.git
