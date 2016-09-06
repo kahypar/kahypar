@@ -96,7 +96,6 @@ add_subdirectory(src/partition/coarsening)
 add_subdirectory(src/partition/refinement)
 add_subdirectory(src/partition/initial_partitioning)
 add_subdirectory(src/partition/initial_partitioning/test)
-add_subdirectory(src/playground)
 add_subdirectory(tools)
 
 include(gmock)
