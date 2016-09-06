@@ -44,7 +44,7 @@ using defs::HypernodeWeight;
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
-template <class StoppingPolicy,
+template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayFMRefiner final : public IRefiner,
                             private FMRefinerBase {
