@@ -13,6 +13,7 @@
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"
+#include "lib/utils/SQLPlotToolsSerializer.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
 #include "partition/Metrics.h"
@@ -27,8 +28,6 @@
 #include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
 #include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
 #include "tools/RandomFunctions.h"
-
-#include "lib/serializer/SQLPlotToolsSerializer.h"
 
 namespace po = boost::program_options;
 

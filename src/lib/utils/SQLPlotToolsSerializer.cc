@@ -2,7 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include "lib/serializer/SQLPlotToolsSerializer.h"
+#include "lib/utils/SQLPlotToolsSerializer.h"
 
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
