@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_TEMPLATEPARAMETERTOSTRING_H_
-#define SRC_LIB_TEMPLATEPARAMETERTOSTRING_H_
+#pragma once
 
 #include <algorithm>
 #include <cstdlib>
@@ -43,6 +42,3 @@ std::string templateToString() {
   }
   return std::string("false");
 }
-
-
-#endif  // SRC_LIB_TEMPLATEPARAMETERTOSTRING_H_

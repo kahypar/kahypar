@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_UTILS_TIMER_H_
-#define SRC_LIB_UTILS_TIMER_H_
+#pragma once
 
 #include <chrono>
 #include <string>
@@ -39,5 +38,3 @@ class NoTimer {
   void stop() { }
 };
 }  // namespace utils
-
-#endif  // SRC_LIB_UTILS_TIMER_H_

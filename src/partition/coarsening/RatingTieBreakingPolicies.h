@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_RATINGTIEBREAKINGPOLICIES_H_
-#define SRC_PARTITION_COARSENING_RATINGTIEBREAKINGPOLICIES_H_
+#pragma once
 
 #include "tools/RandomFunctions.h"
 
@@ -36,5 +35,3 @@ struct RandomRatingWins {
   ~RandomRatingWins() { }
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_RATINGTIEBREAKINGPOLICIES_H_

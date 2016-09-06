@@ -1,8 +1,8 @@
 /***************************************************************************
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
-#ifndef SRC_LIB_DATASTRUCTURE_FASTRESETBITVECTOR_H_
-#define SRC_LIB_DATASTRUCTURE_FASTRESETBITVECTOR_H_
+
+#pragma once
 
 #include <algorithm>
 #include <cstddef>
@@ -83,4 +83,3 @@ void swap(FastResetBitVector<UnderlyingType>& a,
   a.swap(b);
 }
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_FASTRESETBITVECTOR_H_

@@ -2,8 +2,8 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_CORE_MANDATORY_H_
-#define SRC_LIB_CORE_MANDATORY_H_
+#pragma once
+
 // http://clean-cpp.org/mandatory-template-arguments/
 
 #include <type_traits>
@@ -25,5 +25,3 @@ using Mandatory = core::MandatoryTemplateArgument<core::unspecified_type>;
 
 template <typename T>
 using MandatoryTemplate = core::MandatoryTemplateArgument<T>;
-
-#endif  // SRC_LIB_CORE_MANDATORY_H_

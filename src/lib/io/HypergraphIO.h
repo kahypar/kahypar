@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_IO_HYPERGRAPHIO_H_
-#define SRC_LIB_IO_HYPERGRAPHIO_H_
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -337,5 +336,3 @@ static inline void writePartitionFile(const Hypergraph& hypergraph, const std::s
   out_stream.close();
 }
 }  // namespace io
-
-#endif  // SRC_LIB_IO_HYPERGRAPHIO_H_

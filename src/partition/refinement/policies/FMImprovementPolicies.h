@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMIMPROVEMENTPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_POLICIES_FMIMPROVEMENTPOLICIES_H_
+#pragma once
 
 #include "lib/core/PolicyRegistry.h"
 
@@ -24,5 +23,3 @@ class CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
   }
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMIMPROVEMENTPOLICIES_H_

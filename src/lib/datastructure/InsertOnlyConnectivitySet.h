@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_INSERTONLYCONNECTIVITYSET_H_
-#define SRC_LIB_DATASTRUCTURE_INSERTONLYCONNECTIVITYSET_H_
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -92,5 +91,3 @@ class InsertOnlyConnectivitySet {
   T* _dense;
 };
 }  // namespace datastructure
-
-#endif  // SRC_LIB_DATASTRUCTURE_INSERTONLYCONNECTIVITYSET_H_

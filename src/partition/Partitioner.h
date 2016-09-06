@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_PARTITIONER_H_
-#define SRC_PARTITION_PARTITIONER_H_
+#pragma once
 
 #include <algorithm>
 #include <chrono>
@@ -896,5 +895,3 @@ inline void Partitioner::restoreParallelHyperedges(Hypergraph&) {
   // _timings[kInitialParallelHErestore] = std::chrono::duration<double>(end - start).count();
 }
 }  // namespace partition
-
-#endif  // SRC_PARTITION_PARTITIONER_H_

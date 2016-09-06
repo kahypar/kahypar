@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_FASTRESETVECTOR_H_
-#define SRC_LIB_DATASTRUCTURE_FASTRESETVECTOR_H_
+#pragma once
 
 #include <limits>
 #include <vector>
@@ -108,4 +107,3 @@ class FastResetVector : public std::vector<T>{
   std::vector<size_type> _used_entries;
 };
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_FASTRESETVECTOR_H_

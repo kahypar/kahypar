@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_UTILS_MATH_H_
-#define SRC_LIB_UTILS_MATH_H_
+#pragma once
 
 #include <type_traits>
 
@@ -55,4 +54,3 @@ static inline T hash(const T& x) {
   return cs2(x);
 }
 }  // namespace utils
-#endif  // SRC_LIB_UTILS_MATH_H_

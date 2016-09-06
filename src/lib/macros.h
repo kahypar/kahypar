@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_MACROS_H_
-#define SRC_LIB_MACROS_H_
+#pragma once
 
 #ifndef NDEBUG
 #define USE_ASSERTIONS
@@ -70,5 +69,3 @@
 #define UTILS_UNUSED __attribute__ ((unused))
 #define UNUSED(name) unused_ ## name UTILS_UNUSED
 #define UNUSED_FUNCTION(x) ((void)x)
-
-#endif  // SRC_LIB_MACROS_H_

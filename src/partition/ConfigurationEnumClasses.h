@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_
-#define SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_
+#pragma once
 
 #include <string>
 
@@ -212,5 +211,3 @@ static std::string toString(const GlobalRebalancingMode& state) {
   return std::string("UNDEFINED");
 }
 }  // namespace partition
-
-#endif  // SRC_PARTITION_CONFIGURATIONENUMCLASSES_H_

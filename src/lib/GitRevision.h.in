@@ -2,9 +2,6 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_GITREVISION_H_
-#define SRC_LIB_GITREVISION_H_
+#pragma once
 
 #define KaHyPar_BUILD_VERSION @KAHYPAR_VERSION_GIT_SHA1@
-
-#endif  // SRC_LIB_GITREVISION_H_

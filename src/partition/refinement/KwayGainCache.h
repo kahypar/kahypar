@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_KWAYGAINCACHE_H_
-#define SRC_PARTITION_REFINEMENT_KWAYGAINCACHE_H_
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -390,4 +389,3 @@ class KwayGainCache {
   std::vector<RollbackElement> _deltas;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_KWAYGAINCACHE_H_

@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_MLCOARSENER_H_
-#define SRC_PARTITION_COARSENING_MLCOARSENER_H_
+#pragma once
 
 #include <limits>
 #include <string>
@@ -213,5 +212,3 @@ class MLCoarsener final : public ICoarsener,
   SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_MLCOARSENER_H_

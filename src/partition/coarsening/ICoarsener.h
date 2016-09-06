@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_ICOARSENER_H_
-#define SRC_PARTITION_COARSENING_ICOARSENER_H_
+#pragma once
 
 #include <string>
 
@@ -47,5 +46,3 @@ class ICoarsener {
   virtual std::string policyStringImpl() const noexcept = 0;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_ICOARSENER_H_

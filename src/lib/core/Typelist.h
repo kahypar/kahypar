@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2015-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_CORE_TYPELIST_H_
-#define SRC_LIB_CORE_TYPELIST_H_
+#pragma once
 
 namespace core {
 class NullType { };
@@ -65,5 +64,3 @@ struct concat {
   using type = typename flatMap<Typelist<Lists ...> >::type;
 };
 }  // namespace core
-
-#endif  // SRC_LIB_CORE_TYPELIST_H_

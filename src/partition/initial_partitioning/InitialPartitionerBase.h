@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -192,5 +191,3 @@ class InitialPartitionerBase {
   HypernodeWeight _max_hypernode_weight;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_INITIALPARTITIONERBASE_H_

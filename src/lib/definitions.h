@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DEFINITIONS_H_
-#define SRC_LIB_DEFINITIONS_H_
+#pragma once
 
 #include <chrono>
 #include <cstdint>
@@ -58,4 +57,3 @@ static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::Inci
 //   return x.second;
 // }
 }  // namespace std
-#endif  // SRC_LIB_DEFINITIONS_H_

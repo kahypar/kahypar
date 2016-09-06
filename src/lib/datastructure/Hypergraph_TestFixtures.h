@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_
-#define SRC_LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_
+#pragma once
+
 #include "gmock/gmock.h"
 
 #include "lib/definitions.h"
@@ -87,6 +87,3 @@ class AnUnPartitionedHypergraph : public AHypergraph {
     AHypergraph() { }
 };
 }  // namespace datastructure
-
-
-#endif  // SRC_LIB_DATASTRUCTURE_HYPERGRAPH_TESTFIXTURES_H_

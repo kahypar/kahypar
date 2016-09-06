@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_TOOLS_CNFTOHGRCONVERSION_H_
-#define SRC_TOOLS_CNFTOHGRCONVERSION_H_
+#pragma once
 
 #include <cstdint>
 #include <fstream>
@@ -111,5 +110,3 @@ static inline void convertInstance(const std::string& cnf_source_filename,
   out_stream.close();
 }
 }  // namespace cnfconversion
-
-#endif  // SRC_TOOLS_CNFTOHGRCONVERSION_H_

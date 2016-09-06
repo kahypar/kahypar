@@ -3,8 +3,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_LABELPROPAGATIONINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_LABELPROPAGATIONINITIALPARTITIONER_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -432,5 +431,3 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   unsigned int _unassigned_node_bound;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_LABELPROPAGATIONINITIALPARTITIONER_H_

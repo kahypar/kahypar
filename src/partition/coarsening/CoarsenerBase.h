@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_COARSENERBASE_H_
-#define SRC_PARTITION_COARSENING_COARSENERBASE_H_
+#pragma once
 
 #include <algorithm>
 #include <map>
@@ -179,5 +178,3 @@ class CoarsenerBase {
   HypergraphPruner _hypergraph_pruner;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_COARSENERBASE_H_

@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH2_H_
-#define SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH2_H_
+#pragma once
 
 #include <algorithm>
 #include <bitset>
@@ -579,7 +578,7 @@ class GenericHypergraph2 {
     auto incident_hes_it = hypernode(memento.u).incidenceStructure().begin();
     auto incident_hes_end = hypernode(memento.u).incidenceStructure().end();
 
-    for(;incident_hes_it != incident_hes_end; ++incident_hes_it) {
+    for ( ; incident_hes_it != incident_hes_end; ++incident_hes_it) {
       const HyperedgeID he = *incident_hes_it;
       ASSERT(hyperedge(he).incidenceStructure().contains(memento.u), V(he));
       ASSERT(!hyperedge(he).incidenceStructure().contains(memento.v), V(he));
@@ -666,7 +665,7 @@ class GenericHypergraph2 {
     auto incident_hes_it = hypernode(memento.u).incidenceStructure().begin();
     auto incident_hes_end = hypernode(memento.u).incidenceStructure().end();
 
-    for(;incident_hes_it != incident_hes_end; ++incident_hes_it) {
+    for ( ; incident_hes_it != incident_hes_end; ++incident_hes_it) {
       const HyperedgeID he = *incident_hes_it;
       ASSERT(hyperedge(he).incidenceStructure().contains(memento.u), V(he));
       ASSERT(!hyperedge(he).incidenceStructure().contains(memento.v), V(he));
@@ -1719,4 +1718,3 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                         subhypergraph_to_hypergraph);
 }
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH2_H_

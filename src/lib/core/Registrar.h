@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_CORE_REGISTRAR_H_
-#define SRC_LIB_CORE_REGISTRAR_H_
+#pragma once
 
 #include "lib/core/Mandatory.h"
 
@@ -18,4 +17,3 @@ class Registrar {
   }
 };
 }  // namespace core
-#endif  // SRC_LIB_CORE_REGISTRAR_H_

@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_DONOTHINGCOARSENER_H_
-#define SRC_PARTITION_COARSENING_DONOTHINGCOARSENER_H_
+#pragma once
 
 #include <string>
 
@@ -26,4 +25,3 @@ class DoNothingCoarsener final : public ICoarsener {
   std::string policyStringImpl() const noexcept override final { return std::string(""); }
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_COARSENING_DONOTHINGCOARSENER_H_

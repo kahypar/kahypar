@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
-#define SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -249,5 +248,3 @@ void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hyper
   ASSERT_THAT(hypergraph->currentNumNodes(), Eq(3));
 }
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_HEAVYEDGECOARSENER_TESTFIXTURES_H_

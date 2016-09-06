@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_RATER_H_
-#define SRC_PARTITION_COARSENING_RATER_H_
+#pragma once
 
 #include <limits>
 #include <stack>
@@ -140,5 +139,3 @@ class Rater {
 };
 #pragma GCC diagnostic pop
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_RATER_H_

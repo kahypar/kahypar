@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_
-#define SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_
+#pragma once
 
 #include <x86intrin.h>
 
@@ -268,5 +267,3 @@ class IncidenceSet {
   T _max_sparse_size;
 };
 }  // namespace datastructure
-
-#endif  // SRC_LIB_DATASTRUCTURE_INCIDENCESET_H_

@@ -1,9 +1,9 @@
 /***************************************************************************
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -180,5 +180,3 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   FastResetBitVector<> _hyperedge_in_queue;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_BFSINITIALPARTITIONER_H_

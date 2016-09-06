@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_TOOLS_HGRTOEDGELISTCONVERSION_H_
-#define SRC_TOOLS_HGRTOEDGELISTCONVERSION_H_
+#pragma once
 
 #include <vector>
 
@@ -61,5 +60,3 @@ static EdgeVector createEdgeVector(const Hypergraph& hypergraph) {
 }
 
 // ! \}
-
-#endif  // SRC_TOOLS_HGRTOEDGELISTCONVERSION_H_

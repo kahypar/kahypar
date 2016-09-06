@@ -3,8 +3,7 @@
  *  Copyright (C) 2015 Vitali Henne <vitali.henne@gmail.com>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_LPREFINER_H_
-#define SRC_PARTITION_REFINEMENT_LPREFINER_H_
+#pragma once
 
 #include <limits>
 #include <string>
@@ -630,4 +629,3 @@ class LPRefiner final : public IRefiner {
   FastResetVector<PartitionID> _already_processed_part;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_LPREFINER_H_

@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_TOOLS_RANDOMFUNCTIONS_H_
-#define SRC_TOOLS_RANDOMFUNCTIONS_H_
+#pragma once
 
 #include <algorithm>
 #include <ctime>
@@ -53,5 +52,3 @@ class Randomize {
   static std::uniform_real_distribution<float> _float_dist;
   static std::normal_distribution<float> _norm_dist;
 };
-
-#endif  // SRC_TOOLS_RANDOMFUNCTIONS_H_

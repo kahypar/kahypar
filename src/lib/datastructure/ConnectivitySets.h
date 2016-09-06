@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_CONNECTIVITYSETS_H_
-#define SRC_LIB_DATASTRUCTURE_CONNECTIVITYSETS_H_
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -150,5 +149,3 @@ class ConnectivitySets final {
   Byte* _connectivity_sets;
 };
 }  // namespace datastructure
-
-#endif  // SRC_LIB_DATASTRUCTURE_CONNECTIVITYSETS_H_

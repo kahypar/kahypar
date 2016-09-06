@@ -2,8 +2,7 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_LPGAINCACHE_H_
-#define SRC_PARTITION_REFINEMENT_LPGAINCACHE_H_
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -448,5 +447,4 @@ class LPGainCache {
   Byte* _cache;
   std::vector<RollbackElement> _deltas;
 };
-}
-#endif  // SRC_PARTITION_REFINEMENT_LPGAINCACHE_H_
+}  // namespace partition

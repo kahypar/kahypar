@@ -1,9 +1,9 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_
-#define SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_
+#pragma once
+
 #include "lib/core/PolicyRegistry.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
@@ -131,5 +131,3 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
   double _sum_gains_squared = 0.0;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_REFINEMENT_POLICIES_FMSTOPPOLICIES_H_

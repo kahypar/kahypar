@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_
+#pragma once
 
 #include <vector>
 
@@ -81,5 +80,3 @@ class RandomInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_RANDOMINITIALPARTITIONER_H_

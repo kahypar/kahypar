@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_
-#define SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_
+#pragma once
 
 #include <algorithm>
 #include <bitset>
@@ -1959,4 +1958,3 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                         subhypergraph_to_hypergraph);
 }
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_GENERICHYPERGRAPH_H_

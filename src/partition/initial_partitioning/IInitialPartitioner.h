@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_
+#pragma once
 
 #include <limits>
 #include <vector>
@@ -48,6 +47,3 @@ class IInitialPartitioner {
   virtual void partitionImpl() = 0;
 };
 }  // namespace partition
-
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_IINITIALPARTITIONER_H_

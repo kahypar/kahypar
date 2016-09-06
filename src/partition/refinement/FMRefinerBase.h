@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_
-#define SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_
+#pragma once
 
 #include <limits>
 
@@ -93,4 +92,3 @@ class FMRefinerBase {
   const Configuration& _config;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_FMREFINERBASE_H_

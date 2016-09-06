@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
-#define SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_
+#pragma once
 
 #include <cstdio>
 #include <string>
@@ -251,5 +250,3 @@ class APartitionOfAHypergraph : public Test {
   std::unique_ptr<IRefiner> _refiner;
 };
 }  // namespace io
-
-#endif  // SRC_LIB_IO_HYPERGRAPHIO_TESTFIXTURES_H_

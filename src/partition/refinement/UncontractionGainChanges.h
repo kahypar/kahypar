@@ -1,8 +1,8 @@
 /***************************************************************************
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
-#ifndef SRC_PARTITION_REFINEMENT_UNCONTRACTIONGAINCHANGES_H_
-#define SRC_PARTITION_REFINEMENT_UNCONTRACTIONGAINCHANGES_H_
+
+#pragma once
 
 #include <vector>
 
@@ -26,5 +26,4 @@ struct UncontractionGainChanges {
   std::vector<Gain> representative;
   std::vector<Gain> contraction_partner;
 };
-}
-#endif  // SRC_PARTITION_REFINEMENT_UNCONTRACTIONGAINCHANGES_H_
+}  // namespace partition

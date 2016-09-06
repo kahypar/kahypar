@@ -2,8 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_SERIALIZER_SQLPLOTTOOLSSERIALIZER_H_
-#define SRC_LIB_SERIALIZER_SQLPLOTTOOLSSERIALIZER_H_
+#pragma once
 
 #include <array>
 #include <chrono>
@@ -32,4 +31,3 @@ class SQLPlotToolsSerializer {
                         const std::string& filename);
 };
 }  // namespace serializer
-#endif  // SRC_LIB_SERIALIZER_SQLPLOTTOOLSSERIALIZER_H_

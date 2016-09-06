@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_
-#define SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_
+#pragma once
 
 #include <array>
 #include <string>
@@ -43,4 +42,3 @@ class DoNothingRefiner final : public IRefiner {
   using IRefiner::_is_initialized;
 };
 }  // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_DONOTHINGREFINER_H_

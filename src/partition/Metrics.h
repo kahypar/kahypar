@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_METRICS_H_
-#define SRC_PARTITION_METRICS_H_
+#pragma once
+
 #include <cmath>
 
 #include <algorithm>
@@ -291,5 +291,3 @@ static inline void connectivityStats(const Hypergraph& hypergraph,
   }
 }
 }  // namespace metrics
-
-#endif  // SRC_PARTITION_METRICS_H_

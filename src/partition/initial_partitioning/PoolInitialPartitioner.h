@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Tobias Heuer <tobias.heuer@gmx.net>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
-#define SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_
+#pragma once
 
 #include <limits>
 #include <string>
@@ -184,5 +183,3 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_INITIAL_PARTITIONING_POOLINITIALPARTITIONER_H_

@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
-#define SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_
+#pragma once
+
 #include <boost/dynamic_bitset.hpp>
 
 #include <limits>
@@ -616,4 +616,3 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 };
 #pragma GCC diagnostic pop
 }             // namespace partition
-#endif  // SRC_PARTITION_REFINEMENT_MAXGAINNODEKWAYFMREFINER_H_

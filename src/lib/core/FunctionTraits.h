@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_CORE_FUNCTIONTRAITS_H_
-#define SRC_LIB_CORE_FUNCTIONTRAITS_H_
+#pragma once
 
 #include <tuple>
 
@@ -44,5 +43,3 @@ struct FunctionTraits<ReturnType (*)(Args ...)>{
   using args = std::tuple<Args ...>;
 };
 }  // namespace core
-
-#endif  // SRC_LIB_CORE_FUNCTIONTRAITS_H_

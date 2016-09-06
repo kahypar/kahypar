@@ -2,8 +2,8 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_CORE_FACTORY_H_
-#define SRC_LIB_CORE_FACTORY_H_
+#pragma once
+
 #include <memory>
 #include <unordered_map>
 
@@ -60,4 +60,3 @@ class Factory {
   CallbackMap _callbacks;
 };
 }  // namespace core
-#endif  // SRC_LIB_CORE_FACTORY_H_

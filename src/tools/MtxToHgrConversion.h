@@ -2,8 +2,8 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_TOOLS_MTXTOHGRCONVERSION_H_
-#define SRC_TOOLS_MTXTOHGRCONVERSION_H_
+#pragma once
+
 #include <fstream>
 #include <string>
 #include <vector>
@@ -29,5 +29,3 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixD
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data, const std::string& filename);
 void convertMtxToHgr(const std::string& matrix_filename, const std::string& hypergraph_filename);
 }  // namespace mtxconversion
-
-#endif  // SRC_TOOLS_MTXTOHGRCONVERSION_H_

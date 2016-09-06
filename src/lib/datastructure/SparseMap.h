@@ -8,8 +8,7 @@
  * ACM Letters on Programming Languages and Systems (LOPLAS) 2.1-4 (1993): 59-69.
  */
 
-#ifndef SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_
-#define SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_
+#pragma once
 
 #include <algorithm>
 #include <memory>
@@ -129,4 +128,3 @@ void swap(SparseMap<Key, Value>& a,
   a.swap(b);
 }
 }  // namespace datastructure
-#endif  // SRC_LIB_DATASTRUCTURE_SPARSEMAP_H_

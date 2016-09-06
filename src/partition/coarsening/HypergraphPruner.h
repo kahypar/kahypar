@@ -1,9 +1,8 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_
-#define SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -286,5 +285,3 @@ class HypergraphPruner {
   FastResetBitVector<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition
-
-#endif  // SRC_PARTITION_COARSENING_HYPERGRAPHPRUNER_H_

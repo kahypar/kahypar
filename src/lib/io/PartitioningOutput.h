@@ -2,8 +2,7 @@
  *  Copyright (C) 2015 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#ifndef SRC_LIB_IO_PARTITIONINGOUTPUT_H_
-#define SRC_LIB_IO_PARTITIONINGOUTPUT_H_
+#pragma once
 
 #include <algorithm>
 #include <chrono>
@@ -11,6 +10,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
@@ -202,4 +202,3 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
   }
 }
 }  // namespace io
-#endif  // SRC_LIB_IO_PARTITIONINGOUTPUT_H_
