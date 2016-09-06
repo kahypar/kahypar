@@ -9,54 +9,23 @@
 #include <iostream>
 #include <numeric>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "lib/GitRevision.h"
 #include "lib/definitions.h"
+#include "lib/utils/Math.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 
 using defs::Hypergraph;
 using utils::Stats;
+using utils::median;
+using utils::firstAndThirdQuartile;
 
 namespace io {
 namespace {
-template <typename T>
-inline double median(const std::vector<T>& vec) {
-  double median = 0.0;
-  if ((vec.size() % 2) == 0) {
-    median = static_cast<double>((vec[vec.size() / 2] + vec[(vec.size() / 2) - 1])) / 2.0;
-  } else {
-    median = vec[vec.size() / 2];
-  }
-  return median;
-}
-
-// based on: http://mathalope.co.uk/2014/07/18/accelerated-c-solution-to-exercise-3-2/
-template <typename T>
-inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec) {
-  if (vec.size() > 1) {
-    const size_t size_mod_4 = vec.size() % 4;
-    const size_t M = vec.size() / 2;
-    const size_t ML = M / 2;
-    const size_t MU = M + ML;
-    double first_quartile = 0.0;
-    double third_quartile = 0.0;
-    if (size_mod_4 == 0 || size_mod_4 == 1) {
-      first_quartile = (vec[ML] + vec[ML - 1]) / 2;
-      third_quartile = (vec[MU] + vec[MU - 1]) / 2;
-    } else if (size_mod_4 == 2 || size_mod_4 == 3) {
-      first_quartile = vec[ML];
-      third_quartile = vec[MU];
-    }
-    return std::make_pair(first_quartile, third_quartile);
-  } else {
-    return std::make_pair(0.0, 0.0);
-  }
-}
-
 template <typename T>
 void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
                 const std::pair<double, double>& quartiles) {
@@ -70,7 +39,7 @@ void printStats(const std::string& name, const std::vector<T>& vec, double avg, 
   << "sd: " << std::setw(10) << std::left << stdev
   << "]" << std::endl;
 }
-}
+}  // namespace
 
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
   std::vector<HypernodeID> he_sizes;
