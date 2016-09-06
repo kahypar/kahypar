@@ -22,7 +22,7 @@ using partition::IRefiner;
 using partition::ICoarsener;
 using partition::Partitioner;
 
-namespace serializer {
+namespace utils {
 class SQLPlotToolsSerializer {
  public:
   static void serialize(const Configuration& config, const Hypergraph& hypergraph,
@@ -30,4 +30,4 @@ class SQLPlotToolsSerializer {
                         const std::chrono::duration<double>& elapsed_seconds,
                         const std::string& filename);
 };
-}  // namespace serializer
+}  // namespace utils

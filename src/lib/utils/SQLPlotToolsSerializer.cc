@@ -15,7 +15,7 @@ namespace ip = boost::interprocess;
 using partition::toString;
 using partition::RefinementAlgorithm;
 
-namespace serializer {
+namespace utils {
 void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
                                        const Partitioner& partitioner,
                                        const std::chrono::duration<double>& elapsed_seconds,
@@ -148,4 +148,4 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     std::cout << oss.str() << std::endl;
   }
 }
-}  // namespace serializer
+}  // namespace utils

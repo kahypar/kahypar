@@ -71,7 +71,7 @@ using partition::BFSStartNodeSelectionPolicy;
 using partition::RoundRobinQueueSelectionPolicy;
 using partition::GlobalQueueSelectionPolicy;
 using partition::SequentialQueueSelectionPolicy;
-using serializer::SQLPlotToolsSerializer;
+using utils::SQLPlotToolsSerializer;
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HypernodeWeight;
