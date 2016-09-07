@@ -29,27 +29,20 @@ using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 
 namespace partition {
-template <class Rater = Mandatory,
-          class PrioQueue = BinaryMaxHeap<HypernodeID,
-                                          typename Rater::RatingType> >
+template <class PrioQueue = BinaryMaxHeap<HypernodeID, defs::RatingType> >
 class HeavyEdgeCoarsenerBase : public CoarsenerBase {
  protected:
   using Base = CoarsenerBase;
   using Base::_hg;
   using Base::_config;
-  using Base::restoreSingleNodeHyperedges;
-  using Base::restoreParallelHyperedges;
   using Base::performLocalSearch;
   using Base::initializeRefiner;
   using Base::performContraction;
-  using Rating = typename Rater::Rating;
-  using RatingType = typename Rater::RatingType;
 
  public:
   HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
-    _rater(_hg, _config),
     _pq(_hg.initialNumNodes()) { }
 
   ~HeavyEdgeCoarsenerBase() { }
@@ -175,12 +168,14 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase {
     return improvement_found;
   }
 
-  template <typename Map>
-  void rateAllHypernodes(std::vector<HypernodeID>& target, Map& sources) noexcept {
+  template <typename Map,
+            typename Rater>
+  void rateAllHypernodes(Rater& rater,
+                         std::vector<HypernodeID>& target, Map& sources) noexcept {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     for (size_t i = 0; i < permutation.size(); ++i) {
-      const Rating rating = _rater.rate(permutation[i]);
+      const typename Rater::Rating rating = rater.rate(permutation[i]);
       if (rating.valid) {
         _pq.push(permutation[i], rating.value);
         target[permutation[i]] = rating.target;
@@ -197,7 +192,6 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase {
     Randomize::shuffleVector(permutation, permutation.size());
   }
 
-  Rater _rater;
   PrioQueue _pq;
 };
 }  // namespace partition

@@ -24,13 +24,11 @@ using datastructure::FastResetBitVector;
 namespace partition {
 template <class Rater = Mandatory>
 class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
-                                           private HeavyEdgeCoarsenerBase<Rater>{
+                                           private HeavyEdgeCoarsenerBase<>{
  private:
-  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base = HeavyEdgeCoarsenerBase;
   using Base::rateAllHypernodes;
   using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
   using Rating = typename Rater::Rating;
 
   class NullMap {
@@ -42,6 +40,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                                const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
+    _rater(_hg, _config),
     _outdated_rating(hypergraph.initialNumNodes()),
     _target(_hg.initialNumNodes()) {
     LOG("Coarsener does not choose highest degree node as representative!");
@@ -64,7 +63,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
     _pq.clear();
 
     NullMap null_map;
-    rateAllHypernodes(_target, null_map);
+    rateAllHypernodes(_rater, _target, null_map);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -145,8 +144,8 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   using Base::_pq;
   using Base::_hg;
   using Base::_config;
-  using Base::_rater;
   using Base::_history;
+  Rater _rater;
   FastResetBitVector<> _outdated_rating;
   std::vector<HypernodeID> _target;
 };

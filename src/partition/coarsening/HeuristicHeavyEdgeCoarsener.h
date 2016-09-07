@@ -26,20 +26,19 @@ static const bool dbg_coarsening_removed_hes = false;
 
 template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
-                                          private HeavyEdgeCoarsenerBase<Rater>{
+                                          private HeavyEdgeCoarsenerBase<>{
  private:
-  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base = HeavyEdgeCoarsenerBase;
   using Base::rateAllHypernodes;
   using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
   using Rating = typename Rater::Rating;
   using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
  public:
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                               const HypernodeWeight weight_of_heaviest_node) noexcept :
-    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
+    HeavyEdgeCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
+    _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()) { }
@@ -59,7 +58,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
     _pq.clear();
     _sources.clear();
 
-    rateAllHypernodes(_target, _sources);
+    rateAllHypernodes(_rater, _target, _sources);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -178,9 +177,9 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
   using Base::_pq;
   using Base::_hg;
   using Base::_config;
-  using Base::_rater;
   using Base::_history;
   using Base::_hypergraph_pruner;
+  Rater _rater;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
   FastResetBitVector<> _just_updated;

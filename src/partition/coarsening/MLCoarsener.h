@@ -21,14 +21,12 @@ using defs::RatingType;
 
 template <class Rater = Mandatory>
 class MLCoarsener final : public ICoarsener,
-                          private HeavyEdgeCoarsenerBase<Rater>{
+                          private HeavyEdgeCoarsenerBase<>{
  private:
   static const bool dbg_partition_rating = false;
 
-  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base = HeavyEdgeCoarsenerBase;
   using Base::performContraction;
-  using Base::removeSingleNodeHyperedges;
-  using Base::removeParallelHyperedges;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
   static constexpr RatingType kInvalidScore = std::numeric_limits<RatingType>::min();
@@ -201,7 +199,6 @@ class MLCoarsener final : public ICoarsener,
   using Base::_pq;
   using Base::_hg;
   using Base::_config;
-  using Base::_rater;
   using Base::_history;
   SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };

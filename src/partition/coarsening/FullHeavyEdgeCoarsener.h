@@ -25,9 +25,9 @@ using datastructure::FastResetBitVector;
 namespace partition {
 template <class Rater = Mandatory>
 class FullHeavyEdgeCoarsener final : public ICoarsener,
-                                     private HeavyEdgeCoarsenerBase<Rater>{
+                                     private HeavyEdgeCoarsenerBase<>{
  private:
-  using Base = HeavyEdgeCoarsenerBase<Rater>;
+  using Base = HeavyEdgeCoarsenerBase;
   using Base::removeParallelHyperedges;
   using Base::removeSingleNodeHyperedges;
   using Base::rateAllHypernodes;
@@ -42,7 +42,8 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
  public:
   FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
-    HeavyEdgeCoarsenerBase<Rater>(hypergraph, config, weight_of_heaviest_node),
+    HeavyEdgeCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
+    _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()) { }
 
   virtual ~FullHeavyEdgeCoarsener() { }
@@ -60,7 +61,7 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
     _pq.clear();
 
     NullMap null_map;
-    rateAllHypernodes(_target, null_map);
+    rateAllHypernodes(_rater, _target, null_map);
 
     FastResetBitVector<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
@@ -155,9 +156,9 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
   using Base::_pq;
   using Base::_hg;
   using Base::_config;
-  using Base::_rater;
   using Base::_history;
   using Base::_hypergraph_pruner;
+  Rater _rater;
   std::vector<HypernodeID> _target;
 };
 }  // namespace partition
