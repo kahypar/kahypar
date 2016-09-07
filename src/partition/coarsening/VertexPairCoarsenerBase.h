@@ -32,17 +32,14 @@ namespace partition {
 template <class PrioQueue = BinaryMaxHeap<HypernodeID, defs::RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
-  using Base = CoarsenerBase;
-  using Base::_hg;
-  using Base::_config;
-  using Base::performLocalSearch;
-  using Base::initializeRefiner;
-  using Base::performContraction;
+  using CoarsenerBase::performLocalSearch;
+  using CoarsenerBase::initializeRefiner;
+  using CoarsenerBase::performContraction;
 
  public:
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
-    Base(hypergraph, config, weight_of_heaviest_node),
+    CoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
 
   ~VertexPairCoarsenerBase() { }
@@ -192,6 +189,8 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     Randomize::shuffleVector(permutation, permutation.size());
   }
 
+  using CoarsenerBase::_hg;
+  using CoarsenerBase::_config;
   PrioQueue _pq;
 };
 }  // namespace partition
