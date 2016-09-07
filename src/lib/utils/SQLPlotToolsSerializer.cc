@@ -80,12 +80,6 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " IP_local_search_fm_adaptive_stopping_beta="
     << config.initial_partitioning.local_search.fm.adaptive_stopping_beta;
   }
-  if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::hyperedge) {
-    oss << " IP_local_search_herfm_stopping_rule="
-    << toString(config.initial_partitioning.local_search.her_fm.stopping_rule)
-    << " IP_local_search_herfm_max_number_of_fruitless_moves="
-    << config.initial_partitioning.local_search.her_fm.max_number_of_fruitless_moves;
-  }
   if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " IP_local_search_sclap_max_number_iterations="
     << config.initial_partitioning.local_search.sclap.max_number_iterations;
@@ -102,12 +96,6 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
     << " local_search_fm_global_rebalancing=" << toString(config.local_search.fm.global_rebalancing)
     << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha
     << " local_search_fm_adaptive_stopping_beta=" << config.local_search.fm.adaptive_stopping_beta;
-  }
-  if (config.local_search.algorithm == RefinementAlgorithm::hyperedge) {
-    oss << " local_search_herfm_stopping_rule="
-    << toString(config.local_search.her_fm.stopping_rule)
-    << " local_search_herfm_max_number_of_fruitless_moves="
-    << config.local_search.her_fm.max_number_of_fruitless_moves;
   }
   if (config.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " local_search_sclap_max_number_iterations="

@@ -28,7 +28,6 @@ enum class CoarseningAlgorithm : std::uint8_t {
   heavy_partial,
   heavy_lazy,
   ml_style,
-  hyperedge,
   do_nothing
 };
 
@@ -37,7 +36,6 @@ enum class RefinementAlgorithm : std::uint8_t {
   kway_fm,
   kway_fm_maxgain,
   kway_fm_km1,
-  hyperedge,
   label_propagation,
   do_nothing
 };
@@ -127,8 +125,6 @@ static std::string toString(const CoarseningAlgorithm& algo) {
       return std::string("heavy_lazy");
     case CoarseningAlgorithm::ml_style:
       return std::string("ml_style");
-    case CoarseningAlgorithm::hyperedge:
-      return std::string("hyperedge");
     case CoarseningAlgorithm::do_nothing:
       return std::string("do_nothing");
   }
@@ -145,8 +141,6 @@ static std::string toString(const RefinementAlgorithm& algo) {
       return std::string("kway_fm_maxgain");
     case RefinementAlgorithm::kway_fm_km1:
       return std::string("kway_fm_km1");
-    case RefinementAlgorithm::hyperedge:
-      return std::string("hyperedge");
     case RefinementAlgorithm::label_propagation:
       return std::string("label_propagation");
     case RefinementAlgorithm::do_nothing:
@@ -235,8 +229,6 @@ static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type
     return CoarseningAlgorithm::heavy_lazy;
   } else if (type == "ml_style") {
     return CoarseningAlgorithm::ml_style;
-  } else if (type == "hyperedge") {
-    return CoarseningAlgorithm::hyperedge;
   }
   std::cout << "Illegal option:" << type << std::endl;
   exit(0);
@@ -252,8 +244,6 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm_km1;
   } else if (type == "kway_fm_maxgain") {
     return RefinementAlgorithm::kway_fm_maxgain;
-  } else if (type == "hyperedge") {
-    return RefinementAlgorithm::hyperedge;
   } else if (type == "sclap") {
     return RefinementAlgorithm::label_propagation;
   }

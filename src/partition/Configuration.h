@@ -56,24 +56,17 @@ struct LocalSearchParameters {
     GlobalRebalancingMode global_rebalancing = GlobalRebalancingMode::off;
   };
 
-  struct HER_FM {
-    int max_number_of_fruitless_moves = 10;
-    RefinementStoppingRule stopping_rule = RefinementStoppingRule::simple;
-  };
-
   struct Sclap {
     int max_number_iterations = std::numeric_limits<int>::max();
   };
 
   LocalSearchParameters() :
     fm(),
-    her_fm(),
     sclap(),
     algorithm(RefinementAlgorithm::kway_fm),
     iterations_per_level(std::numeric_limits<int>::max()) { }
 
   FM fm;
-  HER_FM her_fm;
   Sclap sclap;
   RefinementAlgorithm algorithm;
   int iterations_per_level;
@@ -94,9 +87,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       str << "  adaptive stopping beta:             " << params.fm.adaptive_stopping_beta << std::endl;
     }
     str << "  use global rebalancing:             " << toString(params.fm.global_rebalancing) << std::endl;
-  } else if (params.algorithm == RefinementAlgorithm::hyperedge) {
-    str << "  stopping rule:                      " << toString(params.her_fm.stopping_rule) << std::endl;
-    str << "  max. # fruitless moves:             " << params.her_fm.max_number_of_fruitless_moves << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
