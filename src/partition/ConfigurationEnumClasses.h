@@ -210,4 +210,123 @@ static std::string toString(const GlobalRebalancingMode& state) {
   }
   return std::string("UNDEFINED");
 }
+
+static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
+  if (rule == "simple") {
+    return RefinementStoppingRule::simple;
+  } else if (rule == "adaptive_opt") {
+    return RefinementStoppingRule::adaptive_opt;
+  } else if (rule == "adaptive1") {
+    return RefinementStoppingRule::adaptive1;
+  } else if (rule == "adaptive2") {
+    return RefinementStoppingRule::adaptive2;
+  }
+  std::cout << "No valid stopping rule for FM." << std::endl;
+  exit(0);
+  return RefinementStoppingRule::simple;
+}
+
+static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type) {
+  if (type == "heavy_full") {
+    return CoarseningAlgorithm::heavy_full;
+  } else if (type == "heavy_partial") {
+    return CoarseningAlgorithm::heavy_partial;
+  } else if (type == "heavy_lazy") {
+    return CoarseningAlgorithm::heavy_lazy;
+  } else if (type == "ml_style") {
+    return CoarseningAlgorithm::ml_style;
+  } else if (type == "hyperedge") {
+    return CoarseningAlgorithm::hyperedge;
+  }
+  std::cout << "Illegal option:" << type << std::endl;
+  exit(0);
+  return CoarseningAlgorithm::heavy_lazy;
+}
+
+static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type) {
+  if (type == "twoway_fm") {
+    return RefinementAlgorithm::twoway_fm;
+  } else if (type == "kway_fm") {
+    return RefinementAlgorithm::kway_fm;
+  } else if (type == "kway_fm_km1") {
+    return RefinementAlgorithm::kway_fm_km1;
+  } else if (type == "kway_fm_maxgain") {
+    return RefinementAlgorithm::kway_fm_maxgain;
+  } else if (type == "hyperedge") {
+    return RefinementAlgorithm::hyperedge;
+  } else if (type == "sclap") {
+    return RefinementAlgorithm::label_propagation;
+  }
+  std::cout << "Illegal option:" << type << std::endl;
+  exit(0);
+  return RefinementAlgorithm::kway_fm;
+}
+
+static InitialPartitionerAlgorithm initialPartitioningAlgorithmFromString(const std::string& mode) {
+  if (mode.compare("greedy_sequential") == 0) {
+    return InitialPartitionerAlgorithm::greedy_sequential;
+  } else if (mode.compare("greedy_global") == 0) {
+    return InitialPartitionerAlgorithm::greedy_global;
+  } else if (mode.compare("greedy_round") == 0) {
+    return InitialPartitionerAlgorithm::greedy_round;
+  } else if (mode.compare("greedy_sequential_maxpin") == 0) {
+    return InitialPartitionerAlgorithm::greedy_sequential_maxpin;
+  } else if (mode.compare("greedy_global_maxpin") == 0) {
+    return InitialPartitionerAlgorithm::greedy_global_maxpin;
+  } else if (mode.compare("greedy_round_maxpin") == 0) {
+    return InitialPartitionerAlgorithm::greedy_round_maxpin;
+  } else if (mode.compare("greedy_sequential_maxnet") == 0) {
+    return InitialPartitionerAlgorithm::greedy_sequential_maxnet;
+  } else if (mode.compare("greedy_global_maxnet") == 0) {
+    return InitialPartitionerAlgorithm::greedy_global_maxnet;
+  } else if (mode.compare("greedy_round_maxnet") == 0) {
+    return InitialPartitionerAlgorithm::greedy_round_maxnet;
+  } else if (mode.compare("lp") == 0) {
+    return InitialPartitionerAlgorithm::lp;
+  } else if (mode.compare("bfs") == 0) {
+    return InitialPartitionerAlgorithm::bfs;
+  } else if (mode.compare("random") == 0) {
+    return InitialPartitionerAlgorithm::random;
+  } else if (mode.compare("pool") == 0) {
+    return InitialPartitionerAlgorithm::pool;
+  }
+  std::cout << "Illegal option:" << mode << std::endl;
+  exit(0);
+  return InitialPartitionerAlgorithm::greedy_global;
+}
+
+static InitialPartitioner initialPartitionerFromString(const std::string& algo) {
+  if (algo == "hMetis") {
+    return InitialPartitioner::hMetis;
+  } else if (algo == "PaToH") {
+    return InitialPartitioner::PaToH;
+  } else if (algo == "KaHyPar") {
+    return InitialPartitioner::KaHyPar;
+  }
+  std::cout << "Illegal option:" << algo << std::endl;
+  exit(0);
+  return InitialPartitioner::KaHyPar;
+}
+
+static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(const std::string& technique) {
+  if (technique == "flat") {
+    return InitialPartitioningTechnique::flat;
+  } else if (technique == "multi") {
+    return InitialPartitioningTechnique::multilevel;
+  }
+  std::cout << "Illegal option:" << technique << std::endl;
+  exit(0);
+  return InitialPartitioningTechnique::multilevel;
+}
+
+static Mode modeFromString(const std::string& mode) {
+  if (mode == "rb") {
+    return Mode::recursive_bisection;
+  } else if (mode == "direct") {
+    return Mode::direct_kway;
+  }
+  std::cout << "Illegal option:" << mode << std::endl;
+  exit(0);
+  return Mode::direct_kway;
+}
 }  // namespace partition

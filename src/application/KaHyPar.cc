@@ -82,37 +82,6 @@ using defs::HyperedgeWeightVector;
 using defs::HypernodeWeightVector;
 using defs::HighResClockTimepoint;
 
-InitialPartitionerAlgorithm stringToInitialPartitionerAlgorithm(const std::string& mode) {
-  if (mode.compare("greedy_sequential") == 0) {
-    return InitialPartitionerAlgorithm::greedy_sequential;
-  } else if (mode.compare("greedy_global") == 0) {
-    return InitialPartitionerAlgorithm::greedy_global;
-  } else if (mode.compare("greedy_round") == 0) {
-    return InitialPartitionerAlgorithm::greedy_round;
-  } else if (mode.compare("greedy_sequential_maxpin") == 0) {
-    return InitialPartitionerAlgorithm::greedy_sequential_maxpin;
-  } else if (mode.compare("greedy_global_maxpin") == 0) {
-    return InitialPartitionerAlgorithm::greedy_global_maxpin;
-  } else if (mode.compare("greedy_round_maxpin") == 0) {
-    return InitialPartitionerAlgorithm::greedy_round_maxpin;
-  } else if (mode.compare("greedy_sequential_maxnet") == 0) {
-    return InitialPartitionerAlgorithm::greedy_sequential_maxnet;
-  } else if (mode.compare("greedy_global_maxnet") == 0) {
-    return InitialPartitionerAlgorithm::greedy_global_maxnet;
-  } else if (mode.compare("greedy_round_maxnet") == 0) {
-    return InitialPartitionerAlgorithm::greedy_round_maxnet;
-  } else if (mode.compare("lp") == 0) {
-    return InitialPartitionerAlgorithm::lp;
-  } else if (mode.compare("bfs") == 0) {
-    return InitialPartitionerAlgorithm::bfs;
-  } else if (mode.compare("random") == 0) {
-    return InitialPartitionerAlgorithm::random;
-  } else if (mode.compare("pool") == 0) {
-    return InitialPartitionerAlgorithm::pool;
-  }
-  return InitialPartitionerAlgorithm::greedy_global;
-}
-
 void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
     std::cout << "WARNING: local search algorithm is set to "
@@ -200,299 +169,6 @@ void sanityCheck(Configuration& config) {
         checkDirectKwayMode(config.initial_partitioning.local_search.algorithm);
       }
       break;
-  }
-}
-
-RefinementAlgorithm stringToRefinementAlgorithm(const std::string& type) {
-  if (type == "twoway_fm") {
-    return RefinementAlgorithm::twoway_fm;
-  } else if (type == "kway_fm") {
-    return RefinementAlgorithm::kway_fm;
-  } else if (type == "kway_fm_km1") {
-    return RefinementAlgorithm::kway_fm_km1;
-  } else if (type == "kway_fm_maxgain") {
-    return RefinementAlgorithm::kway_fm_maxgain;
-  } else if (type == "hyperedge") {
-    return RefinementAlgorithm::hyperedge;
-  } else if (type == "sclap") {
-    return RefinementAlgorithm::label_propagation;
-  }
-  std::cout << "Illegal option:" << type << std::endl;
-  exit(0);
-  return RefinementAlgorithm::kway_fm;
-}
-
-CoarseningAlgorithm stringToCoarseningAlgorithm(const std::string& type) {
-  if (type == "heavy_full") {
-    return CoarseningAlgorithm::heavy_full;
-  } else if (type == "heavy_partial") {
-    return CoarseningAlgorithm::heavy_partial;
-  } else if (type == "heavy_lazy") {
-    return CoarseningAlgorithm::heavy_lazy;
-  } else if (type == "ml_style") {
-    return CoarseningAlgorithm::ml_style;
-  } else if (type == "hyperedge") {
-    return CoarseningAlgorithm::hyperedge;
-  }
-  std::cout << "Illegal option:" << type << std::endl;
-  exit(0);
-  return CoarseningAlgorithm::heavy_lazy;
-}
-
-void configurePartitionerFromCommandLineInput(Configuration& config,
-                                              const po::variables_map& vm) {
-  if (vm.count("hgr") && vm.count("e") && vm.count("k")) {
-    config.partition.graph_filename = vm["hgr"].as<std::string>();
-    config.partition.k = vm["k"].as<PartitionID>();
-    config.partition.rb_lower_k = 0;
-    config.partition.rb_upper_k = config.partition.k - 1;
-
-    config.partition.coarse_graph_filename = std::string("/tmp/PID_")
-                                             + std::to_string(getpid()) + std::string("_coarse_")
-                                             + config.partition.graph_filename.substr(
-      config.partition.graph_filename.find_last_of("/") + 1);
-    config.partition.graph_partition_filename =
-      config.partition.graph_filename + ".part."
-      + std::to_string(config.partition.k) + ".KaHyPar";
-    config.partition.coarse_graph_partition_filename =
-      config.partition.coarse_graph_filename + ".part."
-      + std::to_string(config.partition.k);
-
-    config.partition.epsilon = vm["e"].as<double>();
-    config.initial_partitioning.epsilon = config.partition.epsilon;
-
-    if (vm.count("seed")) {
-      config.partition.seed = vm["seed"].as<int>();
-    }
-
-    if (vm.count("mode")) {
-      if (vm["mode"].as<std::string>() == "rb") {
-        config.partition.mode = Mode::recursive_bisection;
-      } else if (vm["mode"].as<std::string>() == "direct") {
-        config.partition.mode = Mode::direct_kway;
-      } else {
-        std::cout << "Illegal partitioning mode ! Exiting..." << std::endl;
-        exit(0);
-      }
-    }
-
-    if (vm.count("obj")) {
-      if (vm["obj"].as<std::string>() == "cut") {
-        config.partition.objective = Objective::cut;
-      } else if (vm["obj"].as<std::string>() == "km1") {
-        config.partition.objective = Objective::km1;
-      } else {
-        std::cout << "No valid objective function." << std::endl;
-        exit(0);
-      }
-    }
-
-    if (vm.count("init-remove-hes")) {
-      config.partition.initial_parallel_he_removal = vm["init-remove-hes"].as<bool>();
-    }
-
-    if (vm.count("work-factor")) {
-      config.partition.work_factor = vm["work-factor"].as<double>();
-    }
-
-    if (vm.count("remove-always-cut-hes")) {
-      config.partition.remove_hes_that_always_will_be_cut = vm["remove-always-cut-hes"].as<bool>();
-    }
-
-    if (vm.count("ip")) {
-      if (vm["ip"].as<std::string>() == "hMetis") {
-        config.initial_partitioning.tool =
-          InitialPartitioner::hMetis;
-      } else if (vm["ip"].as<std::string>() == "PaToH") {
-        config.initial_partitioning.tool =
-          InitialPartitioner::PaToH;
-      } else if (vm["ip"].as<std::string>() == "KaHyPar") {
-        config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
-
-        if (vm.count("ip-mode")) {
-          if (vm["ip-mode"].as<std::string>() == "rb") {
-            config.initial_partitioning.mode = Mode::recursive_bisection;
-          } else if (vm["ip-mode"].as<std::string>() == "direct") {
-            config.initial_partitioning.mode = Mode::direct_kway;
-          }
-        }
-        if (vm.count("ip-technique")) {
-          if (vm["ip-technique"].as<std::string>() == "flat") {
-            config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
-          } else if (vm["ip-technique"].as<std::string>()
-                     == "multi") {
-            config.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
-          }
-        }
-        if (vm.count("ip-algo")) {
-          config.initial_partitioning.algo =
-            stringToInitialPartitionerAlgorithm(vm["ip-algo"].as<std::string>());
-        }
-        if (vm.count("ip-alpha")) {
-          config.initial_partitioning.init_alpha = vm["ip-alpha"].as<double>();
-        }
-      }
-      if (vm.count("ip-ctype")) {
-        config.initial_partitioning.coarsening.algorithm =
-          stringToCoarseningAlgorithm(vm["ip-ctype"].as<std::string>());
-      } else {
-        std::cout << "Missing ip-ctype option!" << std::endl;
-        exit(0);
-      }
-
-      if (vm.count("ip-path")) {
-        config.initial_partitioning.tool_path = vm["ip-path"].as<std::string>();
-      } else {
-        switch (config.initial_partitioning.tool) {
-          case InitialPartitioner::hMetis:
-            config.initial_partitioning.tool_path =
-              "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
-            break;
-          case InitialPartitioner::PaToH:
-            config.initial_partitioning.tool_path =
-              "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
-            break;
-          case InitialPartitioner::KaHyPar:
-            config.initial_partitioning.tool_path = "-";
-            break;
-        }
-      }
-      if (vm.count("ip-nruns")) {
-        config.initial_partitioning.nruns = vm["ip-nruns"].as<int>();
-      }
-
-      if (vm.count("ip-s")) {
-        config.initial_partitioning.coarsening.max_allowed_weight_multiplier =
-          vm["ip-s"].as<double>();
-      }
-      if (vm.count("ip-t")) {
-        config.initial_partitioning.coarsening.contraction_limit_multiplier =
-          vm["ip-t"].as<HypernodeID>();
-      }
-
-      if (vm.count("ip-ls-reps")) {
-        config.initial_partitioning.local_search.iterations_per_level = vm["ip-ls-reps"].as<int>();
-        if (config.initial_partitioning.local_search.iterations_per_level == -1) {
-          config.initial_partitioning.local_search.iterations_per_level =
-            std::numeric_limits<int>::max();
-        }
-      }
-      if (vm.count("ip-rtype")) {
-        config.initial_partitioning.local_search.algorithm =
-          stringToRefinementAlgorithm(vm["ip-rtype"].as<std::string>());
-      } else {
-        std::cout << "Missing ip-rtype option!" << std::endl;
-        exit(0);
-      }
-
-      if (vm.count("ip-i")) {
-        config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves =
-          vm["ip-i"].as<int>();
-      }
-
-      if (vm.count("ip-stopFM")) {
-        if (vm["ip-stopFM"].as<std::string>() == "simple") {
-          config.initial_partitioning.local_search.fm.stopping_rule =
-            RefinementStoppingRule::simple;
-        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive_opt") {
-          config.initial_partitioning.local_search.fm.stopping_rule =
-            RefinementStoppingRule::adaptive_opt;
-        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive1") {
-          config.initial_partitioning.local_search.fm.stopping_rule =
-            RefinementStoppingRule::adaptive1;
-        } else if (vm["ip-stopFM"].as<std::string>() == "adaptive2") {
-          config.initial_partitioning.local_search.fm.stopping_rule =
-            RefinementStoppingRule::adaptive2;
-        } else {
-          std::cout << "Illegal stopFM option! Exiting..." << std::endl;
-          exit(0);
-        }
-      }
-    }
-
-    if (vm.count("vcycles")) {
-      config.partition.global_search_iterations = vm["vcycles"].as<int>();
-    }
-    if (vm.count("cmaxnet")) {
-      config.partition.hyperedge_size_threshold = vm["cmaxnet"].as<HyperedgeID>();
-      if (config.partition.hyperedge_size_threshold == -1) {
-        config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
-      }
-    }
-    if (vm.count("ctype")) {
-      config.coarsening.algorithm =
-        stringToCoarseningAlgorithm(vm["ctype"].as<std::string>());
-    } else {
-      std::cout << "Missing ctype option!" << std::endl;
-      exit(0);
-    }
-
-    if (vm.count("s")) {
-      config.coarsening.max_allowed_weight_multiplier = vm["s"].as<double>();
-    }
-    if (vm.count("t")) {
-      config.coarsening.contraction_limit_multiplier = vm["t"].as<HypernodeID>();
-    }
-
-    if (vm.count("rtype")) {
-      config.local_search.algorithm = stringToRefinementAlgorithm(vm["rtype"].as<std::string>());
-    } else {
-      std::cout << "Missing rtype option!" << std::endl;
-      exit(0);
-    }
-
-    if (vm.count("stopFM")) {
-      if (vm["stopFM"].as<std::string>() == "simple") {
-        config.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
-        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::simple;
-      } else if (vm["stopFM"].as<std::string>() == "adaptive_opt") {
-        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
-        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
-      } else if (vm["stopFM"].as<std::string>() == "adaptive1") {
-        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive1;
-        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive1;
-      } else if (vm["stopFM"].as<std::string>() == "adaptive2") {
-        config.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive2;
-        config.local_search.her_fm.stopping_rule = RefinementStoppingRule::adaptive2;
-      } else {
-        std::cout << "Illegal stopFM option! Exiting..." << std::endl;
-        exit(0);
-      }
-    }
-    if (vm.count("global-rebalancing")) {
-      if (vm["global-rebalancing"].as<bool>()) {
-        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
-      } else {
-        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
-      }
-    }
-    if (vm.count("ls-reps")) {
-      config.local_search.iterations_per_level = vm["ls-reps"].as<int>();
-      if (config.local_search.iterations_per_level == -1) {
-        config.local_search.iterations_per_level = std::numeric_limits<int>::max();
-      }
-    }
-
-    if (vm.count("i")) {
-      config.local_search.fm.max_number_of_fruitless_moves = vm["i"].as<int>();
-      config.local_search.her_fm.max_number_of_fruitless_moves = vm["i"].as<int>();
-    }
-    if (vm.count("alpha")) {
-      config.local_search.fm.adaptive_stopping_alpha = vm["alpha"].as<double>();
-      if (config.local_search.fm.adaptive_stopping_alpha == -1) {
-        config.local_search.fm.adaptive_stopping_alpha = std::numeric_limits<double>::max();
-      }
-    }
-    if (vm.count("verbose")) {
-      config.partition.verbose_output = vm["verbose"].as<bool>();
-    }
-
-    if (vm.count("sclap-max-iterations")) {
-      config.local_search.sclap.max_number_iterations = vm["sclap-max-iterations"].as<int>();
-    }
-  } else {
-    std::cout << "Parameter error! Exiting..." << std::endl;
-    exit(0);
   }
 }
 
@@ -696,62 +372,212 @@ static Registrar<InitialPartitioningFactory> reg_pool(
   return new PoolInitialPartitioner(hypergraph, config);
 });
 
-int main(int argc, char* argv[]) {
+void processCommandLineInput(Configuration& config, std::string& result_file,
+                             int argc, char* argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()("help", "show help message")
-    ("verbose", po::value<bool>(), "Verbose partitioner output")
-    ("hgr", po::value<std::string>(), "Filename of the hypergraph to be partitioned")
-    ("obj", po::value<std::string>(), "Objective: cut, km1")
-    ("k", po::value<PartitionID>(), "Number of partitions")
-    ("e", po::value<double>(), "Imbalance parameter epsilon")
-    ("seed", po::value<int>(), "Seed for random number generator")
-    ("mode", po::value<std::string>(), "(rb) recursive bisection, (direct) direct k-way")
-    ("init-remove-hes", po::value<bool>(), "Initially remove parallel hyperedges before partitioning")
-    ("ip", po::value<std::string>(), "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
-    ("ip-nruns", po::value<int>(), "# initial partition trials")
-    ("ip-technique", po::value<std::string>(), "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
-    ("ip-mode", po::value<std::string>(), "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
-    ("ip-algo", po::value<std::string>(), "If ip=KaHyPar: used initial partitioning algorithm")
-    ("ip-ctype", po::value<std::string>(), "If ip=KaHyPar: used coarsening algorithm for multilevel initial partitioning")
-    ("ip-s", po::value<double>(), "If ip=KaHyPar: IP Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
-    ("ip-t", po::value<HypernodeID>(), "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("ip-rtype", po::value<std::string>(), "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
-    ("ip-i", po::value<int>(), "If ip=KaHyPar:  max. # fruitless moves before stopping local search (simple)")
-    ("ip-stopFM", po::value<std::string>(), "If ip=KaHyPar: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
-    ("ip-alpha", po::value<double>(), "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
-    ("ip-path", po::value<std::string>(), "If ip!=KaHyPar: Path to Initial Partitioner Binary")
-    ("ip-ls-reps", po::value<int>(), "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
-    ("vcycles", po::value<int>(), "# v-cycle iterations")
-    ("cmaxnet", po::value<HyperedgeID>(), "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
-    ("work-factor", po::value<double>(), "Any hyperedges incurring more than work-factor * |pins| work will be removed")
-    ("remove-always-cut-hes", po::value<bool>(), "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
-    ("ctype", po::value<std::string>(), "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
-    ("s", po::value<double>(), "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
-    ("t", po::value<HypernodeID>(), "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("rtype", po::value<std::string>(), "Refinement: twoway_fm, kway_fm, kway_fm_maxgain, kway_fm_km1, sclap")
-    ("sclap-max-iterations", po::value<int>(), "Refinement: maximum number of iterations for label propagation based refinement")
-    ("stopFM", po::value<std::string>(), "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
-    ("global-rebalancing", po::value<bool>(), "Use global rebalancing PQs in twoway_fm")
-    ("ls-reps", po::value<int>(), "max. # of local search repetitions on each level (default: no limit = -1)")
-    ("i", po::value<int>(), "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
-    ("alpha", po::value<double>(), "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
-    ("file", po::value<std::string>(), "filename of result file");
+    ("verbose", po::value<bool>(&config.partition.verbose_output),
+    "Verbose partitioner output")
+    ("k", po::value<PartitionID>(&config.partition.k)->required()->notifier(
+      [&](const PartitionID) {
+    config.partition.rb_lower_k = 0;
+    config.partition.rb_upper_k = config.partition.k - 1;
+  }),
+    "Number of blocks")
+    ("hgr", po::value<std::string>(&config.partition.graph_filename)->required()->notifier(
+      [&](const std::string&) {
+    config.partition.coarse_graph_filename =
+      std::string("/tmp/PID_")
+      + std::to_string(getpid()) + std::string("_coarse_")
+      + config.partition.graph_filename.substr(
+        config.partition.graph_filename.find_last_of("/") + 1);
+    config.partition.graph_partition_filename =
+      config.partition.graph_filename + ".part."
+      + std::to_string(config.partition.k) + ".KaHyPar";
+    config.partition.coarse_graph_partition_filename =
+      config.partition.coarse_graph_filename + ".part."
+      + std::to_string(config.partition.k);
+  }),
+    "Filename of the hypergraph")
+    ("e", po::value<double>(&config.partition.epsilon)->required(),
+    "Imbalance parameter epsilon")
+    ("obj", po::value<std::string>()->notifier([&](const std::string& s) {
+    if (s == "cut") {
+      config.partition.objective = Objective::cut;
+    } else if (s == "km1") {
+      config.partition.objective = Objective::km1;
+    } else {
+      std::cout << "No valid objective function." << std::endl;
+      exit(0);
+    }
+  }),
+    "Objective: cut, km1")
+    ("seed", po::value<int>(&config.partition.seed),
+    "Seed for random number generator")
+    ("mode", po::value<std::string>()->notifier(
+      [&](const std::string& mode) {
+    config.partition.mode = partition::modeFromString(mode);
+  }),
+    "(rb) recursive bisection, (direct) direct k-way")
+    ("init-remove-hes", po::value<bool>(&config.partition.initial_parallel_he_removal),
+    "Initially remove parallel hyperedges before partitioning")
+    ("ip", po::value<std::string>()->notifier(
+      [&](const std::string& initial_partitioner) {
+    config.initial_partitioning.tool =
+      partition::initialPartitionerFromString(initial_partitioner);
+  }),
+    "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
+    ("ip-path", po::value<std::string>(&config.initial_partitioning.tool_path)->default_value("-")->notifier(
+      [&](const std::string& tool_path) {
+    if (tool_path == "-") {
+      switch (config.initial_partitioning.tool) {
+        case InitialPartitioner::hMetis:
+          config.initial_partitioning.tool_path =
+            "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+          break;
+        case InitialPartitioner::PaToH:
+          config.initial_partitioning.tool_path =
+            "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
+          break;
+        case InitialPartitioner::KaHyPar:
+          config.initial_partitioning.tool_path = "-";
+          break;
+      }
+    }
+  }),
+    "If ip!=KaHyPar: Path to Initial Partitioner Binary")
+    ("ip-mode", po::value<std::string>()->notifier(
+      [&](const std::string& ip_mode) {
+    config.initial_partitioning.mode = partition::modeFromString(ip_mode);
+  }),
+    "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
+    ("ip-technique", po::value<std::string>()->notifier(
+      [&](const std::string& ip_technique) {
+    config.initial_partitioning.technique =
+      partition::inititalPartitioningTechniqueFromString(ip_technique);
+  }),
+    "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
+    ("ip-algo", po::value<std::string>()->notifier(
+      [&](const std::string& ip_algo) {
+    config.initial_partitioning.algo =
+      partition::initialPartitioningAlgorithmFromString(ip_algo);
+  }),
+    "If ip=KaHyPar: used initial partitioning algorithm")
+    ("ip-ctype", po::value<std::string>()->notifier(
+      [&](const std::string& ip_ctype) {
+    config.initial_partitioning.coarsening.algorithm =
+      partition::coarseningAlgorithmFromString(ip_ctype);
+  }),
+    "If ip=KaHyPar: used coarsening algorithm for multilevel initial partitioning")
+    ("ip-nruns", po::value<int>(&config.initial_partitioning.nruns),
+    "# initial partition trials")
+    ("ip-s", po::value<double>(&config.initial_partitioning.coarsening.max_allowed_weight_multiplier),
+    "If ip=KaHyPar: IP Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
+    ("ip-t", po::value<HypernodeID>(&config.initial_partitioning.coarsening.contraction_limit_multiplier),
+    "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
+    ("ip-rtype", po::value<std::string>()->notifier(
+      [&](const std::string& ip_rtype) {
+    config.initial_partitioning.local_search.algorithm =
+      partition::refinementAlgorithmFromString(ip_rtype);
+  }),
+    "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
+    ("ip-i", po::value<int>(&config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves),
+    "If ip=KaHyPar:  max. # fruitless moves before stopping local search (simple)")
+    ("ip-stopFM", po::value<std::string>()->notifier(
+      [&](const std::string& ip_stopfm) {
+    config.initial_partitioning.local_search.fm.stopping_rule =
+      partition::stoppingRuleFromString(ip_stopfm);
+  }),
+    "If ip=KaHyPar: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
+    ("ip-alpha", po::value<double>(&config.initial_partitioning.init_alpha),
+    "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
+    ("ip-ls-reps", po::value<int>(&config.initial_partitioning.local_search.iterations_per_level)->notifier(
+      [&](const int) {
+    if (config.initial_partitioning.local_search.iterations_per_level == -1) {
+      config.initial_partitioning.local_search.iterations_per_level =
+        std::numeric_limits<int>::max();
+    }
+  }),
+    "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
+    ("vcycles", po::value<int>(&config.partition.global_search_iterations),
+    "# v-cycle iterations")
+    ("cmaxnet", po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->notifier(
+      [&](const HyperedgeID) {
+    if (config.partition.hyperedge_size_threshold == -1) {
+      config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+    }
+  }),
+    "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
+    ("work-factor", po::value<double>(&config.partition.work_factor),
+    "Any hyperedges incurring more than work-factor * |pins| work will be removed")
+    ("remove-always-cut-hes", po::value<bool>(&config.partition.remove_hes_that_always_will_be_cut),
+    "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
+    ("ctype", po::value<std::string>()->notifier(
+      [&](const std::string& ctype) {
+    config.coarsening.algorithm = partition::coarseningAlgorithmFromString(ctype);
+  }),
+    "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
+    ("s", po::value<double>(&config.coarsening.max_allowed_weight_multiplier),
+    "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
+    ("t", po::value<HypernodeID>(&config.coarsening.contraction_limit_multiplier),
+    "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
+    ("rtype", po::value<std::string>()->notifier(
+      [&](const std::string& rtype) {
+    config.local_search.algorithm = partition::refinementAlgorithmFromString(rtype);
+  }),
+    "Refinement: twoway_fm, kway_fm, kway_fm_maxgain, kway_fm_km1, sclap")
+    ("sclap-max-iterations", po::value<int>(&config.local_search.sclap.max_number_iterations),
+    "Refinement: maximum number of iterations for label propagation based refinement")
+    ("stopFM", po::value<std::string>()->notifier(
+      [&](const std::string& stopfm) {
+    config.local_search.fm.stopping_rule = partition::stoppingRuleFromString(stopfm);
+  }),
+    "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
+    ("global-rebalancing", po::value<bool>()->notifier(
+      [&](const bool global_rebalancing) {
+    if (global_rebalancing) {
+      config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
+    } else {
+      config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
+    }
+  }),
+    "Use global rebalancing PQs in twoway_fm")
+    ("ls-reps", po::value<int>(&config.local_search.iterations_per_level)->notifier(
+      [&](const int) {
+    if (config.local_search.iterations_per_level == -1) {
+      config.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    }
+  }),
+    "max. # of local search repetitions on each level (default: no limit = -1)")
+    ("i", po::value<int>(&config.local_search.fm.max_number_of_fruitless_moves),
+    "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
+    ("alpha", po::value<double>(&config.local_search.fm.adaptive_stopping_alpha),
+    "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
+    ("file", po::value<std::string>(&result_file),
+    "filename of result file");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
+
+  // placing vm.count("help") here prevents required attributes raising an
+  // error of only help was supplied
   if (vm.count("help")) {
-    std::cout << desc << std::endl;
-    return 0;
+    std::cout << desc << "n";
+    exit(0);
   }
 
-  std::string result_file;
+  po::notify(vm);
+
   if (vm.count("file")) {
     result_file = vm["file"].as<std::string>();
   }
+}
 
+int main(int argc, char* argv[]) {
   Configuration config;
-  configurePartitionerFromCommandLineInput(config, vm);
+  std::string result_file;
+
+  processCommandLineInput(config, result_file, argc, argv);
   sanityCheck(config);
 
   if (config.partition.global_search_iterations != 0) {
