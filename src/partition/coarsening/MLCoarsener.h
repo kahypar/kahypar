@@ -117,6 +117,7 @@ class MLCoarsener final : public ICoarsener,
       ++pass_nr;
     }
   }
+
   Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
