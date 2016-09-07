@@ -154,8 +154,8 @@ class CoarsenerBase {
     // cut. In this case current_metrics.km1 is not used.
     ASSERT((_config.partition.mode != Mode::direct_kway ||
             _config.partition.objective != Objective::km1) ||
-           (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::kMinus1(_hg)),
-           V(current_metrics.km1) << V(old_km1) << V(metrics::kMinus1(_hg)));
+           (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::km1(_hg)),
+           V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
 
     DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
         old_cut << "-->" << current_metrics.cut);

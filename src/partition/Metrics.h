@@ -52,7 +52,7 @@ static inline HyperedgeWeight soed(const Hypergraph& hg) {
   return soed;
 }
 
-static inline HyperedgeWeight kMinus1(const Hypergraph& hg) {
+static inline HyperedgeWeight km1(const Hypergraph& hg) {
   HyperedgeWeight k_minus_1 = 0;
   for (const HyperedgeID he : hg.edges()) {
     k_minus_1 += (hg.connectivity(he) - 1) * hg.edgeWeight(he);

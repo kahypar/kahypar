@@ -122,7 +122,7 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   }
   oss << " cut=" << metrics::hyperedgeCut(hypergraph)
   << " soed=" << metrics::soed(hypergraph)
-  << " kMinusOne=" << metrics::kMinus1(hypergraph)
+  << " km1=" << metrics::km1(hypergraph)
   << " absorption=" << metrics::absorption(hypergraph)
   << " imbalance=" << metrics::imbalance(hypergraph, config)
   << " totalPartitionTime=" << elapsed_seconds.count()

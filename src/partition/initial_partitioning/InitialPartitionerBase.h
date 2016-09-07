@@ -97,7 +97,7 @@ class InitialPartitionerBase {
       refiner->initialize();
       std::vector<HypernodeID> refinement_nodes;
       Metrics current_metrics = { metrics::hyperedgeCut(_hg),
-                                  metrics::kMinus1(_hg),
+                                  metrics::km1(_hg),
                                   metrics::imbalance(_hg, _config) };
 
 #ifndef NDEBUG

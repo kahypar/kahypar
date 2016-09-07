@@ -134,9 +134,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   const UncontractionGainChanges& UNUSED(changes),
                   Metrics& best_metrics) noexcept override final {
     // LOG("=================================================");
-    ASSERT(best_metrics.km1 == metrics::kMinus1(_hg),
+    ASSERT(best_metrics.km1 == metrics::km1(_hg),
            "initial best_metrics.km1 " << best_metrics.km1
-           << "does not equal km1 induced by hypergraph " << metrics::kMinus1(_hg));
+           << "does not equal km1 induced by hypergraph " << metrics::km1(_hg));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
            "initial best_metrics.imbalance " << best_metrics.imbalance << "does not equal imbalance induced"
@@ -243,8 +243,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
         current_km1 -= max_gain;
         _stopping_policy.updateStatistics(max_gain);
 
-        ASSERT(current_km1 == metrics::kMinus1(_hg),
-               V(current_km1) << V(metrics::kMinus1(_hg)));
+        ASSERT(current_km1 == metrics::km1(_hg),
+               V(current_km1) << V(metrics::km1(_hg)));
         ASSERT(current_imbalance == metrics::imbalance(_hg, _config),
                V(current_imbalance) << V(metrics::imbalance(_hg, _config)));
 
@@ -300,7 +300,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    ASSERT(best_metrics.km1 == metrics::kMinus1(_hg), "Incorrect rollback operation");
+    ASSERT(best_metrics.km1 == metrics::km1(_hg), "Incorrect rollback operation");
     ASSERT(best_metrics.km1 <= initial_km1, "kMinusOne quality decreased from "
            << initial_km1 << " to" << best_metrics.km1);
     return FMImprovementPolicy::improvementFound(best_metrics.km1, initial_km1,

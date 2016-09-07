@@ -121,7 +121,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
-  std::cout << "(k-1)          (minimize) = " << metrics::kMinus1(hypergraph) << std::endl;
+  std::cout << "(k-1)          (minimize) = " << metrics::km1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, config)
   << std::endl;

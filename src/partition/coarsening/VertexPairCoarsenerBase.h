@@ -55,7 +55,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
   bool doUncoarsen(IRefiner& refiner) noexcept {
     Metrics current_metrics = { metrics::hyperedgeCut(_hg),
-                                metrics::kMinus1(_hg),
+                                metrics::km1(_hg),
                                 metrics::imbalance(_hg, _config) };
     HyperedgeWeight initial_objective = std::numeric_limits<HyperedgeWeight>::min();
 
@@ -149,7 +149,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
           // during local search (it is currently only updated/maintained
           // during k-way k-1 refinement). In order to provide correct outputs,
           // we explicitly calculated the metric after uncoarsening.
-          current_metrics.km1 = metrics::kMinus1(_hg);
+          current_metrics.km1 = metrics::km1(_hg);
         }
         Stats::instance().add(_config, "finalKm1", current_metrics.km1);
         if (_config.partition.verbose_output) {
