@@ -17,6 +17,7 @@
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
+#include "partition/coarsening/CoarseningMemento.h"
 #include "partition/coarsening/HypergraphPruner.h"
 #include "partition/refinement/IRefiner.h"
 
@@ -34,7 +35,6 @@ static const bool dbg_coarsening_no_valid_contraction = false;
 static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
 
-template <class CoarseningMemento = Mandatory>
 class CoarsenerBase {
  protected:
   struct CurrentMaxNodeWeight {
