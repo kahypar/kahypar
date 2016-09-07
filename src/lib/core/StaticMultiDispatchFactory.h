@@ -13,22 +13,6 @@
 
 namespace core {
 /*!
- * Helper for IdenfitierType. If IdentifierType is not an
- * enum, we fallback to std::string as identifier.
- *
- */
-template <typename T, typename = typename std::is_enum<T>::type>
-struct safe_underlying_type {
-  static_assert(std::is_same<T, std::string>::value, "Type mismatch");
-  using type = std::string;
-};
-
-template <typename T>
-struct safe_underlying_type<T, std::true_type>{
-  using type = std::underlying_type_t<T>;
-};
-
-/*!
  * Generalization of StaticDoubleDispatchFactory to support 'true multiple' dispatch.
  * The factory allows to instantiate a concrete Product that uses
  * an arbitrary number of Policies (where each policy can have multiple implementations)
