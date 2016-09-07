@@ -15,8 +15,8 @@
 #include "gtest/gtest_prod.h"
 
 #include "external/fp_compare/Utils.h"
-#include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/core/TemplateParameterToString.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
 #include "lib/datastructure/InsertOnlyConnectivitySet.h"

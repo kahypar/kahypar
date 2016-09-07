@@ -8,8 +8,8 @@
 #include <utility>
 #include <vector>
 
-#include "lib/TemplateParameterToString.h"
 #include "lib/core/Mandatory.h"
+#include "lib/core/TemplateParameterToString.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
