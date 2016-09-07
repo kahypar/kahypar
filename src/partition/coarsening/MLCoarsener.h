@@ -21,11 +21,11 @@ using defs::RatingType;
 
 template <class Rater = Mandatory>
 class MLCoarsener final : public ICoarsener,
-                          private HeavyEdgeCoarsenerBase<>{
+                          private VertexPairCoarsenerBase<>{
  private:
   static const bool dbg_partition_rating = false;
 
-  using Base = HeavyEdgeCoarsenerBase;
+  using Base = VertexPairCoarsenerBase;
   using Base::performContraction;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();

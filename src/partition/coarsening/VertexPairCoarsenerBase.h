@@ -30,7 +30,7 @@ using defs::HyperedgeWeight;
 
 namespace partition {
 template <class PrioQueue = BinaryMaxHeap<HypernodeID, defs::RatingType> >
-class HeavyEdgeCoarsenerBase : public CoarsenerBase {
+class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
   using Base = CoarsenerBase;
   using Base::_hg;
@@ -40,18 +40,18 @@ class HeavyEdgeCoarsenerBase : public CoarsenerBase {
   using Base::performContraction;
 
  public:
-  HeavyEdgeCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
+  VertexPairCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
 
-  ~HeavyEdgeCoarsenerBase() { }
+  ~VertexPairCoarsenerBase() { }
 
-  HeavyEdgeCoarsenerBase(const HeavyEdgeCoarsenerBase&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (const HeavyEdgeCoarsenerBase&) = delete;
+  VertexPairCoarsenerBase(const VertexPairCoarsenerBase&) = delete;
+  VertexPairCoarsenerBase& operator= (const VertexPairCoarsenerBase&) = delete;
 
-  HeavyEdgeCoarsenerBase(HeavyEdgeCoarsenerBase&&) = delete;
-  HeavyEdgeCoarsenerBase& operator= (HeavyEdgeCoarsenerBase&&) = delete;
+  VertexPairCoarsenerBase(VertexPairCoarsenerBase&&) = delete;
+  VertexPairCoarsenerBase& operator= (VertexPairCoarsenerBase&&) = delete;
 
  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

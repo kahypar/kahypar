@@ -13,8 +13,8 @@
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
 #include "lib/utils/Stats.h"
-#include "partition/coarsening/HeavyEdgeCoarsenerBase.h"
 #include "partition/coarsening/ICoarsener.h"
+#include "partition/coarsening/VertexPairCoarsenerBase.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -26,9 +26,9 @@ static const bool dbg_coarsening_removed_hes = false;
 
 template <class Rater = Mandatory>
 class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
-                                          private HeavyEdgeCoarsenerBase<>{
+                                          private VertexPairCoarsenerBase<>{
  private:
-  using Base = HeavyEdgeCoarsenerBase;
+  using Base = VertexPairCoarsenerBase;
   using Base::rateAllHypernodes;
   using Base::performContraction;
   using Rating = typename Rater::Rating;
@@ -37,7 +37,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
  public:
   HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
                               const HypernodeWeight weight_of_heaviest_node) noexcept :
-    HeavyEdgeCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
+    VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()),
     _sources(hypergraph.initialNumNodes()),
