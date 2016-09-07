@@ -111,7 +111,7 @@ TEST_F(ATwoWayFMRefiner, CalculatesNodeCountsInBothPartitions) {
 
 TEST_F(ATwoWayFMRefiner, DoesNotViolateTheBalanceConstraint) {
   Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
-                          metrics::kMinus1(*hypergraph),
+                          metrics::km1(*hypergraph),
                           metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
@@ -146,7 +146,7 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
   ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
   Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
-                          metrics::kMinus1(*hypergraph),
+                          metrics::km1(*hypergraph),
                           metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
@@ -174,7 +174,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 #endif  // already done above
 
   Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
-                          metrics::kMinus1(*hypergraph),
+                          metrics::km1(*hypergraph),
                           metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
@@ -186,7 +186,7 @@ TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
 
 TEST_F(ATwoWayFMRefiner, RollsBackAllNodeMovementsIfCutCouldNotBeImproved) {
   Metrics old_metrics = { metrics::hyperedgeCut(*hypergraph),
-                          metrics::kMinus1(*hypergraph),
+                          metrics::km1(*hypergraph),
                           metrics::imbalance(*hypergraph, config) };
   std::vector<HypernodeID> refinement_nodes = { 1, 6 };
 
