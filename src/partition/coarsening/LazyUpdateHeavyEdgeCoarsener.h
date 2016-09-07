@@ -94,9 +94,6 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
         ASSERT(_pq.contains(contracted_node), V(contracted_node));
         _pq.remove(contracted_node);
 
-        removeSingleNodeHyperedges(rep_node);
-        removeParallelHyperedges(rep_node, contracted_node);
-
         // this also invalidates rep_node, however rep_node
         // will be re-rated and updated afterwards
         invalidateAffectedHypernodes(rep_node);

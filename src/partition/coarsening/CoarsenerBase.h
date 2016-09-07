@@ -72,35 +72,28 @@ class CoarsenerBase {
     if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
       _max_hn_weights.emplace_back(_hg.currentNumNodes(), _hg.nodeWeight(rep_node));
     }
+    removeSingleNodeHyperedges();
+    removeParallelHyperedges();
   }
 
-  void removeSingleNodeHyperedges(const HypernodeID rep_node) noexcept {
-    HyperedgeWeight removed_he_weight =
-      _hypergraph_pruner.removeSingleNodeHyperedges(_hg, rep_node,
-                                                    _history.back().one_pin_hes_begin,
-                                                    _history.back().one_pin_hes_size);
+  void removeSingleNodeHyperedges() noexcept {
+    const HyperedgeWeight removed_he_weight =
+      _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
     Stats::instance().add(_config, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
-  void removeParallelHyperedges(const HypernodeID rep_node,
-                                const HypernodeID contracted_node) noexcept {
-    HyperedgeID removed_parallel_hes =
-      _hypergraph_pruner.removeParallelHyperedges(_hg, rep_node, contracted_node,
-                                                  _history.back().parallel_hes_begin,
-                                                  _history.back().parallel_hes_size);
+  void removeParallelHyperedges() noexcept {
+    const HyperedgeID removed_parallel_hes =
+      _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
     Stats::instance().add(_config, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() noexcept {
-    _hypergraph_pruner.restoreParallelHyperedges(_hg,
-                                                 _history.back().parallel_hes_begin,
-                                                 _history.back().parallel_hes_size);
+    _hypergraph_pruner.restoreParallelHyperedges(_hg, _history.back());
   }
 
   void restoreSingleNodeHyperedges() noexcept {
-    _hypergraph_pruner.restoreSingleNodeHyperedges(_hg,
-                                                   _history.back().one_pin_hes_begin,
-                                                   _history.back().one_pin_hes_size);
+    _hypergraph_pruner.restoreSingleNodeHyperedges(_hg, _history.back());
   }
 
   void initializeRefiner(IRefiner& refiner) noexcept {

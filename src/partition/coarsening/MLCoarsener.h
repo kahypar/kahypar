@@ -99,7 +99,7 @@ class MLCoarsener final : public ICoarsener,
             already_matched.set(hn, true);
             already_matched.set(rating.target, true);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
-            contract(hn, rating.target);
+            performContraction(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
             // }
@@ -117,13 +117,6 @@ class MLCoarsener final : public ICoarsener,
       ++pass_nr;
     }
   }
-
-  void contract(const HypernodeID representative, const HypernodeID contraction_partner) {
-    performContraction(representative, contraction_partner);
-    removeSingleNodeHyperedges(representative);
-    removeParallelHyperedges(representative, contraction_partner);
-  }
-
   Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);

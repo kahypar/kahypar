@@ -10,6 +10,7 @@
 
 #include "Hypergraph_TestFixtures.h"
 #include "lib/definitions.h"
+#include "partition/coarsening/CoarseningMemento.h"
 #include "partition/coarsening/HypergraphPruner.h"
 
 using::testing::Eq;
@@ -18,6 +19,7 @@ using::testing::Test;
 
 using defs::HypernodeID;
 using defs::PartitionID;
+using partition::CoarseningMemento;
 
 namespace datastructure {
 using Memento = Hypergraph::ContractionMemento;
@@ -367,15 +369,12 @@ TEST_F(AnUncontractionOperation, RestoresHyperedgeSizeOfHyperedgesAffectedByCont
 TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
   std::vector<std::pair<HypernodeID, HypernodeID> > contractions { { 4, 6 }, { 3, 4 }, { 0, 2 },
                                                                    { 0, 1 }, { 0, 5 }, { 0, 3 } };
-  std::stack<std::tuple<Memento, int, int> > contraction_history;
+  std::stack<CoarseningMemento> contraction_history;
   partition::HypergraphPruner hypergraph_pruner(modified_hypergraph.initialNumNodes());
   for (const auto& contraction : contractions) {
     contraction_history.emplace(modified_hypergraph.contract(contraction.first,
-                                                             contraction.second), 0, 0);
-    hypergraph_pruner.removeSingleNodeHyperedges(modified_hypergraph,
-                                                 std::get<0>(contraction_history.top()).u,
-                                                 std::get<1>(contraction_history.top()),
-                                                 std::get<2>(contraction_history.top()));
+                                                             contraction.second));
+    hypergraph_pruner.removeSingleNodeHyperedges(modified_hypergraph, contraction_history.top());
   }
 
   ASSERT_THAT(modified_hypergraph.nodeWeight(0), Eq(7));
@@ -383,9 +382,8 @@ TEST_F(AnUncontractedHypergraph, EqualsTheInitialHypergraphBeforeContraction) {
 
   while (!contraction_history.empty()) {
     hypergraph_pruner.restoreSingleNodeHyperedges(modified_hypergraph,
-                                                  std::get<1>(contraction_history.top()),
-                                                  std::get<2>(contraction_history.top()));
-    modified_hypergraph.uncontract(std::get<0>(contraction_history.top()));
+                                                  contraction_history.top());
+    modified_hypergraph.uncontract(contraction_history.top().contraction_memento);
     contraction_history.pop();
   }
 

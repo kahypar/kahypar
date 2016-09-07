@@ -13,6 +13,7 @@
 #include "lib/definitions.h"
 #include "lib/utils/Math.h"
 #include "lib/utils/Stats.h"
+#include "partition/coarsening/CoarseningMemento.h"
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -61,8 +62,9 @@ class HypergraphPruner {
   HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
   void restoreSingleNodeHyperedges(Hypergraph& hypergraph,
-                                   const int begin, const int size) noexcept {
-    for (int i = begin + size - 1; i >= begin; --i) {
+                                   const CoarseningMemento& memento) noexcept {
+    for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
+         i >= memento.one_pin_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_single_node_hyperedges.size(),
              "Index out of bounds " << i);
       DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
@@ -73,14 +75,16 @@ class HypergraphPruner {
   }
 
   void restoreParallelHyperedges(Hypergraph& hypergraph,
-                                 const int begin, const int size) noexcept {
-    for (int i = begin + size - 1; i >= begin; --i) {
+                                 const CoarseningMemento& memento) noexcept {
+    for (int i = memento.parallel_hes_begin + memento.parallel_hes_size - 1;
+         i >= memento.parallel_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_parallel_hyperedges.size(),
              "Index out of bounds: " << i);
       DBG(dbg_coarsening_parallel_he_removal, "restore HE "
           << _removed_parallel_hyperedges[i].removed_id << " which is parallel to "
           << _removed_parallel_hyperedges[i].representative_id);
-      hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id, _removed_parallel_hyperedges[i].representative_id);
+      hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id,
+                             _removed_parallel_hyperedges[i].representative_id);
       hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
@@ -89,18 +93,18 @@ class HypergraphPruner {
   }
 
   HyperedgeWeight removeSingleNodeHyperedges(Hypergraph& hypergraph,
-                                             const HypernodeID u, int& begin, int& size) noexcept {
+                                             CoarseningMemento& memento) noexcept {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
-    begin = _removed_single_node_hyperedges.size();
-    auto begin_it = hypergraph.incidentEdges(u).first;
-    auto end_it = hypergraph.incidentEdges(u).second;
+    memento.one_pin_hes_begin = _removed_single_node_hyperedges.size();
+    auto begin_it = hypergraph.incidentEdges(memento.contraction_memento.u).first;
+    auto end_it = hypergraph.incidentEdges(memento.contraction_memento.u).second;
     HyperedgeWeight removed_he_weight = 0;
     for (auto he_it = begin_it; he_it != end_it; ++he_it) {
       if (hypergraph.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
         removed_he_weight += hypergraph.edgeWeight(*he_it);
-        ++size;
+        ++memento.one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
         hypergraph.removeEdge(*he_it, false);
         --he_it;
@@ -119,13 +123,11 @@ class HypergraphPruner {
   // This check is only performed, if the sizes of both HEs match - otherwise they can't be
   // parallel. In case we detect a parallel HE, it is removed from the graph and we proceed by
   // checking if there are more fingerprints with the same hash value.
-  HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph, const HypernodeID u,
-                                       const HypernodeID v, int& begin, int& size) noexcept {
-    // ASSERT(_history.top().contraction_memento.u == u,
-    //        "Current coarsening memento does not belong to hypernode" << u);
-    begin = _removed_parallel_hyperedges.size();
+  HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph,
+                                       CoarseningMemento& memento) noexcept {
+    memento.parallel_hes_begin = _removed_parallel_hyperedges.size();
 
-    createFingerprints(hypergraph, u, v);
+    createFingerprints(hypergraph, memento.contraction_memento.u, memento.contraction_memento.v);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
@@ -165,7 +167,7 @@ class HypergraphPruner {
               removed_parallel_hes += 1;
               removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
               _fingerprints[j].id = kInvalidID;
-              ++size;
+              ++memento.parallel_hes_size;
             }
           }
           ++j;
@@ -178,14 +180,15 @@ class HypergraphPruner {
 
 
     ASSERT([&]() {
-        for (auto edge_it = hypergraph.incidentEdges(u).first;
-             edge_it != hypergraph.incidentEdges(u).second; ++edge_it) {
+        for (auto edge_it = hypergraph.incidentEdges(memento.contraction_memento.u).first;
+             edge_it != hypergraph.incidentEdges(memento.contraction_memento.u).second; ++edge_it) {
           _contained_hypernodes.reset();
           for (const HypernodeID pin : hypergraph.pins(*edge_it)) {
             _contained_hypernodes.set(pin, 1);
           }
 
-          for (auto next_edge_it = edge_it + 1; next_edge_it != hypergraph.incidentEdges(u).second;
+          for (auto next_edge_it = edge_it + 1;
+               next_edge_it != hypergraph.incidentEdges(memento.contraction_memento.u).second;
                ++next_edge_it) {
             // size check is necessary. Otherwise we might iterate over the pins of a small HE that
             // is completely contained in a larger one and think that both are parallel.

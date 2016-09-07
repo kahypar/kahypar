@@ -6,6 +6,7 @@
 
 #include "lib/definitions.h"
 
+namespace partition {
 struct CoarseningMemento {
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
@@ -19,3 +20,4 @@ struct CoarseningMemento {
     parallel_hes_size(0),
     contraction_memento(std::move(contraction_memento_)) { }
 };
+}  // namespace partition
