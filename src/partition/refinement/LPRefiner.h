@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include "lib/datastructure/InsertOnlyConnectivitySet.h"
+#include "lib/datastructure/SparseSet.h"
 #include "lib/definitions.h"
 #include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
@@ -26,7 +26,7 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
-using datastructure::InsertOnlyConnectivitySet;
+using datastructure::InsertOnlySparseSet;
 
 namespace partition {
 class LPRefiner final : public IRefiner {
@@ -622,7 +622,7 @@ class LPRefiner final : public IRefiner {
   std::vector<GGain> _tmp_gains;
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
-  InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
+  InsertOnlySparseSet<PartitionID> _tmp_target_parts;
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.

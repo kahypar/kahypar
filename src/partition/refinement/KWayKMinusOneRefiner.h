@@ -19,8 +19,8 @@
 #include "lib/core/TemplateParameterToString.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/FastResetVector.h"
-#include "lib/datastructure/InsertOnlyConnectivitySet.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
+#include "lib/datastructure/SparseSet.h"
 #include "lib/definitions.h"
 #include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
@@ -33,7 +33,7 @@
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
-using datastructure::InsertOnlyConnectivitySet;
+using datastructure::InsertOnlySparseSet;
 
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -1040,7 +1040,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   using FMRefinerBase::_config;
 
   std::vector<Gain> _tmp_gains;
-  InsertOnlyConnectivitySet<PartitionID> _tmp_target_parts;
+  InsertOnlySparseSet<PartitionID> _tmp_target_parts;
   std::vector<RollbackInfo> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
 
