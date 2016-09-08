@@ -12,10 +12,10 @@
 #include <utility>
 #include <vector>
 
-#include "external/fp_compare/Utils.h"
 #include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/macros.h"
+#include "lib/utils/FloatCompare.h"
 
 namespace datastructure {
 template <typename IDType = Mandatory,

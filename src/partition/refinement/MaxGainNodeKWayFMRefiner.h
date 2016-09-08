@@ -14,12 +14,12 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "external/fp_compare/Utils.h"
 #include "lib/core/Mandatory.h"
 #include "lib/core/TemplateParameterToString.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/utils/FloatCompare.h"
 #include "lib/utils/RandomFunctions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
