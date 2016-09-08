@@ -312,8 +312,8 @@ class BinaryHeapBase {
 
 template <typename IDType_, typename KeyType_>
 class BinaryMaxHeap final : public BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType_> >{
-  friend class BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType_> >;
   using Base = BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType_> >;
+  friend Base;
 
  public:
   using IDType = typename BinaryHeapTraits<BinaryMaxHeap>::IDType;
@@ -323,17 +323,6 @@ class BinaryMaxHeap final : public BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType
   BinaryMaxHeap(const IDType& storage_initializer,
                 const KeyType& UNUSED(unused) = 0) noexcept :
     Base(storage_initializer) { }
-
-  using Base::size;
-  using Base::empty;
-  using Base::getKey;
-  using Base::contains;
-  using Base::clear;
-  using Base::updateKey;
-  using Base::updateKeyBy;
-  using Base::pop;
-  using Base::top;
-  using Base::topKey;
 
   friend void swap(BinaryMaxHeap& a, BinaryMaxHeap& b) noexcept {
     using std::swap;
@@ -352,8 +341,8 @@ class BinaryMaxHeap final : public BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType
 
 template <typename IDType_, typename KeyType_>
 class BinaryMinHeap final : public BinaryHeapBase<BinaryMinHeap<IDType_, KeyType_> >{
-  friend class BinaryHeapBase<BinaryMinHeap<IDType_, KeyType_> >;
   using Base = BinaryHeapBase<BinaryMinHeap<IDType_, KeyType_> >;
+  friend Base;
 
  public:
   using IDType = typename BinaryHeapTraits<BinaryMinHeap>::IDType;
@@ -363,17 +352,6 @@ class BinaryMinHeap final : public BinaryHeapBase<BinaryMinHeap<IDType_, KeyType
   BinaryMinHeap(const IDType& storage_initializer,
                 const KeyType& UNUSED(unused) = 0) noexcept :
     Base(storage_initializer) { }
-
-  using Base::size;
-  using Base::empty;
-  using Base::getKey;
-  using Base::contains;
-  using Base::clear;
-  using Base::updateKey;
-  using Base::updateKeyBy;
-  using Base::pop;
-  using Base::top;
-  using Base::topKey;
 
   friend void swap(BinaryMinHeap& a, BinaryMinHeap& b) noexcept {
     using std::swap;
