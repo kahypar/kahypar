@@ -31,8 +31,8 @@ class KWayPriorityQueue {
   using Queue = BinaryMaxHeap<IDType, KeyType>;
 #endif
 
-  static const size_t kInvalidIndex = std::numeric_limits<size_t>::max();
-  static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
+  static constexpr size_t kInvalidIndex = std::numeric_limits<size_t>::max();
+  static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
 
   struct IndexPartMapping {
     PartitionID part;
@@ -339,17 +339,4 @@ class KWayPriorityQueue {
   size_t _num_nonempty_pqs;
   size_t _num_enabled_pqs;
 };
-
-template <typename IDType,
-          typename KeyType,
-          typename MetaKey,
-          bool UseRandomTieBreaking>
-constexpr size_t KWayPriorityQueue<IDType, KeyType, MetaKey,
-                                   UseRandomTieBreaking>::kInvalidIndex;
-template <typename IDType,
-          typename KeyType,
-          typename MetaKey,
-          bool UseRandomTieBreaking>
-constexpr PartitionID KWayPriorityQueue<IDType, KeyType, MetaKey,
-                                        UseRandomTieBreaking>::kInvalidPart;
 }  // namespace datastructure
