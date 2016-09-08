@@ -69,8 +69,10 @@ class KWayFMRefiner final : public IRefiner,
     PartitionID to_part;
   };
 
-  static constexpr PartitionID kLocked = std::numeric_limits<PartitionID>::max();
-  static const PartitionID kFree = -1;
+  enum HEState {
+    free = std::numeric_limits<PartitionID>::max() - 1,
+    locked = std::numeric_limits<PartitionID>::max(),
+  };
 
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
@@ -81,7 +83,7 @@ class KWayFMRefiner final : public IRefiner,
     _performed_moves(),
     _hns_to_activate(),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
-    _locked_hes(_hg.initialNumEdges(), kFree),
+    _locked_hes(_hg.initialNumEdges(), HEState::free),
     _pq(_config.partition.k),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() {
@@ -767,12 +769,12 @@ class KWayFMRefiner final : public IRefiner,
     bool moved_hn_remains_conntected_to_from_part = false;
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
       moved_hn_remains_conntected_to_from_part |= _hg.pinCountInPart(he, from_part) != 0;
-      if (_locked_hes.get(he) != kLocked) {
+      if (_locked_hes.get(he) != HEState::locked) {
         if (_locked_hes.get(he) == to_part) {
           // he is loose
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " maintained state: loose");
           updatePinsOfHyperedgeRemainingLoose(moved_hn, from_part, to_part, he);
-        } else if (_locked_hes.get(he) == kFree) {
+        } else if (_locked_hes.get(he) == HEState::free) {
           // he is free.
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: free -> loose");
           updatePinsOfFreeHyperedgeBecomingLoose(moved_hn, from_part, to_part, he);
@@ -781,7 +783,7 @@ class KWayFMRefiner final : public IRefiner,
           // he is loose and becomes locked after the move
           DBG(dbg_refinement_kaway_locked_hes, "HE " << he << " changed state: loose -> locked");
           updatePinsOfLooseHyperedgeBecomingLocked(moved_hn, from_part, to_part, he);
-          _locked_hes.uncheckedSet(he, kLocked);
+          _locked_hes.uncheckedSet(he, HEState::locked);
         }
       } else {
         // he is locked
@@ -1168,7 +1170,5 @@ class KWayFMRefiner final : public IRefiner,
   StoppingPolicy _stopping_policy;
 };
 
-template <class T, class U>
-const PartitionID KWayFMRefiner<T, U>::kFree;
 #pragma GCC diagnostic pop
 }  // namespace partition

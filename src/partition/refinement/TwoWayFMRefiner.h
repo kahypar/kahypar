@@ -65,8 +65,10 @@ class TwoWayFMRefiner final : public IRefiner,
                                              std::numeric_limits<HyperedgeWeight> >;
   using RebalancePQ = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 
-  static constexpr char kLocked = std::numeric_limits<char>::max();
-  static const char kFree = std::numeric_limits<char>::max() - 1;
+  enum HEState {
+    free = std::numeric_limits<PartitionID>::max() - 1,
+    locked = std::numeric_limits<PartitionID>::max(),
+  };
 
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
@@ -80,7 +82,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _non_border_hns_to_remove(),
     _disabled_rebalance_hns(_hg.initialNumNodes()),
     _gain_cache(_hg.initialNumNodes()),
-    _locked_hes(_hg.initialNumEdges(), kFree),
+    _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy() {
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
     _performed_moves.reserve(_hg.initialNumNodes());
@@ -579,7 +581,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     // TODO(schlag): implement locking of HEs!
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-      ASSERT(_locked_hes.get(he) != kLocked, V(he));
+      ASSERT(_locked_hes.get(he) != HEState::locked, V(he));
       deltaUpdate<true>(from_part, to_part, he);
     }
 
@@ -652,12 +654,12 @@ class TwoWayFMRefiner final : public IRefiner,
     const Gain rb_delta = _gain_cache.delta(moved_hn);
     _gain_cache.setNotCached(moved_hn);
     for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-      if (_locked_hes.get(he) != kLocked) {
+      if (_locked_hes.get(he) != HEState::locked) {
         if (_locked_hes.get(he) == to_part) {
           // he is loose
           deltaUpdate(from_part, to_part, he);
           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " maintained state: loose");
-        } else if (_locked_hes.get(he) == kFree) {
+        } else if (_locked_hes.get(he) == HEState::free) {
           // he is free.
           fullUpdate(from_part, to_part, he);
           _locked_hes.set(he, to_part);
@@ -665,7 +667,7 @@ class TwoWayFMRefiner final : public IRefiner,
         } else {
           // he is loose and becomes locked after the move
           fullUpdate(from_part, to_part, he);
-          _locked_hes.uncheckedSet(he, kLocked);
+          _locked_hes.uncheckedSet(he, HEState::locked);
           DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
         }
       } else {
@@ -1014,12 +1016,9 @@ class TwoWayFMRefiner final : public IRefiner,
   std::vector<HypernodeID> _non_border_hns_to_remove;
   SparseSet<HypernodeID> _disabled_rebalance_hns;
   GainCache<Gain> _gain_cache;
-  FastResetVector<char> _locked_hes;
+  FastResetVector<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
 };
-
-template <class T, typename B, class U>
-const char TwoWayFMRefiner<T, B, U>::kFree;
 
 #pragma GCC diagnostic pop
 }                                   // namespace partition
