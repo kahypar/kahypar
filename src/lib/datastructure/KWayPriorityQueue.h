@@ -8,11 +8,11 @@
 #include <limits>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
 #include "lib/datastructure/BinaryHeap.h"
 #include "lib/datastructure/EnhancedBucketQueue.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
+#include "lib/meta/Mandatory.h"
 #include "lib/utils/RandomFunctions.h"
 
 using defs::PartitionID;

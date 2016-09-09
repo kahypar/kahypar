@@ -6,7 +6,7 @@
 
 #include <tuple>
 
-namespace core {
+namespace meta {
 // based on: http://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda
 
 template <typename T>

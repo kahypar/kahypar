@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "lib/core/PolicyRegistry.h"
+#include "lib/meta/PolicyRegistry.h"
 
-namespace core {
+namespace meta {
 template <int v = 0>
 struct Int2Type {
   enum { value = v };
 };
-}  // namespace core
+}  // namespace meta

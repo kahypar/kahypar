@@ -4,6 +4,6 @@
 
 #pragma once
 
-namespace core {
+namespace meta {
 struct Empty { };
-}  // namespace core
+}  // namespace meta

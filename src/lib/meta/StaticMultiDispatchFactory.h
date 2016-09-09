@@ -6,12 +6,12 @@
 
 #include <string>
 
-#include "lib/core/FunctionTraits.h"
-#include "lib/core/Mandatory.h"
-#include "lib/core/Typelist.h"
+#include "lib/meta/FunctionTraits.h"
+#include "lib/meta/Mandatory.h"
+#include "lib/meta/Typelist.h"
 #include "lib/macros.h"
 
-namespace core {
+namespace meta {
 /*!
  * Generalization of StaticDoubleDispatchFactory to support 'true multiple' dispatch.
  * The factory allows to instantiate a concrete Product that uses
@@ -228,4 +228,4 @@ class StaticMultiDispatchFactory<Product,
       std::get<Is>(std::forward<std::tuple<Parameters ...> >(params)) ...);
   }
 };
-}  // namespace core
+}  // namespace meta

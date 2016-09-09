@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "lib/core/Factory.h"
-#include "lib/core/PolicyRegistry.h"
-#include "lib/core/StaticDoubleDispatchFactory.h"
-#include "lib/core/StaticMultiDispatchFactory.h"
-#include "lib/core/Typelist.h"
+#include "lib/meta/Factory.h"
+#include "lib/meta/PolicyRegistry.h"
+#include "lib/meta/StaticDoubleDispatchFactory.h"
+#include "lib/meta/StaticMultiDispatchFactory.h"
+#include "lib/meta/Typelist.h"
 #include "partition/coarsening/DoNothingCoarsener.h"
 #include "partition/coarsening/FullHeavyEdgeCoarsener.h"
 #include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
@@ -27,12 +27,12 @@
 #include "partition/refinement/policies/FMStopPolicies.h"
 #include "partition/refinement/policies/TwoFMRebalancePolicies.h"
 
-using core::Factory;
-using core::PolicyRegistry;
-using core::NullPolicy;
-using core::StaticDoubleDispatchFactory;
-using core::StaticMultiDispatchFactory;
-using core::Typelist;
+using meta::Factory;
+using meta::PolicyRegistry;
+using meta::NullPolicy;
+using meta::StaticDoubleDispatchFactory;
+using meta::StaticMultiDispatchFactory;
+using meta::Typelist;
 using partition::AdvancedRandomWalkModelStopsSearch;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;

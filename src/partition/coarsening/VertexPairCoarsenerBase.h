@@ -11,16 +11,16 @@
 #include <utility>
 #include <vector>
 
-#include "lib/core/Int2Type.h"
 #include "lib/datastructure/BinaryHeap.h"
 #include "lib/definitions.h"
+#include "lib/meta/Int2Type.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/coarsening/CoarsenerBase.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
 
-using core::Int2Type;
+using meta::Int2Type;
 using datastructure::BinaryMaxHeap;
 using defs::Hypergraph;
 using defs::HypernodeID;
@@ -38,7 +38,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
  public:
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
-                         const HypernodeWeight weight_of_heaviest_node) noexcept :
+                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     CoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
 

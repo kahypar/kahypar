@@ -8,10 +8,10 @@
 #include <utility>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
-#include "lib/core/TemplateParameterToString.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/definitions.h"
+#include "lib/meta/Mandatory.h"
+#include "lib/meta/TemplateParameterToString.h"
 #include "lib/utils/Stats.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/VertexPairCoarsenerBase.h"

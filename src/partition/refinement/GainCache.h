@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
+#include "lib/meta/Mandatory.h"
 
 namespace partition {
 template <typename T = Mandatory>

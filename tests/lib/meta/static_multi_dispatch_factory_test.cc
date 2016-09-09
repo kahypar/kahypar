@@ -4,16 +4,16 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/core/Factory.h"
-#include "lib/core/PolicyRegistry.h"
-#include "lib/core/Registrar.h"
-#include "lib/core/StaticMultiDispatchFactory.h"
+#include "lib/meta/Factory.h"
+#include "lib/meta/PolicyRegistry.h"
+#include "lib/meta/Registrar.h"
+#include "lib/meta/StaticMultiDispatchFactory.h"
 #include "lib/definitions.h"
 
 using::testing::Eq;
 using::testing::Test;
 
-namespace core {
+namespace meta {
 // The policies
 struct PrintChar : PolicyBase { };
 struct PrintInt : PolicyBase { };
@@ -206,4 +206,4 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   ASSERT_THAT(z99star_printer->printInt(), Eq("99"));
   ASSERT_THAT(z99star_printer->printSymbol(), Eq("*"));
 }
-}  // namespace core
+}  // namespace meta

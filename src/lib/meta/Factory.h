@@ -7,14 +7,14 @@
 #include <memory>
 #include <unordered_map>
 
-#include "lib/core/FunctionTraits.h"
-#include "lib/core/Mandatory.h"
+#include "lib/meta/FunctionTraits.h"
+#include "lib/meta/Mandatory.h"
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 
 using partition::toString;
 
-namespace core {
+namespace meta {
 template <typename IdentifierType = Mandatory,
           typename ProductCreator = Mandatory>
 class Factory {
@@ -59,4 +59,4 @@ class Factory {
     _callbacks() { }
   CallbackMap _callbacks;
 };
-}  // namespace core
+}  // namespace meta

@@ -12,8 +12,8 @@
 #include <utility>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
+#include "lib/meta/Mandatory.h"
 #include "lib/utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"

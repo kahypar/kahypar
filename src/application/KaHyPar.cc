@@ -9,10 +9,10 @@
 
 #include "lib/definitions.h"
 
-#include "lib/core/Registrar.h"
 #include "lib/io/HypergraphIO.h"
 #include "lib/io/PartitioningOutput.h"
 #include "lib/macros.h"
+#include "lib/meta/Registrar.h"
 #include "lib/utils/RandomFunctions.h"
 #include "lib/utils/SQLPlotToolsSerializer.h"
 #include "partition/Configuration.h"
@@ -31,7 +31,7 @@
 
 namespace po = boost::program_options;
 
-using core::Registrar;
+using meta::Registrar;
 using partition::Partitioner;
 using partition::InitialPartitioner;
 using partition::Configuration;

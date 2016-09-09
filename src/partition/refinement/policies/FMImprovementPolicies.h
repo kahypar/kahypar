@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "lib/core/PolicyRegistry.h"
+#include "lib/meta/PolicyRegistry.h"
 
-using core::PolicyBase;
+using meta::PolicyBase;
 
 namespace partition {
 struct ImprovementPolicy : PolicyBase { };

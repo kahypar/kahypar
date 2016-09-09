@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "lib/core/PolicyRegistry.h"
 #include "lib/macros.h"
+#include "lib/meta/PolicyRegistry.h"
 #include "partition/Configuration.h"
 
-using core::PolicyBase;
+using meta::PolicyBase;
 
 namespace partition {
 struct StoppingPolicy : PolicyBase {

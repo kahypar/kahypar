@@ -8,8 +8,8 @@
 #include <memory>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
 #include "lib/definitions.h"
+#include "lib/meta/Mandatory.h"
 
 namespace partition {
 struct GGain {

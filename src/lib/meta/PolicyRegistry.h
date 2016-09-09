@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace core {
+namespace meta {
 struct PolicyBase {
   virtual ~PolicyBase() { }
 };
@@ -48,4 +48,4 @@ class PolicyRegistry {
     _policies() { }
   PolicyMap _policies;
 };
-}  // namespace core
+}  // namespace meta

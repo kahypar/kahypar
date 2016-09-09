@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace core {
+namespace meta {
 class NullType { };
 // default variadic template
 template <typename ... Args>
@@ -63,4 +63,4 @@ template <typename ... Lists>
 struct concat {
   using type = typename flatMap<Typelist<Lists ...> >::type;
 };
-}  // namespace core
+}  // namespace meta

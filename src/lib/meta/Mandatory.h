@@ -8,7 +8,7 @@
 
 #include <type_traits>
 
-namespace core {
+namespace meta {
 struct unspecified_type;
 
 template <typename SomeType>
@@ -19,9 +19,9 @@ class MandatoryTemplateArgument {
                 "You forgot to specify a mandatory template argument which cannot be deduced."
                 );
 };
-}  // namespace core
+}  // namespace meta
 
-using Mandatory = core::MandatoryTemplateArgument<core::unspecified_type>;
+using Mandatory = meta::MandatoryTemplateArgument<meta::unspecified_type>;
 
 template <typename T>
-using MandatoryTemplate = core::MandatoryTemplateArgument<T>;
+using MandatoryTemplate = meta::MandatoryTemplateArgument<T>;

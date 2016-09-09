@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "lib/core/Mandatory.h"
+#include "lib/meta/Mandatory.h"
 
-namespace core {
+namespace meta {
 template <typename Factory = Mandatory>
 class Registrar {
  public:
@@ -16,4 +16,4 @@ class Registrar {
     Factory::getInstance().registerObject(id, classFactoryFunction);
   }
 };
-}  // namespace core
+}  // namespace meta

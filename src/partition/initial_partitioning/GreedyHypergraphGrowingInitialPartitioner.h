@@ -9,10 +9,10 @@
 #include <limits>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
 #include "lib/datastructure/FastResetBitVector.h"
 #include "lib/datastructure/KWayPriorityQueue.h"
 #include "lib/definitions.h"
+#include "lib/meta/Mandatory.h"
 #include "lib/utils/RandomFunctions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"

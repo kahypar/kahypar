@@ -19,18 +19,18 @@
 #include "partition/ConfigurationEnumClasses.h"
 
 #include "gtest/gtest_prod.h"
-#include "lib/core/Empty.h"
-#include "lib/core/Int2Type.h"
-#include "lib/core/Mandatory.h"
 #include "lib/datastructure/ConnectivitySets.h"
 #include "lib/datastructure/IncidenceSet.h"
 #include "lib/definitions.h"
 #include "lib/macros.h"
+#include "lib/meta/Empty.h"
+#include "lib/meta/Int2Type.h"
+#include "lib/meta/Mandatory.h"
 #include "lib/utils/Math.h"
 
 
-using core::Empty;
-using core::Int2Type;
+using meta::Empty;
+using meta::Int2Type;
 using partition::RefinementAlgorithm;
 
 namespace datastructure {

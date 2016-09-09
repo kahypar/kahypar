@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "lib/core/Mandatory.h"
-#include "lib/core/Typelist.h"
+#include "lib/meta/Mandatory.h"
+#include "lib/meta/Typelist.h"
 
-namespace core {
+namespace meta {
 template <
   class Executor = Mandatory,
   class TypesLhs = Mandatory,
@@ -84,4 +84,4 @@ class StaticDoubleDispatchFactory<Executor, TypesLhs, NullType, ResultType>{
     return exec.onError(lhs, rhs, std::forward<Parameters>(parameters) ...);
   }
 };
-}  // namespace core
+}  // namespace meta

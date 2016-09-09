@@ -7,7 +7,7 @@
 #include <limits>
 #include <vector>
 
-#include "lib/core/Mandatory.h"
+#include "lib/meta/Mandatory.h"
 
 namespace datastructure {
 template <typename T = Mandatory>
