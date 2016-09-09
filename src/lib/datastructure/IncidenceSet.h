@@ -28,7 +28,6 @@ class IncidenceSet {
     _end(nullptr),
     _size(0),
     _max_size(0),
-    _max_sparse_size(0),
     _mask(0) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
 
@@ -49,12 +48,10 @@ class IncidenceSet {
     _end(other._end),
     _size(other._size),
     _max_size(other._max_size),
-    _max_sparse_size(other._max_sparse_size),
     _mask(other._mask) {
     other._end = nullptr;
     other._max_size = 0;
     other._size = 0;
-    other._max_sparse_size = 0;
     other._memory = nullptr;
     other._mask = 0;
   }
@@ -142,13 +139,13 @@ class IncidenceSet {
     swap(_end, other._end);
     swap(_size, other._size);
     swap(_max_size, other._max_size);
-    swap(_max_sparse_size, other._max_sparse_size);
+    swap(_mask, other._mask);
   }
 
   bool contains(const T key) const {
     const Position start_position = desiredPosition(key);
-    const Position before = start_position == 0 ? _max_sparse_size - 1 : start_position - 1;
-    for (Position position = start_position; position < _max_sparse_size;
+    const Position before = start_position == 0 ? _mask : start_position - 1;
+    for (Position position = start_position; position <= _mask;
          position = (position + 1) & _mask) {
       if (sparse()[position].first == empty) {
         return false;
@@ -197,7 +194,7 @@ class IncidenceSet {
 
   Position find(const T key) const {
     const Position start_position = desiredPosition(key);
-    for (Position position = start_position; position < _max_sparse_size;
+    for (Position position = start_position; position <= _mask;
          position = (position + 1) & _mask) {
       if (sparse()[position].first == key) {
         return position;
@@ -208,7 +205,7 @@ class IncidenceSet {
 
   Position nextFreeSlot(const T key) const {
     const Position start_position = desiredPosition(key);
-    for (Position position = start_position; position < _max_sparse_size;
+    for (Position position = start_position; position <= _mask;
          position = (position + 1) & _mask) {
       if (sparse()[position].first >= deleted) {
         ASSERT(sparse()[position].first == empty ||
@@ -228,7 +225,7 @@ class IncidenceSet {
   }
 
   size_t sizeOfSparse() const {
-    return _max_sparse_size * sizeof(std::pair<T, T>);
+    return (_mask + 1) * sizeof(std::pair<T, T>);
   }
 
 
@@ -248,8 +245,7 @@ class IncidenceSet {
   void allocate(const size_t max_size) {
     _size = 0;
     _max_size = utils::nextPowerOfTwoCeiled(max_size + 1);
-    _max_sparse_size = InitialSizeFactor * _max_size;
-    _mask = _max_sparse_size - 1;
+    _mask = (InitialSizeFactor * _max_size) - 1;
 
     _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
     _end = _memory;
@@ -260,7 +256,7 @@ class IncidenceSet {
     // sentinel for peek() operation of incidence set
     new(dense() + _max_size)T(std::numeric_limits<T>::max());
 
-    for (T i = 0; i < _max_sparse_size; ++i) {
+    for (T i = 0; i <= _mask; ++i) {
       new (sparse() + i)Element(empty, empty);
     }
   }
@@ -285,7 +281,6 @@ class IncidenceSet {
   T* _end;
   T _size;
   T _max_size;
-  T _max_sparse_size;
   T _mask;
 };
 }  // namespace datastructure
