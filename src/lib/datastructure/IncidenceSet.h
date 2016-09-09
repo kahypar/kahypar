@@ -277,6 +277,10 @@ class IncidenceSet {
     return reinterpret_cast<const Element*>(dense() + _max_size + 1);
   }
 
+  std::int32_t mod(std::int32_t a, std::int32_t b) const {
+    return (a % b + b) % b;
+  }
+
   T* _memory;
   T* _end;
   T _size;
