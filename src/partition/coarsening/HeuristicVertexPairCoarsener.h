@@ -25,7 +25,7 @@ namespace partition {
 static const bool dbg_coarsening_removed_hes = false;
 
 template <class Rater = Mandatory>
-class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
+class HeuristicVertexPairCoarsener final : public ICoarsener,
                                           private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
@@ -35,7 +35,7 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
   using TargetToSourcesMap = std::unordered_multimap<HypernodeID, HypernodeID>;
 
  public:
-  HeuristicHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  HeuristicVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
                               const HypernodeWeight weight_of_heaviest_node) noexcept :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
@@ -43,13 +43,13 @@ class HeuristicHeavyEdgeCoarsener final : public ICoarsener,
     _sources(hypergraph.initialNumNodes()),
     _just_updated(_hg.initialNumNodes()) { }
 
-  virtual ~HeuristicHeavyEdgeCoarsener() { }
+  virtual ~HeuristicVertexPairCoarsener() { }
 
-  HeuristicHeavyEdgeCoarsener(const HeuristicHeavyEdgeCoarsener&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator= (const HeuristicHeavyEdgeCoarsener&) = delete;
+  HeuristicVertexPairCoarsener(const HeuristicVertexPairCoarsener&) = delete;
+  HeuristicVertexPairCoarsener& operator= (const HeuristicVertexPairCoarsener&) = delete;
 
-  HeuristicHeavyEdgeCoarsener(HeuristicHeavyEdgeCoarsener&&) = delete;
-  HeuristicHeavyEdgeCoarsener& operator= (HeuristicHeavyEdgeCoarsener&&) = delete;
+  HeuristicVertexPairCoarsener(HeuristicVertexPairCoarsener&&) = delete;
+  HeuristicVertexPairCoarsener& operator= (HeuristicVertexPairCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

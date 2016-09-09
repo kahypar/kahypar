@@ -11,7 +11,7 @@
 
 #include "lib/definitions.h"
 #include "partition/Partitioner.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/HeuristicVertexPairCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/refinement/IRefiner.h"
@@ -24,7 +24,7 @@ using partition::InitialPartitioner;
 using partition::Rater;
 using partition::ICoarsener;
 using partition::IRefiner;
-using partition::HeuristicHeavyEdgeCoarsener;
+using partition::HeuristicVertexPairCoarsener;
 using partition::Partitioner;
 using partition::FirstRatingWins;
 using partition::Configuration;
@@ -201,7 +201,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 };
 
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitionOfAHypergraph : public Test {

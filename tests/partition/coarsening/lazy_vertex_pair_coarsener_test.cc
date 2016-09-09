@@ -6,14 +6,14 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "partition/coarsening/FullHeavyEdgeCoarsener.h"
-#include "HeavyEdgeCoarsener_TestFixtures.h"
+#include "partition/coarsening/LazyVertexPairCoarsener.h"
+#include "VertexPairCoarsener_TestFixtures.h"
 
 using defs::Hypergraph;
 
 namespace partition {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
-using CoarsenerType = FullHeavyEdgeCoarsener<FirstWinsRater>;
+using CoarsenerType = LazyVertexPairCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
  public:
@@ -64,53 +64,20 @@ TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
   doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, config);
 }
 
-// accesses private coarsener internals and therefore cannot be extracted easily
-TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
-  coarsener.coarsen(6);
-  ASSERT_THAT(hypergraph->nodeIsEnabled(2), Eq(false));
-  ASSERT_THAT(coarsener._history.back().contraction_memento.u, Eq(0));
-  ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
-}
-
-TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
-  Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 2 },
-                        HyperedgeVector { 0, 1 });
-
-  Configuration config;
-  config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
-
-  coarsener.coarsen(1);
-
-  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
-  ASSERT_THAT(hypergraph.nodeIsEnabled(1), Eq(false));
-  ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
-}
-
-TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
-  HyperedgeIndexVector index_vector;
-  HyperedgeVector edge_vector;
+TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
+  Hypergraph hypergraph(5, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 7 },
+                        HyperedgeVector { 0, 1, 0, 1, 2, 3, 4 });
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
-  config.coarsening.max_allowed_node_weight = 3;
-  std::string graph_file("../../../../special_instances/bad_for_ec.hgr");
-  HypernodeID num_hypernodes;
-  HyperedgeID num_hyperedges;
-  io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  CoarsenerType coarsener(hypergraph, config, 1);
-  coarsener.coarsen(5);
+  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
+
+  coarsener.coarsen(4);
   hypergraph.printGraphState();
-  ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(3), Eq(1));
-  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(7), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(3));
-  ASSERT_THAT(hypergraph.edgeWeight(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(4), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(5), Eq(2));
-  ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
+
+  // representative should have new up-to-date rating
+  ASSERT_THAT(coarsener._outdated_rating[0], Eq(false));
+  ASSERT_THAT(coarsener._outdated_rating[2], Eq(true));
+  ASSERT_THAT(coarsener._outdated_rating[3], Eq(true));
+  ASSERT_THAT(coarsener._outdated_rating[4], Eq(true));
 }
 }  // namespace partition

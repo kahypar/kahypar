@@ -23,7 +23,7 @@ using datastructure::FastResetBitVector;
 
 namespace partition {
 template <class Rater = Mandatory>
-class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
+class LazyVertexPairCoarsener final : public ICoarsener,
                                            private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
@@ -37,7 +37,7 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
   };
 
  public:
-  LazyUpdateHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  LazyVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
                                const HypernodeWeight weight_of_heaviest_node) noexcept :
     Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
@@ -48,13 +48,13 @@ class LazyUpdateHeavyEdgeCoarsener final : public ICoarsener,
     LOG("Press any key to continue.");
   }
 
-  virtual ~LazyUpdateHeavyEdgeCoarsener() { }
+  virtual ~LazyVertexPairCoarsener() { }
 
-  LazyUpdateHeavyEdgeCoarsener(const LazyUpdateHeavyEdgeCoarsener&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator= (const LazyUpdateHeavyEdgeCoarsener&) = delete;
+  LazyVertexPairCoarsener(const LazyVertexPairCoarsener&) = delete;
+  LazyVertexPairCoarsener& operator= (const LazyVertexPairCoarsener&) = delete;
 
-  LazyUpdateHeavyEdgeCoarsener(LazyUpdateHeavyEdgeCoarsener&&) = delete;
-  LazyUpdateHeavyEdgeCoarsener& operator= (LazyUpdateHeavyEdgeCoarsener&&) = delete;
+  LazyVertexPairCoarsener(LazyVertexPairCoarsener&&) = delete;
+  LazyVertexPairCoarsener& operator= (LazyVertexPairCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);

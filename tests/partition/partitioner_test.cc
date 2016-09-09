@@ -8,7 +8,7 @@
 #include "lib/macros.h"
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/HeuristicVertexPairCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 #include "partition/refinement/TwoWayFMRefiner.h"
@@ -23,7 +23,7 @@ using defs::HyperedgeVector;
 
 namespace partition {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {

@@ -6,14 +6,14 @@
 
 #include "lib/definitions.h"
 #include "lib/io/HypergraphIO.h"
-#include "HeavyEdgeCoarsener_TestFixtures.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/HeuristicVertexPairCoarsener.h"
+#include "VertexPairCoarsener_TestFixtures.h"
 
 using defs::Hypergraph;
 
 namespace partition {
 using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
-using CoarsenerType = HeuristicHeavyEdgeCoarsener<FirstWinsRater>;
+using CoarsenerType = HeuristicVertexPairCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
  public:

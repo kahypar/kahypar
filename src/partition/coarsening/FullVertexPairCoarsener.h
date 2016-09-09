@@ -24,7 +24,7 @@ using datastructure::FastResetBitVector;
 
 namespace partition {
 template <class Rater = Mandatory>
-class FullHeavyEdgeCoarsener final : public ICoarsener,
+class FullVertexPairCoarsener final : public ICoarsener,
                                      private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
@@ -40,19 +40,19 @@ class FullHeavyEdgeCoarsener final : public ICoarsener,
   };
 
  public:
-  FullHeavyEdgeCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  FullVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()) { }
 
-  virtual ~FullHeavyEdgeCoarsener() { }
+  virtual ~FullVertexPairCoarsener() { }
 
-  FullHeavyEdgeCoarsener(const FullHeavyEdgeCoarsener&) = delete;
-  FullHeavyEdgeCoarsener& operator= (const FullHeavyEdgeCoarsener&) = delete;
+  FullVertexPairCoarsener(const FullVertexPairCoarsener&) = delete;
+  FullVertexPairCoarsener& operator= (const FullVertexPairCoarsener&) = delete;
 
-  FullHeavyEdgeCoarsener(FullHeavyEdgeCoarsener&&) = delete;
-  FullHeavyEdgeCoarsener& operator= (FullHeavyEdgeCoarsener&&) = delete;
+  FullVertexPairCoarsener(FullVertexPairCoarsener&&) = delete;
+  FullVertexPairCoarsener& operator= (FullVertexPairCoarsener&&) = delete;
 
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);

@@ -10,10 +10,10 @@
 #include "lib/meta/StaticMultiDispatchFactory.h"
 #include "lib/meta/Typelist.h"
 #include "partition/coarsening/DoNothingCoarsener.h"
-#include "partition/coarsening/FullHeavyEdgeCoarsener.h"
-#include "partition/coarsening/HeuristicHeavyEdgeCoarsener.h"
+#include "partition/coarsening/FullVertexPairCoarsener.h"
+#include "partition/coarsening/HeuristicVertexPairCoarsener.h"
 #include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/LazyUpdateHeavyEdgeCoarsener.h"
+#include "partition/coarsening/LazyVertexPairCoarsener.h"
 #include "partition/coarsening/MLCoarsener.h"
 #include "partition/coarsening/Rater.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
@@ -83,8 +83,8 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
 
 
 using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
-using RandomWinsHeuristicCoarsener = HeuristicHeavyEdgeCoarsener<RandomWinsRater>;
-using RandomWinsFullCoarsener = FullHeavyEdgeCoarsener<RandomWinsRater>;
-using RandomWinsLazyUpdateCoarsener = LazyUpdateHeavyEdgeCoarsener<RandomWinsRater>;
+using RandomWinsHeuristicCoarsener = HeuristicVertexPairCoarsener<RandomWinsRater>;
+using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
+using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRater>;
 }  // namespace partition
