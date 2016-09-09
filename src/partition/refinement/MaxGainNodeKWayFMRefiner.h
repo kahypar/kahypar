@@ -32,6 +32,7 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
+using defs::Gain;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 
@@ -52,8 +53,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
   using GainPartitionPair = std::pair<Gain, PartitionID>;
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                             std::numeric_limits<HyperedgeWeight> >;
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+                                             std::numeric_limits<Gain> >;
 
   struct GainConnectivity {
     Gain gain;

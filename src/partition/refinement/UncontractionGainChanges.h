@@ -8,12 +8,10 @@
 
 #include "lib/definitions.h"
 
+using defs::Gain;
+
 namespace partition {
 struct UncontractionGainChanges {
- private:
-  using Gain = defs::HyperedgeWeight;
-
- public:
   UncontractionGainChanges() :
     representative(),
     contraction_partner() { }

@@ -12,15 +12,13 @@
 using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
+using defs::Gain;
 
 namespace partition {
 static const bool dbg_refinement_fm_border_node_check = false;
 static const bool dbg_refinement_kway_fm_move = false;
 
 class FMRefinerBase {
- public:
-  using Gain = HyperedgeWeight;
-
  protected:
   static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();

@@ -11,9 +11,10 @@
 #include "lib/definitions.h"
 #include "lib/meta/Mandatory.h"
 
+using defs::Gain;
+
 namespace partition {
 struct GGain {
-  using Gain = defs::HyperedgeWeight;
   Gain cut;
   Gain km1;
 

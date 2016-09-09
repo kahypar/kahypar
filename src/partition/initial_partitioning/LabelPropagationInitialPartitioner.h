@@ -25,7 +25,7 @@ using defs::Hypergraph;
 using defs::HypernodeWeight;
 using defs::HypernodeID;
 using defs::HyperedgeID;
-using Gain = defs::HyperedgeWeight;
+using defs::Gain;
 
 
 namespace partition {

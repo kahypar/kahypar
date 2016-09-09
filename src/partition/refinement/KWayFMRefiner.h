@@ -40,6 +40,7 @@ using defs::HyperedgeID;
 using defs::PartitionID;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
+using defs::Gain;
 
 namespace partition {
 #pragma GCC diagnostic push
@@ -58,8 +59,8 @@ class KWayFMRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_infeasible_moves = false;
   static const bool dbg_refinement_kway_gain_caching = false;
   static const HypernodeID hn_to_debug = 4242;
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                             std::numeric_limits<HyperedgeWeight> >;
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+                                             std::numeric_limits<Gain> >;
 
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
 

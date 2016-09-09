@@ -39,6 +39,7 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
+using defs::Gain;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 
@@ -59,7 +60,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_kminusone_gain_caching = false;
   static const HypernodeID hn_to_debug = 5589;
 
-  using Gain = HyperedgeWeight;
   using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
                                              std::numeric_limits<Gain> >;
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;

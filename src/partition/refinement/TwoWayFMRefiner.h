@@ -40,6 +40,7 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
+using defs::Gain;
 using defs::HyperedgeWeight;
 using defs::HypernodeWeight;
 using defs::IncidenceIterator;
@@ -61,9 +62,9 @@ template <class StoppingPolicy = Mandatory,
 class TwoWayFMRefiner final : public IRefiner,
                               private FMRefinerBase {
  private:
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                             std::numeric_limits<HyperedgeWeight> >;
-  using RebalancePQ = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+                                             std::numeric_limits<Gain> >;
+  using RebalancePQ = BinaryMaxHeap<HypernodeID, Gain>;
 
   enum HEState {
     free = std::numeric_limits<PartitionID>::max() - 1,

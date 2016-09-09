@@ -24,13 +24,13 @@ using defs::Hypergraph;
 using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
+using defs::Gain;
 using defs::HypernodeWeight;
 using defs::HyperedgeWeight;
 using datastructure::InsertOnlySparseSet;
 
 namespace partition {
 class LPRefiner final : public IRefiner {
-  using Gain = HyperedgeWeight;
   using GainPartitionPair = std::pair<Gain, PartitionID>;
 
   using GainCache = LPGainCache<HypernodeID, PartitionID>;

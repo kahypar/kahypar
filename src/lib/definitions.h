@@ -23,6 +23,7 @@ using HyperedgeID = std::uint32_t;
 using HypernodeWeight = std::uint32_t;
 using HyperedgeWeight = std::int32_t;
 using PartitionID = std::int32_t;
+using Gain = HyperedgeWeight;
 
 using Hypergraph = datastructure::GenericHypergraph<HypernodeID,
                                                     HyperedgeID, HypernodeWeight,

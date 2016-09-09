@@ -21,17 +21,18 @@
 using defs::HypernodeWeight;
 using datastructure::KWayPriorityQueue;
 
-using Gain = HyperedgeWeight;
+using defs::Gain;
 
 namespace partition {
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, true>;
-
 template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory,
           class QueueSelection = Mandatory>
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase {
+ private:
+  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+                                             std::numeric_limits<Gain>, true>;
+
  public:
   GreedyHypergraphGrowingInitialPartitioner(Hypergraph& hypergraph,
                                             Configuration& config) :

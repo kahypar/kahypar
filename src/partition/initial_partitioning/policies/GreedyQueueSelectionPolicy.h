@@ -15,13 +15,13 @@ using defs::HypernodeID;
 using defs::HyperedgeID;
 using defs::PartitionID;
 using defs::Hypergraph;
+using defs::Gain;
 using datastructure::KWayPriorityQueue;
 
+using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+                                           std::numeric_limits<Gain>, true>;
 
 namespace partition {
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, true>;
-
 struct RoundRobinQueueSelectionPolicy {
   // Method returns the part which all hypernodes has to be assigned to before
   // initial partitioning. In experimental results we recognize that it is
