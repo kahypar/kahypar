@@ -26,7 +26,7 @@
 #include "partition/initial_partitioning/random_initial_partitioner.h"
 #include "partition/metrics.h"
 #include "partition/partitioner.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 #include "utils/sql_plottools_serializer.h"
 
 namespace po = boost::program_options;
@@ -566,13 +566,6 @@ void processCommandLineInput(Configuration& config, std::string& result_file,
   }
 }
 
-int Randomize::_seed = -1;
-std::mt19937 Randomize::_gen;
-std::uniform_int_distribution<int> Randomize::_bool_dist(0, 1);
-std::uniform_int_distribution<int> Randomize::_int_dist(0, std::numeric_limits<int>::max());
-std::uniform_real_distribution<float> Randomize::_float_dist(0, 1);
-std::normal_distribution<float> Randomize::_norm_dist(0, 1);
-
 int main(int argc, char* argv[]) {
   Configuration config;
   std::string result_file;
@@ -586,7 +579,7 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-  Randomize::setSeed(config.partition.seed);
+  Randomize::instance().setSeed(config.partition.seed);
 
   Hypergraph hypergraph(
     io::createHypergraphFromFile(config.partition.graph_filename,

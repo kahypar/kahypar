@@ -52,7 +52,7 @@ void initializeConfiguration(Hypergraph& hg, Configuration& config,
     config.initial_partitioning.upper_allowed_partition_weight[0];
   config.partition.max_part_weights[1] =
     config.initial_partitioning.upper_allowed_partition_weight[1];
-  Randomize::setSeed(config.partition.seed);
+  Randomize::instance().setSeed(config.partition.seed);
 }
 
 template <typename StartNodeSelection, typename GainComputation>

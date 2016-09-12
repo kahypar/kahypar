@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 namespace partition {
 struct LastRatingWins {
@@ -28,7 +28,7 @@ struct FirstRatingWins {
 struct RandomRatingWins {
  public:
   static bool acceptEqual() noexcept {
-    return Randomize::flipCoin();
+    return Randomize::instance().flipCoin();
   }
 
  protected:

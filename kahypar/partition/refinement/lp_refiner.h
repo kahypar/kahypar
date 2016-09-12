@@ -19,7 +19,7 @@
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/lp_gain_cache.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::InsertOnlySparseSet;
 using datastructure::FastResetVector;
@@ -101,7 +101,7 @@ class LPRefiner final : public IRefiner {
       current_cut = best_metrics.cut;
       current_imbalance = best_metrics.imbalance;
 
-      Randomize::shuffleVector(_cur_queue, _cur_queue.size());
+      Randomize::instance().shuffleVector(_cur_queue, _cur_queue.size());
       for (const auto& hn : _cur_queue) {
         const auto& gain_pair = computeMaxGainMove(hn);
         const PartitionID from_part = _hg.partID(hn);
@@ -582,7 +582,7 @@ class LPRefiner final : public IRefiner {
     }
 
     max_gain_part = (max_gain >= 0 || max_connectivity_decrease >= 0 || source_part_imbalanced) ?
-                    _max_score[(Randomize::getRandomInt(0, _max_score.size() - 1))] : source_part;
+                    _max_score[(Randomize::instance().getRandomInt(0, _max_score.size() - 1))] : source_part;
 
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
 

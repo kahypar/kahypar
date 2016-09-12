@@ -28,7 +28,7 @@
 #include "partition/factories.h"
 #include "partition/metrics.h"
 #include "partition/refinement/2way_fm_refiner.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 #include "utils/stats.h"
 
 using datastructure::extractPartAsUnpartitionedHypergraphForBisection;

@@ -12,43 +12,58 @@
 
 class Randomize {
  public:
-  static bool flipCoin() {
+  static Randomize & instance() {
+    static Randomize instance;
+    return instance;
+  }
+
+  bool flipCoin() {
     return static_cast<bool>(_bool_dist(_gen));
   }
 
-  static int newRandomSeed() {
+  int newRandomSeed() {
     return _int_dist(_gen);
   }
 
-  static void setSeed(int seed) {
+  void setSeed(int seed) {
     _seed = seed;
     _gen.seed(_seed);
   }
 
   template <typename T>
-  static void shuffleVector(std::vector<T>& vector, size_t num_elements) {
+  void shuffleVector(std::vector<T>& vector, size_t num_elements) {
     std::shuffle(vector.begin(), vector.begin() + num_elements, _gen);
   }
 
   // returns uniformly random int from the interval [low, high]
-  static int getRandomInt(int low, int high) {
+  int getRandomInt(int low, int high) {
     return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low, high));
   }
 
   // returns uniformly random float from the interval [low, high)
-  static float getRandomFloat(float low, float high) {
+  float getRandomFloat(float low, float high) {
     return _float_dist(_gen, std::uniform_real_distribution<float>::param_type(low, high));
   }
 
-  static float getNormalDistributedFloat(float mean, float std_dev) {
+  float getNormalDistributedFloat(float mean, float std_dev) {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
 
  private:
-  static int _seed;
-  static std::mt19937 _gen;
-  static std::uniform_int_distribution<int> _bool_dist;
-  static std::uniform_int_distribution<int> _int_dist;
-  static std::uniform_real_distribution<float> _float_dist;
-  static std::normal_distribution<float> _norm_dist;
+  Randomize() :
+    _seed(-1),
+    _gen(),
+    _bool_dist(0, 1),
+    _int_dist(0, std::numeric_limits<int>::max()),
+    _float_dist(0, 1),
+    _norm_dist(0, 1) { }
+
+  ~Randomize() { }
+
+  int _seed;
+  std::mt19937 _gen;
+  std::uniform_int_distribution<int> _bool_dist;
+  std::uniform_int_distribution<int> _int_dist;
+  std::uniform_real_distribution<float> _float_dist;
+  std::normal_distribution<float> _norm_dist;
 };

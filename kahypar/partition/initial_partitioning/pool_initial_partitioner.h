@@ -13,7 +13,7 @@
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
 #include "partition/partitioner.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using partition::Configuration;
 

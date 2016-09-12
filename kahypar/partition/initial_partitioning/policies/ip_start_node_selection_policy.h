@@ -10,7 +10,7 @@
 
 #include "datastructure/fast_reset_bitvector.h"
 #include "definitions.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::FastResetBitVector;
 
@@ -21,7 +21,7 @@ struct BFSStartNodeSelectionPolicy {
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     HypernodeID start_hn = 0;
     if (UseRandomStartHypernode) {
-      start_hn = Randomize::getRandomInt(0, hg.initialNumNodes() - 1);
+      start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
     }
     start_nodes.push_back(start_hn);
     FastResetBitVector<> in_queue(hg.initialNumNodes());
@@ -75,13 +75,13 @@ struct RandomStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration& UNUSED(config),
                                          const Hypergraph& hg, const PartitionID k) noexcept {
     if (k == 2) {
-      startNodes.push_back(Randomize::getRandomInt(0, hg.initialNumNodes() - 1));
+      startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));
       return;
     }
 
     for (PartitionID i = 0; i < k; ++i) {
       while (true) {
-        HypernodeID hn = Randomize::getRandomInt(0, hg.initialNumNodes() - 1);
+        HypernodeID hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
         auto node = std::find(startNodes.begin(), startNodes.end(), hn);
         if (node == startNodes.end()) {
           startNodes.push_back(hn);

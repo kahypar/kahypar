@@ -9,7 +9,7 @@
 #include "definitions.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 namespace partition {
 class RandomInitialPartitioner : public IInitialPartitioner,
@@ -51,7 +51,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
             break;
           }
         }
-        p = Randomize::getRandomInt(0, _config.initial_partitioning.k - 1);
+        p = Randomize::instance().getRandomInt(0, _config.initial_partitioning.k - 1);
       } while (!assignHypernodeToPartition(hn, p));
 
       ASSERT(_hg.partID(hn) == p, "Hypernode " << hn << " should be in part " << p

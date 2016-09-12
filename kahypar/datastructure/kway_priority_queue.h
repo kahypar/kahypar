@@ -13,7 +13,7 @@
 #include "definitions.h"
 #include "macros.h"
 #include "meta/mandatory.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::BinaryMaxHeap;
 using datastructure::EnhancedBucketQueue;
@@ -318,7 +318,7 @@ class KWayPriorityQueue {
         _ties.push_back(index);
       }
     }
-    return _ties[Randomize::getRandomInt(0, _ties.size() - 1)];
+    return _ties[Randomize::instance().getRandomInt(0, _ties.size() - 1)];
   }
 
   __attribute__ ((always_inline)) bool isUnused(const PartitionID part) const noexcept {

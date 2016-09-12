@@ -9,7 +9,7 @@
 #include "datastructure/fast_reset_bitvector.h"
 #include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::KWayPriorityQueue;
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,

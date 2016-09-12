@@ -27,7 +27,7 @@
 #include "partition/refinement/kway_fm_gain_cache.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
 #include "utils/float_compare.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
@@ -136,7 +136,7 @@ class KWayFMRefiner final : public IRefiner,
     _locked_hes.resetUsedEntries();
     _performed_moves.clear();
 
-    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
       activate<true>(hn);
     }

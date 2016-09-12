@@ -29,7 +29,7 @@
 #include "partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
 #include "utils/float_compare.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
@@ -222,7 +222,7 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
 
-    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
       activate(hn, max_allowed_part_weights);
 

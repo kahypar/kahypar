@@ -75,6 +75,5 @@ add_subdirectory(kahypar/application)
 add_subdirectory(tools)
 add_subdirectory(tests)
 
-add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/kahypar/utils/random_functions.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/kahypar/utils/sql_plottools_serializer.cc)
 

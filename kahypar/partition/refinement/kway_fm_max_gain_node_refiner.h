@@ -25,7 +25,7 @@
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
 #include "utils/float_compare.h"
-#include "utils/random_functions.h"
+#include "utils/randomize.h"
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetBitVector;
@@ -133,7 +133,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     _pq.clear();
     _hg.resetHypernodeState();
 
-    Randomize::shuffleVector(refinement_nodes, refinement_nodes.size());
+    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
       activate(hn, max_allowed_part_weights[0]);
     }

@@ -181,7 +181,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     for (HypernodeID hn : _hg.nodes()) {
       permutation.push_back(hn);
     }
-    Randomize::shuffleVector(permutation, permutation.size());
+    Randomize::instance().shuffleVector(permutation, permutation.size());
   }
 
   using CoarsenerBase::_hg;
