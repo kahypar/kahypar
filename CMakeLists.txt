@@ -40,11 +40,6 @@ COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
 
 find_package(Git)
-if(GIT_FOUND)
-    message(STATUS "git found: ${GIT_EXECUTABLE}")
-else()
-    message(WARNING "git not found. Cloning of submodules will not work.")
-endif()
 
 include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
@@ -79,8 +74,6 @@ add_subdirectory(src/application)
 add_subdirectory(tools)
 add_subdirectory(tests)
 
-
-include(gmock)
 add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/utils/RandomFunctions.cc)
 add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/utils/SQLPlotToolsSerializer.cc)
 
