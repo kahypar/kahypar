@@ -10,7 +10,6 @@
 #include "meta/StaticMultiDispatchFactory.h"
 #include "definitions.h"
 
-using::testing::Eq;
 using::testing::Test;
 
 namespace meta {
@@ -179,9 +178,9 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   std::unique_ptr<IPrinter> default_printer = PrinterFactory::getInstance().createObject(
     PrintingAlgorithms::Printer1, PrinterConfiguration(), 22, 23, "Constructor Arguments");
 
-  ASSERT_THAT(default_printer->printChar(), Eq("A"));
-  ASSERT_THAT(default_printer->printInt(), Eq("2"));
-  ASSERT_THAT(default_printer->printSymbol(), Eq("@"));
+  ASSERT_EQ(default_printer->printChar(), "A");
+  ASSERT_EQ(default_printer->printInt(), "2");
+  ASSERT_EQ(default_printer->printSymbol(), "@");
 
   // Different configuration
   PrinterConfiguration new_config;
@@ -193,17 +192,17 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   std::unique_ptr<IPrinter> b1hash_printer = PrinterFactory::getInstance().createObject(
     PrintingAlgorithms::Printer1, new_config, 1, 2, "Constructor Arguments");
 
-  ASSERT_THAT(b1hash_printer->printChar(), Eq("B"));
-  ASSERT_THAT(b1hash_printer->printInt(), Eq("1"));
-  ASSERT_THAT(b1hash_printer->printSymbol(), Eq("#"));
+  ASSERT_EQ(b1hash_printer->printChar(), "B");
+  ASSERT_EQ(b1hash_printer->printInt(), "1");
+  ASSERT_EQ(b1hash_printer->printSymbol(), "#");
 
   // Get a Z99StarPrinter that does not have any template parameters and does not use
   // the dispatcher.
   std::unique_ptr<IPrinter> z99star_printer = PrinterFactory::getInstance().createObject(
     PrintingAlgorithms::Printer2, PrinterConfiguration(), 42, 1234, "Constructor Arguments");
 
-  ASSERT_THAT(z99star_printer->printChar(), Eq("Z"));
-  ASSERT_THAT(z99star_printer->printInt(), Eq("99"));
-  ASSERT_THAT(z99star_printer->printSymbol(), Eq("*"));
+  ASSERT_EQ(z99star_printer->printChar(), "Z");
+  ASSERT_EQ(z99star_printer->printInt(), "99");
+  ASSERT_EQ(z99star_printer->printSymbol(), "*");
 }
 }  // namespace meta

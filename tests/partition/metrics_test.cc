@@ -2,7 +2,7 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include <gmock/gmock.h>
+#include "gmock/gmock.h"
 
 #include "definitions.h"
 #include "partition/Configuration.h"

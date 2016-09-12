@@ -2,14 +2,13 @@
  *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include <gmock/gmock.h>
+#include "gtest/gtest.h"
 
 #include "definitions.h"
 #include "macros.h"
 #include "HgrToEdgeListConversion.h"
 
 using::testing::Test;
-using::testing::Eq;
 
 using defs::Hypergraph;
 using defs::HyperedgeIndexVector;
@@ -26,7 +25,7 @@ class HypergraphToEdgeListConversion : public Test {
 
 TEST_F(HypergraphToEdgeListConversion, OutputsCorrectNumberOfEdges) {
   EdgeVector edges = createEdgeVector(hypergraph);
-  ASSERT_THAT(edges.size(), Eq(hypergraph.initialNumPins()));
+  ASSERT_EQ(edges.size(), hypergraph.initialNumPins());
 }
 
 TEST_F(HypergraphToEdgeListConversion, KeepsHypernodeIDsForSourceNodes) {
@@ -34,7 +33,7 @@ TEST_F(HypergraphToEdgeListConversion, KeepsHypernodeIDsForSourceNodes) {
   std::vector<HypernodeID> hypernode_ids({ 0, 0, 1, 2, 2, 3, 3, 4, 4, 5, 6, 6 });
 
   for (size_t i = 0; i < edges.size(); ++i) {
-    ASSERT_THAT(edges[i].src, Eq(hypernode_ids[i]));
+    ASSERT_EQ(edges[i].src, hypernode_ids[i]);
   }
 }
 
@@ -43,7 +42,7 @@ TEST_F(HypergraphToEdgeListConversion, OffsetsHyperedgeIDsByNumHypernodesForDest
   std::vector<HyperedgeID> hyperedge_ids({ 7, 8, 8, 7, 10, 8, 9, 8, 9, 10, 9, 10 });
 
   for (size_t i = 0; i < edges.size(); ++i) {
-    ASSERT_THAT(edges[i].dest, Eq(hyperedge_ids[i]));
+    ASSERT_EQ(edges[i].dest, hyperedge_ids[i]);
   }
 }
 
@@ -53,6 +52,6 @@ TEST_F(HypergraphToEdgeListConversion, ProducesCorrectEdgeList) {
                               { 4, 8 }, { 4, 9 }, { 5, 10 }, { 6, 9 }, { 6, 10 } });
 
   for (size_t i = 0; i < edges.size(); ++i) {
-    ASSERT_THAT(edges[i], Eq(correct_result[i]));
+    ASSERT_EQ(edges[i], correct_result[i]);
   }
 }

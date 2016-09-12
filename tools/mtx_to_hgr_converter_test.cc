@@ -2,22 +2,21 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include <gmock/gmock.h>
+#include "gtest/gtest.h"
 
 #include "definitions.h"
 #include "io/HypergraphIO.h"
 #include "MtxToHgrConversion.h"
 
 using::testing::Test;
-using::testing::Eq;
 
 namespace mtxconversion {
 TEST(AnMtxToHgrConversionRoutine, ParsesMTXHeaderAndReturnsMatrixType) {
   std::string filename("test_instances/CoordinateSymmetric.mtx");
   std::ifstream file(filename);
   MatrixInfo matrix = parseHeader(file);
-  ASSERT_THAT(matrix.format, Eq(MatrixFormat::COORDINATE));
-  ASSERT_THAT(matrix.symmetry, Eq(MatrixSymmetry::SYMMETRIC));
+  ASSERT_EQ(matrix.format, MatrixFormat::COORDINATE);
+  ASSERT_EQ(matrix.symmetry, MatrixSymmetry::SYMMETRIC);
 }
 
 TEST(AnMtxToHgrConversionRoutine, ParsesRowAndColumnInformation) {
@@ -25,9 +24,9 @@ TEST(AnMtxToHgrConversionRoutine, ParsesRowAndColumnInformation) {
   std::ifstream file(filename);
   MatrixInfo info = parseHeader(file);
   parseDimensionInformation(file, info);
-  ASSERT_THAT(info.num_rows, Eq(3));
-  ASSERT_THAT(info.num_columns, Eq(3));
-  ASSERT_THAT(info.num_entries, Eq(4));
+  ASSERT_EQ(info.num_rows, 3);
+  ASSERT_EQ(info.num_columns, 3);
+  ASSERT_EQ(info.num_entries, 4);
 }
 
 TEST(AnMtxToHgrConversionRoutine, ParsesMatrixEntries) {
@@ -37,14 +36,14 @@ TEST(AnMtxToHgrConversionRoutine, ParsesMatrixEntries) {
   parseDimensionInformation(file, info);
   MatrixData matrix_data;
   parseMatrixEntries(file, info, matrix_data);
-  ASSERT_THAT(matrix_data[0].size(), Eq(1));
-  ASSERT_THAT(matrix_data[0][0], Eq(0));
-  ASSERT_THAT(matrix_data[1].size(), Eq(2));
-  ASSERT_THAT(matrix_data[1][0], Eq(1));
-  ASSERT_THAT(matrix_data[1][1], Eq(2));
-  ASSERT_THAT(matrix_data[2].size(), Eq(2));
-  ASSERT_THAT(matrix_data[2][0], Eq(2));
-  ASSERT_THAT(matrix_data[2][1], Eq(1));
+  ASSERT_EQ(matrix_data[0].size(), 1);
+  ASSERT_EQ(matrix_data[0][0], 0);
+  ASSERT_EQ(matrix_data[1].size(), 2);
+  ASSERT_EQ(matrix_data[1][0], 1);
+  ASSERT_EQ(matrix_data[1][1], 2);
+  ASSERT_EQ(matrix_data[2].size(), 2);
+  ASSERT_EQ(matrix_data[2][0], 2);
+  ASSERT_EQ(matrix_data[2][1], 1);
 }
 
 TEST(AnMtxToHgrConversionRoutine, ConvertsSymmetricCoordinateMTXMatrixToHGRFormat) {
@@ -68,7 +67,7 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   defs::Hypergraph correct_hypergraph = io::createHypergraphFromFile(correct_hgr_filename, 2);
   defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
-  ASSERT_THAT(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
-                                                                   correct_hypergraph), Eq(true));
+  ASSERT_EQ(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
+                                                                   correct_hypergraph), true);
 }
 }  // namespace mtxconversion

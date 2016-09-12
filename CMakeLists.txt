@@ -9,27 +9,10 @@ set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-site_name(HOSTNAME)
-if(${HOSTNAME} MATCHES "i10pc.*")
-message(STATUS "hostname: ${HOSTNAME}")
-set(CMAKE_CXX_COMPILER "/software/gcc/6.1.0/bin/g++")
-message(STATUS "Setting compiler to ${CMAKE_CXX_COMPILER}")
-set(ENV{LD_LIBRARY_PATH} "/software/gcc/6.1.0/lib64")
-message(STATUS "Setting LD_LIBRARY_PATH to $ENV{LD_LIBRARY_PATH}")
-set(BOOST_ROOT "/software/boost_1_60_0")
-message(STATUS "Setting BOOST_ROOT to ${BOOST_ROOT}")
-endif(${HOSTNAME} MATCHES "i10pc.*")
-
 #ensure that gmock is built before tests are executed
-include(${CMAKE_SOURCE_DIR}/cmake/modules/ExternalProject.cmake)
-ExternalProject_Add(gmock
-  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gmock"
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
-  INSTALL_COMMAND "")
-ExternalProject_Add(gtest
-  SOURCE_DIR "${PROJECT_SOURCE_DIR}/external_tools/gtest"
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
-  INSTALL_COMMAND "")
+add_subdirectory(external_tools/googletest)
+include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOURCE_DIR}/../googlemock/)
 
 set(BOOST_MIN_VERSION "1.48.0")
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
