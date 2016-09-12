@@ -3,7 +3,7 @@
  **************************************************************************/
 
 #include "gmock/gmock.h"
-#include "hypergraph_io_test_fixtures.h"
+#include "io/hypergraph_io_test_fixtures.h"
 #include "io/hypergraph_io.h"
 
 using::testing::Eq;

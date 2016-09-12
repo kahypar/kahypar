@@ -7,7 +7,7 @@
 #include "definitions.h"
 #include "io/hypergraph_io.h"
 #include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
-#include "vertex_pair_coarsener_test_fixtures.h"
+#include "partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
 namespace partition {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
