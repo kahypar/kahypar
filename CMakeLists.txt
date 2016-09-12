@@ -9,7 +9,6 @@ set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-
 site_name(HOSTNAME)
 if(${HOSTNAME} MATCHES "i10pc.*")
 message(STATUS "hostname: ${HOSTNAME}")
@@ -41,15 +40,9 @@ if(Boost_FOUND)
   message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
 endif()
 
-# find_package(SparseHash REQUIRED)
-# if(SPARSEHASH_FOUND)
-#   include_directories(${SPARSEHASH_INCLUDE_DIR})
-#   message(STATUS "SparseHash Include: ${SPARSEHASH_INCLUDE_DIR}")
-# endif(SPARSEHASH_FOUND)
-
 if(NOT CMAKE_BUILD_TYPE)
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
-       "Choose the type of build, options are: Debug Release"
+       "Choose the type of build, options are: Debug Release, RelWithDebInfo"
        FORCE )
 endif()
 
@@ -62,6 +55,13 @@ ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
+
+find_package(Git)
+if(GIT_FOUND)
+    message(STATUS "git found: ${GIT_EXECUTABLE}")
+else()
+    message(WARNING "git not found. Cloning of submodules will not work.")
+endif()
 
 include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
@@ -78,10 +78,10 @@ endif(KAHYPAR_VERSION_GIT_REFSPEC)
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
 add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-aw")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -msse4.2 -mcrc32")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native -Wall -Wfatal-errors -Wextra -Weffc++ -DNDEBUG -msse4.2 -mcrc32")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 -W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -pedantic -DPARANOID -Weffc++ -msse4.2 -mcrc32") 
-
+set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++ -msse4.2 -mcrc32")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -pthread -g3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native -g3 ") 
 
 if(ENABLE_PROFILE MATCHES ON)
   message(STATUS "Profiling activated")
