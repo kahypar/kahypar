@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
-#include "lib/macros.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
+#include "macros.h"
 
 using defs::Hypergraph;
 

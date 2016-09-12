@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/coarsening/ICoarsener.h"
 #include "partition/refinement/IRefiner.h"
 

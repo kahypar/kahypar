@@ -6,8 +6,8 @@
 
 #include <vector>
 
-#include "lib/definitions.h"
-#include "lib/utils/RandomFunctions.h"
+#include "definitions.h"
+#include "utils/RandomFunctions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 

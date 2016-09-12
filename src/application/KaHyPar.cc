@@ -7,14 +7,14 @@
 #include <memory>
 #include <string>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 
-#include "lib/io/HypergraphIO.h"
-#include "lib/io/PartitioningOutput.h"
-#include "lib/macros.h"
-#include "lib/meta/Registrar.h"
-#include "lib/utils/RandomFunctions.h"
-#include "lib/utils/SQLPlotToolsSerializer.h"
+#include "io/HypergraphIO.h"
+#include "io/PartitioningOutput.h"
+#include "macros.h"
+#include "meta/Registrar.h"
+#include "utils/RandomFunctions.h"
+#include "utils/SQLPlotToolsSerializer.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
 #include "partition/Metrics.h"

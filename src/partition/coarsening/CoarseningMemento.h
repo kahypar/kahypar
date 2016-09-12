@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "lib/definitions.h"
+#include "definitions.h"
 
 namespace partition {
 struct CoarseningMemento {

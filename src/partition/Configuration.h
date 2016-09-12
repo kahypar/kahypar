@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/ConfigurationEnumClasses.h"
 
 using defs::HypernodeWeight;

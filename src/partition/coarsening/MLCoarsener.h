@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/SparseMap.h"
-#include "lib/definitions.h"
-#include "lib/macros.h"
+#include "datastructure/FastResetBitVector.h"
+#include "datastructure/SparseMap.h"
+#include "definitions.h"
+#include "macros.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 
 using datastructure::FastResetBitVector;

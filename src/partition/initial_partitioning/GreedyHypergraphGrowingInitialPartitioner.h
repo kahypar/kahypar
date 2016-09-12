@@ -9,11 +9,11 @@
 #include <limits>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/KWayPriorityQueue.h"
-#include "lib/definitions.h"
-#include "lib/meta/Mandatory.h"
-#include "lib/utils/RandomFunctions.h"
+#include "datastructure/FastResetBitVector.h"
+#include "datastructure/KWayPriorityQueue.h"
+#include "definitions.h"
+#include "meta/Mandatory.h"
+#include "utils/RandomFunctions.h"
 #include "partition/initial_partitioning/IInitialPartitioner.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"

@@ -6,8 +6,8 @@
 #include <map>
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
 #include "partition/Metrics.h"
 
 using defs::HypernodeID;

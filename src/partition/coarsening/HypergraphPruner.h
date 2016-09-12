@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/definitions.h"
-#include "lib/utils/Math.h"
-#include "lib/utils/Stats.h"
+#include "datastructure/FastResetBitVector.h"
+#include "definitions.h"
+#include "utils/Math.h"
+#include "utils/Stats.h"
 #include "partition/coarsening/CoarseningMemento.h"
 
 using defs::Hypergraph;

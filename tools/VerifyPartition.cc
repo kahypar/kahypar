@@ -7,10 +7,10 @@
 #include <sstream>
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
-#include "lib/io/PartitioningOutput.h"
-#include "lib/macros.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
+#include "io/PartitioningOutput.h"
+#include "macros.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 

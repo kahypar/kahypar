@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "lib/meta/Factory.h"
-#include "lib/meta/PolicyRegistry.h"
-#include "lib/meta/StaticDoubleDispatchFactory.h"
-#include "lib/meta/StaticMultiDispatchFactory.h"
-#include "lib/meta/Typelist.h"
+#include "meta/Factory.h"
+#include "meta/PolicyRegistry.h"
+#include "meta/StaticDoubleDispatchFactory.h"
+#include "meta/StaticMultiDispatchFactory.h"
+#include "meta/Typelist.h"
 #include "partition/coarsening/DoNothingCoarsener.h"
 #include "partition/coarsening/FullVertexPairCoarsener.h"
 #include "partition/coarsening/HeuristicVertexPairCoarsener.h"

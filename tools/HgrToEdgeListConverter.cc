@@ -7,8 +7,8 @@
 #include <sstream>
 #include <string>
 
-#include "lib/io/HypergraphIO.h"
-#include "lib/macros.h"
+#include "io/HypergraphIO.h"
+#include "macros.h"
 #include "HgrToEdgeListConversion.h"
 
 int main(int argc, char* argv[]) {

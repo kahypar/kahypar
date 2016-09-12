@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/Configuration.h"
 
 using defs::HyperedgeWeight;

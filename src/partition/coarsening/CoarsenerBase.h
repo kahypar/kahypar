@@ -12,9 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "lib/definitions.h"
-#include "lib/meta/Mandatory.h"
-#include "lib/utils/Stats.h"
+#include "definitions.h"
+#include "meta/Mandatory.h"
+#include "utils/Stats.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/coarsening/CoarseningMemento.h"

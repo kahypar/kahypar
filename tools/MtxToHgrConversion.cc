@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-#include "lib/macros.h"
+#include "macros.h"
 #include "MtxToHgrConversion.h"
 
 namespace mtxconversion {

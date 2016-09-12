@@ -11,9 +11,9 @@
 #include <utility>
 #include <vector>
 
-#include "lib/datastructure/SparseSet.h"
-#include "lib/definitions.h"
-#include "lib/utils/RandomFunctions.h"
+#include "datastructure/SparseSet.h"
+#include "definitions.h"
+#include "utils/RandomFunctions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/refinement/IRefiner.h"

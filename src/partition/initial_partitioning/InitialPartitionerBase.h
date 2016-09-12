@@ -10,7 +10,7 @@
 #include <stack>
 #include <vector>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Factories.h"
 #include "partition/Metrics.h"

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-#include "lib/macros.h"
+#include "macros.h"
 #include "MtxToHgrConversion.h"
 
 int main(int argc, char* argv[]) {

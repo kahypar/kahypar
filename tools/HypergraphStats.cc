@@ -7,10 +7,10 @@
 #include <iostream>
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
-#include "lib/io/PartitioningOutput.h"
-#include "lib/utils/Math.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
+#include "io/PartitioningOutput.h"
+#include "utils/Math.h"
 #include "partition/Metrics.h"
 
 using defs::HypernodeID;

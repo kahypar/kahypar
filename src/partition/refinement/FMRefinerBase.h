@@ -6,7 +6,7 @@
 
 #include <limits>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/Configuration.h"
 
 using defs::Hypergraph;

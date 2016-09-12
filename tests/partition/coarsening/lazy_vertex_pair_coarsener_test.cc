@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
 #include "partition/coarsening/LazyVertexPairCoarsener.h"
 #include "VertexPairCoarsener_TestFixtures.h"
 

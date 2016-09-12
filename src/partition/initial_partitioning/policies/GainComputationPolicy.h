@@ -11,10 +11,10 @@
 #include <set>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/KWayPriorityQueue.h"
-#include "lib/definitions.h"
-#include "lib/utils/RandomFunctions.h"
+#include "datastructure/FastResetBitVector.h"
+#include "datastructure/KWayPriorityQueue.h"
+#include "definitions.h"
+#include "utils/RandomFunctions.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;

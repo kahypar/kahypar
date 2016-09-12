@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 
 using defs::Gain;
 

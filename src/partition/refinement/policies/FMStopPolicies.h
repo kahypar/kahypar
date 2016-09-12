@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "lib/macros.h"
-#include "lib/meta/PolicyRegistry.h"
+#include "macros.h"
+#include "meta/PolicyRegistry.h"
 #include "partition/Configuration.h"
 
 using meta::PolicyBase;

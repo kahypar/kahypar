@@ -8,9 +8,9 @@
 #include <queue>
 #include <vector>
 
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/definitions.h"
-#include "lib/utils/RandomFunctions.h"
+#include "datastructure/FastResetBitVector.h"
+#include "definitions.h"
+#include "utils/RandomFunctions.h"
 
 using defs::HypernodeID;
 using defs::HyperedgeID;

@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/definitions.h"
-#include "lib/macros.h"
+#include "definitions.h"
+#include "macros.h"
 #include "partition/Configuration.h"
 #include "partition/Partitioner.h"
 #include "partition/coarsening/HeuristicVertexPairCoarsener.h"

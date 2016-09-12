@@ -6,9 +6,9 @@
 
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/macros.h"
-#include "lib/utils/Stats.h"
+#include "definitions.h"
+#include "macros.h"
+#include "utils/Stats.h"
 
 using defs::HypernodeID;
 using utils::Stats;

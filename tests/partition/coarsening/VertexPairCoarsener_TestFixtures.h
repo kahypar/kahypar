@@ -10,7 +10,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/Configuration.h"
 #include "partition/refinement/DoNothingRefiner.h"
 #include "partition/refinement/IRefiner.h"

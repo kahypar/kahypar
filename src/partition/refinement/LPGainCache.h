@@ -8,8 +8,8 @@
 #include <memory>
 #include <vector>
 
-#include "lib/definitions.h"
-#include "lib/meta/Mandatory.h"
+#include "definitions.h"
+#include "meta/Mandatory.h"
 
 using defs::Gain;
 

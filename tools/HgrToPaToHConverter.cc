@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "lib/definitions.h"
-#include "lib/io/HypergraphIO.h"
-#include "lib/macros.h"
+#include "definitions.h"
+#include "io/HypergraphIO.h"
+#include "macros.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {

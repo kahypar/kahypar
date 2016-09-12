@@ -6,7 +6,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/coarsening/Rater.h"
 
 using::testing::Test;

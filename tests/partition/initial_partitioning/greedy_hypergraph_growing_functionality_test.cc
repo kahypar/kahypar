@@ -9,9 +9,9 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/BinaryHeap.h"
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/io/HypergraphIO.h"
+#include "datastructure/BinaryHeap.h"
+#include "datastructure/FastResetBitVector.h"
+#include "io/HypergraphIO.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/BFSInitialPartitioner.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"

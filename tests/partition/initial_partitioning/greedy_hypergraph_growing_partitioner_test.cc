@@ -13,7 +13,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/io/HypergraphIO.h"
+#include "io/HypergraphIO.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"

@@ -4,8 +4,8 @@
 
 #include <gmock/gmock.h>
 
-#include "lib/definitions.h"
-#include "lib/macros.h"
+#include "definitions.h"
+#include "macros.h"
 #include "HgrToEdgeListConversion.h"
 
 using::testing::Test;

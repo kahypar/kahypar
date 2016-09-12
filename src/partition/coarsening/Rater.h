@@ -8,9 +8,9 @@
 #include <stack>
 #include <vector>
 
-#include "lib/datastructure/SparseMap.h"
-#include "lib/definitions.h"
-#include "lib/macros.h"
+#include "datastructure/SparseMap.h"
+#include "definitions.h"
+#include "macros.h"
 #include "partition/Configuration.h"
 #include "partition/coarsening/RatingTieBreakingPolicies.h"
 

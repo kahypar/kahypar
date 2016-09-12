@@ -11,9 +11,9 @@
 #include <utility>
 #include <vector>
 
-#include "lib/datastructure/BinaryHeap.h"
-#include "lib/definitions.h"
-#include "lib/meta/Int2Type.h"
+#include "datastructure/BinaryHeap.h"
+#include "definitions.h"
+#include "meta/Int2Type.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/coarsening/CoarsenerBase.h"

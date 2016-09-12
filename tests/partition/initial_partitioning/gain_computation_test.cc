@@ -7,9 +7,9 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/datastructure/BinaryHeap.h"
-#include "lib/datastructure/FastResetBitVector.h"
-#include "lib/datastructure/KWayPriorityQueue.h"
+#include "datastructure/BinaryHeap.h"
+#include "datastructure/FastResetBitVector.h"
+#include "datastructure/KWayPriorityQueue.h"
 #include "partition/initial_partitioning/InitialPartitionerBase.h"
 #include "partition/initial_partitioning/policies/GainComputationPolicy.h"
 

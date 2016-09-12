@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/refinement/IRefiner.h"
 
 using defs::Hypergraph;

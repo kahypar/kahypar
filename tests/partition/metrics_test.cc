@@ -4,7 +4,7 @@
 
 #include <gmock/gmock.h>
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/Configuration.h"
 #include "partition/Metrics.h"
 #include "partition/Partitioner.h"

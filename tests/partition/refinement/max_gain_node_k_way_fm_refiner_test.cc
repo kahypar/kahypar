@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "lib/definitions.h"
+#include "definitions.h"
 #include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
 #include "partition/refinement/policies/FMStopPolicies.h"
 

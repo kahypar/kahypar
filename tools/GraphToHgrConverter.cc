@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include "lib/macros.h"
+#include "macros.h"
 
 void parseHeader(std::string& header_line, int& num_nodes, int& num_edges) {
   std::istringstream line_stream(header_line);
