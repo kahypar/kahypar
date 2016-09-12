@@ -7,7 +7,7 @@ set(PROJECT_CONTACT "kahypar@sebastianschlag.de")
 set(PROJECT_URL "https://bitbucket.org/schlag/hypergraph")
 set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/kahypar)
 include_directories(${PROJECT_SOURCE_DIR}/tests)
 
 #ensure that gmock is built before tests are executed
@@ -46,9 +46,9 @@ include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
 if(KAHYPAR_VERSION_GIT_REFSPEC)
   message(STATUS "Detected git refspec ${KAHYPAR_VERSION_GIT_REFSPEC} sha ${KAHYPAR_VERSION_GIT_SHA1}")
-  configure_file(${PROJECT_SOURCE_DIR}/src/git_revision.h.in ${PROJECT_BINARY_DIR}/src/git_revision.h)
+  configure_file(${PROJECT_SOURCE_DIR}/kahypar/git_revision.h.in ${PROJECT_BINARY_DIR}/kahypar/git_revision.h)
   # add the binary tree to the search path for include files so that we will find GitRevision.h
-  include_directories(${PROJECT_BINARY_DIR}/src)
+  include_directories(${PROJECT_BINARY_DIR}/kahypar)
 else(KAHYPAR_VERSION_GIT_REFSPEC)
   # we do need the sha hash to log with build version was used during experiments
   message(FATAL_ERROR "No git refspec detected")
@@ -71,10 +71,10 @@ endif()
 
 include(gmock)
 enable_testing()
-add_subdirectory(src/application)
+add_subdirectory(kahypar/application)
 add_subdirectory(tools)
 add_subdirectory(tests)
 
-add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/utils/random_functions.cc)
-add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/utils/sql_plottools_serializer.cc)
+add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/kahypar/utils/random_functions.cc)
+add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/kahypar/utils/sql_plottools_serializer.cc)
 
