@@ -18,12 +18,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeID;
-using defs::PartitionID;
-
 namespace partition {
 void initializeConfiguration(Configuration& config, PartitionID k,
                              HypernodeWeight hypergraph_weight) {

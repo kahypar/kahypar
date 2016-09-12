@@ -6,12 +6,10 @@
 
 #include <vector>
 
-#include "utils/random_functions.h"
 #include "definitions.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
-
-using defs::HypernodeWeight;
+#include "utils/random_functions.h"
 
 namespace partition {
 class RandomInitialPartitioner : public IInitialPartitioner,

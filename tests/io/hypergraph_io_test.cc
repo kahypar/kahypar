@@ -9,9 +9,6 @@
 using::testing::Eq;
 using::testing::ContainerEq;
 
-using defs::HypergraphType;
-using defs::Hypergraph;
-
 namespace io {
 TEST(AFunction, ParsesFirstLineOfaHGRFile) {
   std::string filename("test_instances/unweighted_hypergraph.hgr");

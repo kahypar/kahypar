@@ -12,14 +12,13 @@
 #include <utility>
 #include <vector>
 
+#include "definitions.h"
+#include "git_revision.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
 #include "utils/math.h"
 #include "utils/stats.h"
-#include "git_revision.h"
-#include "definitions.h"
 
-using defs::Hypergraph;
 using utils::Stats;
 using utils::median;
 using utils::firstAndThirdQuartile;

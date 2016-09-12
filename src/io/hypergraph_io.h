@@ -13,18 +13,6 @@
 
 #include "definitions.h"
 
-using defs::PartitionID;
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HyperedgeWeight;
-using defs::HypernodeWeight;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeWeightVector;
-using defs::HypernodeWeightVector;
-using defs::HypergraphType;
-
 namespace io {
 using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
 
@@ -199,7 +187,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   out_stream << "<key id=\"d7\" for=\"node\" attr.name=\"modclass\" attr.type=\"int\"/>" << std::endl;
   out_stream << "<key id=\"d8\" for=\"node\" attr.name=\"color\" attr.type=\"string\"/>" << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
-  for (const defs::HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
     if (hn_cluster_ids != nullptr) {
@@ -214,7 +202,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   }
 
   HyperedgeID edge_id = 0;
-  for (const defs::HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     // const HyperedgeID he_id = hypergraph.initialNumNodes() + he;
     out_stream << "<node id=\"h" << he << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
@@ -226,7 +214,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
     out_stream << "<data key=\"d2\">" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
     out_stream << "<data key=\"d8\">" << "red" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
-    for (const defs::HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
       << he << "\"/>" << std::endl;
     }

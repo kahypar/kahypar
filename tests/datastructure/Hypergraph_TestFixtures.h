@@ -9,10 +9,6 @@
 #include "definitions.h"
 
 using::testing::Test;
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeID;
 
 namespace datastructure {
 class AHypergraph : public Test {

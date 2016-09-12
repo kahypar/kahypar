@@ -10,8 +10,8 @@
 using::testing::Test;
 
 namespace datastructure {
-using MaxHeapType = BinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
-using MinHeapType = BinaryMinHeap<defs::HypernodeID, defs::HyperedgeWeight>;
+using MaxHeapType = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
+using MinHeapType = BinaryMinHeap<HypernodeID, HyperedgeWeight>;
 
 template <typename T>
 class AHeap : public Test {

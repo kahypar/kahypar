@@ -17,7 +17,6 @@
 // Gather advanced statistics
 // #define GATHER_STATS
 
-namespace defs {
 using HypernodeID = std::uint32_t;
 using HyperedgeID = std::uint32_t;
 using HypernodeWeight = std::uint32_t;
@@ -38,23 +37,22 @@ using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
 using IncidenceIterator = Hypergraph::IncidenceIterator;
 
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
-}  // namespace defs
 
 // this is nasty and needs to be fixed
 namespace std {
-static defs::IncidenceIterator begin(std::pair<defs::IncidenceIterator, defs::IncidenceIterator>& x) {
+static IncidenceIterator begin(std::pair<IncidenceIterator, IncidenceIterator>& x) {
   return x.first;
 }
 
-static defs::IncidenceIterator end(std::pair<defs::IncidenceIterator, defs::IncidenceIterator>& x) {
+static IncidenceIterator end(std::pair<IncidenceIterator, IncidenceIterator>& x) {
   return x.second;
 }
 
-// static const defs::HypernodeID* begin(std::pair<const defs::HypernodeID*, const defs::HypernodeID*>& x) {
+// static const HypernodeID* begin(std::pair<const HypernodeID*, const HypernodeID*>& x) {
 //   return x.first;
 // }
 
-// static const defs::HypernodeID* end(std::pair<const defs::HypernodeID*, const defs::HypernodeID*>& x) {
+// static const HypernodeID* end(std::pair<const HypernodeID*, const HypernodeID*>& x) {
 //   return x.second;
 // }
 }  // namespace std

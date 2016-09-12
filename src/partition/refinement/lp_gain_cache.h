@@ -8,10 +8,8 @@
 #include <memory>
 #include <vector>
 
-#include "meta/mandatory.h"
 #include "definitions.h"
-
-using defs::Gain;
+#include "meta/mandatory.h"
 
 namespace partition {
 struct GGain {

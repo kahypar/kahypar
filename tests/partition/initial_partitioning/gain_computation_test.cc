@@ -16,10 +16,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeID;
 using partition::FMGainComputationPolicy;
 using datastructure::KWayPriorityQueue;
 

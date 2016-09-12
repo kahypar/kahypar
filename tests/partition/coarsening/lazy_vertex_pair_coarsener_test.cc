@@ -9,10 +9,8 @@
 #include "partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "vertex_pair_coarsener_test_fixtures.h"
 
-using defs::Hypergraph;
-
 namespace partition {
-using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using CoarsenerType = LazyVertexPairCoarsener<FirstWinsRater>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{

@@ -11,12 +11,12 @@
 #include "meta/typelist.h"
 #include "partition/coarsening/do_nothing_coarsener.h"
 #include "partition/coarsening/full_vertex_pair_coarsener.h"
+#include "partition/coarsening/heavy_edge_rater.h"
 #include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "partition/coarsening/ml_coarsener.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
-#include "partition/coarsening/heavy_edge_rater.h"
 #include "partition/refinement/2way_fm_refiner.h"
 #include "partition/refinement/do_nothing_refiner.h"
 #include "partition/refinement/i_refiner.h"
@@ -82,7 +82,7 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
 //                                                             IRefiner*>;
 
 
-using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
+using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
 using RandomWinsHeuristicCoarsener = HeuristicVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRater>;

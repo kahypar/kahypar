@@ -64,8 +64,8 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   std::string correct_hgr_filename("test_instances/EmptyRowsCorrect.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 
-  defs::Hypergraph correct_hypergraph = io::createHypergraphFromFile(correct_hgr_filename, 2);
-  defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph correct_hypergraph = io::createHypergraphFromFile(correct_hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
   ASSERT_EQ(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                  correct_hypergraph), true);

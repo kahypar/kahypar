@@ -11,11 +11,6 @@
 // ! \addtogroup tools
 // ! \{
 
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::Hypergraph;
-
-
 /*!
  * An Edge represents the adjacency between a hypernode vertex and
  * an hyperedge vertex in the bipartite graph representation.

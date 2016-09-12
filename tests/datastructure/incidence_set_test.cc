@@ -17,7 +17,7 @@ class AnIncidenceSet : public Test {
   AnIncidenceSet() :
     sparse_map(20) { }
 
-  IncidenceSet<defs::HypernodeID> sparse_map;
+  IncidenceSet<HypernodeID> sparse_map;
 };
 
 
@@ -59,7 +59,7 @@ TEST_F(AnIncidenceSet, HasCorrectSizeAfterElementIsRemoved) {
 }
 
 TEST_F(AnIncidenceSet, AllowsIterationOverSetElements) {
-  std::vector<defs::HypernodeID> v { 6, 1, 3 };
+  std::vector<HypernodeID> v { 6, 1, 3 };
 
   sparse_map.add(6);
   sparse_map.add(1);
@@ -73,7 +73,7 @@ TEST_F(AnIncidenceSet, AllowsIterationOverSetElements) {
 
 
 TEST_F(AnIncidenceSet, AllowsUndoOperationsRelevantForUncontraction) {
-  std::vector<defs::HypernodeID> v { 6, 1, 3, 25, 9, 4, 23 };
+  std::vector<HypernodeID> v { 6, 1, 3, 25, 9, 4, 23 };
 
   sparse_map.add(6);
   sparse_map.add(1);
@@ -88,7 +88,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsRelevantForUncontraction) {
     ASSERT_THAT(element, Eq(v[i++]));
   }
 
-  std::vector<defs::HypernodeID> w { 9, 1, 3, 23 };
+  std::vector<HypernodeID> w { 9, 1, 3, 23 };
 
   sparse_map.remove(25);
   sparse_map.remove(4);
@@ -103,7 +103,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsRelevantForUncontraction) {
   sparse_map.undoRemoval(4);
   sparse_map.undoRemoval(25);
 
-  std::vector<defs::HypernodeID> x { 9, 1, 3, 23, 6, 4, 25 };
+  std::vector<HypernodeID> x { 9, 1, 3, 23, 6, 4, 25 };
   i = 0;
   for (const auto& element : sparse_map) {
     ASSERT_THAT(element, Eq(x[i++]));
@@ -120,7 +120,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsForReuseDuringUncontraction) {
   sparse_map.remove(3);
   sparse_map.add(77);
 
-  std::vector<defs::HypernodeID> v { 6, 1, 23, 77 };
+  std::vector<HypernodeID> v { 6, 1, 23, 77 };
   size_t i = 0;
   for (const auto& element : sparse_map) {
     ASSERT_THAT(element, Eq(v[i++]));
@@ -128,7 +128,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsForReuseDuringUncontraction) {
 
   sparse_map.undoReuse(77, 3);
 
-  std::vector<defs::HypernodeID> w { 6, 1, 23, 3 };
+  std::vector<HypernodeID> w { 6, 1, 23, 3 };
   i = 0;
   for (const auto& element : sparse_map) {
     ASSERT_THAT(element, Eq(w[i++]));
@@ -137,7 +137,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsForReuseDuringUncontraction) {
 
 
 TEST(AnSmallIncidenceSet, GrowsAutomatically) {
-  IncidenceSet<defs::HypernodeID> sparse_map(2);
+  IncidenceSet<HypernodeID> sparse_map(2);
   ASSERT_THAT(sparse_map.capacity(), Eq(4));
 
   sparse_map.add(6);
@@ -149,7 +149,7 @@ TEST(AnSmallIncidenceSet, GrowsAutomatically) {
 
   ASSERT_THAT(sparse_map.capacity(), Eq(8));
 
-  std::vector<defs::HypernodeID> w { 6, 1, 3, 23, 5, 12 };
+  std::vector<HypernodeID> w { 6, 1, 3, 23, 5, 12 };
   size_t i = 0;
   for (const auto& element : sparse_map) {
     ASSERT_THAT(element, Eq(w[i++]));
@@ -157,9 +157,6 @@ TEST(AnSmallIncidenceSet, GrowsAutomatically) {
 }
 
 TEST(IncidenceSets, SupportOperationsForCoarsening) {
-  using defs::HyperedgeID;
-  using defs::HypernodeID;
-
   IncidenceSet<HyperedgeID> dummy(10);
   IncidenceSet<HyperedgeID> incident_edges_0(10);
   IncidenceSet<HyperedgeID> incident_edges_4(10);

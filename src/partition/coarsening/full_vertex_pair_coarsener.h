@@ -9,23 +9,21 @@
 #include <utility>
 #include <vector>
 
-#include "meta/mandatory.h"
-#include "meta/template_parameter_to_string.h"
-#include "utils/stats.h"
 #include "datastructure/fast_reset_vector.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
+#include "meta/template_parameter_to_string.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/coarsening/vertex_pair_coarsener_base.h"
+#include "utils/stats.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
 using utils::Stats;
 using datastructure::FastResetBitVector;
 
 namespace partition {
 template <class Rater = Mandatory>
 class FullVertexPairCoarsener final : public ICoarsener,
-                                     private VertexPairCoarsenerBase<>{
+                                      private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
   using Base::removeParallelHyperedges;
@@ -41,7 +39,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
  public:
   FullVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
-                         const HypernodeWeight weight_of_heaviest_node) noexcept :
+                          const HypernodeWeight weight_of_heaviest_node) noexcept :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()) { }

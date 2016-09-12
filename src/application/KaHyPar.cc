@@ -73,15 +73,6 @@ using partition::GlobalQueueSelectionPolicy;
 using partition::SequentialQueueSelectionPolicy;
 using partition::ICoarsener;
 using utils::SQLPlotToolsSerializer;
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeID;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeWeightVector;
-using defs::HypernodeWeightVector;
-using defs::HighResClockTimepoint;
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
   CoarseningAlgorithm::heavy_lazy,

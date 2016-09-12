@@ -12,11 +12,6 @@
 #include "definitions.h"
 #include "partition/refinement/i_refiner.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
-
 namespace partition {
 class DoNothingRefiner final : public IRefiner {
  public:

@@ -27,13 +27,6 @@ using::testing::Eq;
 using::testing::Test;
 
 using datastructure::BinaryMaxHeap;
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeID;
-using defs::PartitionID;
-
-using Gain = HyperedgeWeight;
 
 namespace partition {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,

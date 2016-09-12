@@ -30,10 +30,10 @@ class ASparseSetSupportingDeletions : public Test {
   T sparse_set;
 };
 
-typedef::testing::Types<SparseSet<defs::HypernodeID>,
-                        InsertOnlySparseSet<defs::PartitionID> > Implementations;
+typedef::testing::Types<SparseSet<HypernodeID>,
+                        InsertOnlySparseSet<PartitionID> > Implementations;
 
-typedef::testing::Types<SparseSet<defs::HypernodeID> > ImplementationsWithDeletion;
+typedef::testing::Types<SparseSet<HypernodeID> > ImplementationsWithDeletion;
 
 TYPED_TEST_CASE(ASparseSet, Implementations);
 
@@ -54,7 +54,7 @@ TYPED_TEST(ASparseSet, ReturnsFalseIfSetIsEmpty) {
 }
 
 TYPED_TEST(ASparseSet, AllowsIterationOverSetElements) {
-  std::vector<defs::HypernodeID> v { 6, 1, 3 };
+  std::vector<HypernodeID> v { 6, 1, 3 };
 
   this->sparse_set.add(6);
   this->sparse_set.add(1);

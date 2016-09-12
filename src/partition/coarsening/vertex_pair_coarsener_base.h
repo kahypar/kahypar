@@ -12,24 +12,19 @@
 #include <vector>
 
 #include "datastructure/binary_heap.h"
+#include "definitions.h"
 #include "meta/int_to_type.h"
+#include "partition/coarsening/coarsener_base.h"
+#include "partition/coarsening/heavy_edge_rater.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
-#include "partition/coarsening/coarsener_base.h"
-#include "definitions.h"
-#include "partition/coarsening/heavy_edge_rater.h"
 #include "partition/refinement/i_refiner.h"
 
 using meta::Int2Type;
 using datastructure::BinaryMaxHeap;
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 
 namespace partition {
-template <class PrioQueue = BinaryMaxHeap<HypernodeID, defs::RatingType> >
+template <class PrioQueue = BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
   using CoarsenerBase::performLocalSearch;

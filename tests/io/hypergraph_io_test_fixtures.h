@@ -30,7 +30,6 @@ using partition::FirstRatingWins;
 using partition::Configuration;
 using partition::TwoWayFMRefiner;
 using partition::NumberOfFruitlessMovesStopsSearch;
-using defs::Hypergraph;
 
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
@@ -200,7 +199,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   HypernodeWeightVector _written_hypernode_weights;
 };
 
-using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

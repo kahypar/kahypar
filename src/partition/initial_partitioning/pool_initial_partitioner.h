@@ -8,14 +8,13 @@
 #include <string>
 #include <vector>
 
-#include "utils/random_functions.h"
-#include "partition/factories.h"
-#include "partition/partitioner.h"
 #include "definitions.h"
+#include "partition/factories.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
+#include "partition/partitioner.h"
+#include "utils/random_functions.h"
 
-using defs::HypernodeWeight;
 using partition::Configuration;
 
 namespace partition {

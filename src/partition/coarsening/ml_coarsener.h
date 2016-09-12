@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "datastructure/sparse_map.h"
 #include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/sparse_map.h"
 #include "definitions.h"
 #include "macros.h"
 #include "partition/coarsening/rating_tie_breaking_policies.h"
@@ -17,8 +17,6 @@
 using datastructure::FastResetBitVector;
 
 namespace partition {
-using defs::RatingType;
-
 template <class Rater = Mandatory>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{

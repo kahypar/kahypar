@@ -13,9 +13,9 @@ using::testing::DoubleEq;
 using::testing::Test;
 
 namespace datastructure {
-using MaxHeapQueue = BinaryMaxHeap<defs::HypernodeID, defs::HyperedgeWeight>;
-using BucketQueue = EnhancedBucketQueue<defs::HypernodeID, defs::HyperedgeWeight>;
-// using PairingHeapQueue = PairingHeapWrapper<defs::HypernodeID, defs::HyperedgeWeight>;
+using MaxHeapQueue = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
+using BucketQueue = EnhancedBucketQueue<HypernodeID, HyperedgeWeight>;
+// using PairingHeapQueue = PairingHeapWrapper<HypernodeID, HyperedgeWeight>;
 
 template <typename T>
 class APriorityQueue : public Test {

@@ -10,10 +10,6 @@
 
 using::testing::Test;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-
 class HypergraphToEdgeListConversion : public Test {
  public:
   HypergraphToEdgeListConversion() :

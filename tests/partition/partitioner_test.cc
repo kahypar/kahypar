@@ -17,12 +17,8 @@
 using::testing::Test;
 using::testing::Eq;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-
 namespace partition {
-using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

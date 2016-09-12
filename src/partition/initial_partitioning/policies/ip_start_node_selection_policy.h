@@ -8,14 +8,10 @@
 #include <queue>
 #include <vector>
 
-#include "utils/random_functions.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "definitions.h"
+#include "utils/random_functions.h"
 
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::PartitionID;
-using defs::Hypergraph;
 using datastructure::FastResetBitVector;
 
 namespace partition {

@@ -11,14 +11,9 @@
 #include <sstream>
 #include <string>
 
-#include "partition/configuration_enum_classes.h"
 #include "definitions.h"
+#include "partition/configuration_enum_classes.h"
 
-using defs::HypernodeWeight;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::PartitionID;
-using defs::HypernodeWeightVector;
 namespace partition {
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::heavy_lazy;

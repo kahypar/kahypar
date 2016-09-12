@@ -9,11 +9,10 @@
 #include <fstream>
 #include <string>
 
+#include "definitions.h"
 #include "partition/configuration.h"
 #include "partition/partitioner.h"
-#include "definitions.h"
 
-using defs::Hypergraph;
 using partition::Configuration;
 using partition::Partitioner;
 

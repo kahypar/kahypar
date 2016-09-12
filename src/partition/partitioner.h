@@ -19,27 +19,18 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "utils/random_functions.h"
-#include "utils/stats.h"
+#include "definitions.h"
+#include "io/hypergraph_io.h"
+#include "io/partitioning_output.h"
 #include "partition/coarsening/hypergraph_pruner.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/configuration.h"
-#include "definitions.h"
 #include "partition/factories.h"
-#include "io/hypergraph_io.h"
-#include "io/partitioning_output.h"
+#include "partition/metrics.h"
 #include "partition/refinement/2way_fm_refiner.h"
+#include "utils/random_functions.h"
+#include "utils/stats.h"
 
-#ifndef NDEBUG
-#include "metrics.h"
-#endif
-
-using defs::Hypergraph;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
-using defs::PartitionID;
-using defs::HypernodeID;
-using defs::HighResClockTimepoint;
 using datastructure::extractPartAsUnpartitionedHypergraphForBisection;
 using datastructure::reindex;
 using utils::Stats;

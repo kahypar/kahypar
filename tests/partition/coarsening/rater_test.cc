@@ -14,17 +14,10 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::AnyOf;
 
-using defs::Hypergraph;
-using defs::HypernodeWeight;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HypernodeID;
-using defs::PartitionID;
-
 namespace partition {
-using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
-using LastWinsRater = Rater<defs::RatingType, LastRatingWins>;
-using RandomWinsRater = Rater<defs::RatingType, RandomRatingWins>;
+using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
+using LastWinsRater = Rater<RatingType, LastRatingWins>;
+using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
 
 class ARater : public Test {
  public:
@@ -113,7 +106,7 @@ TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {
   hypergraph->removeEdge(0, false);  // since we cannot rate single-node HEs
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
-  ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
+  ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
 
@@ -131,7 +124,7 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   hypergraph->setNodePart(1, 1);
 
   ASSERT_THAT(rater.rate(0).target, Eq(std::numeric_limits<HypernodeID>::max()));
-  ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<defs::RatingType>::min()));
+  ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
 }  // namespace partition

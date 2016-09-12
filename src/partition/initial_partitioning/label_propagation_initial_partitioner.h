@@ -12,21 +12,14 @@
 #include <utility>
 #include <vector>
 
-#include "meta/mandatory.h"
-#include "utils/random_functions.h"
-#include "partition/metrics.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
 #include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
-
-using defs::Hypergraph;
-using defs::HypernodeWeight;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::Gain;
-
+#include "partition/metrics.h"
+#include "utils/random_functions.h"
 
 namespace partition {
 template <class StartNodeSelection = Mandatory,

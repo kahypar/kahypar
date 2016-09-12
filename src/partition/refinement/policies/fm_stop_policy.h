@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include "meta/policy_registry.h"
 #include "macros.h"
+#include "meta/policy_registry.h"
 #include "partition/configuration.h"
 
 using meta::PolicyBase;
-using defs::HyperedgeWeight;
 
 namespace partition {
 struct StoppingPolicy : PolicyBase {

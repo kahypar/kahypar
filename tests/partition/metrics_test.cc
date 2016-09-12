@@ -19,12 +19,6 @@ using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeWeight;
-
 using partition::Rater;
 using partition::FirstRatingWins;
 using partition::ICoarsener;
@@ -37,7 +31,7 @@ using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::InitialPartitioner;
 
 namespace metrics {
-using FirstWinsRater = Rater<defs::RatingType, FirstRatingWins>;
+using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

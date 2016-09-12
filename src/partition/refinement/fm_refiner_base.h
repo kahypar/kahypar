@@ -6,13 +6,8 @@
 
 #include <limits>
 
-#include "partition/configuration.h"
 #include "definitions.h"
-
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::Gain;
+#include "partition/configuration.h"
 
 namespace partition {
 static const bool dbg_refinement_fm_border_node_check = false;

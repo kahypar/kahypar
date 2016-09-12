@@ -17,7 +17,7 @@ class ASparseMap : public Test {
   ASparseMap() :
     sparse_map(20) { }
 
-  SparseMap<defs::HypernodeID, double> sparse_map;
+  SparseMap<HypernodeID, double> sparse_map;
 };
 
 
@@ -59,7 +59,7 @@ TEST_F(ASparseMap, HasCorrectSizeAfterElementIsRemoved) {
 }
 
 TEST_F(ASparseMap, AllowsIterationOverSetElements) {
-  std::vector<defs::HypernodeID> v { 6, 1, 3 };
+  std::vector<HypernodeID> v { 6, 1, 3 };
 
   sparse_map.add(6, 6.6);
   sparse_map.add(1, 1.1);

@@ -9,8 +9,6 @@
 
 #include "definitions.h"
 
-using defs::HighResClockTimepoint;
-
 namespace utils {
 class Timer {
  public:

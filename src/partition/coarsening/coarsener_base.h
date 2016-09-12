@@ -12,20 +12,15 @@
 #include <utility>
 #include <vector>
 
+#include "definitions.h"
 #include "meta/mandatory.h"
-#include "utils/stats.h"
+#include "partition/coarsening/coarsening_memento.h"
+#include "partition/coarsening/hypergraph_pruner.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
 #include "partition/refinement/i_refiner.h"
-#include "partition/coarsening/coarsening_memento.h"
-#include "definitions.h"
-#include "partition/coarsening/hypergraph_pruner.h"
+#include "utils/stats.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 using utils::Stats;
 
 namespace partition {

@@ -11,23 +11,15 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/refinement/i_refiner.h"
 #include "partition/configuration.h"
 #include "partition/refinement/do_nothing_refiner.h"
+#include "partition/refinement/i_refiner.h"
 
 using::testing::AnyOf;
 using::testing::DoubleEq;
 using::testing::Eq;
 using::testing::Le;
 using::testing::Test;
-
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeWeightVector;
-using defs::HypernodeWeightVector;
-using defs::HyperedgeVector;
-using defs::HypernodeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 
 namespace partition {
 template <class CoarsenerType>

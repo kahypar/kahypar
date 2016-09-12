@@ -17,8 +17,6 @@ using::testing::Eq;
 using::testing::ContainerEq;
 using::testing::Test;
 
-using defs::HypernodeID;
-using defs::PartitionID;
 using partition::CoarseningMemento;
 
 namespace datastructure {

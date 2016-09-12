@@ -8,16 +8,14 @@
 #include <unordered_map>
 #include <vector>
 
-#include "meta/mandatory.h"
-#include "meta/template_parameter_to_string.h"
-#include "utils/stats.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
+#include "meta/template_parameter_to_string.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/coarsening/vertex_pair_coarsener_base.h"
+#include "utils/stats.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
 using datastructure::FastResetBitVector;
 using utils::Stats;
 
@@ -26,7 +24,7 @@ static const bool dbg_coarsening_removed_hes = false;
 
 template <class Rater = Mandatory>
 class HeuristicVertexPairCoarsener final : public ICoarsener,
-                                          private VertexPairCoarsenerBase<>{
+                                           private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
   using Base::rateAllHypernodes;
@@ -36,7 +34,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
 
  public:
   HeuristicVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
-                              const HypernodeWeight weight_of_heaviest_node) noexcept :
+                               const HypernodeWeight weight_of_heaviest_node) noexcept :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()),

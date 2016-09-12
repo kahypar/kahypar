@@ -9,19 +9,16 @@
 #include <limits>
 #include <vector>
 
-#include "datastructure/kway_priority_queue.h"
-#include "meta/mandatory.h"
-#include "utils/random_functions.h"
 #include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
 #include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "utils/random_functions.h"
 
-using defs::HypernodeWeight;
 using datastructure::KWayPriorityQueue;
-
-using defs::Gain;
 
 namespace partition {
 template <class StartNodeSelection = Mandatory,

@@ -11,23 +11,16 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/sparse_set.h"
 #include "datastructure/fast_reset_vector.h"
-#include "utils/random_functions.h"
+#include "datastructure/sparse_set.h"
+#include "definitions.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
-#include "definitions.h"
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/lp_gain_cache.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
+#include "utils/random_functions.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::PartitionID;
-using defs::Gain;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 using datastructure::InsertOnlySparseSet;
 using datastructure::FastResetVector;
 

@@ -7,11 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "io/hypergraph_io.h"
 #include "definitions.h"
+#include "io/hypergraph_io.h"
 #include "macros.h"
-
-using defs::Hypergraph;
 
 int main(int argc, char* argv[]) {
   if (argc != 2 && argc != 3) {
@@ -22,7 +20,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
 
   PartitionID max_part = 1;
-  std::vector<defs::PartitionID> partition;
+  std::vector<PartitionID> partition;
   if (argc == 3) {
     std::string partition_filename(argv[2]);
     std::cout << "Reading partition file: " << partition_filename << std::endl;

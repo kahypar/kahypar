@@ -10,13 +10,11 @@
 #include <queue>
 #include <vector>
 
-#include "meta/mandatory.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
 #include "utils/random_functions.h"
-
-using defs::HypernodeWeight;
 
 namespace partition {
 template <class StartNodeSelection = Mandatory>

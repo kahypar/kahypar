@@ -8,8 +8,6 @@
 
 #include "definitions.h"
 
-using defs::Gain;
-
 namespace partition {
 struct UncontractionGainChanges {
   UncontractionGainChanges() :

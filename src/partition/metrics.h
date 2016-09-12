@@ -9,16 +9,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "partition/configuration.h"
 #include "definitions.h"
-
-using defs::HyperedgeWeight;
-using defs::HypernodeWeight;
-using defs::IncidenceIterator;
-using defs::Hypergraph;
-using defs::PartitionID;
-using defs::HypernodeID;
-using defs::HyperedgeID;
+#include "partition/configuration.h"
 
 using partition::Configuration;
 

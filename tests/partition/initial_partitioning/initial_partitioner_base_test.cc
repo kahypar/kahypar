@@ -11,11 +11,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeID;
-
 namespace partition {
 class InitialPartitionerBaseTest : public Test {
  public:

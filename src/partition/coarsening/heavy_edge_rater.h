@@ -9,16 +9,12 @@
 #include <vector>
 
 #include "datastructure/sparse_map.h"
-#include "partition/configuration.h"
 #include "definitions.h"
 #include "macros.h"
 #include "partition/coarsening/rating_tie_breaking_policies.h"
+#include "partition/configuration.h"
 
 using datastructure::SparseMap;
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HypernodeWeight;
 
 namespace partition {
 static const bool dbg_partition_rating = false;

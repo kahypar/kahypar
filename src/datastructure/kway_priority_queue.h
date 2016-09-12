@@ -8,14 +8,13 @@
 #include <limits>
 #include <vector>
 
-#include "meta/mandatory.h"
-#include "utils/random_functions.h"
 #include "datastructure/binary_heap.h"
 #include "datastructure/bucket_queue.h"
 #include "definitions.h"
 #include "macros.h"
+#include "meta/mandatory.h"
+#include "utils/random_functions.h"
 
-using defs::PartitionID;
 using datastructure::BinaryMaxHeap;
 using datastructure::EnhancedBucketQueue;
 

@@ -6,11 +6,10 @@
 
 #include <string>
 
-#include "utils/stats.h"
 #include "definitions.h"
 #include "macros.h"
+#include "utils/stats.h"
 
-using defs::HypernodeID;
 using utils::Stats;
 
 namespace partition {

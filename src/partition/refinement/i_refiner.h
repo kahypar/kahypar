@@ -9,17 +9,12 @@
 #include <utility>
 #include <vector>
 
-#include "utils/stats.h"
-#include "partition/metrics.h"
 #include "definitions.h"
 #include "macros.h"
+#include "partition/metrics.h"
 #include "partition/refinement/uncontraction_gain_changes.h"
+#include "utils/stats.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::PartitionID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 using utils::Stats;
 using Metrics = metrics::Metrics;
 

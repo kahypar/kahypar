@@ -10,10 +10,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using defs::HypernodeID;
-using defs::PartitionID;
-using defs::HyperedgeWeight;
-
 namespace datastructure {
 class AKWayPriorityQueue : public Test {
  public:

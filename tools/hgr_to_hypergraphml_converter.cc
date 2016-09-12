@@ -7,11 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "io/hypergraph_io.h"
 #include "definitions.h"
+#include "io/hypergraph_io.h"
 #include "macros.h"
-
-using defs::Hypergraph;
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -30,12 +28,12 @@ int main(int argc, char* argv[]) {
   out_stream << " http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
   << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
-  for (const defs::HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\"/>" << std::endl;
   }
-  for (const defs::HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID he : hypergraph.edges()) {
     out_stream << "<hyperedge>" << std::endl;
-    for (const defs::HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID pin : hypergraph.pins(he)) {
       out_stream << "<endpoint node=\"n" << pin << "\"/>" << std::endl;
     }
     out_stream << "</hyperedge>" << std::endl;

@@ -7,14 +7,12 @@
 #include <sstream>
 #include <string>
 
+#include "definitions.h"
 #include "io/hypergraph_io.h"
 #include "io/partitioning_output.h"
+#include "macros.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
-#include "definitions.h"
-#include "macros.h"
-
-using defs::Hypergraph;
 
 static inline double imb(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight max_weight = hypergraph.partWeight(0);
@@ -34,7 +32,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
 
   PartitionID max_part = 1;
-  std::vector<defs::PartitionID> partition;
+  std::vector<PartitionID> partition;
   if (argc == 3) {
     std::string partition_filename(argv[2]);
     std::cout << "Reading partition file: " << partition_filename << std::endl;

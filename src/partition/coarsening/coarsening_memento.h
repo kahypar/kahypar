@@ -6,8 +6,6 @@
 
 #include "definitions.h"
 
-using defs::Hypergraph;
-
 namespace partition {
 struct CoarseningMemento {
   int one_pin_hes_begin;        // start of removed single pin hyperedges

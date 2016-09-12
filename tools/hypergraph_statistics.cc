@@ -7,19 +7,11 @@
 #include <iostream>
 #include <string>
 
+#include "definitions.h"
 #include "io/hypergraph_io.h"
 #include "io/partitioning_output.h"
 #include "partition/metrics.h"
 #include "utils/math.h"
-#include "definitions.h"
-
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::Hypergraph;
-using defs::HypernodeWeightVector;
-using defs::HyperedgeWeightVector;
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {

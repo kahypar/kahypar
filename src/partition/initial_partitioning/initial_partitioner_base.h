@@ -10,27 +10,16 @@
 #include <stack>
 #include <vector>
 
+#include "definitions.h"
 #include "partition/configuration.h"
 #include "partition/factories.h"
 #include "partition/metrics.h"
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/kway_fm_cut_refiner.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
-#include "definitions.h"
 #include "partition/refinement/policies/fm_stop_policy.h"
 
 using partition::Configuration;
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeWeightVector;
-using defs::HypernodeWeightVector;
-using defs::HighResClockTimepoint;
-
 using partition::StoppingPolicy;
 using partition::NumberOfFruitlessMovesStopsSearch;
 using partition::RandomWalkModelStopsSearch;

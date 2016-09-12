@@ -14,34 +14,26 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/kway_priority_queue.h"
-#include "datastructure/sparse_set.h"
-#include "meta/mandatory.h"
-#include "meta/template_parameter_to_string.h"
-#include "utils/float_compare.h"
-#include "utils/random_functions.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "datastructure/fast_reset_vector.h"
+#include "datastructure/kway_priority_queue.h"
+#include "datastructure/sparse_set.h"
 #include "definitions.h"
+#include "meta/mandatory.h"
+#include "meta/template_parameter_to_string.h"
+#include "partition/configuration.h"
+#include "partition/metrics.h"
 #include "partition/refinement/fm_refiner_base.h"
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/kway_fm_gain_cache.h"
 #include "partition/refinement/policies/fm_improvement_policy.h"
+#include "utils/float_compare.h"
+#include "utils/random_functions.h"
 
 using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
 using datastructure::InsertOnlySparseSet;
-
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::PartitionID;
-using defs::Gain;
-using defs::HyperedgeWeight;
-using defs::HypernodeWeight;
 
 namespace partition {
 #pragma GCC diagnostic push

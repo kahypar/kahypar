@@ -11,20 +11,12 @@
 #include <set>
 #include <vector>
 
-#include "datastructure/kway_priority_queue.h"
-#include "utils/random_functions.h"
 #include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
+#include "utils/random_functions.h"
 
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HyperedgeWeight;
-using defs::PartitionID;
-using defs::Hypergraph;
 using datastructure::KWayPriorityQueue;
-
-using defs::Gain;
-
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
                                            std::numeric_limits<Gain>, true>;
 

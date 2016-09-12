@@ -9,17 +9,12 @@
 #include <string>
 #include <vector>
 
-#include "utils/math.h"
-#include "utils/stats.h"
-#include "partition/coarsening/coarsening_memento.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "definitions.h"
+#include "partition/coarsening/coarsening_memento.h"
+#include "utils/math.h"
+#include "utils/stats.h"
 
-using defs::Hypergraph;
-using defs::HypernodeID;
-using defs::HyperedgeID;
-using defs::HypernodeWeight;
-using defs::HyperedgeWeight;
 using utils::Stats;
 using datastructure::FastResetBitVector;
 

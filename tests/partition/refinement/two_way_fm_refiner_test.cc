@@ -13,12 +13,6 @@
 using::testing::Test;
 using::testing::Eq;
 
-using defs::Hypergraph;
-using defs::HyperedgeIndexVector;
-using defs::HyperedgeVector;
-using defs::HyperedgeWeight;
-using defs::HypernodeID;
-
 namespace partition {
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                                                       GlobalRebalancing>;

@@ -8,12 +8,9 @@
 #include <sstream>
 #include <string>
 
+#include "definitions.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
-#include "definitions.h"
-
-using defs::HypernodeID;
-using defs::HyperedgeID;
 
 using partition::Configuration;
 
