@@ -1,0 +1,8 @@
+add_subdirectory(meta)
+add_subdirectory(datastructure)
+add_subdirectory(io)
+add_subdirectory(utils)
+add_subdirectory(partition)
+add_subdirectory(partition/coarsening)
+add_subdirectory(partition/initial_partitioning)
+add_subdirectory(partition/refinement)
