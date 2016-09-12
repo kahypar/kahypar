@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 
 #include "definitions.h"
-#include "io/HypergraphIO.h"
-#include "MtxToHgrConversion.h"
+#include "io/hypergraph_io.h"
+#include "mtx_to_hgr_conversion.h"
 
 using::testing::Test;
 
@@ -68,6 +68,6 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   defs::Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
   ASSERT_EQ(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
-                                                                   correct_hypergraph), true);
+                                                                 correct_hypergraph), true);
 }
 }  // namespace mtxconversion

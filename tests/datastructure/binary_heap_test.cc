@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/BinaryHeap.h"
+#include "datastructure/binary_heap.h"
 #include "definitions.h"
 
 using::testing::Test;
@@ -170,19 +170,19 @@ TEST_F(AMaxHeap, HandleDuplicateKeys) {
   this->_heap.push(3, 3);
   this->_heap.push(1, 4);
 
-  ASSERT_TRUE(this->_heap.top() == 0);
+  ASSERT_EQ(this->_heap.top(), 0);
   ASSERT_EQ(this->_heap.topKey(), 4);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 1);
+  ASSERT_EQ(this->_heap.top(), 1);
   ASSERT_EQ(this->_heap.topKey(), 4);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 3);
+  ASSERT_EQ(this->_heap.top(), 3);
   ASSERT_EQ(this->_heap.topKey(), 3);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 2);
+  ASSERT_EQ(this->_heap.top(), 2);
   ASSERT_EQ(this->_heap.topKey(), 3);
 }
 
@@ -344,19 +344,19 @@ TEST_F(AMinHeap, HandleDuplicateKeys) {
   this->_heap.push(3, 3);
   this->_heap.push(1, 4);
 
-  ASSERT_TRUE(this->_heap.top() == 4);
+  ASSERT_EQ(this->_heap.top(), 4);
   ASSERT_EQ(this->_heap.topKey(), 3);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 2);
+  ASSERT_EQ(this->_heap.top(), 2);
   ASSERT_EQ(this->_heap.topKey(), 3);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 3);
+  ASSERT_EQ(this->_heap.top(), 3);
   ASSERT_EQ(this->_heap.topKey(), 3);
 
   this->_heap.pop();
-  ASSERT_TRUE(this->_heap.top() == 1);
+  ASSERT_EQ(this->_heap.top(), 1);
   ASSERT_EQ(this->_heap.topKey(), 4);
 }
 

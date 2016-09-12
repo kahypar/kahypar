@@ -2,10 +2,9 @@
  *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include "io/HypergraphIO.h"
-#include "HypergraphIO_TestFixtures.h"
-
 #include "gmock/gmock.h"
+#include "hypergraph_io_test_fixtures.h"
+#include "io/hypergraph_io.h"
 
 using::testing::Eq;
 using::testing::ContainerEq;

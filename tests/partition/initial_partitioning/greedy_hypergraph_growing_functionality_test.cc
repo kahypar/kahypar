@@ -9,16 +9,16 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/BinaryHeap.h"
-#include "datastructure/FastResetBitVector.h"
-#include "io/HypergraphIO.h"
-#include "partition/Metrics.h"
-#include "partition/initial_partitioning/BFSInitialPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
-#include "partition/initial_partitioning/InitialPartitionerBase.h"
-#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "datastructure/binary_heap.h"
+#include "datastructure/fast_reset_bitvector.h"
+#include "io/hypergraph_io.h"
+#include "partition/initial_partitioning/bfs_initial_partitioner.h"
+#include "partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"
+#include "partition/initial_partitioning/initial_partitioner_base.h"
+#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
+#include "partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
+#include "partition/metrics.h"
 
 
 using::testing::Eq;

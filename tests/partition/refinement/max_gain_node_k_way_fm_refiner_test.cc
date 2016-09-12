@@ -5,8 +5,8 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/refinement/MaxGainNodeKWayFMRefiner.h"
-#include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/refinement/kway_fm_max_gain_node_refiner.h"
+#include "partition/refinement/policies/fm_stop_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

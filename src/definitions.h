@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <utility>
 
-#include "datastructure/GenericHypergraph.h"
+#include "datastructure/hypergraph.h"
 // #include "datastructure/GenericHypergraph2.h"
 
 // Use bucket PQ for FM refinement.

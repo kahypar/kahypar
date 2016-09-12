@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
+#include "cnf_to_hgr_conversion.h"
 #include "definitions.h"
-#include "io/HypergraphIO.h"
-#include "CnfToHgrConversion.h"
+#include "io/hypergraph_io.h"
 
 using::testing::Test;
 

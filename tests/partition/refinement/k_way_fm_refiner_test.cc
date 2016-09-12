@@ -5,8 +5,8 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/refinement/KWayFMRefiner.h"
-#include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/refinement/kway_fm_cut_refiner.h"
+#include "partition/refinement/policies/fm_stop_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

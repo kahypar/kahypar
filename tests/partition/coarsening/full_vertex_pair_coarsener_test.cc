@@ -5,9 +5,9 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "io/HypergraphIO.h"
-#include "partition/coarsening/FullVertexPairCoarsener.h"
-#include "VertexPairCoarsener_TestFixtures.h"
+#include "io/hypergraph_io.h"
+#include "partition/coarsening/full_vertex_pair_coarsener.h"
+#include "vertex_pair_coarsener_test_fixtures.h"
 
 using defs::Hypergraph;
 

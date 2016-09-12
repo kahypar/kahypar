@@ -4,9 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/BinaryHeap.h"
-#include "datastructure/EnhancedBucketQueue.h"
-// #include "datastructure/heaps/PairingHeapWrapper.h"
+#include "datastructure/binary_heap.h"
+#include "datastructure/bucket_queue.h"
 #include "definitions.h"
 
 using::testing::Eq;

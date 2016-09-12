@@ -7,7 +7,7 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/coarsening/Rater.h"
+#include "partition/coarsening/heavy_edge_rater.h"
 
 using::testing::Test;
 using::testing::Eq;

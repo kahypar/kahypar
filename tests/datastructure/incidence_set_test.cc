@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/IncidenceSet.h"
+#include "datastructure/incidence_set.h"
 #include "definitions.h"
 #include "macros.h"
 

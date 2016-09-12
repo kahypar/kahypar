@@ -5,7 +5,8 @@
 #include <memory>
 
 #include "gmock/gmock.h"
-#include "partition/initial_partitioning/InitialPartitionerBase.h"
+
+#include "partition/initial_partitioning/initial_partitioner_base.h"
 
 using::testing::Eq;
 using::testing::Test;

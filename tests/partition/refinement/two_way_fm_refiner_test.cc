@@ -5,10 +5,10 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/Metrics.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMStopPolicies.h"
-#include "partition/refinement/policies/TwoFMRebalancePolicies.h"
+#include "partition/metrics.h"
+#include "partition/refinement/2way_fm_refiner.h"
+#include "partition/refinement/policies/2fm_rebalancing_policy.h"
+#include "partition/refinement/policies/fm_stop_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

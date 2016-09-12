@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/SparseMap.h"
+#include "datastructure/sparse_map.h"
 #include "definitions.h"
 
 using::testing::Eq;

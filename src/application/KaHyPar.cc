@@ -8,26 +8,26 @@
 #include <string>
 
 #include "definitions.h"
-
-#include "io/HypergraphIO.h"
-#include "io/PartitioningOutput.h"
+#include "io/hypergraph_io.h"
+#include "io/partitioning_output.h"
 #include "macros.h"
-#include "meta/Registrar.h"
-#include "utils/RandomFunctions.h"
-#include "utils/SQLPlotToolsSerializer.h"
-#include "partition/Configuration.h"
-#include "partition/Factories.h"
-#include "partition/Metrics.h"
-#include "partition/Partitioner.h"
-#include "partition/initial_partitioning/BFSInitialPartitioner.h"
-#include "partition/initial_partitioning/GreedyHypergraphGrowingInitialPartitioner.h"
-#include "partition/initial_partitioning/IInitialPartitioner.h"
-#include "partition/initial_partitioning/LabelPropagationInitialPartitioner.h"
-#include "partition/initial_partitioning/PoolInitialPartitioner.h"
-#include "partition/initial_partitioning/RandomInitialPartitioner.h"
-#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
-#include "partition/initial_partitioning/policies/StartNodeSelectionPolicy.h"
+#include "meta/registrar.h"
+#include "partition/coarsening/i_coarsener.h"
+#include "partition/configuration.h"
+#include "partition/factories.h"
+#include "partition/initial_partitioning/bfs_initial_partitioner.h"
+#include "partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"
+#include "partition/initial_partitioning/i_initial_partitioner.h"
+#include "partition/initial_partitioning/label_propagation_initial_partitioner.h"
+#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
+#include "partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
+#include "partition/initial_partitioning/pool_initial_partitioner.h"
+#include "partition/initial_partitioning/random_initial_partitioner.h"
+#include "partition/metrics.h"
+#include "partition/partitioner.h"
+#include "utils/random_functions.h"
+#include "utils/sql_plottools_serializer.h"
 
 namespace po = boost::program_options;
 
@@ -71,6 +71,7 @@ using partition::BFSStartNodeSelectionPolicy;
 using partition::RoundRobinQueueSelectionPolicy;
 using partition::GlobalQueueSelectionPolicy;
 using partition::SequentialQueueSelectionPolicy;
+using partition::ICoarsener;
 using utils::SQLPlotToolsSerializer;
 using defs::Hypergraph;
 using defs::HypernodeID;

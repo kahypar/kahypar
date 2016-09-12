@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 
 #include "definitions.h"
+#include "hgr_to_edgelist_conversion.h"
 #include "macros.h"
-#include "HgrToEdgeListConversion.h"
 
 using::testing::Test;
 

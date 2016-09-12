@@ -5,15 +5,15 @@
 #include "gmock/gmock.h"
 
 #include "definitions.h"
-#include "partition/Configuration.h"
-#include "partition/Metrics.h"
-#include "partition/Partitioner.h"
-#include "partition/coarsening/HeuristicVertexPairCoarsener.h"
-#include "partition/coarsening/ICoarsener.h"
-#include "partition/coarsening/Rater.h"
-#include "partition/refinement/IRefiner.h"
-#include "partition/refinement/TwoWayFMRefiner.h"
-#include "partition/refinement/policies/FMStopPolicies.h"
+#include "partition/coarsening/heavy_edge_rater.h"
+#include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
+#include "partition/coarsening/i_coarsener.h"
+#include "partition/configuration.h"
+#include "partition/metrics.h"
+#include "partition/partitioner.h"
+#include "partition/refinement/2way_fm_refiner.h"
+#include "partition/refinement/i_refiner.h"
+#include "partition/refinement/policies/fm_stop_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

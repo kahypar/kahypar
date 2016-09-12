@@ -7,12 +7,12 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/BinaryHeap.h"
-#include "datastructure/FastResetBitVector.h"
-#include "datastructure/KWayPriorityQueue.h"
-#include "partition/initial_partitioning/InitialPartitionerBase.h"
-#include "partition/initial_partitioning/policies/GainComputationPolicy.h"
-#include "partition/initial_partitioning/policies/GreedyQueueSelectionPolicy.h"
+#include "datastructure/binary_heap.h"
+#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/kway_priority_queue.h"
+#include "partition/initial_partitioning/initial_partitioner_base.h"
+#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
 
 using::testing::Eq;
 using::testing::Test;

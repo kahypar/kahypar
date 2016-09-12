@@ -10,8 +10,8 @@
 
 #include "Hypergraph_TestFixtures.h"
 #include "definitions.h"
-#include "partition/coarsening/CoarseningMemento.h"
-#include "partition/coarsening/HypergraphPruner.h"
+#include "partition/coarsening/coarsening_memento.h"
+#include "partition/coarsening/hypergraph_pruner.h"
 
 using::testing::Eq;
 using::testing::ContainerEq;

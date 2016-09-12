@@ -45,7 +45,7 @@ include(GetGitRevisionDescription)
 get_git_head_revision(KAHYPAR_VERSION_GIT_REFSPEC KAHYPAR_VERSION_GIT_SHA1)
 if(KAHYPAR_VERSION_GIT_REFSPEC)
   message(STATUS "Detected git refspec ${KAHYPAR_VERSION_GIT_REFSPEC} sha ${KAHYPAR_VERSION_GIT_SHA1}")
-  configure_file(${PROJECT_SOURCE_DIR}/src/GitRevision.h.in ${PROJECT_BINARY_DIR}/src/GitRevision.h)
+  configure_file(${PROJECT_SOURCE_DIR}/src/git_revision.h.in ${PROJECT_BINARY_DIR}/src/git_revision.h)
   # add the binary tree to the search path for include files so that we will find GitRevision.h
   include_directories(${PROJECT_BINARY_DIR}/src)
 else(KAHYPAR_VERSION_GIT_REFSPEC)
@@ -74,6 +74,6 @@ add_subdirectory(src/application)
 add_subdirectory(tools)
 add_subdirectory(tests)
 
-add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/utils/RandomFunctions.cc)
-add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/utils/SQLPlotToolsSerializer.cc)
+add_library(RandomFunctions OBJECT ${PROJECT_SOURCE_DIR}/src/utils/random_functions.cc)
+add_library(SQLPlotTools OBJECT ${PROJECT_SOURCE_DIR}/src/utils/sql_plottools_serializer.cc)
 
