@@ -10,6 +10,7 @@
 #include "definitions.h"
 #include "io/hypergraph_io.h"
 #include "io/partitioning_output.h"
+#include "io/sql_plottools_serializer.h"
 #include "macros.h"
 #include "meta/registrar.h"
 #include "partition/coarsening/i_coarsener.h"
@@ -27,7 +28,6 @@
 #include "partition/metrics.h"
 #include "partition/partitioner.h"
 #include "utils/randomize.h"
-#include "utils/sql_plottools_serializer.h"
 
 namespace po = boost::program_options;
 
@@ -72,7 +72,6 @@ using partition::RoundRobinQueueSelectionPolicy;
 using partition::GlobalQueueSelectionPolicy;
 using partition::SequentialQueueSelectionPolicy;
 using partition::ICoarsener;
-using utils::SQLPlotToolsSerializer;
 
 static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
   CoarseningAlgorithm::heavy_lazy,
@@ -623,7 +622,6 @@ int main(int argc, char* argv[]) {
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  SQLPlotToolsSerializer::serialize(config, hypergraph, partitioner,
-                                    elapsed_seconds, result_file);
+  io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds, result_file);
   return 0;
 }

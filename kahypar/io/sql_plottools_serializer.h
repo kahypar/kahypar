@@ -1,26 +1,37 @@
 /***************************************************************************
- *  Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *  Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  **************************************************************************/
 
-#include "sql_plottools_serializer.h"
+#pragma once
 
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
+#include <array>
+#include <chrono>
+#include <fstream>
+#include <string>
+
+#include "definitions.h"
+#include "partition/configuration.h"
+#include "partition/partitioner.h"
 #include "git_revision.h"
 #include "partition/metrics.h"
 
 namespace ip = boost::interprocess;
 
+using partition::Configuration;
+using partition::Partitioner;
 using partition::toString;
 using partition::RefinementAlgorithm;
 
-namespace utils {
-void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hypergraph& hypergraph,
-                                       const Partitioner& partitioner,
-                                       const std::chrono::duration<double>& elapsed_seconds,
-                                       const std::string& filename) {
-  std::ostringstream oss;
+namespace io {
+namespace serializer {
+  static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
+                        const Partitioner& partitioner,
+                        const std::chrono::duration<double>& elapsed_seconds,
+                        const std::string& filename) {
+     std::ostringstream oss;
   oss << "RESULT"
   << " graph=" << config.partition.graph_filename.substr(
     config.partition.graph_filename.find_last_of("/") + 1)
@@ -134,5 +145,9 @@ void SQLPlotToolsSerializer::serialize(const Configuration& config, const Hyperg
   } else {
     std::cout << oss.str() << std::endl;
   }
-}
+
+
+  }
+
+} //namespace serializer
 }  // namespace utils

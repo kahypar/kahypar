@@ -1,4 +1,4 @@
-add_executable(KaHyPar KaHyPar.cc $<TARGET_OBJECTS:SQLPlotTools>)
+add_executable(KaHyPar KaHyPar.cc)
 target_link_libraries(KaHyPar ${Boost_LIBRARIES})
 
 set_property(TARGET KaHyPar PROPERTY CXX_STANDARD 14)
