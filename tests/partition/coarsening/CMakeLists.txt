@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
-
 add_gmock_test(heuristic_vertex_pair_coarsener_test heuristic_vertex_pair_coarsener_test.cc)
 add_gmock_test(full_vertex_pair_coarsener_test full_vertex_pair_coarsener_test.cc)
 add_gmock_test(lazy_vertex_pair_coarsener_test lazy_vertex_pair_coarsener_test.cc)
-add_gmock_test(rater_test rater_test.cc)
+add_gmock_test(heavy_edge_rater_test heavy_edge_rater_test.cc)
