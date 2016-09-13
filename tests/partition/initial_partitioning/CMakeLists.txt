@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-include(gmock)
-
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_gmock_test(gain_computation_test gain_computation_test.cc)

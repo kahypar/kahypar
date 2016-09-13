@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
-include(gmock)
-
 add_executable(MtxToHgr mtx_to_hgr_converter.cc mtx_to_hgr_conversion.cc)
 add_executable(GraphToHgr graph_to_hgr_converter.cc)
 add_executable(CnfToHgr cnf_to_hgr_converter.cc)
