@@ -24,8 +24,7 @@ namespace io {
 namespace serializer {
 static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
                              const Partitioner& partitioner,
-                             const std::chrono::duration<double>& elapsed_seconds,
-                             const std::string& filename) {
+                             const std::chrono::duration<double>& elapsed_seconds) {
   std::ostringstream oss;
   oss << "RESULT"
   << " graph=" << config.partition.graph_filename.substr(

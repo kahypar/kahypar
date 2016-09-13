@@ -364,8 +364,7 @@ void sanityCheck(Configuration& config) {
 }
 
 
-void processCommandLineInput(Configuration& config, std::string& result_file,
-                             int argc, char* argv[]) {
+void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::options_description desc("Allowed options");
   desc.add_options()("help", "show help message")
     ("verbose", po::value<bool>(&config.partition.verbose_output),
@@ -542,9 +541,7 @@ void processCommandLineInput(Configuration& config, std::string& result_file,
     ("i", po::value<int>(&config.local_search.fm.max_number_of_fruitless_moves),
     "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
     ("alpha", po::value<double>(&config.local_search.fm.adaptive_stopping_alpha),
-    "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)")
-    ("file", po::value<std::string>(&result_file),
-    "filename of result file");
+    "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -557,17 +554,12 @@ void processCommandLineInput(Configuration& config, std::string& result_file,
   }
 
   po::notify(vm);
-
-  if (vm.count("file")) {
-    result_file = vm["file"].as<std::string>();
-  }
 }
 
 int main(int argc, char* argv[]) {
   Configuration config;
-  std::string result_file;
 
-  processCommandLineInput(config, result_file, argc, argv);
+  processCommandLineInput(config, argc, argv);
   sanityCheck(config);
 
   if (config.partition.global_search_iterations != 0) {
@@ -622,6 +614,6 @@ int main(int argc, char* argv[]) {
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds, result_file);
+  io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
   return 0;
 }
