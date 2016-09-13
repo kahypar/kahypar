@@ -191,7 +191,6 @@ struct PartitioningParameters {
     seed(0),
     global_search_iterations(0),
     current_v_cycle(0),
-    work_factor(std::numeric_limits<double>::max()),
     perfect_balance_part_weights({
       std::numeric_limits<HypernodeWeight>::max(),
       std::numeric_limits<HypernodeWeight>::max()
@@ -218,7 +217,6 @@ struct PartitioningParameters {
   int seed;
   int global_search_iterations;
   int current_v_cycle;
-  double work_factor;
   std::array<HypernodeWeight, 2> perfect_balance_part_weights;
   std::array<HypernodeWeight, 2> max_part_weights;
   HypernodeWeight total_graph_weight;
@@ -247,7 +245,6 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  seed:                               " << params.seed << std::endl;
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
-  str << "  work factor:                        " << params.work_factor << std::endl;
   str << "  initially remove parallel HEs:      " << std::boolalpha
   << params.initial_parallel_he_removal
   << std::endl;

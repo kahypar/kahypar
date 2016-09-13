@@ -501,8 +501,6 @@ void processCommandLineInput(Configuration& config, std::string& result_file,
     }
   }),
     "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
-    ("work-factor", po::value<double>(&config.partition.work_factor),
-    "Any hyperedges incurring more than work-factor * |pins| work will be removed")
     ("remove-always-cut-hes", po::value<bool>(&config.partition.remove_hes_that_always_will_be_cut),
     "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
     ("ctype", po::value<std::string>()->notifier(

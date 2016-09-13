@@ -28,8 +28,8 @@
 #include "partition/factories.h"
 #include "partition/metrics.h"
 #include "partition/refinement/2way_fm_refiner.h"
-#include "preprocessing/single_node_hyperedge_remover.h"
 #include "preprocessing/large_hyperedge_remover.h"
+#include "preprocessing/single_node_hyperedge_remover.h"
 #include "utils/randomize.h"
 #include "utils/stats.h"
 
@@ -279,9 +279,6 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   config.partition.collect_stats = false;
   config.partition.global_search_iterations = 0;
 
-  // no more removal of large HEs
-  config.partition.work_factor = std::numeric_limits<double>::max();
-
   config.initial_partitioning.k = config.partition.k;
   config.initial_partitioning.epsilon = init_alpha * original_config.partition.epsilon;
 
@@ -384,7 +381,6 @@ inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configu
       break;
   }
 }
-
 
 
 inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,

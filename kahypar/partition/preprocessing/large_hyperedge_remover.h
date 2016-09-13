@@ -1,7 +1,10 @@
+/***************************************************************************
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #pragma once
 
 #include <vector>
-#include <map>
 
 #include "definitions.h"
 
@@ -12,7 +15,7 @@ static const bool dbg_partition_large_he_restore = false;
 class LargeHyperedgeRemover {
  public:
   LargeHyperedgeRemover() :
-      _removed_hes() { }
+    _removed_hes() { }
 
   LargeHyperedgeRemover(const LargeHyperedgeRemover&) = delete;
   LargeHyperedgeRemover& operator= (const LargeHyperedgeRemover&) = delete;
@@ -21,37 +24,13 @@ class LargeHyperedgeRemover {
   LargeHyperedgeRemover& operator= (LargeHyperedgeRemover&&) = delete;
 
   void removeLargeHyperedges(Hypergraph& hypergraph, const Configuration& config) {
-    if (config.partition.work_factor != std::numeric_limits<double>::max()) {
-      std::map<HypernodeID, HypernodeID> histogram;
-      for (const HyperedgeID he : hypergraph.edges()) {
-        const HypernodeID he_size = hypergraph.edgeSize(he);
-        histogram[he_size] += he_size * he_size;
-      }
-
-      double work = 0;
-      std::vector<std::pair<HyperedgeID, double> > prefix_work;
-      for (const auto& bin : histogram) {
-        work += bin.second;
-        prefix_work.emplace_back(bin.first, work);
-      }
-      std::pair<HyperedgeID, double> cutoff = { 0, 0 };
-      for (const auto& work : prefix_work) {
-        if (work.second >= config.partition.work_factor * hypergraph.currentNumPins()) {
-          cutoff = work;
-          break;
-        }
-      }
-      LOG("cutoff size = " << cutoff.first << V(cutoff.second));
-      removeHyperedgesLargerThan(hypergraph, cutoff.first);
-    }
-
     // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
     // remove them from the graph, to make subsequent partitioning easier.
     // In case of direct k-way partitioning, Lmaxi=Lmax0=Lmax1 for all i in (0..k-1).
     // In case of rb-based k-way partitioning however, Lmax0 might be different than Lmax1,
     // depending on how block 0 and block1 will be partitioned further.
     const HypernodeWeight max_part_weight =
-        std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
+      std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
     if (config.partition.remove_hes_that_always_will_be_cut) {
       if (hypergraph.type() == Hypergraph::Type::Unweighted) {
         for (const HyperedgeID he : hypergraph.edges()) {
@@ -96,20 +75,6 @@ class LargeHyperedgeRemover {
   }
 
  private:
-  void removeHyperedgesLargerThan(Hypergraph& hypergraph, const HypernodeID threshold) {
-    for (const HyperedgeID he : hypergraph.edges()) {
-      if (hypergraph.edgeSize(he) > threshold) {
-        DBG(dbg_partition_large_he_removal,
-            "Hyperedge " << he << ": size (" << hypergraph.edgeSize(he) << ")   exceeds threshold: "
-            << threshold);
-        _removed_hes.push_back(he);
-        hypergraph.removeEdge(he, false);
-      }
-    }
-  }
-
   std::vector<HyperedgeID> _removed_hes;
 };
-
-
-} // namespace partition
+}  // namespace partition
