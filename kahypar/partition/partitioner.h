@@ -28,6 +28,8 @@
 #include "partition/factories.h"
 #include "partition/metrics.h"
 #include "partition/refinement/2way_fm_refiner.h"
+#include "preprocessing/single_node_hyperedge_remover.h"
+#include "preprocessing/large_hyperedge_remover.h"
 #include "utils/randomize.h"
 #include "utils/stats.h"
 
@@ -47,8 +49,6 @@ class APartitionedHypergraph;
 }
 
 namespace partition {
-static const bool dbg_partition_large_he_removal = false;
-static const bool dbg_partition_large_he_restore = false;
 static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
 
@@ -81,6 +81,8 @@ class Partitioner {
 
  public:
   explicit Partitioner() :
+    _single_node_he_remover(),
+    _large_he_remover(),
     _internals() { }
 
   Partitioner(const Partitioner&) = delete;
@@ -89,7 +91,7 @@ class Partitioner {
   Partitioner(Partitioner&&) = delete;
   Partitioner& operator= (Partitioner&&) = delete;
 
-  inline void partition(Hypergraph& hypergraph, const Configuration& config);
+  inline void partition(Hypergraph& hypergraph, Configuration& config);
 
   const std::string internals() const {
     return _internals;
@@ -120,13 +122,6 @@ class Partitioner {
 
   inline void performRecursiveBisectionPartitioning(Hypergraph& hypergraph,
                                                     const Configuration& config);
-
-  inline void removeLargeHyperedges(Hypergraph& hg,
-                                    Hyperedges& removed_hyperedges, const Configuration& config);
-  inline void restoreLargeHyperedges(Hypergraph& hg, const Hyperedges& removed_hyperedges);
-
-  inline void removeHyperedgesLargerThan(Hypergraph& hg, Hyperedges& removed_hyperedges,
-                                         const HypernodeID threshold);
 
   inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                                    CoarsenedToHmetisMapping& hg_to_hmetis,
@@ -163,8 +158,100 @@ class Partitioner {
                                                                  const Configuration& original_config,
                                                                  double init_alpha) const;
 
+  inline void partitionInternal(Hypergraph& hypergraph, const Configuration& config);
+
+  inline void setupConfig(const Hypergraph& hypergraph, Configuration& config) const;
+
+  inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
+
+  inline void postprocess(Hypergraph& hypergraph, const Configuration& config);
+
+  SingleNodeHyperedgeRemover _single_node_he_remover;
+  LargeHyperedgeRemover _large_he_remover;
   std::string _internals;
 };
+
+inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration& config) const {
+  config.partition.total_graph_weight = hypergraph.totalWeight();
+
+  config.coarsening.contraction_limit =
+    config.coarsening.contraction_limit_multiplier * config.partition.k;
+
+  config.coarsening.hypernode_weight_fraction =
+    config.coarsening.max_allowed_weight_multiplier
+    / config.coarsening.contraction_limit;
+
+  config.partition.perfect_balance_part_weights[0] = ceil(
+    config.partition.total_graph_weight
+    / static_cast<double>(config.partition.k));
+  config.partition.perfect_balance_part_weights[1] =
+    config.partition.perfect_balance_part_weights[0];
+
+  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
+                                         * config.partition.perfect_balance_part_weights[0];
+  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
+
+  config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
+                                                   * config.partition.total_graph_weight);
+  config.local_search.fm.adaptive_stopping_beta = log(hypergraph.initialNumNodes());
+
+// We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
+// with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
+// In order to provide a balanced initial partitioning, we determine the UBfactor such that
+// the maximal allowed partiton size corresponds to our upper bound i.e.
+// (1+epsilon) * ceil(total_weight / k).
+  double exp = 1.0 / log2(config.partition.k);
+  config.initial_partitioning.hmetis_ub_factor =
+    50.0
+    * (2 * pow((1 + config.partition.epsilon), exp)
+       * pow(
+         ceil(
+           static_cast<double>(config.partition.total_graph_weight)
+           / config.partition.k)
+         / config.partition.total_graph_weight,
+         exp) - 1);
+
+  // the main partitioner should track stats
+  config.partition.collect_stats = true;
+
+
+  io::printPartitionerConfiguration(config);
+}
+
+inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration& config) {
+  const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
+  if (config.partition.verbose_output && result.num_removed_single_node_hes > 0) {
+    LOG("\033[1m\033[31m" << "Removed " << result.num_removed_single_node_hes
+        << " hyperedges with |e|=1" << "\033[0m");
+    LOG("\033[1m\033[31m" << "===> " << result.num_unconnected_hns
+        << " unconnected HNs could have been removed" << "\033[0m");
+  }
+  if (config.partition.initial_parallel_he_removal) {
+    removeParallelHyperedges(hypergraph, config);
+  }
+
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  _large_he_remover.removeLargeHyperedges(hypergraph, config);
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  Stats::instance().addToTotal(config, "InitialLargeHEremoval",
+                               std::chrono::duration<double>(end - start).count());
+}
+
+inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration& config) {
+  LOG("postprocess");
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  _large_he_remover.restoreLargeHyperedges(hypergraph);
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  Stats::instance().addToTotal(config, "InitialLargeHErestore",
+                               std::chrono::duration<double>(end - start).count());
+  LOG("nach large he restore");
+  if (config.partition.initial_parallel_he_removal) {
+    restoreParallelHyperedges(hypergraph);
+  }
+  LOG("nach parallel he restore");
+  _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
+  LOG("nach signle node restore");
+}
 
 inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
   if (config.partition.verbose_output) {
@@ -280,18 +367,14 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   return config;
 }
 
-inline void Partitioner::partition(Hypergraph& hypergraph, const Configuration& config) {
-  if (config.partition.initial_parallel_he_removal) {
-    removeParallelHyperedges(hypergraph, config);
-  }
+inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config) {
+  setupConfig(hypergraph, config);
+  preprocess(hypergraph, config);
+  partitionInternal(hypergraph, config);
+  postprocess(hypergraph, config);
+}
 
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  std::vector<HyperedgeID> removed_hyperedges;
-  removeLargeHyperedges(hypergraph, removed_hyperedges, config);
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "InitialLargeHEremoval",
-                               std::chrono::duration<double>(end - start).count());
-
+inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configuration& config) {
   switch (config.partition.mode) {
     case Mode::recursive_bisection:
       performRecursiveBisectionPartitioning(hypergraph, config);
@@ -300,17 +383,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph, const Configuration& 
       performDirectKwayPartitioning(hypergraph, config);
       break;
   }
-
-  start = std::chrono::high_resolution_clock::now();
-  restoreLargeHyperedges(hypergraph, removed_hyperedges);
-  end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "InitialLargeHErestore",
-                               std::chrono::duration<double>(end - start).count());
-
-  if (config.partition.initial_parallel_he_removal) {
-    restoreParallelHyperedges(hypergraph);
-  }
 }
+
+
 
 inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
                                    const Configuration& config, const PartitionID k1,
@@ -522,7 +597,7 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
                              init_config);
     } else {
       // ... we call the partitioner again with the new configuration.
-      Partitioner::partition(*extracted_init_hypergraph.first, init_config);
+      partitionInternal(*extracted_init_hypergraph.first, init_config);
     }
 
     const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, config);
@@ -779,96 +854,6 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
     hg_to_hmetis[hn] = i;
     hmetis_to_hg[i] = hn;
     ++i;
-  }
-}
-
-inline void Partitioner::removeHyperedgesLargerThan(Hypergraph& hg, Hyperedges& removed_hyperedges,
-                                                    const HypernodeID threshold) {
-  for (const HyperedgeID he : hg.edges()) {
-    if (hg.edgeSize(he) > threshold) {
-      DBG(dbg_partition_large_he_removal,
-          "Hyperedge " << he << ": size (" << hg.edgeSize(he) << ")   exceeds threshold: "
-          << threshold);
-      removed_hyperedges.push_back(he);
-      hg.removeEdge(he, false);
-    }
-  }
-}
-
-inline void Partitioner::removeLargeHyperedges(Hypergraph& hg, Hyperedges& removed_hyperedges,
-                                               const Configuration& config) {
-  if (config.partition.work_factor != std::numeric_limits<double>::max()) {
-    std::map<HypernodeID, HypernodeID> histogram;
-    for (const HyperedgeID he : hg.edges()) {
-      const HypernodeID he_size = hg.edgeSize(he);
-      histogram[he_size] += he_size * he_size;
-    }
-
-    double work = 0;
-    std::vector<std::pair<HyperedgeID, double> > prefix_work;
-    for (const auto& bin : histogram) {
-      work += bin.second;
-      prefix_work.emplace_back(bin.first, work);
-    }
-    std::pair<HyperedgeID, double> cutoff = { 0, 0 };
-    for (const auto& work : prefix_work) {
-      if (work.second >= config.partition.work_factor * hg.currentNumPins()) {
-        cutoff = work;
-        break;
-      }
-    }
-    LOG("cutoff size = " << cutoff.first << V(cutoff.second));
-    removeHyperedgesLargerThan(hg, removed_hyperedges, cutoff.first);
-  }
-
-  // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
-  // remove them from the graph, to make subsequent partitioning easier.
-  // In case of direct k-way partitioning, Lmaxi=Lmax0=Lmax1 for all i in (0..k-1).
-  // In case of rb-based k-way partitioning however, Lmax0 might be different than Lmax1,
-  // depending on how block 0 and block1 will be partitioned further.
-  const HypernodeWeight max_part_weight =
-    std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
-  if (config.partition.remove_hes_that_always_will_be_cut) {
-    if (hg.type() == Hypergraph::Type::Unweighted) {
-      for (const HyperedgeID he : hg.edges()) {
-        if (hg.edgeSize(he) > max_part_weight) {
-          DBG(dbg_partition_large_he_removal,
-              "Hyperedge " << he << ": |pins|=" << hg.edgeSize(he) << "   exceeds Lmax: "
-              << max_part_weight);
-          removed_hyperedges.push_back(he);
-          hg.removeEdge(he, false);
-        }
-      }
-    } else if (hg.type() == Hypergraph::Type::NodeWeights ||
-               hg.type() == Hypergraph::Type::EdgeAndNodeWeights) {
-      for (const HyperedgeID he : hg.edges()) {
-        HypernodeWeight sum_pin_weights = 0;
-        for (const HypernodeID pin : hg.pins(he)) {
-          sum_pin_weights += hg.nodeWeight(pin);
-        }
-        if (sum_pin_weights > max_part_weight) {
-          DBG(dbg_partition_large_he_removal,
-              "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
-              << max_part_weight);
-          removed_hyperedges.push_back(he);
-          hg.removeEdge(he, false);
-        }
-      }
-    }
-  }
-
-  Stats::instance().add(config, "numInitiallyRemovedLargeHEs",
-                        removed_hyperedges.size());
-  LOG("removed " << removed_hyperedges.size() << " HEs that had more than "
-      << config.partition.hyperedge_size_threshold
-      << " pins or weight of pins was greater than Lmax=" << max_part_weight);
-}
-
-inline void Partitioner::restoreLargeHyperedges(Hypergraph& hg,
-                                                const Hyperedges& removed_hyperedges) {
-  for (auto && edge = removed_hyperedges.rbegin(); edge != removed_hyperedges.rend(); ++edge) {
-    DBG(dbg_partition_large_he_removal, " restore Hyperedge " << *edge);
-    hg.restoreEdge(*edge);
   }
 }
 

@@ -585,76 +585,11 @@ int main(int argc, char* argv[]) {
     io::createHypergraphFromFile(config.partition.graph_filename,
                                  config.partition.k));
 
-// ensure that there are no single-node hyperedges
-  HyperedgeID num_single_node_hes = 0;
-  HyperedgeID num_unconnected_hns = 0;
-  for (const HyperedgeID he : hypergraph.edges()) {
-    if (hypergraph.edgeSize(he) == 1) {
-      ++num_single_node_hes;
-      if (hypergraph.nodeDegree(*hypergraph.pins(he).first) == 1) {
-        ++num_unconnected_hns;
-      }
-      hypergraph.removeEdge(he, false);
-    }
-  }
-
-  config.partition.total_graph_weight = hypergraph.totalWeight();
-
-  config.coarsening.contraction_limit =
-    config.coarsening.contraction_limit_multiplier * config.partition.k;
-
-  config.coarsening.hypernode_weight_fraction =
-    config.coarsening.max_allowed_weight_multiplier
-    / config.coarsening.contraction_limit;
-
-  config.partition.perfect_balance_part_weights[0] = ceil(
-    config.partition.total_graph_weight
-    / static_cast<double>(config.partition.k));
-  config.partition.perfect_balance_part_weights[1] =
-    config.partition.perfect_balance_part_weights[0];
-
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
-
-  config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
-                                                   * config.partition.total_graph_weight);
-  config.local_search.fm.adaptive_stopping_beta = log(hypergraph.initialNumNodes());
-
-// We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
-// with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
-// In order to provide a balanced initial partitioning, we determine the UBfactor such that
-// the maximal allowed partiton size corresponds to our upper bound i.e.
-// (1+epsilon) * ceil(total_weight / k).
-  double exp = 1.0 / log2(config.partition.k);
-  config.initial_partitioning.hmetis_ub_factor =
-    50.0
-    * (2 * pow((1 + config.partition.epsilon), exp)
-       * pow(
-         ceil(
-           static_cast<double>(config.partition.total_graph_weight)
-           / config.partition.k)
-         / config.partition.total_graph_weight,
-         exp) - 1);
-
-  io::printPartitionerConfiguration(config);
-
-  if (num_single_node_hes > 0) {
-    LOG(
-      "\033[1m\033[31m" << "Removed " << num_single_node_hes << " hyperedges with |e|=1" << "\033[0m");
-    LOG(
-      "\033[1m\033[31m" << "===> " << num_unconnected_hns << " unconnected HNs could have been removed"
-      << "\033[0m");
-  }
-
   if (config.partition.verbose_output) {
     io::printHypergraphInfo(hypergraph,
                             config.partition.graph_filename.substr(
                               config.partition.graph_filename.find_last_of("/") + 1));
   }
-
-// the main partitioner should track stats
-  config.partition.collect_stats = true;
 
   Partitioner partitioner;
 
