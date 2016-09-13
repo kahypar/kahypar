@@ -15,8 +15,6 @@
 #include "partition/metrics.h"
 #include "partition/partitioner.h"
 
-namespace ip = boost::interprocess;
-
 using partition::Configuration;
 using partition::Partitioner;
 using partition::toString;
