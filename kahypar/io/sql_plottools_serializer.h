@@ -4,19 +4,16 @@
 
 #pragma once
 
-#include <boost/interprocess/sync/file_lock.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
-
 #include <array>
 #include <chrono>
 #include <fstream>
 #include <string>
 
 #include "definitions.h"
-#include "partition/configuration.h"
-#include "partition/partitioner.h"
 #include "git_revision.h"
+#include "partition/configuration.h"
 #include "partition/metrics.h"
+#include "partition/partitioner.h"
 
 namespace ip = boost::interprocess;
 
@@ -27,11 +24,11 @@ using partition::RefinementAlgorithm;
 
 namespace io {
 namespace serializer {
-  static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
-                        const Partitioner& partitioner,
-                        const std::chrono::duration<double>& elapsed_seconds,
-                        const std::string& filename) {
-     std::ostringstream oss;
+static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
+                             const Partitioner& partitioner,
+                             const std::chrono::duration<double>& elapsed_seconds,
+                             const std::string& filename) {
+  std::ostringstream oss;
   oss << "RESULT"
   << " graph=" << config.partition.graph_filename.substr(
     config.partition.graph_filename.find_last_of("/") + 1)
@@ -134,20 +131,8 @@ namespace serializer {
   << Stats::instance().toString()
   << " git=" << STR(KaHyPar_BUILD_VERSION)
   << std::endl;
-  if (!filename.empty()) {
-    std::ofstream out_stream(filename.c_str(), std::ofstream::app);
-    ip::file_lock f_lock(filename.c_str());
-    {
-      ip::scoped_lock<ip::file_lock> s_lock(f_lock);
-      out_stream << oss.str();
-      out_stream.flush();
-    }
-  } else {
-    std::cout << oss.str() << std::endl;
-  }
 
-
-  }
-
-} //namespace serializer
+  std::cout << oss.str() << std::endl;
+}
+}  // namespace serializer
 }  // namespace utils
