@@ -705,9 +705,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   .add(ip_options)
   .add(refinement_options);
 
-  po::store(po::parse_config_file(file, ini_line_options, true),
-            cmd_vm);
-
+  po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
 }
 
@@ -736,23 +734,9 @@ int main(int argc, char* argv[]) {
   }
 
   Partitioner partitioner;
-
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, config);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-
-#ifndef NDEBUG
-  for (const HyperedgeID he : hypergraph.edges()) {
-    ASSERT([&]() -> bool {
-      HypernodeID num_pins = 0;
-      for (PartitionID i = 0; i < config.partition.k; ++i) {
-        num_pins += hypergraph.pinCountInPart(he, i);
-      }
-      return num_pins == hypergraph.edgeSize(he);
-    } (), "Incorrect calculation of pin counts");
-  }
-#endif
-
   std::chrono::duration<double> elapsed_seconds = end - start;
 
 #ifdef GATHER_STATS
