@@ -6,6 +6,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <sys/ioctl.h>
 
 #include "definitions.h"
 #include "io/hypergraph_io.h"
@@ -365,17 +366,19 @@ void sanityCheck(Configuration& config) {
 
 
 void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
-  po::options_description desc("Allowed options");
-  desc.add_options()("help", "show help message")
-    ("verbose", po::value<bool>(&config.partition.verbose_output),
-    "Verbose partitioner output")
-    ("k", po::value<PartitionID>(&config.partition.k)->required()->notifier(
-      [&](const PartitionID) {
-    config.partition.rb_lower_k = 0;
-    config.partition.rb_upper_k = config.partition.k - 1;
-  }),
-    "Number of blocks")
-    ("hgr", po::value<std::string>(&config.partition.graph_filename)->required()->notifier(
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+
+  po::options_description generic_options("Generic Options", w.ws_col);
+  generic_options.add_options()
+    ("help", "show help message")
+    ("verbose,v", po::value<bool>(&config.partition.verbose_output)->value_name("<bool>"),
+    "Verbose partitioning output");
+
+  po::options_description required_options("Required Options", w.ws_col);
+  required_options.add_options()
+    ("hypergraph,h",
+    po::value<std::string>(&config.partition.graph_filename)->value_name("<string>")->required()->notifier(
       [&](const std::string&) {
     config.partition.coarse_graph_filename =
       std::string("/tmp/PID_")
@@ -389,36 +392,202 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
       config.partition.coarse_graph_filename + ".part."
       + std::to_string(config.partition.k);
   }),
-    "Filename of the hypergraph")
-    ("e", po::value<double>(&config.partition.epsilon)->required(),
+    "Hypergraph filename")
+    ("blocks,k",
+    po::value<PartitionID>(&config.partition.k)->value_name("<int>")->required()->notifier(
+      [&](const PartitionID) {
+    config.partition.rb_lower_k = 0;
+    config.partition.rb_upper_k = config.partition.k - 1;
+  }),
+    "Number of blocks")
+    ("epsilon,e",
+    po::value<double>(&config.partition.epsilon)->value_name("<double>")->required(),
     "Imbalance parameter epsilon")
-    ("obj", po::value<std::string>()->notifier([&](const std::string& s) {
+    ("objective,o",
+    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
     if (s == "cut") {
       config.partition.objective = Objective::cut;
     } else if (s == "km1") {
       config.partition.objective = Objective::km1;
-    } else {
-      std::cout << "No valid objective function." << std::endl;
-      exit(0);
     }
   }),
-    "Objective: cut, km1")
-    ("seed", po::value<int>(&config.partition.seed),
-    "Seed for random number generator")
-    ("mode", po::value<std::string>()->notifier(
+    "Objective: \n"
+    " - cut : cut-net metric \n"
+    " - km1 : (lambda-1) metric")
+    ("mode,m",
+    po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
     config.partition.mode = partition::modeFromString(mode);
   }),
-    "(rb) recursive bisection, (direct) direct k-way")
-    ("init-remove-hes", po::value<bool>(&config.partition.initial_parallel_he_removal),
-    "Initially remove parallel hyperedges before partitioning")
-    ("ip", po::value<std::string>()->notifier(
+    "Partitioning mode: \n"
+    " - (recursive) bisection \n"
+    " - (direct) k-way");
+
+  std::string preset("---");
+  po::options_description preset_options("Preset Options", w.ws_col);
+  preset_options.add_options()
+    ("preset,p", po::value<std::string>(&preset)->value_name("<string>"),
+    "Configuration Presets:\n"
+    " - direct_kway_km1_alenex17\n"
+    " - rb_cut_alenex16\n"
+    " - <path-to-custom-ini-file>");
+
+  po::options_description general_options("General Options", w.ws_col);
+  general_options.add_options()
+    ("seed",
+    po::value<int>(&config.partition.seed)->value_name("<int>"),
+    "Seed for random number generator \n"
+    "(default: -1)")
+    ("pre-parallel-net-removal",
+    po::value<bool>(&config.partition.initial_parallel_he_removal)->value_name("<bool>"),
+    "(Pre)processing: Remove parallel hyperedges before partitioning \n"
+    "(default: false)")
+    ("pre-large-net-removal",
+    po::value<bool>(&config.partition.remove_hes_that_always_will_be_cut)->value_name("<bool>"),
+    "(Pre)processing: Remove hyperedges that will always be cut because"
+    " of the weight of their pins \n"
+    "(default: false)")
+    ("cmaxnet",
+    po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
+      [&](const HyperedgeID) {
+    if (config.partition.hyperedge_size_threshold == -1) {
+      config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+    }
+  }),
+    "Hyperedges larger than cmaxnet are ignored during partitioning process. \n"
+    "(default: -1, disabled)")
+    ("vcycles",
+    po::value<int>(&config.partition.global_search_iterations)->value_name("<int>"),
+    "# V-cycle iterations for direct k-way partitioning \n"
+    "(default: 0)");
+
+
+  po::options_description coarsening_options("Coarsening Options", w.ws_col);
+  coarsening_options.add_options()
+    ("c-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ctype) {
+    config.coarsening.algorithm = partition::coarseningAlgorithmFromString(ctype);
+  }),
+    "Algorithm:\n"
+    " - ml_style\n"
+    " - heavy_full\n"
+    " - heavy_lazy \n"
+    "(default: ml_style)")
+    ("c-s",
+    po::value<double>(&config.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
+    "(s * w(H)) / (t * k)\n"
+    "(default: 1)")
+    ("c-t",
+    po::value<HypernodeID>(&config.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    "Coarsening stops when there are no more than t * k hypernodes left\n"
+    "(default: 160)");
+
+
+  po::options_description ip_options("Initial Partitioning Options", w.ws_col);
+  ip_options.add_options()
+    ("i-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& initial_partitioner) {
     config.initial_partitioning.tool =
       partition::initialPartitionerFromString(initial_partitioner);
   }),
-    "Initial Partitioner: hMetis (default), PaToH or KaHyPar")
-    ("ip-path", po::value<std::string>(&config.initial_partitioning.tool_path)->default_value("-")->notifier(
+    "Initial Partitioner:\n"
+    " - KaHyPar\n"
+    " - hMetis\n"
+    " - PaToH\n"
+    "(default: KaHyPar)")
+    ("i-mode",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_mode) {
+    config.initial_partitioning.mode = partition::modeFromString(ip_mode);
+  }),
+    "IP mode: \n"
+    " - (recursive) bisection  \n"
+    " - (direct) k-way\n"
+    "(default: rb)")
+    ("i-technique",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_technique) {
+    config.initial_partitioning.technique =
+      partition::inititalPartitioningTechniqueFromString(ip_technique);
+  }),
+    "IP Technique:\n"
+    " - flat\n"
+    " - (multi)level\n"
+    "(default: multi)")
+    ("i-algo",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_algo) {
+    config.initial_partitioning.algo =
+      partition::initialPartitioningAlgorithmFromString(ip_algo);
+  }),
+    "Algorithm used to create initial partition: pool (default)")
+    ("i-c-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_ctype) {
+    config.initial_partitioning.coarsening.algorithm =
+      partition::coarseningAlgorithmFromString(ip_ctype);
+  }),
+    "IP Coarsening Algorithm:\n"
+    " - ml_style\n"
+    " - heavy_full\n"
+    " - heavy_lazy \n"
+    "(default: ml_style)")
+    ("i-c-s",
+    po::value<double>(&config.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
+    "(i-c-s * w(H)) / (i-c-t * k)\n"
+    "(default: 1)")
+    ("i-c-t",
+    po::value<HypernodeID>(&config.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    "IP coarsening stops when there are no more than i-c-t * k hypernodes left \n"
+    "(default: 150)")
+    ("i-runs",
+    po::value<int>(&config.initial_partitioning.nruns)->value_name("<int>"),
+    "# initial partition trials \n"
+    "(default: 20)")
+    ("i-r-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_rtype) {
+    config.initial_partitioning.local_search.algorithm =
+      partition::refinementAlgorithmFromString(ip_rtype);
+  }),
+    "IP Local Search Algorithm:\n"
+    " - twoway_fm   : 2-way FM algorithm\n"
+    " - kway_fm     : k-way FM algorithm\n"
+    " - kway_fm_km1 : k-way FM algorithm optimizing km1 metric\n"
+    " - sclap       : Size-constrained Label Propagation \n"
+    "(default: twoway_fm)")
+    ("i-r-fm-stop",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_stopfm) {
+    config.initial_partitioning.local_search.fm.stopping_rule =
+      partition::stoppingRuleFromString(ip_stopfm);
+  }),
+    "Stopping Rule for IP Local Search: \n"
+    " - adaptive_opt: ALENEX'17 stopping rule \n"
+    " - adaptive1:    new nGP implementation \n"
+    " - adaptive2:    original nGP implementation \n"
+    " - simple:       threshold based on i-r-i\n"
+    "(default: simple)")
+    ("i-r-fm-stop-i",
+    po::value<int>(&config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    "Max. # fruitless moves before stopping local search \n"
+    "(default: 50)")
+    ("i-r-runs",
+    po::value<int>(&config.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
+      [&](const int) {
+    if (config.initial_partitioning.local_search.iterations_per_level == -1) {
+      config.initial_partitioning.local_search.iterations_per_level =
+        std::numeric_limits<int>::max();
+    }
+  }),
+    "Max. # local search repetitions on each level \n"
+    "(default:1, no limit:-1)")
+    ("i-path",
+    po::value<std::string>(&config.initial_partitioning.tool_path)->value_name("<string>")->notifier(
       [&](const std::string& tool_path) {
     if (tool_path == "-") {
       switch (config.initial_partitioning.tool) {
@@ -436,93 +605,57 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
       }
     }
   }),
-    "If ip!=KaHyPar: Path to Initial Partitioner Binary")
-    ("ip-mode", po::value<std::string>()->notifier(
-      [&](const std::string& ip_mode) {
-    config.initial_partitioning.mode = partition::modeFromString(ip_mode);
-  }),
-    "If ip=KaHyPar: direct (direct) or recursive bisection (rb) initial partitioning")
-    ("ip-technique", po::value<std::string>()->notifier(
-      [&](const std::string& ip_technique) {
-    config.initial_partitioning.technique =
-      partition::inititalPartitioningTechniqueFromString(ip_technique);
-  }),
-    "If ip=KaHyPar: flat (flat) or multilevel (multi) initial partitioning")
-    ("ip-algo", po::value<std::string>()->notifier(
-      [&](const std::string& ip_algo) {
-    config.initial_partitioning.algo =
-      partition::initialPartitioningAlgorithmFromString(ip_algo);
-  }),
-    "If ip=KaHyPar: used initial partitioning algorithm")
-    ("ip-ctype", po::value<std::string>()->notifier(
-      [&](const std::string& ip_ctype) {
-    config.initial_partitioning.coarsening.algorithm =
-      partition::coarseningAlgorithmFromString(ip_ctype);
-  }),
-    "If ip=KaHyPar: used coarsening algorithm for multilevel initial partitioning")
-    ("ip-nruns", po::value<int>(&config.initial_partitioning.nruns),
-    "# initial partition trials")
-    ("ip-s", po::value<double>(&config.initial_partitioning.coarsening.max_allowed_weight_multiplier),
-    "If ip=KaHyPar: IP Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
-    ("ip-t", po::value<HypernodeID>(&config.initial_partitioning.coarsening.contraction_limit_multiplier),
-    "If ip=KaHyPar: IP Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("ip-rtype", po::value<std::string>()->notifier(
-      [&](const std::string& ip_rtype) {
-    config.initial_partitioning.local_search.algorithm =
-      partition::refinementAlgorithmFromString(ip_rtype);
-  }),
-    "If ip=KaHyPar: used refinement algorithm for multilevel initial partitioning")
-    ("ip-i", po::value<int>(&config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves),
-    "If ip=KaHyPar:  max. # fruitless moves before stopping local search (simple)")
-    ("ip-stopFM", po::value<std::string>()->notifier(
-      [&](const std::string& ip_stopfm) {
-    config.initial_partitioning.local_search.fm.stopping_rule =
-      partition::stoppingRuleFromString(ip_stopfm);
-  }),
-    "If ip=KaHyPar: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
-    ("ip-alpha", po::value<double>(&config.initial_partitioning.init_alpha),
-    "If ip=KaHyPar: Restrict initial partitioning epsilon to init-alpha*epsilon")
-    ("ip-ls-reps", po::value<int>(&config.initial_partitioning.local_search.iterations_per_level)->notifier(
-      [&](const int) {
-    if (config.initial_partitioning.local_search.iterations_per_level == -1) {
-      config.initial_partitioning.local_search.iterations_per_level =
-        std::numeric_limits<int>::max();
-    }
-  }),
-    "If ip=KaHyPar: local search repetitions (default:1, no limit:-1)")
-    ("vcycles", po::value<int>(&config.partition.global_search_iterations),
-    "# v-cycle iterations")
-    ("cmaxnet", po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->notifier(
-      [&](const HyperedgeID) {
-    if (config.partition.hyperedge_size_threshold == -1) {
-      config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
-    }
-  }),
-    "Any hyperedges larger than cmaxnet are removed from the hypergraph before partition (disable:-1 (default))")
-    ("remove-always-cut-hes", po::value<bool>(&config.partition.remove_hes_that_always_will_be_cut),
-    "Any hyperedges whose accumulated pin-weight is larger than Lmax will always be a cut HE and can therefore be removed (default: false)")
-    ("ctype", po::value<std::string>()->notifier(
-      [&](const std::string& ctype) {
-    config.coarsening.algorithm = partition::coarseningAlgorithmFromString(ctype);
-  }),
-    "Coarsening: Scheme to be used: heavy_full (default), heavy_heuristic, heavy_lazy, hyperedge")
-    ("s", po::value<double>(&config.coarsening.max_allowed_weight_multiplier),
-    "Coarsening: The maximum weight of a hypernode in the coarsest is:(s * w(Graph)) / (t * k)")
-    ("t", po::value<HypernodeID>(&config.coarsening.contraction_limit_multiplier),
-    "Coarsening: Coarsening stops when there are no more than t * k hypernodes left")
-    ("rtype", po::value<std::string>()->notifier(
+    "Path to hMetis or PaToH binary.\n"
+    "Only necessary if hMetis or PaToH is chosen as initial partitioner.");
+
+
+  po::options_description refinement_options("Refinement Options", w.ws_col);
+  refinement_options.add_options()
+    ("r-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rtype) {
     config.local_search.algorithm = partition::refinementAlgorithmFromString(rtype);
   }),
-    "Refinement: twoway_fm, kway_fm, kway_fm_maxgain, kway_fm_km1, sclap")
-    ("sclap-max-iterations", po::value<int>(&config.local_search.sclap.max_number_iterations),
-    "Refinement: maximum number of iterations for label propagation based refinement")
-    ("stopFM", po::value<std::string>()->notifier(
+    "Local Search Algorithm:\n"
+    " - twoway_fm   : 2-way FM algorithm\n"
+    " - kway_fm     : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1 : k-way FM algorithm (km1)\n"
+    " - sclap       : Size-constrained Label Propagation \n"
+    "(default: twoway_fm)")
+    ("r-runs",
+    po::value<int>(&config.local_search.iterations_per_level)->value_name("<int>")->notifier(
+      [&](const int) {
+    if (config.local_search.iterations_per_level == -1) {
+      config.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    }
+  }),
+    "Max. # local search repetitions on each level\n"
+    "(default:1, no limit:-1)")
+    ("r-sclap-runs",
+    po::value<int>(&config.local_search.sclap.max_number_iterations)->value_name("<int>"),
+    "Maximum # iterations for ScLaP-based refinement \n"
+    "(default: -1 infinite)")
+    ("r-fm-stop",
+    po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& stopfm) {
     config.local_search.fm.stopping_rule = partition::stoppingRuleFromString(stopfm);
   }),
-    "2-Way-FM | HER-FM: Stopping rule \n adaptive1: new implementation based on nGP \n adaptive2: original nGP implementation \n simple: threshold based")
-    ("global-rebalancing", po::value<bool>()->notifier(
+    "Stopping Rule for Local Search: \n"
+    " - adaptive_opt: ALENEX'17 stopping rule \n"
+    " - adaptive1:    new nGP implementation \n"
+    " - adaptive2:    original nGP implementation \n"
+    " - simple:       threshold based on r-fm-stop-i \n"
+    "(default: simple)")
+    ("r-fm-stop-i",
+    po::value<int>(&config.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    "Max. # fruitless moves before stopping local search using simple stopping rule \n"
+    "(default: 250)")
+    ("r-fm-stop-alpha",
+    po::value<double>(&config.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
+    "Parameter alpha for adaptive stopping rules \n"
+    "(default: 1,infinity: -1)")
+    ("r-fm-global-rebalancing",
+    po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool global_rebalancing) {
     if (global_rebalancing) {
       config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
@@ -530,30 +663,52 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
       config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
     }
   }),
-    "Use global rebalancing PQs in twoway_fm")
-    ("ls-reps", po::value<int>(&config.local_search.iterations_per_level)->notifier(
-      [&](const int) {
-    if (config.local_search.iterations_per_level == -1) {
-      config.local_search.iterations_per_level = std::numeric_limits<int>::max();
-    }
-  }),
-    "max. # of local search repetitions on each level (default: no limit = -1)")
-    ("i", po::value<int>(&config.local_search.fm.max_number_of_fruitless_moves),
-    "2-Way-FM | HER-FM: max. # fruitless moves before stopping local search (simple)")
-    ("alpha", po::value<double>(&config.local_search.fm.adaptive_stopping_alpha),
-    "2-Way-FM: Random Walk stop alpha (adaptive) (infinity: -1)");
+    "Use global rebalancing PQs in twoway_fm \n"
+    "(default: false)");
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::options_description cmd_line_options;
+  cmd_line_options.add(generic_options)
+  .add(required_options)
+  .add(preset_options)
+  .add(general_options)
+  .add(coarsening_options)
+  .add(ip_options)
+  .add(refinement_options);
+
+  po::variables_map cmd_vm;
+  po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
 
   // placing vm.count("help") here prevents required attributes raising an
   // error of only help was supplied
-  if (vm.count("help")) {
-    std::cout << desc << "n";
+  if (cmd_vm.count("help")) {
+    std::cout << cmd_line_options << "n";
     exit(0);
   }
 
-  po::notify(vm);
+  po::notify(cmd_vm);
+
+  std::string config_path;
+  if (preset == "direct_kway_km1_alenex17") {
+    config_path = "../../../config/km1_direct_kway_alenex17.ini";
+  } else if (preset == "rb_cut_alenex16") {
+    config_path = "../../../config/cut_rb_alenex16.ini";
+  } else if (preset != "---") {
+    config_path = preset;
+  }
+
+  std::ifstream file;
+  file.open(config_path.c_str());
+
+  po::options_description ini_line_options;
+  ini_line_options.add(general_options)
+  .add(coarsening_options)
+  .add(ip_options)
+  .add(refinement_options);
+
+  po::store(po::parse_config_file(file, ini_line_options, true),
+            cmd_vm);
+
+  po::notify(cmd_vm);
 }
 
 int main(int argc, char* argv[]) {

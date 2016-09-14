@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace partition {
 enum class Mode : std::uint8_t {
@@ -77,7 +77,7 @@ enum class Objective : std::uint8_t {
 static std::string toString(const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection:
-      return std::string("rb");
+      return std::string("recursive");
     case Mode::direct_kway:
       return std::string("direct");
   }
@@ -311,7 +311,7 @@ static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(cons
 }
 
 static Mode modeFromString(const std::string& mode) {
-  if (mode == "rb") {
+  if (mode == "recursive") {
     return Mode::recursive_bisection;
   } else if (mode == "direct") {
     return Mode::direct_kway;
