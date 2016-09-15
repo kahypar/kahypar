@@ -49,7 +49,7 @@ class KWayFMRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_infeasible_moves = false;
   static const bool dbg_refinement_kway_gain_caching = false;
   static const HypernodeID hn_to_debug = 4242;
-  using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
+  using GainCache = KwayGainCache<Gain>;
 
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :

@@ -8,12 +8,11 @@
 #include <memory>
 #include <vector>
 
+#include "definitions.h"
 #include "meta/mandatory.h"
 
 namespace partition {
-template <typename HypernodeID = Mandatory,
-          typename PartitionID = Mandatory,
-          typename Gain = Mandatory,
+template <typename Gain = Mandatory,
           bool rollback_enabled = true>
 class KwayGainCache {
  private:

@@ -53,7 +53,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   static const HypernodeID hn_to_debug = 5589;
 
 
-  using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
+  using GainCache = KwayGainCache<Gain>;
 
 
   struct PinState {
