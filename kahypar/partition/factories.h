@@ -12,7 +12,6 @@
 #include "partition/coarsening/do_nothing_coarsener.h"
 #include "partition/coarsening/full_vertex_pair_coarsener.h"
 #include "partition/coarsening/heavy_edge_rater.h"
-#include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "partition/coarsening/ml_coarsener.h"
@@ -83,7 +82,6 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
 
 
 using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
-using RandomWinsHeuristicCoarsener = HeuristicVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRater>;

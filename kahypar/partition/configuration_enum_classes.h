@@ -26,7 +26,6 @@ enum class InitialPartitioner : std::uint8_t {
 
 enum class CoarseningAlgorithm : std::uint8_t {
   heavy_full,
-  heavy_partial,
   heavy_lazy,
   ml_style,
   do_nothing
@@ -120,8 +119,6 @@ static std::string toString(const CoarseningAlgorithm& algo) {
   switch (algo) {
     case CoarseningAlgorithm::heavy_full:
       return std::string("heavy_full");
-    case CoarseningAlgorithm::heavy_partial:
-      return std::string("heavy_partial");
     case CoarseningAlgorithm::heavy_lazy:
       return std::string("heavy_lazy");
     case CoarseningAlgorithm::ml_style:
@@ -224,8 +221,6 @@ static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
 static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type) {
   if (type == "heavy_full") {
     return CoarseningAlgorithm::heavy_full;
-  } else if (type == "heavy_partial") {
-    return CoarseningAlgorithm::heavy_partial;
   } else if (type == "heavy_lazy") {
     return CoarseningAlgorithm::heavy_lazy;
   } else if (type == "ml_style") {

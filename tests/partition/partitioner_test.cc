@@ -6,7 +6,7 @@
 
 #include "definitions.h"
 #include "macros.h"
-#include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
+#include "partition/coarsening/full_vertex_pair_coarsener.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/configuration.h"
 #include "partition/partitioner.h"
@@ -19,7 +19,7 @@ using::testing::Eq;
 
 namespace partition {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {

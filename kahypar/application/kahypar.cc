@@ -41,7 +41,6 @@ using partition::InitialPartitioningFactory;
 using partition::DoNothingCoarsener;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
-using partition::RandomWinsHeuristicCoarsener;
 using partition::RandomWinsMLCoarsener;
 using partition::TwoWayFMFactoryDispatcher;
 using partition::KWayFMFactoryDispatcher;
@@ -70,14 +69,6 @@ static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
   [](Hypergraph& hypergraph, const Configuration& config,
      const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
   return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
-
-static Registrar<CoarsenerFactory> reg_heavy_partial_coarsener(
-  CoarseningAlgorithm::heavy_partial,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsHeuristicCoarsener(hypergraph, config,
-                                          weight_of_heaviest_node);
 });
 
 static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(

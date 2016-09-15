@@ -6,7 +6,7 @@
 
 #include "definitions.h"
 #include "partition/coarsening/heavy_edge_rater.h"
-#include "partition/coarsening/heuristic_vertex_pair_coarsener.h"
+#include "partition/coarsening/full_vertex_pair_coarsener.h"
 #include "partition/coarsening/i_coarsener.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
@@ -23,7 +23,7 @@ using partition::Rater;
 using partition::FirstRatingWins;
 using partition::ICoarsener;
 using partition::IRefiner;
-using partition::HeuristicVertexPairCoarsener;
+using partition::FullVertexPairCoarsener;
 using partition::Configuration;
 using partition::Partitioner;
 using partition::TwoWayFMRefiner;
@@ -32,7 +32,7 @@ using partition::InitialPartitioner;
 
 namespace metrics {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = HeuristicVertexPairCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {
