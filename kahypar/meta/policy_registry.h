@@ -40,7 +40,8 @@ class PolicyRegistry {
     if (it != _policies.end()) {
       return *(it->second.get());
     }
-    throw std::invalid_argument("Policy not found.");
+    std::cout << "Invalid identifier" << std::endl;
+    std::exit(-1);
   }
 
  private:
