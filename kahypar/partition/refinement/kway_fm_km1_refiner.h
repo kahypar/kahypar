@@ -14,9 +14,8 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/fast_reset_flag_vector.h"
-#include "datastructure/fast_reset_vector.h"
-
+#include "datastructure/fast_reset_array.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
@@ -31,8 +30,8 @@
 #include "utils/randomize.h"
 
 
-using datastructure::FastResetVector;
-using datastructure::FastResetFlagVector;
+using datastructure::FastResetArray;
+using datastructure::FastResetFlagArray;
 using datastructure::InsertOnlySparseSet;
 
 namespace partition {
@@ -633,8 +632,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
-                        const PartitionID to_part)
-  {
+                        const PartitionID to_part) {
     _new_adjacent_part.resetUsedEntries();
 
     bool moved_hn_remains_conntected_to_from_part = false;
@@ -1019,13 +1017,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // the current updateNeighbours call. If we encounter such a new move,
   // we store the newly encountered part in this vector and do not perform
   // delta-gain updates for this part.
-  FastResetVector<PartitionID> _new_adjacent_part;
+  FastResetArray<PartitionID> _new_adjacent_part;
 
   // 'Locking' of hyperedges for K-1 metric. When optimizing this metric,
   // each part of a hyperedge becomes unremovable, as soon as one of its
   // pins is moved to that part. For each HE e, this bitvector stores whether
   // or not a part in the connectivity set of e is unremovable.
-  FastResetFlagVector<> _unremovable_he_parts;
+  FastResetFlagArray<> _unremovable_he_parts;
 
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;

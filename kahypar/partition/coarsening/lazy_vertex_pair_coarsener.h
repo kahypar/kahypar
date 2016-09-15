@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "meta/template_parameter_to_string.h"
@@ -17,7 +17,7 @@
 #include "utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetFlagVector;
+using datastructure::FastResetFlagArray;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -136,7 +136,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   using Base::_config;
   using Base::_history;
   Rater _rater;
-  FastResetFlagVector<> _outdated_rating;
+  FastResetFlagArray<> _outdated_rating;
   std::vector<HypernodeID> _target;
 };
 }              // namespace partition

@@ -6,7 +6,7 @@
 
 #include <limits>
 
-#include "datastructure/fast_reset_flag_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
 #include "utils/randomize.h"

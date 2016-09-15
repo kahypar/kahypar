@@ -17,27 +17,27 @@
 
 namespace datastructure {
 template <typename UnderlyingType = std::uint16_t>
-class FastResetFlagVector {
+class FastResetFlagArray {
  public:
-  explicit FastResetFlagVector(const size_t size) :
+  explicit FastResetFlagArray(const size_t size) :
     _v(std::make_unique<UnderlyingType[]>(size)),
     _threshold(1),
     _size(size) {
     memset(_v.get(), 0, size * sizeof(UnderlyingType));
   }
 
-  FastResetFlagVector() :
+  FastResetFlagArray() :
     _v(nullptr),
     _threshold(1),
     _size(0) { }
 
-  FastResetFlagVector(const FastResetFlagVector&) = delete;
-  FastResetFlagVector& operator= (const FastResetFlagVector&) = delete;
+  FastResetFlagArray(const FastResetFlagArray&) = delete;
+  FastResetFlagArray& operator= (const FastResetFlagArray&) = delete;
 
-  FastResetFlagVector(FastResetFlagVector&&) = default;
-  FastResetFlagVector& operator= (FastResetFlagVector&&) = default;
+  FastResetFlagArray(FastResetFlagArray&&) = default;
+  FastResetFlagArray& operator= (FastResetFlagArray&&) = default;
 
-  void swap(FastResetFlagVector& other) {
+  void swap(FastResetFlagArray& other) {
     using std::swap;
     swap(_v, other._v);
     swap(_threshold, other._threshold);
@@ -79,8 +79,8 @@ class FastResetFlagVector {
 };
 
 template <typename UnderlyingType>
-void swap(FastResetFlagVector<UnderlyingType>& a,
-          FastResetFlagVector<UnderlyingType>& b) {
+void swap(FastResetFlagArray<UnderlyingType>& a,
+          FastResetFlagArray<UnderlyingType>& b) {
   a.swap(b);
 }
 }  // namespace datastructure

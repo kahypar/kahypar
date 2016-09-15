@@ -10,6 +10,7 @@
 #include <queue>
 #include <vector>
 
+#include "datastructure/fast_reset_flag_array.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
@@ -168,7 +169,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::kInvalidNode;
 
   std::vector<std::queue<HypernodeID> > _queues;
-  FastResetFlagVector<> _hypernode_in_queue;
-  FastResetFlagVector<> _hyperedge_in_queue;
+  FastResetFlagArray<> _hypernode_in_queue;
+  FastResetFlagArray<> _hyperedge_in_queue;
 };
 }  // namespace partition

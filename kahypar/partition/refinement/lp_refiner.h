@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
 #include "partition/configuration.h"
@@ -22,7 +22,7 @@
 #include "utils/randomize.h"
 
 using datastructure::InsertOnlySparseSet;
-using datastructure::FastResetVector;
+using datastructure::FastResetFlagArray;
 
 namespace partition {
 class LPRefiner final : public IRefiner {
@@ -613,8 +613,8 @@ class LPRefiner final : public IRefiner {
   const Configuration& _config;
   std::vector<HypernodeID> _cur_queue;
   std::vector<HypernodeID> _next_queue;
-  FastResetFlagVector<> _contained_cur_queue;
-  FastResetFlagVector<> _contained_next_queue;
+  FastResetFlagArray<> _contained_cur_queue;
+  FastResetFlagArray<> _contained_next_queue;
 
   std::vector<LPGain> _tmp_gains;
   std::vector<PartitionID> _max_score;
@@ -623,6 +623,6 @@ class LPRefiner final : public IRefiner {
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.
-  FastResetVector<PartitionID> _already_processed_part;
+  FastResetArray<PartitionID> _already_processed_part;
 };
 }  // namespace partition

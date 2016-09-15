@@ -8,7 +8,7 @@
 #include "gmock/gmock.h"
 
 #include "datastructure/binary_heap.h"
-#include "datastructure/fast_reset_flag_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/kway_priority_queue.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
 #include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
@@ -104,7 +104,7 @@ class AGreedyQueueSelectionTest : public Test {
   HypernodeID current_hn;
   Gain current_gain;
   bool is_upper_bound_released;
-  FastResetFlagVector<> visit;
+  FastResetFlagArray<> visit;
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {

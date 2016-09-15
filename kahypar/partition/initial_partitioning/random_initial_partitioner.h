@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "datastructure/fast_reset_flag_array.h"
 #include "definitions.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
 #include "partition/initial_partitioning/initial_partitioner_base.h"
@@ -74,6 +75,6 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
-  FastResetFlagVector<> _already_tried_to_assign_hn_to_part;
+  FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace partition

@@ -5,18 +5,18 @@
 #pragma once
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <cstring>
 
-#include "fast_reset_flag_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
+#include "macros.h"
 #include "meta/mandatory.h"
 #include "utils/float_compare.h"
-#include "macros.h"
 
 namespace datastructure {
 template <typename IDType = Mandatory,
@@ -280,8 +280,8 @@ class EnhancedBucketQueue {
   KeyType _max_address;
   std::set<KeyType> _index;
   std::vector<RepositoryElement> _repository;
-  FastResetFlagVector<> _contains;
-  FastResetFlagVector<> _valid;
+  FastResetFlagArray<> _contains;
+  FastResetFlagArray<> _valid;
   std::unique_ptr<std::vector<IDType>[]> _buckets;
 };
 

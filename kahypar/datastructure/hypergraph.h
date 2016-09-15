@@ -18,15 +18,15 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "datastructure/connectivity_sets.h"
+#include "datastructure/fast_reset_flag_array.h"
+#include "definitions.h"
+#include "macros.h"
 #include "meta/empty.h"
 #include "meta/int_to_type.h"
 #include "meta/mandatory.h"
 #include "partition/configuration_enum_classes.h"
 #include "utils/math.h"
-#include "datastructure/connectivity_sets.h"
-#include "definitions.h"
-#include "datastructure/fast_reset_flag_vector.h"
-#include "macros.h"
 
 
 using meta::Empty;
@@ -909,7 +909,7 @@ class GenericHypergraph {
   // ATTENTION: In order for this implementation produce correct restore results, it is
   //            necessary that the restoreNode calls have to replay the removeNode calls
   //            in __reversed__ order.
-  void removeNode(const HypernodeID u)  {
+  void removeNode(const HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
     for (const HyperedgeID e : incidentEdges(u)) {
       removeInternalEdge(e, u, _hyperedges);
@@ -1612,7 +1612,7 @@ class GenericHypergraph {
   // or only contained v. In the latter case, we use _hes_not_containing_u[he]=true, to
   // indicate that he have to undo a "Case 2" Operation, i.e. one, where the pin slot of
   // v was re-used during contraction.
-  FastResetFlagVector<> _hes_not_containing_u;
+  FastResetFlagArray<> _hes_not_containing_u;
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,

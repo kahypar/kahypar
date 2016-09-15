@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "meta/template_parameter_to_string.h"
@@ -18,7 +18,7 @@
 #include "utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetFlagVector;
+using datastructure::FastResetFlagArray;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -51,10 +51,10 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
     rateAllHypernodes(_rater, _target);
 
-    FastResetFlagVector<> rerated_hypernodes(_hg.initialNumNodes());
+    FastResetFlagArray<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
-    FastResetFlagVector<> invalid_hypernodes(_hg.initialNumNodes());
+    FastResetFlagArray<> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -100,8 +100,8 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
-                                FastResetFlagVector<>& rerated_hypernodes,
-                                FastResetFlagVector<>& invalid_hypernodes) {
+                                FastResetFlagArray<>& rerated_hypernodes,
+                                FastResetFlagArray<>& invalid_hypernodes) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
@@ -116,7 +116,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    FastResetFlagVector<>& invalid_hypernodes) {
+                                    FastResetFlagArray<>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

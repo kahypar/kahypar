@@ -9,7 +9,7 @@
 #include <limits>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_vector.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
@@ -354,7 +354,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::kInvalidNode;
   std::vector<HypernodeID> _start_nodes;
   KWayRefinementPQ _pq;
-  FastResetFlagVector<> _visit;
-  FastResetFlagVector<> _hyperedge_in_queue;
+  FastResetFlagArray<> _visit;
+  FastResetFlagArray<> _hyperedge_in_queue;
 };
 }  // namespace partition

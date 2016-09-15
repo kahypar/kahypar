@@ -13,8 +13,8 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/fast_reset_flag_vector.h"
-#include "datastructure/fast_reset_vector.h"
+#include "datastructure/fast_reset_array.h"
+#include "datastructure/fast_reset_flag_array.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
@@ -28,8 +28,8 @@
 #include "utils/float_compare.h"
 #include "utils/randomize.h"
 
-using datastructure::FastResetVector;
-using datastructure::FastResetFlagVector;
+using datastructure::FastResetArray;
+using datastructure::FastResetFlagArray;
 using datastructure::InsertOnlySparseSet;
 
 namespace partition {
@@ -522,8 +522,7 @@ class KWayFMRefiner final : public IRefiner,
   void connectivityAndDeltaGainUpdateForHEsRemainingLoose(const HypernodeID moved_hn,
                                                           const PartitionID from_part,
                                                           const PartitionID to_part,
-                                                          const HyperedgeID he)
-  {
+                                                          const HyperedgeID he) {
     ONLYDEBUG(moved_hn);
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
@@ -614,8 +613,7 @@ class KWayFMRefiner final : public IRefiner,
   void updatePinsOfFreeHyperedgeBecomingLoose(const HypernodeID moved_hn,
                                               const PartitionID from_part,
                                               const PartitionID to_part,
-                                              const HyperedgeID he)
-  {
+                                              const HyperedgeID he) {
     //   ASSERT([&]() {
     //       // Only the moved_node is marked
     //       for (const HypernodeID pin : _hg.pins(he)) {
@@ -698,8 +696,7 @@ class KWayFMRefiner final : public IRefiner,
   void updatePinsOfLooseHyperedgeBecomingLocked(const HypernodeID moved_hn,
                                                 const PartitionID from_part,
                                                 const PartitionID to_part,
-                                                const HyperedgeID he)
-  {
+                                                const HyperedgeID he) {
     fullUpdate(moved_hn, from_part, to_part, he);
 
     ASSERT([&]() {
@@ -717,8 +714,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn, const PartitionID from_part,
-                                            const PartitionID to_part, const HyperedgeID he)
-  {
+                                            const PartitionID to_part, const HyperedgeID he) {
     ASSERT([&]() {
         // All pins of a locked HE have to be active.
         for (const HypernodeID pin : _hg.pins(he)) {
@@ -733,8 +729,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
-                        const PartitionID to_part)
-  {
+                        const PartitionID to_part) {
     _already_processed_part.resetUsedEntries();
 
     bool moved_hn_remains_conntected_to_from_part = false;
@@ -1122,7 +1117,7 @@ class KWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_performed_moves;
   using FMRefinerBase::_hns_to_activate;
 
-  FastResetFlagVector<> _he_fully_active;
+  FastResetFlagArray<> _he_fully_active;
   std::vector<Gain> _tmp_gains;
   InsertOnlySparseSet<PartitionID> _tmp_target_parts;
 
@@ -1135,9 +1130,9 @@ class KWayFMRefiner final : public IRefiner,
   // the current updateNeighbours call. If we encounter such a new move,
   // we store the newly encountered part in this vector and do not perform
   // delta-gain updates for this part.
-  FastResetVector<PartitionID> _already_processed_part;
+  FastResetArray<PartitionID> _already_processed_part;
 
-  FastResetVector<PartitionID> _locked_hes;
+  FastResetArray<PartitionID> _locked_hes;
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 };
