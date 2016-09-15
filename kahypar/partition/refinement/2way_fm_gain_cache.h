@@ -12,7 +12,7 @@
 
 namespace partition {
 template <typename T = Mandatory>
-class GainCache {
+class TwoWayFMGainCache {
  private:
   static constexpr T kNotCached = std::numeric_limits<T>::max();
 
@@ -32,18 +32,18 @@ class GainCache {
   };
 
  public:
-  explicit GainCache(const size_t n) :
+  explicit TwoWayFMGainCache(const size_t n) :
     _size(n),
     _cache(std::make_unique<CacheElement[]>(n)),
     _used_delta_entries() {
     _used_delta_entries.reserve(n);
   }
 
-  GainCache(const GainCache&) = delete;
-  GainCache& operator= (const GainCache&) = delete;
+  TwoWayFMGainCache(const TwoWayFMGainCache&) = delete;
+  TwoWayFMGainCache& operator= (const TwoWayFMGainCache&) = delete;
 
-  GainCache(GainCache&&) = default;
-  GainCache& operator= (GainCache&&) = default;
+  TwoWayFMGainCache(TwoWayFMGainCache&&) = default;
+  TwoWayFMGainCache& operator= (TwoWayFMGainCache&&) = default;
 
   T delta(const size_t n) const {
     return _cache[n].delta;

@@ -987,7 +987,7 @@ class TwoWayFMRefiner final : public IRefiner,
   FastResetFlagVector<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
   std::vector<HypernodeID> _non_border_hns_to_remove;
   SparseSet<HypernodeID> _disabled_rebalance_hns;
-  GainCache<Gain> _gain_cache;
+  TwoWayFMGainCache<Gain> _gain_cache;
   FastResetVector<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
 };
