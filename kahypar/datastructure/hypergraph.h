@@ -221,22 +221,6 @@ class GenericHypergraph {
       return !operator== (this, rhs);
     }
 
-    // bool operator< (const InternalVertex& rhs) const noexcept {
-    //   return _begin < rhs._begin;
-    // }
-
-    // bool operator> (const InternalVertex& rhs) const noexcept {
-    //   return operator< (rhs, this);
-    // }
-
-    // bool operator<= (const InternalVertex& rhs) const noexcept {
-    //   return !operator> (this, rhs);
-    // }
-
-    // bool operator>= (const InternalVertex& rhs) const noexcept {
-    //   return !operator< (this, rhs);
-    // }
-
  private:
     IDType _begin;
     IDType _size;
@@ -393,7 +377,6 @@ class GenericHypergraph {
         hypernode(edge_vector[pin_index]).increaseSize();
         ++edge_vector_index;
       }
-      // _pins_in_part[i].resize(_k);
     }
 
     hypernode(0).setFirstEntry(_num_pins);
@@ -1018,40 +1001,6 @@ class GenericHypergraph {
     hyperedge(he).disable();
     invalidatePartitionPinCounts(he);
     --_current_num_hyperedges;
-  }
-
-  void batchRemoveEdges(const HyperedgeID he, const FastResetBitVector<>& parallel_hes,
-                        size_t num_entries) {
-    using std::swap;
-    // since all HEs in parallel_hes have exactly the same pins, we only need to
-    // iterate over the pins of the first HE. For each of these pins, we will then
-    // remove all parallel HE IDs from the incident edges of the pin.
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge is disabled!");
-    for (const HypernodeID pin : pins(he)) {
-      // batch removal of internal edge
-      size_t size = num_entries;
-      size_t last = _hypernodes[pin].firstInvalidEntry() - 1;
-      for (size_t begin = _hypernodes[pin].firstEntry();
-           begin <= last || size == 0; ++begin) {
-        if (parallel_hes[_incidence_array[begin]]) {
-          swap(_incidence_array[begin], _incidence_array[last]);
-          _hypernodes[pin].decreaseSize();
-          --last;
-          --size;
-          --begin;
-        }
-        ASSERT(begin <= _hypernodes[pin].firstInvalidEntry(), "Iterator out of bounds");
-      }
-
-      /////////////////////////////////////////////
-      disableHypernodeIfUnconnected(pin, false);
-      --_current_num_pins;
-    }
-    for (const HyperedgeID he : parallel_hes) {
-      hyperedge(he).disable();
-      invalidatePartitionPinCounts(he);
-      --_current_num_hyperedges;
-    }
   }
 
   // Restores the deleted Hyperedge. Since the hyperedge information is left intact on the
