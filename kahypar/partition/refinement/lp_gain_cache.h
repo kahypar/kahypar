@@ -154,7 +154,7 @@ class LPGainCache {
 
     void addToActiveParts(const PartitionID part) {
       ASSERT(part < _k, V(part));
-      ASSERT(sparse(part).gain != kNotCached, V(part));
+      ASSERT(sparse(part).gain != LPGain(kNotCached, kNotCached), V(part));
       ASSERT((sparse(part).index >= _size || dense(sparse(part).index) != part), V(part));
       sparse(part).index = _size;
       dense(_size++) = part;

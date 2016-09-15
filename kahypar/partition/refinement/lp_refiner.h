@@ -484,8 +484,8 @@ class LPRefiner final : public IRefiner {
 
   void ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO() {
     ASSERT([&]() {
-        for (const GGain& gain : _tmp_gains) {
-          ASSERT(gain == GGain(0, 0), V(gain));
+        for (const LPGain& gain : _tmp_gains) {
+          ASSERT(gain == LPGain(0, 0), V(gain));
         }
         return true;
       } (), "_tmp_gains not initialized correctly");
