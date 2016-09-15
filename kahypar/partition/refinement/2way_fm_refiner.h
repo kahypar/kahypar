@@ -16,7 +16,6 @@
 #include "datastructure/binary_heap.h"
 #include "datastructure/fast_reset_bitvector.h"
 #include "datastructure/fast_reset_vector.h"
-#include "datastructure/kway_priority_queue.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
@@ -31,7 +30,6 @@
 #include "utils/float_compare.h"
 #include "utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
 using datastructure::SparseSet;
@@ -51,30 +49,24 @@ template <class StoppingPolicy = Mandatory,
           class UseGlobalRebalancing = NoGlobalRebalancing,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
-                              private FMRefinerBase {
+                              private FMRefinerBase<HypernodeID>{
  private:
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
-                                             std::numeric_limits<Gain> >;
   using RebalancePQ = BinaryMaxHeap<HypernodeID, Gain>;
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
 
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),
-    _pq(2),
     _rebalance_pqs({ RebalancePQ(_hg.initialNumNodes()), RebalancePQ(_hg.initialNumNodes()) }),
     _he_fully_active(_hg.initialNumEdges()),
     _hns_in_activation_vector(_hg.initialNumNodes()),
-    _performed_moves(),
-    _hns_to_activate(),
     _non_border_hns_to_remove(),
     _disabled_rebalance_hns(_hg.initialNumNodes()),
     _gain_cache(_hg.initialNumNodes()),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy() {
+    ASSERT(config.partition.k == 2);
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
-    _performed_moves.reserve(_hg.initialNumNodes());
-    _hns_to_activate.reserve(_hg.initialNumNodes());
   }
 
   virtual ~TwoWayFMRefiner() { }
@@ -193,11 +185,9 @@ class TwoWayFMRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
-    _pq.clear();
-    _hg.resetHypernodeState();
+    reset();
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
-    _performed_moves.clear();
 
     // Will always be the case in the first FM pass, since the just uncontracted HN
     // was not seen before.
@@ -988,12 +978,13 @@ class TwoWayFMRefiner final : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
-  KWayRefinementPQ _pq;
+  using FMRefinerBase::_pq;
+  using FMRefinerBase::_performed_moves;
+  using FMRefinerBase::_hns_to_activate;
+
   std::array<RebalancePQ, 2> _rebalance_pqs;
   FastResetBitVector<> _he_fully_active;
   FastResetBitVector<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
-  std::vector<HypernodeID> _performed_moves;
-  std::vector<HypernodeID> _hns_to_activate;
   std::vector<HypernodeID> _non_border_hns_to_remove;
   SparseSet<HypernodeID> _disabled_rebalance_hns;
   GainCache<Gain> _gain_cache;

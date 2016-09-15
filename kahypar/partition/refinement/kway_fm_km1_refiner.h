@@ -16,7 +16,7 @@
 
 #include "datastructure/fast_reset_bitvector.h"
 #include "datastructure/fast_reset_vector.h"
-#include "datastructure/kway_priority_queue.h"
+
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
@@ -30,7 +30,7 @@
 #include "utils/float_compare.h"
 #include "utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
+
 using datastructure::FastResetVector;
 using datastructure::FastResetBitVector;
 using datastructure::InsertOnlySparseSet;
@@ -41,7 +41,7 @@ namespace partition {
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayKMinusOneRefiner final : public IRefiner,
-                                   private FMRefinerBase {
+                                   private FMRefinerBase<RollbackInfo>{
   static const bool dbg_refinement_kway_kminusone_fm_activation = false;
   static const bool dbg_refinement_kway_kminusone_fm_improvements_cut = false;
   static const bool dbg_refinement_kway_kminusone_fm_improvements_balance = false;
@@ -52,8 +52,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_kminusone_gain_caching = false;
   static const HypernodeID hn_to_debug = 5589;
 
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
-                                             std::numeric_limits<Gain> >;
+
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
 
 
@@ -76,16 +75,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     FMRefinerBase(hypergraph, config),
     _tmp_gains(_config.partition.k, 0),
     _tmp_target_parts(_config.partition.k),
-    _performed_moves(),
-    _hns_to_activate(),
     _new_adjacent_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _unremovable_he_parts(_hg.initialNumEdges() * config.partition.k),
-    _pq(_config.partition.k),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
-    _stopping_policy() {
-    _performed_moves.reserve(_hg.initialNumNodes());
-    _hns_to_activate.reserve(_hg.initialNumNodes());
-  }
+    _stopping_policy() { }
 
   virtual ~KWayKMinusOneRefiner() { }
 
@@ -127,10 +120,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
-    _pq.clear();
-    _hg.resetHypernodeState();
+    reset();
     _unremovable_he_parts.reset();
-    _performed_moves.clear();
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
@@ -1011,11 +1002,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
+  using FMRefinerBase::_pq;
+  using FMRefinerBase::_performed_moves;
+  using FMRefinerBase::_hns_to_activate;
 
   std::vector<Gain> _tmp_gains;
   InsertOnlySparseSet<PartitionID> _tmp_target_parts;
-  std::vector<RollbackInfo> _performed_moves;
-  std::vector<HypernodeID> _hns_to_activate;
+
 
   // After a move, we have to update the gains for all adjacent HNs.
   // For all moves of a HN that were already present in the PQ before the
@@ -1034,7 +1027,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // or not a part in the connectivity set of e is unremovable.
   FastResetBitVector<> _unremovable_he_parts;
 
-  KWayRefinementPQ _pq;
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 };

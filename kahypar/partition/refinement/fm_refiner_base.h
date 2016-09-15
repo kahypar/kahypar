@@ -6,6 +6,7 @@
 
 #include <limits>
 
+#include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
 #include "partition/configuration.h"
 
@@ -13,6 +14,13 @@ namespace partition {
 static const bool dbg_refinement_fm_border_node_check = false;
 static const bool dbg_refinement_kway_fm_move = false;
 
+struct RollbackInfo {
+  HypernodeID hn;
+  PartitionID from_part;
+  PartitionID to_part;
+};
+
+template <typename RollbackElement = Mandatory>
 class FMRefinerBase {
  protected:
   static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
@@ -24,16 +32,19 @@ class FMRefinerBase {
     locked = std::numeric_limits<PartitionID>::max(),
   };
 
-  struct RollbackInfo {
-    HypernodeID hn;
-    PartitionID from_part;
-    PartitionID to_part;
-  };
+  using KWayRefinementPQ = datastructure::KWayPriorityQueue<HypernodeID, Gain,
+                                                            std::numeric_limits<Gain> >;
 
 
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
-    _config(config) { }
+    _config(config),
+    _pq(config.partition.k),
+    _performed_moves(),
+    _hns_to_activate() {
+    _performed_moves.reserve(_hg.initialNumNodes());
+    _hns_to_activate.reserve(_hg.initialNumNodes());
+  }
 
   ~FMRefinerBase() { }
 
@@ -93,7 +104,16 @@ class FMRefinerBase {
            V(heaviest_part) << V(heaviestPart()));
   }
 
+  void reset() {
+    _pq.clear();
+    _hg.resetHypernodeState();
+    _performed_moves.clear();
+  }
+
   Hypergraph& _hg;
   const Configuration& _config;
+  KWayRefinementPQ _pq;
+  std::vector<RollbackElement> _performed_moves;
+  std::vector<HypernodeID> _hns_to_activate;
 };
 }  // namespace partition

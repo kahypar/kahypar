@@ -15,7 +15,6 @@
 #include "gtest/gtest_prod.h"
 
 #include "datastructure/fast_reset_bitvector.h"
-#include "datastructure/kway_priority_queue.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "meta/template_parameter_to_string.h"
@@ -27,7 +26,6 @@
 #include "utils/float_compare.h"
 #include "utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
 using datastructure::FastResetBitVector;
 
 namespace partition {
@@ -38,7 +36,7 @@ template <class StoppingPolicy = Mandatory,
           bool global_rebalancing = false,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class MaxGainNodeKWayFMRefiner final : public IRefiner,
-                                       private FMRefinerBase {
+                                       private FMRefinerBase<RollbackInfo>{
   static const bool dbg_refinement_kway_fm_activation = false;
   static const bool dbg_refinement_kway_fm_improvements_cut = true;
   static const bool dbg_refinement_kway_fm_improvements_balance = false;
@@ -47,18 +45,10 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
   using GainPartitionPair = std::pair<Gain, PartitionID>;
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
-                                             std::numeric_limits<Gain> >;
 
   struct GainConnectivity {
     Gain gain;
     PartitionID connectivity_decrease;
-  };
-
-  struct RollbackInfo {
-    HypernodeID hn;
-    PartitionID from_part;
-    PartitionID to_part;
   };
 
  public:
@@ -70,9 +60,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     _pq(_config.partition.k),
     _just_updated(_hg.initialNumNodes()),
     _seen_as_max_part(_config.partition.k),
-    _performed_moves(),
     _stopping_policy() {
-    _performed_moves.reserve(_hg.initialNumNodes());
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
 
@@ -130,8 +118,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
            "initial best_metrics.imbalance " << best_metrics.imbalance << "does not equal imbalance induced"
            << " by hypergraph " << metrics::imbalance(_hg, _config));
 
-    _pq.clear();
-    _hg.resetHypernodeState();
+    reset();
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
@@ -600,13 +587,14 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
   using FMRefinerBase::_hg;
   using FMRefinerBase::_config;
+  using FMRefinerBase::_performed_moves;
+
   std::vector<GainConnectivity> _tmp_gains;
   std::vector<PartitionID> _target_parts;
   std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
   FastResetBitVector<> _just_updated;
   FastResetBitVector<> _seen_as_max_part;
-  std::vector<RollbackInfo> _performed_moves;
   StoppingPolicy _stopping_policy;
 };
 #pragma GCC diagnostic pop
