@@ -26,6 +26,9 @@ template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory>
 class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                            private InitialPartitionerBase {
+ private:
+  using PartitionGainPair =  std::pair<const PartitionID, const Gain>;
+
  public:
   LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
                                      Configuration& config) :
@@ -210,7 +213,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(ALabelPropagationMaxGainMoveTest,
               CalculateMaxGainMoveOfAnUnassignedHypernodeIfAllHypernodesAreAssigned);
 
-  std::pair<const PartitionID, const Gain> computeMaxGainMoveForUnassignedSourcePart(const HypernodeID hn) {
+  PartitionGainPair computeMaxGainMoveForUnassignedSourcePart(const HypernodeID hn) {
     ASSERT(std::all_of(_tmp_scores.begin(), _tmp_scores.end(), [](Gain i) { return i == 0; }),
            "Temp gain array not initialized properly");
     _valid_parts.reset();
@@ -268,7 +271,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     return std::make_pair(max_part, max_score);
   }
 
-  std::pair<const PartitionID, const Gain> computeMaxGainMoveForAssignedSourcePart(const HypernodeID hn) {
+  PartitionGainPair computeMaxGainMoveForAssignedSourcePart(const HypernodeID hn) {
     ASSERT(std::all_of(_tmp_scores.begin(), _tmp_scores.end(), [](Gain i) { return i == 0; }),
            "Temp gain array not initialized properly");
     _valid_parts.reset();
@@ -341,7 +344,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     return std::make_pair(max_part, max_score);
   }
 
-  std::pair<const PartitionID, const Gain> computeMaxGainMove(const HypernodeID hn) {
+  PartitionGainPair computeMaxGainMove(const HypernodeID hn) {
     if (_hg.partID(hn) == -1) {
       return computeMaxGainMoveForUnassignedSourcePart(hn);
     }

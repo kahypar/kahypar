@@ -18,7 +18,13 @@
 using partition::Configuration;
 
 namespace partition {
-struct PartitioningResult {
+class PoolInitialPartitioner : public IInitialPartitioner,
+                               private InitialPartitionerBase {
+ private:
+  static constexpr HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
+  static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
+
+  struct PartitioningResult {
   InitialPartitionerAlgorithm algo;
   HyperedgeWeight cut;
   double imbalance;
@@ -35,8 +41,6 @@ struct PartitioningResult {
   }
 };
 
-class PoolInitialPartitioner : public IInitialPartitioner,
-                               private InitialPartitionerBase {
  public:
   PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
     InitialPartitionerBase(hypergraph, config),
@@ -90,7 +94,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
         continue;
       }
       InitialPartitionerAlgorithm algo = _partitioner_pool[i];
-      if (algo == InitialPartitionerAlgorithm::greedy_round_maxpin || algo == InitialPartitionerAlgorithm::greedy_global_maxpin ||
+      if (algo == InitialPartitionerAlgorithm::greedy_round_maxpin ||
+          algo == InitialPartitionerAlgorithm::greedy_global_maxpin ||
           algo == InitialPartitionerAlgorithm::greedy_sequential_maxpin) {
         LOG("skipping maxpin");
         continue;
@@ -177,8 +182,5 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
   std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
-
-  static const HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
-  static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 };
 }  // namespace partition

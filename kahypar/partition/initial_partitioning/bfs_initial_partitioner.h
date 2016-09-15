@@ -41,7 +41,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(ABFSBisectionInitialPartioner,
               HasCorrectHypernodesInQueueAfterPushingIncidentHypernodesIntoQueue);
 
-  void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& q,
+  void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& queue,
                                        const HypernodeID hn) {
     const PartitionID part = _hg.partID(hn);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -50,7 +50,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           for (const HypernodeID pin : _hg.pins(he)) {
             if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
                 !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
-              q.push(pin);
+              queue.push(pin);
               _hypernode_in_queue.set(part * _hg.initialNumNodes() + pin, true);
             }
           }
@@ -83,9 +83,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     _queues.clear();
     _queues.assign(_config.initial_partitioning.k, std::queue<HypernodeID>());
 
-    // Initialize a vector for each partition, which indicate if a partition is
-    // ready to receive further hypernodes.
-    // TODO(heuer): Is vector<bool> here faster than FastResetVector?
     std::vector<bool> partEnabled(_config.initial_partitioning.k, true);
     if (unassigned_part != -1) {
       partEnabled[unassigned_part] = false;
@@ -93,7 +90,6 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     HypernodeWeight assigned_nodes_weight = 0;
     if (unassigned_part != -1) {
-      // TODO(heuer): Warum ist hier -epsilon?
       assigned_nodes_weight =
         _config.initial_partitioning.perfect_balance_partition_weight[unassigned_part]
         * (1.0 - _config.initial_partitioning.epsilon);
@@ -105,7 +101,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
     // Calculate Startnodes and push them into the queues.
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg, _config.initial_partitioning.k);
+    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg,
+                                            _config.initial_partitioning.k);
     for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.set(k * _hg.initialNumNodes() + startNodes[k], true);
@@ -122,8 +119,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           if (!_queues[part].empty()) {
             hn = _queues[part].front();
             _queues[part].pop();
-            while (_hg.partID(hn) != unassigned_part &&
-                   !_queues[part].empty()) {
+            while (_hg.partID(hn) != unassigned_part && !_queues[part].empty()) {
               hn = _queues[part].front();
               _queues[part].pop();
             }
@@ -142,10 +138,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             if (assignHypernodeToPartition(hn, part)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);
               pushIncidentHypernodesIntoQueue(_queues[part], hn);
-            } else {
-              if (_queues[part].empty()) {
-                partEnabled[part] = false;
-              }
+            } else if (_queues[part].empty()) {
+              partEnabled[part] = false;
             }
           } else {
             partEnabled[part] = false;

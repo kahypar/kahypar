@@ -72,9 +72,8 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::performFMRefinement();
   }
 
-  FastResetBitVector<> _already_tried_to_assign_hn_to_part;
-
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
+  FastResetBitVector<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace partition

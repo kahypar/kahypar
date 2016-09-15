@@ -273,7 +273,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
                 insertNodeIntoPQ(pin, target_part);
                 ASSERT(_pq.contains(pin, target_part),
-                       "PQ of partition " << target_part << " should contain hypernode " << pin << "!");
+                       "PQ of partition " << target_part << " should contain hypernode "
+                       << pin << "!");
               }
             }
           }
@@ -283,7 +284,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     }
 
     if (delete_nodes) {
-      removeInAllBucketQueues(hn);
+      removeHypernodeFromAllPQs(hn);
     }
 
     if (!_pq.isEnabled(target_part)) {
@@ -311,7 +312,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
            "Gain value of a move of a hypernode isn't equal with the real gain.");
   }
 
-  void removeInAllBucketQueues(const HypernodeID hn) {
+  void removeHypernodeFromAllPQs(const HypernodeID hn) {
     for (PartitionID part = 0; part < _config.initial_partitioning.k; ++part) {
       if (_pq.contains(hn, part)) {
         if (_pq.isEnabled(part) && _pq.size(part) == 1 && _hg.partID(hn) != part) {
@@ -352,7 +353,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   using InitialPartitionerBase::kInvalidNode;
   std::vector<HypernodeID> _start_nodes;
-
   KWayRefinementPQ _pq;
   FastResetBitVector<> _visit;
   FastResetBitVector<> _hyperedge_in_queue;

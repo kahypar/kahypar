@@ -30,6 +30,10 @@ using partition::IRefiner;
 
 namespace partition {
 class InitialPartitionerBase {
+ protected:
+  static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
+  static constexpr HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
+
  public:
   InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept :
     _hg(hypergraph),
@@ -171,8 +175,6 @@ class InitialPartitionerBase {
  protected:
   Hypergraph& _hg;
   Configuration& _config;
-  static const PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
-  static const HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 
  private:
   std::vector<HypernodeID> _unassigned_nodes;
