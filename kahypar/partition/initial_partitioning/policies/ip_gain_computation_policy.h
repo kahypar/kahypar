@@ -215,6 +215,7 @@ struct FMGainComputationPolicy {
                                      KWayRefinementPQ& pq, const HypernodeID hn,
                                      const PartitionID from, const PartitionID to,
                                      const FastResetFlagVector<>& foo) {
+    ONLYDEBUG(foo);
     if (from == -1) {
       deltaGainUpdateForUnassignedFromPart(hg, config, pq, hn, to);
     } else {

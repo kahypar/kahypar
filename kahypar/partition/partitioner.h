@@ -394,7 +394,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
-  const bool found_improved_cut = coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "UncoarseningRefinement",
                                std::chrono::duration<double>(end - start).count());
