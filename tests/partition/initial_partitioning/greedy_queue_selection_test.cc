@@ -104,7 +104,7 @@ class AGreedyQueueSelectionTest : public Test {
   HypernodeID current_hn;
   Gain current_gain;
   bool is_upper_bound_released;
-  FastResetBitVector<> visit;
+  FastResetFlagVector<> visit;
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
