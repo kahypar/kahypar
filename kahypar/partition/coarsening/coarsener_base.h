@@ -31,7 +31,7 @@ static const bool dbg_coarsening_uncoarsen = false;
 static const bool dbg_coarsening_uncoarsen_improvement = false;
 
 class CoarsenerBase {
- protected:
+ private:
   struct CurrentMaxNodeWeight {
     CurrentMaxNodeWeight(const HypernodeID num_hns, const HypernodeWeight weight) :
       num_nodes(num_hns),
