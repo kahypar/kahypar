@@ -32,11 +32,11 @@ class TwoWayFMGainCache {
   };
 
  public:
-  explicit TwoWayFMGainCache(const size_t n) :
-    _size(n),
-    _cache(std::make_unique<CacheElement[]>(n)),
+  explicit TwoWayFMGainCache(const size_t size) :
+    _size(size),
+    _cache(std::make_unique<CacheElement[]>(size)),
     _used_delta_entries() {
-    _used_delta_entries.reserve(n);
+    _used_delta_entries.reserve(size);
   }
 
   TwoWayFMGainCache(const TwoWayFMGainCache&) = delete;
@@ -45,53 +45,62 @@ class TwoWayFMGainCache {
   TwoWayFMGainCache(TwoWayFMGainCache&&) = default;
   TwoWayFMGainCache& operator= (TwoWayFMGainCache&&) = default;
 
-  T delta(const size_t n) const {
-    return _cache[n].delta;
+  T delta(const size_t index) const {
+    ASSERT(index < _size);
+    return _cache[index].delta;
   }
 
-  T value(const size_t n) const {
-    return _cache[n].value;
+  T value(const size_t index) const {
+    ASSERT(index < _size);
+    return _cache[index].value;
   }
 
   size_t size() const {
     return _size;
   }
 
-  void setDelta(const size_t n, const T value) {
-    if (_cache[n].delta == 0) {
-      _used_delta_entries.push_back(n);
+  void setDelta(const size_t index, const T value) {
+    ASSERT(index < _size);
+    if (_cache[index].delta == 0) {
+      _used_delta_entries.push_back(index);
     }
-    _cache[n].delta = value;
+    _cache[index].delta = value;
   }
 
-  void setNotCached(const size_t n) {
-    _cache[n].value = kNotCached;
+  void setNotCached(const size_t index) {
+    ASSERT(index < _size);
+    _cache[index].value = kNotCached;
   }
 
-  bool isCached(const size_t n) {
-    return _cache[n].value != kNotCached;
+  bool isCached(const size_t index) {
+    ASSERT(index < _size);
+    return _cache[index].value != kNotCached;
   }
 
-  void setValue(const size_t n, const T value) {
-    _cache[n].value = value;
+  void setValue(const size_t index, const T value) {
+    ASSERT(index < _size);
+    _cache[index].value = value;
   }
 
-  void updateValue(const size_t n, const T value) {
-    _cache[n].value += value;
+  void updateValue(const size_t index, const T value) {
+    ASSERT(index < _size);
+    _cache[index].value += value;
   }
 
-  void uncheckedSetDelta(const size_t n, const T value) {
-    ASSERT(_cache[n].delta != 0,
-           "Index " << n << " is still unused and not tracked for reset!");
-    _cache[n].delta = value;
+  void uncheckedSetDelta(const size_t index, const T value) {
+    ASSERT(index < _size);
+    ASSERT(_cache[index].delta != 0,
+           "Index " << index << " is still unused and not tracked for reset!");
+    _cache[index].delta = value;
   }
 
-  void updateCacheAndDelta(const size_t n, const T delta) {
-    if (_cache[n].delta == 0) {
-      _used_delta_entries.push_back(n);
+  void updateCacheAndDelta(const size_t index, const T delta) {
+    ASSERT(index < _size);
+    if (_cache[index].delta == 0) {
+      _used_delta_entries.push_back(index);
     }
-    _cache[n].value += delta;
-    _cache[n].delta -= delta;
+    _cache[index].value += delta;
+    _cache[index].delta -= delta;
   }
 
   template <typename use_pqs, class PQ, class Hypergraph>
