@@ -28,7 +28,7 @@ namespace partition {
 class LPRefiner final : public IRefiner {
   using GainPartitionPair = std::pair<Gain, PartitionID>;
 
-  using GainCache = LPGainCache<HypernodeID, PartitionID>;
+  using GainCache = LPGainCache;
   using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
 
  public:
@@ -616,7 +616,7 @@ class LPRefiner final : public IRefiner {
   FastResetFlagVector<> _contained_cur_queue;
   FastResetFlagVector<> _contained_next_queue;
 
-  std::vector<GGain> _tmp_gains;
+  std::vector<LPGain> _tmp_gains;
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
   InsertOnlySparseSet<PartitionID> _tmp_target_parts;

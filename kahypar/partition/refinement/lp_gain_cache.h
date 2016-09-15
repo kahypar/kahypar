@@ -12,73 +12,70 @@
 #include "meta/mandatory.h"
 
 namespace partition {
-struct GGain {
+struct LPGain {
   Gain cut;
   Gain km1;
 
-  explicit GGain(const Gain init) :
+  explicit LPGain(const Gain init) :
     cut(init),
     km1(init) { }
 
-  GGain(const Gain c, const Gain k) :
+  LPGain(const Gain c, const Gain k) :
     cut(c),
     km1(k) { }
 
-  GGain(GGain&&) = default;
-  GGain& operator= (GGain&&) = default;
+  LPGain(LPGain&&) = default;
+  LPGain& operator= (LPGain&&) = default;
 
-  GGain(const GGain&) = default;
-  GGain& operator= (const GGain&) = default;
+  LPGain(const LPGain&) = default;
+  LPGain& operator= (const LPGain&) = default;
 
-  GGain& operator+= (const GGain& rhs) {
+  LPGain& operator+= (const LPGain& rhs) {
     cut += rhs.cut;
     km1 += rhs.km1;
     return *this;
   }
 
-  friend GGain operator+ (GGain lhs, const GGain& rhs) {
+  friend LPGain operator+ (LPGain lhs, const LPGain& rhs) {
     lhs += rhs;  // reuse compound assignment
     return lhs;
   }
 
-  friend bool operator== (const GGain& lhs, const GGain& rhs) {
+  friend bool operator== (const LPGain& lhs, const LPGain& rhs) {
     return lhs.cut == rhs.cut && lhs.km1 == rhs.km1;
   }
 
-  friend bool operator!= (const GGain& lhs, const GGain& rhs) {
+  friend bool operator!= (const LPGain& lhs, const LPGain& rhs) {
     return !operator== (lhs, rhs);
   }
 
-  GGain& operator-= (const GGain& rhs) {
+  LPGain& operator-= (const LPGain& rhs) {
     cut -= rhs.cut;
     km1 -= rhs.km1;
     return *this;
   }
 
-  GGain operator- () const {
+  LPGain operator- () const {
     return { -cut, -km1 };
   }
 
-  friend GGain operator- (GGain lhs, const GGain& rhs) {
+  friend LPGain operator- (LPGain lhs, const LPGain& rhs) {
     lhs -= rhs;  // reuse compound assignment
     return lhs;
   }
 
-  friend std::ostream& operator<< (std::ostream& str, const GGain& lhs) {
+  friend std::ostream& operator<< (std::ostream& str, const LPGain& lhs) {
     return str << V(lhs.cut) << V(lhs.km1);
   }
 };
 
-template <typename HypernodeID = Mandatory,
-          typename PartitionID = Mandatory,
-          typename Gain = GGain,
-          bool rollback_enabled = false>
 class LPGainCache {
  private:
   static const bool debug = false;
   static const HypernodeID hn_to_debug = 2225;
 
   using Byte = char;
+  using Gain = LPGain;
 
   enum class RollbackAction : Byte {
     do_remove,
@@ -204,13 +201,13 @@ class LPGainCache {
       ASSERT(part < _k, V(part));
       ASSERT([&]() {
           const PartitionID index = sparse(part).index;
-          if (index < _size && dense(index) == part && gain(part) == GGain(kNotCached, kNotCached)) {
+          if (index < _size && dense(index) == part && gain(part) == LPGain(kNotCached, kNotCached)) {
             LOG("contained but invalid gain");
             LOGVAR(part);
             return false;
           }
           if ((sparse(part).index >= _size ||
-               dense(sparse(part).index) != part) && gain(part) != GGain(kNotCached, kNotCached)) {
+               dense(sparse(part).index) != part) && gain(part) != LPGain(kNotCached, kNotCached)) {
             LOG("not contained but gain value present");
             LOGVAR(part);
             return false;
@@ -299,9 +296,6 @@ class LPGainCache {
   __attribute__ ((always_inline)) void removeEntryDueToConnectivityDecrease(const HypernodeID hn,
                                                                             const PartitionID part) {
     ASSERT(part < _k, V(part));
-    if (rollback_enabled) {
-      _deltas.emplace_back(hn, part, cacheElement(hn)->gain(part), RollbackAction::do_add);
-    }
     DBG(debug && (hn == hn_to_debug), "removeEntryDueToConnectivityDecrease for " << hn
         << "and part " << part << " previous cache entry =" << cacheElement(hn)->gain(part)
         << " now= " << kNotCached);
@@ -317,9 +311,6 @@ class LPGainCache {
     DBG(debug && (hn == hn_to_debug), "addEntryDueToConnectivityIncrease for " << hn
         << "and part " << part << " new cache entry =" << cacheElement(hn)->gain(part));
     // DBG(debug && (hn == hn_to_debug), "delta emplace = " << kNotCached - gain);
-    // if (rollback_enabled) {
-    //   _deltas.emplace_back(hn, part, kNotCached - gain, RollbackAction::do_remove);
-    // }
   }
 
   __attribute__ ((always_inline)) void updateFromAndToPartOfMovedHN(const HypernodeID moved_hn,
@@ -330,18 +321,13 @@ class LPGainCache {
       DBG(debug && (moved_hn == hn_to_debug),
           "updateFromAndToPartOfMovedHN(" << moved_hn << "," << from_part << "," << to_part << ")");
       const Gain to_part_gain = cacheElement(moved_hn)->gain(to_part);
-      if (rollback_enabled) {
-        _deltas.emplace_back(moved_hn, from_part,
-                             cacheElement(moved_hn)->gain(from_part) + to_part_gain,
-                             RollbackAction::do_remove);
-      }
       cacheElement(moved_hn)->add(from_part, -to_part_gain);
     } else {
       DBG(debug && (moved_hn == hn_to_debug), "pseudoremove  for " << moved_hn
           << "and part " << from_part << " previous cache entry ="
           << cacheElement(moved_hn)->gain(from_part)
           << " now= " << kNotCached);
-      ASSERT(cacheElement(moved_hn)->gain(from_part) == GGain(kNotCached, kNotCached), V(moved_hn) << V(from_part));
+      ASSERT(cacheElement(moved_hn)->gain(from_part) == LPGain(kNotCached, kNotCached), V(moved_hn) << V(from_part));
     }
     removeEntryDueToConnectivityDecrease(moved_hn, to_part);
   }
@@ -373,48 +359,10 @@ class LPGainCache {
                                                            const Gain delta) {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
-    ASSERT(cacheElement(hn)->gain(part) != GGain(kNotCached, kNotCached), V(hn) << V(part));
+    ASSERT(cacheElement(hn)->gain(part) != LPGain(kNotCached, kNotCached), V(hn) << V(part));
     DBG(debug && (hn == hn_to_debug),
         "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")");
     cacheElement(hn)->update(part, delta);
-    if (rollback_enabled) {
-      _deltas.emplace_back(hn, part, -delta, RollbackAction::do_nothing);
-    }
-  }
-
-
-  void rollbackDelta() {
-    if (rollback_enabled) {
-      for (auto rit = _deltas.crbegin(); rit != _deltas.crend(); ++rit) {
-        const HypernodeID hn = rit->hn;
-        const PartitionID part = rit->part;
-        const Gain delta = rit->delta;
-        if (cacheElement(hn)->contains(part)) {
-          DBG(debug && (hn == hn_to_debug), "rollback: " << "G[" << hn << "," << part << "]="
-              << cacheElement(hn)->gain(part) << "+" << delta << "="
-              << (cacheElement(hn)->gain(part) + delta));
-          cacheElement(hn)->update(part, delta);
-          if (rit->action == RollbackAction::do_remove) {
-            ASSERT(cacheElement(hn)->gain(part) == kNotCached, V(hn));
-            cacheElement(hn)->remove(part);
-          }
-        } else {
-          DBG(debug && (hn == hn_to_debug), "rollback: SET " << "set G[" << hn << "," << part << "]="
-              << delta);
-          cacheElement(hn)->set(part, delta);
-          if (rit->action == RollbackAction::do_add) {
-            cacheElement(hn)->addToActiveParts(part);
-          }
-        }
-      }
-      _deltas.clear();
-    }
-  }
-
-  void resetDelta() {
-    if (rollback_enabled) {
-      _deltas.clear();
-    }
   }
 
   const CacheElement & adjacentParts(const HypernodeID hn) const {
