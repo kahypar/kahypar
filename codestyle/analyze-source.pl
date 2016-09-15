@@ -358,7 +358,7 @@ if (0)
         push(@lintlist, $path);
     }
 
-    system($codestyle_path."cpplint.py", "--counting=total", "--extensions=h,c,cc,hpp,cpp", @lintlist);
+    system($codestyle_path."cpplint.py", "--counting=total", "--extensions=h,c,cc,hpp,cpp", "--filter=-build/header_guard", @lintlist);
 }
 
 ################################################################################
