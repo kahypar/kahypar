@@ -24,7 +24,6 @@ class MLCoarsener final : public ICoarsener,
   static const bool dbg_partition_rating = false;
 
   using Base = VertexPairCoarsenerBase;
-  using Base::performContraction;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
   static constexpr RatingType kInvalidScore = std::numeric_limits<RatingType>::min();
@@ -182,7 +181,7 @@ class MLCoarsener final : public ICoarsener,
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
-    return Base::doUncoarsen(refiner);
+    return doUncoarsen(refiner);
   }
 
   std::string policyStringImpl() const noexcept override final {

@@ -57,11 +57,6 @@ class TwoWayFMRefiner final : public IRefiner,
                                              std::numeric_limits<Gain> >;
   using RebalancePQ = BinaryMaxHeap<HypernodeID, Gain>;
 
-  enum HEState {
-    free = std::numeric_limits<PartitionID>::max() - 1,
-    locked = std::numeric_limits<PartitionID>::max(),
-  };
-
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),

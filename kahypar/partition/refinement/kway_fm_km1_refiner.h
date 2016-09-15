@@ -56,11 +56,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                              std::numeric_limits<Gain> >;
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
 
-  struct RollbackInfo {
-    HypernodeID hn;
-    PartitionID from_part;
-    PartitionID to_part;
-  };
 
   struct PinState {
     char one_pin_in_from_part_before : 1;

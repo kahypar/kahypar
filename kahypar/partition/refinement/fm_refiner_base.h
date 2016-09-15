@@ -19,6 +19,18 @@ class FMRefinerBase {
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
   static constexpr HyperedgeWeight kInvalidDecrease = std::numeric_limits<PartitionID>::min();
 
+  enum HEState {
+    free = std::numeric_limits<PartitionID>::max() - 1,
+    locked = std::numeric_limits<PartitionID>::max(),
+  };
+
+  struct RollbackInfo {
+    HypernodeID hn;
+    PartitionID from_part;
+    PartitionID to_part;
+  };
+
+
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) noexcept :
     _hg(hypergraph),
     _config(config) { }

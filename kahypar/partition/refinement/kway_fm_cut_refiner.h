@@ -56,17 +56,6 @@ class KWayFMRefiner final : public IRefiner,
 
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
 
-  struct RollbackInfo {
-    HypernodeID hn;
-    PartitionID from_part;
-    PartitionID to_part;
-  };
-
-  enum HEState {
-    free = std::numeric_limits<PartitionID>::max() - 1,
-    locked = std::numeric_limits<PartitionID>::max(),
-  };
-
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
     FMRefinerBase(hypergraph, config),

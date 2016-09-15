@@ -25,8 +25,6 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
   using Rating = typename Rater::Rating;
 
   class NullMap {

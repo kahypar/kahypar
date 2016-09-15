@@ -26,10 +26,6 @@ class FullVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
  private:
   using Base = VertexPairCoarsenerBase;
-  using Base::removeParallelHyperedges;
-  using Base::removeSingleNodeHyperedges;
-  using Base::rateAllHypernodes;
-  using Base::performContraction;
   using Rating = typename Rater::Rating;
 
   class NullMap {
@@ -101,7 +97,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
   }
 
   bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
-    return Base::doUncoarsen(refiner);
+    return doUncoarsen(refiner);
   }
 
   std::string policyStringImpl() const noexcept override final {
