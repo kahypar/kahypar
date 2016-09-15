@@ -38,8 +38,15 @@
 
 #define V(X) " " << #X << "=" << X << " "
 
+
+#define EXPAND(X) X
+#define NARG(...) EXPAND(NARG_(__VA_ARGS__, RSEQ_N()))
+#define NARG_(...) EXPAND(ARG_N(__VA_ARGS__))
+#define ARG_N(_1, _2, N, ...) N
+#define RSEQ_N() 2, 1, 0
+
 #ifdef USE_ASSERTIONS
-  #define ASSERT(cond, msg)                            \
+  #define ASSERT_2(cond, msg)                          \
   do {                                                 \
     if (!(cond)) {                                     \
       std::cerr << __FILE__ << ":" << __LINE__ << ": " \
@@ -49,9 +56,16 @@
       std::abort();                                    \
     }                                                  \
   } while (0)
+
+  #define ASSERT_1(cond) ASSERT_2(cond, "")
 #else
-  #define ASSERT(cond, msg)
+  #define ASSERT_2(cond, msg)
+  #define ASSERT_1(cond)
 #endif
+
+#define ASSERT_(N) ASSERT_ ## N
+#define ASSERT_EVAL(N) ASSERT_(N)
+#define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 // *** an always-on ASSERT
 #define ALWAYS_ASSERT(cond, msg)                       \

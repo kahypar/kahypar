@@ -63,12 +63,11 @@ class LPRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const UncontractionGainChanges& UNUSED(changes),
                   Metrics& best_metrics) noexcept override final {
-    // LOG("-------------------------------------------------------------------------");
-    ASSERT(metrics::imbalance(_hg, _config) <= _config.partition.epsilon,
-           V(metrics::imbalance(_hg, _config)));
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
-           "initial best_cut " << best_metrics.cut << "does not equal cut induced by hypergraph "
-           << metrics::hyperedgeCut(_hg));
+           V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
+    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
+             FloatingPoint<double>(metrics::imbalance(_hg, _config))),
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
     _cur_queue.clear();
     _next_queue.clear();
@@ -249,7 +248,8 @@ class LPRefiner final : public IRefiner {
     }
     if (move_increased_connectivity && !_gain_cache.entryExists(pin, to_part)) {
       _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part,
-                                                    { gainInducedByHypergraph(pin, to_part), kM1gainInducedByHypergraph(pin, to_part) });  ///////////////////////////////////////////////////////////// FIX THIS
+                                                    { gainInducedByHypergraph(pin, to_part),
+                                                      kM1gainInducedByHypergraph(pin, to_part) });
       _already_processed_part.set(pin, to_part);
     }
   }
@@ -342,7 +342,7 @@ class LPRefiner final : public IRefiner {
     if (source_part == from_part) {
       if (pin_count_source_part_before_move == 2) {
         for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
-          if (_already_processed_part.get(pin) != part) {  // hier war new ajacent part!!!!!!
+          if (_already_processed_part.get(pin) != part) {
             _gain_cache.updateExistingEntry(pin, part, { 0, he_weight });
           }
         }
@@ -350,7 +350,7 @@ class LPRefiner final : public IRefiner {
     } else if (source_part == to_part) {
       if (pin_count_target_part_after_move == 2) {
         for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
-          if (_already_processed_part.get(pin) != part) {  // hier war new ajacent part!!!!!!
+          if (_already_processed_part.get(pin) != part) {
             _gain_cache.updateExistingEntry(pin, part, { 0, -he_weight });
           }
         }
@@ -361,7 +361,7 @@ class LPRefiner final : public IRefiner {
       _gain_cache.updateExistingEntry(pin, from_part, { 0, -he_weight });
     }
 
-    if (pin_count_target_part_after_move == 1 && _already_processed_part.get(pin) != to_part) {  /// und hier
+    if (pin_count_target_part_after_move == 1 && _already_processed_part.get(pin) != to_part) {
       _gain_cache.updateExistingEntry(pin, to_part, { 0, he_weight });
     }
   }
@@ -586,7 +586,7 @@ class LPRefiner final : public IRefiner {
     max_gain_part = (max_gain >= 0 || max_connectivity_decrease >= 0 || source_part_imbalanced) ?
                     _max_score[(Randomize::instance().getRandomInt(0, _max_score.size() - 1))] : source_part;
 
-    ASSERT(max_gain_part != Hypergraph::kInvalidPartition, "the chosen block should not be invalid");
+    ASSERT(max_gain_part != Hypergraph::kInvalidPartition);
 
     return GainPartitionPair(max_gain, max_gain_part);
   }
@@ -597,8 +597,8 @@ class LPRefiner final : public IRefiner {
       return false;
     }
 
-    ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn) <= _config.partition.max_part_weights[to_part % 2],
-           "a move in refinement produced imbalanced parts");
+    ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn)
+           <= _config.partition.max_part_weights[to_part % 2]);
 
     if (_hg.partSize(from_part) == 1) {
       // this would result in an extermination of a block

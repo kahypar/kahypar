@@ -122,12 +122,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   Metrics& best_metrics) noexcept override final {
     // LOG("=================================================");
     ASSERT(best_metrics.km1 == metrics::km1(_hg),
-           "initial best_metrics.km1 " << best_metrics.km1
-           << "does not equal km1 induced by hypergraph " << metrics::km1(_hg));
+           V(best_metrics.km1) << V(metrics::km1(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _config))),
-           "initial best_metrics.imbalance " << best_metrics.imbalance << "does not equal imbalance induced"
-           << " by hypergraph " << metrics::imbalance(_hg, _config));
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
 
     _pq.clear();
     _hg.resetHypernodeState();
@@ -136,9 +134,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID hn : refinement_nodes) {
-      // TODO(schlag): can we infer these gains like in 2FM
-      // instead of recomputing them?
-      // true here indicates that the gain_cache has to be invalidated;
       activate<true>(hn);
     }
 
@@ -170,14 +165,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
           << " gain=" << max_gain << " source_part=" << _hg.partID(max_gain_node)
           << " target_part=" << to_part);
 
-      ASSERT(!_hg.marked(max_gain_node),
-             "HN " << max_gain_node << "is marked and not eligable to be moved");
+      ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
       ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part),
              V(max_gain) << ", " << V(gainInducedByHypergraph(max_gain_node, to_part)));
-      ASSERT(_hg.isBorderNode(max_gain_node), "HN " << max_gain_node << "is no border node");
+      ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
       ASSERT(hypernodeIsConnectedToPart(max_gain_node, to_part),
-             "Move of HN " << max_gain_node << " from " << from_part
-             << " to " << to_part << " is stale!");
+             V(max_gain_node) << V(from_part) << V(to_part));
+
       // Active nodes cannot be incident only to HEs larger than the threshold, because these
       // should never be activated.
       ASSERT([&]() {
@@ -196,20 +190,12 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
         _pq.remove(max_gain_node, part);
       }
-      ASSERT([&]() {
-          for (PartitionID part = 0; part < _config.partition.k; ++part) {
-            if (_pq.contains(max_gain_node, part)) {
-              return false;
-            }
-          }
-          return true;
-        } (), V(max_gain_node));
-
 
       _hg.mark(max_gain_node);
       ++touched_hns_since_last_improvement;
 
-      if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node) <= _config.partition.max_part_weights[0]) {
+      if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
+          <= _config.partition.max_part_weights[0]) {
         // LOG("performed MOVE: " << V(max_gain_node) << V(from_part) << V(to_part));
         moveHypernode(max_gain_node, from_part, to_part);
 
@@ -276,7 +262,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
     }
-    DBG(dbg_refinement_kway_kminusone_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
+    DBG(dbg_refinement_kway_kminusone_fm_stopping_crit, "KWayFM performed "
+        << _performed_moves.size()
         << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
                                               best_metrics.km1, current_km1)
@@ -287,9 +274,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    ASSERT(best_metrics.km1 == metrics::km1(_hg), "Incorrect rollback operation");
-    ASSERT(best_metrics.km1 <= initial_km1, "kMinusOne quality decreased from "
-           << initial_km1 << " to" << best_metrics.km1);
+    ASSERT(best_metrics.km1 == metrics::km1(_hg));
+    ASSERT(best_metrics.km1 <= initial_km1, V(initial_km1) << V(best_metrics.km1));
     return FMImprovementPolicy::improvementFound(best_metrics.km1, initial_km1,
                                                  best_metrics.imbalance, initial_imbalance,
                                                  _config.partition.epsilon);
@@ -605,8 +591,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const HypernodeID pin_count_from_part_after_move = pin_count_from_part_before_move - 1;
     const HypernodeID pin_count_to_part_after_move = pin_count_to_part_before_move + 1;
 
-    ASSERT(pin_count_from_part_after_move != 0, V("move decreased connectivity"));
-    ASSERT(pin_count_to_part_after_move != 1, V("move increased connectivity"));
+    ASSERT(pin_count_from_part_after_move != 0, "move decreased connectivity");
+    ASSERT(pin_count_to_part_after_move != 1, "move increased connectivity");
 
     if (pin_count_from_part_after_move == 1 || pin_count_to_part_after_move == 2) {
       const PinState pin_state(pin_count_from_part_before_move == 1,
@@ -783,7 +769,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
                     _hg.printNodeState(pin);
                     for (const HyperedgeID incident_edge : _hg.incidentEdges(pin)) {
                       for (PartitionID i = 0; i < _config.partition.k; ++i) {
-                        LOG("Part " << i << " unremovable: " << _unremovable_he_parts[he * _config.partition.k + i]);
+                        LOG("Part " << i << " unremovable: "
+                            << _unremovable_he_parts[he * _config.partition.k + i]);
                       }
                       _hg.printEdgeState(incident_edge);
                     }
@@ -854,9 +841,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
     ONLYDEBUG(he);
     ASSERT(_gain_cache.entryExists(pin, part), V(pin) << V(part));
     ASSERT(_new_adjacent_part.get(pin) != part, V(pin) << V(part));
-    ASSERT(!_hg.marked(pin), " Trying to update marked HN " << pin << " part=" << part);
-    ASSERT(_hg.active(pin), "Trying to update inactive HN " << pin << " part=" << part);
-    ASSERT(_hg.isBorderNode(pin), "Trying to update non-border HN " << pin << " part=" << part);
+    ASSERT(!_hg.marked(pin));
+    ASSERT(_hg.active(pin));
+    ASSERT(_hg.isBorderNode(pin));
     ASSERT((_hg.partWeight(part) < _config.partition.max_part_weights[0] ?
             _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
     // Assert that we only perform delta-gain updates on moves that are not stale!
@@ -944,8 +931,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         continue;
       }
       ASSERT(_tmp_gains[target_part] - internal == gainInducedByHypergraph(hn, target_part),
-             "Gain calculation failed! Should be " << V(gainInducedByHypergraph(hn, target_part))
-             << " but currently it is " << V(_tmp_gains[target_part] - internal));
+             V(gainInducedByHypergraph(hn, target_part)) << V(_tmp_gains[target_part] - internal));
       DBG(dbg_refinement_kway_kminusone_gain_caching && (hn == hn_to_debug),
           V(target_part) << V(_tmp_gains[target_part] - internal));
       _gain_cache.initializeEntry(hn, target_part, _tmp_gains[target_part] - internal);
@@ -955,7 +941,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
   __attribute__ ((always_inline)) void insertHNintoPQ(const HypernodeID hn) noexcept {
-    ASSERT(_hg.isBorderNode(hn), "Cannot compute gain for non-border HN " << hn);
+    ASSERT(_hg.isBorderNode(hn));
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
 
     for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
