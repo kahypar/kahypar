@@ -160,10 +160,9 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     return improvement_found;
   }
 
-  template <typename Map,
-            typename Rater>
+  template <typename Rater>
   void rateAllHypernodes(Rater& rater,
-                         std::vector<HypernodeID>& target, Map& sources) {
+                         std::vector<HypernodeID>& target) {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     for (size_t i = 0; i < permutation.size(); ++i) {
@@ -171,7 +170,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       if (rating.valid) {
         _pq.push(permutation[i], rating.value);
         target[permutation[i]] = rating.target;
-        sources.insert({ rating.target, permutation[i] });
       }
     }
   }

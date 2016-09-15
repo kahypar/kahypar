@@ -28,11 +28,6 @@ class FullVertexPairCoarsener final : public ICoarsener,
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;
 
-  class NullMap {
- public:
-    void insert(std::pair<HypernodeID, HypernodeID>) { }
-  };
-
  public:
   FullVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
                           const HypernodeWeight weight_of_heaviest_node) :
@@ -54,8 +49,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
-    NullMap null_map;
-    rateAllHypernodes(_rater, _target, null_map);
+    rateAllHypernodes(_rater, _target);
 
     FastResetFlagVector<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
