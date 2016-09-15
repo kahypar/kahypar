@@ -42,7 +42,7 @@ class CoarsenerBase {
 
  public:
   CoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
-                const HypernodeWeight weight_of_heaviest_node) noexcept :
+                const HypernodeWeight weight_of_heaviest_node) :
     _hg(hypergraph),
     _config(config),
     _history(),
@@ -62,7 +62,7 @@ class CoarsenerBase {
   CoarsenerBase& operator= (CoarsenerBase&&) = delete;
 
  protected:
-  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) noexcept {
+  void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) {
     _history.emplace_back(_hg.contract(rep_node, contracted_node));
     if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
       _max_hn_weights.emplace_back(_hg.currentNumNodes(), _hg.nodeWeight(rep_node));
@@ -71,27 +71,27 @@ class CoarsenerBase {
     removeParallelHyperedges();
   }
 
-  void removeSingleNodeHyperedges() noexcept {
+  void removeSingleNodeHyperedges() {
     const HyperedgeWeight removed_he_weight =
       _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
     Stats::instance().add(_config, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
-  void removeParallelHyperedges() noexcept {
+  void removeParallelHyperedges() {
     const HyperedgeID removed_parallel_hes =
       _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
     Stats::instance().add(_config, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
-  void restoreParallelHyperedges() noexcept {
+  void restoreParallelHyperedges() {
     _hypergraph_pruner.restoreParallelHyperedges(_hg, _history.back());
   }
 
-  void restoreSingleNodeHyperedges() noexcept {
+  void restoreSingleNodeHyperedges() {
     _hypergraph_pruner.restoreSingleNodeHyperedges(_hg, _history.back());
   }
 
-  void initializeRefiner(IRefiner& refiner) noexcept {
+  void initializeRefiner(IRefiner& refiner) {
 #ifdef USE_BUCKET_PQ
     HyperedgeID max_degree = 0;
     for (const HypernodeID hn : _hg.nodes()) {
@@ -111,7 +111,7 @@ class CoarsenerBase {
 
   void performLocalSearch(IRefiner& refiner, std::vector<HypernodeID>& refinement_nodes,
                           Metrics& current_metrics,
-                          const UncontractionGainChanges& changes) noexcept {
+                          const UncontractionGainChanges& changes) {
     ASSERT(changes.representative.size() != 0, "0");
     ASSERT(changes.contraction_partner.size() != 0, "0");
     bool improvement_found = performLocalSearchIteration(refiner, refinement_nodes, changes,

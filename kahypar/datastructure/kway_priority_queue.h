@@ -42,7 +42,7 @@ class KWayPriorityQueue {
   };
 
  public:
-  explicit KWayPriorityQueue(const PartitionID k) noexcept :
+  explicit KWayPriorityQueue(const PartitionID k) :
     _queues(),
     _mapping(k +  /* sentinel */ 1, { kInvalidPart, kInvalidIndex }),
     _ties(k),
@@ -58,47 +58,47 @@ class KWayPriorityQueue {
 
   // PQ implementation might need different parameters for construction
   template <typename ... PQParameters>
-  void initialize(PQParameters&& ... parameters) noexcept {
+  void initialize(PQParameters&& ... parameters) {
     // k = mapping.size() - 1. Last element in mapping is used as a sentinel.
     for (size_t i = 0; i < _mapping.size() - 1; ++i) {
       _queues.emplace_back(std::forward<PQParameters>(parameters) ...);
     }
   }
 
-  __attribute__ ((always_inline)) size_t size(const PartitionID part) const noexcept {
+  __attribute__ ((always_inline)) size_t size(const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return (_mapping[part].index < _num_nonempty_pqs ? _queues[_mapping[part].index].size() : 0);
   }
 
   // Counts all elements in all non-empty heaps and therefore includes
   // the elements in disabled heaps as well
-  __attribute__ ((always_inline)) size_t size() const noexcept {
+  __attribute__ ((always_inline)) size_t size() const {
     return _num_entries;
   }
 
-  __attribute__ ((always_inline)) bool empty(const PartitionID part) const noexcept {
+  __attribute__ ((always_inline)) bool empty(const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return isUnused(part);
   }
 
-  __attribute__ ((always_inline)) bool empty() const noexcept {
+  __attribute__ ((always_inline)) bool empty() const {
     return _num_enabled_pqs == 0 || _num_entries == 0;
   }
 
-  __attribute__ ((always_inline)) PartitionID numEnabledParts() const noexcept {
+  __attribute__ ((always_inline)) PartitionID numEnabledParts() const {
     return _num_enabled_pqs;
   }
 
-  __attribute__ ((always_inline)) PartitionID numNonEmptyParts() const noexcept {
+  __attribute__ ((always_inline)) PartitionID numNonEmptyParts() const {
     return _num_nonempty_pqs;
   }
 
-  __attribute__ ((always_inline)) bool isEnabled(const PartitionID part) const noexcept {
+  __attribute__ ((always_inline)) bool isEnabled(const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return _mapping[part].index < _num_enabled_pqs;
   }
 
-  __attribute__ ((always_inline)) void enablePart(const PartitionID part) noexcept {
+  __attribute__ ((always_inline)) void enablePart(const PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     if (!isUnused(part) && !isEnabled(part)) {
       swap(_mapping[part].index, _num_enabled_pqs);
@@ -107,7 +107,7 @@ class KWayPriorityQueue {
     }
   }
 
-  __attribute__ ((always_inline)) void disablePart(const PartitionID part) noexcept {
+  __attribute__ ((always_inline)) void disablePart(const PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     if (isEnabled(part)) {
       --_num_enabled_pqs;
@@ -116,7 +116,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) void insert(const IDType id, const PartitionID part,
-                                              const KeyType key) noexcept {
+                                              const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
     ASSERT((_mapping[part].index != kInvalidIndex) ||
@@ -133,7 +133,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) void deleteMax(IDType& max_id, KeyType& max_key,
-                                                 PartitionID& max_part) noexcept {
+                                                 PartitionID& max_part) {
     size_t max_index = UseRandomTieBreaking ? maxIndexRandomTieBreaking() : maxIndex();
     ASSERT(max_index < _num_enabled_pqs, V(max_index));
 
@@ -160,7 +160,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) void deleteMaxFromPartition(IDType& max_id, KeyType& max_key,
-                                                              PartitionID part) noexcept {
+                                                              PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     size_t part_index = _mapping[part].index;
     ASSERT(part_index < _num_enabled_pqs, V(part_index));
@@ -186,7 +186,7 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) KeyType key(const IDType id,
-                                              const PartitionID part) const noexcept {
+                                              const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_mapping[part].index].contains(id), V(id));
@@ -194,13 +194,13 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) bool contains(const IDType id,
-                                                const PartitionID part) const noexcept {
+                                                const PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     return _mapping[part].index < _num_nonempty_pqs && _queues[_mapping[part].index].contains(id);
   }
 
   // Should be used only for assertions
-  bool contains(const IDType id) const noexcept {
+  bool contains(const IDType id) const {
     for (size_t i = 0; i < _num_nonempty_pqs; ++i) {
       if (_queues[i].contains(id)) {
         return true;
@@ -210,21 +210,21 @@ class KWayPriorityQueue {
   }
 
   __attribute__ ((always_inline)) void updateKey(const IDType id, const PartitionID part,
-                                                 const KeyType key) noexcept {
+                                                 const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     _queues[_mapping[part].index].updateKey(id, key);
   }
 
   __attribute__ ((always_inline)) void updateKeyBy(const IDType id, const PartitionID part,
-                                                   const KeyType key_delta) noexcept {
+                                                   const KeyType key_delta) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     _queues[_mapping[part].index].updateKeyBy(id, key_delta);
   }
 
   __attribute__ ((always_inline)) void remove(const IDType id,
-                                              const PartitionID part) noexcept {
+                                              const PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_mapping[part].index].contains(id), V(id) << V(part));
@@ -242,7 +242,7 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  __attribute__ ((always_inline)) void clear() noexcept {
+  __attribute__ ((always_inline)) void clear() {
     for (size_t i = 0; i < _queues.size(); ++i) {
       _mapping[i] = { kInvalidPart, kInvalidIndex };
       _queues[i].clear();  // eager clear, NOOP in case of ArrayStorage
@@ -252,23 +252,23 @@ class KWayPriorityQueue {
     _num_enabled_pqs = 0;
   }
 
-  IDType max() const noexcept {
+  IDType max() const {
     // Should only be used for testing
     return _queues[maxIndex()].top();
   }
 
-  IDType max(PartitionID part) const noexcept {
+  IDType max(PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].top();
   }
 
-  KeyType maxKey() const noexcept {
+  KeyType maxKey() const {
     // Should only be used for testing
     return _queues[maxIndex()].topKey();
   }
 
-  KeyType maxKey(PartitionID part) const noexcept {
+  KeyType maxKey(PartitionID part) const {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].topKey();
@@ -281,7 +281,7 @@ class KWayPriorityQueue {
   FRIEND_TEST(AKWayPriorityQueue, ReconsidersDisabledHeapAgainAfterEnabling);
   FRIEND_TEST(AKWayPriorityQueue, PQIsUnusedAndDisableIfItBecomesEmptyAfterDeleteMaxFromPartition);
 
-  __attribute__ ((always_inline)) void swap(const size_t index_a, const size_t index_b) noexcept {
+  __attribute__ ((always_inline)) void swap(const size_t index_a, const size_t index_b) {
     using std::swap;
     swap(_queues[index_a], _queues[index_b]);
     swap(_mapping[index_a].part, _mapping[index_b].part);
@@ -290,7 +290,7 @@ class KWayPriorityQueue {
            _mapping[_mapping[index_b].part].index == index_b, "Swap failed");
   }
 
-  __attribute__ ((always_inline)) size_t maxIndex() const noexcept {
+  __attribute__ ((always_inline)) size_t maxIndex() const {
     size_t max_index = kInvalidIndex;
     KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
@@ -305,7 +305,7 @@ class KWayPriorityQueue {
     return max_index;
   }
 
-  __attribute__ ((always_inline)) size_t maxIndexRandomTieBreaking()  noexcept {
+  __attribute__ ((always_inline)) size_t maxIndexRandomTieBreaking()  {
     KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
       ASSERT(!_queues[index].empty(), V(index));
@@ -321,12 +321,12 @@ class KWayPriorityQueue {
     return _ties[Randomize::instance().getRandomInt(0, _ties.size() - 1)];
   }
 
-  __attribute__ ((always_inline)) bool isUnused(const PartitionID part) const noexcept {
+  __attribute__ ((always_inline)) bool isUnused(const PartitionID part) const {
     ASSERT((_mapping[part].index != kInvalidIndex ? _mapping[_mapping[part].index].part != kInvalidPart : true), V(part));
     return _mapping[part].index == kInvalidIndex;
   }
 
-  __attribute__ ((always_inline)) void markUnused(const PartitionID part) noexcept {
+  __attribute__ ((always_inline)) void markUnused(const PartitionID part) {
     _mapping[_mapping[part].index].part = kInvalidPart;
     _mapping[part].index = kInvalidIndex;
   }

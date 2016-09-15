@@ -31,7 +31,7 @@ enum class GainType : std::uint8_t {
 struct FMGainComputationPolicy {
   static inline Gain calculateGainForUnassignedHN(const Hypergraph& hg,
                                                   const HypernodeID& hn,
-                                                  const PartitionID& target_part) noexcept {
+                                                  const PartitionID& target_part) {
     ASSERT(hg.partID(hn) == -1, V(hg.partID(hn)));
     ASSERT(target_part != -1, V(target_part));
 
@@ -47,7 +47,7 @@ struct FMGainComputationPolicy {
 
   static inline Gain calculateGainForAssignedHN(const Hypergraph& hg,
                                                 const HypernodeID& hn,
-                                                const PartitionID& target_part) noexcept {
+                                                const PartitionID& target_part) {
     ASSERT(hg.partID(hn) != -1, V(hg.partID(hn)));
     ASSERT(target_part != -1, V(target_part));
 
@@ -80,7 +80,7 @@ struct FMGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   const FastResetFlagVector<>&) noexcept {
+                                   const FastResetFlagVector<>&) {
     if (hg.partID(hn) == -1) {
       return calculateGainForUnassignedHN(hg, hn, target_part);
     }
@@ -255,7 +255,7 @@ struct FMGainComputationPolicy {
 struct MaxPinGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   FastResetFlagVector<>& visit) noexcept {
+                                   FastResetFlagVector<>& visit) {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
@@ -315,7 +315,7 @@ struct MaxPinGainComputationPolicy {
 struct MaxNetGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   const FastResetFlagVector<>&) noexcept {
+                                   const FastResetFlagVector<>&) {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {

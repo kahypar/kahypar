@@ -20,8 +20,8 @@ class DoNothingCoarsener final : public ICoarsener {
   DoNothingCoarsener& operator= (DoNothingCoarsener&&) = delete;
 
  private:
-  void coarsenImpl(const HypernodeID) noexcept override final { }
-  bool uncoarsenImpl(IRefiner&) noexcept override final { return false; }
-  std::string policyStringImpl() const noexcept override final { return std::string(""); }
+  void coarsenImpl(const HypernodeID) override final { }
+  bool uncoarsenImpl(IRefiner&) override final { return false; }
+  std::string policyStringImpl() const override final { return std::string(""); }
 };
 }  // namespace partition

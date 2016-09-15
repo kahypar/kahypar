@@ -35,7 +35,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
  public:
   FullVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
-                          const HypernodeWeight weight_of_heaviest_node) noexcept :
+                          const HypernodeWeight weight_of_heaviest_node) :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()) { }
@@ -51,7 +51,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void coarsenImpl(const HypernodeID limit) noexcept override final {
+  void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
     NullMap null_map;
@@ -96,18 +96,18 @@ class FullVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
+  bool uncoarsenImpl(IRefiner& refiner) override final {
     return doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
                                 FastResetFlagVector<>& rerated_hypernodes,
-                                FastResetFlagVector<>& invalid_hypernodes) noexcept {
+                                FastResetFlagVector<>& invalid_hypernodes) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
@@ -122,7 +122,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    FastResetFlagVector<>& invalid_hypernodes) noexcept {
+                                    FastResetFlagVector<>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

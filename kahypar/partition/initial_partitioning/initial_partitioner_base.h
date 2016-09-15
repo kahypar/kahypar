@@ -35,7 +35,7 @@ class InitialPartitionerBase {
   static constexpr HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 
  public:
-  InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) noexcept :
+  InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _unassigned_nodes(),

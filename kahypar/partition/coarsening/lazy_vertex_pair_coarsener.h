@@ -34,7 +34,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
 
  public:
   LazyVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
-                          const HypernodeWeight weight_of_heaviest_node) noexcept :
+                          const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _outdated_rating(hypergraph.initialNumNodes()),
@@ -55,7 +55,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
  private:
   FRIEND_TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem);
 
-  void coarsenImpl(const HypernodeID limit) noexcept override final {
+  void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
     NullMap null_map;
@@ -98,15 +98,15 @@ class LazyVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
+  bool uncoarsenImpl(IRefiner& refiner) override final {
     return Base::doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void invalidateAffectedHypernodes(const HypernodeID rep_node) noexcept {
+  void invalidateAffectedHypernodes(const HypernodeID rep_node) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         _outdated_rating.set(pin, true);
@@ -114,7 +114,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) noexcept {
+  void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) {
     _outdated_rating.set(hn, false);
     if (rating.valid) {
       ASSERT(_pq.contains(hn),

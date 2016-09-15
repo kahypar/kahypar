@@ -55,7 +55,7 @@ class TwoWayFMRefiner final : public IRefiner,
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
 
  public:
-  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
+  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _rebalance_pqs({ RebalancePQ(_hg.initialNumNodes()), RebalancePQ(_hg.initialNumNodes()) }),
     _he_fully_active(_hg.initialNumEdges()),
@@ -78,7 +78,7 @@ class TwoWayFMRefiner final : public IRefiner,
   TwoWayFMRefiner& operator= (TwoWayFMRefiner&&) = delete;
 
   void activate(const HypernodeID hn,
-                const HypernodeWeightArray& max_allowed_part_weights) noexcept {
+                const HypernodeWeightArray& max_allowed_part_weights) {
     if (_hg.isBorderNode(hn)) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
@@ -104,7 +104,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
-  bool isInitialized() const noexcept {
+  bool isInitialized() const {
     return _is_initialized;
   }
 
@@ -134,7 +134,7 @@ class TwoWayFMRefiner final : public IRefiner,
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept override final {
+  void initializeImpl(const HyperedgeWeight max_gain) override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       _is_initialized = true;
@@ -154,7 +154,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 #else
-  void initializeImpl() noexcept override final {
+  void initializeImpl() override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
@@ -178,7 +178,7 @@ class TwoWayFMRefiner final : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
-                  Metrics& best_metrics) noexcept override final {
+                  Metrics& best_metrics) override final {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
@@ -706,7 +706,7 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.isEnabled(1) : !_pq.isEnabled(1)), V(1));
   }
 
-  void updateGainCache(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
+  void updateGainCache(const HypernodeID pin, const Gain gain_delta) __attribute__ ((always_inline)) {
     // Only _gain_cache[moved_hn] = kNotCached, all other entries are cached.
     // However we set _gain_cache[moved_hn] to the correct value after all neighbors
     // are updated.
@@ -720,7 +720,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void performNonZeroFullUpdate(const HypernodeID pin, const Gain gain_delta,
-                                HypernodeID& num_active_pins) noexcept __attribute__ ((always_inline)) {
+                                HypernodeID& num_active_pins) __attribute__ ((always_inline)) {
     ASSERT(gain_delta != 0);
     if (!_hg.marked(pin)) {
       if (!_hg.active(pin)) {
@@ -745,7 +745,7 @@ class TwoWayFMRefiner final : public IRefiner,
   // Removal of new non-border HNs is performed lazily after all updates
   // This is used for the state transitions: free -> loose and loose -> locked
   void fullUpdate(const PartitionID from_part,
-                  const PartitionID to_part, const HyperedgeID he) noexcept {
+                  const PartitionID to_part, const HyperedgeID he) {
     const HypernodeID pin_count_from_part_after_move = _hg.pinCountInPart(he, from_part);
     const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
 
@@ -835,7 +835,7 @@ class TwoWayFMRefiner final : public IRefiner,
   template <bool is_rebalancing_update = false,
             bool update_local_search_pq = true>
   void deltaUpdate(const PartitionID from_part,
-                   const PartitionID to_part, const HyperedgeID he) noexcept {
+                   const PartitionID to_part, const HyperedgeID he) {
     const HypernodeID pin_count_from_part_after_move = _hg.pinCountInPart(he, from_part);
     const HypernodeID pin_count_to_part_after_move = _hg.pinCountInPart(he, to_part);
 
@@ -903,7 +903,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerGlobalRebalacing=" + templateToString<UseGlobalRebalancing>() +
                        " RefinerUsesBucketQueue=" +
@@ -914,7 +914,7 @@ class TwoWayFMRefiner final : public IRefiner,
 #endif
   }
 
-  void updatePin(const HypernodeID pin, const Gain gain_delta) noexcept __attribute__ ((always_inline)) {
+  void updatePin(const HypernodeID pin, const Gain gain_delta) __attribute__ ((always_inline)) {
     const PartitionID target_part = 1 - _hg.partID(pin);
     ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
@@ -931,7 +931,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 
-  void rollback(int last_index, const int min_cut_index) noexcept {
+  void rollback(int last_index, const int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -947,7 +947,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
-  Gain computeGain(const HypernodeID hn) const noexcept {
+  Gain computeGain(const HypernodeID hn) const {
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2);
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {

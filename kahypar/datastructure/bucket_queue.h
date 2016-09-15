@@ -52,7 +52,7 @@ class EnhancedBucketQueue {
   EnhancedBucketQueue(EnhancedBucketQueue&&) = default;
   EnhancedBucketQueue& operator= (EnhancedBucketQueue&&) = default;
 
-  void swap(EnhancedBucketQueue& other) noexcept {
+  void swap(EnhancedBucketQueue& other) {
     using std::swap;
     swap(_num_elements, other._num_elements);
     swap(_key_range, other._key_range);
@@ -64,22 +64,22 @@ class EnhancedBucketQueue {
     swap(_buckets, other._buckets);
   }
 
-  IDType size() const noexcept {
+  IDType size() const {
     return _num_elements;
   }
 
-  bool empty() const noexcept {
+  bool empty() const {
     return _num_elements == 0;
   }
 
-  KeyType getKey(const IDType element) const noexcept {
+  KeyType getKey(const IDType element) const {
     ASSERT(_contains[element], V(element));
     ASSERT(_valid[_repository[element].second + _key_range],
            V(_repository[element].second + _key_range));
     return _repository[element].second;
   }
 
-  void push(const IDType id, const KeyType key) noexcept {
+  void push(const IDType id, const KeyType key) {
     ASSERT(!_contains[id], V(id));
 
     const KeyType address = key + _key_range;
@@ -99,7 +99,7 @@ class EnhancedBucketQueue {
     ++_num_elements;
   }
 
-  void clear() noexcept {
+  void clear() {
     _num_elements = 0;
     _max_address = kInvalidAddress;
     _index.clear();
@@ -107,7 +107,7 @@ class EnhancedBucketQueue {
     _valid.reset();
   }
 
-  KeyType topKey() const noexcept {
+  KeyType topKey() const {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(!empty(), "BucketQueue is empty");
@@ -117,7 +117,7 @@ class EnhancedBucketQueue {
     return _max_address - _key_range;
   }
 
-  KeyType top() const noexcept {
+  KeyType top() const {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(!empty(), "BucketQueue is empty");
@@ -127,7 +127,7 @@ class EnhancedBucketQueue {
     return _buckets[_max_address].back();
   }
 
-  void pop() noexcept {
+  void pop() {
     ASSERT(_max_address != kInvalidAddress, "");
     ASSERT(!_buckets[_max_address].empty(), V(_max_address));
     ASSERT(_contains[_buckets[_max_address].back()], V(_buckets[_max_address].back()));
@@ -143,14 +143,14 @@ class EnhancedBucketQueue {
     }
   }
 
-  void decreaseKey(const IDType id, const KeyType new_key) noexcept {
+  void decreaseKey(const IDType id, const KeyType new_key) {
     updateKey(id, new_key);
   }
-  void increaseKey(const IDType id, const KeyType new_key) noexcept {
+  void increaseKey(const IDType id, const KeyType new_key) {
     updateKey(id, new_key);
   }
 
-  void updateKey(const IDType id, const KeyType new_key) noexcept {
+  void updateKey(const IDType id, const KeyType new_key) {
     size_t in_bucket_index;
     KeyType old_key;
     std::tie(in_bucket_index, old_key) = _repository[id];
@@ -158,7 +158,7 @@ class EnhancedBucketQueue {
     updateKeyInternal(id, in_bucket_index, new_address, old_key, new_key);
   }
 
-  void decreaseKeyBy(const IDType id, const KeyType key_delta) noexcept {
+  void decreaseKeyBy(const IDType id, const KeyType key_delta) {
     size_t in_bucket_index;
     KeyType old_key;
     std::tie(in_bucket_index, old_key) = _repository[id];
@@ -166,11 +166,11 @@ class EnhancedBucketQueue {
     const KeyType new_address = new_key + _key_range;
     updateKeyInternal(id, in_bucket_index, new_address, old_key, new_key);
   }
-  void increaseKeyBy(const IDType id, const KeyType key_delta) noexcept {
+  void increaseKeyBy(const IDType id, const KeyType key_delta) {
     updateKeyBy(id, key_delta);
   }
 
-  void updateKeyBy(const IDType id, const KeyType key_delta) noexcept {
+  void updateKeyBy(const IDType id, const KeyType key_delta) {
     size_t in_bucket_index;
     KeyType old_key;
     std::tie(in_bucket_index, old_key) = _repository[id];
@@ -180,7 +180,7 @@ class EnhancedBucketQueue {
   }
 
 
-  void remove(const IDType id) noexcept {
+  void remove(const IDType id) {
     ASSERT(_contains[id], V(id));
     ASSERT(_buckets[_repository[id].second + _key_range][_repository[id].first] == id, V(id));
     --_num_elements;
@@ -205,7 +205,7 @@ class EnhancedBucketQueue {
     _contains.set(id, false);
   }
 
-  bool contains(const IDType id) const noexcept {
+  bool contains(const IDType id) const {
     return _contains[id];
   }
 
@@ -289,7 +289,7 @@ template <typename IDType,
           typename KeyType,
           typename MetaKey>
 void swap(EnhancedBucketQueue<IDType, KeyType, MetaKey>& a,
-          EnhancedBucketQueue<IDType, KeyType, MetaKey>& b) noexcept {
+          EnhancedBucketQueue<IDType, KeyType, MetaKey>& b) {
   a.swap(b);
 }
 }  // namespace datastructure

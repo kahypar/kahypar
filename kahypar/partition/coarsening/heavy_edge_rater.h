@@ -31,7 +31,7 @@ class Rater {
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   struct HeavyEdgeRating {
-    HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) noexcept :
+    HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) :
       target(trgt),
       value(val),
       valid(is_valid) { }
@@ -55,7 +55,7 @@ class Rater {
  public:
   using Rating = HeavyEdgeRating;
 
-  Rater(Hypergraph& hypergraph, const Configuration& config) noexcept :
+  Rater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()) { }
@@ -66,7 +66,7 @@ class Rater {
   Rater(Rater&&) = delete;
   Rater& operator= (Rater&&) = delete;
 
-  HeavyEdgeRating rate(const HypernodeID u) noexcept {
+  HeavyEdgeRating rate(const HypernodeID u) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
@@ -115,17 +115,17 @@ class Rater {
     return ret;
   }
 
-  HypernodeWeight thresholdNodeWeight() const noexcept {
+  HypernodeWeight thresholdNodeWeight() const {
     return _config.coarsening.max_allowed_node_weight;
   }
 
  private:
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
-                                const HypernodeWeight weight_v) const noexcept {
+                                const HypernodeWeight weight_v) const {
     return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(const RatingType tmp, const RatingType max_rating) const noexcept {
+  bool acceptRating(const RatingType tmp, const RatingType max_rating) const {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 

@@ -29,7 +29,7 @@ class MLCoarsener final : public ICoarsener,
   static constexpr RatingType kInvalidScore = std::numeric_limits<RatingType>::min();
 
   struct Rating {
-    Rating(HypernodeID trgt, RatingType val, bool is_valid) noexcept :
+    Rating(HypernodeID trgt, RatingType val, bool is_valid) :
       target(trgt),
       value(val),
       valid(is_valid) { }
@@ -52,7 +52,7 @@ class MLCoarsener final : public ICoarsener,
 
  public:
   MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
-              const HypernodeWeight weight_of_heaviest_node) noexcept :
+              const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, config, weight_of_heaviest_node),
     _tmp_ratings(_hg.initialNumNodes()) { }
 
@@ -65,7 +65,7 @@ class MLCoarsener final : public ICoarsener,
   MLCoarsener& operator= (MLCoarsener&&) = delete;
 
  private:
-  void coarsenImpl(const HypernodeID limit) noexcept override final {
+  void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
     FastResetFlagVector<> already_matched(_hg.initialNumNodes());
@@ -169,7 +169,7 @@ class MLCoarsener final : public ICoarsener,
 
   bool acceptRating(const RatingType tmp, const RatingType max_rating,
                     const HypernodeID old_target, const HypernodeID new_target,
-                    const FastResetFlagVector<>& already_matched) const noexcept {
+                    const FastResetFlagVector<>& already_matched) const {
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
@@ -180,16 +180,16 @@ class MLCoarsener final : public ICoarsener,
             ));
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
+  bool uncoarsenImpl(IRefiner& refiner) override final {
     return doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
-                                const HypernodeWeight weight_v) const noexcept {
+                                const HypernodeWeight weight_v) const {
     return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 

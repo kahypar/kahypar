@@ -142,7 +142,7 @@ class IncidenceSet {
     dense()[sparse_u.second] = v;
   }
 
-  void swap(IncidenceSet& other) noexcept {
+  void swap(IncidenceSet& other) {
     using std::swap;
     swap(_memory, other._memory);
     swap(_end, other._end);

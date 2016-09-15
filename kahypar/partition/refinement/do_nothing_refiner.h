@@ -25,14 +25,14 @@ class DoNothingRefiner final : public IRefiner {
   bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
-                  Metrics&) noexcept override final { return false; }
-  void initializeImpl() noexcept override final {
+                  Metrics&) override final { return false; }
+  void initializeImpl() override final {
     _is_initialized = true;
   }
-  void initializeImpl(const HyperedgeWeight) noexcept override final {
+  void initializeImpl(const HyperedgeWeight) override final {
     _is_initialized = true;
   }
-  std::string policyStringImpl() const noexcept override final { return std::string(""); }
+  std::string policyStringImpl() const override final { return std::string(""); }
 
   using IRefiner::_is_initialized;
 };

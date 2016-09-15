@@ -29,38 +29,38 @@ class IRefiner {
   bool refine(std::vector<HypernodeID>& refinement_nodes,
               const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
               const UncontractionGainChanges& uncontraction_changes,
-              Metrics& best_metrics) noexcept {
+              Metrics& best_metrics) {
     ASSERT(_is_initialized, "initialize() has to be called before refine");
     return refineImpl(refinement_nodes, max_allowed_part_weights,
                       uncontraction_changes,
                       best_metrics);
   }
 
-  void initialize() noexcept {
+  void initialize() {
     initializeImpl();
   }
 
-  void initialize(const HyperedgeWeight max_gain) noexcept {
+  void initialize(const HyperedgeWeight max_gain) {
     initializeImpl(max_gain);
   }
 
-  std::string policyString() const noexcept {
+  std::string policyString() const {
     return policyStringImpl();
   }
 
   virtual ~IRefiner() { }
 
  protected:
-  IRefiner() noexcept { }
+  IRefiner() { }
   bool _is_initialized = false;
 
  private:
   virtual bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                           const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                           const UncontractionGainChanges& uncontraction_changes,
-                          Metrics& best_metrics) noexcept = 0;
-  virtual void initializeImpl() noexcept { }
-  virtual void initializeImpl(const HyperedgeWeight) noexcept { }
-  virtual std::string policyStringImpl() const noexcept = 0;
+                          Metrics& best_metrics) = 0;
+  virtual void initializeImpl() { }
+  virtual void initializeImpl(const HyperedgeWeight) { }
+  virtual std::string policyStringImpl() const = 0;
 };
 }  // namespace partition

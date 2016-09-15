@@ -19,26 +19,26 @@ struct StoppingPolicy : PolicyBase {
 class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  public:
   bool searchShouldStop(const int num_moves, const Configuration& config,
-                        const double, const HyperedgeWeight, const HyperedgeWeight) noexcept {
+                        const double, const HyperedgeWeight, const HyperedgeWeight) {
     return num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
   }
 
-  void resetStatistics() noexcept { }
+  void resetStatistics() { }
 
   template <typename Gain>
-  void updateStatistics(const Gain) noexcept { }
+  void updateStatistics(const Gain) { }
 };
 
 
 class RandomWalkModel {
  public:
-  void resetStatistics() noexcept {
+  void resetStatistics() {
     _num_steps = 0;
     _variance = 0.0;
   }
 
   template <typename Gain>
-  void updateStatistics(const Gain gain) noexcept {
+  void updateStatistics(const Gain gain) {
     ++_num_steps;
     // See Knuth TAOCP vol 2, 3rd edition, page 232 or
     // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -71,7 +71,7 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
                                            private RandomWalkModel {
  public:
   bool searchShouldStop(const int, const Configuration& config, const double beta,
-                        const HyperedgeWeight, const HyperedgeWeight) noexcept {
+                        const HyperedgeWeight, const HyperedgeWeight) {
     static double factor = (config.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
     DBG(false, V(_num_steps) << " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
         << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
@@ -89,7 +89,7 @@ class RandomWalkModelStopsSearch : public StoppingPolicy,
                                    private RandomWalkModel {
  public:
   bool searchShouldStop(const int, const Configuration& config, const double beta,
-                        const HyperedgeWeight, const HyperedgeWeight) noexcept {
+                        const HyperedgeWeight, const HyperedgeWeight) {
     DBG(false, "step=" << _num_steps);
     DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
     DBG(false, config.local_search.fm.adaptive_stopping_alpha << "*" << _variance << "+" << beta << "="
@@ -108,7 +108,7 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
  public:
   bool searchShouldStop(const int num_moves_since_last_improvement,
                         const Configuration& config, const double beta,
-                        const HyperedgeWeight best_cut, const HyperedgeWeight cut) noexcept {
+                        const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
     // When statistics are reset best_cut = cut and therefore we should not stop
     return !!(best_cut - cut) && (num_moves_since_last_improvement
                                   >= config.local_search.fm.adaptive_stopping_alpha *
@@ -118,12 +118,12 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
                                    + beta));
   }
 
-  void resetStatistics() noexcept {
+  void resetStatistics() {
     _sum_gains_squared = 0.0;
   }
 
   template <typename Gain>
-  void updateStatistics(const Gain gain) noexcept {
+  void updateStatistics(const Gain gain) {
     _sum_gains_squared += gain * gain;
   }
 

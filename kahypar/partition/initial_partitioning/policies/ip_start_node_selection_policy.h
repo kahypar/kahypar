@@ -18,7 +18,7 @@ namespace partition {
 template <bool UseRandomStartHypernode = true>
 struct BFSStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Configuration& config,
-                                         const Hypergraph& hg, const PartitionID k) noexcept {
+                                         const Hypergraph& hg, const PartitionID k) {
     HypernodeID start_hn = 0;
     if (UseRandomStartHypernode) {
       start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
@@ -73,7 +73,7 @@ struct BFSStartNodeSelectionPolicy {
 
 struct RandomStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration& UNUSED(config),
-                                         const Hypergraph& hg, const PartitionID k) noexcept {
+                                         const Hypergraph& hg, const PartitionID k) {
     if (k == 2) {
       startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));
       return;

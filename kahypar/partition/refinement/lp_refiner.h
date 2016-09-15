@@ -32,7 +32,7 @@ class LPRefiner final : public IRefiner {
   using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
 
  public:
-  LPRefiner(Hypergraph& hg, const Configuration& configuration) noexcept :
+  LPRefiner(Hypergraph& hg, const Configuration& configuration) :
     _hg(hg),
     _config(configuration),
     _cur_queue(),
@@ -62,7 +62,7 @@ class LPRefiner final : public IRefiner {
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const UncontractionGainChanges& UNUSED(changes),
-                  Metrics& best_metrics) noexcept override final {
+                  Metrics& best_metrics) override final {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
@@ -190,17 +190,17 @@ class LPRefiner final : public IRefiner {
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return " lp_refiner_max_iterations=" +
            std::to_string(_config.local_search.sclap.max_number_iterations);
   }
 
  private:
-  inline bool isCutHyperedge(HyperedgeID he) const noexcept {
+  inline bool isCutHyperedge(HyperedgeID he) const {
     return _hg.connectivity(he) > 1;
   }
 
-  PartitionID heaviestPart() const noexcept {
+  PartitionID heaviestPart() const {
     PartitionID heaviest_part = 0;
     for (PartitionID part = 1; part < _config.partition.k; ++part) {
       if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
@@ -213,7 +213,7 @@ class LPRefiner final : public IRefiner {
   void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
                                            HypernodeWeight& heaviest_part_weight,
                                            const PartitionID from_part,
-                                           const PartitionID to_part) const noexcept {
+                                           const PartitionID to_part) const {
     if (heaviest_part == from_part) {
       heaviest_part = heaviestPart();
       heaviest_part_weight = _hg.partWeight(heaviest_part);
@@ -241,7 +241,7 @@ class LPRefiner final : public IRefiner {
   void connectivityUpdate(const HypernodeID pin, const PartitionID from_part,
                           const PartitionID to_part,
                           const bool move_decreased_connectivity,
-                          const bool move_increased_connectivity) noexcept {
+                          const bool move_increased_connectivity) {
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
       _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
@@ -258,7 +258,7 @@ class LPRefiner final : public IRefiner {
                                  const PartitionID to_part, const HypernodeID he_size,
                                  const HyperedgeWeight he_weight,
                                  const HypernodeID pin_count_source_part_before_move,
-                                 const HypernodeID pin_count_target_part_after_move) noexcept {
+                                 const HypernodeID pin_count_target_part_after_move) {
     if (pin_count_source_part_before_move == he_size) {
       // Update pin of a HE that is not cut before applying the move.
       for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
@@ -299,7 +299,7 @@ class LPRefiner final : public IRefiner {
                        const PartitionID to_part, const HyperedgeID he,
                        const HypernodeID he_size, const HyperedgeWeight he_weight,
                        const HypernodeID pin_count_source_part_before_move,
-                       const HypernodeID pin_count_target_part_after_move) noexcept {
+                       const HypernodeID pin_count_target_part_after_move) {
     ONLYDEBUG(he);
     if (pin_count_source_part_before_move == he_size) {
       ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
@@ -366,7 +366,7 @@ class LPRefiner final : public IRefiner {
     }
   }
 
-  void initializeImpl() noexcept override final {
+  void initializeImpl() override final {
     if (!_is_initialized) {
       _is_initialized = true;
       _cur_queue.clear();
@@ -384,7 +384,7 @@ class LPRefiner final : public IRefiner {
     }
   }
 
-  bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const noexcept {
+  bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
     for (const HyperedgeID he : _hg.incidentEdges(pin)) {
       if (_hg.pinCountInPart(he, part) > 0) {
         return true;
@@ -393,7 +393,7 @@ class LPRefiner final : public IRefiner {
     return false;
   }
 
-  Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const noexcept {
+  Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -463,7 +463,7 @@ class LPRefiner final : public IRefiner {
 
 
   Gain kM1gainInducedByHyperedge(const HypernodeID hn, const HyperedgeID he,
-                                 const PartitionID target_part) const noexcept {
+                                 const PartitionID target_part) const {
     const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, _hg.partID(hn));
     const HypernodeID pins_in_target_part = _hg.pinCountInPart(he, target_part);
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -472,7 +472,7 @@ class LPRefiner final : public IRefiner {
     return gain;
   }
 
-  Gain kM1gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const noexcept {
+  Gain kM1gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     ASSERT(target_part != _hg.partID(hn), V(hn) << V(target_part));
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -536,7 +536,7 @@ class LPRefiner final : public IRefiner {
 #endif
   }
 
-  GainPartitionPair computeMaxGainMove(const HypernodeID& hn) noexcept {
+  GainPartitionPair computeMaxGainMove(const HypernodeID& hn) {
     _max_score.clear();
 
     const PartitionID source_part = _hg.partID(hn);
@@ -592,7 +592,7 @@ class LPRefiner final : public IRefiner {
   }
 
 
-  bool moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) noexcept {
+  bool moveHypernode(const HypernodeID hn, const PartitionID from_part, const PartitionID to_part) {
     if (from_part == to_part) {
       return false;
     }

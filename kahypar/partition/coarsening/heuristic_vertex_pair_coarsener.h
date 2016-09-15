@@ -32,7 +32,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
 
  public:
   HeuristicVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
-                               const HypernodeWeight weight_of_heaviest_node) noexcept :
+                               const HypernodeWeight weight_of_heaviest_node) :
     VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()),
@@ -50,7 +50,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
  private:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  void coarsenImpl(const HypernodeID limit) noexcept override final {
+  void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
     _sources.clear();
 
@@ -88,15 +88,15 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  bool uncoarsenImpl(IRefiner& refiner) noexcept override final {
+  bool uncoarsenImpl(IRefiner& refiner) override final {
     return doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" ratingFunction=" + templateToString<Rater>());
   }
 
-  void removeMappingEntryOfNode(const HypernodeID hn, const HypernodeID hn_target) noexcept {
+  void removeMappingEntryOfNode(const HypernodeID hn, const HypernodeID hn_target) {
     auto range = _sources.equal_range(hn_target);
     for (auto iter = range.first; iter != range.second; ++iter) {
       if (iter->second == hn) {
@@ -107,7 +107,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  void reRateHypernodesAffectedByParallelHyperedgeRemoval() noexcept {
+  void reRateHypernodesAffectedByParallelHyperedgeRemoval() {
     _just_updated.reset();
     const auto& removed_parallel_hyperedges = _hypergraph_pruner.removedParallelHyperedges();
     for (int i = _history.back().parallel_hes_begin; i != _history.back().parallel_hes_begin +
@@ -123,7 +123,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
   }
 
   void reRateHypernodesAffectedByContraction(const HypernodeID hn,
-                                             const HypernodeID contraction_node) noexcept {
+                                             const HypernodeID contraction_node) {
     auto source_range = _sources.equal_range(hn);
     auto source_it = source_range.first;
     while (source_it != source_range.second) {
@@ -140,7 +140,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  void updatePQandMappings(const HypernodeID hn, const Rating& rating) noexcept {
+  void updatePQandMappings(const HypernodeID hn, const Rating& rating) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");
@@ -164,7 +164,7 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
     }
   }
 
-  void updateMappings(const HypernodeID hn, const Rating& rating) noexcept {
+  void updateMappings(const HypernodeID hn, const Rating& rating) {
     removeMappingEntryOfNode(hn, _target[hn]);
     _target[hn] = rating.target;
     _sources.insert({ rating.target, hn });

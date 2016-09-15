@@ -54,34 +54,34 @@ class BinaryHeapBase {
   BinaryHeapBase(BinaryHeapBase&&) = default;
   BinaryHeapBase& operator= (BinaryHeapBase&&) = default;
 
-  size_t size() const noexcept {
+  size_t size() const {
     return _next_slot - 1;
   }
 
-  bool empty() const noexcept {
+  bool empty() const {
     return size() == 0;
   }
 
-  inline const KeyType & getKey(const IDType& id) const noexcept {
+  inline const KeyType & getKey(const IDType& id) const {
     ASSERT(isReached(id, _handles[id]), "Accessing invalid element:" << id);
     return _heap[_handles[id]].key;
   }
 
-  inline bool isReached(const IDType& id, const size_t& handle) const noexcept  {
+  inline bool isReached(const IDType& id, const size_t& handle) const  {
     return handle < _next_slot && id == _heap[handle].id;
   }
 
-  inline bool contains(const IDType& id) const noexcept {
+  inline bool contains(const IDType& id) const {
     const size_t handle = _handles[id];
     return isReached(id, handle) && handle != 0;
   }
 
-  inline void clear() noexcept {
+  inline void clear() {
     _next_slot = 1;  // remove anything but the sentinel
     ASSERT(_heap[0].key == BinaryHeapTraits<Derived>::sentinel(), "Sentinel element missing");
   }
 
-  inline void push(const IDType& id, const KeyType& key) noexcept {
+  inline void push(const IDType& id, const KeyType& key) {
     ASSERT(!contains(id), "pushing already contained element" << id);
     ASSERT(_next_slot + 1 <= _max_size, "heap size overflow");
 
@@ -95,7 +95,7 @@ class BinaryHeapBase {
            << _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void decreaseKey(const IDType& id, const KeyType& new_key) noexcept {
+  inline void decreaseKey(const IDType& id, const KeyType& new_key) {
     ASSERT(contains(id), "Calling decreaseKey for element not contained in Queue:" << id);
 
     const size_t handle = _handles[id];
@@ -107,7 +107,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void increaseKey(const IDType& id, const KeyType& new_key) noexcept {
+  inline void increaseKey(const IDType& id, const KeyType& new_key) {
     ASSERT(contains(id), "Calling increaseKey for element not contained in Queue:" << id);
 
     const size_t handle = _handles[id];
@@ -119,7 +119,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void decreaseKeyBy(const IDType& id, const KeyType& key_delta) noexcept {
+  inline void decreaseKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling decreaseKeyBy for element not contained in Queue:" << id);
 
 #ifndef NDEBUG
@@ -134,7 +134,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void increaseKeyBy(const IDType& id, const KeyType& key_delta) noexcept {
+  inline void increaseKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling increaseKeyBy for element not contained in Queue:" << id);
 
 #ifndef NDEBUG
@@ -149,7 +149,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void remove(const IDType& id) noexcept {
+  inline void remove(const IDType& id) {
     ASSERT(contains(id), "trying to delete element not in heap: " << id);
 
     const size_t node_handle = _handles[id];
@@ -171,7 +171,7 @@ class BinaryHeapBase {
     }
   }
 
-  inline void updateKey(const IDType& id, const KeyType& new_key) noexcept {
+  inline void updateKey(const IDType& id, const KeyType& new_key) {
     ASSERT(contains(id), "Calling updateKey for element not contained in Queue:" << id);
 
     const size_t handle = _handles[id];
@@ -188,7 +188,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void updateKeyBy(const IDType& id, const KeyType& key_delta) noexcept {
+  inline void updateKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling updateKeyBy for element not contained in Queue:" << id);
 
 #ifndef NDEBUG
@@ -207,7 +207,7 @@ class BinaryHeapBase {
            _heap[_handles[id]].id << "!=" << id);
   }
 
-  inline void pop() noexcept {
+  inline void pop() {
     ASSERT(!empty(), "Deleting from empty heap");
 
     const size_t handle = _handles[_heap[1].id];
@@ -222,18 +222,18 @@ class BinaryHeapBase {
     ASSERT(isHeap(), "Heap invariant violated!");
   }
 
-  inline const IDType & top() const noexcept {
+  inline const IDType & top() const {
     ASSERT(!empty(), "Heap is empty");
     return _heap[1].id;
   }
 
-  inline const KeyType & topKey() const noexcept {
+  inline const KeyType & topKey() const {
     ASSERT(!empty(), "Heap is empty");
     return _heap[1].key;
   }
 
  protected:
-  inline void upHeap(size_t heap_position) noexcept {
+  inline void upHeap(size_t heap_position) {
     ASSERT(heap_position != 0, "calling upHeap for the sentinel");
     ASSERT(_next_slot > heap_position, "position specified larger than heap size");
 
@@ -254,7 +254,7 @@ class BinaryHeapBase {
     ASSERT(isHeap(), "Heap invariant violated!");
   }
 
-  inline void downHeap(size_t heap_position) noexcept {
+  inline void downHeap(size_t heap_position) {
     ASSERT(0 != heap_position, "calling downHeap for the sentinel");
     ASSERT(_next_slot > heap_position, "position specified larger than heap size");
     const KeyType dropping_key = _heap[heap_position].key;
@@ -285,7 +285,7 @@ class BinaryHeapBase {
     ASSERT(isHeap(), "Heap invariant violated!");
   }
 
-  bool isHeap() const noexcept {
+  bool isHeap() const {
     for (size_t i = 1; i < _next_slot; ++i) {
       if (_compare(_heap[i / 2].key, _heap[i].key)) {
         return false;
@@ -294,7 +294,7 @@ class BinaryHeapBase {
     return true;
   }
 
-  friend void swap(BinaryHeapBase& a, BinaryHeapBase& b) noexcept {
+  friend void swap(BinaryHeapBase& a, BinaryHeapBase& b) {
     using std::swap;
     swap(a._heap, b._heap);
     swap(a._handles, b._handles);
@@ -322,10 +322,10 @@ class BinaryMaxHeap final : public BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType
 
   // Second parameter is used to satisfy EnhancedBucketPQ interface
   BinaryMaxHeap(const IDType& storage_initializer,
-                const KeyType& UNUSED(unused) = 0) noexcept :
+                const KeyType& UNUSED(unused) = 0) :
     Base(storage_initializer) { }
 
-  friend void swap(BinaryMaxHeap& a, BinaryMaxHeap& b) noexcept {
+  friend void swap(BinaryMaxHeap& a, BinaryMaxHeap& b) {
     using std::swap;
     swap(static_cast<Base&>(a), static_cast<Base&>(b));
   }
@@ -351,10 +351,10 @@ class BinaryMinHeap final : public BinaryHeapBase<BinaryMinHeap<IDType_, KeyType
 
   // Second parameter is used to satisfy EnhancedBucketPQ interface
   BinaryMinHeap(const IDType& storage_initializer,
-                const KeyType& UNUSED(unused) = 0) noexcept :
+                const KeyType& UNUSED(unused) = 0) :
     Base(storage_initializer) { }
 
-  friend void swap(BinaryMinHeap& a, BinaryMinHeap& b) noexcept {
+  friend void swap(BinaryMinHeap& a, BinaryMinHeap& b) {
     using std::swap;
     swap(static_cast<Base&>(a), static_cast<Base&>(b));
   }

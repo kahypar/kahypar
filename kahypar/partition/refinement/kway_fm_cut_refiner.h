@@ -52,7 +52,7 @@ class KWayFMRefiner final : public IRefiner,
   using GainCache = KwayGainCache<HypernodeID, PartitionID, Gain>;
 
  public:
-  KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) noexcept :
+  KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
     FMRefinerBase(hypergraph, config),
     _he_fully_active(_hg.initialNumEdges()),
     _tmp_gains(_config.partition.k, 0),
@@ -76,7 +76,7 @@ class KWayFMRefiner final : public IRefiner,
   FRIEND_TEST(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
 #ifdef USE_BUCKET_PQ
-  void initializeImpl(const HyperedgeWeight max_gain) noexcept override final {
+  void initializeImpl(const HyperedgeWeight max_gain) override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes(), max_gain);
       // _pq.initialize(_hg.initialNumNodes());
@@ -86,7 +86,7 @@ class KWayFMRefiner final : public IRefiner,
     initializeGainCache();
   }
 #else
-  void initializeImpl() noexcept override final {
+  void initializeImpl() override final {
     if (!_is_initialized) {
       _pq.initialize(_hg.initialNumNodes());
       _is_initialized = true;
@@ -99,7 +99,7 @@ class KWayFMRefiner final : public IRefiner,
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
                   const UncontractionGainChanges& UNUSED(changes),
-                  Metrics& best_metrics) noexcept override final {
+                  Metrics& best_metrics) override final {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
@@ -250,7 +250,7 @@ class KWayFMRefiner final : public IRefiner,
                                                  initial_imbalance, _config.partition.epsilon);
   }
 
-  std::string policyStringImpl() const noexcept override final {
+  std::string policyStringImpl() const override final {
     return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
@@ -261,7 +261,7 @@ class KWayFMRefiner final : public IRefiner,
                        );
   }
 
-  void rollback(int last_index, const int min_cut_index) noexcept {
+  void rollback(int last_index, const int min_cut_index) {
     DBG(false, "min_cut_index=" << min_cut_index);
     DBG(false, "last_index=" << last_index);
     while (last_index != min_cut_index) {
@@ -273,7 +273,7 @@ class KWayFMRefiner final : public IRefiner,
     }
   }
 
-  void removeHypernodeMovementsFromPQ(const HypernodeID hn) noexcept {
+  void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);
       for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
@@ -294,7 +294,7 @@ class KWayFMRefiner final : public IRefiner,
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
                                            const HypernodeID pin_count_source_part_after_move,
                                            const HypernodeID he_size)
-  const noexcept {
+  const {
     return (pin_count_source_part_after_move == 0 ||
             pin_count_target_part_before_move == 0 ||
             pin_count_target_part_before_move + 1 == he_size - 1 ||
@@ -305,7 +305,7 @@ class KWayFMRefiner final : public IRefiner,
                                     const PartitionID to_part, const HyperedgeID he,
                                     const HypernodeID he_size, const HyperedgeWeight he_weight,
                                     const HypernodeID pin_count_source_part_before_move,
-                                    const HypernodeID pin_count_target_part_after_move) noexcept
+                                    const HypernodeID pin_count_target_part_after_move)
   __attribute__ ((always_inline)) {
     deltaGainUpdates<true>(pin, from_part, to_part, he, he_size,
                            he_weight, pin_count_source_part_before_move,
@@ -317,7 +317,7 @@ class KWayFMRefiner final : public IRefiner,
                                      const PartitionID to_part, const HyperedgeID he,
                                      const HypernodeID he_size, const HyperedgeWeight he_weight,
                                      const HypernodeID pin_count_source_part_before_move,
-                                     const HypernodeID pin_count_target_part_after_move) noexcept
+                                     const HypernodeID pin_count_target_part_after_move)
   __attribute__ ((always_inline)) {
     deltaGainUpdates<false>(pin, from_part, to_part, he, he_size,
                             he_weight, pin_count_source_part_before_move,
@@ -330,7 +330,7 @@ class KWayFMRefiner final : public IRefiner,
                         const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
                         const HyperedgeWeight he_weight,
                         const HypernodeID pin_count_source_part_before_move,
-                        const HypernodeID pin_count_target_part_after_move) noexcept {
+                        const HypernodeID pin_count_target_part_after_move) {
     if (pin_count_source_part_before_move == he_size) {
       ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
       ASSERT(pin_count_target_part_after_move == 1, V(pin_count_target_part_after_move));
@@ -397,7 +397,7 @@ class KWayFMRefiner final : public IRefiner,
   void connectivityUpdate(const HypernodeID pin, const PartitionID from_part,
                           const PartitionID to_part, const HyperedgeID he,
                           const bool move_decreased_connectivity,
-                          const bool move_increased_connectivity) noexcept
+                          const bool move_increased_connectivity)
   __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
@@ -439,7 +439,7 @@ class KWayFMRefiner final : public IRefiner,
   void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
                                   const PartitionID to_part, const HyperedgeID he,
                                   const bool move_decreased_connectivity,
-                                  const bool move_increased_connectivity) noexcept
+                                  const bool move_increased_connectivity)
   __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
@@ -466,7 +466,7 @@ class KWayFMRefiner final : public IRefiner,
   // 4.) Delta-Gain Update
   // This is used for the state transitions: free -> loose and loose -> locked
   void fullUpdate(const HypernodeID moved_hn, const PartitionID from_part,
-                  const PartitionID to_part, const HyperedgeID he) noexcept {
+                  const PartitionID to_part, const HyperedgeID he) {
     ONLYDEBUG(moved_hn);
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
     const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
@@ -523,7 +523,7 @@ class KWayFMRefiner final : public IRefiner,
                                                           const PartitionID from_part,
                                                           const PartitionID to_part,
                                                           const HyperedgeID he)
-  noexcept {
+  {
     ONLYDEBUG(moved_hn);
     const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
     const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;
@@ -567,7 +567,7 @@ class KWayFMRefiner final : public IRefiner,
 
 
   void connectivityUpdate(const HypernodeID moved_hn, const PartitionID from_part,
-                          const PartitionID to_part, const HyperedgeID he) noexcept
+                          const PartitionID to_part, const HyperedgeID he)
   __attribute__ ((always_inline)) {
     ONLYDEBUG(moved_hn);
     const HypernodeID he_size = _hg.edgeSize(he);
@@ -615,7 +615,7 @@ class KWayFMRefiner final : public IRefiner,
                                               const PartitionID from_part,
                                               const PartitionID to_part,
                                               const HyperedgeID he)
-  noexcept {
+  {
     //   ASSERT([&]() {
     //       // Only the moved_node is marked
     //       for (const HypernodeID pin : _hg.pins(he)) {
@@ -643,7 +643,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   void updatePinsOfHyperedgeRemainingLoose(const HypernodeID moved_hn, const PartitionID from_part,
-                                           const PartitionID to_part, const HyperedgeID he) noexcept {
+                                           const PartitionID to_part, const HyperedgeID he) {
     // ASSERT([&]() {
     //     // There is at least one marked pin whose partID = to_part and
     //     // no marked pin has a partID other than to_part
@@ -699,7 +699,7 @@ class KWayFMRefiner final : public IRefiner,
                                                 const PartitionID from_part,
                                                 const PartitionID to_part,
                                                 const HyperedgeID he)
-  noexcept {
+  {
     fullUpdate(moved_hn, from_part, to_part, he);
 
     ASSERT([&]() {
@@ -718,7 +718,7 @@ class KWayFMRefiner final : public IRefiner,
 
   void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn, const PartitionID from_part,
                                             const PartitionID to_part, const HyperedgeID he)
-  noexcept {
+  {
     ASSERT([&]() {
         // All pins of a locked HE have to be active.
         for (const HypernodeID pin : _hg.pins(he)) {
@@ -734,7 +734,7 @@ class KWayFMRefiner final : public IRefiner,
 
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part)
-  noexcept {
+  {
     _already_processed_part.resetUsedEntries();
 
     bool moved_hn_remains_conntected_to_from_part = false;
@@ -924,7 +924,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin, const PartitionID part, const HyperedgeID he,
-                 const Gain delta) noexcept
+                 const Gain delta)
   __attribute__ ((always_inline)) {
     ONLYDEBUG(he);
     if (delta != 0 && _gain_cache.entryExists(pin, part) &&
@@ -954,7 +954,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   template <bool invalidate_hn = false>
-  void activate(const HypernodeID hn) noexcept {
+  void activate(const HypernodeID hn) {
     ASSERT(!_hg.active(hn), V(hn));
     ASSERT([&]() {
         for (PartitionID part = 0; part < _config.partition.k; ++part) {
@@ -981,7 +981,7 @@ class KWayFMRefiner final : public IRefiner,
     }
   }
 
-  Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const noexcept {
+  Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
@@ -1048,7 +1048,7 @@ class KWayFMRefiner final : public IRefiner,
 
 
   __attribute__ ((always_inline))
-  void insertHNintoPQ(const HypernodeID hn) noexcept {
+  void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(!_hg.marked(hn));
     ASSERT(_hg.isBorderNode(hn));
     ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();

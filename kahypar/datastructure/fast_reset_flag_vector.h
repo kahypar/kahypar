@@ -37,7 +37,7 @@ class FastResetFlagVector {
   FastResetFlagVector(FastResetFlagVector&&) = default;
   FastResetFlagVector& operator= (FastResetFlagVector&&) = default;
 
-  void swap(FastResetFlagVector& other) noexcept {
+  void swap(FastResetFlagVector& other) {
     using std::swap;
     swap(_v, other._v);
     swap(_threshold, other._threshold);
@@ -80,7 +80,7 @@ class FastResetFlagVector {
 
 template <typename UnderlyingType>
 void swap(FastResetFlagVector<UnderlyingType>& a,
-          FastResetFlagVector<UnderlyingType>& b) noexcept {
+          FastResetFlagVector<UnderlyingType>& b) {
   a.swap(b);
 }
 }  // namespace datastructure

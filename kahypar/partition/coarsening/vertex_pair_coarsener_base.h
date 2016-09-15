@@ -33,7 +33,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
  public:
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Configuration& config,
-                          const HypernodeWeight weight_of_heaviest_node) noexcept :
+                          const HypernodeWeight weight_of_heaviest_node) :
     CoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
 
@@ -48,7 +48,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
   FRIEND_TEST(ACoarsener, SelectsNodePairToContractBasedOnHighestRating);
 
-  bool doUncoarsen(IRefiner& refiner) noexcept {
+  bool doUncoarsen(IRefiner& refiner) {
     Metrics current_metrics = { metrics::hyperedgeCut(_hg),
                                 metrics::km1(_hg),
                                 metrics::imbalance(_hg, _config) };
@@ -163,7 +163,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   template <typename Map,
             typename Rater>
   void rateAllHypernodes(Rater& rater,
-                         std::vector<HypernodeID>& target, Map& sources) noexcept {
+                         std::vector<HypernodeID>& target, Map& sources) {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     for (size_t i = 0; i < permutation.size(); ++i) {
@@ -176,7 +176,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     }
   }
 
-  void createHypernodePermutation(std::vector<HypernodeID>& permutation) noexcept {
+  void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
     permutation.reserve(_hg.initialNumNodes());
     for (HypernodeID hn : _hg.nodes()) {
       permutation.push_back(hn);

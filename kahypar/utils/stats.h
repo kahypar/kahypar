@@ -80,7 +80,7 @@ class Stats {
 static inline void gatherCoarseningStats(const Hypergraph& hypergraph,
                                          const int vcycle,
                                          const PartitionID k1,
-                                         const PartitionID k2)  noexcept {
+                                         const PartitionID k2)  {
   std::map<HyperedgeID, HypernodeID> node_degree_map;
   std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
   std::map<HyperedgeWeight, HypernodeID> edge_weight_map;
@@ -185,7 +185,7 @@ static inline void gatherCoarseningStats(const Hypergraph& hypergraph,
 #else
 
 static inline void gatherCoarseningStats(const Hypergraph&, const int, const PartitionID,
-                                         const PartitionID) noexcept { }
+                                         const PartitionID) { }
 
 #endif
 }  // namespace utils

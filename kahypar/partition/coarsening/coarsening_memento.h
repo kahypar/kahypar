@@ -13,7 +13,7 @@ struct CoarseningMemento {
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
   Hypergraph::ContractionMemento contraction_memento;
-  explicit CoarseningMemento(Hypergraph::ContractionMemento&& contraction_memento_) noexcept :
+  explicit CoarseningMemento(Hypergraph::ContractionMemento&& contraction_memento_) :
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),

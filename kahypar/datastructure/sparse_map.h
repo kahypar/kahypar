@@ -46,7 +46,7 @@ class SparseMap {
   SparseMap(SparseMap&&) = default;
   SparseMap& operator= (SparseMap&&) = default;
 
-  void swap(SparseMap& other) noexcept {
+  void swap(SparseMap& other) {
     using std::swap;
     swap(_dense, other._dense);
     swap(_sparse, other._sparse);
@@ -124,7 +124,7 @@ class SparseMap {
 
 template <typename Key, typename Value>
 void swap(SparseMap<Key, Value>& a,
-          SparseMap<Key, Value>& b) noexcept {
+          SparseMap<Key, Value>& b) {
   a.swap(b);
 }
 }  // namespace datastructure
