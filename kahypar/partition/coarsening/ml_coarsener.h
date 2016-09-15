@@ -8,13 +8,13 @@
 #include <string>
 #include <vector>
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "datastructure/sparse_map.h"
 #include "definitions.h"
 #include "macros.h"
 #include "partition/coarsening/rating_tie_breaking_policies.h"
 
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -68,7 +68,7 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) noexcept override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
-    FastResetBitVector<> already_matched(_hg.initialNumNodes());
+    FastResetFlagVector<> already_matched(_hg.initialNumNodes());
     while (_hg.currentNumNodes() > limit) {
       LOGVAR(pass_nr);
       LOGVAR(_hg.currentNumNodes());
@@ -113,7 +113,7 @@ class MLCoarsener final : public ICoarsener,
     }
   }
 
-  Rating contractionPartner(const HypernodeID u, const FastResetBitVector<>& already_matched) {
+  Rating contractionPartner(const HypernodeID u, const FastResetFlagVector<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
@@ -169,7 +169,7 @@ class MLCoarsener final : public ICoarsener,
 
   bool acceptRating(const RatingType tmp, const RatingType max_rating,
                     const HypernodeID old_target, const HypernodeID new_target,
-                    const FastResetBitVector<>& already_matched) const noexcept {
+                    const FastResetFlagVector<>& already_matched) const noexcept {
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||

@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../../kahypar/datastructure/fast_reset_flag_vector.h"
 #include "gmock/gmock.h"
 
 #include "datastructure/binary_heap.h"
-#include "datastructure/fast_reset_bitvector.h"
 #include "io/hypergraph_io.h"
 #include "partition/initial_partitioning/bfs_initial_partitioner.h"
 #include "partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"

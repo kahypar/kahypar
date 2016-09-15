@@ -13,7 +13,7 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "datastructure/fast_reset_vector.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
@@ -29,7 +29,7 @@
 #include "utils/randomize.h"
 
 using datastructure::FastResetVector;
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 using datastructure::InsertOnlySparseSet;
 
 namespace partition {
@@ -1122,7 +1122,7 @@ class KWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_performed_moves;
   using FMRefinerBase::_hns_to_activate;
 
-  FastResetBitVector<> _he_fully_active;
+  FastResetFlagVector<> _he_fully_active;
   std::vector<Gain> _tmp_gains;
   InsertOnlySparseSet<PartitionID> _tmp_target_parts;
 

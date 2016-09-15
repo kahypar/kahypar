@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "../../datastructure/fast_reset_flag_vector.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "partition/initial_partitioning/i_initial_partitioner.h"
@@ -241,7 +241,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetBitVector<> bv(_hg.initialNumNodes());
+            FastResetFlagVector<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
@@ -314,7 +314,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetBitVector<> bv(_hg.initialNumNodes());
+            FastResetFlagVector<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
@@ -419,8 +419,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   using InitialPartitionerBase::kInvalidNode;
   using InitialPartitionerBase::kInvalidPart;
-  FastResetBitVector<> _valid_parts;
-  FastResetBitVector<> _in_queue;
+  FastResetFlagVector<> _valid_parts;
+  FastResetFlagVector<> _in_queue;
   std::vector<Gain> _tmp_scores;
   std::vector<HypernodeID> _unassigned_nodes;
   std::vector<HypernodeID> _unconnected_nodes;

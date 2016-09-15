@@ -8,11 +8,11 @@
 #include <queue>
 #include <vector>
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "definitions.h"
 #include "utils/randomize.h"
 
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 
 namespace partition {
 template <bool UseRandomStartHypernode = true>
@@ -24,8 +24,8 @@ struct BFSStartNodeSelectionPolicy {
       start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
     }
     start_nodes.push_back(start_hn);
-    FastResetBitVector<> in_queue(hg.initialNumNodes());
-    FastResetBitVector<> hyperedge_in_queue(hg.initialNumEdges());
+    FastResetFlagVector<> in_queue(hg.initialNumNodes());
+    FastResetFlagVector<> hyperedge_in_queue(hg.initialNumEdges());
 
     while (start_nodes.size() != static_cast<size_t>(k)) {
       std::queue<HypernodeID> bfs;

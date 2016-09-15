@@ -14,7 +14,7 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "meta/template_parameter_to_string.h"
@@ -26,7 +26,7 @@
 #include "utils/float_compare.h"
 #include "utils/randomize.h"
 
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 
 namespace partition {
 #pragma GCC diagnostic push
@@ -506,7 +506,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
     // Validate the connectivity decrease
     ASSERT([&]() {
-        FastResetBitVector<> connectivity_superset(_config.partition.k);
+        FastResetFlagVector<> connectivity_superset(_config.partition.k);
         PartitionID old_connectivity = 0;
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
           connectivity_superset.reset();
@@ -593,8 +593,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   std::vector<PartitionID> _target_parts;
   std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
-  FastResetBitVector<> _just_updated;
-  FastResetBitVector<> _seen_as_max_part;
+  FastResetFlagVector<> _just_updated;
+  FastResetFlagVector<> _seen_as_max_part;
   StoppingPolicy _stopping_policy;
 };
 #pragma GCC diagnostic pop

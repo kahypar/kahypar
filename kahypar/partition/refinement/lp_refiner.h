@@ -613,8 +613,8 @@ class LPRefiner final : public IRefiner {
   const Configuration& _config;
   std::vector<HypernodeID> _cur_queue;
   std::vector<HypernodeID> _next_queue;
-  FastResetBitVector<> _contained_cur_queue;
-  FastResetBitVector<> _contained_next_queue;
+  FastResetFlagVector<> _contained_cur_queue;
+  FastResetFlagVector<> _contained_next_queue;
 
   std::vector<GGain> _tmp_gains;
   std::vector<PartitionID> _max_score;

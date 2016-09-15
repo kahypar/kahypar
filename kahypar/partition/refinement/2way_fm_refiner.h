@@ -11,10 +11,10 @@
 #include <utility>
 #include <vector>
 
+#include "../../datastructure/fast_reset_flag_vector.h"
 #include "gtest/gtest_prod.h"
 
 #include "datastructure/binary_heap.h"
-#include "datastructure/fast_reset_bitvector.h"
 #include "datastructure/fast_reset_vector.h"
 #include "datastructure/sparse_set.h"
 #include "definitions.h"
@@ -31,7 +31,7 @@
 #include "utils/randomize.h"
 
 using datastructure::FastResetVector;
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 using datastructure::SparseSet;
 using datastructure::BinaryMaxHeap;
 
@@ -983,8 +983,8 @@ class TwoWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_hns_to_activate;
 
   std::array<RebalancePQ, 2> _rebalance_pqs;
-  FastResetBitVector<> _he_fully_active;
-  FastResetBitVector<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
+  FastResetFlagVector<> _he_fully_active;
+  FastResetFlagVector<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
   std::vector<HypernodeID> _non_border_hns_to_remove;
   SparseSet<HypernodeID> _disabled_rebalance_hns;
   GainCache<Gain> _gain_cache;

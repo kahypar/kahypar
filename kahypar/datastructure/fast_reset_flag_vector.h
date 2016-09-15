@@ -17,27 +17,27 @@
 
 namespace datastructure {
 template <typename UnderlyingType = std::uint16_t>
-class FastResetBitVector {
+class FastResetFlagVector {
  public:
-  explicit FastResetBitVector(const size_t size) :
+  explicit FastResetFlagVector(const size_t size) :
     _v(std::make_unique<UnderlyingType[]>(size)),
     _threshold(1),
     _size(size) {
     memset(_v.get(), 0, size * sizeof(UnderlyingType));
   }
 
-  FastResetBitVector() :
+  FastResetFlagVector() :
     _v(nullptr),
     _threshold(1),
     _size(0) { }
 
-  FastResetBitVector(const FastResetBitVector&) = delete;
-  FastResetBitVector& operator= (const FastResetBitVector&) = delete;
+  FastResetFlagVector(const FastResetFlagVector&) = delete;
+  FastResetFlagVector& operator= (const FastResetFlagVector&) = delete;
 
-  FastResetBitVector(FastResetBitVector&&) = default;
-  FastResetBitVector& operator= (FastResetBitVector&&) = default;
+  FastResetFlagVector(FastResetFlagVector&&) = default;
+  FastResetFlagVector& operator= (FastResetFlagVector&&) = default;
 
-  void swap(FastResetBitVector& other) noexcept {
+  void swap(FastResetFlagVector& other) noexcept {
     using std::swap;
     swap(_v, other._v);
     swap(_threshold, other._threshold);
@@ -79,8 +79,8 @@ class FastResetBitVector {
 };
 
 template <typename UnderlyingType>
-void swap(FastResetBitVector<UnderlyingType>& a,
-          FastResetBitVector<UnderlyingType>& b) noexcept {
+void swap(FastResetFlagVector<UnderlyingType>& a,
+          FastResetFlagVector<UnderlyingType>& b) noexcept {
   a.swap(b);
 }
 }  // namespace datastructure

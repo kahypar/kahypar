@@ -13,9 +13,9 @@
 #include <vector>
 #include <cstring>
 
+#include "fast_reset_flag_vector.h"
 #include "meta/mandatory.h"
 #include "utils/float_compare.h"
-#include "datastructure/fast_reset_bitvector.h"
 #include "macros.h"
 
 namespace datastructure {
@@ -280,8 +280,8 @@ class EnhancedBucketQueue {
   KeyType _max_address;
   std::set<KeyType> _index;
   std::vector<RepositoryElement> _repository;
-  FastResetBitVector<> _contains;
-  FastResetBitVector<> _valid;
+  FastResetFlagVector<> _contains;
+  FastResetFlagVector<> _valid;
   std::unique_ptr<std::vector<IDType>[]> _buckets;
 };
 

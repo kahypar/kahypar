@@ -25,7 +25,7 @@
 #include "utils/math.h"
 #include "datastructure/connectivity_sets.h"
 #include "definitions.h"
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "macros.h"
 
 
@@ -1663,7 +1663,7 @@ class GenericHypergraph {
   // or only contained v. In the latter case, we use _hes_not_containing_u[he]=true, to
   // indicate that he have to undo a "Case 2" Operation, i.e. one, where the pin slot of
   // v was re-used during contraction.
-  FastResetBitVector<> _hes_not_containing_u;
+  FastResetFlagVector<> _hes_not_containing_u;
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,

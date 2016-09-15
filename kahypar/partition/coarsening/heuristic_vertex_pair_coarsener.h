@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "definitions.h"
 #include "meta/mandatory.h"
 #include "meta/template_parameter_to_string.h"
@@ -16,7 +16,7 @@
 #include "partition/coarsening/vertex_pair_coarsener_base.h"
 #include "utils/stats.h"
 
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 using utils::Stats;
 
 namespace partition {
@@ -178,6 +178,6 @@ class HeuristicVertexPairCoarsener final : public ICoarsener,
   Rater _rater;
   std::vector<HypernodeID> _target;
   TargetToSourcesMap _sources;
-  FastResetBitVector<> _just_updated;
+  FastResetFlagVector<> _just_updated;
 };
 }  // namespace partition

@@ -9,14 +9,14 @@
 #include <string>
 #include <vector>
 
-#include "datastructure/fast_reset_bitvector.h"
+#include "datastructure/fast_reset_flag_vector.h"
 #include "definitions.h"
 #include "partition/coarsening/coarsening_memento.h"
 #include "utils/math.h"
 #include "utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetBitVector;
+using datastructure::FastResetFlagVector;
 
 namespace partition {
 static const bool dbg_coarsening_single_node_he_removal = false;
@@ -280,6 +280,6 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  FastResetBitVector<std::uint64_t> _contained_hypernodes;
+  FastResetFlagVector<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition
