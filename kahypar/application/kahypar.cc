@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 
 #include <chrono>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -406,10 +407,10 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - (recursive) bisection \n"
     " - (direct) k-way");
 
-  std::string preset("---");
+  std::string config_path;
   po::options_description preset_options("Preset Options", w.ws_col);
   preset_options.add_options()
-    ("preset,p", po::value<std::string>(&preset)->value_name("<string>"),
+    ("preset,p", po::value<std::string>(&config_path)->value_name("<string>"),
     "Configuration Presets:\n"
     " - direct_kway_km1_alenex17\n"
     " - rb_cut_alenex16\n"
@@ -677,17 +678,11 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::notify(cmd_vm);
 
-  std::string config_path;
-  if (preset == "direct_kway_km1_alenex17") {
-    config_path = "../../../config/km1_direct_kway_alenex17.ini";
-  } else if (preset == "rb_cut_alenex16") {
-    config_path = "../../../config/cut_rb_alenex16.ini";
-  } else if (preset != "---") {
-    config_path = preset;
+  std::ifstream file(config_path.c_str());
+  if (!file) {
+    std::cout << "Could not load config file at: " << config_path << std::endl;
+    exit(0);
   }
-
-  std::ifstream file;
-  file.open(config_path.c_str());
 
   po::options_description ini_line_options;
   ini_line_options.add(general_options)
@@ -696,7 +691,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   .add(ip_options)
   .add(refinement_options);
 
-  po::store(po::parse_config_file(file, ini_line_options, false), cmd_vm);
+  po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
 }
 
