@@ -82,9 +82,7 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
     << " IP_local_search_fm_global_rebalancing="
     << toString(config.initial_partitioning.local_search.fm.global_rebalancing)
     << " IP_local_search_fm_adaptive_stopping_alpha="
-    << config.initial_partitioning.local_search.fm.adaptive_stopping_alpha
-    << " IP_local_search_fm_adaptive_stopping_beta="
-    << config.initial_partitioning.local_search.fm.adaptive_stopping_beta;
+    << config.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
   if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " IP_local_search_sclap_max_number_iterations="
@@ -100,8 +98,7 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
     << " local_search_fm_max_number_of_fruitless_moves="
     << config.local_search.fm.max_number_of_fruitless_moves
     << " local_search_fm_global_rebalancing=" << toString(config.local_search.fm.global_rebalancing)
-    << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha
-    << " local_search_fm_adaptive_stopping_beta=" << config.local_search.fm.adaptive_stopping_beta;
+    << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha;
   }
   if (config.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " local_search_sclap_max_number_iterations="
@@ -134,4 +131,4 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   std::cout << oss.str() << std::endl;
 }
 }  // namespace serializer
-}  // namespace utils
+}  // namespace io

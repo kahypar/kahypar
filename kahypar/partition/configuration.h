@@ -63,7 +63,6 @@ struct LocalSearchParameters {
   struct FM {
     int max_number_of_fruitless_moves = 350;
     double adaptive_stopping_alpha = 1.0;
-    double adaptive_stopping_beta = 0.0;
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::simple;
     GlobalRebalancingMode global_rebalancing = GlobalRebalancingMode::off;
   };
@@ -96,7 +95,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       str << "  max. # fruitless moves:             " << params.fm.max_number_of_fruitless_moves << std::endl;
     } else {
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
-      str << "  adaptive stopping beta:             " << params.fm.adaptive_stopping_beta << std::endl;
     }
     str << "  use global rebalancing:             " << toString(params.fm.global_rebalancing) << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {

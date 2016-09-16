@@ -191,7 +191,6 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
 
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.local_search.fm.adaptive_stopping_beta = log(hypergraph.initialNumNodes());
 
 // We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
 // with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
@@ -298,7 +297,6 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                 / config.coarsening.contraction_limit;
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
-  config.local_search.fm.adaptive_stopping_beta = log(hg.currentNumNodes());
 
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration
@@ -656,8 +654,6 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
   current_config.coarsening.max_allowed_node_weight = ceil(
     current_config.coarsening.hypernode_weight_fraction
     * current_config.partition.total_graph_weight);
-
-  current_config.local_search.fm.adaptive_stopping_beta = log(current_hypergraph.currentNumNodes());
 
   current_config.initial_partitioning.hmetis_ub_factor =
     100.0
