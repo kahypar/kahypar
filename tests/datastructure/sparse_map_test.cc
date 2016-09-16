@@ -101,4 +101,7 @@ TYPED_TEST(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
   ASSERT_FALSE(this->sparse_map.contains(1));
   ASSERT_FALSE(this->sparse_map.contains(3));
 }
+
+}
+
 }  // namespace datastructure

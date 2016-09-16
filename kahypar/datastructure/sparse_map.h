@@ -121,8 +121,8 @@ class SparseMapBase {
   }
 
   size_t _size;
-  MapElement* _dense;
   size_t* _sparse;
+  MapElement* _dense;
 };
 
 
