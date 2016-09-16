@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "definitions.h"
@@ -31,31 +32,29 @@ class LargeHyperedgeRemover {
     // depending on how block 0 and block1 will be partitioned further.
     const HypernodeWeight max_part_weight =
       std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
-    if (config.partition.remove_hes_that_always_will_be_cut) {
-      if (hypergraph.type() == Hypergraph::Type::Unweighted) {
-        for (const HyperedgeID he : hypergraph.edges()) {
-          if (hypergraph.edgeSize(he) > max_part_weight) {
-            DBG(dbg_partition_large_he_removal,
-                "Hyperedge " << he << ": |pins|=" << hypergraph.edgeSize(he) << "   exceeds Lmax: "
-                << max_part_weight);
-            _removed_hes.push_back(he);
-            hypergraph.removeEdge(he, false);
-          }
+    if (hypergraph.type() == Hypergraph::Type::Unweighted) {
+      for (const HyperedgeID he : hypergraph.edges()) {
+        if (hypergraph.edgeSize(he) > max_part_weight) {
+          DBG(dbg_partition_large_he_removal,
+              "Hyperedge " << he << ": |pins|=" << hypergraph.edgeSize(he) << "   exceeds Lmax: "
+              << max_part_weight);
+          _removed_hes.push_back(he);
+          hypergraph.removeEdge(he, false);
         }
-      } else if (hypergraph.type() == Hypergraph::Type::NodeWeights ||
-                 hypergraph.type() == Hypergraph::Type::EdgeAndNodeWeights) {
-        for (const HyperedgeID he : hypergraph.edges()) {
-          HypernodeWeight sum_pin_weights = 0;
-          for (const HypernodeID pin : hypergraph.pins(he)) {
-            sum_pin_weights += hypergraph.nodeWeight(pin);
-          }
-          if (sum_pin_weights > max_part_weight) {
-            DBG(dbg_partition_large_he_removal,
-                "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
-                << max_part_weight);
-            _removed_hes.push_back(he);
-            hypergraph.removeEdge(he, false);
-          }
+      }
+    } else if (hypergraph.type() == Hypergraph::Type::NodeWeights ||
+               hypergraph.type() == Hypergraph::Type::EdgeAndNodeWeights) {
+      for (const HyperedgeID he : hypergraph.edges()) {
+        HypernodeWeight sum_pin_weights = 0;
+        for (const HypernodeID pin : hypergraph.pins(he)) {
+          sum_pin_weights += hypergraph.nodeWeight(pin);
+        }
+        if (sum_pin_weights > max_part_weight) {
+          DBG(dbg_partition_large_he_removal,
+              "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
+              << max_part_weight);
+          _removed_hes.push_back(he);
+          hypergraph.removeEdge(he, false);
         }
       }
     }

@@ -3,10 +3,11 @@
  **************************************************************************/
 #include <boost/program_options.hpp>
 
+#include <sys/ioctl.h>
+
 #include <chrono>
 #include <memory>
 #include <string>
-#include <sys/ioctl.h>
 
 #include "definitions.h"
 #include "io/hypergraph_io.h"
@@ -420,15 +421,6 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<int>(&config.partition.seed)->value_name("<int>"),
     "Seed for random number generator \n"
     "(default: -1)")
-    ("pre-parallel-net-removal",
-    po::value<bool>(&config.partition.initial_parallel_he_removal)->value_name("<bool>"),
-    "(Pre)processing: Remove parallel hyperedges before partitioning \n"
-    "(default: false)")
-    ("pre-large-net-removal",
-    po::value<bool>(&config.partition.remove_hes_that_always_will_be_cut)->value_name("<bool>"),
-    "(Pre)processing: Remove hyperedges that will always be cut because"
-    " of the weight of their pins \n"
-    "(default: false)")
     ("cmaxnet",
     po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
@@ -443,6 +435,21 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     "# V-cycle iterations for direct k-way partitioning \n"
     "(default: 0)");
 
+  po::options_description preprocessing_options("Preprocessing Options", w.ws_col);
+  preprocessing_options.add_options()
+    ("p-use-sparsifier",
+    po::value<bool>(&config.preprocessing.use_min_hash_sparsifier)->value_name("<bool>"),
+    "Use min-hash pin sparsifier before partitioning \n"
+    "(default: false)")
+    ("p-parallel-net-removal",
+    po::value<bool>(&config.preprocessing.remove_parallel_hes)->value_name("<bool>"),
+    "Remove parallel hyperedges before partitioning \n"
+    "(default: false)")
+    ("p-large-net-removal",
+    po::value<bool>(&config.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
+    "Remove hyperedges that will always be cut because"
+    " of the weight of their pins \n"
+    "(default: false)");
 
   po::options_description coarsening_options("Coarsening Options", w.ws_col);
   coarsening_options.add_options()
@@ -653,6 +660,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   .add(required_options)
   .add(preset_options)
   .add(general_options)
+  .add(preprocessing_options)
   .add(coarsening_options)
   .add(ip_options)
   .add(refinement_options);
@@ -683,11 +691,12 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::options_description ini_line_options;
   ini_line_options.add(general_options)
+  .add(preprocessing_options)
   .add(coarsening_options)
   .add(ip_options)
   .add(refinement_options);
 
-  po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
+  po::store(po::parse_config_file(file, ini_line_options, false), cmd_vm);
   po::notify(cmd_vm);
 }
 

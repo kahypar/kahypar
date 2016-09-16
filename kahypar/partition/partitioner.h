@@ -225,20 +225,23 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration&
         << " unconnected HNs could have been removed" << "\033[0m");
   }
 
-  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  _large_he_remover.removeLargeHyperedges(hypergraph, config);
-  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "InitialLargeHEremoval",
-                               std::chrono::duration<double>(end - start).count());
+  if (config.preprocessing.remove_always_cut_hes) {
+    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    _large_he_remover.removeLargeHyperedges(hypergraph, config);
+    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Stats::instance().addToTotal(config, "InitialLargeHEremoval",
+                                 std::chrono::duration<double>(end - start).count());
+  }
 }
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration& config) {
-  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  _large_he_remover.restoreLargeHyperedges(hypergraph);
-  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "InitialLargeHErestore",
-                               std::chrono::duration<double>(end - start).count());
-
+  if (config.preprocessing.remove_always_cut_hes) {
+    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    _large_he_remover.restoreLargeHyperedges(hypergraph);
+    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Stats::instance().addToTotal(config, "InitialLargeHErestore",
+                                 std::chrono::duration<double>(end - start).count());
+  }
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
 }
 

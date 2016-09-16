@@ -39,15 +39,17 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << " seed=" << config.partition.seed
   << " num_v_cycles=" << config.partition.global_search_iterations
   << " he_size_threshold=" << config.partition.hyperedge_size_threshold
-  << " initially_remove_parallel_hes=" << std::boolalpha
-  << config.partition.initial_parallel_he_removal
-  << " remove_always_cut_hes=" << std::boolalpha
-  << config.partition.remove_hes_that_always_will_be_cut
   << " total_graph_weight=" << config.partition.total_graph_weight
   << " L_opt0=" << config.partition.perfect_balance_part_weights[0]
   << " L_opt1=" << config.partition.perfect_balance_part_weights[1]
   << " L_max0=" << config.partition.max_part_weights[0]
   << " L_max1=" << config.partition.max_part_weights[1]
+  << " pre_use_min_hash_sparsifier=" << std::boolalpha
+  << config.preprocessing.use_min_hash_sparsifier
+  << " pre_remove_parallel_hes=" << std::boolalpha
+  << config.preprocessing.remove_parallel_hes
+  << " pre_remove_always_cut_hes=" << std::boolalpha
+  << config.preprocessing.remove_always_cut_hes
   << " coarsening_algo=" << toString(config.coarsening.algorithm)
   << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
   << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier

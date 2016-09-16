@@ -15,6 +15,23 @@
 #include "partition/configuration_enum_classes.h"
 
 namespace partition {
+struct PreprocessingParameters {
+  bool use_min_hash_sparsifier = false;
+  bool remove_always_cut_hes = false;
+  bool remove_parallel_hes = false;
+};
+
+inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
+  str << "Preprocessing Parameters:" << std::endl;
+  str << "  use min hash sparsifier:            " << std::boolalpha
+  << params.use_min_hash_sparsifier << std::endl;
+  str << "  remove parallel HEs:                " << std::boolalpha
+  << params.remove_parallel_hes << std::endl;
+  str << "  remove HEs that always will be cut: " << std::boolalpha
+  << params.remove_always_cut_hes << std::endl;
+  return str;
+}
+
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::heavy_lazy;
   HypernodeID contraction_limit_multiplier = 160;
@@ -199,8 +216,6 @@ struct PartitioningParameters {
                        std::numeric_limits<HypernodeWeight>::max() }),
     total_graph_weight(0),
     hyperedge_size_threshold(std::numeric_limits<HypernodeID>::max()),
-    remove_hes_that_always_will_be_cut(false),
-    initial_parallel_he_removal(false),
     verbose_output(false),
     collect_stats(false),
     graph_filename(),
@@ -221,8 +236,7 @@ struct PartitioningParameters {
   std::array<HypernodeWeight, 2> max_part_weights;
   HypernodeWeight total_graph_weight;
   HyperedgeID hyperedge_size_threshold;
-  bool remove_hes_that_always_will_be_cut;
-  bool initial_parallel_he_removal;
+
   bool verbose_output;
   bool collect_stats;
 
@@ -245,12 +259,6 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  seed:                               " << params.seed << std::endl;
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
-  str << "  initially remove parallel HEs:      " << std::boolalpha
-  << params.initial_parallel_he_removal
-  << std::endl;
-  str << "  remove HEs that always will be cut: " << std::boolalpha
-  << params.remove_hes_that_always_will_be_cut
-  << std::endl;
   str << "  total hypergraph weight:            " << params.total_graph_weight << std::endl;
   str << "  L_opt0:                             " << params.perfect_balance_part_weights[0]
   << std::endl;
@@ -265,10 +273,12 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 struct Configuration {
   Configuration() :
     partition(),
+    preprocessing(),
     coarsening(),
     initial_partitioning(),
     local_search() { }
   PartitioningParameters partition;
+  PreprocessingParameters preprocessing;
   CoarseningParameters coarsening;
   InitialPartitioningParameters initial_partitioning;
   LocalSearchParameters local_search;
@@ -276,6 +286,8 @@ struct Configuration {
 
 inline std::ostream& operator<< (std::ostream& str, const Configuration& config) {
   str << config.partition
+  << "---------------------------------------------------------------------" << std::endl
+  << config.preprocessing
   << "---------------------------------------------------------------------" << std::endl
   << config.coarsening
   << config.initial_partitioning
