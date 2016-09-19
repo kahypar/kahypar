@@ -10,8 +10,8 @@
 #include <limits>
 #include <utility>
 
-#include "utils/math.h"
 #include "macros.h"
+#include "utils/math.h"
 
 namespace datastructure {
 template <typename T, size_t InitialSizeFactor = 2,
@@ -221,11 +221,11 @@ class IncidenceSet {
   }
 
 
-  size_t sizeOfDense() const {
+  constexpr size_t sizeOfDense() const {
     return (_max_size + 1  /*sentinel for peek */) * sizeof(T);
   }
 
-  size_t sizeOfSparse() const {
+  constexpr size_t sizeOfSparse() const {
     return _max_sparse_size * sizeof(std::pair<T, T>);
   }
 
