@@ -65,6 +65,15 @@ class SparseMapBase {
     return _dense + _size;
   }
 
+  MapElement* begin() {
+    return _dense;
+  }
+
+  MapElement* end() {
+    return _dense + _size;
+  }
+
+
   void clear() {
     static_cast<Derived*>(this)->clearImpl();
   }
@@ -85,13 +94,11 @@ class SparseMapBase {
   }
 
  protected:
-  explicit SparseMapBase(const size_t max_size) :
+  explicit SparseMapBase(const size_t max_size,
+                         const Value initial_value = 0) :
     _size(0),
     _sparse(nullptr),
     _dense(nullptr) {
-    static_assert(std::alignment_of<MapElement>::value ==
-                  std::alignment_of<size_t>::value, "Alignment mismatch");
-
     char* raw = static_cast<char*>(malloc(max_size * sizeof(MapElement) +
                                           max_size * sizeof(size_t)));
 
@@ -103,7 +110,7 @@ class SparseMapBase {
     _dense = reinterpret_cast<MapElement*>(_sparse + max_size);
     for (size_t i = 0; i < max_size; ++i) {
       new(_dense + i)MapElement(std::numeric_limits<Key>::max(),
-                                std::numeric_limits<Value>::max());
+                                initial_value);
     }
   }
 
@@ -133,8 +140,9 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
   friend Base;
 
  public:
-  explicit SparseMap(Key max_size) :
-    Base(max_size) { }
+  explicit SparseMap(const Key max_size,
+                     const Value initial_value = 0) :
+    Base(max_size, initial_value) { }
 
   SparseMap(const SparseMap&) = delete;
   SparseMap& operator= (const SparseMap&) = delete;
@@ -183,8 +191,9 @@ class InsertOnlySparseMap final : public SparseMapBase<Key, Value, SparseMap<Key
   friend Base;
 
  public:
-  explicit InsertOnlySparseMap(Key max_size) :
-    Base(max_size),
+  explicit InsertOnlySparseMap(const Key max_size,
+                               const Value initial_value = 0) :
+    Base(max_size, initial_value),
     _threshold(0) { }
 
   InsertOnlySparseMap(const InsertOnlySparseMap&) = delete;
