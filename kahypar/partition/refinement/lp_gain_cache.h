@@ -20,6 +20,10 @@ struct LPGain {
     cut(init),
     km1(init) { }
 
+  LPGain() :
+    cut(0),
+    km1(0) { }
+
   LPGain(const Gain c, const Gain k) :
     cut(c),
     km1(k) { }

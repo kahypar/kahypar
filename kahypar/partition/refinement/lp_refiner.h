@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "datastructure/fast_reset_flag_array.h"
-#include "datastructure/sparse_set.h"
+#include "datastructure/sparse_map.h"
 #include "definitions.h"
 #include "partition/configuration.h"
 #include "partition/metrics.h"
@@ -21,7 +21,7 @@
 #include "partition/refinement/policies/fm_improvement_policy.h"
 #include "utils/randomize.h"
 
-using datastructure::InsertOnlySparseSet;
+using datastructure::InsertOnlySparseMap;
 using datastructure::FastResetFlagArray;
 
 namespace partition {
@@ -39,10 +39,9 @@ class LPRefiner final : public IRefiner {
     _next_queue(),
     _contained_cur_queue(hg.initialNumNodes()),
     _contained_next_queue(hg.initialNumNodes()),
-    _tmp_gains(configuration.partition.k, { 0, 0 }),
     _max_score(),
     _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
-    _tmp_target_parts(configuration.partition.k),
+    _tmp_gains(configuration.partition.k, { 0, 0 }),
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition) {
     ASSERT(_config.partition.mode != Mode::direct_kway ||
@@ -263,7 +262,7 @@ class LPRefiner final : public IRefiner {
       // Update pin of a HE that is not cut before applying the move.
       for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
         if (part != from_part && part != to_part) {
-          ASSERT(_already_processed_part.get(hn) != part, "Argh");
+          ASSERT(_already_processed_part.get(hn) != part);
           _gain_cache.updateExistingEntry(hn, part, { he_weight, 0 });
         }
       }
@@ -412,13 +411,11 @@ class LPRefiner final : public IRefiner {
   }
 
   void initializeGainCacheFor(const HypernodeID hn) {
-    ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO();
-
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
     HyperedgeWeight internal = 0;
 
-    _tmp_target_parts.clear();
+    _tmp_gains.clear();
 
     for (const HyperedgeID he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -430,7 +427,6 @@ class LPRefiner final : public IRefiner {
           break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
-            _tmp_target_parts.add(part);
             _tmp_gains[part].km1 += he_weight;
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
               _tmp_gains[part].cut += he_weight;
@@ -440,24 +436,23 @@ class LPRefiner final : public IRefiner {
         default:
           for (const PartitionID part : _hg.connectivitySet(he)) {
             _tmp_gains[part].km1 += he_weight;
-            _tmp_target_parts.add(part);
           }
           break;
       }
     }
 
-    for (const PartitionID target_part : _tmp_target_parts) {
-      if (target_part == source_part) {
-        _tmp_gains[source_part].cut = 0;
-        _tmp_gains[source_part].km1 = 0;
+    for (const auto& target_part : _tmp_gains) {
+      if (target_part.key == source_part) {
         continue;
       }
-      ASSERT(_tmp_gains[target_part].km1 - internal == kM1gainInducedByHypergraph(hn, target_part),
-             "Gain calculation failed! Should be " << V(kM1gainInducedByHypergraph(hn, target_part)));
-      _gain_cache.initializeEntry(hn, target_part, { _tmp_gains[target_part].cut - internal_weight,
-                                                     _tmp_gains[target_part].km1 - internal });
-      _tmp_gains[target_part].cut = 0;
-      _tmp_gains[target_part].km1 = 0;
+      ASSERT(target_part.value.km1 - internal == kM1gainInducedByHypergraph(hn, target_part.key),
+             "Km1 Gain calculation failed! Should be " <<
+             V(kM1gainInducedByHypergraph(hn, target_part.key)));
+      ASSERT(target_part.value.cut - internal_weight == gainInducedByHypergraph(hn, target_part.key),
+             "Cut Gain calculation failed! Should be " << V
+               (gainInducedByHypergraph(hn, target_part.key)));
+      _gain_cache.initializeEntry(hn, target_part.key, { target_part.value.cut - internal_weight,
+                                                         target_part.value.km1 - internal });
     }
   }
 
@@ -480,15 +475,6 @@ class LPRefiner final : public IRefiner {
       gain += kM1gainInducedByHyperedge(hn, he, target_part);
     }
     return gain;
-  }
-
-  void ASSERT_THAT_TMP_GAINS_ARE_INITIALIZED_TO_ZERO() {
-    ASSERT([&]() {
-        for (const LPGain& gain : _tmp_gains) {
-          ASSERT(gain == LPGain(0, 0), V(gain));
-        }
-        return true;
-      } (), "_tmp_gains not initialized correctly");
   }
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
@@ -616,10 +602,9 @@ class LPRefiner final : public IRefiner {
   FastResetFlagArray<> _contained_cur_queue;
   FastResetFlagArray<> _contained_next_queue;
 
-  std::vector<LPGain> _tmp_gains;
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
-  InsertOnlySparseSet<PartitionID> _tmp_target_parts;
+  InsertOnlySparseMap<PartitionID, LPGain> _tmp_gains;
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.
