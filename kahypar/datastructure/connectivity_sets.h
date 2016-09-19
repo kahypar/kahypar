@@ -8,8 +8,8 @@
 #include <memory>
 #include <utility>
 
-#include "meta/mandatory.h"
 #include "macros.h"
+#include "meta/mandatory.h"
 
 namespace datastructure {
 template <typename PartitionID = Mandatory,
@@ -141,7 +141,7 @@ class ConnectivitySets final {
     return const_cast<ConnectivitySet*>(static_cast<const ConnectivitySets&>(*this).get(he));
   }
 
-  size_t sizeOfConnectivitySet() const {
+  constexpr size_t sizeOfConnectivitySet() const {
     return (sizeof(ConnectivitySet) + 2 * _k * sizeof(PartitionID));
   }
 
