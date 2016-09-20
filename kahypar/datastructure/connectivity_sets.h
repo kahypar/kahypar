@@ -80,6 +80,10 @@ class ConnectivitySets final {
     void clear() {
       _size = 0;
     }
+
+    PartitionID size() const {
+      return _size;
+    }
   };
 
 

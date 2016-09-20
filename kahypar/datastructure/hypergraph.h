@@ -1673,7 +1673,12 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   bool connectivity_sets_valid = true;
   for (const HyperedgeID he : actual.edges()) {
     ASSERT(expected.hyperedge(he).connectivity == actual.hyperedge(he).connectivity, V(he));
-    if (expected.hyperedge(he).connectivity != actual.hyperedge(he).connectivity) {
+    if (expected.hyperedge(he).connectivity != actual.hyperedge(he).connectivity ||
+        expected.connectivitySet(he).size() != actual.connectivitySet(he).size() ||
+        !std::equal(expected.connectivitySet(he).begin(),
+                    expected.connectivitySet(he).end(),
+                    actual.connectivitySet(he).begin(),
+                    actual.connectivitySet(he).end())) {
       connectivity_sets_valid = false;
       break;
     }
