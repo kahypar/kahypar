@@ -28,7 +28,6 @@
 
 using meta::Factory;
 using meta::PolicyRegistry;
-using meta::NullPolicy;
 using meta::StaticDoubleDispatchFactory;
 using meta::StaticMultiDispatchFactory;
 using meta::Typelist;

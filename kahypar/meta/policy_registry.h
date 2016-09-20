@@ -13,11 +13,6 @@ struct PolicyBase {
   virtual ~PolicyBase() { }
 };
 
-struct NullPolicy : PolicyBase {
-  virtual ~NullPolicy() { }
-  enum { value = false };
-};
-
 template <typename IDType>
 class PolicyRegistry {
  private:

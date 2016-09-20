@@ -124,8 +124,7 @@ static Registrar<RefinerFactory> reg_kway_fm_local_search(
   return KWayFMFactoryDispatcher::create(
     std::forward_as_tuple(hypergraph, config),
     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.local_search.fm.stopping_rule),
-    NullPolicy(), NullPolicy());
+      config.local_search.fm.stopping_rule));
 });
 
 static Registrar<RefinerFactory> reg_kway_km1_local_search(
