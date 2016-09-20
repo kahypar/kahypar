@@ -46,6 +46,14 @@ using partition::NoGlobalRebalancing;
     return new coarsener(hypergraph, config, weight_of_heaviest_node);  \
   })
 
+#define REGISTER_INITIAL_PARTITIONER(id, ip)                                    \
+  static Registrar<partition::InitialPartitioningFactory> register_ ## ip(      \
+    id,                                                                         \
+    [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* { \
+    return new ip(hypergraph, config);                                          \
+  })
+
+
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
                                  ICoarsener* (*)(Hypergraph&, const Configuration&,
@@ -86,7 +94,6 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
 //                                                                      nGPRandomWalkStopsSearch>,
 //                                                             Typelist<NullPolicy>,
 //                                                             IRefiner*>;
-
 
 using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
 using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
