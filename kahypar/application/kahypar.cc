@@ -150,26 +150,19 @@ static Registrar<RefinerFactory> reg_do_nothing_refiner(
   return new DoNothingRefiner();
 });
 
-static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_simple_stopping(
-  RefinementStoppingRule::simple,
-  new NumberOfFruitlessMovesStopsSearch());
+REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
+                NumberOfFruitlessMovesStopsSearch);
+REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
+                AdvancedRandomWalkModelStopsSearch);
+REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive1,
+                RandomWalkModelStopsSearch);
+REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive2,
+                nGPRandomWalkStopsSearch);
 
-static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive_opt_stopping(
-  RefinementStoppingRule::adaptive_opt, new AdvancedRandomWalkModelStopsSearch());
-
-static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive1_stopping(
-  RefinementStoppingRule::adaptive1, new RandomWalkModelStopsSearch());
-
-static Registrar<PolicyRegistry<RefinementStoppingRule> > reg_adaptive2_stopping(
-  RefinementStoppingRule::adaptive2, new nGPRandomWalkStopsSearch());
-
-static Registrar<PolicyRegistry<GlobalRebalancingMode> > reg_global_rebalancing(
-  GlobalRebalancingMode::on,
-  new GlobalRebalancing());
-
-static Registrar<PolicyRegistry<GlobalRebalancingMode> > reg_no_global_rebalancing(
-  GlobalRebalancingMode::off,
-  new NoGlobalRebalancing());
+REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::on,
+                GlobalRebalancing);
+REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::off,
+                NoGlobalRebalancing);
 
 static Registrar<InitialPartitioningFactory> reg_random(
   InitialPartitionerAlgorithm::random,
