@@ -15,7 +15,8 @@
 namespace partition {
 class DoNothingRefiner final : public IRefiner {
  public:
-  DoNothingRefiner() { }
+  template <typename ... Args>
+  DoNothingRefiner(Args&& ...) { }
   DoNothingRefiner(const DoNothingRefiner&) = delete;
   DoNothingRefiner(DoNothingRefiner&&) = delete;
   DoNothingRefiner& operator= (const DoNothingRefiner&) = delete;

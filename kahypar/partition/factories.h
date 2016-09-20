@@ -53,6 +53,22 @@ using partition::NoGlobalRebalancing;
     return new ip(hypergraph, config);                                          \
   })
 
+#define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)               \
+  static Registrar<partition::RefinerFactory> register_ ## dispatcher( \
+    id,                                                                \
+    [](Hypergraph& hypergraph, const Configuration& config) {          \
+    return dispatcher::create(                                         \
+      std::forward_as_tuple(hypergraph, config),                       \
+      __VA_ARGS__                                                      \
+      );                                                               \
+  })
+
+#define REGISTER_REFINER(id, refiner)                                      \
+  static Registrar<partition::RefinerFactory> register_ ## refiner(        \
+    id,                                                                    \
+    [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* { \
+    return new refiner(hypergraph, config);                                \
+  })
 
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,

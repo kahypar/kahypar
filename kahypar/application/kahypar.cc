@@ -37,9 +37,7 @@ using partition::RefinementAlgorithm;
 using partition::InitialPartitionerAlgorithm;
 using partition::RefinementStoppingRule;
 using partition::GlobalRebalancingMode;
-using partition::CoarsenerFactory;
 using partition::RefinerFactory;
-using partition::InitialPartitioningFactory;
 using partition::DoNothingCoarsener;
 using partition::RandomWinsFullCoarsener;
 using partition::RandomWinsLazyUpdateCoarsener;
@@ -149,58 +147,23 @@ REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_round_maxnet,
                              GHGInitialPartitionerBFS_MAXN_RND);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::pool, PoolInitialPartitioner);
 
-static Registrar<RefinerFactory> reg_twoway_fm_local_search(
-  RefinementAlgorithm::twoway_fm,
-  [](Hypergraph& hypergraph, const Configuration& config) {
-  return TwoWayFMFactoryDispatcher::create(
-    std::forward_as_tuple(hypergraph, config),
-    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.local_search.fm.stopping_rule),
-    PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
-      config.local_search.fm.global_rebalancing));
-});
 
-// static Registrar<RefinerFactory> reg_kway_fm_maxgain_local_search(
-//   RefinementAlgorithm::kway_fm_maxgain,
-//   [](Hypergraph& hypergraph, const Configuration& config) {
-//   return MaxGainNodeKWayFMFactoryDispatcher::go(
-//     PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-//       config.local_search.fm.stopping_rule),
-//     NullPolicy(),
-//     MaxGainNodeKWayFMFactoryExecutor(), hypergraph, config);
-// });
-
-static Registrar<RefinerFactory> reg_kway_fm_local_search(
-  RefinementAlgorithm::kway_fm,
-  [](Hypergraph& hypergraph, const Configuration& config) {
-  return KWayFMFactoryDispatcher::create(
-    std::forward_as_tuple(hypergraph, config),
-    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.local_search.fm.stopping_rule));
-});
-
-static Registrar<RefinerFactory> reg_kway_km1_local_search(
-  RefinementAlgorithm::kway_fm_km1,
-  [](Hypergraph& hypergraph, const Configuration& config) {
-  return KWayKMinusOneFactoryDispatcher::create(
-    std::forward_as_tuple(hypergraph, config),
-    PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-      config.local_search.fm.stopping_rule));
-});
-
-static Registrar<RefinerFactory> reg_lp_local_search(
-  RefinementAlgorithm::label_propagation,
-  [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
-  return new LPRefiner(hypergraph, config);
-});
-
-static Registrar<RefinerFactory> reg_do_nothing_refiner(
-  RefinementAlgorithm::do_nothing,
-  [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* {
-  (void)hypergraph;
-  (void)config;                  // Fixing unused parameter warning
-  return new DoNothingRefiner();
-});
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
+                            TwoWayFMFactoryDispatcher,
+                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                              config.local_search.fm.stopping_rule),
+                            PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
+                              config.local_search.fm.global_rebalancing));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
+                            KWayFMFactoryDispatcher,
+                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                              config.local_search.fm.stopping_rule));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
+                            KWayKMinusOneFactoryDispatcher,
+                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                              config.local_search.fm.stopping_rule));
+REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
+REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 
 void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
