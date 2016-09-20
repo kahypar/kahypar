@@ -13,7 +13,8 @@
 namespace partition {
 class DoNothingCoarsener final : public ICoarsener {
  public:
-  DoNothingCoarsener() { }
+  template <typename ... Args>
+  DoNothingCoarsener(Args&& ...) { }
   DoNothingCoarsener(const DoNothingCoarsener&) = delete;
   DoNothingCoarsener(DoNothingCoarsener&&) = delete;
   DoNothingCoarsener& operator= (const DoNothingCoarsener&) = delete;

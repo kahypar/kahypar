@@ -66,36 +66,10 @@ using partition::GlobalQueueSelectionPolicy;
 using partition::SequentialQueueSelectionPolicy;
 using partition::ICoarsener;
 
-static Registrar<CoarsenerFactory> reg_heavy_lazy_coarsener(
-  CoarseningAlgorithm::heavy_lazy,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsLazyUpdateCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
-
-static Registrar<CoarsenerFactory> reg_heavy_full_coarsener(
-  CoarseningAlgorithm::heavy_full,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsFullCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
-
-static Registrar<CoarsenerFactory> reg_ml_coarsener(
-  CoarseningAlgorithm::ml_style,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  return new RandomWinsMLCoarsener(hypergraph, config, weight_of_heaviest_node);
-});
-
-static Registrar<CoarsenerFactory> reg_do_nothing_coarsener(
-  CoarseningAlgorithm::do_nothing,
-  [](Hypergraph& hypergraph, const Configuration& config,
-     const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {
-  (void)hypergraph;
-  (void)config;
-  (void)weight_of_heaviest_node;                               // Fixing unused parameter warning
-  return new DoNothingCoarsener();
-});
+REGISTER_COARSENER(CoarseningAlgorithm::heavy_lazy, RandomWinsLazyUpdateCoarsener);
+REGISTER_COARSENER(CoarseningAlgorithm::heavy_full, RandomWinsFullCoarsener);
+REGISTER_COARSENER(CoarseningAlgorithm::ml_style, RandomWinsMLCoarsener);
+REGISTER_COARSENER(CoarseningAlgorithm::do_nothing, DoNothingCoarsener);
 
 static Registrar<RefinerFactory> reg_twoway_fm_local_search(
   RefinementAlgorithm::twoway_fm,

@@ -38,6 +38,14 @@ using partition::nGPRandomWalkStopsSearch;
 using partition::GlobalRebalancing;
 using partition::NoGlobalRebalancing;
 
+#define REGISTER_COARSENER(id, coarsener)                               \
+  static Registrar<partition::CoarsenerFactory> register_ ## coarsener( \
+    id,                                                                 \
+    [](Hypergraph& hypergraph, const Configuration& config,             \
+       const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {  \
+    return new coarsener(hypergraph, config, weight_of_heaviest_node);  \
+  })
+
 namespace partition {
 using CoarsenerFactory = Factory<CoarseningAlgorithm,
                                  ICoarsener* (*)(Hypergraph&, const Configuration&,
