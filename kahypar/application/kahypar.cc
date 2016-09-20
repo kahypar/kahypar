@@ -15,7 +15,6 @@
 #include "io/partitioning_output.h"
 #include "io/sql_plottools_serializer.h"
 #include "macros.h"
-#include "meta/registrar.h"
 #include "partition/configuration.h"
 #include "partition/factories.h"
 #include "partition/initial_partitioning/initial_partitioning.h"

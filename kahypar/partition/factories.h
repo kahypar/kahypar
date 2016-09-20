@@ -6,6 +6,7 @@
 
 #include "meta/abstract_factory.h"
 #include "meta/policy_registry.h"
+#include "meta/registrar.h"
 #include "meta/static_double_dispatch_factory.h"
 #include "meta/static_multi_dispatch_factory.h"
 #include "meta/typelist.h"
