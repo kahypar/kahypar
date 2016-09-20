@@ -4,11 +4,12 @@
 
 #pragma once
 
+#include <x86intrin.h>
+
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <cstddef>
-#include <x86intrin.h>
 
 namespace utils {
 // See: Warren, Henry S. Hacker's Delight (Second Edition), p.61
@@ -62,25 +63,9 @@ inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec
   }
 }
 
-
-template <typename T>
-static inline T _rol(const T x, const unsigned int r) {
-  return (x << r) | (x >> (sizeof(T) * 8 - r));
-}
-
-template <typename T>
-static inline T _rol(const T x) {
-  return _rol(x, x & (sizeof(T) * 8 - 1));
-}
-
 template <typename T>
 static inline T crc32(const T& x) {
   return _mm_crc32_u32((size_t)28475421, x);
-}
-
-template <typename T>
-static inline T identity(const T& x) {
-  return x;
 }
 
 template <typename T>
