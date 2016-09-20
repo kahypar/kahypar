@@ -195,18 +195,6 @@ TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenForwardIterating) {
   ASSERT_THAT(*begin, Eq(3));
 }
 
-TEST_F(AHypernodeIterator, SkipsInvalidHypernodesWhenBackwardIterating) {
-  auto begin = hypergraph.nodes().first;
-  ++begin;
-  ++begin;
-  ++begin;
-  ASSERT_THAT(*begin, Eq(3));
-  hypergraph.removeNode(1);
-  hypergraph.removeNode(2);
-  --begin;
-  ASSERT_THAT(*begin, Eq(0));
-}
-
 TEST_F(AHyperedgeIterator, StartsWithFirstHyperedge) {
   ASSERT_THAT(*(hypergraph.edges().first), Eq(0));
 }
@@ -222,18 +210,6 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenForwardIterating) {
   auto begin = hypergraph.edges().first;
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
-}
-
-TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenBackwardIterating) {
-  auto begin = hypergraph.edges().first;
-  ++begin;
-  ++begin;
-  ++begin;
-  ASSERT_THAT(*begin, Eq(3));
-  hypergraph.removeEdge(1, false);
-  hypergraph.removeEdge(2, false);
-  --begin;
-  ASSERT_THAT(*begin, Eq(0));
 }
 
 TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
