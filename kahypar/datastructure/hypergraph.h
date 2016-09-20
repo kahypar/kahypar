@@ -124,8 +124,8 @@ class GenericHypergraph {
   using HyperedgeWeightVector = std::vector<HyperedgeWeight>;
   using ContractionMemento = Memento;
   using IncidenceIterator = typename std::vector<VertexID>::const_iterator;
-  using HypernodeIterator = VertexIterator<const std::vector<HypernodeVertex> >;
-  using HyperedgeIterator = VertexIterator<const std::vector<HyperedgeVertex> >;
+  using HypernodeIterator = VertexIterator<const HypernodeVertex>;
+  using HyperedgeIterator = VertexIterator<const HyperedgeVertex>;
 
  private:
   static const HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
@@ -229,10 +229,13 @@ class GenericHypergraph {
   };
 #pragma GCC diagnostic pop
 
-  template <typename ContainerType>
-  class VertexIterator {
-    using IDType = typename ContainerType::value_type::IDType;
-    using ConstPointer = typename ContainerType::const_pointer;
+  template <typename VertexType>
+  class VertexIterator : public std::iterator<std::forward_iterator_tag,  // iterator_category
+                                              typename VertexType::IDType,  // value_type
+                                              std::ptrdiff_t,  // difference_type
+                                              const typename VertexType::IDType*,  // pointer
+                                              typename VertexType::IDType>{  // reference
+    using IDType = typename VertexType::IDType;
 
  public:
     VertexIterator(const VertexIterator& other) = default;
@@ -246,7 +249,7 @@ class GenericHypergraph {
       _max_id(0),
       _vertex(nullptr) { }
 
-    VertexIterator(ConstPointer start_vertex, IDType id, IDType max_id) :
+    VertexIterator(const VertexType* start_vertex, IDType id, IDType max_id) :
       _id(id),
       _max_id(max_id),
       _vertex(start_vertex) {
@@ -274,23 +277,8 @@ class GenericHypergraph {
       return copy;
     }
 
-    friend VertexIterator end<>(std::pair<VertexIterator, VertexIterator>& x);
-    friend VertexIterator begin<>(std::pair<VertexIterator, VertexIterator>& x);
-
-    VertexIterator& operator-- () {
-      ASSERT(_id > 0, "Hypernode iterator out of bounds");
-      do {
-        --_id;
-        --_vertex;
-      } while (_id > 0 && _vertex->isDisabled());
-      return *this;
-    }
-
-    VertexIterator operator-- (int) {
-      VertexIterator copy = *this;
-      operator-- ();
-      return copy;
-    }
+    friend VertexIterator end<>(std::pair<VertexIterator, VertexIterator>&);
+    friend VertexIterator begin<>(std::pair<VertexIterator, VertexIterator>&);
 
     bool operator!= (const VertexIterator& rhs) {
       return _id != rhs._id;
@@ -299,7 +287,7 @@ class GenericHypergraph {
  private:
     IDType _id;
     const IDType _max_id;
-    ConstPointer _vertex;
+    const VertexType* _vertex;
   };
 
   struct Memento {
