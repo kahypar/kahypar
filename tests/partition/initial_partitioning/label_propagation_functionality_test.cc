@@ -72,7 +72,7 @@ TEST_F(ALabelPropagationMaxGainMoveTest,
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 1);
   std::pair<PartitionID, Gain> max_move = partitioner->computeMaxGainMove(0);
-  ASSERT_EQ(max_move.first, 0);
+  ASSERT_EQ(max_move.first, 1);
   ASSERT_EQ(max_move.second, -1);
 }
 
