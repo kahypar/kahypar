@@ -35,12 +35,12 @@ using partition::RefinementAlgorithm;
 
 namespace datastructure {
 template <typename Iterator>
-Iterator begin(std::pair<Iterator, Iterator>& x) {
+Iterator begin(const std::pair<Iterator, Iterator>& x) {
   return x.first;
 }
 
 template <typename Iterator>
-Iterator end(std::pair<Iterator, Iterator>& x) {
+Iterator end(const std::pair<Iterator, Iterator>& x) {
   return x.second;
 }
 
@@ -112,7 +112,7 @@ class GenericHypergraph {
   };
 
   // internal
-  using VertexID = unsigned int;
+  using VertexID = std::uint32_t;
   using HypernodeVertex = InternalVertex<HypernodeTraits, AdditionalHypernodeData>;
   using HyperedgeVertex = InternalVertex<HyperedgeTraits, AdditionalHyperedgeData>;
   using PinHandleIterator = typename std::vector<VertexID>::iterator;
@@ -277,8 +277,8 @@ class GenericHypergraph {
       return copy;
     }
 
-    friend VertexIterator end<>(std::pair<VertexIterator, VertexIterator>&);
-    friend VertexIterator begin<>(std::pair<VertexIterator, VertexIterator>&);
+    friend VertexIterator end<>(const std::pair<VertexIterator, VertexIterator>&);
+    friend VertexIterator begin<>(const std::pair<VertexIterator, VertexIterator>&);
 
     bool operator!= (const VertexIterator& rhs) {
       return _id != rhs._id;

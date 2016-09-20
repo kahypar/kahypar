@@ -40,11 +40,11 @@ using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resoluti
 
 // this is nasty and needs to be fixed
 namespace std {
-static IncidenceIterator begin(std::pair<IncidenceIterator, IncidenceIterator>& x) {
+static IncidenceIterator begin(const std::pair<IncidenceIterator, IncidenceIterator>& x) {
   return x.first;
 }
 
-static IncidenceIterator end(std::pair<IncidenceIterator, IncidenceIterator>& x) {
+static IncidenceIterator end(const std::pair<IncidenceIterator, IncidenceIterator>& x) {
   return x.second;
 }
 
