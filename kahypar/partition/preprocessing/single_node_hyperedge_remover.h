@@ -1,3 +1,7 @@
+/***************************************************************************
+ *  Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ **************************************************************************/
+
 #pragma once
 
 #include <vector>
@@ -5,8 +9,6 @@
 #include "definitions.h"
 
 namespace partition {
-
-
 class SingleNodeHyperedgeRemover {
  public:
   struct RemovalResult {
@@ -15,7 +17,7 @@ class SingleNodeHyperedgeRemover {
   };
 
   SingleNodeHyperedgeRemover() :
-      _removed_hes() { }
+    _removed_hes() { }
 
   SingleNodeHyperedgeRemover(const SingleNodeHyperedgeRemover&) = delete;
   SingleNodeHyperedgeRemover& operator= (const SingleNodeHyperedgeRemover&) = delete;
@@ -24,14 +26,14 @@ class SingleNodeHyperedgeRemover {
   SingleNodeHyperedgeRemover& operator= (SingleNodeHyperedgeRemover&&) = delete;
 
   RemovalResult removeSingleNodeHyperedges(Hypergraph& hypergraph) {
-    RemovalResult result{0,0};
+    RemovalResult result { 0, 0 };
     for (const HyperedgeID he : hypergraph.edges()) {
       if (hypergraph.edgeSize(he) == 1) {
         ++result.num_removed_single_node_hes;
         if (hypergraph.nodeDegree(*hypergraph.pins(he).first) == 1) {
           ++result.num_unconnected_hns;
         }
-        hypergraph.removeEdge(he, false);
+        hypergraph.removeEdge(he);
         _removed_hes.push_back(he);
       }
     }
@@ -48,6 +50,4 @@ class SingleNodeHyperedgeRemover {
  private:
   std::vector<HyperedgeID> _removed_hes;
 };
-
-
-} // namespace partition
+}  // namespace partition

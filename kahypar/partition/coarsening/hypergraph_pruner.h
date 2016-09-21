@@ -101,7 +101,7 @@ class HypergraphPruner {
         removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++memento.one_pin_hes_size;
         DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
-        hypergraph.removeEdge(*he_it, false);
+        hypergraph.removeEdge(*he_it);
         --he_it;
         --end_it;
       }
@@ -236,7 +236,7 @@ class HypergraphPruner {
                              + hypergraph.edgeWeight(to_remove));
     DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
         << representative);
-    hypergraph.removeEdge(to_remove, false);
+    hypergraph.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(representative, to_remove);
   }
 

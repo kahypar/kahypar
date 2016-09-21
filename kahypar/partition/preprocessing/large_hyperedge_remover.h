@@ -39,7 +39,7 @@ class LargeHyperedgeRemover {
               "Hyperedge " << he << ": |pins|=" << hypergraph.edgeSize(he) << "   exceeds Lmax: "
               << max_part_weight);
           _removed_hes.push_back(he);
-          hypergraph.removeEdge(he, false);
+          hypergraph.removeEdge(he);
         }
       }
     } else if (hypergraph.type() == Hypergraph::Type::NodeWeights ||
@@ -54,7 +54,7 @@ class LargeHyperedgeRemover {
               "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
               << max_part_weight);
           _removed_hes.push_back(he);
-          hypergraph.removeEdge(he, false);
+          hypergraph.removeEdge(he);
         }
       }
     }

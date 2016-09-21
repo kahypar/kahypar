@@ -97,19 +97,19 @@ TEST_F(AHypergraph, InvalidatesRemovedHypernode) {
 
 TEST_F(AHypergraph, DecrementsNumberOfHyperedgesOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
 }
 
 TEST_F(AHypergraph, InvalidatesRemovedHyperedge) {
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(true));
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.edgeIsEnabled(2), Eq(false));
 }
 
 TEST_F(AHypergraph, DecrementsNumberOfPinsOnHyperedgeRemoval) {
   ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.currentNumPins(), Eq(9));
 }
 
@@ -117,7 +117,7 @@ TEST_F(AHypergraph, DecrementsHypernodeDegreeOfAffectedHypernodesOnHyperedgeRemo
   ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(2));
   ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(2));
   ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(2));
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.hypernode(3).size(), Eq(1));
   ASSERT_THAT(hypergraph.hypernode(4).size(), Eq(1));
   ASSERT_THAT(hypergraph.hypernode(6).size(), Eq(1));
@@ -200,13 +200,13 @@ TEST_F(AHyperedgeIterator, StartsWithFirstHyperedge) {
 }
 
 TEST_F(AHyperedgeIterator, StartsWithTheFirstValidHyperedge) {
-  hypergraph.removeEdge(0, false);
+  hypergraph.removeEdge(0);
   ASSERT_THAT(*(hypergraph.edges().first), Eq(1));
 }
 
 TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenForwardIterating) {
-  hypergraph.removeEdge(1, false);
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(1);
+  hypergraph.removeEdge(2);
   auto begin = hypergraph.edges().first;
   ++begin;
   ASSERT_THAT(*begin, Eq(3));
@@ -378,7 +378,7 @@ TEST_F(AHypergraph, ReturnsInitialNumberOfPinsAfterHypergraphModification) {
 
 TEST_F(AHypergraph, ReturnsInitialNumberHyperedgesAfterHypergraphModification) {
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
-  hypergraph.removeEdge(2, false);
+  hypergraph.removeEdge(2);
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(4));
 }
 
@@ -392,19 +392,11 @@ TEST_F(AnUncontractionOperation, UpdatesPartitionIndexOfUncontractedNode) {
   ASSERT_THAT(hypergraph.partID(2), Eq(1));
 }
 
-TEST(AnUnconnectedHypernode, IsRemovedTogetherWithLastEdgeIfFlagIsTrue) {
-  Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 1 },
-                        HyperedgeVector { 0 });
-
-  hypergraph.removeEdge(0, true);
-  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(false));
-}
-
 TEST(AnUnconnectedHypernode, IsNotRemovedTogetherWithLastEdgeIfFlagIsFalse) {
   Hypergraph hypergraph(1, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 1 },
                         HyperedgeVector { 0 });
 
-  hypergraph.removeEdge(0, false);
+  hypergraph.removeEdge(0);
   ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
 }
 
@@ -460,7 +452,7 @@ TEST_F(AHypergraph, InvalidatesPartitionPinCountsOnHyperedgeRemoval) {
   hypergraph.setNodePart(4, 1);
   ASSERT_THAT(hypergraph.pinCountInPart(1, 1), Eq(4));
 
-  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(1);
 
   for (PartitionID part = 0; part < hypergraph._k; ++part) {
     // bypass pinCountInPart because of assertions
@@ -475,14 +467,14 @@ TEST_F(AHypergraph, RestoresInvalidatedPartitionPinCountsOnHyperedgeRestore) {
   hypergraph.setNodePart(3, 1);
   hypergraph.setNodePart(4, 1);
   ASSERT_THAT(hypergraph.pinCountInPart(1, 1), Eq(4));
-  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(1);
   hypergraph.restoreEdge(1);
   ASSERT_THAT(hypergraph.pinCountInPart(1, 1), Eq(4));
 }
 
 
 TEST_F(AHypergraph, MaintainsPartitionPinCountsForRestoredSingleNodeOrParallelHEs) {
-  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(1);
 
   // pseudo initial partitioning
   hypergraph.setNodePart(0, 1);
@@ -612,7 +604,7 @@ TEST(ConnectivitySets, AreCleardWhenSingleNodeHyperedgesAreRemoved) {
   ASSERT_THAT(hypergraph.connectivity(0), Eq(1));
   ASSERT_THAT(*hypergraph.connectivitySet(0).begin(), Eq(0));
 
-  hypergraph.removeEdge(0, false);
+  hypergraph.removeEdge(0);
   hypergraph.changeNodePart(0, 0, 1);
   hypergraph.restoreEdge(0);
 
@@ -772,7 +764,7 @@ TEST_F(AHypergraph, CreatedViaReindexingIsACopyOfTheOriginalHypergraph) {
 TEST_F(AHypergraph, WithContractedHypernodesCanBeReindexed) {
   hypergraph.contract(1, 4);
   hypergraph.contract(0, 2);
-  hypergraph.removeEdge(1, false);
+  hypergraph.removeEdge(1);
 
   auto reindexed = reindex(hypergraph);
 
