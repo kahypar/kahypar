@@ -186,7 +186,7 @@ class GenericHypergraph {
     //! Disables the hypernode/hyperedge. Disable hypernodes/hyperedges will be skipped
     //! when iterating over the set of all nodes/edges.
     void disable() {
-      ASSERT(!isDisabled(), "Vertex is already disabled");
+      ASSERT(!isDisabled());
       _valid = false;
     }
 
@@ -195,7 +195,7 @@ class GenericHypergraph {
     }
 
     void enable() {
-      ASSERT(isDisabled(), "Vertex is already enabled");
+      ASSERT(isDisabled());
       _valid = true;
     }
 
@@ -206,7 +206,7 @@ class GenericHypergraph {
 
     //! Sets the index of the first element in _incidence_array to begin
     void setFirstEntry(IDType begin) {
-      ASSERT(!isDisabled(), "Vertex is disabled");
+      ASSERT(!isDisabled());
       _begin = begin;
       _valid = true;
     }
@@ -217,31 +217,33 @@ class GenericHypergraph {
     }
 
     IDType size() const {
+      ASSERT(!isDisabled());
       return _size;
     }
 
     void setSize(IDType size) {
-      ASSERT(!isDisabled(), "Vertex is disabled");
+      ASSERT(!isDisabled());
       _size = size;
     }
 
     void incrementSize() {
-      ASSERT(!isDisabled(), "Vertex is disabled");
+      ASSERT(!isDisabled());
       ++_size;
     }
 
     void decrementSize() {
-      ASSERT(!isDisabled(), "Vertex is disabled");
-      ASSERT(_size > 0, "Size out of bounds");
+      ASSERT(!isDisabled());
+      ASSERT(_size > 0);
       --_size;
     }
 
     WeightType weight() const {
+      ASSERT(!isDisabled());
       return _weight;
     }
 
     void setWeight(WeightType weight) {
-      ASSERT(!isDisabled(), "Vertex is disabled");
+      ASSERT(!isDisabled());
       _weight = weight;
     }
 
@@ -329,7 +331,7 @@ class GenericHypergraph {
 
     //! Prefix increment. The iterator advances to the next valid element.
     HypergraphElementIterator& operator++ () {
-      ASSERT(_id < _max_id, "Hypernode iterator out of bounds");
+      ASSERT(_id < _max_id);
       do {
         ++_id;
         ++_element;
