@@ -5,11 +5,10 @@
 #pragma once
 
 #include "meta/policy_registry.h"
-
-using meta::PolicyBase;
+#include "meta/typelist.h"
 
 namespace partition {
-struct RebalancingPolicy : PolicyBase {
+struct RebalancingPolicy : meta::PolicyBase {
  protected:
   RebalancingPolicy() { }
 };
@@ -23,4 +22,7 @@ struct NoGlobalRebalancing : public RebalancingPolicy,
                              private std::false_type {
   using std::false_type::operator value_type;
 };
+
+using RebalancingPolicyClasses = meta::Typelist<GlobalRebalancing,
+                                                NoGlobalRebalancing>;
 }  // namespace partition

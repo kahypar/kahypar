@@ -6,12 +6,11 @@
 
 #include "macros.h"
 #include "meta/policy_registry.h"
+#include "meta/typelist.h"
 #include "partition/configuration.h"
 
-using meta::PolicyBase;
-
 namespace partition {
-struct StoppingPolicy : PolicyBase {
+struct StoppingPolicy : meta::PolicyBase {
  protected:
   StoppingPolicy() { }
 };
@@ -130,4 +129,9 @@ class nGPRandomWalkStopsSearch : public StoppingPolicy {
  private:
   double _sum_gains_squared = 0.0;
 };
+
+using StoppingPolicyClasses = meta::Typelist<NumberOfFruitlessMovesStopsSearch,
+                                             AdvancedRandomWalkModelStopsSearch,
+                                             RandomWalkModelStopsSearch,
+                                             nGPRandomWalkStopsSearch>;
 }  // namespace partition

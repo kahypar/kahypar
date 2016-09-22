@@ -8,12 +8,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "meta/registrar.h"
-
-#define REGISTER_POLICY(policy, id, policy_class)                            \
-  static Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \
-    id, new policy_class())
-
 namespace meta {
 struct PolicyBase {
   virtual ~PolicyBase() { }
