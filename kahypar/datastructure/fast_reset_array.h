@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 
-#include "meta/mandatory.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace datastructure {
 template <typename T = Mandatory>

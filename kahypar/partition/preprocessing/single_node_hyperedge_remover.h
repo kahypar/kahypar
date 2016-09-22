@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 namespace partition {
 class SingleNodeHyperedgeRemover {

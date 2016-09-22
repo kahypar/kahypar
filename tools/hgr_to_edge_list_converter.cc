@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "io/hypergraph_io.h"
-#include "hgr_to_edgelist_conversion.h"
-#include "macros.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/macros.h"
+#include "tools/hgr_to_edgelist_conversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

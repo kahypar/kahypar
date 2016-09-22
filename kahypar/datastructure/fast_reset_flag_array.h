@@ -7,11 +7,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <vector>
-#include <cstring>
 
-#include "macros.h"
+#include "kahypar/macros.h"
 
 // based on http://upcoder.com/9/fast-resettable-flag-vector/
 

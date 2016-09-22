@@ -12,12 +12,12 @@
 #include <utility>
 #include <vector>
 
-#include "definitions.h"
-#include "git_revision.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "utils/math.h"
-#include "utils/stats.h"
+#include "kahypar/definitions.h"
+#include "kahypar/git_revision.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/utils/math.h"
+#include "kahypar/utils/stats.h"
 
 using utils::Stats;
 using utils::median;

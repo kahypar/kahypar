@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "utils/randomize.h"
+#include "kahypar/utils/randomize.h"
 
 namespace partition {
 struct LastRatingWins {

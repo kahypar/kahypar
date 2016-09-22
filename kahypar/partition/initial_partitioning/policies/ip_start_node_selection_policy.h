@@ -8,9 +8,9 @@
 #include <queue>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/utils/randomize.h"
 
 using datastructure::FastResetFlagArray;
 

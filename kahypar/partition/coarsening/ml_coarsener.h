@@ -8,11 +8,11 @@
 #include <string>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "datastructure/sparse_map.h"
-#include "definitions.h"
-#include "macros.h"
-#include "partition/coarsening/rating_tie_breaking_policies.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
 
 using datastructure::FastResetFlagArray;
 

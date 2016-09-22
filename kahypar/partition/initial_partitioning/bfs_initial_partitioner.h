@@ -10,12 +10,12 @@
 #include <queue>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "meta/mandatory.h"
-#include "partition/initial_partitioning/i_initial_partitioner.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/utils/randomize.h"
 
 namespace partition {
 template <class StartNodeSelection = Mandatory>

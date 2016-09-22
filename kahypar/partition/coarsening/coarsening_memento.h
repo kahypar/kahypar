@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 namespace partition {
 struct CoarseningMemento {

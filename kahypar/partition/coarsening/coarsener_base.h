@@ -12,14 +12,14 @@
 #include <utility>
 #include <vector>
 
-#include "definitions.h"
-#include "meta/mandatory.h"
-#include "partition/coarsening/coarsening_memento.h"
-#include "partition/coarsening/hypergraph_pruner.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/refinement/i_refiner.h"
-#include "utils/stats.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/partition/coarsening/coarsening_memento.h"
+#include "kahypar/partition/coarsening/hypergraph_pruner.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/stats.h"
 
 using utils::Stats;
 

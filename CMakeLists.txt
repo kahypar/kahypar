@@ -7,8 +7,7 @@ set(PROJECT_CONTACT "kahypar@sebastianschlag.de")
 set(PROJECT_URL "https://bitbucket.org/schlag/hypergraph")
 set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
-include_directories(${PROJECT_SOURCE_DIR}/kahypar)
-include_directories(${PROJECT_SOURCE_DIR}/tests)
+include_directories(${PROJECT_SOURCE_DIR})
 
 #ensure that gmock is built before tests are executed
 add_subdirectory(external_tools/googletest)
@@ -48,7 +47,7 @@ if(KAHYPAR_VERSION_GIT_REFSPEC)
   message(STATUS "Detected git refspec ${KAHYPAR_VERSION_GIT_REFSPEC} sha ${KAHYPAR_VERSION_GIT_SHA1}")
   configure_file(${PROJECT_SOURCE_DIR}/kahypar/git_revision.h.in ${PROJECT_BINARY_DIR}/kahypar/git_revision.h)
   # add the binary tree to the search path for include files so that we will find GitRevision.h
-  include_directories(${PROJECT_BINARY_DIR}/kahypar)
+  include_directories(${PROJECT_BINARY_DIR})
 else(KAHYPAR_VERSION_GIT_REFSPEC)
   # we do need the sha hash to log with build version was used during experiments
   message(FATAL_ERROR "No git refspec detected")

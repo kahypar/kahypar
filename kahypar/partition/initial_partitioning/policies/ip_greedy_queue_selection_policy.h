@@ -6,10 +6,10 @@
 
 #include <limits>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "datastructure/kway_priority_queue.h"
-#include "definitions.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar/definitions.h"
+#include "kahypar/utils/randomize.h"
 
 using datastructure::KWayPriorityQueue;
 using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,

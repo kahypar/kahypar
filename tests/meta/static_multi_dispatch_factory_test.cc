@@ -4,11 +4,10 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
-#include "meta/abstract_factory.h"
-#include "meta/policy_registry.h"
-#include "meta/registrar.h"
-#include "meta/static_multi_dispatch_factory.h"
+#include "kahypar/meta/abstract_factory.h"
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/registrar.h"
+#include "kahypar/meta/static_multi_dispatch_factory.h"
 
 using::testing::Test;
 

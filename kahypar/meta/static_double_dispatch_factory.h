@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "meta/mandatory.h"
-#include "meta/typelist.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/meta/typelist.h"
 
 namespace meta {
 template <
@@ -26,12 +26,12 @@ class StaticDoubleDispatchFactory {
                        Parameters&& ... parameters) {
     if (Head* p1 = dynamic_cast<Head*>(&lhs)) {
       return StaticDoubleDispatchFactory<Executor, TypesLhs, TypesRhs,
-                              ResultType>::dispatchRhs(
+                                         ResultType>::dispatchRhs(
         *p1, rhs, exec,
         std::forward<Parameters>(parameters) ...);
     } else {
       return StaticDoubleDispatchFactory<Executor, Tail, TypesRhs,
-                              ResultType>::go(
+                                         ResultType>::go(
         lhs, rhs, exec,
         std::forward<Parameters>(parameters) ...);
     }
@@ -48,7 +48,7 @@ class StaticDoubleDispatchFactory {
       return exec.fire(lhs, *p2, std::forward<Parameters>(parameters) ...);
     } else {
       return StaticDoubleDispatchFactory<Executor, TypesLhs, Tail,
-                              ResultType>::dispatchRhs(
+                                         ResultType>::dispatchRhs(
         lhs, rhs, exec,
         std::forward<Parameters>(parameters) ...);
     }

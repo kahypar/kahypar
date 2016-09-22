@@ -7,8 +7,8 @@
 #include <limits>
 #include <vector>
 
-#include "partition/configuration.h"
-#include "partition/metrics.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
 
 namespace partition {
 class IInitialPartitioner {

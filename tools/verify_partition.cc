@@ -7,12 +7,12 @@
 #include <sstream>
 #include <string>
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "io/partitioning_output.h"
-#include "macros.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/io/partitioning_output.h"
+#include "kahypar/macros.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
 
 static inline double imb(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight max_weight = hypergraph.partWeight(0);

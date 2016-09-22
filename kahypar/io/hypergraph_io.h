@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 namespace io {
 using Mapping = std::unordered_map<HypernodeID, HypernodeID>;

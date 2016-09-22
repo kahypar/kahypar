@@ -14,17 +14,17 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "meta/mandatory.h"
-#include "meta/template_parameter_to_string.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/refinement/fm_refiner_base.h"
-#include "partition/refinement/i_refiner.h"
-#include "partition/refinement/policies/fm_improvement_policy.h"
-#include "utils/float_compare.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/meta/template_parameter_to_string.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/fm_refiner_base.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
+#include "kahypar/utils/float_compare.h"
+#include "kahypar/utils/randomize.h"
 
 using datastructure::FastResetFlagArray;
 

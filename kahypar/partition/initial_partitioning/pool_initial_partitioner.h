@@ -8,12 +8,12 @@
 #include <string>
 #include <vector>
 
-#include "definitions.h"
-#include "partition/factories.h"
-#include "partition/initial_partitioning/i_initial_partitioner.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "partition/partitioner.h"
-#include "utils/randomize.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/factories.h"
+#include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/partitioner.h"
+#include "kahypar/utils/randomize.h"
 
 using partition::Configuration;
 
@@ -25,21 +25,21 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 
   struct PartitioningResult {
-  InitialPartitionerAlgorithm algo;
-  HyperedgeWeight cut;
-  double imbalance;
+    InitialPartitionerAlgorithm algo;
+    HyperedgeWeight cut;
+    double imbalance;
 
-  PartitioningResult(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
-                     double imbalance) :
-    algo(algo),
-    cut(cut),
-    imbalance(imbalance) { }
+    PartitioningResult(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
+                       double imbalance) :
+      algo(algo),
+      cut(cut),
+      imbalance(imbalance) { }
 
-  void print_result(std::string desc) {
-    LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
-        << toString(algo) << "]");
-  }
-};
+    void print_result(std::string desc) {
+      LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
+          << toString(algo) << "]");
+    }
+  };
 
  public:
   PoolInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :

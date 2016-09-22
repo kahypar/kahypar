@@ -6,11 +6,11 @@
 
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "partition/initial_partitioning/i_initial_partitioner.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/utils/randomize.h"
 
 namespace partition {
 class RandomInitialPartitioner : public IInitialPartitioner,

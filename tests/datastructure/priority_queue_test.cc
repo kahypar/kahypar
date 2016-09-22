@@ -4,9 +4,9 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/binary_heap.h"
-#include "datastructure/bucket_queue.h"
-#include "definitions.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/datastructure/bucket_queue.h"
+#include "kahypar/definitions.h"
 
 using::testing::Eq;
 using::testing::DoubleEq;

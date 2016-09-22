@@ -6,8 +6,8 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
-#include "partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 
 using::testing::Test;
 using::testing::Eq;

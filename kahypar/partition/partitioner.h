@@ -19,19 +19,19 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "io/partitioning_output.h"
-#include "partition/coarsening/hypergraph_pruner.h"
-#include "partition/coarsening/i_coarsener.h"
-#include "partition/configuration.h"
-#include "partition/factories.h"
-#include "partition/metrics.h"
-#include "partition/refinement/2way_fm_refiner.h"
-#include "preprocessing/large_hyperedge_remover.h"
-#include "preprocessing/single_node_hyperedge_remover.h"
-#include "utils/randomize.h"
-#include "utils/stats.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/io/partitioning_output.h"
+#include "kahypar/partition/coarsening/hypergraph_pruner.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/factories.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
+#include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
+#include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/utils/randomize.h"
+#include "kahypar/utils/stats.h"
 
 using datastructure::extractPartAsUnpartitionedHypergraphForBisection;
 using datastructure::reindex;

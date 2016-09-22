@@ -5,8 +5,8 @@
 #include <iostream>
 #include <string>
 
-#include "cnf_to_hgr_conversion.h"
-#include "macros.h"
+#include "kahypar/macros.h"
+#include "tools/cnf_to_hgr_conversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

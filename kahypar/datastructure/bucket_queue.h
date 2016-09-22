@@ -13,10 +13,10 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "macros.h"
-#include "meta/mandatory.h"
-#include "utils/float_compare.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/utils/float_compare.h"
 
 namespace datastructure {
 template <typename IDType = Mandatory,

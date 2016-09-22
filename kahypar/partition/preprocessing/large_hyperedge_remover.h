@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 namespace partition {
 static const bool dbg_partition_large_he_removal = false;

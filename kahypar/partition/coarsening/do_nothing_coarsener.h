@@ -6,9 +6,9 @@
 
 #include <string>
 
-#include "definitions.h"
-#include "partition/coarsening/i_coarsener.h"
-#include "partition/refinement/i_refiner.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 
 namespace partition {
 class DoNothingCoarsener final : public ICoarsener {

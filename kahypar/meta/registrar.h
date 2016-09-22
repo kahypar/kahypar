@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "meta/mandatory.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace meta {
 template <typename Factory = Mandatory>

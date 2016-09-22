@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 
-#include "utils/math.h"
+#include "kahypar/utils/math.h"
 
 using::testing::Eq;
 

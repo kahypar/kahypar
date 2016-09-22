@@ -4,19 +4,19 @@
 
 #pragma once
 
-#include "meta/abstract_factory.h"
-#include "meta/static_double_dispatch_factory.h"
-#include "meta/static_multi_dispatch_factory.h"
-#include "meta/typelist.h"
-#include "partition/coarsening/i_coarsener.h"
-#include "partition/initial_partitioning/i_initial_partitioner.h"
-#include "partition/refinement/2way_fm_refiner.h"
-#include "partition/refinement/i_refiner.h"
-#include "partition/refinement/kway_fm_cut_refiner.h"
-#include "partition/refinement/kway_fm_km1_refiner.h"
-#include "partition/refinement/lp_refiner.h"
-#include "partition/refinement/policies/2fm_rebalancing_policy.h"
-#include "partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/meta/abstract_factory.h"
+#include "kahypar/meta/static_double_dispatch_factory.h"
+#include "kahypar/meta/static_multi_dispatch_factory.h"
+#include "kahypar/meta/typelist.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
+#include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
+#include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
+#include "kahypar/partition/refinement/lp_refiner.h"
+#include "kahypar/partition/refinement/policies/2fm_rebalancing_policy.h"
+#include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 using meta::Factory;
 using meta::PolicyRegistry;

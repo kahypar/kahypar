@@ -5,10 +5,11 @@
 #pragma once
 
 #include <limits>
+#include <vector>
 
-#include "datastructure/kway_priority_queue.h"
-#include "definitions.h"
-#include "partition/configuration.h"
+#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
 
 namespace partition {
 static const bool dbg_refinement_fm_border_node_check = false;

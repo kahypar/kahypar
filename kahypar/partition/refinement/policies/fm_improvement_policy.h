@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "meta/policy_registry.h"
+#include "kahypar/meta/policy_registry.h"
 
 using meta::PolicyBase;
 

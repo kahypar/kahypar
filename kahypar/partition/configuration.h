@@ -11,8 +11,8 @@
 #include <sstream>
 #include <string>
 
-#include "definitions.h"
-#include "partition/configuration_enum_classes.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration_enum_classes.h"
 
 namespace partition {
 struct PreprocessingParameters {

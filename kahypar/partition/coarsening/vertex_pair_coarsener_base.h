@@ -11,14 +11,14 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/binary_heap.h"
-#include "definitions.h"
-#include "meta/int_to_type.h"
-#include "partition/coarsening/coarsener_base.h"
-#include "partition/coarsening/heavy_edge_rater.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/refinement/i_refiner.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/int_to_type.h"
+#include "kahypar/partition/coarsening/coarsener_base.h"
+#include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 
 using meta::Int2Type;
 using datastructure::BinaryMaxHeap;

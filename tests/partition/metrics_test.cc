@@ -4,16 +4,16 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
-#include "partition/coarsening/heavy_edge_rater.h"
-#include "partition/coarsening/full_vertex_pair_coarsener.h"
-#include "partition/coarsening/i_coarsener.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/partitioner.h"
-#include "partition/refinement/2way_fm_refiner.h"
-#include "partition/refinement/i_refiner.h"
-#include "partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

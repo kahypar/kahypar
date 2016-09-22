@@ -7,11 +7,11 @@
 #include <iostream>
 #include <string>
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "io/partitioning_output.h"
-#include "partition/metrics.h"
-#include "utils/math.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/io/partitioning_output.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/utils/math.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {

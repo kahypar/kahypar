@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/sparse_map.h"
-#include "definitions.h"
+#include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/definitions.h"
 
 using::testing::Eq;
 using::testing::DoubleEq;
@@ -101,5 +101,4 @@ TYPED_TEST(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
   ASSERT_FALSE(this->sparse_map.contains(1));
   ASSERT_FALSE(this->sparse_map.contains(3));
 }
-
 }  // namespace datastructure

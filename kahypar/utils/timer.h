@@ -7,7 +7,7 @@
 #include <chrono>
 #include <string>
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 namespace utils {
 class Timer {

@@ -8,13 +8,13 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "meta/mandatory.h"
-#include "meta/template_parameter_to_string.h"
-#include "partition/coarsening/i_coarsener.h"
-#include "partition/coarsening/vertex_pair_coarsener_base.h"
-#include "utils/stats.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/meta/template_parameter_to_string.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
+#include "kahypar/utils/stats.h"
 
 using utils::Stats;
 using datastructure::FastResetFlagArray;

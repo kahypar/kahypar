@@ -7,10 +7,11 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 
-#include "definitions.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
 
 using partition::Configuration;
 
@@ -80,7 +81,7 @@ class Stats {
 static inline void gatherCoarseningStats(const Hypergraph& hypergraph,
                                          const int vcycle,
                                          const PartitionID k1,
-                                         const PartitionID k2)  {
+                                         const PartitionID k2) {
   std::map<HyperedgeID, HypernodeID> node_degree_map;
   std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
   std::map<HyperedgeWeight, HypernodeID> edge_weight_map;

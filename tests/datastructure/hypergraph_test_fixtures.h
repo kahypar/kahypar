@@ -6,7 +6,7 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
+#include "kahypar/definitions.h"
 
 using::testing::Test;
 

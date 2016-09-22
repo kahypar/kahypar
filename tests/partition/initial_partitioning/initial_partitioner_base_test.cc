@@ -6,7 +6,7 @@
 
 #include "gmock/gmock.h"
 
-#include "partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 
 using::testing::Eq;
 using::testing::Test;

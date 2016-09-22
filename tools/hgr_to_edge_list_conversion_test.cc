@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "definitions.h"
-#include "hgr_to_edgelist_conversion.h"
-#include "macros.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
+#include "tools/hgr_to_edgelist_conversion.h"
 
 using::testing::Test;
 

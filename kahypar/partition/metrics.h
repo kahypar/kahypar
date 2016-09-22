@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "definitions.h"
-#include "partition/configuration.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
 
 using partition::Configuration;
 

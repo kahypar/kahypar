@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/binary_heap.h"
-#include "definitions.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/definitions.h"
 
 using::testing::Test;
 

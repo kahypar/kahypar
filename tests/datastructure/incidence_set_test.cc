@@ -4,9 +4,9 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/incidence_set.h"
-#include "definitions.h"
-#include "macros.h"
+#include "kahypar/datastructure/incidence_set.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
 
 using::testing::Test;
 using::testing::Eq;

@@ -8,12 +8,12 @@
 #include <limits>
 #include <vector>
 
-#include "datastructure/binary_heap.h"
-#include "datastructure/bucket_queue.h"
-#include "definitions.h"
-#include "macros.h"
-#include "meta/mandatory.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/datastructure/bucket_queue.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/utils/randomize.h"
 
 using datastructure::BinaryMaxHeap;
 using datastructure::EnhancedBucketQueue;
@@ -305,7 +305,7 @@ class KWayPriorityQueue {
     return max_index;
   }
 
-  __attribute__ ((always_inline)) size_t maxIndexRandomTieBreaking()  {
+  __attribute__ ((always_inline)) size_t maxIndexRandomTieBreaking() {
     KeyType max_key = MetaKey::min();
     for (size_t index = 0; index < _num_enabled_pqs; ++index) {
       ASSERT(!_queues[index].empty(), V(index));

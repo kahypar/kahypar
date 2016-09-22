@@ -9,11 +9,11 @@
 #include <utility>
 #include <vector>
 
-#include "definitions.h"
-#include "macros.h"
-#include "partition/metrics.h"
-#include "partition/refinement/uncontraction_gain_changes.h"
-#include "utils/stats.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/uncontraction_gain_changes.h"
+#include "kahypar/utils/stats.h"
 
 using utils::Stats;
 using Metrics = metrics::Metrics;

@@ -7,12 +7,12 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/binary_heap.h"
-#include "datastructure/fast_reset_flag_array.h"
-#include "datastructure/kway_priority_queue.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
-#include "partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
 
 using::testing::Eq;
 using::testing::Test;

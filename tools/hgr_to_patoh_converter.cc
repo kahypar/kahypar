@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "io/hypergraph_io.h"
-#include "definitions.h"
-#include "macros.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/macros.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {

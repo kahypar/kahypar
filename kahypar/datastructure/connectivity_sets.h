@@ -8,8 +8,8 @@
 #include <memory>
 #include <utility>
 
-#include "macros.h"
-#include "meta/mandatory.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace datastructure {
 template <typename PartitionID = Mandatory,

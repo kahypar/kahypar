@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "definitions.h"
-#include "partition/refinement/i_refiner.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 
 namespace partition {
 class DoNothingRefiner final : public IRefiner {

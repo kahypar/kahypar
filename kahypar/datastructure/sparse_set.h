@@ -14,8 +14,8 @@
 #include <memory>
 #include <utility>
 
-#include "meta/mandatory.h"
-#include "macros.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace datastructure {
 template <typename ValueType = Mandatory,

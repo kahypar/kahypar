@@ -9,16 +9,16 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/binary_heap.h"
-#include "datastructure/fast_reset_flag_array.h"
-#include "io/hypergraph_io.h"
-#include "partition/initial_partitioning/bfs_initial_partitioner.h"
-#include "partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
-#include "partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
-#include "partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
-#include "partition/metrics.h"
+#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/partition/initial_partitioning/bfs_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
+#include "kahypar/partition/metrics.h"
 
 
 using::testing::Eq;

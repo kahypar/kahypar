@@ -8,10 +8,10 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/hypergraph_test_fixtures.h"
-#include "definitions.h"
-#include "partition/coarsening/coarsening_memento.h"
-#include "partition/coarsening/hypergraph_pruner.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/coarsening_memento.h"
+#include "kahypar/partition/coarsening/hypergraph_pruner.h"
+#include "tests/datastructure/hypergraph_test_fixtures.h"
 
 using::testing::Eq;
 using::testing::ContainerEq;

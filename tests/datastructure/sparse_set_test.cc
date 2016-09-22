@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/sparse_set.h"
-#include "definitions.h"
+#include "kahypar/datastructure/sparse_set.h"
+#include "kahypar/definitions.h"
 
 using::testing::Eq;
 using::testing::DoubleEq;

@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "macros.h"
-#include "meta/policy_registry.h"
-#include "meta/typelist.h"
-#include "partition/configuration.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/typelist.h"
+#include "kahypar/partition/configuration.h"
 
 namespace partition {
 struct StoppingPolicy : meta::PolicyBase {

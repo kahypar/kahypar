@@ -9,11 +9,11 @@
 #include <fstream>
 #include <string>
 
-#include "definitions.h"
-#include "git_revision.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/partitioner.h"
+#include "kahypar/definitions.h"
+#include "kahypar/git_revision.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/partitioner.h"
 
 using partition::Configuration;
 using partition::Partitioner;

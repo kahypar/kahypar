@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "definitions.h"
-#include "partition/coarsening/coarsening_memento.h"
-#include "utils/math.h"
-#include "utils/stats.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/coarsening_memento.h"
+#include "kahypar/utils/math.h"
+#include "kahypar/utils/stats.h"
 
 using utils::Stats;
 using datastructure::FastResetFlagArray;

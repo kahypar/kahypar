@@ -5,8 +5,8 @@
 #include <iostream>
 #include <string>
 
-#include "macros.h"
-#include "mtx_to_hgr_conversion.h"
+#include "kahypar/macros.h"
+#include "tools/mtx_to_hgr_conversion.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

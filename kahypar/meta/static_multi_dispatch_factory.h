@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
-#include "meta/function_traits.h"
-#include "macros.h"
-#include "meta/mandatory.h"
-#include "meta/typelist.h"
+#include "kahypar/macros.h"
+#include "kahypar/meta/function_traits.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/meta/typelist.h"
 
 namespace meta {
 /*!

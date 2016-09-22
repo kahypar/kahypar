@@ -6,9 +6,9 @@
 #include <map>
 #include <string>
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "partition/metrics.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/partition/metrics.h"
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

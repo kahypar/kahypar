@@ -9,12 +9,12 @@
 
 #include "gmock/gmock.h"
 
-#include "io/hypergraph_io.h"
-#include "partition/initial_partitioning/initial_partitioner_base.h"
-#include "partition/initial_partitioning/label_propagation_initial_partitioner.h"
-#include "partition/initial_partitioning/policies/ip_gain_computation_policy.h"
-#include "partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
-#include "partition/metrics.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/label_propagation_initial_partitioner.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
+#include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
+#include "kahypar/partition/metrics.h"
 
 using::testing::Eq;
 using::testing::Test;

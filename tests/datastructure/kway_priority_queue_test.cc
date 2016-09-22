@@ -4,8 +4,8 @@
 
 #include "gmock/gmock.h"
 
-#include "datastructure/kway_priority_queue.h"
-#include "definitions.h"
+#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar/definitions.h"
 
 using::testing::Eq;
 using::testing::Test;

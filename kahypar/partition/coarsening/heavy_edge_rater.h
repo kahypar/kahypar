@@ -8,11 +8,11 @@
 #include <stack>
 #include <vector>
 
-#include "datastructure/sparse_map.h"
-#include "definitions.h"
-#include "macros.h"
-#include "partition/coarsening/rating_tie_breaking_policies.h"
-#include "partition/configuration.h"
+#include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/definitions.h"
+#include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
+#include "kahypar/partition/configuration.h"
 
 using datastructure::SparseMap;
 

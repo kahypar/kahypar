@@ -10,8 +10,8 @@
 #include <limits>
 #include <utility>
 
-#include "macros.h"
-#include "utils/math.h"
+#include "kahypar/macros.h"
+#include "kahypar/utils/math.h"
 
 namespace datastructure {
 template <typename T, size_t InitialSizeFactor = 2,

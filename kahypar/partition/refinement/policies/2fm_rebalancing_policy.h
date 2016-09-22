@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "meta/policy_registry.h"
-#include "meta/typelist.h"
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/typelist.h"
 
 namespace partition {
 struct RebalancingPolicy : meta::PolicyBase {

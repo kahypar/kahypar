@@ -5,8 +5,8 @@
 #include <sstream>
 #include <string>
 
-#include "macros.h"
-#include "mtx_to_hgr_conversion.h"
+#include "kahypar/macros.h"
+#include "tools/mtx_to_hgr_conversion.h"
 
 namespace mtxconversion {
 MatrixInfo parseHeader(std::ifstream& file) {

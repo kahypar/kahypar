@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "mtx_to_hgr_conversion.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "tools/mtx_to_hgr_conversion.h"
 
 using::testing::Test;
 

@@ -10,13 +10,13 @@
 #include <memory>
 #include <string>
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "io/partitioning_output.h"
-#include "io/sql_plottools_serializer.h"
-#include "kahypar.h"
-#include "macros.h"
-#include "utils/randomize.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/io/partitioning_output.h"
+#include "kahypar/io/sql_plottools_serializer.h"
+#include "kahypar/kahypar.h"
+#include "kahypar/macros.h"
+#include "kahypar/utils/randomize.h"
 
 namespace po = boost::program_options;
 

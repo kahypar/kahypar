@@ -8,8 +8,8 @@
 #include <memory>
 #include <vector>
 
-#include "definitions.h"
-#include "meta/mandatory.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace partition {
 struct LPGain {

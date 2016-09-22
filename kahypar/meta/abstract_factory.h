@@ -7,12 +7,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "partition/configuration.h"
-#include "meta/function_traits.h"
-#include "macros.h"
-#include "meta/mandatory.h"
-
-using partition::toString;
+#include "kahypar/meta/function_traits.h"
+#include "kahypar/meta/mandatory.h"
 
 namespace meta {
 template <typename IdentifierType = Mandatory,

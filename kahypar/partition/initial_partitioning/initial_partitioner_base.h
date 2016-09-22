@@ -10,14 +10,14 @@
 #include <stack>
 #include <vector>
 
-#include "definitions.h"
-#include "partition/configuration.h"
-#include "partition/factories.h"
-#include "partition/metrics.h"
-#include "partition/refinement/i_refiner.h"
-#include "partition/refinement/kway_fm_cut_refiner.h"
-#include "partition/refinement/policies/fm_improvement_policy.h"
-#include "partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/factories.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
+#include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
+#include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 using partition::Configuration;
 using partition::StoppingPolicy;

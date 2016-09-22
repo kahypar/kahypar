@@ -10,10 +10,10 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
-#include "partition/configuration.h"
-#include "partition/refinement/do_nothing_refiner.h"
-#include "partition/refinement/i_refiner.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/refinement/do_nothing_refiner.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 
 using::testing::AnyOf;
 using::testing::DoubleEq;

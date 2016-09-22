@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
-#include <vector>
 #include <memory>
+#include <vector>
 
-#include "macros.h"
+#include "kahypar/macros.h"
 
 namespace datastructure {
 // Base-Traits for binary heap
@@ -67,7 +67,7 @@ class BinaryHeapBase {
     return _heap[_handles[id]].key;
   }
 
-  inline bool isReached(const IDType& id, const size_t& handle) const  {
+  inline bool isReached(const IDType& id, const size_t& handle) const {
     return handle < _next_slot && id == _heap[handle].id;
   }
 

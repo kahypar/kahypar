@@ -11,15 +11,15 @@
 #include <utility>
 #include <vector>
 
-#include "datastructure/fast_reset_flag_array.h"
-#include "datastructure/sparse_map.h"
-#include "definitions.h"
-#include "partition/configuration.h"
-#include "partition/metrics.h"
-#include "partition/refinement/i_refiner.h"
-#include "partition/refinement/lp_gain_cache.h"
-#include "partition/refinement/policies/fm_improvement_policy.h"
-#include "utils/randomize.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/definitions.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/lp_gain_cache.h"
+#include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
+#include "kahypar/utils/randomize.h"
 
 using datastructure::InsertOnlySparseMap;
 using datastructure::FastResetFlagArray;

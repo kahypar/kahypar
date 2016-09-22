@@ -4,10 +4,10 @@
 
 #include "gmock/gmock.h"
 
-#include "definitions.h"
-#include "io/hypergraph_io.h"
-#include "partition/coarsening/full_vertex_pair_coarsener.h"
-#include "partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
+#include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
 namespace partition {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
