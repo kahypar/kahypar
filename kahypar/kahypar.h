@@ -65,10 +65,9 @@ using RandomWinsRaterHeavyEdgeRater = HeavyEdgeRater<RatingType, RandomRatingWin
 ////////////////////////////////////////////////////////////////////////////////
 using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
 using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
-using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRaterHeavyEdgeRater>;
 REGISTER_COARSENER(CoarseningAlgorithm::heavy_lazy, RandomWinsLazyUpdateCoarsener);
 REGISTER_COARSENER(CoarseningAlgorithm::heavy_full, RandomWinsFullCoarsener);
-REGISTER_COARSENER(CoarseningAlgorithm::ml_style, RandomWinsMLCoarsener);
+REGISTER_COARSENER(CoarseningAlgorithm::ml_style, MLCoarsener);
 REGISTER_COARSENER(CoarseningAlgorithm::do_nothing, DoNothingCoarsener);
 
 ////////////////////////////////////////////////////////////////////////////////
