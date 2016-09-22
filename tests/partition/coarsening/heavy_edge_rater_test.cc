@@ -15,9 +15,9 @@ using::testing::DoubleEq;
 using::testing::AnyOf;
 
 namespace kahypar {
-using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
-using LastWinsRater = Rater<RatingType, LastRatingWins>;
-using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
+using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
+using LastWinsRater = HeavyEdgeRater<RatingType, LastRatingWins>;
+using RandomWinsRater = HeavyEdgeRater<RatingType, RandomRatingWins>;
 
 class ARater : public Test {
  public:

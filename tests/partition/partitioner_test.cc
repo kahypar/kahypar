@@ -18,7 +18,7 @@ using::testing::Test;
 using::testing::Eq;
 
 namespace kahypar {
-using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
+using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

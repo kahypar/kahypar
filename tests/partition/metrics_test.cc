@@ -21,7 +21,7 @@ using::testing::DoubleEq;
 
 namespace kahypar {
 namespace metrics {
-using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
+using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

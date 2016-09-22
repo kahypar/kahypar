@@ -21,7 +21,7 @@ static const bool dbg_partition_rating = false;
 #pragma GCC diagnostic ignored "-Weffc++"
 // See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
 template <typename _RatingType, class _TieBreakingPolicy>
-class Rater {
+class HeavyEdgeRater {
  public:
   using RatingType = _RatingType;
 
@@ -53,16 +53,16 @@ class Rater {
  public:
   using Rating = HeavyEdgeRating;
 
-  Rater(Hypergraph& hypergraph, const Configuration& config) :
+  HeavyEdgeRater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()) { }
 
-  Rater(const Rater&) = delete;
-  Rater& operator= (const Rater&) = delete;
+  HeavyEdgeRater(const HeavyEdgeRater&) = delete;
+  HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
 
-  Rater(Rater&&) = delete;
-  Rater& operator= (Rater&&) = delete;
+  HeavyEdgeRater(HeavyEdgeRater&&) = delete;
+  HeavyEdgeRater& operator= (HeavyEdgeRater&&) = delete;
 
   HeavyEdgeRating rate(const HypernodeID u) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);

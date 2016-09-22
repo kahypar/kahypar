@@ -58,14 +58,14 @@ namespace kahypar {
 ////////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
 ////////////////////////////////////////////////////////////////////////////////
-using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
+using RandomWinsRaterHeavyEdgeRater = HeavyEdgeRater<RatingType, RandomRatingWins>;
 
 ////////////////////////////////////////////////////////////////////////////////
 //                          Coarsening Algorithms
 ////////////////////////////////////////////////////////////////////////////////
-using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
-using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRater>;
-using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRater>;
+using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
+using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
+using RandomWinsMLCoarsener = MLCoarsener<RandomWinsRaterHeavyEdgeRater>;
 REGISTER_COARSENER(CoarseningAlgorithm::heavy_lazy, RandomWinsLazyUpdateCoarsener);
 REGISTER_COARSENER(CoarseningAlgorithm::heavy_full, RandomWinsFullCoarsener);
 REGISTER_COARSENER(CoarseningAlgorithm::ml_style, RandomWinsMLCoarsener);
