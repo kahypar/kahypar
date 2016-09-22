@@ -20,6 +20,7 @@ using partition::Partitioner;
 using partition::toString;
 using partition::RefinementAlgorithm;
 
+namespace partition {
 namespace io {
 namespace serializer {
 static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
@@ -132,3 +133,4 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
 }
 }  // namespace serializer
 }  // namespace io
+}  // namespace partition

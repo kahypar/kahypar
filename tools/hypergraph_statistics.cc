@@ -29,13 +29,13 @@ int main(int argc, char* argv[]) {
   HyperedgeWeightVector hyperedge_weights;
   HypernodeWeightVector hypernode_weights;
 
-  io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
+  partition::io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
                          index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   HyperedgeID max_hn_degree = 0;
   HyperedgeID min_hn_degree = std::numeric_limits<HyperedgeID>::max();
-  double avg_hn_degree = metrics::avgHypernodeDegree(hypergraph);
+  double avg_hn_degree = partition::metrics::avgHypernodeDegree(hypergraph);
   double sd_hn_degree = 0.0;
   std::vector<HyperedgeID> hn_degrees;
   hn_degrees.reserve(hypergraph.currentNumNodes());
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
   HyperedgeID num_single_node_hes = 0;
   HypernodeID max_he_size = 0;
   HypernodeID min_he_size = std::numeric_limits<HypernodeID>::max();
-  double avg_he_size = metrics::avgHyperedgeDegree(hypergraph);
+  double avg_he_size = partition::metrics::avgHyperedgeDegree(hypergraph);
   double sd_he_size = 0.0;
   std::vector<HypernodeID> he_sizes;
   he_sizes.reserve(hypergraph.currentNumEdges());
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
   << " avgHEsize=" << avg_he_size
   << " sdHEsize=" << sd_he_size
   << " minHEsize=" << min_he_size
-  << " heSize90thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 90)
+  << " heSize90thPercentile=" << partition::metrics::hyperedgeSizePercentile(hypergraph, 90)
   << " Q1HEsize=" << he_size_quartiles.first
   << " medHEsize=" << partition::math::median(he_sizes)
   << " Q3HEsize=" << he_size_quartiles.second
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
   << " avgHNdegree=" << avg_hn_degree
   << " sdHNdegree=" << sd_hn_degree
   << " minHnDegree=" << min_hn_degree
-  << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
+  << " hnDegree90thPercentile=" << partition::metrics::hypernodeDegreePercentile(hypergraph, 90)
   << " maxHnDegree=" << max_hn_degree
   << " Q1HNdegree=" << hn_deg_quartiles.first
   << " medHNdegree=" << partition::math::median(hn_degrees)

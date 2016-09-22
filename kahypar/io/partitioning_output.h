@@ -19,10 +19,7 @@
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
 
-using partition::math::median;
-using partition::math::firstAndThirdQuartile;
-using partition::Stats;
-
+namespace partition {
 namespace io {
 namespace {
 template <typename T>
@@ -31,7 +28,7 @@ void printStats(const std::string& name, const std::vector<T>& vec, double avg, 
   std::cout << name << ":   [min: " << std::setw(5) << std::left
   << (vec.empty() ? 0 : vec.front())
   << "Q1: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.first)
-  << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : median(vec))
+  << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : math::median(vec))
   << "Q3: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.second)
   << "max: " << std::setw(10) << std::left << (vec.empty() ? 0 : vec.back())
   << "avg: " << std::setw(10) << std::left << avg
@@ -97,14 +94,14 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "Name : " << name << std::endl;
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.currentNumEdges() << std::endl;
-  printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size, firstAndThirdQuartile(he_sizes));
+  printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size, math::firstAndThirdQuartile(he_sizes));
   printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
-             firstAndThirdQuartile(he_weights));
+             math::firstAndThirdQuartile(he_weights));
   std::cout << "# HNs: " << hypergraph.currentNumNodes() << std::endl;
   printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
-             firstAndThirdQuartile(hn_degrees));
+             math::firstAndThirdQuartile(hn_degrees));
   printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
-             firstAndThirdQuartile(hn_weights));
+             math::firstAndThirdQuartile(hn_weights));
 }
 
 template <class Configuration>
@@ -170,3 +167,4 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
   }
 }
 }  // namespace io
+}  // namespace partition

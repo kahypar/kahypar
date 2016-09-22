@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string graphml_filename(hgr_filename + ".graph");
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
+  Hypergraph hypergraph(partition::io::createHypergraphFromFile(hgr_filename, 2));
 
   std::ofstream out_stream(graphml_filename.c_str());
 

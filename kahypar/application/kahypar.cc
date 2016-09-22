@@ -485,11 +485,11 @@ int main(int argc, char* argv[]) {
   Randomize::instance().setSeed(config.partition.seed);
 
   Hypergraph hypergraph(
-    io::createHypergraphFromFile(config.partition.graph_filename,
+      partition::io::createHypergraphFromFile(config.partition.graph_filename,
                                  config.partition.k));
 
   if (config.partition.verbose_output) {
-    io::printHypergraphInfo(hypergraph,
+    partition::io::printHypergraphInfo(hypergraph,
                             config.partition.graph_filename.substr(
                               config.partition.graph_filename.find_last_of("/") + 1));
   }
@@ -504,16 +504,16 @@ int main(int argc, char* argv[]) {
   LOG("*******************************");
   LOG("***** GATHER_STATS ACTIVE *****");
   LOG("*******************************");
-  io::printPartitioningStatistics();
+  partition::io::printPartitioningStatistics();
 #endif
 
-  io::printPartitioningResults(hypergraph, config, elapsed_seconds);
-  io::writePartitionFile(hypergraph,
+  partition::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
+  partition::io::writePartitionFile(hypergraph,
                          config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
+  partition::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
   return 0;
 }

@@ -19,17 +19,7 @@ using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
 
-using partition::Rater;
-using partition::FirstRatingWins;
-using partition::ICoarsener;
-using partition::IRefiner;
-using partition::FullVertexPairCoarsener;
-using partition::Configuration;
-using partition::Partitioner;
-using partition::TwoWayFMRefiner;
-using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::InitialPartitioner;
-
+namespace partition {
 namespace metrics {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
@@ -145,3 +135,4 @@ TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
   ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
 }  // namespace metrics
+}  // namespace partition

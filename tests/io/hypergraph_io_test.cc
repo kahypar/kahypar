@@ -10,6 +10,7 @@
 using::testing::Eq;
 using::testing::ContainerEq;
 
+namespace partition {
 namespace io {
 TEST(AFunction, ParsesFirstLineOfaHGRFile) {
   std::string filename("test_instances/unweighted_hypergraph.hgr");
@@ -233,3 +234,4 @@ TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
               "Error: Hyperedge 1 is empty");
 }
 }  // namespace io
+}  // namespace partition

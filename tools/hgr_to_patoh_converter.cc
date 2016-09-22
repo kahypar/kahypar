@@ -21,9 +21,9 @@ int main(int argc, char* argv[]) {
   std::string out_filename(argv[2]);
 
   Hypergraph hypergraph(
-    io::createHypergraphFromFile(hgr_filename, 2));
+    partition::io::createHypergraphFromFile(hgr_filename, 2));
 
-  io::writeHypergraphForPaToHPartitioning(hypergraph, out_filename);
+  partition::io::writeHypergraphForPaToHPartitioning(hypergraph, out_filename);
 
   return 0;
 }

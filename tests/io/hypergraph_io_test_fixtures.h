@@ -20,17 +20,7 @@
 
 using::testing::Test;
 
-using partition::InitialPartitioner;
-using partition::Rater;
-using partition::ICoarsener;
-using partition::IRefiner;
-using partition::FullVertexPairCoarsener;
-using partition::Partitioner;
-using partition::FirstRatingWins;
-using partition::Configuration;
-using partition::TwoWayFMRefiner;
-using partition::NumberOfFruitlessMovesStopsSearch;
-
+namespace partition {
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
  public:
@@ -249,3 +239,4 @@ class APartitionOfAHypergraph : public Test {
   std::unique_ptr<IRefiner> _refiner;
 };
 }  // namespace io
+}  // namespace partition

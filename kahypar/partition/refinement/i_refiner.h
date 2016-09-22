@@ -15,8 +15,6 @@
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 #include "kahypar/utils/stats.h"
 
-using Metrics = metrics::Metrics;
-
 namespace partition {
 class IRefiner {
  public:

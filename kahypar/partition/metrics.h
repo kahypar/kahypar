@@ -12,16 +12,17 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration.h"
 
-using partition::Configuration;
-
-namespace metrics {
-static const bool dbg_metrics_hyperedge_cut = false;
+namespace partition {
 
 struct Metrics {
   HyperedgeWeight cut;
   HyperedgeWeight km1;
   double imbalance;
 };
+
+
+namespace metrics {
+static const bool dbg_metrics_hyperedge_cut = false;
 
 static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
@@ -283,3 +284,4 @@ static inline void connectivityStats(const Hypergraph& hypergraph,
   }
 }
 }  // namespace metrics
+}  // namespace partition
