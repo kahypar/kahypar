@@ -75,6 +75,6 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_config;
-  FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
+  ds::FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace partition

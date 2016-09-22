@@ -15,10 +15,10 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::BinaryMaxHeap;
-using datastructure::EnhancedBucketQueue;
+using ds::BinaryMaxHeap;
+using ds::EnhancedBucketQueue;
 
-namespace datastructure {
+namespace ds {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
@@ -338,4 +338,4 @@ class KWayPriorityQueue {
   size_t _num_nonempty_pqs;
   size_t _num_enabled_pqs;
 };
-}  // namespace datastructure
+}  // namespace ds

@@ -10,7 +10,7 @@
 
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 class AHypergraph : public Test {
  public:
   AHypergraph() :
@@ -82,4 +82,4 @@ class AnUnPartitionedHypergraph : public AHypergraph {
   AnUnPartitionedHypergraph() :
     AHypergraph() { }
 };
-}  // namespace datastructure
+}  // namespace ds

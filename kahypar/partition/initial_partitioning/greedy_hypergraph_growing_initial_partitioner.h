@@ -18,8 +18,6 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
-
 namespace partition {
 template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory,
@@ -27,7 +25,7 @@ template <class StartNodeSelection = Mandatory,
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase {
  private:
-  using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+  using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                              std::numeric_limits<Gain>, true>;
 
  public:
@@ -354,7 +352,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::kInvalidNode;
   std::vector<HypernodeID> _start_nodes;
   KWayRefinementPQ _pq;
-  FastResetFlagArray<> _visit;
-  FastResetFlagArray<> _hyperedge_in_queue;
+  ds::FastResetFlagArray<> _visit;
+  ds::FastResetFlagArray<> _hyperedge_in_queue;
 };
 }  // namespace partition

@@ -18,7 +18,7 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/utils/float_compare.h"
 
-namespace datastructure {
+namespace ds {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = std::numeric_limits<KeyType> >
@@ -292,4 +292,4 @@ void swap(EnhancedBucketQueue<IDType, KeyType, MetaKey>& a,
           EnhancedBucketQueue<IDType, KeyType, MetaKey>& b) {
   a.swap(b);
 }
-}  // namespace datastructure
+}  // namespace ds

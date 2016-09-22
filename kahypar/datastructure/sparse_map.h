@@ -19,7 +19,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
-namespace datastructure {
+namespace ds {
 template <typename Key = Mandatory,
           typename Value = Mandatory,
           typename Derived = Mandatory>
@@ -230,4 +230,4 @@ class InsertOnlySparseMap final : public SparseMapBase<Key, Value, SparseMap<Key
   using Base::_dense;
   using Base::_size;
 };
-}  // namespace datastructure
+}  // namespace ds

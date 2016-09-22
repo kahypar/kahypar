@@ -12,8 +12,6 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::FastResetFlagArray;
-
 namespace partition {
 template <bool UseRandomStartHypernode = true>
 struct BFSStartNodeSelectionPolicy {
@@ -24,8 +22,8 @@ struct BFSStartNodeSelectionPolicy {
       start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
     }
     start_nodes.push_back(start_hn);
-    FastResetFlagArray<> in_queue(hg.initialNumNodes());
-    FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
+    ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
+    ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
     while (start_nodes.size() != static_cast<size_t>(k)) {
       std::queue<HypernodeID> bfs;

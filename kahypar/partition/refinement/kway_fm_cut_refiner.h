@@ -28,10 +28,6 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::FastResetArray;
-using datastructure::FastResetFlagArray;
-using datastructure::InsertOnlySparseMap;
-
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -1103,8 +1099,8 @@ class KWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_performed_moves;
   using FMRefinerBase::_hns_to_activate;
 
-  FastResetFlagArray<> _he_fully_active;
-  InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
+  ds::FastResetFlagArray<> _he_fully_active;
+  ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
 
   // After a move, we have to update the gains for all adjacent HNs.
   // For all moves of a HN that were already present in the PQ before the
@@ -1115,9 +1111,9 @@ class KWayFMRefiner final : public IRefiner,
   // the current updateNeighbours call. If we encounter such a new move,
   // we store the newly encountered part in this vector and do not perform
   // delta-gain updates for this part.
-  FastResetArray<PartitionID> _already_processed_part;
+  ds::FastResetArray<PartitionID> _already_processed_part;
 
-  FastResetArray<PartitionID> _locked_hes;
+  ds::FastResetArray<PartitionID> _locked_hes;
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 };

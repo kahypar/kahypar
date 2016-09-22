@@ -11,7 +11,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 template <typename T>
 class ASparseMap : public Test {
  public:
@@ -101,4 +101,4 @@ TYPED_TEST(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
   ASSERT_FALSE(this->sparse_map.contains(1));
   ASSERT_FALSE(this->sparse_map.contains(3));
 }
-}  // namespace datastructure
+}  // namespace ds

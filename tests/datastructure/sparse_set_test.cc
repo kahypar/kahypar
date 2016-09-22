@@ -11,7 +11,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 template <typename T>
 class ASparseSet : public Test {
  public:
@@ -119,4 +119,4 @@ TYPED_TEST(ASparseSetSupportingDeletions, DoesNotIterateOverDeletedElements) {
     ASSERT_NE(element, 7);
   }
 }
-}  // namespace datastructure
+}  // namespace ds

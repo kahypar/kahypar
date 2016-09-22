@@ -16,8 +16,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
+using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                            std::numeric_limits<Gain>, true>;
 
 namespace partition {
@@ -80,7 +79,7 @@ struct FMGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg,
                                    const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   const FastResetFlagArray<>&) {
+                                   const ds::FastResetFlagArray<>&) {
     if (hg.partID(hn) == -1) {
       return calculateGainForUnassignedHN(hg, hn, target_part);
     }
@@ -214,7 +213,7 @@ struct FMGainComputationPolicy {
   static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& config,
                                      KWayRefinementPQ& pq, const HypernodeID hn,
                                      const PartitionID from, const PartitionID to,
-                                     const FastResetFlagArray<>& foo) {
+                                     const ds::FastResetFlagArray<>& foo) {
     ONLYDEBUG(foo);
     if (from == -1) {
       deltaGainUpdateForUnassignedFromPart(hg, config, pq, hn, to);
@@ -256,7 +255,7 @@ struct FMGainComputationPolicy {
 struct MaxPinGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   FastResetFlagArray<>& visit) {
+                                   ds::FastResetFlagArray<>& visit) {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
@@ -278,7 +277,7 @@ struct MaxPinGainComputationPolicy {
                                      KWayRefinementPQ& pq,
                                      const HypernodeID hn,
                                      const PartitionID from,
-                                     const PartitionID to, FastResetFlagArray<>& visit) {
+                                     const PartitionID to, ds::FastResetFlagArray<>& visit) {
     if (from == -1) {
       for (const HyperedgeID he : hg.incidentEdges(hn)) {
         for (const HypernodeID pin : hg.pins(he)) {
@@ -316,7 +315,7 @@ struct MaxPinGainComputationPolicy {
 struct MaxNetGainComputationPolicy {
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
-                                   const FastResetFlagArray<>&) {
+                                   const ds::FastResetFlagArray<>&) {
     Gain gain = 0;
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
@@ -330,7 +329,7 @@ struct MaxNetGainComputationPolicy {
                                      KWayRefinementPQ& pq,
                                      const HypernodeID hn, const PartitionID from,
                                      const PartitionID to,
-                                     const FastResetFlagArray<>&) {
+                                     const ds::FastResetFlagArray<>&) {
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
       Gain pins_in_source_part = -1;
       if (from != -1) {

@@ -67,7 +67,7 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   Hypergraph correct_hypergraph = io::createHypergraphFromFile(correct_hgr_filename, 2);
   Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
-  ASSERT_EQ(datastructure::verifyEquivalenceWithoutPartitionInfo(hypergraph,
+  ASSERT_EQ(ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                  correct_hypergraph), true);
 }
 }  // namespace mtxconversion

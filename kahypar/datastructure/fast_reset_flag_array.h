@@ -15,7 +15,7 @@
 
 // based on http://upcoder.com/9/fast-resettable-flag-vector/
 
-namespace datastructure {
+namespace ds {
 template <typename UnderlyingType = std::uint16_t>
 class FastResetFlagArray {
  public:
@@ -83,4 +83,4 @@ void swap(FastResetFlagArray<UnderlyingType>& a,
           FastResetFlagArray<UnderlyingType>& b) {
   a.swap(b);
 }
-}  // namespace datastructure
+}  // namespace ds

@@ -13,7 +13,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
 
-namespace datastructure {
+namespace ds {
 template <typename T, size_t InitialSizeFactor = 2,
           T empty = std::numeric_limits<T>::max(),
           T deleted = std::numeric_limits<T>::max() - 1>
@@ -264,4 +264,4 @@ class IncidenceSet {
   T _max_size;
   T _max_sparse_size;
 };
-}  // namespace datastructure
+}  // namespace ds

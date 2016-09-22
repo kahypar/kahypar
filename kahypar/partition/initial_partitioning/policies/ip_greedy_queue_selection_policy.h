@@ -11,9 +11,8 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::KWayPriorityQueue;
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, Gain,
-                                           std::numeric_limits<Gain>, true>;
+using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
+                                               std::numeric_limits<Gain>, true>;
 
 namespace partition {
 struct RoundRobinQueueSelectionPolicy {

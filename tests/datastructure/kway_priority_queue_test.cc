@@ -10,7 +10,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 class AKWayPriorityQueue : public Test {
  public:
   AKWayPriorityQueue() :
@@ -244,4 +244,4 @@ TEST_F(AKWayPriorityQueue,
 
   ASSERT_THAT(prio_queue.numEnabledParts(), Eq(1));
 }
-}  // namespace datastructure
+}  // namespace ds

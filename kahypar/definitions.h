@@ -24,9 +24,9 @@ using HyperedgeWeight = std::int32_t;
 using PartitionID = std::int32_t;
 using Gain = HyperedgeWeight;
 
-using Hypergraph = datastructure::GenericHypergraph<HypernodeID,
-                                                    HyperedgeID, HypernodeWeight,
-                                                    HyperedgeWeight, PartitionID>;
+using Hypergraph = ds::GenericHypergraph<HypernodeID,
+                                         HyperedgeID, HypernodeWeight,
+                                         HyperedgeWeight, PartitionID>;
 
 using RatingType = double;
 using HypergraphType = Hypergraph::Type;

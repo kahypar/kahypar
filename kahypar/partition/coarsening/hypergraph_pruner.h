@@ -16,7 +16,6 @@
 #include "kahypar/utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetFlagArray;
 
 namespace partition {
 static const bool dbg_coarsening_single_node_he_removal = false;
@@ -280,6 +279,6 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  FastResetFlagArray<std::uint64_t> _contained_hypernodes;
+  ds::FastResetFlagArray<std::uint64_t> _contained_hypernodes;
 };
 }  // namespace partition

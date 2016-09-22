@@ -33,7 +33,7 @@ using meta::Empty;
 using meta::Int2Type;
 using partition::RefinementAlgorithm;
 
-namespace datastructure {
+namespace ds {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator, Iterator>& x) {
   return x.first;
@@ -1717,4 +1717,4 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
 }
-}  // namespace datastructure
+}  // namespace ds

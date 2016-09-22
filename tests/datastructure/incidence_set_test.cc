@@ -11,7 +11,7 @@
 using::testing::Test;
 using::testing::Eq;
 
-namespace datastructure {
+namespace ds {
 class AnIncidenceSet : public Test {
  public:
   AnIncidenceSet() :
@@ -313,4 +313,4 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
     ASSERT_THAT(pin, Eq(expected_pins_3_uncontracted[i++]));
   }
 }
-}  // namespace datastructure
+}  // namespace ds

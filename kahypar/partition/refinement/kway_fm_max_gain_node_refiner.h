@@ -26,8 +26,6 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::FastResetFlagArray;
-
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -506,7 +504,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
 
     // Validate the connectivity decrease
     ASSERT([&]() {
-        FastResetFlagArray<> connectivity_superset(_config.partition.k);
+        ds::FastResetFlagArray<> connectivity_superset(_config.partition.k);
         PartitionID old_connectivity = 0;
         for (const HyperedgeID he : _hg.incidentEdges(hn)) {
           connectivity_superset.reset();
@@ -593,8 +591,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   std::vector<PartitionID> _target_parts;
   std::vector<PartitionID> _tmp_max_gain_target_parts;
   KWayRefinementPQ _pq;
-  FastResetFlagArray<> _just_updated;
-  FastResetFlagArray<> _seen_as_max_part;
+  ds::FastResetFlagArray<> _just_updated;
+  ds::FastResetFlagArray<> _seen_as_max_part;
   StoppingPolicy _stopping_policy;
 };
 #pragma GCC diagnostic pop

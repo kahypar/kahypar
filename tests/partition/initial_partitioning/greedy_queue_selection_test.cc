@@ -17,13 +17,10 @@
 using::testing::Eq;
 using::testing::Test;
 
-using partition::FMGainComputationPolicy;
-using datastructure::KWayPriorityQueue;
-
-namespace partition {
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            std::numeric_limits<HyperedgeWeight>, true>;
 
+namespace partition {
 class AGreedyQueueSelectionTest : public Test {
  public:
   AGreedyQueueSelectionTest() :
@@ -104,7 +101,7 @@ class AGreedyQueueSelectionTest : public Test {
   HypernodeID current_hn;
   Gain current_gain;
   bool is_upper_bound_released;
-  FastResetFlagArray<> visit;
+  ds::FastResetFlagArray<> visit;
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {

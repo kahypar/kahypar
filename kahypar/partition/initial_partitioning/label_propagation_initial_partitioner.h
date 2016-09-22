@@ -237,7 +237,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       target_part.value -= internal_weight;
 
       ASSERT([&]() {
-          FastResetFlagArray<> bv(_hg.initialNumNodes());
+          ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
           Gain gain = GainComputation::calculateGain(_hg, hn, target_part.key, bv);
           if (target_part.value != gain) {
             LOGVAR(hn);
@@ -305,7 +305,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       target_part.value -= internal_weight;
 
       ASSERT([&]() {
-          FastResetFlagArray<> bv(_hg.initialNumNodes());
+          ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
           Gain gain = GainComputation::calculateGain(_hg, hn, target_part.key, bv);
           if (target_part.value != gain) {
             LOGVAR(hn);
@@ -408,8 +408,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   using InitialPartitionerBase::kInvalidNode;
   using InitialPartitionerBase::kInvalidPart;
-  FastResetFlagArray<> _in_queue;
-  InsertOnlySparseMap<PartitionID, Gain> _tmp_scores;
+  ds::FastResetFlagArray<> _in_queue;
+  ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_scores;
   std::vector<HypernodeID> _unassigned_nodes;
   std::vector<HypernodeID> _unconnected_nodes;
   unsigned int _unassigned_node_bound;

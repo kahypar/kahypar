@@ -30,11 +30,6 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::FastResetArray;
-using datastructure::FastResetFlagArray;
-using datastructure::SparseSet;
-using datastructure::BinaryMaxHeap;
-
 namespace partition {
 static const bool dbg_refinement_2way_fm_improvements_cut = false;
 static const bool dbg_refinement_2way_fm_improvements_balance = false;
@@ -51,7 +46,7 @@ template <class StoppingPolicy = Mandatory,
 class TwoWayFMRefiner final : public IRefiner,
                               private FMRefinerBase<HypernodeID>{
  private:
-  using RebalancePQ = BinaryMaxHeap<HypernodeID, Gain>;
+  using RebalancePQ = ds::BinaryMaxHeap<HypernodeID, Gain>;
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
 
  public:
@@ -983,12 +978,12 @@ class TwoWayFMRefiner final : public IRefiner,
   using FMRefinerBase::_hns_to_activate;
 
   std::array<RebalancePQ, 2> _rebalance_pqs;
-  FastResetFlagArray<> _he_fully_active;
-  FastResetFlagArray<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
+  ds::FastResetFlagArray<> _he_fully_active;
+  ds::FastResetFlagArray<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
   std::vector<HypernodeID> _non_border_hns_to_remove;
-  SparseSet<HypernodeID> _disabled_rebalance_hns;
+  ds::SparseSet<HypernodeID> _disabled_rebalance_hns;
   TwoWayFMGainCache<Gain> _gain_cache;
-  FastResetArray<PartitionID> _locked_hes;
+  ds::FastResetArray<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
 };
 

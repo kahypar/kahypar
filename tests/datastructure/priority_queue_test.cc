@@ -12,7 +12,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 using MaxHeapQueue = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<HypernodeID, HyperedgeWeight>;
 // using PairingHeapQueue = PairingHeapWrapper<HypernodeID, HyperedgeWeight>;
@@ -266,4 +266,4 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
 //   ASSERT_THAT(first_pq.top(), Eq(5));
 //   ASSERT_THAT(first_pq.topKey(), Eq(99));
 // }
-}  // namespace datastructure
+}  // namespace ds

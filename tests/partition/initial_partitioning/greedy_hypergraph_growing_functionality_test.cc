@@ -24,9 +24,6 @@
 using::testing::Eq;
 using::testing::Test;
 
-using datastructure::BinaryMaxHeap;
-
-
 namespace partition {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
                              PartitionID k) {

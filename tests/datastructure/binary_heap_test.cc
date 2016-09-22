@@ -9,7 +9,7 @@
 
 using::testing::Test;
 
-namespace datastructure {
+namespace ds {
 using MaxHeapType = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 using MinHeapType = BinaryMinHeap<HypernodeID, HyperedgeWeight>;
 
@@ -402,4 +402,4 @@ TEST_F(AMinHeap, IsSwappable) {
 
   ASSERT_EQ(_pqs[1].getKey(257), 0);
 }
-}  // namespace datastructure
+}  // namespace ds

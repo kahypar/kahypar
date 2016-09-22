@@ -10,7 +10,7 @@
 
 #include "kahypar/meta/mandatory.h"
 
-namespace datastructure {
+namespace ds {
 template <typename T = Mandatory>
 class FastResetArray {
  public:
@@ -102,4 +102,4 @@ class FastResetArray {
   std::vector<size_t> _used_entries;
   std::unique_ptr<T[]> _entries;
 };
-}  // namespace datastructure
+}  // namespace ds

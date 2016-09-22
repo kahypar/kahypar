@@ -21,10 +21,9 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 
 using meta::Int2Type;
-using datastructure::BinaryMaxHeap;
 
 namespace partition {
-template <class PrioQueue = BinaryMaxHeap<HypernodeID, RatingType> >
+template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
   using CoarsenerBase::performLocalSearch;

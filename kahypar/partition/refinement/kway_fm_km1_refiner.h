@@ -29,11 +29,6 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-
-using datastructure::FastResetArray;
-using datastructure::FastResetFlagArray;
-using datastructure::InsertOnlySparseMap;
-
 namespace partition {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -988,7 +983,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   using FMRefinerBase::_performed_moves;
   using FMRefinerBase::_hns_to_activate;
 
-  InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
+  ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
 
   // After a move, we have to update the gains for all adjacent HNs.
   // For all moves of a HN that were already present in the PQ before the
@@ -999,13 +994,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // the current updateNeighbours call. If we encounter such a new move,
   // we store the newly encountered part in this vector and do not perform
   // delta-gain updates for this part.
-  FastResetArray<PartitionID> _new_adjacent_part;
+  ds::FastResetArray<PartitionID> _new_adjacent_part;
 
   // 'Locking' of hyperedges for K-1 metric. When optimizing this metric,
   // each part of a hyperedge becomes unremovable, as soon as one of its
   // pins is moved to that part. For each HE e, this bitvector stores whether
   // or not a part in the connectivity set of e is unremovable.
-  FastResetFlagArray<> _unremovable_he_parts;
+  ds::FastResetFlagArray<> _unremovable_he_parts;
 
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;

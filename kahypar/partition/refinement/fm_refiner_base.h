@@ -33,8 +33,8 @@ class FMRefinerBase {
     locked = std::numeric_limits<PartitionID>::max(),
   };
 
-  using KWayRefinementPQ = datastructure::KWayPriorityQueue<HypernodeID, Gain,
-                                                            std::numeric_limits<Gain> >;
+  using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
+                                                 std::numeric_limits<Gain> >;
 
 
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :

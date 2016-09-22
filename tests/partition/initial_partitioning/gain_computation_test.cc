@@ -7,6 +7,7 @@
 
 #include "gmock/gmock.h"
 
+#include "kahypar/definitions.h"
 #include "kahypar/datastructure/binary_heap.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/kway_priority_queue.h"
@@ -16,14 +17,9 @@
 using::testing::Eq;
 using::testing::Test;
 
-using partition::FMGainComputationPolicy;
-using datastructure::KWayPriorityQueue;
-
-using Gain = HyperedgeWeight;
-
-namespace partition {
-using KWayRefinementPQ = KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                                            std::numeric_limits<HyperedgeWeight>, true>;
+namespace partition {
 
 class AGainComputationPolicy : public Test {
  public:
@@ -38,7 +34,6 @@ class AGainComputationPolicy : public Test {
     for (HypernodeID hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
-
     pq.initialize(hypergraph.initialNumNodes());
     initializeConfiguration(hypergraph_weight);
   }
@@ -83,7 +78,7 @@ class AGainComputationPolicy : public Test {
   KWayRefinementPQ pq;
   Hypergraph hypergraph;
   Configuration config;
-  FastResetFlagArray<> visit;
+  ds::FastResetFlagArray<> visit;
 };
 
 TEST_F(AGainComputationPolicy, ComputesCorrectFMGains) {
@@ -102,7 +97,7 @@ TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetFlagArray<> visit(hypergraph.initialNumNodes());
+  ds::FastResetFlagArray<> visit(hypergraph.initialNumNodes());
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1, 0,
                                            visit);
   ASSERT_EQ(pq.key(0, 1), -1);
@@ -127,7 +122,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
   hypergraph.setNodePart(0, 1);
   pq.remove(0, 1);
-  FastResetFlagArray<> visit(hypergraph.initialNumNodes());
+  ds::FastResetFlagArray<> visit(hypergraph.initialNumNodes());
   FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 0, -1, 1,
                                            visit);
 
@@ -174,7 +169,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetFlagArray<> visit(hypergraph.initialNumNodes());
+  ds::FastResetFlagArray<> visit(hypergraph.initialNumNodes());
   MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);
@@ -201,7 +196,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  FastResetFlagArray<> visit(hypergraph.initialNumNodes());
+  ds::FastResetFlagArray<> visit(hypergraph.initialNumNodes());
   MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);

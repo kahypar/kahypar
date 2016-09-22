@@ -12,7 +12,7 @@
 
 #include "kahypar/macros.h"
 
-namespace datastructure {
+namespace ds {
 // Base-Traits for binary heap
 template <typename Derived>
 struct BinaryHeapTraits;
@@ -393,4 +393,4 @@ struct BinaryHeapTraits<BinaryMinHeap<IDType_, KeyType_> >{
     return std::numeric_limits<KeyType_>::min();
   }
 };
-}  // namespace datastructure
+}  // namespace ds

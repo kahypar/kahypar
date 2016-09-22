@@ -32,7 +32,7 @@ using meta::Empty;
 using meta::Int2Type;
 using partition::RefinementAlgorithm;
 
-namespace datastructure {
+namespace ds {
 //! Helper function to allow range-based for loops
 template <typename Iterator>
 Iterator begin(const std::pair<Iterator, Iterator>& x) {
@@ -2256,4 +2256,4 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
 }
-}  // namespace datastructure
+}  // namespace ds

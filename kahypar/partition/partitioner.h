@@ -33,8 +33,6 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
 
-using datastructure::extractPartAsUnpartitionedHypergraphForBisection;
-using datastructure::reindex;
 using utils::Stats;
 
 // Workaround for bug in gtest
@@ -550,7 +548,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
 inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
                                                        const Configuration& config) {
   std::uniform_int_distribution<int> int_dist;
-  auto extracted_init_hypergraph = reindex(hg);
+  auto extracted_init_hypergraph = ds::reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
   double init_alpha = config.initial_partitioning.init_alpha;
@@ -760,7 +758,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
             LOG("-------------------------------------------------------------");
           }
 
-          auto extractedHypergraph_1 = extractPartAsUnpartitionedHypergraphForBisection(
+          auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1, current_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
@@ -774,7 +772,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
         break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
-            extractPartAsUnpartitionedHypergraphForBisection(
+            ds::extractPartAsUnpartitionedHypergraphForBisection(
               current_hypergraph, 0, original_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;

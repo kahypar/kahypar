@@ -17,7 +17,6 @@
 #include "kahypar/utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetFlagArray;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -136,7 +135,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   using Base::_config;
   using Base::_history;
   Rater _rater;
-  FastResetFlagArray<> _outdated_rating;
+  ds::FastResetFlagArray<> _outdated_rating;
   std::vector<HypernodeID> _target;
 };
 }              // namespace partition

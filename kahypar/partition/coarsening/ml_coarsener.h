@@ -14,8 +14,6 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
 
-using datastructure::FastResetFlagArray;
-
 namespace partition {
 template <class Rater = Mandatory>
 class MLCoarsener final : public ICoarsener,
@@ -68,7 +66,7 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
-    FastResetFlagArray<> already_matched(_hg.initialNumNodes());
+    ds::FastResetFlagArray<> already_matched(_hg.initialNumNodes());
     while (_hg.currentNumNodes() > limit) {
       LOGVAR(pass_nr);
       LOGVAR(_hg.currentNumNodes());
@@ -113,7 +111,7 @@ class MLCoarsener final : public ICoarsener,
     }
   }
 
-  Rating contractionPartner(const HypernodeID u, const FastResetFlagArray<>& already_matched) {
+  Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     for (const HyperedgeID he : _hg.incidentEdges(u)) {
@@ -169,7 +167,7 @@ class MLCoarsener final : public ICoarsener,
 
   bool acceptRating(const RatingType tmp, const RatingType max_rating,
                     const HypernodeID old_target, const HypernodeID new_target,
-                    const FastResetFlagArray<>& already_matched) const {
+                    const ds::FastResetFlagArray<>& already_matched) const {
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
@@ -197,6 +195,6 @@ class MLCoarsener final : public ICoarsener,
   using Base::_hg;
   using Base::_config;
   using Base::_history;
-  SparseMap<HypernodeID, RatingType> _tmp_ratings;
+  ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
 }  // namespace partition

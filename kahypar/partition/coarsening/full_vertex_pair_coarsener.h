@@ -18,7 +18,6 @@
 #include "kahypar/utils/stats.h"
 
 using utils::Stats;
-using datastructure::FastResetFlagArray;
 
 namespace partition {
 template <class Rater = Mandatory>
@@ -51,10 +50,10 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
     rateAllHypernodes(_rater, _target);
 
-    FastResetFlagArray<> rerated_hypernodes(_hg.initialNumNodes());
+    ds::FastResetFlagArray<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
     // PQ because they are heavier than allowed.
-    FastResetFlagArray<> invalid_hypernodes(_hg.initialNumNodes());
+    ds::FastResetFlagArray<> invalid_hypernodes(_hg.initialNumNodes());
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -100,8 +99,8 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
-                                FastResetFlagArray<>& rerated_hypernodes,
-                                FastResetFlagArray<>& invalid_hypernodes) {
+                                ds::FastResetFlagArray<>& rerated_hypernodes,
+                                ds::FastResetFlagArray<>& invalid_hypernodes) {
     for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
@@ -116,7 +115,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
 
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating,
-                                    FastResetFlagArray<>& invalid_hypernodes) {
+                                    ds::FastResetFlagArray<>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn),
              "Trying to update rating of HN " << hn << " which is not in PQ");

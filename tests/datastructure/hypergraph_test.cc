@@ -19,7 +19,7 @@ using::testing::Test;
 
 using partition::CoarseningMemento;
 
-namespace datastructure {
+namespace ds {
 using Memento = Hypergraph::ContractionMemento;
 TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
@@ -861,4 +861,4 @@ TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
   ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) !=
               hypergraph.pins(1).second, Eq(true));
 }
-}  // namespace datastructure
+}  // namespace ds

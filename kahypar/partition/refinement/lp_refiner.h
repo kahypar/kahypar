@@ -21,9 +21,6 @@
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/randomize.h"
 
-using datastructure::InsertOnlySparseMap;
-using datastructure::FastResetFlagArray;
-
 namespace partition {
 class LPRefiner final : public IRefiner {
   using GainPartitionPair = std::pair<Gain, PartitionID>;
@@ -599,15 +596,15 @@ class LPRefiner final : public IRefiner {
   const Configuration& _config;
   std::vector<HypernodeID> _cur_queue;
   std::vector<HypernodeID> _next_queue;
-  FastResetFlagArray<> _contained_cur_queue;
-  FastResetFlagArray<> _contained_next_queue;
+  ds::FastResetFlagArray<> _contained_cur_queue;
+  ds::FastResetFlagArray<> _contained_next_queue;
 
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
-  InsertOnlySparseMap<PartitionID, LPGain> _tmp_gains;
+  ds::InsertOnlySparseMap<PartitionID, LPGain> _tmp_gains;
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.
-  FastResetArray<PartitionID> _already_processed_part;
+  ds::FastResetArray<PartitionID> _already_processed_part;
 };
 }  // namespace partition

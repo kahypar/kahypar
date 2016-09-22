@@ -169,7 +169,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::kInvalidNode;
 
   std::vector<std::queue<HypernodeID> > _queues;
-  FastResetFlagArray<> _hypernode_in_queue;
-  FastResetFlagArray<> _hyperedge_in_queue;
+  ds::FastResetFlagArray<> _hypernode_in_queue;
+  ds::FastResetFlagArray<> _hyperedge_in_queue;
 };
 }  // namespace partition
