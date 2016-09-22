@@ -22,7 +22,6 @@
 #include "partition/refinement/i_refiner.h"
 #include "partition/refinement/kway_fm_cut_refiner.h"
 #include "partition/refinement/kway_fm_km1_refiner.h"
-#include "partition/refinement/kway_fm_max_gain_node_refiner.h"
 #include "partition/refinement/lp_refiner.h"
 #include "partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "partition/refinement/policies/fm_stop_policy.h"
