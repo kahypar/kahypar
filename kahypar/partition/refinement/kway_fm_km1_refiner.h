@@ -30,8 +30,6 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayKMinusOneRefiner final : public IRefiner,
@@ -1005,5 +1003,4 @@ class KWayKMinusOneRefiner final : public IRefiner,
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 };
-#pragma GCC diagnostic pop
 }  // namespace kahypar

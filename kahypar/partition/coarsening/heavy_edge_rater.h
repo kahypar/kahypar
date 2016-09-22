@@ -17,9 +17,6 @@
 namespace kahypar {
 static const bool dbg_partition_rating = false;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-// See Modern C++ Design for the reason why _TiebreakingPolicy has protected non-virtual destructor
 template <typename _RatingType, class _TieBreakingPolicy>
 class HeavyEdgeRater {
  public:
@@ -131,5 +128,4 @@ class HeavyEdgeRater {
   const Configuration& _config;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
-#pragma GCC diagnostic pop
 }  // namespace kahypar

@@ -38,8 +38,6 @@ static const bool dbg_refinement_2way_fm_gain_update = false;
 static const bool dbg_refinement_2way_fm__activation = false;
 static const bool dbg_refinement_2way_locked_hes = false;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           class UseGlobalRebalancing = NoGlobalRebalancing,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
@@ -986,6 +984,4 @@ class TwoWayFMRefiner final : public IRefiner,
   ds::FastResetArray<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
 };
-
-#pragma GCC diagnostic pop
 }                                   // namespace kahypar

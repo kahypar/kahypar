@@ -129,8 +129,6 @@ class GenericHypergraph2 {
  private:
   static const HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
   template <typename VertexTypeTraits, class InternalVertexData>
   class InternalVertex : public InternalVertexData {
  public:
@@ -211,7 +209,6 @@ class GenericHypergraph2 {
     WeightType _weight;
     bool _valid;
   };
-#pragma GCC diagnostic pop
 
   template <typename ContainerType>
   class VertexIterator {

@@ -27,8 +27,6 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
           // does nothing for KFM
           bool global_rebalancing = false,
@@ -595,5 +593,4 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   ds::FastResetFlagArray<> _seen_as_max_part;
   StoppingPolicy _stopping_policy;
 };
-#pragma GCC diagnostic pop
 }             // namespace kahypar

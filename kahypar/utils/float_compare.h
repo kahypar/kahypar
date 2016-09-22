@@ -2,8 +2,6 @@
 #define EXTERNAL_UTILS_H_
 // taken from http://stackoverflow.com/questions/17333/most-effective-way-for-float-and-double-comparison
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
 // Copyright 2005, Google Inc.
 // All rights reserved.
 //
@@ -265,6 +263,4 @@ class FloatingPoint {
 
   FloatingPointUnion u_;
 };
-#pragma GCC diagnostic pop
-
 #endif  // EXTERNAL_UTILS_H_
