@@ -10,6 +10,7 @@
 
 using::testing::Test;
 
+using namespace kahypar;
 
 namespace cnfconversion {
 TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
@@ -17,7 +18,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
   std::string hgr_filename("test_instances/SampleSAT.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename);
 
-  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 8);
   ASSERT_EQ(hypergraph.initialNumPins(), 9);

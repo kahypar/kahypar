@@ -20,6 +20,11 @@
 
 namespace po = boost::program_options;
 
+using kahypar::HypernodeID;
+using kahypar::HyperedgeID;
+using kahypar::PartitionID;
+using kahypar::Hypergraph;
+using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
 using kahypar::Configuration;
 using kahypar::Mode;

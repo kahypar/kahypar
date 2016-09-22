@@ -16,8 +16,8 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, Gain,
-                                                        std::numeric_limits<Gain>, true>;
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<kahypar::HypernodeID, kahypar::Gain,
+                                                        std::numeric_limits<kahypar::Gain>, true>;
 
 namespace kahypar {
 enum class GainType : std::uint8_t {

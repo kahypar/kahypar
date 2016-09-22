@@ -10,6 +10,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/metrics.h"
 
+using namespace kahypar;
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "Wrong number of arguments!" << std::endl;

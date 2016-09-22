@@ -8,6 +8,8 @@
 
 #include "kahypar/definitions.h"
 
+using namespace kahypar;
+
 // ! \addtogroup tools
 // ! \{
 

@@ -11,6 +11,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
 
+using namespace kahypar;
+
 int main(int argc, char* argv[]) {
   if (argc != 2 && argc != 3) {
     std::cout << "No .hgr file specified" << std::endl;
@@ -30,7 +32,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  Hypergraph hypergraph(kahypar::io::createHypergraphFromFile(hgr_filename, max_part + 1));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, max_part + 1));
 
   if (partition.size() != 0 && partition.size() != hypergraph.initialNumNodes()) {
     std::cout << "partition file has incorrect size. Exiting." << std::endl;

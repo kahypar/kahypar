@@ -11,6 +11,8 @@
 #include "kahypar/macros.h"
 #include "tools/hgr_to_edgelist_conversion.h"
 
+using namespace kahypar;
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "No .hgr file specified" << std::endl;

@@ -17,8 +17,10 @@
 using::testing::Eq;
 using::testing::Test;
 
-using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                                        std::numeric_limits<HyperedgeWeight>, true>;
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<
+        kahypar::HypernodeID,
+        kahypar::HyperedgeWeight,
+        std::numeric_limits<kahypar::HyperedgeWeight>, true>;
 
 namespace kahypar {
 class AGreedyQueueSelectionTest : public Test {

@@ -14,6 +14,8 @@
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/metrics.h"
 
+using namespace kahypar;
+
 static inline double imb(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight max_weight = hypergraph.partWeight(0);
   for (PartitionID i = 1; i != k; ++i) {
@@ -36,13 +38,13 @@ int main(int argc, char* argv[]) {
   if (argc == 3) {
     std::string partition_filename(argv[2]);
     std::cout << "Reading partition file: " << partition_filename << std::endl;
-    kahypar::io::readPartitionFile(partition_filename, partition);
+    io::readPartitionFile(partition_filename, partition);
     for (size_t index = 0; index < partition.size(); ++index) {
       max_part = std::max(max_part, partition[index]);
     }
   }
 
-  Hypergraph hypergraph(kahypar::io::createHypergraphFromFile(hgr_filename, max_part + 1));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, max_part + 1));
 
   if (partition.size() != 0 && partition.size() != hypergraph.initialNumNodes()) {
     std::cout << "partition file has incorrect size. Exiting." << std::endl;
@@ -53,15 +55,15 @@ int main(int argc, char* argv[]) {
     hypergraph.setNodePart(index, partition[index]);
   }
 
-  kahypar::Configuration config;
+  Configuration config;
   config.partition.k = max_part + 1;
 
   std::cout << "***********************" << hypergraph.k()
   << "-way Partition Result************************" << std::endl;
-  std::cout << "cut=" << kahypar::metrics::hyperedgeCut(hypergraph) << std::endl;
-  std::cout << "soed=" << kahypar::metrics::soed(hypergraph) << std::endl;
-  std::cout << "km1= " << kahypar::metrics::km1(hypergraph) << std::endl;
-  std::cout << "absorption= " << kahypar::metrics::absorption(hypergraph) << std::endl;
+  std::cout << "cut=" << metrics::hyperedgeCut(hypergraph) << std::endl;
+  std::cout << "soed=" << metrics::soed(hypergraph) << std::endl;
+  std::cout << "km1= " << metrics::km1(hypergraph) << std::endl;
+  std::cout << "absorption= " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "imbalance= " << imb(hypergraph, config.partition.k)
   << std::endl;
   return 0;

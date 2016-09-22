@@ -10,6 +10,8 @@
 
 using::testing::Test;
 
+using namespace kahypar;
+
 namespace mtxconversion {
 TEST(AnMtxToHgrConversionRoutine, ParsesMTXHeaderAndReturnsMatrixType) {
   std::string filename("test_instances/CoordinateSymmetric.mtx");

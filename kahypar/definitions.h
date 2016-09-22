@@ -17,6 +17,7 @@
 // Gather advanced statistics
 // #define GATHER_STATS
 
+namespace kahypar {
 using HypernodeID = std::uint32_t;
 using HyperedgeID = std::uint32_t;
 using HypernodeWeight = std::uint32_t;
@@ -37,14 +38,17 @@ using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
 using IncidenceIterator = Hypergraph::IncidenceIterator;
 
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+}  // namespace kahypar
 
 // this is nasty and needs to be fixed
 namespace std {
-static IncidenceIterator begin(const std::pair<IncidenceIterator, IncidenceIterator>& x) {
+static kahypar::IncidenceIterator begin(const std::pair<kahypar::IncidenceIterator,
+                                                        kahypar::IncidenceIterator>& x) {
   return x.first;
 }
 
-static IncidenceIterator end(const std::pair<IncidenceIterator, IncidenceIterator>& x) {
+static kahypar::IncidenceIterator end(const std::pair<kahypar::IncidenceIterator,
+                                                      kahypar::IncidenceIterator>& x) {
   return x.second;
 }
 

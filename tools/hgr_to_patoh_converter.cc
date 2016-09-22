@@ -11,6 +11,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
 
+using namespace kahypar;
+
 int main(int argc, char* argv[]) {
   if (argc != 3) {
     std::cout << "No .hgr file specified" << std::endl;
@@ -21,9 +23,9 @@ int main(int argc, char* argv[]) {
   std::string out_filename(argv[2]);
 
   Hypergraph hypergraph(
-    kahypar::io::createHypergraphFromFile(hgr_filename, 2));
+    io::createHypergraphFromFile(hgr_filename, 2));
 
-  kahypar::io::writeHypergraphForPaToHPartitioning(hypergraph, out_filename);
+  io::writeHypergraphForPaToHPartitioning(hypergraph, out_filename);
 
   return 0;
 }
