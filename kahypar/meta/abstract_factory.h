@@ -10,6 +10,7 @@
 #include "kahypar/meta/function_traits.h"
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace meta {
 template <typename IdentifierType = Mandatory,
           typename ProductCreator = Mandatory>
@@ -57,3 +58,4 @@ class Factory {
   CallbackMap _callbacks;
 };
 }  // namespace meta
+}  // namespace kahypar

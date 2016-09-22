@@ -8,7 +8,7 @@
 
 using::testing::Eq;
 
-namespace partition {
+namespace kahypar {
 namespace math {
 TEST(NextPowerOfTwoCeiled, WorksAsExpected) {
   ASSERT_THAT(nextPowerOfTwoCeiled(static_cast<unsigned int>(1)), Eq(1));

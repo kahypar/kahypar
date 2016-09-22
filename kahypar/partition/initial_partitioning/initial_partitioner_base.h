@@ -19,16 +19,7 @@
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
-using partition::Configuration;
-using partition::StoppingPolicy;
-using partition::NumberOfFruitlessMovesStopsSearch;
-using partition::RandomWalkModelStopsSearch;
-using partition::nGPRandomWalkStopsSearch;
-using partition::RefinerFactory;
-using partition::KWayFMRefiner;
-using partition::IRefiner;
-
-namespace partition {
+namespace kahypar {
 class InitialPartitionerBase {
  protected:
   static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
@@ -181,4 +172,4 @@ class InitialPartitionerBase {
   unsigned int _unassigned_node_bound;
   HypernodeWeight _max_hypernode_weight;
 };
-}  // namespace partition
+}  // namespace kahypar

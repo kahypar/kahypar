@@ -6,10 +6,8 @@
 
 #include "kahypar/meta/policy_registry.h"
 
-using meta::PolicyBase;
-
-namespace partition {
-struct ImprovementPolicy : PolicyBase { };
+namespace kahypar {
+struct ImprovementPolicy : meta::PolicyBase { };
 
 class CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
  public:
@@ -22,4 +20,4 @@ class CutDecreasedOrInfeasibleImbalanceDecreased : public ImprovementPolicy {
            ((initial_imbalance > max_imbalance) && (best_imbalance < initial_imbalance));
   }
 };
-}  // namespace partition
+}  // namespace kahypar

@@ -12,6 +12,7 @@
 
 #include "kahypar/macros.h"
 
+namespace kahypar {
 namespace ds {
 // Base-Traits for binary heap
 template <typename Derived>
@@ -394,3 +395,4 @@ struct BinaryHeapTraits<BinaryMinHeap<IDType_, KeyType_> >{
   }
 };
 }  // namespace ds
+}  // namespace kahypar

@@ -13,10 +13,7 @@
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/metrics.h"
 
-using partition::Configuration;
-
-namespace partition {
-
+namespace kahypar {
 class Stats {
  private:
   using StatsMap = std::map<std::string, double>;
@@ -190,4 +187,4 @@ static inline void gatherCoarseningStats(const Hypergraph&, const int, const Par
                                          const PartitionID) { }
 
 #endif
-}  // namespace partition
+}  // namespace kahypar

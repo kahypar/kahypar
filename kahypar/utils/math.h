@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace partition {
+namespace kahypar {
 namespace math {
 // See: Warren, Henry S. Hacker's Delight (Second Edition), p.61
 template <typename T>
@@ -79,4 +79,4 @@ static inline T hash(const T& x) {
   return cs2(x);
 }
 }  // namespace math
-}  // namespace partition
+}  // namespace kahypar

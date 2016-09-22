@@ -19,7 +19,7 @@ using::testing::Test;
 using::testing::Eq;
 using::testing::DoubleEq;
 
-namespace partition {
+namespace kahypar {
 namespace metrics {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
@@ -135,4 +135,4 @@ TEST_F(TheDemoHypergraph, HasAvgHypernodeDegree12Div7) {
   ASSERT_THAT(avgHypernodeDegree(hypergraph), DoubleEq(12.0 / 7));
 }
 }  // namespace metrics
-}  // namespace partition
+}  // namespace kahypar

@@ -17,7 +17,7 @@
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 template <class StartNodeSelection = Mandatory>
 class BFSInitialPartitioner : public IInitialPartitioner,
                               private InitialPartitionerBase {
@@ -172,4 +172,4 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   ds::FastResetFlagArray<> _hypernode_in_queue;
   ds::FastResetFlagArray<> _hyperedge_in_queue;
 };
-}  // namespace partition
+}  // namespace kahypar

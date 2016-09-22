@@ -18,7 +18,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 void initializeConfiguration(Configuration& config, PartitionID k,
                              HypernodeWeight hypergraph_weight) {
   config.initial_partitioning.k = k;
@@ -179,4 +179,4 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
-}  // namespace partition
+}  // namespace kahypar

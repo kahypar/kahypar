@@ -17,10 +17,10 @@
 using::testing::Eq;
 using::testing::Test;
 
-using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, true>;
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                                        std::numeric_limits<HyperedgeWeight>, true>;
 
-namespace partition {
+namespace kahypar {
 class AGreedyQueueSelectionTest : public Test {
  public:
   AGreedyQueueSelectionTest() :
@@ -301,4 +301,4 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDBehaviourIfUpperBou
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 5);
 }
-}  // namespace partition
+}  // namespace kahypar

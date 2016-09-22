@@ -11,7 +11,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 class InitialPartitionerBaseTest : public Test {
  public:
   InitialPartitionerBaseTest() :
@@ -107,4 +107,4 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
     ASSERT_EQ(hypergraph.partID(hn), 0);
   }
 }
-}  // namespace partition
+}  // namespace kahypar

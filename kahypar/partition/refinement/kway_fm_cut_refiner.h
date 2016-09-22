@@ -28,7 +28,7 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 template <class StoppingPolicy = Mandatory,
@@ -246,7 +246,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   std::string policyStringImpl() const override final {
-    return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
+    return std::string(" RefinerStoppingPolicy=" + meta::templateToString<StoppingPolicy>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true"
@@ -1119,4 +1119,4 @@ class KWayFMRefiner final : public IRefiner,
 };
 
 #pragma GCC diagnostic pop
-}  // namespace partition
+}  // namespace kahypar

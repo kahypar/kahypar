@@ -11,6 +11,7 @@
 
 using::testing::Test;
 
+namespace kahypar {
 namespace meta {
 // The policies
 struct PrintChar : PolicyBase { };
@@ -157,21 +158,21 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   Registrar<PrinterFactory> reg1(PrintingAlgorithms::Printer1,
                                  [](const PrinterConfiguration& config,
                                     int a, int b, const std::string& s) {
-      // Forward a,b and s to the constructor of Printer and
-      // instantiate the correct policies.
-      return PrinterFactoryDispatcher::create(
-        std::forward_as_tuple(a, b, s),                                // constructor arguments
-        PrinterPolicyRegistry::getInstance().getPolicy(config.char_policy),
-        PrinterPolicyRegistry::getInstance().getPolicy(config.int_policy),
-        PrinterPolicyRegistry::getInstance().getPolicy(config.symbol_policy));
-    });
+        // Forward a,b and s to the constructor of Printer and
+        // instantiate the correct policies.
+        return PrinterFactoryDispatcher::create(
+          std::forward_as_tuple(a, b, s),                              // constructor arguments
+          PrinterPolicyRegistry::getInstance().getPolicy(config.char_policy),
+          PrinterPolicyRegistry::getInstance().getPolicy(config.int_policy),
+          PrinterPolicyRegistry::getInstance().getPolicy(config.symbol_policy));
+      });
 
   // Register a second printer that does not use the dispatcher.
   Registrar<PrinterFactory> reg2(PrintingAlgorithms::Printer2,
                                  [](const PrinterConfiguration&,
                                     int a, int, const std::string& s) -> IPrinter* {
-      return new Z99StarPrinter(a, a, s);
-    });
+        return new Z99StarPrinter(a, a, s);
+      });
 
   // Get a Printer1 instance that uses the default policy classes.
   std::unique_ptr<IPrinter> default_printer = PrinterFactory::getInstance().createObject(
@@ -205,3 +206,4 @@ TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   ASSERT_EQ(z99star_printer->printSymbol(), "*");
 }
 }  // namespace meta
+}  // namespace kahypar

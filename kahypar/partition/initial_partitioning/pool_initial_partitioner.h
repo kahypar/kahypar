@@ -15,9 +15,7 @@
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/utils/randomize.h"
 
-using partition::Configuration;
-
-namespace partition {
+namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
                                private InitialPartitionerBase {
  private:
@@ -183,4 +181,4 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
 };
-}  // namespace partition
+}  // namespace kahypar

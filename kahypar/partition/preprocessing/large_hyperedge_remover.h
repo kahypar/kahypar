@@ -9,7 +9,7 @@
 
 #include "kahypar/definitions.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_partition_large_he_removal = false;
 static const bool dbg_partition_large_he_restore = false;
 
@@ -76,4 +76,4 @@ class LargeHyperedgeRemover {
  private:
   std::vector<HyperedgeID> _removed_hes;
 };
-}  // namespace partition
+}  // namespace kahypar

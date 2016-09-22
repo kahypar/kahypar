@@ -15,12 +15,7 @@
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
 
-using partition::Configuration;
-using partition::Partitioner;
-using partition::toString;
-using partition::RefinementAlgorithm;
-
-namespace partition {
+namespace kahypar {
 namespace io {
 namespace serializer {
 static inline void serialize(const Configuration& config, const Hypergraph& hypergraph,
@@ -133,4 +128,4 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
 }
 }  // namespace serializer
 }  // namespace io
-}  // namespace partition
+}  // namespace kahypar

@@ -12,6 +12,7 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/meta/typelist.h"
 
+namespace kahypar {
 namespace meta {
 /*!
  * Generalization of StaticDoubleDispatchFactory to support 'true multiple' dispatch.
@@ -230,3 +231,4 @@ class StaticMultiDispatchFactory<Product,
   }
 };
 }  // namespace meta
+}  // namespace kahypar

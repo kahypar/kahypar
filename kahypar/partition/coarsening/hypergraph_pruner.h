@@ -15,7 +15,7 @@
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
 static const bool dbg_coarsening_fingerprinting = false;
@@ -279,4 +279,4 @@ class HypergraphPruner {
   std::vector<Fingerprint> _fingerprints;
   ds::FastResetFlagArray<std::uint64_t> _contained_hypernodes;
 };
-}  // namespace partition
+}  // namespace kahypar

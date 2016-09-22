@@ -8,7 +8,7 @@
 
 #include "kahypar/definitions.h"
 
-namespace partition {
+namespace kahypar {
 class SingleNodeHyperedgeRemover {
  public:
   struct RemovalResult {
@@ -50,4 +50,4 @@ class SingleNodeHyperedgeRemover {
  private:
   std::vector<HyperedgeID> _removed_hes;
 };
-}  // namespace partition
+}  // namespace kahypar

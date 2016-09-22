@@ -10,6 +10,7 @@
 
 using::testing::Test;
 
+namespace kahypar {
 namespace ds {
 class AHypergraph : public Test {
  public:
@@ -83,3 +84,4 @@ class AnUnPartitionedHypergraph : public AHypergraph {
     AHypergraph() { }
 };
 }  // namespace ds
+}  // namespace kahypar

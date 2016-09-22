@@ -33,7 +33,7 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 // Workaround for bug in gtest
 // Because of different namespaces it is not possible to use
 // FRIEND_TEST macro.
@@ -110,8 +110,8 @@ class Partitioner {
   FRIEND_TEST(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph);
   FRIEND_TEST(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning);
   FRIEND_TEST(APartitioner, CanUseVcyclesAsGlobalSearchStrategy);
-  friend class partition::io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
-  friend class partition::metrics::APartitionedHypergraph;
+  friend class io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
+  friend class metrics::APartitionedHypergraph;
 
   inline void performDirectKwayPartitioning(Hypergraph& hypergraph,
                                             const Configuration& config);
@@ -836,4 +836,4 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
     ++i;
   }
 }
-}  // namespace partition
+}  // namespace kahypar

@@ -21,7 +21,7 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_rating = false;
 static const bool dbg_coarsening_no_valid_contraction = false;
@@ -163,4 +163,4 @@ class CoarsenerBase {
   std::vector<CurrentMaxNodeWeight> _max_hn_weights;
   HypergraphPruner _hypergraph_pruner;
 };
-}  // namespace partition
+}  // namespace kahypar

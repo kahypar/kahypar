@@ -7,7 +7,7 @@
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
 
-namespace partition {
+namespace kahypar {
 struct RebalancingPolicy : meta::PolicyBase {
  protected:
   RebalancingPolicy() { }
@@ -25,4 +25,4 @@ struct NoGlobalRebalancing : public RebalancingPolicy,
 
 using RebalancingPolicyClasses = meta::Typelist<GlobalRebalancing,
                                                 NoGlobalRebalancing>;
-}  // namespace partition
+}  // namespace kahypar

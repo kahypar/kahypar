@@ -4,6 +4,7 @@
 
 #pragma once
 
+namespace kahypar {
 namespace meta {
 class NullType { };
 // default variadic template
@@ -64,3 +65,4 @@ struct concat {
   using type = typename flatMap<Typelist<Lists ...> >::type;
 };
 }  // namespace meta
+}  // namespace kahypar

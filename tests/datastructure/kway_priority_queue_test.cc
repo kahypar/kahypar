@@ -10,6 +10,7 @@
 using::testing::Eq;
 using::testing::Test;
 
+namespace kahypar {
 namespace ds {
 class AKWayPriorityQueue : public Test {
  public:
@@ -245,3 +246,4 @@ TEST_F(AKWayPriorityQueue,
   ASSERT_THAT(prio_queue.numEnabledParts(), Eq(1));
 }
 }  // namespace ds
+}  // namespace kahypar

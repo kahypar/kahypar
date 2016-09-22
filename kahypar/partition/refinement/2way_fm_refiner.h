@@ -30,7 +30,7 @@
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_refinement_2way_fm_improvements_cut = false;
 static const bool dbg_refinement_2way_fm_improvements_balance = false;
 static const bool dbg_refinement_2way_fm_stopping_crit = false;
@@ -899,8 +899,8 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   std::string policyStringImpl() const override final {
-    return std::string(" RefinerStoppingPolicy=" + templateToString<StoppingPolicy>() +
-                       " RefinerGlobalRebalacing=" + templateToString<UseGlobalRebalancing>() +
+    return std::string(" RefinerStoppingPolicy=" + meta::templateToString<StoppingPolicy>() +
+                       " RefinerGlobalRebalacing=" + meta::templateToString<UseGlobalRebalancing>() +
                        " RefinerUsesBucketQueue=" +
 #ifdef USE_BUCKET_PQ
                        "true");
@@ -988,4 +988,4 @@ class TwoWayFMRefiner final : public IRefiner,
 };
 
 #pragma GCC diagnostic pop
-}                                   // namespace partition
+}                                   // namespace kahypar

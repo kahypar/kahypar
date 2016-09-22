@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "kahypar/meta/policy_registry.h"
-
+namespace kahypar {
 namespace meta {
 template <int v = 0>
 struct Int2Type {
   enum { value = v };
 };
 }  // namespace meta
+}  // namespace kahypar

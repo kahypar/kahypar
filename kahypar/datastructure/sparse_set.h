@@ -17,6 +17,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace ds {
 template <typename ValueType = Mandatory,
           typename Derived = Mandatory>
@@ -179,3 +180,4 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType, SparseSet<Valu
   using Base::_dense;
 };
 }  // namespace ds
+}  // namespace kahypar

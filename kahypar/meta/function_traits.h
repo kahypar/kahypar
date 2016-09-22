@@ -6,6 +6,7 @@
 
 #include <tuple>
 
+namespace kahypar {
 namespace meta {
 // based on: http://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda
 
@@ -42,4 +43,5 @@ struct FunctionTraits<ReturnType (*)(Args ...)>{
 
   using args = std::tuple<Args ...>;
 };
-}  // namespace core
+}  // namespace meta
+}  // namespace kahypar

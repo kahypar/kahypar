@@ -6,6 +6,7 @@
 
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace meta {
 template <typename Factory = Mandatory>
 class Registrar {
@@ -17,3 +18,4 @@ class Registrar {
   }
 };
 }  // namespace meta
+}  // namespace kahypar

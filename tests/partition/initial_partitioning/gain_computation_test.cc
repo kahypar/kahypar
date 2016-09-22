@@ -7,20 +7,19 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/definitions.h"
 #include "kahypar/datastructure/binary_heap.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar/definitions.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 #include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
 
 using::testing::Eq;
 using::testing::Test;
 
-using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
-                                           std::numeric_limits<HyperedgeWeight>, true>;
-namespace partition {
-
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, HyperedgeWeight,
+                                                        std::numeric_limits<HyperedgeWeight>, true>;
+namespace kahypar {
 class AGainComputationPolicy : public Test {
  public:
   AGainComputationPolicy() :
@@ -206,4 +205,4 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   ASSERT_EQ(pq.key(5, 0), 1);
   ASSERT_EQ(pq.key(6, 0), 2);
 }
-}  // namespace partition
+}  // namespace kahypar

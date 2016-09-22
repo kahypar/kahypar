@@ -9,7 +9,7 @@
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
-namespace partition {
+namespace kahypar {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using CoarsenerType = LazyVertexPairCoarsener<FirstWinsRater>;
 
@@ -78,4 +78,4 @@ TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
   ASSERT_THAT(coarsener._outdated_rating[3], Eq(true));
   ASSERT_THAT(coarsener._outdated_rating[4], Eq(true));
 }
-}  // namespace partition
+}  // namespace kahypar

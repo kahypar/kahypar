@@ -22,7 +22,7 @@
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory>
 class LabelPropagationInitialPartitioner : public IInitialPartitioner,
@@ -414,4 +414,4 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   std::vector<HypernodeID> _unconnected_nodes;
   unsigned int _unassigned_node_bound;
 };
-}  // namespace partition
+}  // namespace kahypar

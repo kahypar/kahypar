@@ -10,7 +10,7 @@
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/metrics.h"
 
-namespace partition {
+namespace kahypar {
 class IInitialPartitioner {
  public:
   IInitialPartitioner(const IInitialPartitioner&) = delete;
@@ -47,4 +47,4 @@ class IInitialPartitioner {
  private:
   virtual void partitionImpl() = 0;
 };
-}  // namespace partition
+}  // namespace kahypar

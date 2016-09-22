@@ -14,7 +14,7 @@
 #include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
 #include "kahypar/partition/configuration.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_partition_rating = false;
 
 #pragma GCC diagnostic push
@@ -132,4 +132,4 @@ class Rater {
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
 #pragma GCC diagnostic pop
-}  // namespace partition
+}  // namespace kahypar

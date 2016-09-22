@@ -15,7 +15,7 @@
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 class IRefiner {
  public:
   IRefiner(const IRefiner&) = delete;
@@ -60,4 +60,4 @@ class IRefiner {
   virtual void initializeImpl(const HyperedgeWeight) { }
   virtual std::string policyStringImpl() const = 0;
 };
-}  // namespace partition
+}  // namespace kahypar

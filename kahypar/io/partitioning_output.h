@@ -19,7 +19,7 @@
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 namespace io {
 namespace {
 template <typename T>
@@ -167,4 +167,4 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
   }
 }
 }  // namespace io
-}  // namespace partition
+}  // namespace kahypar

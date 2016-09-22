@@ -21,7 +21,7 @@
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 class LPRefiner final : public IRefiner {
   using GainPartitionPair = std::pair<Gain, PartitionID>;
 
@@ -607,4 +607,4 @@ class LPRefiner final : public IRefiner {
   // see KWayFMRefiner.h for documentation.
   ds::FastResetArray<PartitionID> _already_processed_part;
 };
-}  // namespace partition
+}  // namespace kahypar

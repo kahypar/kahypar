@@ -11,6 +11,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
+namespace kahypar {
 namespace ds {
 template <typename T>
 class ASparseMap : public Test {
@@ -102,3 +103,4 @@ TYPED_TEST(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
   ASSERT_FALSE(this->sparse_map.contains(3));
 }
 }  // namespace ds
+}  // namespace kahypar

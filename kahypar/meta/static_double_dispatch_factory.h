@@ -7,6 +7,7 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/meta/typelist.h"
 
+namespace kahypar {
 namespace meta {
 template <
   class Executor = Mandatory,
@@ -85,3 +86,4 @@ class StaticDoubleDispatchFactory<Executor, TypesLhs, NullType, ResultType>{
   }
 };
 }  // namespace meta
+}  // namespace kahypar

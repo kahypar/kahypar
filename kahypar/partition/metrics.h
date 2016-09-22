@@ -12,8 +12,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration.h"
 
-namespace partition {
-
+namespace kahypar {
 struct Metrics {
   HyperedgeWeight cut;
   HyperedgeWeight km1;
@@ -284,4 +283,4 @@ static inline void connectivityStats(const Hypergraph& hypergraph,
   }
 }
 }  // namespace metrics
-}  // namespace partition
+}  // namespace kahypar

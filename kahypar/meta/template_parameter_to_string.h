@@ -14,6 +14,9 @@
 // based on http://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname
 #ifdef __GNUG__
 #include <cxxabi.h>
+
+namespace kahypar {
+namespace meta {
 template <typename T>
 std::string templateToString() {
   std::string ret = std::unique_ptr<char, void (*)(void*)>{
@@ -23,18 +26,23 @@ std::string templateToString() {
   ret.erase(std::remove_if(ret.begin(), ret.end(), ::isspace), ret.end());
   return ret;
 }
-
+}  // namespace meta
+}  // namespace kahypar
 #else
-
+namespace kahypar {
+namespace meta {
 template <typename T>
 std::string templateToString() {
   std::string ret(typeid(T).name());
   ret.erase(std::remove_if(ret.begin(), ret.end(), ::isspace), ret.end());
   return ret;
 }
-
+}  // namespace meta
+}  // namespace kahypar
 #endif
 
+namespace kahypar {
+namespace meta {
 template <bool value>
 std::string templateToString() {
   if (value) {
@@ -42,3 +50,5 @@ std::string templateToString() {
   }
   return std::string("false");
 }
+}  // namespace meta
+}  // namespace kahypar

@@ -18,21 +18,21 @@
 
 #include "gtest/gtest_prod.h"
 
+#include "datastructure/connectivity_sets.h"
+#include "datastructure/incidence_set.h"
+#include "definitions.h"
+#include "macros.h"
 #include "meta/empty.h"
 #include "meta/int_to_type.h"
 #include "meta/mandatory.h"
 #include "partition/configuration_enum_classes.h"
 #include "utils/math.h"
-#include "datastructure/connectivity_sets.h"
-#include "definitions.h"
-#include "datastructure/incidence_set.h"
-#include "macros.h"
 
 
 using meta::Empty;
 using meta::Int2Type;
-using partition::RefinementAlgorithm;
 
+namespace kahypar {
 namespace ds {
 template <typename Iterator>
 Iterator begin(std::pair<Iterator, Iterator>& x) {
@@ -808,7 +808,7 @@ class GenericHypergraph2 {
   // ATTENTION: In order for this implementation produce correct restore results, it is
   //            necessary that the restoreNode calls have to replay the removeNode calls
   //            in __reversed__ order.
-  void removeNode(const HypernodeID u)  {
+  void removeNode(const HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode is disabled!");
     for (const HyperedgeID e : incidentEdges(u)) {
       removeInternalEdge(e, u, _hyperedges);
@@ -1079,47 +1079,47 @@ class GenericHypergraph2 {
 
   HypernodeID currentNumNodes() const {
     ASSERT([&]() {
-        HypernodeID count = 0;
-        for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-          if (!hypernode(i).isDisabled()) {
-            ++count;
+          HypernodeID count = 0;
+          for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+            if (!hypernode(i).isDisabled()) {
+              ++count;
+            }
           }
-        }
-        return count;
-      } () == _current_num_hypernodes,
+          return count;
+        } () == _current_num_hypernodes,
            "Inconsistent Hypergraph State:" << "current_num_hypernodes=" << _current_num_hypernodes
            << "!= # enabled hypernodes=" <<[&]() {
-        HypernodeID count = 0;
-        for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-          if (!hypernode(i).isDisabled()) {
-            ++count;
+          HypernodeID count = 0;
+          for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+            if (!hypernode(i).isDisabled()) {
+              ++count;
+            }
           }
-        }
-        return count;
-      } ());
+          return count;
+        } ());
     return _current_num_hypernodes;
   }
 
   HyperedgeID currentNumEdges() const {
     ASSERT([&]() {
-        HyperedgeID count = 0;
-        for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-          if (!hyperedge(i).isDisabled()) {
-            ++count;
+          HyperedgeID count = 0;
+          for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+            if (!hyperedge(i).isDisabled()) {
+              ++count;
+            }
           }
-        }
-        return count;
-      } () == _current_num_hyperedges,
+          return count;
+        } () == _current_num_hyperedges,
            "Inconsistent Hypergraph State:" << "current_num_hyperedges=" << _current_num_hyperedges
            << "!= # enabled hyperedges=" <<[&]() {
-        HyperedgeID count = 0;
-        for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-          if (!hyperedge(i).isDisabled()) {
-            ++count;
+          HyperedgeID count = 0;
+          for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+            if (!hyperedge(i).isDisabled()) {
+              ++count;
+            }
           }
-        }
-        return count;
-      } ());
+          return count;
+        } ());
     return _current_num_hyperedges;
   }
 
@@ -1718,3 +1718,4 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                         subhypergraph_to_hypergraph);
 }
 }  // namespace ds
+}  // namespace kahypar

@@ -11,10 +11,10 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
-                                               std::numeric_limits<Gain>, true>;
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, Gain,
+                                                        std::numeric_limits<Gain>, true>;
 
-namespace partition {
+namespace kahypar {
 struct RoundRobinQueueSelectionPolicy {
   // Method returns the part which all hypernodes has to be assigned to before
   // initial partitioning. In experimental results we recognize that it is
@@ -151,4 +151,4 @@ struct SequentialQueueSelectionPolicy {
   static const PartitionID invalid_part = -1;
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
-}  // namespace partition
+}  // namespace kahypar

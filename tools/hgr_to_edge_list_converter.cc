@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string graphml_filename(hgr_filename + ".edgelist");
 
-  EdgeVector edges = createEdgeVector(partition::io::createHypergraphFromFile(hgr_filename, 2));
+  EdgeVector edges = createEdgeVector(kahypar::io::createHypergraphFromFile(hgr_filename, 2));
 
   std::ofstream out_stream(graphml_filename.c_str());
   for (const Edge edge : edges) {

@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 
+namespace kahypar {
 namespace meta {
 struct PolicyBase {
   virtual ~PolicyBase() { }
@@ -45,3 +46,4 @@ class PolicyRegistry {
   PolicyMap _policies;
 };
 }  // namespace meta
+}  // namespace kahypar

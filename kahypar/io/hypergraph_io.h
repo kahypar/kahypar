@@ -13,7 +13,7 @@
 
 #include "kahypar/definitions.h"
 
-namespace partition {
+namespace kahypar {
 namespace io {
 using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
 
@@ -325,4 +325,4 @@ static inline void writePartitionFile(const Hypergraph& hypergraph, const std::s
   out_stream.close();
 }
 }  // namespace io
-}  // namespace partition
+}  // namespace kahypar

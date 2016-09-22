@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace kahypar {
 namespace meta {
 struct Empty { };
 }  // namespace meta
+}  // namespace kahypar

@@ -11,7 +11,7 @@
 using::testing::Test;
 using::testing::Eq;
 
-namespace partition {
+namespace kahypar {
 using KWayFMRefinerSimpleStopping = MaxGainNodeKWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AMaxGainNodeKWayFMRefiner : public Test {
@@ -343,4 +343,4 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
   ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));
 }
-}  // namespace partition
+}  // namespace kahypar

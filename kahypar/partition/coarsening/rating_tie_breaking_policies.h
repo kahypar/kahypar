@@ -6,7 +6,7 @@
 
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 struct LastRatingWins {
   static bool acceptEqual() {
     return true;
@@ -34,4 +34,4 @@ struct RandomRatingWins {
  protected:
   ~RandomRatingWins() { }
 };
-}  // namespace partition
+}  // namespace kahypar

@@ -21,7 +21,7 @@ using::testing::Eq;
 using::testing::Le;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 template <class CoarsenerType>
 class ACoarsenerBase : public Test {
  public:
@@ -239,4 +239,4 @@ void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hyper
   }
   ASSERT_THAT(hypergraph->currentNumNodes(), Eq(3));
 }
-}  // namespace partition
+}  // namespace kahypar

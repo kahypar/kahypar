@@ -16,10 +16,10 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
-                                           std::numeric_limits<Gain>, true>;
+using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<HypernodeID, Gain,
+                                                        std::numeric_limits<Gain>, true>;
 
-namespace partition {
+namespace kahypar {
 enum class GainType : std::uint8_t {
   fm_gain,
   modify_fm_gain,
@@ -356,4 +356,4 @@ struct MaxNetGainComputationPolicy {
     return GainType::max_net_gain;
   }
 };
-}  // namespace partition
+}  // namespace kahypar

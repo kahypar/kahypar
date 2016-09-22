@@ -18,34 +18,28 @@
 #include "kahypar/partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
-using meta::Factory;
-using meta::PolicyRegistry;
-using meta::StaticDoubleDispatchFactory;
-using meta::StaticMultiDispatchFactory;
-using meta::Typelist;
-
-namespace partition {
-using CoarsenerFactory = Factory<CoarseningAlgorithm,
-                                 ICoarsener* (*)(Hypergraph&, const Configuration&,
-                                                 const HypernodeWeight)>;
+namespace kahypar {
+using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
+                                       ICoarsener* (*)(Hypergraph&, const Configuration&,
+                                                       const HypernodeWeight)>;
 
 
-using RefinerFactory = Factory<RefinementAlgorithm,
-                               IRefiner* (*)(Hypergraph&, const Configuration&)>;
+using RefinerFactory = meta::Factory<RefinementAlgorithm,
+                                     IRefiner* (*)(Hypergraph&, const Configuration&)>;
 
-using InitialPartitioningFactory = Factory<InitialPartitionerAlgorithm,
-                                           IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
+using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
+                                                 IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
 
-using TwoWayFMFactoryDispatcher = StaticMultiDispatchFactory<TwoWayFMRefiner,
-                                                             IRefiner,
-                                                             Typelist<StoppingPolicyClasses,
-                                                                      RebalancingPolicyClasses> >;
+using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
+                                                                   IRefiner,
+                                                                   meta::Typelist<StoppingPolicyClasses,
+                                                                                  RebalancingPolicyClasses> >;
 
-using KWayFMFactoryDispatcher = StaticMultiDispatchFactory<KWayFMRefiner,
-                                                           IRefiner,
-                                                           Typelist<StoppingPolicyClasses> >;
+using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
+                                                                 IRefiner,
+                                                                 meta::Typelist<StoppingPolicyClasses> >;
 
-using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneRefiner,
-                                                                  IRefiner,
-                                                                  Typelist<StoppingPolicyClasses> >;
-}  // namespace partition
+using KWayKMinusOneFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayKMinusOneRefiner,
+                                                                        IRefiner,
+                                                                        meta::Typelist<StoppingPolicyClasses> >;
+}  // namespace kahypar

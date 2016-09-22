@@ -10,7 +10,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 class IRefiner;
 
 class ICoarsener {
@@ -42,4 +42,4 @@ class ICoarsener {
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
   virtual std::string policyStringImpl() const = 0;
 };
-}  // namespace partition
+}  // namespace kahypar

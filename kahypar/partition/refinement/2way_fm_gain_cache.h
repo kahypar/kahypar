@@ -10,7 +10,7 @@
 
 #include "kahypar/meta/mandatory.h"
 
-namespace partition {
+namespace kahypar {
 template <typename T = Mandatory>
 class TwoWayFMGainCache {
  private:
@@ -135,4 +135,4 @@ class TwoWayFMGainCache {
   std::unique_ptr<CacheElement[]> _cache;
   std::vector<size_t> _used_delta_entries;
 };
-}  // namespace partition
+}  // namespace kahypar

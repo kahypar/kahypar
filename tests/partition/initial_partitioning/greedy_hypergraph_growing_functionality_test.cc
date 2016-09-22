@@ -24,7 +24,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
                              PartitionID k) {
   config.initial_partitioning.k = k;
@@ -227,4 +227,4 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(!ghg->_pq.contains(0, 0));
   ASSERT_TRUE(ghg->_pq.contains(0, 1));
 }*/
-}  // namespace partition
+}  // namespace kahypar

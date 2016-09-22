@@ -9,7 +9,7 @@
 #include "kahypar/meta/typelist.h"
 #include "kahypar/partition/configuration.h"
 
-namespace partition {
+namespace kahypar {
 struct StoppingPolicy : meta::PolicyBase {
  protected:
   StoppingPolicy() { }
@@ -134,4 +134,4 @@ using StoppingPolicyClasses = meta::Typelist<NumberOfFruitlessMovesStopsSearch,
                                              AdvancedRandomWalkModelStopsSearch,
                                              RandomWalkModelStopsSearch,
                                              nGPRandomWalkStopsSearch>;
-}  // namespace partition
+}  // namespace kahypar

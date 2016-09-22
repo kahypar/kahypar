@@ -11,7 +11,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
 
-namespace partition {
+namespace kahypar {
 template <typename Gain = Mandatory>
 class KwayGainCache {
  private:
@@ -374,4 +374,4 @@ class KwayGainCache {
   Byte* _cache;
   std::vector<RollbackElement> _deltas;
 };
-}  // namespace partition
+}  // namespace kahypar

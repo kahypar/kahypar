@@ -12,7 +12,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 template <bool UseRandomStartHypernode = true>
 struct BFSStartNodeSelectionPolicy {
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Configuration& config,
@@ -89,4 +89,4 @@ struct RandomStartNodeSelectionPolicy {
     }
   }
 };
-}  // namespace partition
+}  // namespace kahypar

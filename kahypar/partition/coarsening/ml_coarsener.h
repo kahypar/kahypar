@@ -14,7 +14,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
 
-namespace partition {
+namespace kahypar {
 template <class Rater = Mandatory>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
@@ -183,7 +183,7 @@ class MLCoarsener final : public ICoarsener,
   }
 
   std::string policyStringImpl() const override final {
-    return std::string(" ratingFunction=" + templateToString<Rater>());
+    return std::string(" ratingFunction=" + meta::templateToString<Rater>());
   }
 
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
@@ -197,4 +197,4 @@ class MLCoarsener final : public ICoarsener,
   using Base::_history;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
 };
-}  // namespace partition
+}  // namespace kahypar

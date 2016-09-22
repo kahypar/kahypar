@@ -11,7 +11,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
 
-namespace partition {
+namespace kahypar {
 struct LPGain {
   Gain cut;
   Gain km1;
@@ -398,4 +398,4 @@ class LPGainCache {
   Byte* _cache;
   std::vector<RollbackElement> _deltas;
 };
-}  // namespace partition
+}  // namespace kahypar

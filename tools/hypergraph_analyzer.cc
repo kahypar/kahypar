@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
   HyperedgeWeightVector hyperedge_weights;
   HypernodeWeightVector hypernode_weights;
 
-  partition::io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
-                         index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
+  kahypar::io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
+                                  index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
 
   std::map<HyperedgeID, HyperedgeID> node_degrees;

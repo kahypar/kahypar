@@ -16,7 +16,7 @@
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
 #include "kahypar/utils/stats.h"
 
-namespace partition {
+namespace kahypar {
 template <class Rater = Mandatory>
 class LazyVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
@@ -94,7 +94,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   }
 
   std::string policyStringImpl() const override final {
-    return std::string(" ratingFunction=" + templateToString<Rater>());
+    return std::string(" ratingFunction=" + meta::templateToString<Rater>());
   }
 
   void invalidateAffectedHypernodes(const HypernodeID rep_node) {
@@ -136,4 +136,4 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   ds::FastResetFlagArray<> _outdated_rating;
   std::vector<HypernodeID> _target;
 };
-}              // namespace partition
+}              // namespace kahypar

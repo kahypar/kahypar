@@ -64,10 +64,10 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   std::string correct_hgr_filename("test_instances/EmptyRowsCorrect.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 
-  Hypergraph correct_hypergraph = partition::io::createHypergraphFromFile(correct_hgr_filename, 2);
-  Hypergraph hypergraph = partition::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
 
-  ASSERT_EQ(ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
-                                                                 correct_hypergraph), true);
+  ASSERT_EQ(kahypar::ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
+                                                               correct_hypergraph), true);
 }
 }  // namespace mtxconversion

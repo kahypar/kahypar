@@ -20,7 +20,7 @@
 
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 namespace io {
 class AnUnweightedHypergraphFile : public Test {
  public:
@@ -239,4 +239,4 @@ class APartitionOfAHypergraph : public Test {
   std::unique_ptr<IRefiner> _refiner;
 };
 }  // namespace io
-}  // namespace partition
+}  // namespace kahypar

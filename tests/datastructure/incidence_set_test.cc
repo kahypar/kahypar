@@ -11,6 +11,7 @@
 using::testing::Test;
 using::testing::Eq;
 
+namespace kahypar {
 namespace ds {
 class AnIncidenceSet : public Test {
  public:
@@ -314,3 +315,4 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   }
 }
 }  // namespace ds
+}  // namespace kahypar

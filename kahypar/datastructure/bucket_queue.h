@@ -18,6 +18,7 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/utils/float_compare.h"
 
+namespace kahypar {
 namespace ds {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
@@ -293,3 +294,4 @@ void swap(EnhancedBucketQueue<IDType, KeyType, MetaKey>& a,
   a.swap(b);
 }
 }  // namespace ds
+}  // namespace kahypar

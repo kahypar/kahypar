@@ -4,6 +4,7 @@
 
 #pragma once
 
+namespace kahypar {
 namespace meta {
 template <bool flag, typename T, typename U>
 struct Select {
@@ -15,3 +16,4 @@ struct Select<false, T, U>{
   using Result = U;
 };
 }  // namespace meta
+}  // namespace kahypar

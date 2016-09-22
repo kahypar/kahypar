@@ -11,6 +11,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace ds {
 template <typename PartitionID = Mandatory,
           typename HyperedgeID = Mandatory>
@@ -153,3 +154,4 @@ class ConnectivitySets final {
   Byte* _connectivity_sets;
 };
 }  // namespace ds
+}  // namespace kahypar

@@ -10,6 +10,7 @@
 
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace ds {
 template <typename T = Mandatory>
 class FastResetArray {
@@ -103,3 +104,4 @@ class FastResetArray {
   std::unique_ptr<T[]> _entries;
 };
 }  // namespace ds
+}  // namespace kahypar

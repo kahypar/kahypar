@@ -19,7 +19,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 void initializeConfiguration(Configuration& config, PartitionID k,
                              HypernodeWeight hypergraph_weight) {
   config.initial_partitioning.k = k;
@@ -115,4 +115,4 @@ TEST_F(ALabelPropagationMaxGainMoveTest, MaxGainMoveIsAZeroGainMoveIfANetHasOnly
   ASSERT_EQ(max_move.first, 0);
   ASSERT_EQ(max_move.second, 0);
 }
-}  // namespace partition
+}  // namespace kahypar

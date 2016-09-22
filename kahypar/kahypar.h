@@ -18,33 +18,33 @@
 #include "partition/partitioner.h"
 #include "partition/refinement/do_nothing_refiner.h"
 
-#define REGISTER_COARSENER(id, coarsener)                                     \
-  static meta::Registrar<partition::CoarsenerFactory> register_ ## coarsener( \
-    id,                                                                       \
-    [](Hypergraph& hypergraph, const Configuration& config,                   \
-       const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {        \
-    return new coarsener(hypergraph, config, weight_of_heaviest_node);        \
+#define REGISTER_COARSENER(id, coarsener)                              \
+  static meta::Registrar<CoarsenerFactory> register_ ## coarsener(     \
+    id,                                                                \
+    [](Hypergraph& hypergraph, const Configuration& config,            \
+       const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* { \
+    return new coarsener(hypergraph, config, weight_of_heaviest_node); \
   })
 
-#define REGISTER_INITIAL_PARTITIONER(id, ip)                                     \
-  static meta::Registrar<partition::InitialPartitioningFactory> register_ ## ip( \
-    id,                                                                          \
-    [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* {  \
-    return new ip(hypergraph, config);                                           \
+#define REGISTER_INITIAL_PARTITIONER(id, ip)                                    \
+  static meta::Registrar<InitialPartitioningFactory> register_ ## ip(           \
+    id,                                                                         \
+    [](Hypergraph& hypergraph, Configuration& config) -> IInitialPartitioner* { \
+    return new ip(hypergraph, config);                                          \
   })
 
-#define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)                     \
-  static meta::Registrar<partition::RefinerFactory> register_ ## dispatcher( \
-    id,                                                                      \
-    [](Hypergraph& hypergraph, const Configuration& config) {                \
-    return dispatcher::create(                                               \
-      std::forward_as_tuple(hypergraph, config),                             \
-      __VA_ARGS__                                                            \
-      );                                                                     \
+#define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
+  static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
+    id,                                                           \
+    [](Hypergraph& hypergraph, const Configuration& config) {     \
+    return dispatcher::create(                                    \
+      std::forward_as_tuple(hypergraph, config),                  \
+      __VA_ARGS__                                                 \
+      );                                                          \
   })
 
 #define REGISTER_REFINER(id, refiner)                                      \
-  static meta::Registrar<partition::RefinerFactory> register_ ## refiner(  \
+  static meta::Registrar<RefinerFactory> register_ ## refiner(             \
     id,                                                                    \
     [](Hypergraph& hypergraph, const Configuration& config) -> IRefiner* { \
     return new refiner(hypergraph, config);                                \
@@ -54,7 +54,7 @@
   static meta::Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \
     id, new policy_class())
 
-namespace partition {
+namespace kahypar {
 ////////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,18 +159,18 @@ REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::off,
 ////////////////////////////////////////////////////////////////////////////////
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
                             TwoWayFMFactoryDispatcher,
-                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                            meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               config.local_search.fm.stopping_rule),
-                            PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
+                            meta::PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
                               config.local_search.fm.global_rebalancing));
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
                             KWayFMFactoryDispatcher,
-                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                            meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               config.local_search.fm.stopping_rule));
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
                             KWayKMinusOneFactoryDispatcher,
-                            PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
+                            meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               config.local_search.fm.stopping_rule));
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
-}  // namespace partition
+}  // namespace kahypar

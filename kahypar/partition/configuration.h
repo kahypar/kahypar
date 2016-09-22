@@ -14,7 +14,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration_enum_classes.h"
 
-namespace partition {
+namespace kahypar {
 struct PreprocessingParameters {
   bool use_min_hash_sparsifier = false;
   bool remove_always_cut_hes = false;
@@ -299,4 +299,4 @@ inline std::string toString(const Configuration& config) {
   oss << config << std::endl;
   return oss.str();
 }
-}  // namespace partition
+}  // namespace kahypar

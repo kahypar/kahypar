@@ -8,7 +8,7 @@
 
 #include "kahypar/definitions.h"
 
-namespace partition {
+namespace kahypar {
 struct UncontractionGainChanges {
   UncontractionGainChanges() :
     representative(),
@@ -22,4 +22,4 @@ struct UncontractionGainChanges {
   std::vector<Gain> representative;
   std::vector<Gain> contraction_partner;
 };
-}  // namespace partition
+}  // namespace kahypar

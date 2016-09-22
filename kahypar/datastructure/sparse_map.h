@@ -19,6 +19,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
+namespace kahypar {
 namespace ds {
 template <typename Key = Mandatory,
           typename Value = Mandatory,
@@ -231,3 +232,4 @@ class InsertOnlySparseMap final : public SparseMapBase<Key, Value, SparseMap<Key
   using Base::_size;
 };
 }  // namespace ds
+}  // namespace kahypar

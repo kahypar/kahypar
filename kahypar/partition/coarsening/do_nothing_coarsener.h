@@ -10,7 +10,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
-namespace partition {
+namespace kahypar {
 class DoNothingCoarsener final : public ICoarsener {
  public:
   template <typename ... Args>
@@ -25,4 +25,4 @@ class DoNothingCoarsener final : public ICoarsener {
   bool uncoarsenImpl(IRefiner&) override final { return false; }
   std::string policyStringImpl() const override final { return std::string(""); }
 };
-}  // namespace partition
+}  // namespace kahypar

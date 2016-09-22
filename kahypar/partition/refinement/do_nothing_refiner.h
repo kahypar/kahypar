@@ -12,7 +12,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
-namespace partition {
+namespace kahypar {
 class DoNothingRefiner final : public IRefiner {
  public:
   template <typename ... Args>
@@ -37,4 +37,4 @@ class DoNothingRefiner final : public IRefiner {
 
   using IRefiner::_is_initialized;
 };
-}  // namespace partition
+}  // namespace kahypar

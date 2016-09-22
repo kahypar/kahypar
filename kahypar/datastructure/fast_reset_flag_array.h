@@ -15,6 +15,7 @@
 
 // based on http://upcoder.com/9/fast-resettable-flag-vector/
 
+namespace kahypar {
 namespace ds {
 template <typename UnderlyingType = std::uint16_t>
 class FastResetFlagArray {
@@ -84,3 +85,4 @@ void swap(FastResetFlagArray<UnderlyingType>& a,
   a.swap(b);
 }
 }  // namespace ds
+}  // namespace kahypar

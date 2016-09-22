@@ -12,6 +12,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
+namespace kahypar {
 namespace ds {
 using MaxHeapQueue = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<HypernodeID, HyperedgeWeight>;
@@ -267,3 +268,4 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
 //   ASSERT_THAT(first_pq.topKey(), Eq(99));
 // }
 }  // namespace ds
+}  // namespace kahypar

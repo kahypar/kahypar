@@ -8,6 +8,7 @@
 
 #include <type_traits>
 
+namespace kahypar {
 namespace meta {
 struct unspecified_type;
 
@@ -20,8 +21,9 @@ class MandatoryTemplateArgument {
                 );
 };
 }  // namespace meta
+}  // namespace kahypar
 
-using Mandatory = meta::MandatoryTemplateArgument<meta::unspecified_type>;
+using Mandatory = kahypar::meta::MandatoryTemplateArgument<kahypar::meta::unspecified_type>;
 
 template <typename T>
-using MandatoryTemplate = meta::MandatoryTemplateArgument<T>;
+using MandatoryTemplate = kahypar::meta::MandatoryTemplateArgument<T>;

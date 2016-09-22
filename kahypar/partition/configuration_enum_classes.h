@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-namespace partition {
+namespace kahypar {
 enum class Mode : std::uint8_t {
   recursive_bisection,
   direct_kway
@@ -315,4 +315,4 @@ static Mode modeFromString(const std::string& mode) {
   exit(0);
   return Mode::direct_kway;
 }
-}  // namespace partition
+}  // namespace kahypar

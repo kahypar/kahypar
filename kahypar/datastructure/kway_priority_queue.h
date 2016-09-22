@@ -15,10 +15,7 @@
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/utils/randomize.h"
 
-using ds::BinaryMaxHeap;
-using ds::EnhancedBucketQueue;
-using partition::Randomize;
-
+namespace kahypar {
 namespace ds {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
@@ -340,3 +337,4 @@ class KWayPriorityQueue {
   size_t _num_enabled_pqs;
 };
 }  // namespace ds
+}  // namespace kahypar

@@ -20,18 +20,17 @@
 
 namespace po = boost::program_options;
 
-using meta::Registrar;
-using partition::Partitioner;
-using partition::Configuration;
-using partition::Mode;
-using partition::Objective;
-using partition::CoarseningAlgorithm;
-using partition::RefinementAlgorithm;
-using partition::InitialPartitionerAlgorithm;
-using partition::RefinementStoppingRule;
-using partition::GlobalRebalancingMode;
-using partition::InitialPartitioningTechnique;
-using partition::InitialPartitioner;
+using kahypar::Partitioner;
+using kahypar::Configuration;
+using kahypar::Mode;
+using kahypar::Objective;
+using kahypar::CoarseningAlgorithm;
+using kahypar::RefinementAlgorithm;
+using kahypar::InitialPartitionerAlgorithm;
+using kahypar::RefinementStoppingRule;
+using kahypar::GlobalRebalancingMode;
+using kahypar::InitialPartitioningTechnique;
+using kahypar::InitialPartitioner;
 
 void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
@@ -176,7 +175,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("mode,m",
     po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
-    config.partition.mode = partition::modeFromString(mode);
+    config.partition.mode = kahypar::modeFromString(mode);
   }),
     "Partitioning mode: \n"
     " - (recursive) bisection \n"
@@ -232,7 +231,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ctype) {
-    config.coarsening.algorithm = partition::coarseningAlgorithmFromString(ctype);
+    config.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
   }),
     "Algorithm:\n"
     " - ml_style\n"
@@ -256,7 +255,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& initial_partitioner) {
     config.initial_partitioning.tool =
-      partition::initialPartitionerFromString(initial_partitioner);
+      kahypar::initialPartitionerFromString(initial_partitioner);
   }),
     "Initial Partitioner:\n"
     " - KaHyPar\n"
@@ -266,7 +265,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-mode",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_mode) {
-    config.initial_partitioning.mode = partition::modeFromString(ip_mode);
+    config.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
   }),
     "IP mode: \n"
     " - (recursive) bisection  \n"
@@ -276,7 +275,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
     config.initial_partitioning.technique =
-      partition::inititalPartitioningTechniqueFromString(ip_technique);
+      kahypar::inititalPartitioningTechniqueFromString(ip_technique);
   }),
     "IP Technique:\n"
     " - flat\n"
@@ -286,14 +285,14 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_algo) {
     config.initial_partitioning.algo =
-      partition::initialPartitioningAlgorithmFromString(ip_algo);
+      kahypar::initialPartitioningAlgorithmFromString(ip_algo);
   }),
     "Algorithm used to create initial partition: pool (default)")
     ("i-c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_ctype) {
     config.initial_partitioning.coarsening.algorithm =
-      partition::coarseningAlgorithmFromString(ip_ctype);
+      kahypar::coarseningAlgorithmFromString(ip_ctype);
   }),
     "IP Coarsening Algorithm:\n"
     " - ml_style\n"
@@ -317,7 +316,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_rtype) {
     config.initial_partitioning.local_search.algorithm =
-      partition::refinementAlgorithmFromString(ip_rtype);
+      kahypar::refinementAlgorithmFromString(ip_rtype);
   }),
     "IP Local Search Algorithm:\n"
     " - twoway_fm   : 2-way FM algorithm\n"
@@ -329,7 +328,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_stopfm) {
     config.initial_partitioning.local_search.fm.stopping_rule =
-      partition::stoppingRuleFromString(ip_stopfm);
+      kahypar::stoppingRuleFromString(ip_stopfm);
   }),
     "Stopping Rule for IP Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
@@ -379,7 +378,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rtype) {
-    config.local_search.algorithm = partition::refinementAlgorithmFromString(rtype);
+    config.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
   }),
     "Local Search Algorithm:\n"
     " - twoway_fm   : 2-way FM algorithm\n"
@@ -403,7 +402,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& stopfm) {
-    config.local_search.fm.stopping_rule = partition::stoppingRuleFromString(stopfm);
+    config.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
   }),
     "Stopping Rule for Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
@@ -482,16 +481,16 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
-  Randomize::instance().setSeed(config.partition.seed);
+  kahypar::Randomize::instance().setSeed(config.partition.seed);
 
   Hypergraph hypergraph(
-      partition::io::createHypergraphFromFile(config.partition.graph_filename,
-                                 config.partition.k));
+    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
+                                          config.partition.k));
 
   if (config.partition.verbose_output) {
-    partition::io::printHypergraphInfo(hypergraph,
-                            config.partition.graph_filename.substr(
-                              config.partition.graph_filename.find_last_of("/") + 1));
+    kahypar::io::printHypergraphInfo(hypergraph,
+                                     config.partition.graph_filename.substr(
+                                       config.partition.graph_filename.find_last_of("/") + 1));
   }
 
   Partitioner partitioner;
@@ -504,16 +503,16 @@ int main(int argc, char* argv[]) {
   LOG("*******************************");
   LOG("***** GATHER_STATS ACTIVE *****");
   LOG("*******************************");
-  partition::io::printPartitioningStatistics();
+  kahypar::io::printPartitioningStatistics();
 #endif
 
-  partition::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
-  partition::io::writePartitionFile(hypergraph,
-                         config.partition.graph_partition_filename);
+  kahypar::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
+  kahypar::io::writePartitionFile(hypergraph,
+                                  config.partition.graph_partition_filename);
 
   std::remove(config.partition.coarse_graph_filename.c_str());
   std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
-  partition::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
+  kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
   return 0;
 }

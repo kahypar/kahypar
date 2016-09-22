@@ -13,7 +13,7 @@
 using::testing::Test;
 using::testing::Eq;
 
-namespace partition {
+namespace kahypar {
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
                                                       GlobalRebalancing>;
 
@@ -632,4 +632,4 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   refiner->fullUpdate(0, 1, 0);
   ASSERT_THAT(refiner->_he_fully_active[0], Eq(true));
 }
-}                // namespace partition
+}                // namespace kahypar

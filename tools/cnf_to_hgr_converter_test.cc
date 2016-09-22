@@ -17,7 +17,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoHypergraphInstances) {
   std::string hgr_filename("test_instances/SampleSAT.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename);
 
-  Hypergraph hypergraph = partition::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 8);
   ASSERT_EQ(hypergraph.initialNumPins(), 9);

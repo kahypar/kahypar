@@ -20,9 +20,7 @@
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
-using meta::Int2Type;
-
-namespace partition {
+namespace kahypar {
 template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  protected:
@@ -105,7 +103,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       switch (_config.local_search.algorithm) {
         case RefinementAlgorithm::twoway_fm:
           _hg.uncontract(_history.back().contraction_memento, changes,
-                         Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+                         meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
           break;
         default:
           _hg.uncontract(_history.back().contraction_memento);
@@ -185,4 +183,4 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   using CoarsenerBase::_config;
   PrioQueue _pq;
 };
-}  // namespace partition
+}  // namespace kahypar

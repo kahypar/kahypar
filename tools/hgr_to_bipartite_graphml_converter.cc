@@ -24,13 +24,13 @@ int main(int argc, char* argv[]) {
   if (argc == 3) {
     std::string partition_filename(argv[2]);
     std::cout << "Reading partition file: " << partition_filename << std::endl;
-    partition::io::readPartitionFile(partition_filename, partition);
+    kahypar::io::readPartitionFile(partition_filename, partition);
     for (size_t index = 0; index < partition.size(); ++index) {
       max_part = std::max(max_part, partition[index]);
     }
   }
 
-  Hypergraph hypergraph(partition::io::createHypergraphFromFile(hgr_filename, max_part + 1));
+  Hypergraph hypergraph(kahypar::io::createHypergraphFromFile(hgr_filename, max_part + 1));
 
   if (partition.size() != 0 && partition.size() != hypergraph.initialNumNodes()) {
     std::cout << "partition file has incorrect size. Exiting." << std::endl;
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   std::string graphml_filename(hgr_filename + ".k" + std::to_string(max_part + 1) + ".graphml");
 
   std::cout << "write graphml file: " << graphml_filename << std::endl;
-  partition::io::writeHypergraphToGraphMLFile(hypergraph, graphml_filename);
+  kahypar::io::writeHypergraphToGraphMLFile(hypergraph, graphml_filename);
 
   std::cout << " ... done!" << std::endl;
   return 0;

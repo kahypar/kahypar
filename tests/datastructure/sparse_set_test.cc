@@ -11,6 +11,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::Test;
 
+namespace kahypar {
 namespace ds {
 template <typename T>
 class ASparseSet : public Test {
@@ -120,3 +121,4 @@ TYPED_TEST(ASparseSetSupportingDeletions, DoesNotIterateOverDeletedElements) {
   }
 }
 }  // namespace ds
+}  // namespace kahypar

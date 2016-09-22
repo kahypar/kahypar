@@ -18,7 +18,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 using TestStartNodeSelectionPolicy = BFSStartNodeSelectionPolicy<false>;
 
 void initializeConfiguration(Configuration& config, PartitionID k,
@@ -205,4 +205,4 @@ TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
-}  // namespace partition
+}  // namespace kahypar

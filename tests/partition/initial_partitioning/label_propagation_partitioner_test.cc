@@ -20,7 +20,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
                              PartitionID k) {
   config.initial_partitioning.k = k;
@@ -135,4 +135,4 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassig
     ASSERT_NE(this->hypergraph->partID(hn), -1);
   }
 }
-}  // namespace partition
+}  // namespace kahypar

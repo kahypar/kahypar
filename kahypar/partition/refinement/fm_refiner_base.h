@@ -11,7 +11,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration.h"
 
-namespace partition {
+namespace kahypar {
 static const bool dbg_refinement_fm_border_node_check = false;
 static const bool dbg_refinement_kway_fm_move = false;
 
@@ -117,4 +117,4 @@ class FMRefinerBase {
   std::vector<RollbackElement> _performed_moves;
   std::vector<HypernodeID> _hns_to_activate;
 };
-}  // namespace partition
+}  // namespace kahypar

@@ -23,7 +23,7 @@
 using::testing::Eq;
 using::testing::Test;
 
-namespace partition {
+namespace kahypar {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
                              PartitionID k) {
   config.initial_partitioning.k = k;
@@ -160,4 +160,4 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
   this->config.initial_partitioning.nruns = 3;
   this->ghg->partition(*(this->hypergraph), this->config);
 }
-}  // namespace partition
+}  // namespace kahypar

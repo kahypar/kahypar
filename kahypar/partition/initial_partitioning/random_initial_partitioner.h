@@ -12,7 +12,7 @@
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 #include "kahypar/utils/randomize.h"
 
-namespace partition {
+namespace kahypar {
 class RandomInitialPartitioner : public IInitialPartitioner,
                                  private InitialPartitionerBase {
  public:
@@ -77,4 +77,4 @@ class RandomInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::_config;
   ds::FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
-}  // namespace partition
+}  // namespace kahypar

@@ -14,7 +14,7 @@ using::testing::Eq;
 using::testing::DoubleEq;
 using::testing::AnyOf;
 
-namespace partition {
+namespace kahypar {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using LastWinsRater = Rater<RatingType, LastRatingWins>;
 using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
@@ -127,4 +127,4 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
-}  // namespace partition
+}  // namespace kahypar

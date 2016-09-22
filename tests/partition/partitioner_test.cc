@@ -17,7 +17,7 @@
 using::testing::Test;
 using::testing::Eq;
 
-namespace partition {
+namespace kahypar {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
@@ -118,4 +118,4 @@ TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   metrics::hyperedgeCut(*hypergraph);
 }
-}  // namespace partition
+}  // namespace kahypar

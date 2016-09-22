@@ -9,7 +9,7 @@
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
-namespace partition {
+namespace kahypar {
 using FirstWinsRater = Rater<RatingType, FirstRatingWins>;
 using CoarsenerType = FullVertexPairCoarsener<FirstWinsRater>;
 
@@ -111,4 +111,4 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
   ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
 }
-}  // namespace partition
+}  // namespace kahypar
