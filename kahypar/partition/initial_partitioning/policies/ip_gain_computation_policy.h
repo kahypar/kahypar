@@ -16,9 +16,6 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<kahypar::HypernodeID, kahypar::Gain,
-                                                        std::numeric_limits<kahypar::Gain>, true>;
-
 namespace kahypar {
 enum class GainType : std::uint8_t {
   fm_gain,
@@ -86,9 +83,10 @@ struct FMGainComputationPolicy {
     return calculateGainForAssignedHN(hg, hn, target_part);
   }
 
+  template <typename PQ>
   static inline void deltaGainUpdateForUnassignedFromPart(Hypergraph& hg,
                                                           const Configuration& config,
-                                                          KWayRefinementPQ& pq,
+                                                          PQ& pq,
                                                           const HypernodeID hn,
                                                           const PartitionID to) {
     for (const HyperedgeID he : hg.incidentEdges(hn)) {
@@ -137,9 +135,10 @@ struct FMGainComputationPolicy {
     }
   }
 
+  template <typename PQ>
   static inline void deltaGainUpdateforAssignedPart(Hypergraph& hg,
                                                     const Configuration& config,
-                                                    KWayRefinementPQ& pq,
+                                                    PQ& pq,
                                                     const HypernodeID hn,
                                                     const PartitionID from,
                                                     const PartitionID to) {
@@ -209,9 +208,9 @@ struct FMGainComputationPolicy {
     }
   }
 
-
+  template <typename PQ>
   static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& config,
-                                     KWayRefinementPQ& pq, const HypernodeID hn,
+                                     PQ& pq, const HypernodeID hn,
                                      const PartitionID from, const PartitionID to,
                                      const ds::FastResetFlagArray<>& foo) {
     ONLYDEBUG(foo);
@@ -273,8 +272,9 @@ struct MaxPinGainComputationPolicy {
     return gain;
   }
 
+  template <typename PQ>
   static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& UNUSED(config),
-                                     KWayRefinementPQ& pq,
+                                     PQ& pq,
                                      const HypernodeID hn,
                                      const PartitionID from,
                                      const PartitionID to, ds::FastResetFlagArray<>& visit) {
@@ -325,8 +325,9 @@ struct MaxNetGainComputationPolicy {
     return gain;
   }
 
+  template <typename PQ>
   static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& UNUSED(config),
-                                     KWayRefinementPQ& pq,
+                                     PQ& pq,
                                      const HypernodeID hn, const PartitionID from,
                                      const PartitionID to,
                                      const ds::FastResetFlagArray<>&) {

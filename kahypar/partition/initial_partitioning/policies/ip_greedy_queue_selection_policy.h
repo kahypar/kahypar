@@ -11,9 +11,6 @@
 #include "kahypar/definitions.h"
 #include "kahypar/utils/randomize.h"
 
-using KWayRefinementPQ = kahypar::ds::KWayPriorityQueue<kahypar::HypernodeID, kahypar::Gain,
-                                                        std::numeric_limits<kahypar::Gain>, true>;
-
 namespace kahypar {
 struct RoundRobinQueueSelectionPolicy {
   // Method returns the part which all hypernodes has to be assigned to before
@@ -24,8 +21,9 @@ struct RoundRobinQueueSelectionPolicy {
     return -1;
   }
 
+  template <typename PQ>
   static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
-                                 KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+                                 PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
     current_id = ((current_id + 1) % config.initial_partitioning.k);
     current_hn = invalid_node;
@@ -58,8 +56,9 @@ struct GlobalQueueSelectionPolicy {
     return 1;
   }
 
+  template <typename PQ>
   static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
-                                 KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+                                 PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
     current_id = invalid_part;
     current_hn = invalid_node;
@@ -105,8 +104,9 @@ struct SequentialQueueSelectionPolicy {
     return 1;
   }
 
+  template <typename PQ>
   static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
-                                 KWayRefinementPQ& _pq, HypernodeID& current_hn, Gain& current_gain,
+                                 PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool is_upper_bound_released) {
     if (!is_upper_bound_released) {
       bool next_part = false;
