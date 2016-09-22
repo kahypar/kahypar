@@ -104,14 +104,6 @@ using KWayKMinusOneFactoryDispatcher = StaticMultiDispatchFactory<KWayKMinusOneR
                                                                   IRefiner,
                                                                   Typelist<StoppingPolicyClasses> >;
 
-// using MaxGainNodeKWayFMFactoryExecutor = KFMFactoryExecutor<MaxGainNodeKWayFMRefiner>;
-// using MaxGainNodeKWayFMFactoryDispatcher = StaticDoubleDispatchFactory<MaxGainNodeKWayFMFactoryExecutor,
-//                                                             Typelist<NumberOfFruitlessMovesStopsSearch,
-//                                                                      RandomWalkModelStopsSearch,
-//                                                                      nGPRandomWalkStopsSearch>,
-//                                                             Typelist<NullPolicy>,
-//                                                             IRefiner*>;
-
 using RandomWinsRater = Rater<RatingType, RandomRatingWins>;
 using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRater>;
 using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRater>;
