@@ -27,7 +27,7 @@ class IncidenceSet {
     _memory(nullptr),
     _end(nullptr),
     _size(0),
-    _max_size(utils::nextPowerOfTwoCeiled(max_size + 1)),
+    _max_size(partition::math::nextPowerOfTwoCeiled(max_size + 1)),
     _max_sparse_size(InitialSizeFactor * _max_size) {
     static_assert(std::is_pod<T>::value, "T is not a POD");
     _memory = static_cast<T*>(malloc(sizeOfDense() + sizeOfSparse()));
@@ -151,7 +151,7 @@ class IncidenceSet {
   }
 
   bool contains(const T key) const {
-    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    const Position start_position = partition::math::crc32(key) % _max_sparse_size;
     const Position before = mod(static_cast<std::uint32_t>(start_position) - 1, _max_sparse_size);
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first == empty) {
@@ -200,7 +200,7 @@ class IncidenceSet {
 
 
   Position find(const T key) const {
-    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    const Position start_position = partition::math::crc32(key) % _max_sparse_size;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first == key) {
         return position;
@@ -210,7 +210,7 @@ class IncidenceSet {
   }
 
   Position nextFreeSlot(const T key) const {
-    const Position start_position = utils::crc32(key) % _max_sparse_size;
+    const Position start_position = partition::math::crc32(key) % _max_sparse_size;
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first >= deleted) {
         ASSERT(sparse()[position].first == empty || sparse()[position].first == deleted, V(position));

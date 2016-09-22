@@ -17,8 +17,6 @@
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-
 namespace partition {
 template <class Rater = Mandatory>
 class FullVertexPairCoarsener final : public ICoarsener,

@@ -15,7 +15,8 @@
 
 using partition::Configuration;
 
-namespace utils {
+namespace partition {
+
 class Stats {
  private:
   using StatsMap = std::map<std::string, double>;
@@ -189,4 +190,4 @@ static inline void gatherCoarseningStats(const Hypergraph&, const int, const Par
                                          const PartitionID) { }
 
 #endif
-}  // namespace utils
+}  // namespace partition

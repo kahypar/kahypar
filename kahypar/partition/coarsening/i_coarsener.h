@@ -10,8 +10,6 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-
 namespace partition {
 class IRefiner;
 

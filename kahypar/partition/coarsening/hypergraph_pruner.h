@@ -15,8 +15,6 @@
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-
 namespace partition {
 static const bool dbg_coarsening_single_node_he_removal = false;
 static const bool dbg_coarsening_parallel_he_removal = false;
@@ -243,16 +241,16 @@ class HypergraphPruner {
     _fingerprints.clear();
     for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
       if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
-        hypergraph.edgeHash(he) -= utils::hash(v);
-        hypergraph.edgeHash(he) += utils::hash(u);
+        hypergraph.edgeHash(he) -= math::hash(v);
+        hypergraph.edgeHash(he) += math::hash(u);
       } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
-        hypergraph.edgeHash(he) -= utils::hash(v);
+        hypergraph.edgeHash(he) -= math::hash(v);
       }
       hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = 42;
           for (const HypernodeID pin : hypergraph.pins(he)) {
-            correct_hash += utils::hash(pin);
+            correct_hash += math::hash(pin);
           }
           if (correct_hash != hypergraph.edgeHash(he)) {
             LOGVAR(correct_hash);

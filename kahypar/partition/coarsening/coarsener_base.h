@@ -21,8 +21,6 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-
 namespace partition {
 static const bool dbg_coarsening_coarsen = false;
 static const bool dbg_coarsening_rating = false;

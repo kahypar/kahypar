@@ -17,6 +17,7 @@
 
 using ds::BinaryMaxHeap;
 using ds::EnhancedBucketQueue;
+using partition::Randomize;
 
 namespace ds {
 template <typename IDType = Mandatory,

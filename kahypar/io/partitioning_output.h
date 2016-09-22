@@ -19,9 +19,9 @@
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-using utils::median;
-using utils::firstAndThirdQuartile;
+using partition::math::median;
+using partition::math::firstAndThirdQuartile;
+using partition::Stats;
 
 namespace io {
 namespace {

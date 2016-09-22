@@ -9,7 +9,7 @@
 
 #include "kahypar/definitions.h"
 
-namespace utils {
+namespace partition {
 class Timer {
  public:
   Timer() :
@@ -35,4 +35,4 @@ class NoTimer {
   void start() { }
   void stop() { }
 };
-}  // namespace utils
+}  // namespace partition

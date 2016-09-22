@@ -8,7 +8,8 @@
 
 using::testing::Eq;
 
-namespace utils {
+namespace partition {
+namespace math {
 TEST(NextPowerOfTwoCeiled, WorksAsExpected) {
   ASSERT_THAT(nextPowerOfTwoCeiled(static_cast<unsigned int>(1)), Eq(1));
   ASSERT_THAT(nextPowerOfTwoCeiled(static_cast<unsigned int>(2)), Eq(2));
@@ -21,4 +22,5 @@ TEST(NearestMultipleOf, WorksAsExpected) {
   ASSERT_THAT(nearestMultipleOf(64, 64), Eq(64));
   ASSERT_THAT(nearestMultipleOf(65, 64), Eq(128));
 }
-}  // namespace utils
+}  // namespace math
+}  // namespace patition

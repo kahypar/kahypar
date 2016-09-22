@@ -33,8 +33,6 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
 
-using utils::Stats;
-
 // Workaround for bug in gtest
 // Because of different namespaces it is not possible to use
 // FRIEND_TEST macro.
@@ -380,7 +378,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
   Stats::instance().addToTotal(config, "Coarsening",
                                std::chrono::duration<double>(end - start).count());
 
-  utils::gatherCoarseningStats(hypergraph, 0, k1, k2);
+  gatherCoarseningStats(hypergraph, 0, k1, k2);
 
   // hypergraph.printGraphState();
 
@@ -409,7 +407,7 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   Stats::instance().addToTotal(config, "VCycleCoarsening",
                                std::chrono::duration<double>(end - start).count());
 
-  utils::gatherCoarseningStats(hypergraph, vcycle, k1, k2);
+  gatherCoarseningStats(hypergraph, vcycle, k1, k2);
 
   hypergraph.initializeNumCutHyperedges();
 

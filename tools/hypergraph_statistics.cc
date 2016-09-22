@@ -73,8 +73,8 @@ int main(int argc, char* argv[]) {
   std::sort(he_sizes.begin(), he_sizes.end());
   std::sort(hn_degrees.begin(), hn_degrees.end());
 
-  auto he_size_quartiles = utils::firstAndThirdQuartile(he_sizes);
-  auto hn_deg_quartiles = utils::firstAndThirdQuartile(hn_degrees);
+  auto he_size_quartiles = partition::math::firstAndThirdQuartile(he_sizes);
+  auto hn_deg_quartiles = partition::math::firstAndThirdQuartile(hn_degrees);
 
   out_stream << "RESULT graph=" << graph_name
   << " HNs=" << num_hypernodes
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
   << " minHEsize=" << min_he_size
   << " heSize90thPercentile=" << metrics::hyperedgeSizePercentile(hypergraph, 90)
   << " Q1HEsize=" << he_size_quartiles.first
-  << " medHEsize=" << utils::median(he_sizes)
+  << " medHEsize=" << partition::math::median(he_sizes)
   << " Q3HEsize=" << he_size_quartiles.second
   << " maxHEsize=" << max_he_size
   << " avgHNdegree=" << avg_hn_degree
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
   << " hnDegree90thPercentile=" << metrics::hypernodeDegreePercentile(hypergraph, 90)
   << " maxHnDegree=" << max_hn_degree
   << " Q1HNdegree=" << hn_deg_quartiles.first
-  << " medHNdegree=" << utils::median(hn_degrees)
+  << " medHNdegree=" << partition::math::median(hn_degrees)
   << " Q3HNdegree=" << hn_deg_quartiles.second
   << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
   << std::endl;

@@ -10,6 +10,8 @@
 #include <random>
 #include <vector>
 
+namespace partition {
+
 class Randomize {
  public:
   static Randomize & instance() {
@@ -67,3 +69,5 @@ class Randomize {
   std::uniform_real_distribution<float> _float_dist;
   std::normal_distribution<float> _norm_dist;
 };
+
+} // namespace partition
