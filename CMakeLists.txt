@@ -50,7 +50,9 @@ if(KAHYPAR_VERSION_GIT_REFSPEC)
   include_directories(${PROJECT_BINARY_DIR})
 else(KAHYPAR_VERSION_GIT_REFSPEC)
   # we do need the sha hash to log with build version was used during experiments
-  message(FATAL_ERROR "No git refspec detected")
+  message(STATUS "No git refspec detected")
+  configure_file(${PROJECT_SOURCE_DIR}/kahypar/git_revision.h.in ${PROJECT_BINARY_DIR}/kahypar/git_revision.h)
+  include_directories(${PROJECT_BINARY_DIR})
 endif(KAHYPAR_VERSION_GIT_REFSPEC)
 
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
