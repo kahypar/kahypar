@@ -22,8 +22,8 @@ matrix:
 before_script:
 
   # print out some version numbers
-  - $CMAKE_CXX --version
-  - cmake --version
+  #- $CMAKE_CXX --version
+  #- cmake --version
 
   # configure
   - mkdir build; cd build
