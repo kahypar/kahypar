@@ -13,8 +13,10 @@ matrix:
           sources:
             - kalakris-cmake
             - ubuntu-toolchain-r-test
+	    - george-edison55-precise-backports
           packages:
             - cmake
+	    - cmake-data
             - g++-6
             - libboost-program-options1.55.0
 
