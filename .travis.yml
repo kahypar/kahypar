@@ -39,4 +39,4 @@ before_script:
 
 script:
 
- - make
+ - make -j 4
