@@ -37,15 +37,17 @@ class BinaryHeapBase {
   };
 
   explicit BinaryHeapBase(const IDType& size) :
-    _heap(),
+    _heap(std::make_unique<HeapElement[]>(size + 1)),
     _handles(std::make_unique<size_t[]>(size)),
     _compare(),
     _next_slot(0),
     _max_size(size + 1) {
-    _heap.reserve(_max_size);
-    // insert sentinel element
-    _heap[_next_slot] = HeapElement(BinaryHeapTraits<Derived>::sentinel());
-    ++_next_slot;
+    for (size_t i = 0; i < size; ++i){
+      _heap[i] = HeapElement(BinaryHeapTraits<Derived>::sentinel());
+      _handles[i] = 0;
+    }
+    _heap[size] = HeapElement(BinaryHeapTraits<Derived>::sentinel());
+    ++_next_slot; // _heap[0] is sentinel
   }
 
  public:
@@ -304,7 +306,7 @@ class BinaryHeapBase {
     swap(a._max_size, b._max_size);
   }
 
-  std::vector<HeapElement> _heap;
+  std::unique_ptr<HeapElement[]> _heap;
   std::unique_ptr<size_t[]> _handles;
 
   Comparator _compare;
