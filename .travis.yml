@@ -2,7 +2,9 @@
 
 language: cpp
 
-sudo: false
+# Ubuntu 14.04 Trusty support
+sudo: required
+dist: trusty
 
 matrix:
    # gcc 6
@@ -11,9 +13,7 @@ matrix:
       addons: &gcc6
         apt:
           sources:
-            - kalakris-cmake
             - ubuntu-toolchain-r-test
-            - george-edison55-precise-backports
           packages:
             - cmake
             - cmake-data
