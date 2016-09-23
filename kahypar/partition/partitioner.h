@@ -106,7 +106,7 @@ class Partitioner {
               TriesToMinimizesCutIfOnlyOnePartitionIsUsed);
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold,
               DistributesAllRemainingHypernodesToMinimizeImbalaceIfCutCannotBeMinimized);
-  FRIEND_TEST(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph);
+  FRIEND_TEST(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph);
   FRIEND_TEST(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph);
   FRIEND_TEST(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning);
   FRIEND_TEST(APartitioner, CanUseVcyclesAsGlobalSearchStrategy);

@@ -10,6 +10,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
+#include "kahypar/kahypar.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
@@ -205,8 +206,7 @@ class APartitionOfAHypergraph : public Test {
     _config.partition.k = 2;
     _config.partition.rb_lower_k = 0;
     _config.partition.rb_upper_k = _config.partition.k - 1;
-    _config.initial_partitioning.tool = InitialPartitioner::hMetis;
-    _config.initial_partitioning.tool_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+    _config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     _config.partition.total_graph_weight = 7;
     _config.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     _config.coarsening.contraction_limit = 2;

@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
+#include "kahypar/kahypar.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
@@ -55,8 +56,7 @@ class APartitionedHypergraph : public Test {
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "Test";
-    config.initial_partitioning.tool = InitialPartitioner::hMetis;
-    config.initial_partitioning.tool_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";

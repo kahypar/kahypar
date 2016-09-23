@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
+#include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
@@ -35,8 +36,7 @@ class APartitioner : public Test {
     config.coarsening.contraction_limit = 2;
     config.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     config.coarsening.max_allowed_node_weight = 5;
-    config.initial_partitioning.tool = InitialPartitioner::hMetis;
-    config.initial_partitioning.tool_path = "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
+    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.partition.graph_filename = "PartitionerTest.hgr";
     config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";
@@ -77,10 +77,10 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
   }
 };
 
-TEST_F(APartitioner, UseshMetisPartitioningOnCoarsestHypergraph) {
+TEST_F(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph) {
   partitioner.partition(*hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
-  ASSERT_THAT(hypergraph->partID(1), Eq(0));
-  ASSERT_THAT(hypergraph->partID(3), Eq(1));
+  ASSERT_THAT(hypergraph->partID(1), Eq(1));
+  ASSERT_THAT(hypergraph->partID(3), Eq(0));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
@@ -102,10 +102,10 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
   partitioner.partition(*hypergraph, *coarsener, *refiner, config,
                         0, (config.partition.k - 1));
-  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(2));
-  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
-  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
+  ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
+  ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
 }
 
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
