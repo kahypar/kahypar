@@ -34,11 +34,9 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-3.7
           packages:
             - cmake
             - cmake-data
-            - clang-3.7
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
 
@@ -46,6 +44,13 @@ matrix:
     - env: CMAKE_CC="clang-3.7" CMAKE_CXX="clang++-3.7" BUILD_TYPE="Release" COMPILER_FLAGS=""
       os: linux
       addons: *clang37
+
+# see https://github.com/travis-ci/apt-source-whitelist/pull/205
+before_install:
+  - wget -nv -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+  - sudo apt-add-repository -y 'deb http://llvm.org/apt/trusty llvm-toolchain-trusty-3.7 main'
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y clang-3.7 
 
 before_script:
 
