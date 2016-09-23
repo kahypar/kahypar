@@ -7,7 +7,7 @@ Prerequisits:
 
 - boost with program options
 
-## Building KaHyPar
+Building KaHyPar
 -----------
 
 1.) Clone the repository including submodules:
