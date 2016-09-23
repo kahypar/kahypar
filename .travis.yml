@@ -1,0 +1,38 @@
+# Travis-CI build script for KaHyPar
+
+language: cpp
+
+sudo: false
+
+matrix:
+   # gcc 6
+    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Debug" COMPILER_FLAGS=""
+      os: linux
+      addons: &gcc6
+        apt:
+          sources:
+            - kalakris-cmake
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - g++-6
+            - libboost-program-options1.55.0
+
+
+before_script:
+
+  # print out some version numbers
+  - $CMAKE_CXX --version
+  - cmake --version
+
+  # configure
+  - mkdir build; cd build
+  - cmake
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+      -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX"
+      -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
+      $CMAKE_ARGS ..
+
+script:
+
+ - make
