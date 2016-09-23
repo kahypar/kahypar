@@ -1,11 +1,16 @@
-# Hypergraph Partitioning
+# KaHyPar - Karlsruhe Hypergraph Partitioning
+=========
 
-Travis-CI Status [![Travis-CI Status] (https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)](https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)
+Travis- Status [![Travis-CI Status] (https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)](https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)
 
-## Prerequisits:
+Prerequisits:
+-----------
+
 - boost with program options
 
 ## Building KaHyPar
+-----------
+
 1.) Clone the repository including submodules:
 
     git clone --recursive git@github.com:SebastianSchlag/kahypar.git
@@ -22,8 +27,12 @@ Travis-CI Status [![Travis-CI Status] (https://travis-ci.com/SebastianSchlag/kah
 
     make
 
-## Test:
+Test:
+-----------
+
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
 
-## Profiling:
+Profiling:
+-----------
+
 Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only support gperftools.
