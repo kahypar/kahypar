@@ -34,7 +34,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - lvm-toolchain-trusty-3.7
+            - llvm-toolchain-trusty-3.7
           packages:
             - cmake
             - cmake-data
