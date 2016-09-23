@@ -234,20 +234,21 @@ TEST_F(AMaxHeap, IsSwappable) {
 // Min Heap tests
 TEST_F(AMinHeap, ReturnsTheMinimumElement) {
   this->_heap.push(0, 4);
-  this->_heap.push(42, 1);
-  ASSERT_EQ(this->_heap.top(), 42);
+  this->_heap.push(4, 1);
+  ASSERT_EQ(this->_heap.top(), 4);
+  LOG("done");
 }
 
 TEST_F(AMinHeap, ReturnsTheMinimumKey) {
   this->_heap.push(0, 4);
-  this->_heap.push(42, 1);
+  this->_heap.push(4, 1);
   ASSERT_EQ(this->_heap.topKey(), 1);
 }
 
 TEST_F(AMinHeap, BehavesAsExpectedOnUpdate) {
   this->_heap.push(0, 4);
-  this->_heap.push(42, 3);
-  ASSERT_EQ(this->_heap.top(), 42);
+  this->_heap.push(4, 3);
+  ASSERT_EQ(this->_heap.top(), 4);
   this->_heap.updateKey(0, -2);
   ASSERT_EQ(this->_heap.top(), 0);
   ASSERT_EQ(this->_heap.topKey(), -2);
