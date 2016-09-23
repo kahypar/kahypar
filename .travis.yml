@@ -92,6 +92,8 @@ install:
       export CXXFLAGS="-isystem ${DEPS_DIR}/llvm/install/include/c++/v1"
       export LDFLAGS="-L ${DEPS_DIR}/llvm/install/lib -l c++ -l c++abi"
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPS_DIR}/llvm/install/lib"
+      export CMAKE_CC="clang-3.7"
+      export CMAKE_CXX="clang++-3.7"
     fi
 
 before_script:
