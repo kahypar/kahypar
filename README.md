@@ -4,7 +4,7 @@ Travis- Status [![Travis-CI Status] (https://travis-ci.com/SebastianSchlag/kahyp
 
 Requirements:
 -----------
-The SDSL library requires:
+The Karlsruhe Hypergraph Partitioning Framework requires:
 
  - A modern, C++11 ready compiler such as g++ version 4.9 or higher or clang version 3.2 or higher.
  - The [cmake][cmake] build system.
@@ -39,3 +39,6 @@ Profiling:
 -----------
 
 Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only support gperftools.
+
+
+[cmake]: http://www.cmake.org/ "CMake tool"
