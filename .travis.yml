@@ -95,19 +95,17 @@ install:
     fi
 
 before_script:
-
   # print out some version numbers
   - $CMAKE_CXX --version
   - cmake --version
 
-  # configure
+script:
+# configure
+  - cd ${TRAVIS_BUILD_DIR}
   - mkdir build; cd build
   - cmake
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX"
       -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
       $CMAKE_ARGS ..
-
-script:
-
  - make -j4
