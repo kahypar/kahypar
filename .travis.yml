@@ -37,6 +37,7 @@ matrix:
           packages:
             - cmake
             - cmake-data
+	    - libc++-dev
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
 
@@ -55,8 +56,8 @@ before_install:
 before_script:
 
   # print out some version numbers
-  #- $CMAKE_CXX --version
-  #- cmake --version
+  - $CMAKE_CXX --version
+  - cmake --version
 
   # configure
   - mkdir build; cd build
