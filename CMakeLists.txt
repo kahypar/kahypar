@@ -58,7 +58,19 @@ endif(KAHYPAR_VERSION_GIT_REFSPEC)
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
 add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-aw")
 
-set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++ -msse4.2 -mcrc32")
+set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++")
+
+include(CheckSSE4_2)
+if( BUILTIN_POPCNT )
+set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -msse4.2")
+endif()
+
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-mcrc32 KAHYPAR_HAS_CRC32)
+if(KAHYPAR_HAS_CRC32)
+  set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -mcrc32")
+endif()
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -pthread -g3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native -g3 ") 
