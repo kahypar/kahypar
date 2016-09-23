@@ -37,7 +37,7 @@ struct FunctionTraits<ReturnType (*)(Args ...)>{
   using result_type = ReturnType;
 
   template <size_t i>
-  using arg = typename std::tuple_element_t<i, std::tuple<Args ...> >;
+  using arg = typename std::tuple_element<i, std::tuple<Args ...> >::type;
   // the i-th argument is equivalent to the i-th tuple element of a tuple
   // composed of those arguments.
 
