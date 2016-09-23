@@ -1,12 +1,23 @@
 # Hypergraph Partitioning
 ## Prerequisits:
-- c++11 support
-- gmock & gtest and the corresponding environment variables GMOCK_DIR and GTEST_DIR
+- boost with program options
 
-## Make:
-1. mkdir <release|debug> && cd <release|debug>
-2. cmake .. -DCMAKE_BUILD_TYPE=<RELEASE|DEBUG>
-3. make
+## Building KaHyPar
+1.) Clone the repository including submodules:
+
+    git clone --recursive git@github.com:SebastianSchlag/kahypar.git
+
+2.) Create a build directory:
+
+    mkdir build && cd build
+
+3.) Run cmake:
+
+    cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+
+4.) Run make:
+
+    make
 
 ## Test:
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
