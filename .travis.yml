@@ -100,7 +100,7 @@ before_script:
   - cmake --version
 
 script:
-# configure
+  # configure
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir build; cd build
   - cmake
@@ -108,4 +108,4 @@ script:
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX"
       -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
       $CMAKE_ARGS ..
- - make -j4
+  - make -j4
