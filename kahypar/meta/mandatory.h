@@ -17,8 +17,7 @@ class MandatoryTemplateArgument {
   struct private_type;
 
   static_assert(std::is_same<SomeType, private_type>::value,
-                "You forgot to specify a mandatory template argument which cannot be deduced."
-                );
+                "You forgot to specify a mandatory template argument which cannot be deduced.");
 };
 }  // namespace meta
 }  // namespace kahypar
