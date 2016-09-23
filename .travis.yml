@@ -18,7 +18,7 @@ matrix:
             - cmake
             - cmake-data
             - g++-6
-            - libboost-program-options1.55.0
+            - libboost-all-dev
 
 
 before_script:
