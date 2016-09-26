@@ -1,4 +1,5 @@
 add_subdirectory(meta)
+add_subdirectory(end_to_end)
 add_subdirectory(datastructure)
 add_subdirectory(io)
 add_subdirectory(utils)

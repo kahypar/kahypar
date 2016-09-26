@@ -27,11 +27,20 @@ matrix:
       os: linux
       addons: *gcc6
 
+      # gcc 6 - RelWithDebInfo Build - end to end tests
+    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="RelWithDebInfo" COMPILER_FLAGS=""
+      os: linux
+      addons: *gcc6
+
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COMPILER_FLAGS=""
       os: osx
 
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COMPILER_FLAGS=""
+      os: osx
+
+      # RelWithDebInfo Build - end to end tests
+    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="RelWithDebInfo" COMPILER_FLAGS=""
       os: osx
 
 before_script:
@@ -48,4 +57,9 @@ before_script:
       $CMAKE_ARGS ..
 
 script:
-  - make -j4
+  - |
+    if [[ "${BUILD_TYPE}" == "RelWithDebInfo"]]; then
+      make kahypar_kway_cut_test
+    else
+      make -j4
+    fi
