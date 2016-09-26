@@ -58,8 +58,5 @@ before_script:
 
 script:
   - |
-    if [[ "${BUILD_TYPE}" == "RelWithDebInfo"]]; then
-      make kahypar_kway_cut_test
-    else
-      make -j4
-    fi
+    if [[ "$BUILD_TYPE" == "RelWithDebInfo"]]; then make kahypar_kway_cut_test;
+    else make -j4; fi
