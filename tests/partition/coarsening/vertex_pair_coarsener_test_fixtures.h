@@ -80,7 +80,12 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
     ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
     hypergraph->setNodePart(5, 0);
   }
-  hypergraph->setNodePart(3, 1);
+  if (hypergraph->nodeIsEnabled(3)) {
+    hypergraph->setNodePart(3, 1);
+  } else {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(4), Eq(true));
+    hypergraph->setNodePart(4, 1);
+  }
   hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
