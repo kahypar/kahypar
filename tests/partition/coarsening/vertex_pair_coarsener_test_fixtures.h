@@ -72,6 +72,7 @@ void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, Hypergrap
   coarsener.coarsen(2);
   ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
   ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
+  hypergraph->printGraphState();
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph->nodeIsEnabled(1)) {
     hypergraph->setNodePart(1, 0);
