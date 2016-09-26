@@ -55,11 +55,7 @@ class APartitioner : public Test {
                                            * config.partition.perfect_balance_part_weights[0];
     config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
                                            * config.partition.perfect_balance_part_weights[1];
-    double exp = 1.0 / log2(config.partition.k);
-    config.initial_partitioning.hmetis_ub_factor =
-      50.0 * (2 * pow((1 + config.partition.epsilon), exp)
-              * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
-                         / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
+    kahypar::Randomize::instance().setSeed(config.partition.seed);
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
@@ -86,13 +82,14 @@ TEST_F(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph) {
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
   partitioner.partition(*hypergraph, *coarsener, *refiner, config,
                         0, (config.partition.k - 1));
-  ASSERT_THAT(hypergraph->partID(0), Eq(0));
-  ASSERT_THAT(hypergraph->partID(1), Eq(0));
-  ASSERT_THAT(hypergraph->partID(2), Eq(0));
-  ASSERT_THAT(hypergraph->partID(3), Eq(1));
-  ASSERT_THAT(hypergraph->partID(4), Eq(1));
-  ASSERT_THAT(hypergraph->partID(5), Eq(0));
-  ASSERT_THAT(hypergraph->partID(6), Eq(1));
+  hypergraph->printGraphState();
+  ASSERT_THAT(hypergraph->partID(0), Eq(1));
+  ASSERT_THAT(hypergraph->partID(1), Eq(1));
+  ASSERT_THAT(hypergraph->partID(2), Eq(1));
+  ASSERT_THAT(hypergraph->partID(3), Eq(0));
+  ASSERT_THAT(hypergraph->partID(4), Eq(0));
+  ASSERT_THAT(hypergraph->partID(5), Eq(1));
+  ASSERT_THAT(hypergraph->partID(6), Eq(0));
 }
 
 TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
