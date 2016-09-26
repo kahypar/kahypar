@@ -1008,6 +1008,7 @@ class KWayFMRefiner final : public IRefiner,
           break;
         case 2:
           for (const PartitionID part : _hg.connectivitySet(he)) {
+            _tmp_gains.add(part, 0);
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
               _tmp_gains[part] += he_weight;
             }
