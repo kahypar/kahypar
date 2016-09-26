@@ -65,9 +65,14 @@ TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
 // accesses private coarsener internals and therefore cannot be extracted easily
 TEST_F(ACoarsener, SelectsNodePairToContractBasedOnHighestRating) {
   coarsener.coarsen(6);
-  ASSERT_THAT(hypergraph->nodeIsEnabled(2), Eq(false));
-  ASSERT_THAT(coarsener._history.back().contraction_memento.u, Eq(0));
-  ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
+  if (hypergraph->nodeIsEnabled(2)) {
+    ASSERT_THAT(coarsener._history.back().contraction_memento.u, Eq(2));
+    ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(0));
+  } else {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(0), Eq(true));
+    ASSERT_THAT(coarsener._history.back().contraction_memento.u, Eq(0));
+    ASSERT_THAT(coarsener._history.back().contraction_memento.v, Eq(2));
+  }
 }
 
 TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
