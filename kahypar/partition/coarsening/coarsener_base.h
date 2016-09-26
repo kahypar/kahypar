@@ -22,7 +22,7 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-static const bool dbg_coarsening_coarsen = true
+static const bool dbg_coarsening_coarsen = true;
 static const bool dbg_coarsening_rating = true;
 static const bool dbg_coarsening_no_valid_contraction = false;
 static const bool dbg_coarsening_uncoarsen = false;
