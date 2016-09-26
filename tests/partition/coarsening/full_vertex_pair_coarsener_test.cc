@@ -91,6 +91,7 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   Configuration config;
   config.coarsening.max_allowed_node_weight = 5;
   config.coarsening.max_allowed_node_weight = 3;
+  kahypar::Randomize::instance().setSeed(config.partition.seed);
   std::string graph_file("../../../../special_instances/bad_for_ec.hgr");
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
@@ -99,16 +100,15 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   CoarsenerType coarsener(hypergraph, config, 1);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
-  ASSERT_THAT(hypergraph.nodeWeight(0), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(3), Eq(1));
-  ASSERT_THAT(hypergraph.nodeWeight(4), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(7), Eq(2));
-  ASSERT_THAT(hypergraph.nodeWeight(8), Eq(3));
-  ASSERT_THAT(hypergraph.edgeWeight(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(3), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(4), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(5), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(0), Eq(3));
+  ASSERT_THAT(hypergraph.nodeWeight(1), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(5), Eq(1));
+  ASSERT_THAT(hypergraph.nodeWeight(6), Eq(2));
+  ASSERT_THAT(hypergraph.nodeWeight(9), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(0), Eq(3));
   ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(10), Eq(3));
+  ASSERT_THAT(hypergraph.edgeWeight(8), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(10), Eq(2));
+  ASSERT_THAT(hypergraph.edgeWeight(14), Eq(1));
 }
 }  // namespace kahypar

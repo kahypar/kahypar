@@ -40,7 +40,7 @@ class ACoarsenerBase : public Test {
                                            * config.partition.perfect_balance_part_weights[0];
     config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
                                            * config.partition.perfect_balance_part_weights[1];
-
+    kahypar::Randomize::instance().setSeed(config.partition.seed);
     config.coarsening.max_allowed_node_weight = 5;
   }
 
@@ -130,7 +130,7 @@ template <class Coarsener, class HypergraphT, class Refiner>
 void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph,
                                                   Refiner& refiner) {
   coarsener.coarsen(2);
-
+  hypergraph->printGraphState();
   // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
   if (hypergraph->nodeIsEnabled(1)) {
     hypergraph->setNodePart(1, 0);
@@ -138,7 +138,7 @@ void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, Hypergra
     ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
     hypergraph->setNodePart(5, 0);
   }
-  hypergraph->setNodePart(4, 1);
+  hypergraph->setNodePart(3, 1);
   hypergraph->initializeNumCutHyperedges();
 
   coarsener.uncoarsen(*refiner);
