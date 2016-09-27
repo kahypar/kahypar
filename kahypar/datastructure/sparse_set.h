@@ -66,6 +66,7 @@ class SparseSetBase {
   }
 
   ~SparseSetBase() {
+    static_assert(std::is_pod<ValueType>::value, "ValueType should be POD");
     free(_sparse);
   }
 
