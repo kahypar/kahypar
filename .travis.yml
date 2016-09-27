@@ -53,4 +53,4 @@ before_script:
       $CMAKE_ARGS ..
 
 script:
-  - if [ "$BUILD_TYPE" == "RelWithDebInfo" && "$CMAKE_CXX" == "g++-6" ]; then make kahypar_integration_tests; else make; fi
+  - if [ "$BUILD_TYPE" == "RelWithDebInfo" && "$CMAKE_CXX" == "g++-6" ]; then make kahypar_integration_tests; else make -j4; fi
