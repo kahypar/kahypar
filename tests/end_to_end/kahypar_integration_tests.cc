@@ -79,9 +79,9 @@ TEST_F(KaHyPar, ComputesDirectKwayKm1Partitioning) {
   partitioner.partition(hypergraph, config);
   kahypar::io::printPartitioningResults(hypergraph, config, std::chrono::duration<double>(0.0));
 
-  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 968);
-  ASSERT_EQ(metrics::soed(hypergraph), 2007);
-  ASSERT_EQ(metrics::km1(hypergraph), 1039);
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 995);
+  ASSERT_EQ(metrics::soed(hypergraph), 2053);
+  ASSERT_EQ(metrics::km1(hypergraph), 1058);
 }
 
 
