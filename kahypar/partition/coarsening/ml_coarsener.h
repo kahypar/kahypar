@@ -142,7 +142,7 @@ class MLCoarsener final : public ICoarsener,
 
     Rating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
-      ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
+      ASSERT(target != std::numeric_limits<HypernodeID>::max());
       ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
       ret.target = target;
@@ -151,14 +151,7 @@ class MLCoarsener final : public ICoarsener,
 
     _tmp_ratings.clear();
 
-    ASSERT([&]() {
-        bool flag = true;
-        if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
-          flag = false;
-        }
-        return flag;
-      } (), "Representative " << u << " & contraction target " << ret.target
-           << " are in different parts!");
+    ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
     DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
         << ret.valid << ")");
     return ret;
@@ -173,8 +166,7 @@ class MLCoarsener final : public ICoarsener,
              (already_matched[old_target] && already_matched[new_target] &&
               RandomRatingWins::acceptEqual()) ||
              (!already_matched[old_target] && !already_matched[new_target] &&
-              RandomRatingWins::acceptEqual())
-            ));
+              RandomRatingWins::acceptEqual())));
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {

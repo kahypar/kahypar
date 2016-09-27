@@ -30,11 +30,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
     Base(hypergraph, config, weight_of_heaviest_node),
     _rater(_hg, _config),
     _outdated_rating(hypergraph.initialNumNodes()),
-    _target(_hg.initialNumNodes()) {
-    LOG("Coarsener does not choose highest degree node as representative!");
-    LOG("This could be slow on instances with skewed incidence structure.");
-    LOG("Press any key to continue.");
-  }
+    _target(_hg.initialNumNodes()) { }
 
   virtual ~LazyVertexPairCoarsener() { }
 
@@ -70,11 +66,9 @@ class LazyVertexPairCoarsener final : public ICoarsener,
             " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node));
 
         ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
-               <= _rater.thresholdNodeWeight(),
-               "Trying to contract nodes violating maximum node weight");
+               <= _rater.thresholdNodeWeight());
         ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
-               "Key in PQ != rating calculated by rater:" << _pq.topKey() << "!="
-               << _rater.rate(rep_node).value);
+               V(_pq.topKey()) << V(_rater.rate(rep_node).value));
 
         performContraction(rep_node, contracted_node);
         ASSERT(_pq.contains(contracted_node), V(contracted_node));
@@ -108,15 +102,13 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   void updatePQandContractionTarget(const HypernodeID hn, const Rating& rating) {
     _outdated_rating.set(hn, false);
     if (rating.valid) {
-      ASSERT(_pq.contains(hn),
-             "Trying to update rating of HN " << hn << " which is not in PQ");
+      ASSERT(_pq.contains(hn), V(hn));
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
     } else {
       // In this case, no explicit contaiment check is necessary because the
       // method is only called on rep_node, which is definetly in the PQ.
-      ASSERT(_pq.contains(hn),
-             "Trying to remove rating of HN " << hn << " which is not in PQ");
+      ASSERT(_pq.contains(hn), V(hn));
       _pq.remove(hn);
       DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
