@@ -19,12 +19,13 @@ class IInitialPartitioner {
   IInitialPartitioner& operator= (IInitialPartitioner&&) = delete;
 
 
-  void partition(Hypergraph& hg, Configuration& config) {
+  void partition(Hypergraph& hg, const Configuration& config) {
     HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
     std::vector<PartitionID> best_partition(hg.initialNumNodes(), 0);
     for (int i = 0; i < config.initial_partitioning.nruns; ++i) {
+      // hg.resetPartitioning() is called in partitionImpl
       partitionImpl();
-      HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
+      const HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
       if (current_cut < best_cut) {
         best_cut = current_cut;
         for (HypernodeID hn : hg.nodes()) {

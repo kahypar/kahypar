@@ -13,7 +13,6 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 class IRefiner {

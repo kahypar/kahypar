@@ -8,7 +8,6 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 class IRefiner;
