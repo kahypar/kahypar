@@ -66,7 +66,7 @@ For more information see the [COPYING file][CF].
 
 We distribute this framework freely to foster the use and development of hypergraph partitioning tools. If you use KaHyPar in an academic setting please cite the following paper:
     
-    @inproceedings{DBLP:conf/alenex/SchlagHHMS016,
+    @inproceedings{shhmss2016alenex,
      author    = {Sebastian Schlag and
                   Vitali Henne and
                   Tobias Heuer and
