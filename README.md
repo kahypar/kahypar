@@ -71,3 +71,4 @@ A preliminary version is available [here on arxiv][ALENEX16PAPER].
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
+[CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
