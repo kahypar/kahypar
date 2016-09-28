@@ -44,8 +44,8 @@ Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only 
 Licensing
 ---------
 
-KaHyPar is free software provided under the GNU General Public License
-(GPLv3). For more information see the [COPYING file][CF].
+KaHyPar is free software provided under the GNU General Public License (GPLv3). 
+For more information see the [COPYING file][CF].
 
 We distribute this framework freely to foster the use and development of advanced
 data structure. If you use KaHyPar in an academic setting please cite the
