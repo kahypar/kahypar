@@ -317,8 +317,11 @@ class TwoWayFMRefiner final : public IRefiner,
                                                 <= _config.partition.max_part_weights[1]);
       const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
                                                    (current_cut <= best_metrics.cut);
+      const bool move_is_feasible = (_hg.partSize(from_part) > 0) &&
+                                    (improved_cut_within_balance ||
+                                     improved_balance_less_equal_cut);
       ++touched_hns_since_last_improvement;
-      if (improved_cut_within_balance || improved_balance_less_equal_cut) {
+      if (move_is_feasible) {
         DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
             "2WayFM improved balance between " << from_part << " and " << to_part
             << "(max_gain=" << max_gain << ")");
