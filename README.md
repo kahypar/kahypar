@@ -55,7 +55,7 @@ All preset parameters can be overwritten by using the corresponding command line
 Bug Reports:
 -----------
 
-In case you find any bugs in the framwork, we encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
+We encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
 Licensing:
