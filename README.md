@@ -47,6 +47,10 @@ Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON.
 Running KaHyPar:
 -----------
 
+The binary is located at:
+
+    build/kahypar/application/
+
 KaHyPar has several configuration parameters. For a list of all possible parameters please run:
 
     ./KaHyPar --help
@@ -71,7 +75,7 @@ Bug Reports:
 In case you find any bugs in the framwork, we encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
-Licensing
+Licensing:
 ---------
 
 KaHyPar is free software provided under the GNU General Public License (GPLv3). 
