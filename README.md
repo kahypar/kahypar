@@ -47,7 +47,7 @@ Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON.
 Bug Reports:
 -----------
 
-In case you find any bugs in the framwork, we encourage you to report any problems with the library via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
+In case you find any bugs in the framwork, we encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
 Licensing
