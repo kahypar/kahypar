@@ -323,7 +323,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
       if (_hg.partWeight(target_part.key) + hn_weight
           <= _config.initial_partitioning.upper_allowed_partition_weight[target_part.key]
-          && _hg.partSize(source_part) -1 > 0) {
+          && _hg.partSize(source_part) - 1 > 0) {
         if (target_part.value > max_score) {
           max_score = target_part.value;
           max_part = target_part.key;
