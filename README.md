@@ -12,7 +12,7 @@ The Karlsruhe Hypergraph Partitioning Framework requires:
  - The [Boost.Program_options][Boost.Program_options] library.
 
 
-Building KaHyPar
+Building KaHyPar:
 -----------
 
 1.) Clone the repository including submodules:
@@ -43,6 +43,27 @@ Profiling:
 -----------
 
 Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON.
+
+Running KaHyPar:
+-----------
+
+KaHyPar has several configuration parameters. For a list of all possible parameters please run:
+
+    ./KaHyPar --help
+    
+Currently we provide two different presets that correspond to the configuration used in the 
+[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) submission and the [ALENEX'17]() submission.
+
+To start KaHyPar in recursive bisection mode optimizing the cut-net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rb_alenex16.ini
+    
+To start KaHyPar in direct k-way mode optimizing the (connectivity - 1) objective run:   
+  
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_alenex17.ini
+    
+All preset parameters can be overwritten by using the corresponding command line options.
+
 
 Bug Reports:
 -----------
