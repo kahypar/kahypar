@@ -41,5 +41,33 @@ Profiling:
 Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only support gperftools.
 
 
+Licensing
+---------
+
+KaHyPar is free software provided under the GNU General Public License
+(GPLv3). For more information see the [COPYING file][CF] in the library
+directory.
+
+We distribute this framework freely to foster the use and development of advanced
+data structure. If you use KaHyPar in an academic setting please cite the
+following paper:
+    
+    @inproceedings{DBLP:conf/alenex/SchlagHHMS016,
+     author    = {Sebastian Schlag and
+                  Vitali Henne and
+                  Tobias Heuer and
+                  Henning Meyerhenke and
+                  Peter Sanders and
+                  Christian Schulz},
+     title     = {\emph{k}-way Hypergraph Partitioning via \emph{n}-Level Recursive
+                  Bisection},
+     booktitle = {18th Workshop on Algorithm Engineering and Experiments, (ALENEX 2016)},
+     pages     = {53--67},
+     year      = {2016},
+    }
+
+A preliminary version is available [here on arxiv][ALENEX16PAPER].
+
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
+[ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
