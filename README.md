@@ -99,7 +99,7 @@ We distribute this framework freely to foster the use and development of hypergr
 
 A preliminary version is available [here on arxiv][ALENEX16PAPER].
 
-Contributing
+Contributing:
 ------------
 If you are interested in contributing to the KaHyPar framework
 feel free to contact any of the authors or create an issue on the
