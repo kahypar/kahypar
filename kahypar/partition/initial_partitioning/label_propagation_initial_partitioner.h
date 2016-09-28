@@ -322,7 +322,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         } (), "Calculated gain is invalid");
 
       if (_hg.partWeight(target_part.key) + hn_weight
-          <= _config.initial_partitioning.upper_allowed_partition_weight[target_part.key]) {
+          <= _config.initial_partitioning.upper_allowed_partition_weight[target_part.key]
+          && _hg.partSize(source_part) -1 > 0) {
         if (target_part.value > max_score) {
           max_score = target_part.value;
           max_part = target_part.key;

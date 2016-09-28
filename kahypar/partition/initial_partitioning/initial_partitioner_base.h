@@ -130,8 +130,9 @@ class InitialPartitionerBase {
       if (_hg.partID(hn) == -1) {
         _hg.setNodePart(hn, target_part);
       } else {
-        if (_hg.partID(hn) != target_part) {
-          _hg.changeNodePart(hn, _hg.partID(hn), target_part);
+        const PartitionID from_part = _hg.partID(hn);
+        if (from_part != target_part && _hg.partSize(from_part) - 1 > 0) {
+          _hg.changeNodePart(hn, from_part, target_part);
         } else {
           return false;
         }
