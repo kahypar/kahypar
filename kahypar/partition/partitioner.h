@@ -435,7 +435,7 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_config.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_config.partition.epsilon);
-  return std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0;
+  return std::min(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0,0.99);
 }
 
 void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Configuration& config) {
@@ -611,14 +611,17 @@ inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
   }
 }
 
-inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config, const Hypergraph& original_hypergraph,
-                                                                         const Hypergraph& current_hypergraph, const PartitionID current_k,
-                                                                         const PartitionID k0, const PartitionID k1) const {
+inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config,
+                                                                         const Hypergraph& original_hypergraph,
+                                                                         const Hypergraph& current_hypergraph,
+                                                                         const PartitionID current_k,
+                                                                         const PartitionID k0,
+                                                                         const PartitionID k1) const {
   Configuration current_config(original_config);
   current_config.partition.k = 2;
-  current_config.partition.epsilon = calculateRelaxedEpsilon(
-    original_hypergraph.totalWeight(), current_hypergraph.totalWeight(),
-    current_k, original_config);
+  current_config.partition.epsilon = calculateRelaxedEpsilon( original_hypergraph.totalWeight(),
+                                                              current_hypergraph.totalWeight(),
+                                                              current_k, original_config);
   ASSERT(current_config.partition.epsilon > 0.0, "start partition already too imbalanced");
   if (current_config.partition.verbose_output) {
     LOG(V(current_config.partition.epsilon));
