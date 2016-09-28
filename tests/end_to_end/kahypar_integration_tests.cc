@@ -85,9 +85,17 @@ TEST_F(KaHyParK, ComputesDirectKwayCutPartitioning) {
   partitioner.partition(hypergraph, config);
   kahypar::io::printPartitioningResults(hypergraph, config, std::chrono::duration<double>(0.0));
 
-  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 887);
-  ASSERT_EQ(metrics::soed(hypergraph), 2134);
-  ASSERT_EQ(metrics::km1(hypergraph), 1247);
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
+                                          config.partition.k));
+
+  for(const HypernodeID hn : hypergraph.nodes()){
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
 
 TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
@@ -104,9 +112,17 @@ TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
   partitioner.partition(hypergraph, config);
   kahypar::io::printPartitioningResults(hypergraph, config, std::chrono::duration<double>(0.0));
 
-  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 995);
-  ASSERT_EQ(metrics::soed(hypergraph), 2053);
-  ASSERT_EQ(metrics::km1(hypergraph), 1058);
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
+                                          config.partition.k));
+
+  for(const HypernodeID hn : hypergraph.nodes()){
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
 
 
@@ -124,9 +140,17 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionCutPartitioning) {
   partitioner.partition(hypergraph, config);
   kahypar::io::printPartitioningResults(hypergraph, config, std::chrono::duration<double>(0.0));
 
-  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 892);
-  ASSERT_EQ(metrics::soed(hypergraph), 1989);
-  ASSERT_EQ(metrics::km1(hypergraph), 1097);
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
+                                          config.partition.k));
+
+  for(const HypernodeID hn : hypergraph.nodes()){
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
 
 TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
@@ -143,8 +167,16 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
   partitioner.partition(hypergraph, config);
   kahypar::io::printPartitioningResults(hypergraph, config, std::chrono::duration<double>(0.0));
 
-  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), 895);
-  ASSERT_EQ(metrics::soed(hypergraph), 1850);
-  ASSERT_EQ(metrics::km1(hypergraph), 955);
+    Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
+                                          config.partition.k));
+
+    for(const HypernodeID hn : hypergraph.nodes()){
+      verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
 }  // namespace kahypar
