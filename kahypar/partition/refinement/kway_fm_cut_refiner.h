@@ -172,8 +172,7 @@ class KWayFMRefiner final : public IRefiner,
       _hg.mark(max_gain_node);
       ++touched_hns_since_last_improvement;
 
-      if (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-          <= _config.partition.max_part_weights[0]) {
+      if (moveIsFeasible(max_gain_node, from_part, to_part)) {
         moveHypernode(max_gain_node, from_part, to_part);
 
         if (_hg.partWeight(to_part) >= _config.partition.max_part_weights[0]) {
