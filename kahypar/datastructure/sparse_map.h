@@ -133,7 +133,7 @@ class SparseMapBase {
   ~SparseMapBase() {
     const size_t max_size = reinterpret_cast<size_t*>(_dense) - _sparse;
     for (size_t i = 0; i < max_size; ++i) {
-      (_dense +i)->~MapElement();
+      (_dense + i)->~MapElement();
     }
     free(_sparse);
   }
