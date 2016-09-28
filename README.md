@@ -6,6 +6,7 @@ Requirements:
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
+ - A 64-bit operating system. Linux and Mac OS X are currently supported.
  - A modern, C++11 ready compiler such as `g++` version 4.9 or higher or `clang` version 3.2 or higher.
  - The [cmake][cmake] build system.
  - The [Boost.Program_options][Boost.Program_options] library.
@@ -34,11 +35,19 @@ Test:
 -----------
 
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
+End-to-end integration tests can be started with:
+   
+    make integration_tests  
 
 Profiling:
 -----------
 
-Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON. Currently we only support gperftools.
+Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON.
+
+Bug Reports:
+-----------
+
+In case you find any bugs in the framwork, we encourage you to report any problems with the library via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
 Licensing
