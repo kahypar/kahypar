@@ -17,10 +17,8 @@ Building KaHyPar:
 
 1. Clone the repository including submodules: `git clone --recursive git@github.com:SebastianSchlag/kahypar.git`
 2. Create a build directory: `mkdir build && cd build`
-
-3.) Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
-
-4.) Run make: `make`
+3. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
+4. Run make: `make`
 
 Test:
 -----------
