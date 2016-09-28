@@ -19,41 +19,29 @@ Building KaHyPar:
 
     git clone --recursive git@github.com:SebastianSchlag/kahypar.git
 
-2.) Create a build directory:
+2.) Create a build directory: `mkdir build && cd build`
 
-    mkdir build && cd build
+3.) Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
 
-3.) Run cmake:
-
-    cmake .. -DCMAKE_BUILD_TYPE=RELEASE
-
-4.) Run make:
-
-    make
+4.) Run make: `make`
 
 Test:
 -----------
 
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
-End-to-end integration tests can be started with:
-   
-    make integration_tests  
+End-to-end integration tests can be started with: `make integration_tests`  
 
 Profiling:
 -----------
 
-Profiling can be enabled via cmake flag: -DENABLE_PROFILE=ON.
+Profiling can be enabled via cmake flag: `-DENABLE_PROFILE=ON`.
 
 Running KaHyPar:
 -----------
 
-The binary is located at:
+The binary is located at: `build/kahypar/application/`.
 
-    build/kahypar/application/
-
-KaHyPar has several configuration parameters. For a list of all possible parameters please run:
-
-    ./KaHyPar --help
+KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`
     
 Currently we provide two different presets that correspond to the configuration used in the 
 [ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) submission and the [ALENEX'17]() submission.
