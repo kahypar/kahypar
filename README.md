@@ -74,6 +74,13 @@ We distribute this framework freely to foster the use and development of hypergr
 
 A preliminary version is available [here on arxiv][ALENEX16PAPER].
 
+Contributing
+------------
+If you are interested in contributing to the KaHyPar framework
+feel free to contact any of the authors or create an issue on the
+[issue tracking system](https://github.com/SebastianSchlag/kahypar/issues).
+
+
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
