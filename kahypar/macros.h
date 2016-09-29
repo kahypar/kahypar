@@ -100,10 +100,14 @@
   } while (0)
 
 #define ONLYDEBUG(x) ((void)x)
-#define UTILS_UNUSED __attribute__ ((unused))
-#define UNUSED(name) unused_ ## name UTILS_UNUSED
 #define UNUSED_FUNCTION(x) ((void)x)
 
+#if defined(__GNUC__) || defined(__clang__)
+#define UTILS_UNUSED __attribute__ ((unused))
+#define UNUSED(name) unused_ ## name UTILS_UNUSED
+#else
+#define UNUSED(name) name
+#endif
 
 #if defined(__GNUC__) || defined(__clang__)
 #define KAHYPAR_ATTRIBUTE_ALWAYS_INLINE __attribute__ ((always_inline))
