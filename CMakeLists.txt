@@ -93,6 +93,7 @@ if(NOT MSVC)
   endif()
 
 elseif(MSVC)
+  message(STATUS "------------------------------------------------hier")
   # Force to always compile with W4
   string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
