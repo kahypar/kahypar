@@ -61,7 +61,7 @@ endif(KAHYPAR_VERSION_GIT_REFSPEC)
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
 add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-aw")
 
-if (NOT MSVC)
+if(NOT MSVC)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++ -Wno-unused-function")
   endif()
