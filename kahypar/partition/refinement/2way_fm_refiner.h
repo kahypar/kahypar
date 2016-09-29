@@ -62,6 +62,7 @@ class TwoWayFMRefiner final : public IRefiner,
  private:
   using RebalancePQ = ds::BinaryMaxHeap<HypernodeID, Gain>;
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
+  using Base = FMRefinerBase<HypernodeID>;
 
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
@@ -988,11 +989,11 @@ class TwoWayFMRefiner final : public IRefiner,
       } (), "GainCache Invalid");
   }
 
-  using FMRefinerBase::_hg;
-  using FMRefinerBase::_config;
-  using FMRefinerBase::_pq;
-  using FMRefinerBase::_performed_moves;
-  using FMRefinerBase::_hns_to_activate;
+  using Base::_hg;
+  using Base::_config;
+  using Base::_pq;
+  using Base::_performed_moves;
+  using Base::_hns_to_activate;
 
   std::array<RebalancePQ, 2> _rebalance_pqs;
   ds::FastResetFlagArray<> _he_fully_active;
