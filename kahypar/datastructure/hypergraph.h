@@ -1851,7 +1851,7 @@ class GenericHypergraph {
    * GenericHypergraph::removeIncidentEdgeFromHypernode.
    */
   template <typename Handle1, typename Element>
-  __attribute__ ((always_inline)) void removeIncidence(const Handle1 to_remove, Element& element) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void removeIncidence(const Handle1 to_remove, Element& element) {
     using std::swap;
     ASSERT(!element.isDisabled());
 
@@ -1866,12 +1866,12 @@ class GenericHypergraph {
     element.decrementSize();
   }
 
-  __attribute__ ((always_inline)) void removePinFromHyperedge(const HypernodeID pin,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void removePinFromHyperedge(const HypernodeID pin,
                                                               const HyperedgeID he) {
     removeIncidence(pin, _hyperedges[he]);
   }
 
-  __attribute__ ((always_inline)) void removeIncidentEdgeFromHypernode(const HyperedgeID he,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void removeIncidentEdgeFromHypernode(const HyperedgeID he,
                                                                        const HypernodeID hn) {
     removeIncidence(he, _hypernodes[hn]);
   }

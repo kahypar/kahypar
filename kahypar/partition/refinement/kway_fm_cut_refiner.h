@@ -314,7 +314,7 @@ class KWayFMRefiner final : public IRefiner,
                                     const HypernodeID he_size, const HyperedgeWeight he_weight,
                                     const HypernodeID pin_count_source_part_before_move,
                                     const HypernodeID pin_count_target_part_after_move)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     deltaGainUpdates<true>(pin, from_part, to_part, he, he_size,
                            he_weight, pin_count_source_part_before_move,
                            pin_count_target_part_after_move);
@@ -326,14 +326,14 @@ class KWayFMRefiner final : public IRefiner,
                                      const HypernodeID he_size, const HyperedgeWeight he_weight,
                                      const HypernodeID pin_count_source_part_before_move,
                                      const HypernodeID pin_count_target_part_after_move)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     deltaGainUpdates<false>(pin, from_part, to_part, he, he_size,
                             he_weight, pin_count_source_part_before_move,
                             pin_count_target_part_after_move);
   }
 
   template <bool update_cache_only = false>
-  __attribute__ ((always_inline))
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE
   void deltaGainUpdates(const HypernodeID pin, const PartitionID from_part,
                         const PartitionID to_part, const HyperedgeID he, const HypernodeID he_size,
                         const HyperedgeWeight he_weight,
@@ -406,7 +406,7 @@ class KWayFMRefiner final : public IRefiner,
                           const PartitionID to_part, const HyperedgeID he,
                           const bool move_decreased_connectivity,
                           const bool move_increased_connectivity)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
@@ -448,7 +448,7 @@ class KWayFMRefiner final : public IRefiner,
                                   const PartitionID to_part, const HyperedgeID he,
                                   const bool move_decreased_connectivity,
                                   const bool move_increased_connectivity)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
@@ -575,7 +575,7 @@ class KWayFMRefiner final : public IRefiner,
 
   void connectivityUpdate(const HypernodeID moved_hn, const PartitionID from_part,
                           const PartitionID to_part, const HyperedgeID he)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(moved_hn);
     const HypernodeID he_size = _hg.edgeSize(he);
     const HyperedgeWeight he_weight = _hg.edgeWeight(he);
@@ -928,7 +928,7 @@ class KWayFMRefiner final : public IRefiner,
 
   void updatePin(const HypernodeID pin, const PartitionID part, const HyperedgeID he,
                  const Gain delta)
-  __attribute__ ((always_inline)) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(he);
     if (delta != 0 && _gain_cache.entryExists(pin, part) &&
         _already_processed_part.get(pin) != part) {
@@ -1049,7 +1049,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
 
-  __attribute__ ((always_inline))
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE
   void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(!_hg.marked(hn));
     ASSERT(_hg.isBorderNode(hn));

@@ -718,7 +718,7 @@ class TwoWayFMRefiner final : public IRefiner,
             _pq.isEnabled(1) : !_pq.isEnabled(1)), V(1));
   }
 
-  void updateGainCache(const HypernodeID pin, const Gain gain_delta) __attribute__ ((always_inline)) {
+  void updateGainCache(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     // Only _gain_cache[moved_hn] = kNotCached, all other entries are cached.
     // However we set _gain_cache[moved_hn] to the correct value after all neighbors
     // are updated.
@@ -732,7 +732,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void performNonZeroFullUpdate(const HypernodeID pin, const Gain gain_delta,
-                                HypernodeID& num_active_pins) __attribute__ ((always_inline)) {
+                                HypernodeID& num_active_pins) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ASSERT(gain_delta != 0);
     if (!_hg.marked(pin)) {
       if (!_hg.active(pin)) {
@@ -926,7 +926,7 @@ class TwoWayFMRefiner final : public IRefiner,
 #endif
   }
 
-  void updatePin(const HypernodeID pin, const Gain gain_delta) __attribute__ ((always_inline)) {
+  void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     const PartitionID target_part = 1 - _hg.partID(pin);
     ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
