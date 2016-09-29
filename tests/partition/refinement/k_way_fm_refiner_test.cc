@@ -91,8 +91,11 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
+#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-
+#else
+  refiner->initialize();
+#endif
   refiner->_hg.activate(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);
