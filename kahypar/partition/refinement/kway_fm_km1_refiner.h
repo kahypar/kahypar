@@ -62,6 +62,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
   using GainCache = KwayGainCache<Gain>;
+  using Base = FMRefinerBase<RollbackInfo>;
 
 
   struct PinState {
@@ -990,11 +991,11 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
-  using FMRefinerBase::_hg;
-  using FMRefinerBase::_config;
-  using FMRefinerBase::_pq;
-  using FMRefinerBase::_performed_moves;
-  using FMRefinerBase::_hns_to_activate;
+  using Base::_hg;
+  using Base::_config;
+  using Base::_pq;
+  using Base::_performed_moves;
+  using Base::_hns_to_activate;
 
   ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
 

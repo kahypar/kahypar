@@ -57,6 +57,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   static const bool dbg_refinement_kway_fm_gain_comp = false;
 
   using GainPartitionPair = std::pair<Gain, PartitionID>;
+  using Base = FMRefinerBase<RollbackInfo>;
 
   struct GainConnectivity {
     Gain gain;
@@ -597,9 +598,9 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     return GainPartitionPair(max_gain, max_gain_part);
   }
 
-  using FMRefinerBase::_hg;
-  using FMRefinerBase::_config;
-  using FMRefinerBase::_performed_moves;
+  using Base::_hg;
+  using Base::_config;
+  using Base::_performed_moves;
 
   std::vector<GainConnectivity> _tmp_gains;
   std::vector<PartitionID> _target_parts;
