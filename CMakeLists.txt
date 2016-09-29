@@ -132,15 +132,6 @@ endif()
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
-
-# this fixes compilation with static libs on MSVC
-set(gtest_force_shared_crt ON CACHE BOOL "on" FORCE)
-if(NOT MSVC)
-  # silence some warnings
-  set(GTEST_SAVE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers -Wno-deprecated")
-endif()
-
 include(gmock)
 enable_testing()
 add_subdirectory(kahypar/application)
