@@ -61,6 +61,10 @@
 #define ARG_N(_1, _2, N, ...) N
 #define RSEQ_N() 2, 1, 0
 
+#if defined(_MSC_VER)
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#endif
+
 #ifdef USE_ASSERTIONS
   #define ASSERT_2(cond, msg)                          \
   do {                                                 \
