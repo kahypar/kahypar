@@ -2,7 +2,7 @@ KaHyPar - Karlsruhe Hypergraph Partitioning
 =========
 Travis-CI Status: [![Travis-CI Status] (https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)](https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)
 Appveyor Status: [![Appveyor Status](https://ci.appveyor.com/api/projects/status/5kxoc64byyhae8ue/branch/master?svg=true)](https://ci.appveyor.com/api/projects/status/5kxoc64byyhae8ue/branch/master?svg=true)
-Coverity Status: [![Coverity Status](https://scan.coverity.com/projects/10262/badge.svg)(https://scan.coverity.com/projects/10262/badge.svg)
+Coverity Status: [![Coverity Status](https://scan.coverity.com/projects/10262/badge.svg)](https://scan.coverity.com/projects/10262/badge.svg)
 
 Requirements:
 -----------
