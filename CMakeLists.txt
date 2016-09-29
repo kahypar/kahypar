@@ -93,7 +93,8 @@ if (NOT MSVC)
   endif()
 
 elseif(MSVC)
-    # Force to always compile with W4
+  # Force to always compile with W4
+  string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   else()
@@ -101,6 +102,8 @@ elseif(MSVC)
   endif()
   # raise warnings as errors
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+
+
 
   ### disable verbose warnings:
   # warning C4589: Constructor of abstract class '...' ignores initializer for
