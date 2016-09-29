@@ -1351,6 +1351,10 @@ class GenericHypergraph {
     }
   }
 
+  void setType(const Type type) {
+    _type = type;
+  }
+
   std::string typeAsString() const {
     return typeToString(type());
   }

@@ -9,6 +9,7 @@ add_executable(HgrToBipartiteMetisGraph hgr_to_bipartite_metis_graph_converter.c
 add_executable(HgrToEdgeList hgr_to_edge_list_converter.cc)
 add_executable(HgrToPaToH hgr_to_patoh_converter.cc)
 add_executable(VerifyPartition verify_partition.cc)
+add_executable(CreateWeightedHgr create_weighted_hgr.cc)
 
 # This test needs test instance files, so we copy them to the corresponding build dir
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
