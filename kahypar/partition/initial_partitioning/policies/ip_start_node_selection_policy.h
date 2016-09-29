@@ -52,9 +52,8 @@ struct BFSStartNodeSelectionPolicy {
 
 
       while (!bfs.empty()) {
-        const HypernodeID hn = bfs.front();
+        lastHypernode = bfs.front();
         bfs.pop();
-        lastHypernode = hn;
         visited_nodes++;
         for (const HyperedgeID he : hg.incidentEdges(lastHypernode)) {
           if (!hyperedge_in_queue[he]) {
