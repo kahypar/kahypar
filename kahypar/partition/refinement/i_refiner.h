@@ -48,13 +48,15 @@ class IRefiner {
                       best_metrics);
   }
 
-  void initialize() {
-    initializeImpl();
-  }
-
+#ifdef USE_BUCKET_PQ
   void initialize(const HyperedgeWeight max_gain) {
     initializeImpl(max_gain);
   }
+#else
+  void initialize() {
+    initializeImpl();
+  }
+#endif
 
   std::string policyString() const {
     return policyStringImpl();
@@ -71,8 +73,13 @@ class IRefiner {
                           const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                           const UncontractionGainChanges& uncontraction_changes,
                           Metrics& best_metrics) = 0;
-  virtual void initializeImpl() { }
-  virtual void initializeImpl(const HyperedgeWeight) { }
+
+#ifdef USE_BUCKET_PQ
+  virtual void initializeImpl(const HyperedgeWeight) = 0;
+#else
+  virtual void initializeImpl() = 0;
+#endif
+
   virtual std::string policyStringImpl() const = 0;
 };
 }  // namespace kahypar

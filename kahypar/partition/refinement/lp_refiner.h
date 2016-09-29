@@ -390,11 +390,17 @@ class LPRefiner final : public IRefiner {
     initializeGainCache();
   }
 
+#ifdef USE_BUCKET_PQ
+  void initializeImpl(const HyperedgeWeight) override final {
+    initializeImpl();
+  }
+#else
   void initializeGainCache() {
     for (const HypernodeID hn : _hg.nodes()) {
       initializeGainCacheFor(hn);
     }
   }
+#endif
 
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
     for (const HyperedgeID he : _hg.incidentEdges(pin)) {

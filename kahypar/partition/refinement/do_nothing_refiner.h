@@ -43,12 +43,17 @@ class DoNothingRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics&) override final { return false; }
-  void initializeImpl() override final {
-    _is_initialized = true;
-  }
+
+#ifdef USE_BUCKET_PQ
   void initializeImpl(const HyperedgeWeight) override final {
     _is_initialized = true;
   }
+#else
+  void initializeImpl() override final {
+    _is_initialized = true;
+  }
+#endif
+
   std::string policyStringImpl() const override final { return std::string(""); }
 
   using IRefiner::_is_initialized;
