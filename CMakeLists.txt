@@ -123,6 +123,8 @@ elseif(MSVC)
   # warning C4589: Constructor of abstract class '...' ignores initializer for
   # virtual base class '...' (false positive warnings)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4589")
+  # warning C4505: 'function' : unreferenced local function has been removed
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wdC4505");
   # warning C4127: conditional expression is constant
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4127")
   # warning C4458: declaration of '...' hides class member
