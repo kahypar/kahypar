@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 3.0)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
-project(KaHyPar CXX)
+project(KaHyPar CXX C)
 set(PROJECT_VENDOR "Sebastian Schlag")
 set(PROJECT_CONTACT "kahypar@sebastianschlag.de")
 set(PROJECT_URL "https://bitbucket.org/schlag/hypergraph")
 set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
 include_directories(${PROJECT_SOURCE_DIR})
+
+find_package(Threads REQUIRED)
+message(STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}")
 
 #ensure that gmock is built before tests are executed
 add_subdirectory(external_tools/googletest)
