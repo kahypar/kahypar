@@ -58,32 +58,84 @@ endif(KAHYPAR_VERSION_GIT_REFSPEC)
 add_custom_target(AnalyzeModifiedSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-w")
 add_custom_target(AnalyzeAllSources  perl "${PROJECT_SOURCE_DIR}/codestyle/analyze-source.pl" "-aw")
 
-set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++ -Wno-unused-function")
+if (NOT MSVC)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_ADDITIONAL_COMPILE_FLAGS "-W -Wall -Wextra -Wunused -Wmaybe-uninitialized -Wfatal-errors -Winit-self -Wnoexcept -pedantic -DPARANOID -Weffc++ -Wno-unused-function")
+  endif()
 
-include(CheckSSE4_2)
-if( BUILTIN_POPCNT )
-set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -msse4.2")
+  include(CheckSSE4_2)
+  if( BUILTIN_POPCNT )
+    set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -msse4.2")
+  endif()
+
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-mcrc32 KAHYPAR_HAS_CRC32)
+  if(KAHYPAR_HAS_CRC32)
+    set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -mcrc32")
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -std=c++1y")
+  endif()
+
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -pthread -g3")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native -g3 ") 
+
+  if(ENABLE_PROFILE MATCHES ON)
+    message(STATUS "Profiling activated")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DENABLE_PROFILE")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g3 -DENABLE_PROFILE -fno-omit-frame-pointer")
+    set(PROFILE_FLAGS "-lprofiler")
+  endif()
+
+elseif(MSVC)
+    # Force to always compile with W4
+  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  endif()
+  # raise warnings as errors
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+
+  ### disable verbose warnings:
+  # warning C4589: Constructor of abstract class '...' ignores initializer for
+  # virtual base class '...' (false positive warnings)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4589")
+  # warning C4127: conditional expression is constant
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4127")
+  # warning C4458: declaration of '...' hides class member
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4458")
+  # warning C4459: declaration of '...' hides global declaration
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4459")
+  # warning C4702: unreachable code
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4702")
+  # warning C4250: ABC inherits XYZ via dominance
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250")
+  # warning C4503: decorated name length exceeded, name was truncated
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4503")
+  # disable lots of warnings about "unsecure" C runtime function
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  # disable "The POSIX name for this item is deprecated. Instead, use the ISO C
+  # and C++ conformant name.", Nope. We will not.
+  add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+  # disable lots of warnings about "unsecure" STL functions
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  # windef.h bizzarly defines min and max as macros, unless this is defined.
+  add_definitions(-DNOMINMAX)
 endif()
 
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-mcrc32 KAHYPAR_HAS_CRC32)
-if(KAHYPAR_HAS_CRC32)
-  set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -mcrc32")
-endif()
+message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
+message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_ADDITIONAL_COMPILE_FLAGS "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -std=c++1y")
-endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -pthread -g3")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_ADDITIONAL_COMPILE_FLAGS} -O3 -mtune=native -march=native -g3 ") 
-
-if(ENABLE_PROFILE MATCHES ON)
-  message(STATUS "Profiling activated")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DENABLE_PROFILE")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g3 -DENABLE_PROFILE -fno-omit-frame-pointer")
-  set(PROFILE_FLAGS "-lprofiler")
+# this fixes compilation with static libs on MSVC
+set(gtest_force_shared_crt ON CACHE BOOL "on" FORCE)
+if(NOT MSVC)
+  # silence some warnings
+  set(GTEST_SAVE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers -Wno-deprecated")
 endif()
 
 include(gmock)
