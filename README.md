@@ -22,16 +22,11 @@ Building KaHyPar:
 3. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
 4. Run make: `make`
 
-Test:
+Testing and Profiling:
 -----------
 
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
-End-to-end integration tests can be started with: `make integration_tests`  
-
-Profiling:
------------
-
-Profiling can be enabled via cmake flag: `-DENABLE_PROFILE=ON`.
+End-to-end integration tests can be started with: `make integration_tests`. Profiling can be enabled via cmake flag: `-DENABLE_PROFILE=ON`.  
 
 Running KaHyPar:
 -----------
