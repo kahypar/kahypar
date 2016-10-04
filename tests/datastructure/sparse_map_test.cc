@@ -29,107 +29,77 @@ using::testing::Test;
 
 namespace kahypar {
 namespace ds {
-template <typename T>
 class ASparseMap : public Test {
  public:
   ASparseMap() :
     sparse_map(20) { }
 
-  T sparse_map;
+  SparseMap<HypernodeID, double> sparse_map;
 };
 
-template <typename T>
-class ASparseMapSupportingDeletions : public Test {
- public:
-  ASparseMapSupportingDeletions() :
-    sparse_map(20) { }
-
-  T sparse_map;
-};
-
-typedef::testing::Types<SparseMap<HypernodeID, double>,
-                        InsertOnlySparseMap<HypernodeID, double> > Implementations;
-
-typedef::testing::Types<SparseMap<HypernodeID, double> > ImplementationsWithDeletion;
-
-TYPED_TEST_CASE(ASparseMap, Implementations);
-TYPED_TEST_CASE(ASparseMapSupportingDeletions, ImplementationsWithDeletion);
-
-
-TYPED_TEST(ASparseMap, ReturnsTrueIfElementIsInTheSet) {
-  this->sparse_map.add(5, 5.5);
-  this->sparse_map.add(6, 6.5);
-  ASSERT_TRUE(this->sparse_map.contains(6));
-  ASSERT_TRUE(this->sparse_map.contains(5));
+TEST_F(ASparseMap, ReturnsTrueIfElementIsInTheSet) {
+  sparse_map.add(5, 5.5);
+  sparse_map.add(6, 6.5);
+  ASSERT_TRUE(sparse_map.contains(6));
+  ASSERT_TRUE(sparse_map.contains(5));
 }
 
-TEST(AnInsertOnlySparseMap, HandlesThresholdOverflow) {
-  InsertOnlySparseMap<HypernodeID, double> sparse_map(20);
-  sparse_map.add(5, 5.5);
-  ASSERT_TRUE(sparse_map.contains(5));
-
-  sparse_map._threshold = std::numeric_limits<size_t>::max() - 1;
-  sparse_map.clear();
-  ASSERT_TRUE(sparse_map._threshold == 0);
+TEST_F(ASparseMap, ReturnsFalseIfElementIsNotInTheSet) {
+  sparse_map.add(6, 6.6);
   ASSERT_FALSE(sparse_map.contains(5));
 }
 
-TYPED_TEST(ASparseMap, ReturnsFalseIfElementIsNotInTheSet) {
-  this->sparse_map.add(6, 6.6);
-  ASSERT_FALSE(this->sparse_map.contains(5));
+TEST_F(ASparseMap, ReturnsFalseIfSetIsEmpty) {
+  ASSERT_FALSE(sparse_map.contains(5));
 }
 
-TYPED_TEST(ASparseMap, ReturnsFalseIfSetIsEmpty) {
-  ASSERT_FALSE(this->sparse_map.contains(5));
-}
+TEST_F(ASparseMap, ReturnsFalseAfterElementIsRemoved) {
+  sparse_map.add(6, 6.6);
+  sparse_map.add(1, 1.1);
+  sparse_map.add(3, 3.3);
 
-TYPED_TEST(ASparseMapSupportingDeletions, ReturnsFalseAfterElementIsRemoved) {
-  this->sparse_map.add(6, 6.6);
-  this->sparse_map.add(1, 1.1);
-  this->sparse_map.add(3, 3.3);
+  sparse_map.remove(6);
 
-  this->sparse_map.remove(6);
-
-  ASSERT_FALSE(this->sparse_map.contains(6));
-  ASSERT_TRUE(this->sparse_map.contains(1));
-  ASSERT_TRUE(this->sparse_map.contains(3));
+  ASSERT_FALSE(sparse_map.contains(6));
+  ASSERT_TRUE(sparse_map.contains(1));
+  ASSERT_TRUE(sparse_map.contains(3));
 }
 
 
-TYPED_TEST(ASparseMapSupportingDeletions, HasCorrectSizeAfterElementIsRemoved) {
-  this->sparse_map.add(6, 6.6);
-  this->sparse_map.add(1, 1.1);
-  this->sparse_map.add(3, 3.3);
+TEST_F(ASparseMap, HasCorrectSizeAfterElementIsRemoved) {
+  sparse_map.add(6, 6.6);
+  sparse_map.add(1, 1.1);
+  sparse_map.add(3, 3.3);
 
-  this->sparse_map.remove(1);
+  sparse_map.remove(1);
 
-  ASSERT_THAT(this->sparse_map.size(), Eq(2));
+  ASSERT_THAT(sparse_map.size(), Eq(2));
 }
 
-TYPED_TEST(ASparseMap, AllowsIterationOverSetElements) {
+TEST_F(ASparseMap, AllowsIterationOverSetElements) {
   std::vector<HypernodeID> v { 6, 1, 3 };
 
-  this->sparse_map.add(6, 6.6);
-  this->sparse_map.add(1, 1.1);
-  this->sparse_map.add(3, 3.3);
+  sparse_map.add(6, 6.6);
+  sparse_map.add(1, 1.1);
+  sparse_map.add(3, 3.3);
 
   size_t i = 0;
-  for (const auto& element : this->sparse_map) {
+  for (const auto& element : sparse_map) {
     ASSERT_THAT(element.key, Eq(v[i++]));
   }
 }
 
-TYPED_TEST(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
-  this->sparse_map.add(6, 6.6);
-  this->sparse_map.add(1, 1.1);
-  this->sparse_map.add(3, 3.3);
+TEST_F(ASparseMap, DoesNotContainElementsAfterItIsCleared) {
+  sparse_map.add(6, 6.6);
+  sparse_map.add(1, 1.1);
+  sparse_map.add(3, 3.3);
 
-  this->sparse_map.clear();
+  sparse_map.clear();
 
-  ASSERT_THAT(this->sparse_map.size(), Eq(0));
-  ASSERT_FALSE(this->sparse_map.contains(6));
-  ASSERT_FALSE(this->sparse_map.contains(1));
-  ASSERT_FALSE(this->sparse_map.contains(3));
+  ASSERT_THAT(sparse_map.size(), Eq(0));
+  ASSERT_FALSE(sparse_map.contains(6));
+  ASSERT_FALSE(sparse_map.contains(1));
+  ASSERT_FALSE(sparse_map.contains(3));
 }
 }  // namespace ds
 }  // namespace kahypar

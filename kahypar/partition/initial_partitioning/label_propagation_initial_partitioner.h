@@ -426,7 +426,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   using InitialPartitionerBase::kInvalidNode;
   using InitialPartitionerBase::kInvalidPart;
   ds::FastResetFlagArray<> _in_queue;
-  ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_scores;
+  ds::SparseMap<PartitionID, Gain> _tmp_scores;
   std::vector<HypernodeID> _unassigned_nodes;
   std::vector<HypernodeID> _unconnected_nodes;
   unsigned int _unassigned_node_bound;

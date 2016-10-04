@@ -623,7 +623,7 @@ class LPRefiner final : public IRefiner {
 
   std::vector<PartitionID> _max_score;
   std::vector<PartitionID> _tmp_connectivity_decrease;
-  ds::InsertOnlySparseMap<PartitionID, LPGain> _tmp_gains;
+  ds::SparseMap<PartitionID, LPGain> _tmp_gains;
 
   GainCache _gain_cache;
   // see KWayFMRefiner.h for documentation.

@@ -1115,7 +1115,7 @@ class KWayFMRefiner final : public IRefiner,
   using Base::_hns_to_activate;
 
   ds::FastResetFlagArray<> _he_fully_active;
-  ds::InsertOnlySparseMap<PartitionID, Gain> _tmp_gains;
+  ds::SparseMap<PartitionID, Gain> _tmp_gains;
 
   // After a move, we have to update the gains for all adjacent HNs.
   // For all moves of a HN that were already present in the PQ before the

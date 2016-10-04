@@ -195,58 +195,5 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
   using Base::_dense;
   using Base::_size;
 };
-
-template <typename Key = Mandatory,
-          typename Value = Mandatory>
-class InsertOnlySparseMap final : public SparseMapBase<Key, Value,
-                                                       InsertOnlySparseMap<Key, Value> >{
-  using Base = SparseMapBase<Key, Value, InsertOnlySparseMap<Key, Value> >;
-  friend Base;
-
- public:
-  explicit InsertOnlySparseMap(const Key max_size,
-                               const Value initial_value = 0) :
-    Base(max_size, initial_value),
-    _max_size(max_size),
-    _threshold(0) { }
-
-  InsertOnlySparseMap(const InsertOnlySparseMap&) = delete;
-  InsertOnlySparseMap& operator= (const InsertOnlySparseMap&) = delete;
-
-  InsertOnlySparseMap(InsertOnlySparseMap&& other) :
-    Base(std::move(other)) { }
-  InsertOnlySparseMap& operator= (InsertOnlySparseMap&&) = delete;
-
- private:
-  FRIEND_TEST(AnInsertOnlySparseMap, HandlesThresholdOverflow);
-
-  bool containsImpl(const Key key) const {
-    return _sparse[key] == _threshold;
-  }
-
-  void addImpl(const Key key, const Value value) {
-    if (!containsImpl(key)) {
-      _dense[_size] = { key, value };
-      _sparse[key] = _threshold;
-    }
-  }
-
-  void clearImpl() {
-    _size = 0;
-    ++_threshold;
-    if (_threshold == std::numeric_limits<size_t>::max()) {
-      for (size_t i = 0; i < _max_size; ++i) {
-        _sparse[i] = std::numeric_limits<size_t>::max();
-      }
-      _threshold = 0;
-    }
-  }
-
-  size_t _max_size;
-  size_t _threshold;
-  using Base::_sparse;
-  using Base::_dense;
-  using Base::_size;
-};
 }  // namespace ds
 }  // namespace kahypar
