@@ -61,6 +61,17 @@ TYPED_TEST(ASparseSet, ReturnsTrueIfElementIsInTheSet) {
   ASSERT_TRUE(this->sparse_set.contains(5));
 }
 
+TEST(AnInsertOnlySparseSet, HandlesThresholdOverflow) {
+  InsertOnlySparseSet<PartitionID> sparse_set(20);
+  sparse_set.add(5);
+  ASSERT_TRUE(sparse_set.contains(5));
+
+  sparse_set._threshold = std::numeric_limits<PartitionID>::max() - 1;
+  sparse_set.clear();
+  ASSERT_TRUE(sparse_set._threshold == 0);
+  ASSERT_FALSE(sparse_set.contains(5));
+}
+
 TYPED_TEST(ASparseSet, ReturnsFalseIfElementIsNotInTheSet) {
   this->sparse_set.add(6);
   ASSERT_FALSE(this->sparse_set.contains(5));

@@ -74,7 +74,7 @@ class SparseSetBase {
     _dense(nullptr) {
     ValueType* raw = static_cast<ValueType*>(malloc(((2 * k)) * sizeof(ValueType)));
     for (ValueType i = 0; i < 2 * k; ++i) {
-      new(raw + i)ValueType(std::numeric_limits<ValueType>::max());
+      raw[i] = std::numeric_limits<ValueType>::max();
     }
     _sparse = raw;
     _dense = raw + k;
@@ -148,8 +148,9 @@ class SparseSet final : public SparseSetBase<ValueType, SparseSet<ValueType> >{
 };
 
 template <typename ValueType = Mandatory>
-class InsertOnlySparseSet final : public SparseSetBase<ValueType, SparseSet<ValueType> >{
-  using Base = SparseSetBase<ValueType, SparseSet<ValueType> >;
+class InsertOnlySparseSet final : public SparseSetBase<ValueType,
+                                                       InsertOnlySparseSet<ValueType> >{
+  using Base = SparseSetBase<ValueType, InsertOnlySparseSet<ValueType> >;
   friend Base;
 
  public:
@@ -168,12 +169,14 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType, SparseSet<Valu
   InsertOnlySparseSet& operator= (const InsertOnlySparseSet&) = delete;
 
  private:
+  FRIEND_TEST(AnInsertOnlySparseSet, HandlesThresholdOverflow);
+
   bool containsImpl(const ValueType value) const {
     return _sparse[value] == _threshold;
   }
 
   void addImpl(const ValueType value) {
-    if (!contains(value)) {
+    if (!containsImpl(value)) {
       _sparse[value] = _threshold;
       _dense[_size++] = value;
     }
@@ -181,13 +184,13 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType, SparseSet<Valu
 
   void clearImpl() {
     _size = 0;
+    ++_threshold;
     if (_threshold == std::numeric_limits<ValueType>::max()) {
       for (ValueType i = 0; i < _dense - _sparse; ++i) {
-        _sparse[i] = 0;
+        _sparse[i] = std::numeric_limits<ValueType>::max();
       }
       _threshold = 0;
     }
-    ++_threshold;
   }
 
   ValueType _threshold;
