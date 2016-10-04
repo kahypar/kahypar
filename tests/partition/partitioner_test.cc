@@ -41,10 +41,9 @@ using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {
  public:
-  APartitioner(Hypergraph* graph =
-                 new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-                                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
-    hypergraph(graph),
+  APartitioner() :
+    hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
+                              HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     config(),
     partitioner(),
     coarsener(new FirstWinsCoarsener(*hypergraph, config,  /* heaviest_node_weight */ 1)),
