@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include <x86intrin.h>
-
 #include <algorithm>
 #include <limits>
 #include <utility>
