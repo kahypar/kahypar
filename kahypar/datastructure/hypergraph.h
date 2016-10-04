@@ -793,24 +793,25 @@ class GenericHypergraph {
     // This behavior is necessary in order to be able to use the old entries during uncontraction.
     bool first_call = true;
 
-    PinHandleIterator slot_of_u, last_pin_slot;
-    PinHandleIterator pins_begin, pins_end;
     // Use index-based iteration because case 2 might lead to reallocation!
     for (HyperedgeID he_it = hypernode(v).firstEntry(); he_it != hypernode(v).firstInvalidEntry();
          ++he_it) {
-      std::tie(pins_begin, pins_end) = pinHandles(_incidence_array[he_it]);
-      ASSERT(pins_begin != pins_end, "Hyperedge " << _incidence_array[he_it] << " is empty");
-      slot_of_u = last_pin_slot = pins_end - 1;
-      for (PinHandleIterator pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
-        if (*pin_iter == v) {
-          swap(*pin_iter, *last_pin_slot);
+      const HypernodeID pins_begin = hyperedge(_incidence_array[he_it]).firstEntry();
+      const HypernodeID pins_end = hyperedge(_incidence_array[he_it]).firstInvalidEntry();
+      HypernodeID slot_of_u = pins_end - 1;
+      HypernodeID last_pin_slot = pins_end - 1;
+
+      for (HypernodeID pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
+        const HypernodeID pin = _incidence_array[pin_iter];
+        if (pin == v) {
+          swap(_incidence_array[pin_iter], _incidence_array[last_pin_slot]);
           --pin_iter;
-        } else if (*pin_iter == u) {
+        } else if (pin == u) {
           slot_of_u = pin_iter;
         }
       }
 
-      ASSERT(*last_pin_slot == v, "v is not last entry in adjacency array!");
+      ASSERT(_incidence_array[last_pin_slot] == v, "v is not last entry in adjacency array!");
 
       if (slot_of_u != last_pin_slot) {
         // Case 1:
