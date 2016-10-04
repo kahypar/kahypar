@@ -55,11 +55,10 @@ class EnhancedBucketQueue {
     _key_range(max_gain),
     _max_address(kInvalidAddress),
     _index(),
-    _repository(),
+    _repository(std::make_unique<RepositoryElement[]>(max_size)),
     _contains(max_size),
     _valid(2 * max_gain + 1),
     _buckets(std::make_unique<std::vector<IDType>[]>(2 * max_gain + 1)) {
-    _repository.reserve(max_size);
     static_assert(std::is_integral<KeyType>::value, "Integer required.");
   }
 
@@ -296,7 +295,7 @@ class EnhancedBucketQueue {
   KeyType _key_range;
   KeyType _max_address;
   std::set<KeyType> _index;
-  std::vector<RepositoryElement> _repository;
+  std::unique_ptr<RepositoryElement[]> _repository;
   FastResetFlagArray<> _contains;
   FastResetFlagArray<> _valid;
   std::unique_ptr<std::vector<IDType>[]> _buckets;
