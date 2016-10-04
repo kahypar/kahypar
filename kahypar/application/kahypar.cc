@@ -20,8 +20,14 @@
 
 #include <boost/program_options.hpp>
 
+#if defined(_MSC_VER)
+#include <Windows.h>
+#include <process.h>
+#else
 #include <sys/ioctl.h>
+#endif
 
+#include <cctype>
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -53,6 +59,28 @@ using kahypar::RefinementStoppingRule;
 using kahypar::GlobalRebalancingMode;
 using kahypar::InitialPartitioningTechnique;
 using kahypar::InitialPartitioner;
+
+int getTerminalWidth() {
+  int columns = 0;
+#if defined(_MSC_VER)
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+  columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#else
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+  columns = w.ws_col;
+#endif
+  return columns;
+}
+
+int getProcessID() {
+#if defined(_MSC_VER)
+  return _getpid();
+#else
+  return getpid();
+  #endif
+}
 
 void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
@@ -146,23 +174,22 @@ void sanityCheck(Configuration& config) {
 
 
 void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
-  struct winsize w;
-  ioctl(0, TIOCGWINSZ, &w);
+  const int num_columns = getTerminalWidth();
 
-  po::options_description generic_options("Generic Options", w.ws_col);
+  po::options_description generic_options("Generic Options", num_columns);
   generic_options.add_options()
     ("help", "show help message")
     ("verbose,v", po::value<bool>(&config.partition.verbose_output)->value_name("<bool>"),
     "Verbose partitioning output");
 
-  po::options_description required_options("Required Options", w.ws_col);
+  po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
     ("hypergraph,h",
     po::value<std::string>(&config.partition.graph_filename)->value_name("<string>")->required()->notifier(
       [&](const std::string&) {
     config.partition.coarse_graph_filename =
       std::string("/tmp/PID_")
-      + std::to_string(getpid()) + std::string("_coarse_")
+      + std::to_string(getProcessID()) + std::string("_coarse_")
       + config.partition.graph_filename.substr(
         config.partition.graph_filename.find_last_of("/") + 1);
     config.partition.graph_partition_filename =
@@ -204,7 +231,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - (direct) k-way");
 
   std::string config_path;
-  po::options_description preset_options("Preset Options", w.ws_col);
+  po::options_description preset_options("Preset Options", num_columns);
   preset_options.add_options()
     ("preset,p", po::value<std::string>(&config_path)->value_name("<string>"),
     "Configuration Presets:\n"
@@ -212,7 +239,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - rb_cut_alenex16\n"
     " - <path-to-custom-ini-file>");
 
-  po::options_description general_options("General Options", w.ws_col);
+  po::options_description general_options("General Options", num_columns);
   general_options.add_options()
     ("seed",
     po::value<int>(&config.partition.seed)->value_name("<int>"),
@@ -232,7 +259,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     "# V-cycle iterations for direct k-way partitioning \n"
     "(default: 0)");
 
-  po::options_description preprocessing_options("Preprocessing Options", w.ws_col);
+  po::options_description preprocessing_options("Preprocessing Options", num_columns);
   preprocessing_options.add_options()
     ("p-use-sparsifier",
     po::value<bool>(&config.preprocessing.use_min_hash_sparsifier)->value_name("<bool>"),
@@ -248,7 +275,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " of the weight of their pins \n"
     "(default: false)");
 
-  po::options_description coarsening_options("Coarsening Options", w.ws_col);
+  po::options_description coarsening_options("Coarsening Options", num_columns);
   coarsening_options.add_options()
     ("c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -271,7 +298,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     "(default: 160)");
 
 
-  po::options_description ip_options("Initial Partitioning Options", w.ws_col);
+  po::options_description ip_options("Initial Partitioning Options", num_columns);
   ip_options.add_options()
     ("i-type",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -395,7 +422,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     "Only necessary if hMetis or PaToH is chosen as initial partitioner.");
 
 
-  po::options_description refinement_options("Refinement Options", w.ws_col);
+  po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()
     ("r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
