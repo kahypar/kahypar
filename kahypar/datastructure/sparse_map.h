@@ -119,22 +119,14 @@ class SparseMapBase {
                                           max_size * sizeof(size_t)));
 
     _sparse = reinterpret_cast<size_t*>(raw);
-    for (size_t i = 0; i < max_size; ++i) {
-      new(_sparse + i)Value(std::numeric_limits<Value>::max());
-    }
-
     _dense = reinterpret_cast<MapElement*>(_sparse + max_size);
     for (size_t i = 0; i < max_size; ++i) {
-      new(_dense + i)MapElement(std::numeric_limits<Key>::max(),
-                                initial_value);
+      _sparse[i] = std::numeric_limits<size_t>::max();
+      _dense[i] = MapElement(std::numeric_limits<Key>::max(), initial_value);
     }
   }
 
   ~SparseMapBase() {
-    const size_t max_size = reinterpret_cast<size_t*>(_dense) - _sparse;
-    for (size_t i = 0; i < max_size; ++i) {
-      (_dense + i)->~MapElement();
-    }
     free(_sparse);
   }
 
@@ -206,14 +198,16 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
 
 template <typename Key = Mandatory,
           typename Value = Mandatory>
-class InsertOnlySparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >{
-  using Base = SparseMapBase<Key, Value, SparseMap<Key, Value> >;
+class InsertOnlySparseMap final : public SparseMapBase<Key, Value,
+                                                       InsertOnlySparseMap<Key, Value> >{
+  using Base = SparseMapBase<Key, Value, InsertOnlySparseMap<Key, Value> >;
   friend Base;
 
  public:
   explicit InsertOnlySparseMap(const Key max_size,
                                const Value initial_value = 0) :
     Base(max_size, initial_value),
+    _max_size(max_size),
     _threshold(0) { }
 
   InsertOnlySparseMap(const InsertOnlySparseMap&) = delete;
@@ -224,27 +218,31 @@ class InsertOnlySparseMap final : public SparseMapBase<Key, Value, SparseMap<Key
   InsertOnlySparseMap& operator= (InsertOnlySparseMap&&) = delete;
 
  private:
+  FRIEND_TEST(AnInsertOnlySparseMap, HandlesThresholdOverflow);
+
   bool containsImpl(const Key key) const {
     return _sparse[key] == _threshold;
   }
 
   void addImpl(const Key key, const Value value) {
-    if (!contains(key)) {
+    if (!containsImpl(key)) {
       _dense[_size] = { key, value };
-      _sparse[key] = _size++;
+      _sparse[key] = _threshold;
     }
   }
 
   void clearImpl() {
     _size = 0;
-    if (_threshold == std::numeric_limits<Value>::max()) {
-      for (size_t i = 0; i < _dense - _sparse; ++i) {
-        _sparse[i] = std::numeric_limits<Value>::max();
+    ++_threshold;
+    if (_threshold == std::numeric_limits<size_t>::max()) {
+      for (size_t i = 0; i < _max_size; ++i) {
+        _sparse[i] = std::numeric_limits<size_t>::max();
       }
       _threshold = 0;
     }
   }
 
+  size_t _max_size;
   size_t _threshold;
   using Base::_sparse;
   using Base::_dense;

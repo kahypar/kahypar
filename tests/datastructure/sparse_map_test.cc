@@ -58,7 +58,20 @@ TYPED_TEST_CASE(ASparseMapSupportingDeletions, ImplementationsWithDeletion);
 
 TYPED_TEST(ASparseMap, ReturnsTrueIfElementIsInTheSet) {
   this->sparse_map.add(5, 5.5);
+  this->sparse_map.add(6, 6.5);
+  ASSERT_TRUE(this->sparse_map.contains(6));
   ASSERT_TRUE(this->sparse_map.contains(5));
+}
+
+TEST(AnInsertOnlySparseMap, HandlesThresholdOverflow) {
+  InsertOnlySparseMap<HypernodeID, double> sparse_map(20);
+  sparse_map.add(5, 5.5);
+  ASSERT_TRUE(sparse_map.contains(5));
+
+  sparse_map._threshold = std::numeric_limits<size_t>::max() - 1;
+  sparse_map.clear();
+  ASSERT_TRUE(sparse_map._threshold == 0);
+  ASSERT_FALSE(sparse_map.contains(5));
 }
 
 TYPED_TEST(ASparseMap, ReturnsFalseIfElementIsNotInTheSet) {
