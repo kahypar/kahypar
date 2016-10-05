@@ -121,25 +121,10 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   CoarsenerType coarsener(hypergraph, config, 1);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
-  ASSERT_THAT(hypergraph.nodeWeight(0), Eq(3));
-  if (hypergraph.nodeIsEnabled(1)) {
-    ASSERT_THAT(hypergraph.nodeWeight(1), Eq(2));
-    ASSERT_THAT(hypergraph.nodeWeight(5), Eq(1));
-    ASSERT_THAT(hypergraph.nodeWeight(6), Eq(2));
-    ASSERT_THAT(hypergraph.edgeWeight(8), Eq(2));
-    ASSERT_THAT(hypergraph.edgeWeight(10), Eq(2));
-  } else {
-    ASSERT_THAT(hypergraph.nodeIsEnabled(3), Eq(true));
-    ASSERT_THAT(hypergraph.nodeWeight(3), Eq(2));
-    ASSERT_THAT(hypergraph.nodeWeight(5), Eq(2));
-    ASSERT_THAT(hypergraph.nodeWeight(7), Eq(1));
-    ASSERT_THAT(hypergraph.edgeWeight(10), Eq(1));
-    ASSERT_THAT(hypergraph.edgeWeight(11), Eq(1));
-    ASSERT_THAT(hypergraph.edgeWeight(13), Eq(2));
-  }
-  ASSERT_THAT(hypergraph.nodeWeight(9), Eq(2));
-  ASSERT_THAT(hypergraph.edgeWeight(0), Eq(3));
-  ASSERT_THAT(hypergraph.edgeWeight(7), Eq(1));
-  ASSERT_THAT(hypergraph.edgeWeight(14), Eq(1));
+  // nodes 5 and 6 correspond to nodes 'E' and 'F' in
+  // http://downloads.hindawi.com/journals/vlsi/2000/019436.pdf
+  // page 290. These two nodes should not be contracted.
+  ASSERT_TRUE(hypergraph.nodeIsEnabled(5));
+  ASSERT_TRUE(hypergraph.nodeIsEnabled(6));
 }
 }  // namespace kahypar
