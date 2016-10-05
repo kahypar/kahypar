@@ -125,6 +125,6 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   // http://downloads.hindawi.com/journals/vlsi/2000/019436.pdf
   // page 290. These two nodes should not be contracted.
   ASSERT_TRUE(hypergraph.nodeIsEnabled(5));
-  ASSERT_TRUE(hypergraph.nodeIsEnabled(6));
+  ASSERT_TRUE(hypergraph.nodeIsEnabled(6) || hypergraph.nodeIsEnabled(7));
 }
 }  // namespace kahypar
