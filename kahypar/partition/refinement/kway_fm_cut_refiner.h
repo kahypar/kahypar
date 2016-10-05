@@ -107,8 +107,8 @@ class KWayFMRefiner final : public IRefiner,
 #endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                  const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
-                  const UncontractionGainChanges& UNUSED(changes),
+                  const std::array<HypernodeWeight, 2>&,
+                  const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));

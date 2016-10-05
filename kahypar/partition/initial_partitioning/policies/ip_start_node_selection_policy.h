@@ -85,7 +85,7 @@ struct BFSStartNodeSelectionPolicy {
 };
 
 struct RandomStartNodeSelectionPolicy {
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration& UNUSED(config),
+  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration&,
                                          const Hypergraph& hg, const PartitionID k) {
     if (k == 2) {
       startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));

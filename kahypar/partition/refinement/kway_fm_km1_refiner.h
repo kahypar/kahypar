@@ -118,8 +118,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
 #endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                  const std::array<HypernodeWeight, 2>& UNUSED(max_allowed_part_weights),
-                  const UncontractionGainChanges& UNUSED(changes),
+                  const std::array<HypernodeWeight, 2>&,
+                  const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
     // LOG("=================================================");
     ASSERT(best_metrics.km1 == metrics::km1(_hg),

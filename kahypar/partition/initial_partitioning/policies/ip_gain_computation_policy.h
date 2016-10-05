@@ -289,7 +289,7 @@ struct MaxPinGainComputationPolicy {
   }
 
   template <typename PQ>
-  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& UNUSED(config),
+  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration&,
                                      PQ& pq,
                                      const HypernodeID hn,
                                      const PartitionID from,
@@ -342,7 +342,7 @@ struct MaxNetGainComputationPolicy {
   }
 
   template <typename PQ>
-  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& UNUSED(config),
+  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration&,
                                      PQ& pq,
                                      const HypernodeID hn, const PartitionID from,
                                      const PartitionID to,

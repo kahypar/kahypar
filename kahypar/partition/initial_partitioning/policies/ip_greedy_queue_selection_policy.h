@@ -38,9 +38,9 @@ struct RoundRobinQueueSelectionPolicy {
   }
 
   template <typename PQ>
-  static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
+  static inline bool nextQueueID(Hypergraph&, Configuration& config,
                                  PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
-                                 PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
+                                 PartitionID& current_id, bool) {
     current_id = ((current_id + 1) % config.initial_partitioning.k);
     current_hn = invalid_node;
     current_gain = invalid_gain;
@@ -73,9 +73,9 @@ struct GlobalQueueSelectionPolicy {
   }
 
   template <typename PQ>
-  static inline bool nextQueueID(Hypergraph& UNUSED(hg), Configuration& config,
+  static inline bool nextQueueID(Hypergraph&, Configuration& config,
                                  PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
-                                 PartitionID& current_id, bool UNUSED(is_upper_bound_released)) {
+                                 PartitionID& current_id, bool) {
     current_id = invalid_part;
     current_hn = invalid_node;
     current_gain = invalid_gain;
