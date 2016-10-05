@@ -1,0 +1,30 @@
+version: 1.0.{build}
+image: Visual Studio 2015
+environment:
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
+  BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib64-msvc-14.0
+before_build:
+- cmd: >-
+    echo Getting submodules
+
+
+    git submodule update --init --recursive
+
+
+    echo Running cmake...
+
+
+    cd C:\projects\kahypar
+
+
+    md build
+
+
+    cd build
+
+
+    cmake -G "Visual Studio 14 Win64" -DBoost_USE_STATIC_LIBS="ON" -DBoost_USE_STATIC_RUNTIME="ON" ..
+build:
+  project: C:\projects\kahypar\build\KaHyPar.sln
+  parallel: true
+  verbosity: normal
