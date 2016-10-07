@@ -257,7 +257,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetFlagArray<> bv(_hg.initialNumNodes());
+            ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
@@ -330,7 +330,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _tmp_scores[target_part] -= internal_weight;
 
         ASSERT([&]() {
-            FastResetFlagArray<> bv(_hg.initialNumNodes());
+            ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
               LOGVAR(hn);
