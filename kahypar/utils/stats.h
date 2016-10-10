@@ -49,10 +49,14 @@ class Stats {
     }
   }
 
-  void addToTotal(const Configuration& config, const std::string& key, double value) {
-    if (config.partition.collect_stats) {
+  void addToTotal(bool collectStats, const std::string& key, double value) {
+    if (collectStats) {
       _stats[key] += value;
     }
+  }
+
+  void addToTotal(const Configuration& config, const std::string& key, double value) {
+    addToTotal(config.partition.collect_stats, key, value);
   }
 
   double get(const std::string& key) const {

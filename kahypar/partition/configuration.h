@@ -31,10 +31,20 @@
 #include "kahypar/partition/configuration_enum_classes.h"
 
 namespace kahypar {
+
+struct MinHashSparsifierParameters {
+  uint32_t maxHyperedgeSize = 1200;
+  uint32_t maxClusterSize = 10;
+  uint32_t minClusterSize = 2;
+  uint32_t numHashFunc = 5;
+  uint32_t combinedNumHashFunc = 100;
+};
+
 struct PreprocessingParameters {
   bool use_min_hash_sparsifier = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
+  MinHashSparsifierParameters minHashSparsifierParameters;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
@@ -45,6 +55,21 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
   << params.remove_always_cut_hes << std::endl;
+  return str;
+}
+
+inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
+  str << "MinHash Sparsifier Parameters:" << std::endl;
+  str << "  max hyperedge size:                 " << std::boolalpha
+      << params.maxHyperedgeSize << std::endl;
+  str << "  max cluster size:                   " << std::boolalpha
+      << params.maxClusterSize << std::endl;
+  str << "  min cluster size:                   " << std::boolalpha
+      << params.minClusterSize << std::endl;
+  str << "  number of hash functions:           " << std::boolalpha
+      << params.numHashFunc << std::endl;
+  str << "  number of combined hash functions:  " << std::boolalpha
+      << params.combinedNumHashFunc << std::endl;
   return str;
 }
 
@@ -302,6 +327,7 @@ inline std::ostream& operator<< (std::ostream& str, const Configuration& config)
   str << config.partition
   << "---------------------------------------------------------------------" << std::endl
   << config.preprocessing
+  << config.preprocessing.minHashSparsifierParameters
   << "---------------------------------------------------------------------" << std::endl
   << config.coarsening
   << config.initial_partitioning

@@ -265,6 +265,21 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<bool>(&config.preprocessing.use_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
+    ("p-sparsifier-max-hyperedge-size",
+     po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.maxHyperedgeSize)->value_name("<int>"),
+     "Max hyperedge size allowed considered by sparsifier")
+    ("p-sparsifier-max-cluster-size",
+     po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.maxClusterSize)->value_name("<int>"),
+     "Max cluster size which is built by sparsifier")
+    ("p-sparsifier-min-cluster-size",
+    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.minClusterSize)->value_name("<int>"),
+    "Min cluster size which is built by sparsifier")
+    ("p-sparsifier-num-hash-func",
+    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.numHashFunc)->value_name("<int>"),
+    "Number of hash functions")
+    ("p-sparsifier-combined-num-hash-func",
+    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc)->value_name("<int>"),
+    "Number of combined hash functions")
     ("p-parallel-net-removal",
     po::value<bool>(&config.preprocessing.remove_parallel_hes)->value_name("<bool>"),
     "Remove parallel hyperedges before partitioning \n"

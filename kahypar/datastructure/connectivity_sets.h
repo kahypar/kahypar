@@ -132,7 +132,13 @@ class ConnectivitySets final {
     other._connectivity_sets = nullptr;
   }
 
-  ConnectivitySets& operator= (ConnectivitySets&&) = delete;
+  ConnectivitySets& operator= (ConnectivitySets&& other) {
+    _k = other._k;
+    _connectivity_sets = other._connectivity_sets;
+    other._k = 0;
+    other._connectivity_sets = nullptr;
+    return *this;
+  };
 
   void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
     _k = k;

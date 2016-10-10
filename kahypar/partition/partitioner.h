@@ -44,6 +44,7 @@
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
+#include "kahypar/partition/preprocessing/adaptive_lsh.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/utils/randomize.h"
@@ -172,9 +173,11 @@ class Partitioner {
 
   inline void setupConfig(const Hypergraph& hypergraph, Configuration& config) const;
 
-  inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
+  inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+                         std::vector<Hypergraph::HypernodeID>& clusters, const Configuration& config);
 
-  inline void postprocess(Hypergraph& hypergraph, const Configuration& config);
+  inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+                          std::vector<Hypergraph::HypernodeID>& clusters, const Configuration& config);
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
   LargeHyperedgeRemover _large_he_remover;
@@ -227,7 +230,9 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
   io::printPartitionerConfiguration(config);
 }
 
-inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration& config) {
+inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+                                    std::vector<Hypergraph::HypernodeID>& clusters,
+                                    const Configuration& config) {
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (config.partition.verbose_output && result.num_removed_single_node_hes > 0) {
     LOG("\033[1m\033[31m" << "Removed " << result.num_removed_single_node_hes
@@ -243,9 +248,45 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration&
     Stats::instance().addToTotal(config, "InitialLargeHEremoval",
                                  std::chrono::duration<double>(end - start).count());
   }
+
+  if (config.preprocessing.use_min_hash_sparsifier) {
+    LOG("Before sparcification: hypernodes = " << hypergraph.initialNumNodes());
+    LOG("Before sparcification: hyperedges = " << hypergraph.initialNumEdges());
+    std::unique_ptr<LSHCombinedHashPolicy> hashPolicy(std::make_unique<LSHCombinedHashPolicy>(
+            config.preprocessing.minHashSparsifierParameters.numHashFunc,
+            config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc,
+            config.partition.seed));
+
+    AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(hypergraph,
+                                                  std::move(hashPolicy),
+                                                  config.partition.seed,
+                                                  config.preprocessing.minHashSparsifierParameters.maxHyperedgeSize,
+                                                  config.preprocessing.minHashSparsifierParameters.maxClusterSize,
+                                                  config.preprocessing.minHashSparsifierParameters.minClusterSize,
+                                                  config.partition.collect_stats);
+
+    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+
+    clusters = sparsifier.build();
+
+    sparseHypergraph = Coarsening::build(hypergraph, clusters, config.partition.k);
+
+    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Stats::instance().addToTotal(config, "MinHashSparsifier",
+                                 std::chrono::duration<double>(end - start).count());
+
+    LOG("After sparcification: hypernodes = " << sparseHypergraph.initialNumNodes());
+    LOG("After sparcification: hyperedges = " << sparseHypergraph.initialNumEdges());
+  }
 }
 
-inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration& config) {
+inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+                                     std::vector<Hypergraph::HypernodeID>& clusters,
+                                     const Configuration& config) {
+  if (config.preprocessing.use_min_hash_sparsifier) {
+    Uncoarsening::applyPartition(sparseHypergraph, clusters, hypergraph);
+  }
+
   if (config.preprocessing.remove_always_cut_hes) {
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.restoreLargeHyperedges(hypergraph);
@@ -368,9 +409,18 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config) {
   setupConfig(hypergraph, config);
-  preprocess(hypergraph, config);
-  partitionInternal(hypergraph, config);
-  postprocess(hypergraph, config);
+  Hypergraph sparseHypergraph;
+  std::vector<Hypergraph::HypernodeID> clusters;
+
+  preprocess(hypergraph, sparseHypergraph, clusters, config);
+
+  if (config.preprocessing.use_min_hash_sparsifier) {
+    partitionInternal(sparseHypergraph, config);
+  } else {
+    partitionInternal(hypergraph, config);
+  }
+
+  postprocess(hypergraph, sparseHypergraph, clusters, config);
 }
 
 inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configuration& config) {
