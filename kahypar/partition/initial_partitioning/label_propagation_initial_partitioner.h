@@ -103,13 +103,12 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     ASSERT(
       [&]() {
         for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-          if (static_cast<int>(_hg.partSize(i)) != connected_nodes) {
+          if (_hg.partSize(i) == 0 || _hg.partSize(i) > connected_nodes) {
             return false;
           }
         }
         return true;
-      } (),
-      "Size of a partition is not equal " << connected_nodes << "!");
+      }());
 
     bool converged = false;
     size_t iterations = 0;
