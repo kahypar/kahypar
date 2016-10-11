@@ -51,20 +51,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _valid_parts(config.initial_partitioning.k),
     _in_queue(hypergraph.initialNumNodes()),
-    _tmp_scores(_config.initial_partitioning.k, 0),
-    _unassigned_nodes(),
-    _unconnected_nodes(),
-    _unassigned_node_bound(0) {
+    _tmp_scores(_config.initial_partitioning.k, 0) {
     static_assert(std::is_same<GainComputation, FMGainComputationPolicy>::value,
                   "ScLaP-IP only supports FM gain");
-    for (const HypernodeID hn : _hg.nodes()) {
-      if (_hg.nodeDegree(hn > 0)) {
-        _unassigned_nodes.push_back(hn);
-      } else {
-        _unconnected_nodes.push_back(hn);
-      }
-    }
-    _unassigned_node_bound = _unassigned_nodes.size();
   }
 
   ~LabelPropagationInitialPartitioner() { }
@@ -80,7 +69,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
-    _unassigned_node_bound = _unassigned_nodes.size();
+
     std::vector<HypernodeID> nodes;
     for (const HypernodeID hn : _hg.nodes()) {
       if (_hg.nodeDegree(hn) > 0) {
@@ -100,10 +89,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
     }
 
-    ASSERT(
-      [&]() {
+    ASSERT([&]() {
         for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
-          if (_hg.partSize(i) == 0 || _hg.partSize(i) > connected_nodes) {
+          if (static_cast<int>(_hg.partSize(i)) != connected_nodes) {
             return false;
           }
         }
@@ -192,13 +180,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     while (getUnassignedNode() != kInvalidNode) {
       HypernodeID hn = getUnassignedNode();
       assignHypernodeToPartWithMinimumPartWeight(hn);
-    }
-
-    // If there are any unconnected hypernodes left, we assign them to a part with minimum weight.
-    for (const HypernodeID hn : _unconnected_nodes) {
-      if (_hg.partID(hn) == -1) {
-        assignHypernodeToPartWithMinimumPartWeight(hn);
-      }
     }
 
     _config.initial_partitioning.unassigned_part = unassigned_part;
@@ -424,8 +405,5 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   ds::FastResetFlagArray<> _valid_parts;
   ds::FastResetFlagArray<> _in_queue;
   std::vector<Gain> _tmp_scores;
-  std::vector<HypernodeID> _unassigned_nodes;
-  std::vector<HypernodeID> _unconnected_nodes;
-  unsigned int _unassigned_node_bound;
 };
 }  // namespace kahypar
