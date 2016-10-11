@@ -110,34 +110,37 @@ class AdaptiveLSHWithConnectedComponents {
         }
       }
 
-      uint32_t hash_num = main_hash_set.getHashNum() - 1;
+      const uint32_t hash_num = main_hash_set.getHashNum() - 1;
       auto start = std::chrono::high_resolution_clock::now();
-      incrementalParametersEstimation(active_vertices_set, rnd(eng), _max_cluster_size, main_hash_set, hash_num);
+      incrementalParametersEstimation(active_vertices_set, rnd(eng), _max_cluster_size,
+                                      main_hash_set, hash_num);
       auto end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Incremental parameter estimation",
                                    std::chrono::duration<double>(end - start).count());
 
       Buckets buckets(1, _hypergraph.currentNumNodes());
       start = std::chrono::high_resolution_clock::now();
-      calculateOneDimBucket(_hypergraph.currentNumNodes(), active_clusters_bool_set, clusters, main_hash_set,
-                            buckets, hash_num);
+      calculateOneDimBucket(_hypergraph.currentNumNodes(), active_clusters_bool_set, clusters,
+                            main_hash_set, buckets, hash_num);
       end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Construction of buckets",
                                    std::chrono::duration<double>(end - start).count());
 
       start = std::chrono::high_resolution_clock::now();
-      calculateClustersIncrementally(_hypergraph.currentNumNodes(), active_clusters_bool_set, clusters, cluster_size,
+      calculateClustersIncrementally(_hypergraph.currentNumNodes(), active_clusters_bool_set,
+                                     clusters, cluster_size,
                                      main_hash_set, hash_num, buckets, inactive_clusters);
       end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Construction of clustering",
                                    std::chrono::duration<double>(end - start).count());
 
       std::vector<char> bit_map(clusters.size());
-      for (auto clst : clusters)
+      for (const auto clst : clusters) {
         bit_map[clst] = 1;
+      }
 
       size_t num_cl = 0;
-      for (auto bit : bit_map) {
+      for (const auto bit : bit_map) {
         if (bit) {
           ++num_cl;
         }
@@ -192,7 +195,7 @@ class AdaptiveLSHWithConnectedComponents {
 
     size_t remained_vertices = active_vertices.size();
 
-    size_t buckets_num = _hypergraph.currentNumNodes();
+    const size_t buckets_num = _hypergraph.currentNumNodes();
 
     using Pair = std::pair<HashValue, VertexId>;
 
@@ -200,9 +203,9 @@ class AdaptiveLSHWithConnectedComponents {
     buckets.reserve(buckets_num);
 
     // empirically best value
-    uint32_t min_hash_num = 10;
+    const uint32_t min_hash_num = 10;
 
-    uint32_t max_bucket_size = _max_cluster_size;
+    const uint32_t max_bucket_size = _max_cluster_size;
     ASSERT(min_hash_num <= _max_combined_num_hash_func,
            "# min combined hash funcs should be <= # max combined hash funcs");
     std::vector<Pair> new_buckets;
@@ -214,13 +217,13 @@ class AdaptiveLSHWithConnectedComponents {
 
       base_hash_policy.calculateLastHash(_hypergraph, active_vertices, hash_set);
 
-      uint32_t last_hash = hash_set.getHashNum() - 1;
-      for (auto ver : active_vertices) {
+      const uint32_t last_hash = hash_set.getHashNum() - 1;
+      for (const auto ver : active_vertices) {
         hashes[ver] ^= hash_set[last_hash][ver];
       }
     }
 
-    for (auto ver : active_vertices) {
+    for (const auto ver : active_vertices) {
       buckets.emplace_back(hashes[ver], ver);
     }
     std::sort(buckets.begin(), buckets.end());
@@ -229,7 +232,7 @@ class AdaptiveLSHWithConnectedComponents {
       hash_set.addHashVector();
       base_hash_policy.addHashFunction(rnd(eng));
 
-      uint32_t last_hash = hash_set.getHashNum() - 1;
+      const uint32_t last_hash = hash_set.getHashNum() - 1;
 
       // Decide for which vertices we continue to increase the number of hash functions
       new_buckets.clear();
@@ -251,7 +254,7 @@ class AdaptiveLSHWithConnectedComponents {
 
         if (vertices.size() == 1) {
           --remained_vertices;
-          HashValue hash = hash_set[last_hash][vertices.front()];
+          const HashValue hash = hash_set[last_hash][vertices.front()];
           hashes[vertices.front()] ^= hash;
           begin = end;
           continue;
@@ -261,14 +264,14 @@ class AdaptiveLSHWithConnectedComponents {
         new_hashes.reserve(vertices.size());
 
         for (auto vertex : vertices) {
-          HashValue hash = hash_set[last_hash][vertex];
+          const HashValue hash = hash_set[last_hash][vertex];
           hashes[vertex] ^= hash;
 
           new_hashes.emplace_back(hashes[vertex], vertex);
         }
 
         std::sort(new_hashes.begin(), new_hashes.end());
-        auto e = std::unique(new_hashes.begin(), new_hashes.end());
+        const auto e = std::unique(new_hashes.begin(), new_hashes.end());
         new_hashes.resize(e - new_hashes.begin());
 
         auto new_begin = new_hashes.begin();
@@ -277,7 +280,7 @@ class AdaptiveLSHWithConnectedComponents {
           while (new_end != new_hashes.end() && new_begin->first == new_end->first) {
             ++new_end;
           }
-          VertexId bucket_size = new_end - new_begin;
+          const VertexId bucket_size = new_end - new_begin;
           if ((bucket_size <= max_bucket_size && hash_set.getHashNum() >= min_hash_num) ||
               hash_set.getHashNum() >= _max_combined_num_hash_func
               ) {
@@ -297,14 +300,15 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
   // distributes vertices among bucket according to the new hash values
-  void calculateOneDimBucket(VertexId num_vertex, const std::vector<uint8_t>& active_clusters_bool_set,
-                             const std::vector<VertexId>& clusters, const MyHashSet& hash_set, Buckets& buckets,
-                             const uint32_t hash_num) {
+  void calculateOneDimBucket(const VertexId num_vertex,
+                             const std::vector<uint8_t>& active_clusters_bool_set,
+                             const std::vector<VertexId>& clusters, const MyHashSet& hash_set,
+                             Buckets& buckets, const uint32_t hash_num) {
     ASSERT(buckets.isOneDimensional(), "Bucket should be one dimensional");
-    uint32_t dim = 0;
+    const uint32_t dim = 0;
 
     for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
-      VertexId cluster = clusters[vertex_id];
+      const VertexId cluster = clusters[vertex_id];
       if (active_clusters_bool_set[cluster]) {
         buckets.put(dim, hash_set[hash_num][vertex_id], vertex_id);
       }
@@ -318,8 +322,8 @@ class AdaptiveLSHWithConnectedComponents {
                                       std::vector<VertexId>& inactive_clusters) {
     // Calculate clusters according to connected components
     // of an implicit graph induced by buckets. We use BFS on this graph.
-    runIncrementalBfs(num_vertex, active_clusters_bool_set, hash_set, buckets, hash_num, clusters, cluster_size,
-                      inactive_clusters);
+    runIncrementalBfs(num_vertex, active_clusters_bool_set, hash_set, buckets, hash_num,
+                      clusters, cluster_size, inactive_clusters);
   }
 
   void runIncrementalBfs(const VertexId num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
@@ -329,7 +333,7 @@ class AdaptiveLSHWithConnectedComponents {
     std::queue<VertexId> vertex_queue;
     std::vector<char> visited(num_vertex, false);
     for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
-      VertexId cluster = clusters[vertex_id];
+      const VertexId cluster = clusters[vertex_id];
       if (!visited[vertex_id] && active_clusters_bool_set[cluster]) {
         visited[vertex_id] = true;
         vertex_queue.push(vertex_id);
@@ -339,23 +343,25 @@ class AdaptiveLSHWithConnectedComponents {
     }
   }
 
-  void runIncrementalBfs(VertexId cur_vertex, std::vector<uint8_t>& active_clusters_bool_set, const MyHashSet& hash_set,
+  void runIncrementalBfs(const VertexId cur_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+                         const MyHashSet& hash_set,
                          Buckets& buckets, std::vector<char>& visited,
-                         const uint32_t hash_num, std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
+                         const uint32_t hash_num, std::vector<VertexId>& clusters,
+                         std::vector<uint32_t>& cluster_size,
                          std::vector<VertexId>& inactive_clusters) {
-    VertexId cur_cluster = clusters[cur_vertex];
-    HashValue hash = hash_set[hash_num][cur_vertex];
-    uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
+    const VertexId cur_cluster = clusters[cur_vertex];
+    const HashValue hash = hash_set[hash_num][cur_vertex];
+    const uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
 
     std::vector<VertexId> neighbours;
     neighbours.reserve(_max_hyperedge_size);
 
-    auto iters = buckets.getObjects(dim, hash);
+    const auto iters = buckets.getObjects(dim, hash);
     for (auto neighbour_iter = iters.first; neighbour_iter != iters.second; ++neighbour_iter) {
-      auto neighbour = *neighbour_iter;
-      VertexId neighbour_cluster = clusters[neighbour];
+      const auto neighbour = *neighbour_iter;
+      const VertexId neighbour_cluster = clusters[neighbour];
       if (active_clusters_bool_set[neighbour_cluster]) {
-        VertexWeight weight = _hypergraph.nodeWeight(neighbour);
+        const VertexWeight weight = _hypergraph.nodeWeight(neighbour);
         if (cluster_size[cur_cluster] + weight > _max_cluster_size) {
           ASSERT(cluster_size[cur_cluster] <= _max_cluster_size, "Cluster is overflowed");
           break;
@@ -375,8 +381,8 @@ class AdaptiveLSHWithConnectedComponents {
       }
     }
 
-    for (auto neighbour : neighbours) {
-      uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
+    for (const auto neighbour : neighbours) {
+      const uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
       buckets.removeObject(dim, hash_set[hash_num][neighbour], neighbour);
     }
   }
