@@ -125,6 +125,29 @@ class HashMap {
     _poses.reserve(max_size);
   }
 
+  HashMap(const TSelf&) = default;
+  HashMap(TSelf&&) = default;
+
+  TSelf& operator=(TSelf& other) {
+    _ht_size = other._ht_size;
+    _max_size = other._max_size;
+    _ht = other._ht;
+    _poses = other._poses;
+    _last_key = other._last_key;
+    _last_position = other._last_position;
+    _pos_in_position = other._pos_in_position;
+    _empty_element = other._empty_element;
+    _deleted_element = other._deleted_element;
+    _empty_element_key = other._empty_element_key;
+    _deleted_element_key = other._deleted_element_key;
+    return *this;
+  }
+
+  TSelf& operator=(TSelf&& other) {
+    this->swap(other);
+    return *this;
+  }
+
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
     _max_size = max_size;
@@ -352,6 +375,26 @@ class InsertOnlyHashMap {
     _poses.reserve(max_size);
   }
 
+  InsertOnlyHashMap(const TSelf&) = default;
+  InsertOnlyHashMap(TSelf&&) = default;
+
+  TSelf& operator=(TSelf& other) {
+    _ht_size = other._ht_size;
+    _max_size = other._max_size;
+    _ht = other._ht;
+    _poses = other._poses;
+    _last_key = other._last_key;
+    _last_position = other._last_position;
+    _empty_element = other._empty_element;
+    _empty_element_key = other._empty_element_key;
+    return *this;
+  }
+
+  TSelf& operator=(TSelf&& other) {
+    this->swap(other);
+    return *this;
+  }
+
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
     _max_size = max_size;
@@ -501,6 +544,7 @@ template <typename Key, typename Hash = SimpleHash<Key>, bool Cache = true, size
 class HashSet {
  public:
   using Element = Key;
+  using key_type = Key;
 
  private:
   using TSelf = HashSet<Key, Hash, Cache, SizeFactor>;
@@ -523,6 +567,27 @@ class HashSet {
     _last_key(_empty_element),
     _last_position(0) {
     _poses.reserve(max_size);
+  }
+
+  HashSet(const TSelf&) = default;
+  HashSet(TSelf&&) = default;
+
+  TSelf& operator=(const TSelf& other) {
+    _ht_size = other._ht_size;
+    _max_size= other._max_size;
+    _ht = other._ht;
+    _poses = other._poses;
+    _last_key = other._last_key;
+    _last_position = other._last_position;
+    _pos_in_position = other._pos_in_position;
+    _empty_element_key = other._empty_element_key;
+    _deleted_element_key = other._deleted_element_key;
+    return *this;
+  }
+
+  TSelf& operator=(TSelf&& other) {
+    this->swap(other);
+    return *this;
   }
 
   void reserve(const uint32_t max_size) {
@@ -611,8 +676,6 @@ class HashSet {
     std::swap(_last_key, hash_set._last_key);
     std::swap(_last_position, hash_set._last_position);
     _pos_in_position.swap(hash_set._pos_in_position);
-    _empty_element.swap(hash_set._empty_element);
-    _deleted_element.swap(hash_set._deleted_element);
     std::swap(_empty_element_key, hash_set._empty_element_key);
     std::swap(_deleted_element_key, hash_set._deleted_element_key);
   }
@@ -713,6 +776,25 @@ class InsertOnlyHashSet {
     _last_position(0) {
     _poses.reserve(max_size);
   }
+
+  InsertOnlyHashSet(const TSelf&) = default;
+  InsertOnlyHashSet(TSelf&&) = default;
+
+  TSelf& operator=(TSelf& other) {
+    _ht_size = other._ht_size;
+    _max_size = other._max_size;
+    _ht = other._ht;
+    _poses = other._poses;
+    _last_key = other._last_key;
+    _last_position = other._last_position;
+    _empty_element_key = other._empty_element_key;
+    return *this;
+  }
+
+  TSelf& operator=(TSelf&& other) {
+    this->swap(other);
+    return *this;
+  };
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;

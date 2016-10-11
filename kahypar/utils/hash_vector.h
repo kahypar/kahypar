@@ -209,8 +209,9 @@ class Buckets {
   std::unique_ptr<MultiContainer[]> _buckets_sets;
 };
 
-template <typename HashFunc, typename TObject>
-using FastHashBuckets = Buckets<ds::HashMap<HashFunc, ds::HashSet<TObject> > >;
+// not usable disnce since HashSet is not growable
+//template <typename HashFunc, typename TObject>
+//using FastHashBuckets = Buckets<ds::HashMap<HashFunc, ds::HashSet<TObject> > >;
 
 template <typename HashFunc, typename TObject>
 using HashBuckets = Buckets<ds::HashMap<HashFunc, std::unordered_multiset<TObject> > >;
