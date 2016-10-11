@@ -1,24 +1,44 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2016 Yaroslav Akhremtsev <yaroslav.akhremtsev@kit.edu>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+******************************************************************************/
+
 #pragma once
+
+#include <algorithm>
+#include <queue>
+#include <utility>
+#include <vector>
 
 #include "kahypar/datastructure/hash_table.h"
 #include "kahypar/partition/preprocessing/lsh_utils.h"
 #include "kahypar/utils/stats.h"
 
-#include <algorithm>
-#include <queue>
-
 namespace kahypar {
-
-template<typename _HashPolicy>
+template <typename _HashPolicy>
 class AdaptiveLSHWithConnectedComponents {
-private:
+ private:
   using VertexId = Hypergraph::HypernodeID;
   using HashPolicy = _HashPolicy;
   using BaseHashPolicy = typename HashPolicy::BaseHashPolicy;
   using HashValue = typename HashPolicy::HashValue;
 
-public:
-
+ public:
   explicit AdaptiveLSHWithConnectedComponents(const Hypergraph& hypergraph,
                                               const uint32_t seed,
                                               const uint32_t max_hyperedge_size,
@@ -26,24 +46,22 @@ public:
                                               const uint32_t min_cluster_size,
                                               const uint32_t num_hash_func,
                                               const uint32_t combined_num_hash_func,
-                                              const bool collect_stats)
-    : _hypergraph(hypergraph),
-      _seed(seed),
-      _max_hyperedge_size(max_hyperedge_size),
-      _max_cluster_size(max_cluster_size),
-      _min_cluster_size(min_cluster_size),
-      _max_num_hash_func(num_hash_func),
-      _max_combined_num_hash_func(combined_num_hash_func),
-      _collect_stats(collect_stats)
-  {
-
-  }
+                                              const bool collect_stats) :
+    _hypergraph(hypergraph),
+    _seed(seed),
+    _max_hyperedge_size(max_hyperedge_size),
+    _max_cluster_size(max_cluster_size),
+    _min_cluster_size(min_cluster_size),
+    _max_num_hash_func(num_hash_func),
+    _max_combined_num_hash_func(combined_num_hash_func),
+    _collect_stats(collect_stats)
+  { }
 
   std::vector<VertexId> build() {
     return adaptiveWhole();
   }
 
-private:
+ private:
   using MyHashSet = HashSet<HashValue>;
   using Buckets = HashBuckets<HashValue, VertexId>;
   using VertexWeight = Hypergraph::HypernodeWeight;
@@ -147,7 +165,7 @@ private:
   }
 
   struct VecHash {
-    size_t operator()(const std::vector<uint64_t>& vec) const {
+    size_t operator() (const std::vector<uint64_t>& vec) const {
       size_t res = 0;
       for (auto el : vec) {
         res ^= el;
@@ -160,7 +178,6 @@ private:
   void incrementalParametersEstimation(std::vector<VertexId>& active_vertices, const uint32_t seed,
                                        const uint32_t bucket_min_size, MyHashSet& main_hash_set,
                                        const uint32_t main_hash_num) {
-
     MyHashSet hash_set(0, _hypergraph.currentNumNodes());
     hash_set.reserve(_max_combined_num_hash_func);
 
@@ -244,7 +261,6 @@ private:
         new_hashes.reserve(vertices.size());
 
         for (auto vertex : vertices) {
-
           HashValue hash = hash_set[last_hash][vertex];
           hashes[vertex] ^= hash;
 
@@ -262,9 +278,9 @@ private:
             ++new_end;
           }
           VertexId bucket_size = new_end - new_begin;
-          if ((bucket_size <= max_bucket_size && hash_set.getHashNum() >= min_hash_num)
-              || hash_set.getHashNum() >= _max_combined_num_hash_func
-            ) {
+          if ((bucket_size <= max_bucket_size && hash_set.getHashNum() >= min_hash_num) ||
+              hash_set.getHashNum() >= _max_combined_num_hash_func
+              ) {
             remained_vertices -= bucket_size;
           } else {
             std::copy(new_begin, new_end, std::back_inserter(new_buckets));
@@ -284,7 +300,6 @@ private:
   void calculateOneDimBucket(VertexId num_vertex, const std::vector<uint8_t>& active_clusters_bool_set,
                              const std::vector<VertexId>& clusters, const MyHashSet& hash_set, Buckets& buckets,
                              const uint32_t hash_num) {
-
     ASSERT(buckets.isOneDimensional(), "Bucket should be one dimensional");
     uint32_t dim = 0;
 
@@ -327,9 +342,7 @@ private:
   void runIncrementalBfs(VertexId cur_vertex, std::vector<uint8_t>& active_clusters_bool_set, const MyHashSet& hash_set,
                          Buckets& buckets, std::vector<char>& visited,
                          const uint32_t hash_num, std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
-                         std::vector<VertexId>& inactive_clusters
-  ) {
-
+                         std::vector<VertexId>& inactive_clusters) {
     VertexId cur_cluster = clusters[cur_vertex];
     HashValue hash = hash_set[hash_num][cur_vertex];
     uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
@@ -370,5 +383,4 @@ private:
 };
 
 using MinHashSparsifier = AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy>;
-
-}
+}  // namespace kahypar
