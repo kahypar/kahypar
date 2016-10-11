@@ -252,17 +252,14 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
   if (config.preprocessing.use_min_hash_sparsifier) {
     LOG("Before sparcification: hypernodes = " << hypergraph.initialNumNodes());
     LOG("Before sparcification: hyperedges = " << hypergraph.initialNumEdges());
-    std::unique_ptr<LSHCombinedHashPolicy> hashPolicy(std::make_unique<LSHCombinedHashPolicy>(
-            config.preprocessing.minHashSparsifierParameters.numHashFunc,
-            config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc,
-            config.partition.seed));
 
     AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(hypergraph,
-                                                  std::move(hashPolicy),
                                                   config.partition.seed,
                                                   config.preprocessing.minHashSparsifierParameters.maxHyperedgeSize,
                                                   config.preprocessing.minHashSparsifierParameters.maxClusterSize,
                                                   config.preprocessing.minHashSparsifierParameters.minClusterSize,
+                                                  config.preprocessing.minHashSparsifierParameters.numHashFunc,
+                                                  config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc,
                                                   config.partition.collect_stats);
 
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();

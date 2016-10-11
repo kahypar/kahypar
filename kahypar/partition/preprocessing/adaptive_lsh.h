@@ -19,38 +19,28 @@ private:
 
 public:
 
-  explicit AdaptiveLSHWithConnectedComponents(const Hypergraph &hypergraph,
-                                              std::unique_ptr<HashPolicy> hashPolicy,
+  explicit AdaptiveLSHWithConnectedComponents(const Hypergraph& hypergraph,
                                               const uint32_t seed,
-                                              const uint32_t maxHyperedgeSize,
-                                              const uint32_t maxClusterSize,
-                                              const uint32_t minClusterSize,
-                                              const bool collectStats)
-          : _hypergraph(hypergraph),
-            _hashPolicy(std::move(hashPolicy)),
-            _seed(seed),
-            _maxHyperedgeSize(maxHyperedgeSize),
-            _maxClusterSize(maxClusterSize),
-            _minClusterSize(minClusterSize),
-            _maxNumHashFunc(getHashNum()),
-            _maxCombinedNumHashFunc(getCombinedHashNum()),
-            _collectStats(collectStats)
-  {}
+                                              const uint32_t max_hyperedge_size,
+                                              const uint32_t max_cluster_size,
+                                              const uint32_t min_cluster_size,
+                                              const uint32_t num_hash_func,
+                                              const uint32_t combined_num_hash_func,
+                                              const bool collect_stats)
+    : _hypergraph(hypergraph),
+      _seed(seed),
+      _max_hyperedge_size(max_hyperedge_size),
+      _max_cluster_size(max_cluster_size),
+      _min_cluster_size(min_cluster_size),
+      _max_num_hash_func(num_hash_func),
+      _max_combined_num_hash_func(combined_num_hash_func),
+      _collect_stats(collect_stats)
+  {
+
+  }
 
   std::vector<VertexId> build() {
     return adaptiveWhole();
-  }
-
-  uint32_t getHashNum() const {
-    return _hashPolicy->getHashNum();
-  }
-
-  uint32_t getDim() const {
-    return _hashPolicy->getDim();
-  }
-
-  uint32_t getCombinedHashNum() const {
-    return CombinedHashNum<HashPolicy>::get(*_hashPolicy);
   }
 
 private:
@@ -58,98 +48,97 @@ private:
   using Buckets = HashBuckets<HashValue, VertexId>;
   using VertexWeight = Hypergraph::HypernodeWeight;
 
-  const Hypergraph &_hypergraph;
-  std::unique_ptr<HashPolicy> _hashPolicy;
+  const Hypergraph& _hypergraph;
   const uint32_t _seed;
-  const uint32_t _maxHyperedgeSize;
-  const uint32_t _maxClusterSize;
-  const uint32_t _minClusterSize;
-  const uint32_t _maxNumHashFunc;
-  const uint32_t _maxCombinedNumHashFunc;
-  const bool _collectStats;
+  const uint32_t _max_hyperedge_size;
+  const uint32_t _max_cluster_size;
+  const uint32_t _min_cluster_size;
+  const uint32_t _max_num_hash_func;
+  const uint32_t _max_combined_num_hash_func;
+  const bool _collect_stats;
 
   std::vector<VertexId> adaptiveWhole() {
     std::default_random_engine eng(_seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
-    MyHashSet mainHashSet(0, _hypergraph.currentNumNodes());
-    mainHashSet.reserve(20);
+    MyHashSet main_hash_set(0, _hypergraph.currentNumNodes());
+    main_hash_set.reserve(20);
 
     std::vector<VertexId> clusters;
     clusters.reserve(_hypergraph.currentNumNodes());
 
-    std::vector<uint32_t> clusterSize(_hypergraph.currentNumNodes(), 1);
+    std::vector<uint32_t> cluster_size(_hypergraph.currentNumNodes(), 1);
 
-    std::vector<uint8_t> activeClustersBoolSet(_hypergraph.currentNumNodes(), true);
-    uint32_t numActiveVertices = _hypergraph.currentNumNodes();
+    std::vector<uint8_t> active_clusters_bool_set(_hypergraph.currentNumNodes(), true);
+    uint32_t num_active_vertices = _hypergraph.currentNumNodes();
 
-    for (VertexId vertexId = 0; vertexId < _hypergraph.currentNumNodes(); ++vertexId) {
-      clusters.push_back(vertexId);
+    for (VertexId vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+      clusters.push_back(vertex_id);
     }
 
-    std::vector<VertexId> inactiveClusters;
-    inactiveClusters.reserve(_hypergraph.currentNumNodes());
+    std::vector<VertexId> inactive_clusters;
+    inactive_clusters.reserve(_hypergraph.currentNumNodes());
 
-    while (numActiveVertices > 0 && mainHashSet.getHashNum() < _maxNumHashFunc) {
-      mainHashSet.addHashVector();
+    while (num_active_vertices > 0 && main_hash_set.getHashNum() < _max_num_hash_func) {
+      main_hash_set.addHashVector();
 
-      std::vector<VertexId> activeVerticesSet;
-      activeVerticesSet.reserve(numActiveVertices);
+      std::vector<VertexId> active_vertices_set;
+      active_vertices_set.reserve(num_active_vertices);
 
-      for (VertexId vertexId = 0; vertexId < _hypergraph.currentNumNodes(); ++vertexId) {
-        VertexId cluster = clusters[vertexId];
-        if (activeClustersBoolSet[cluster]) {
-          activeVerticesSet.push_back(vertexId);
+      for (VertexId vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+        VertexId cluster = clusters[vertex_id];
+        if (active_clusters_bool_set[cluster]) {
+          active_vertices_set.push_back(vertex_id);
         }
       }
 
-      uint32_t hashNum = mainHashSet.getHashNum() - 1;
+      uint32_t hash_num = main_hash_set.getHashNum() - 1;
       auto start = std::chrono::high_resolution_clock::now();
-      incrementalParametersEstimation(activeVerticesSet, rnd(eng), _maxClusterSize, mainHashSet, hashNum);
+      incrementalParametersEstimation(active_vertices_set, rnd(eng), _max_cluster_size, main_hash_set, hash_num);
       auto end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_collectStats, "Adaptive LSH: Incremental parameter estimation",
+      Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Incremental parameter estimation",
                                    std::chrono::duration<double>(end - start).count());
 
       Buckets buckets(1, _hypergraph.currentNumNodes());
       start = std::chrono::high_resolution_clock::now();
-      calculateOneDimBucket(_hypergraph.currentNumNodes(), activeClustersBoolSet, clusters, mainHashSet,
-                            buckets, hashNum);
+      calculateOneDimBucket(_hypergraph.currentNumNodes(), active_clusters_bool_set, clusters, main_hash_set,
+                            buckets, hash_num);
       end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_collectStats, "Adaptive LSH: Construction of buckets",
+      Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Construction of buckets",
                                    std::chrono::duration<double>(end - start).count());
 
       start = std::chrono::high_resolution_clock::now();
-      calculateClustersIncrementally(_hypergraph.currentNumNodes(), activeClustersBoolSet, clusters, clusterSize,
-                                     mainHashSet, hashNum, buckets, inactiveClusters);
+      calculateClustersIncrementally(_hypergraph.currentNumNodes(), active_clusters_bool_set, clusters, cluster_size,
+                                     main_hash_set, hash_num, buckets, inactive_clusters);
       end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_collectStats, "Adaptive LSH: Construction of clustering",
+      Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Construction of clustering",
                                    std::chrono::duration<double>(end - start).count());
 
-      std::vector<char> bitMap(clusters.size());
+      std::vector<char> bit_map(clusters.size());
       for (auto clst : clusters)
-        bitMap[clst] = 1;
+        bit_map[clst] = 1;
 
-      size_t numCl = 0;
-      for (auto bit : bitMap) {
+      size_t num_cl = 0;
+      for (auto bit : bit_map) {
         if (bit) {
-          ++numCl;
+          ++num_cl;
         }
       }
-      LOG("Num clusters: " << numCl);
+      LOG("Num clusters: " << num_cl);
 
 
-      std::sort(inactiveClusters.begin(), inactiveClusters.end());
-      auto endIter = std::unique(inactiveClusters.begin(), inactiveClusters.end());
-      inactiveClusters.resize(endIter - inactiveClusters.begin());
+      std::sort(inactive_clusters.begin(), inactive_clusters.end());
+      auto end_iter = std::unique(inactive_clusters.begin(), inactive_clusters.end());
+      inactive_clusters.resize(end_iter - inactive_clusters.begin());
 
-      for (auto cluster : inactiveClusters) {
-        activeClustersBoolSet[cluster] = false;
-        numActiveVertices -= clusterSize[cluster];
+      for (auto cluster : inactive_clusters) {
+        active_clusters_bool_set[cluster] = false;
+        num_active_vertices -= cluster_size[cluster];
       }
-      inactiveClusters.clear();
+      inactive_clusters.clear();
 
-      if (numCl <= _hypergraph.currentNumNodes() / 2) {
-        LOG("Adaptively chosen number of hash functions: " << mainHashSet.getHashNum());
+      if (num_cl <= _hypergraph.currentNumNodes() / 2) {
+        LOG("Adaptively chosen number of hash functions: " << main_hash_set.getHashNum());
         break;
       }
     }
@@ -158,7 +147,7 @@ private:
   }
 
   struct VecHash {
-    size_t operator()(const std::vector<uint64_t> &vec) const {
+    size_t operator()(const std::vector<uint64_t>& vec) const {
       size_t res = 0;
       for (auto el : vec) {
         res ^= el;
@@ -168,14 +157,15 @@ private:
     }
   };
 
-  void incrementalParametersEstimation(std::vector<VertexId> &activeVertices, uint32_t seed,
-                                       uint32_t bucketMinSize, MyHashSet &mainHashSet, uint32_t mainHashNum) {
+  void incrementalParametersEstimation(std::vector<VertexId>& active_vertices, const uint32_t seed,
+                                       const uint32_t bucket_min_size, MyHashSet& main_hash_set,
+                                       const uint32_t main_hash_num) {
 
-    MyHashSet hashSet(0, _hypergraph.currentNumNodes());
-    hashSet.reserve(_maxCombinedNumHashFunc);
+    MyHashSet hash_set(0, _hypergraph.currentNumNodes());
+    hash_set.reserve(_max_combined_num_hash_func);
 
-    BaseHashPolicy baseHashPolicy(0, seed);
-    baseHashPolicy.reserveHashFunctions(_maxCombinedNumHashFunc);
+    BaseHashPolicy base_hash_policy(0, seed);
+    base_hash_policy.reserveHashFunctions(_max_combined_num_hash_func);
 
     std::default_random_engine eng(seed);
     std::uniform_int_distribution<uint32_t> rnd;
@@ -183,49 +173,49 @@ private:
     // in the beginning all vertices are in the same bucket (same hash)
     std::vector<HashValue> hashes(_hypergraph.currentNumNodes());
 
-    size_t remainedVertices = activeVertices.size();
+    size_t remained_vertices = active_vertices.size();
 
-    size_t bucketsNum = _hypergraph.currentNumNodes();
+    size_t buckets_num = _hypergraph.currentNumNodes();
 
-    using TPair = std::pair<HashValue, VertexId>;
+    using Pair = std::pair<HashValue, VertexId>;
 
-    std::vector<TPair> buckets;
-    buckets.reserve(bucketsNum);
+    std::vector<Pair> buckets;
+    buckets.reserve(buckets_num);
 
     // empirically best value
-    uint32_t minHashNum = 10;
+    uint32_t min_hash_num = 10;
 
-    uint32_t maxBucketSize = _maxClusterSize;
-    ASSERT(minHashNum <= _maxCombinedNumHashFunc,
+    uint32_t max_bucket_size = _max_cluster_size;
+    ASSERT(min_hash_num <= _max_combined_num_hash_func,
            "# min combined hash funcs should be <= # max combined hash funcs");
-    std::vector<TPair> newBuckets;
-    newBuckets.reserve(bucketsNum);
+    std::vector<Pair> new_buckets;
+    new_buckets.reserve(buckets_num);
 
-    for (size_t i = 0; i + 1 < minHashNum; ++i) {
-      hashSet.addHashVector();
-      baseHashPolicy.addHashFunction(rnd(eng));
+    for (size_t i = 0; i + 1 < min_hash_num; ++i) {
+      hash_set.addHashVector();
+      base_hash_policy.addHashFunction(rnd(eng));
 
-      baseHashPolicy.calculateLastHash(_hypergraph, activeVertices, hashSet);
+      base_hash_policy.calculateLastHash(_hypergraph, active_vertices, hash_set);
 
-      uint32_t lastHash = hashSet.getHashNum() - 1;
-      for (auto ver : activeVertices) {
-        hashes[ver] ^= hashSet[lastHash][ver];
+      uint32_t last_hash = hash_set.getHashNum() - 1;
+      for (auto ver : active_vertices) {
+        hashes[ver] ^= hash_set[last_hash][ver];
       }
     }
 
-    for (auto ver : activeVertices) {
+    for (auto ver : active_vertices) {
       buckets.emplace_back(hashes[ver], ver);
     }
     std::sort(buckets.begin(), buckets.end());
 
-    while (remainedVertices > 0) {
-      hashSet.addHashVector();
-      baseHashPolicy.addHashFunction(rnd(eng));
+    while (remained_vertices > 0) {
+      hash_set.addHashVector();
+      base_hash_policy.addHashFunction(rnd(eng));
 
-      uint32_t lastHash = hashSet.getHashNum() - 1;
+      uint32_t last_hash = hash_set.getHashNum() - 1;
 
       // Decide for which vertices we continue to increase the number of hash functions
-      newBuckets.clear();
+      new_buckets.clear();
 
       auto begin = buckets.begin();
 
@@ -240,131 +230,131 @@ private:
           vertices.push_back(it->second);
         }
 
-        baseHashPolicy.calculateLastHash(_hypergraph, vertices, hashSet);
+        base_hash_policy.calculateLastHash(_hypergraph, vertices, hash_set);
 
         if (vertices.size() == 1) {
-          --remainedVertices;
-          HashValue hash = hashSet[lastHash][vertices.front()];
+          --remained_vertices;
+          HashValue hash = hash_set[last_hash][vertices.front()];
           hashes[vertices.front()] ^= hash;
           begin = end;
           continue;
         }
 
-        std::vector<TPair> newHashes;
-        newHashes.reserve(vertices.size());
+        std::vector<Pair> new_hashes;
+        new_hashes.reserve(vertices.size());
 
         for (auto vertex : vertices) {
 
-          HashValue hash = hashSet[lastHash][vertex];
+          HashValue hash = hash_set[last_hash][vertex];
           hashes[vertex] ^= hash;
 
-          newHashes.emplace_back(hashes[vertex], vertex);
+          new_hashes.emplace_back(hashes[vertex], vertex);
         }
 
-        std::sort(newHashes.begin(), newHashes.end());
-        auto e = std::unique(newHashes.begin(), newHashes.end());
-        newHashes.resize(e - newHashes.begin());
+        std::sort(new_hashes.begin(), new_hashes.end());
+        auto e = std::unique(new_hashes.begin(), new_hashes.end());
+        new_hashes.resize(e - new_hashes.begin());
 
-        auto newBegin = newHashes.begin();
-        while (newBegin != newHashes.end()) {
-          auto newEnd = newBegin;
-          while (newEnd != newHashes.end() && newBegin->first == newEnd->first) {
-            ++newEnd;
+        auto new_begin = new_hashes.begin();
+        while (new_begin != new_hashes.end()) {
+          auto new_end = new_begin;
+          while (new_end != new_hashes.end() && new_begin->first == new_end->first) {
+            ++new_end;
           }
-          VertexId bucketSize = newEnd - newBegin;
-          if ((bucketSize <= maxBucketSize && hashSet.getHashNum() >= minHashNum)
-              || hashSet.getHashNum() >= _maxCombinedNumHashFunc
-                  ) {
-            remainedVertices -= bucketSize;
+          VertexId bucket_size = new_end - new_begin;
+          if ((bucket_size <= max_bucket_size && hash_set.getHashNum() >= min_hash_num)
+              || hash_set.getHashNum() >= _max_combined_num_hash_func
+            ) {
+            remained_vertices -= bucket_size;
           } else {
-            std::copy(newBegin, newEnd, std::back_inserter(newBuckets));
+            std::copy(new_begin, new_end, std::back_inserter(new_buckets));
           }
-          newBegin = newEnd;
+          new_begin = new_end;
         }
         begin = end;
       }
-      buckets.swap(newBuckets);
+      buckets.swap(new_buckets);
     }
-    for (uint32_t vertexId = 0; vertexId < _hypergraph.currentNumNodes(); ++vertexId) {
-      mainHashSet[mainHashNum][vertexId] = hashes[vertexId];
+    for (uint32_t vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+      main_hash_set[main_hash_num][vertex_id] = hashes[vertex_id];
     }
   }
 
   // distributes vertices among bucket according to the new hash values
-  void calculateOneDimBucket(VertexId numVertex, const std::vector<uint8_t> &activeClustersBoolSet,
-                             const std::vector<VertexId> &clusters, const MyHashSet &hashSet, Buckets &buckets,
-                             uint32_t hashNum) {
+  void calculateOneDimBucket(VertexId num_vertex, const std::vector<uint8_t>& active_clusters_bool_set,
+                             const std::vector<VertexId>& clusters, const MyHashSet& hash_set, Buckets& buckets,
+                             const uint32_t hash_num) {
 
     ASSERT(buckets.isOneDimensional(), "Bucket should be one dimensional");
     uint32_t dim = 0;
 
-    for (VertexId vertexId = 0; vertexId < numVertex; ++vertexId) {
-      VertexId cluster = clusters[vertexId];
-      if (activeClustersBoolSet[cluster]) {
-        buckets.put(dim, hashSet[hashNum][vertexId], vertexId);
+    for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
+      VertexId cluster = clusters[vertex_id];
+      if (active_clusters_bool_set[cluster]) {
+        buckets.put(dim, hash_set[hash_num][vertex_id], vertex_id);
       }
     }
   }
 
   // incrementally calculates clusters according to the new bucket
-  void calculateClustersIncrementally(VertexId numVertex, std::vector<uint8_t> &activeClustersBoolSet,
-                                      std::vector<VertexId> &clusters, std::vector<uint32_t> &clusterSize,
-                                      const MyHashSet &hashSet, uint32_t hashNum, Buckets &buckets,
-                                      std::vector<VertexId> &inactiveClusters) {
+  void calculateClustersIncrementally(const VertexId num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+                                      std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
+                                      const MyHashSet& hash_set, const uint32_t hash_num, Buckets& buckets,
+                                      std::vector<VertexId>& inactive_clusters) {
     // Calculate clusters according to connected components
     // of an implicit graph induced by buckets. We use BFS on this graph.
-    runIncrementalBfs(numVertex, activeClustersBoolSet, hashSet, buckets, hashNum, clusters, clusterSize,
-                      inactiveClusters);
+    runIncrementalBfs(num_vertex, active_clusters_bool_set, hash_set, buckets, hash_num, clusters, cluster_size,
+                      inactive_clusters);
   }
 
-  void runIncrementalBfs(VertexId numVertex, std::vector<uint8_t> &activeClustersBoolSet,
-                         const MyHashSet &hashSet, Buckets &buckets, uint32_t hashNum,
-                         std::vector<VertexId> &clusters, std::vector<uint32_t> &clusterSize,
-                         std::vector<VertexId> &inactiveClusters) {
-    std::queue<VertexId> vertexQueue;
-    std::vector<char> visited(numVertex, false);
-    for (VertexId vertexId = 0; vertexId < numVertex; ++vertexId) {
-      VertexId cluster = clusters[vertexId];
-      if (!visited[vertexId] && activeClustersBoolSet[cluster]) {
-        visited[vertexId] = true;
-        vertexQueue.push(vertexId);
-        runIncrementalBfs(vertexId, activeClustersBoolSet, hashSet, buckets, visited,
-                          hashNum, clusters, clusterSize, inactiveClusters);
+  void runIncrementalBfs(const VertexId num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+                         const MyHashSet& hash_set, Buckets& buckets, const uint32_t hash_num,
+                         std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
+                         std::vector<VertexId>& inactive_clusters) {
+    std::queue<VertexId> vertex_queue;
+    std::vector<char> visited(num_vertex, false);
+    for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
+      VertexId cluster = clusters[vertex_id];
+      if (!visited[vertex_id] && active_clusters_bool_set[cluster]) {
+        visited[vertex_id] = true;
+        vertex_queue.push(vertex_id);
+        runIncrementalBfs(vertex_id, active_clusters_bool_set, hash_set, buckets, visited,
+                          hash_num, clusters, cluster_size, inactive_clusters);
       }
     }
   }
 
-  void runIncrementalBfs(VertexId curVertex, std::vector<uint8_t> &activeClustersBoolSet, const MyHashSet &hashSet,
-                         Buckets &buckets, std::vector<char> &visited,
-                         uint32_t hashNum, std::vector<VertexId> &clusters, std::vector<uint32_t> &clusterSize,
-                         std::vector<VertexId> &inactiveClusters
+  void runIncrementalBfs(VertexId cur_vertex, std::vector<uint8_t>& active_clusters_bool_set, const MyHashSet& hash_set,
+                         Buckets& buckets, std::vector<char>& visited,
+                         const uint32_t hash_num, std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
+                         std::vector<VertexId>& inactive_clusters
   ) {
 
-    VertexId curCluster = clusters[curVertex];
-    HashValue hash = hashSet[hashNum][curVertex];
-    uint32_t dim = buckets.isOneDimensional() ? 0 : hashNum;
+    VertexId cur_cluster = clusters[cur_vertex];
+    HashValue hash = hash_set[hash_num][cur_vertex];
+    uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
 
     std::vector<VertexId> neighbours;
-    neighbours.reserve(_maxHyperedgeSize);
+    neighbours.reserve(_max_hyperedge_size);
 
     auto iters = buckets.getObjects(dim, hash);
-    for (auto neighbourIter = iters.first; neighbourIter != iters.second; ++neighbourIter) {
-      auto neighbour = *neighbourIter;
-      VertexId neighbourCluster = clusters[neighbour];
-      if (activeClustersBoolSet[neighbourCluster]) {
+    for (auto neighbour_iter = iters.first; neighbour_iter != iters.second; ++neighbour_iter) {
+      auto neighbour = *neighbour_iter;
+      VertexId neighbour_cluster = clusters[neighbour];
+      if (active_clusters_bool_set[neighbour_cluster]) {
         VertexWeight weight = _hypergraph.nodeWeight(neighbour);
-        if (clusterSize[curCluster] + weight > _maxClusterSize) {
-          ASSERT(clusterSize[curCluster] <= _maxClusterSize, "Cluster is overflowed");
+        if (cluster_size[cur_cluster] + weight > _max_cluster_size) {
+          ASSERT(cluster_size[cur_cluster] <= _max_cluster_size, "Cluster is overflowed");
           break;
         }
 
-        clusterSize[neighbourCluster] -= weight;
-        clusters[neighbour] = curCluster;
-        clusterSize[curCluster] += weight;
+        cluster_size[neighbour_cluster] -= weight;
+        clusters[neighbour] = cur_cluster;
+        cluster_size[cur_cluster] += weight;
 
-        if (clusterSize[curCluster] >= _minClusterSize) {
-          inactiveClusters.push_back(curCluster);
-          activeClustersBoolSet[curCluster] = false;
+        if (cluster_size[cur_cluster] >= _min_cluster_size) {
+          inactive_clusters.push_back(cur_cluster);
+          active_clusters_bool_set[cur_cluster] = false;
         }
 
         visited[neighbour] = true;
@@ -373,8 +363,8 @@ private:
     }
 
     for (auto neighbour : neighbours) {
-      uint32_t dim = buckets.isOneDimensional() ? 0 : hashNum;
-      buckets.removeObject(dim, hashSet[hashNum][neighbour], neighbour);
+      uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
+      buckets.removeObject(dim, hash_set[hash_num][neighbour], neighbour);
     }
   }
 };

@@ -49,8 +49,8 @@ class Stats {
     }
   }
 
-  void addToTotal(bool collectStats, const std::string& key, double value) {
-    if (collectStats) {
+  void addToTotal(bool collect_stats, const std::string& key, double value) {
+    if (collect_stats) {
       _stats[key] += value;
     }
   }

@@ -19,55 +19,54 @@ public:
   using MyHashSet = HashSet<HashValue>;
   using VertexSet = std::vector<VertexId>;
 
-  explicit MinHashPolicy(uint32_t hashNum = 0, uint32_t seed = 0)
-          : _dim(hashNum), _seed(seed), _hashFuncVector(hashNum, seed) {}
+  explicit MinHashPolicy(const uint32_t hash_num = 0, const uint32_t seed = 0)
+          : _dim(hash_num), _seed(seed), _hash_func_vector(hash_num, seed) {}
 
-  void reset(uint32_t seed) {
+  void reset(const uint32_t seed) {
     _seed = seed;
-    _hashFuncVector.reset(_seed);
+    _hash_func_vector.reset(_seed);
   }
 
-  void reset(uint32_t seed, uint32_t hashNum) {
-    _dim = hashNum;
-    _hashFuncVector.resize(hashNum);
+  void reset(const uint32_t seed, const uint32_t hash_num) {
+    _dim = hash_num;
+    _hash_func_vector.resize(hash_num);
 
     reset(seed);
   }
 
   // calculates minHashes for vertices in [begin, end)
-  void operator()(const Hypergraph &graph, VertexId begin, VertexId end, MyHashSet &hashSet) const {
-    ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
-    for (auto vertexId = begin; vertexId != end; ++vertexId) {
-      for (uint32_t hashNum = 0; hashNum < _hashFuncVector.getHashNum(); ++hashNum) {
-        hashSet[hashNum][vertexId] = minHash(_hashFuncVector[hashNum], graph.incidentEdges(vertexId));
+  void operator()(const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+    ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
+    for (auto vertex_id = begin; vertex_id != end; ++vertex_id) {
+      for (uint32_t hash_num = 0; hash_num < _hash_func_vector.getHashNum(); ++hash_num) {
+        hash_set[hash_num][vertex_id] = minHash(_hash_func_vector[hash_num], graph.incidentEdges(vertex_id));
       }
     }
   }
 
-  void calculateLastHash(const Hypergraph &graph, const VertexSet &vertices,
-                         MyHashSet &hashSet) const {
-    ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
-    for (auto vertexId : vertices) {
-      size_t lastHash = _hashFuncVector.getHashNum() - 1;
-      hashSet[lastHash][vertexId] = minHash(_hashFuncVector[lastHash], graph.incidentEdges(vertexId));
+  void calculateLastHash(const Hypergraph& graph, const VertexSet& vertices, MyHashSet& hash_set) const {
+    ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
+    for (auto vertex_id : vertices) {
+      size_t last_hash = _hash_func_vector.getHashNum() - 1;
+      hash_set[last_hash][vertex_id] = minHash(_hash_func_vector[last_hash], graph.incidentEdges(vertex_id));
     }
   }
 
   template<typename Iterator>
-  void calculateLastHash(const Hypergraph &graph, Iterator begin, Iterator end,
-                         MyHashSet &hashSet) const {
-    ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
+  void calculateLastHash(const Hypergraph& graph, Iterator begin, Iterator end,
+                         MyHashSet& hash_set) const {
+    ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto it = begin; it != end; ++it) {
-      size_t lastHash = _hashFuncVector.getHashNum() - 1;
-      hashSet[lastHash][*it] = minHash(_hashFuncVector[lastHash], graph.incidentEdges(*it));
+      size_t last_hash = _hash_func_vector.getHashNum() - 1;
+      hash_set[last_hash][*it] = minHash(_hash_func_vector[last_hash], graph.incidentEdges(*it));
     }
   }
 
-  HashValue combinedHash(const Hypergraph &graph, VertexId vertexId) const {
-    ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
+  HashValue combinedHash(const Hypergraph& graph, const VertexId vertex_id) const {
+    ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     HashValue val = 0;
-    for (uint32_t hashNum = 0; hashNum < _hashFuncVector.getHashNum(); ++hashNum) {
-      val ^= minHash(_hashFuncVector[hashNum], graph.incidentEdges(vertexId));
+    for (uint32_t hash_num = 0; hash_num < _hash_func_vector.getHashNum(); ++hash_num) {
+      val ^= minHash(_hash_func_vector[hash_num], graph.incidentEdges(vertex_id));
     }
     return val;
   }
@@ -77,21 +76,21 @@ public:
   }
 
   uint32_t getHashNum() const {
-    return _hashFuncVector.getHashNum();
+    return _hash_func_vector.getHashNum();
   }
 
-  void setHashNumAndDim(uint32_t hashNum) {
-    _dim = hashNum;
-    _hashFuncVector.Resize(hashNum);
+  void setHashNumAndDim(const uint32_t hash_num) {
+    _dim = hash_num;
+    _hash_func_vector.resize(hash_num);
   }
 
-  void addHashFunction(uint32_t seed) {
-    _hashFuncVector.addHashFunction(seed);
+  void addHashFunction(const uint32_t seed) {
+    _hash_func_vector.addHashFunction(seed);
     ++_dim;
   }
 
-  void reserveHashFunctions(uint32_t size) {
-    _hashFuncVector.reserve(size);
+  void reserveHashFunctions(const uint32_t size) {
+    _hash_func_vector.reserve(size);
   }
 
 protected:
@@ -101,14 +100,14 @@ protected:
 
   uint32_t _seed;
 
-  HashFuncVector<HashFunc> _hashFuncVector;
+  HashFuncVector<HashFunc> _hash_func_vector;
 
   // calculates minHash from incident edges of a particular vertex
   template<typename ValuesRange>
-  HashValue minHash(HashFunc hash, const ValuesRange &valuesRange) const {
+  HashValue minHash(HashFunc hash, const ValuesRange& values_range) const {
     HashValue res = std::numeric_limits<HashValue>::max();
 
-    for (auto value : valuesRange) {
+    for (auto value : values_range) {
       res = std::min(res, hash(value));
     }
     return res;
@@ -126,19 +125,19 @@ public:
   using HashValue = typename BaseHashPolicy::HashValue;
   using MyHashSet = HashSet<HashValue>;
 
-  CombinedHashPolicy(uint32_t hashNum, uint32_t combinedHashNum, uint32_t seed)
-          : _seed(seed), _dim(hashNum), _hashNum(hashNum), _combinedHashNum(combinedHashNum) {}
+  CombinedHashPolicy(const uint32_t hash_num, const uint32_t combined_hash_num, const uint32_t seed)
+          : _seed(seed), _dim(hash_num), _hash_num(hash_num), _combined_hash_num(combined_hash_num) {}
 
   // calculates minHashes for vertices in [begin, end)
-  void operator()(const Hypergraph &graph, VertexId begin, VertexId end, MyHashSet &hashSet) const {
-    ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
-    HashFuncVector <BaseHashPolicy> hashFuncVectors(_hashNum);
+  void operator()(const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+    ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
+    HashFuncVector<BaseHashPolicy> hash_func_vectors(_hash_num);
 
-    hashFuncVectors.Reset(_seed, _combinedHashNum);
+    hash_func_vectors.reset(_seed, _combined_hash_num);
 
-    for (auto vertexId = begin; vertexId != end; ++vertexId) {
-      for (uint32_t hashNum = 0; hashNum < _hashNum; ++hashNum) {
-        hashSet[hashNum][vertexId] = hashFuncVectors[hashNum].combinedHash(graph, vertexId);
+    for (auto vertex_id = begin; vertex_id != end; ++vertex_id) {
+      for (uint32_t hash_num = 0; hash_num < _hash_num; ++hash_num) {
+        hash_set[hash_num][vertex_id] = hash_func_vectors[hash_num].combinedHash(graph, vertex_id);
       }
     }
   }
@@ -148,20 +147,20 @@ public:
   }
 
   uint32_t getHashNum() const {
-    return _hashNum;
+    return _hash_num;
   }
 
   uint32_t getCombinedHashNum() const {
-    return _combinedHashNum;
+    return _combined_hash_num;
   }
 
-  void setHashNumAndDim(uint32_t hashNum) {
-    _dim = hashNum;
-    _hashNum = hashNum;
+  void setHashNumAndDim(const uint32_t hash_num) {
+    _dim = hash_num;
+    _hash_num = hash_num;
   }
 
-  void setCombinedHashNum(uint32_t combinedHashNum) {
-    _combinedHashNum = combinedHashNum;
+  void setCombinedHashNum(const uint32_t combined_hash_num) {
+    _combined_hash_num = combined_hash_num;
   }
 
 private:
@@ -172,113 +171,91 @@ private:
   uint32_t _dim;
 
   // The number of hash functions
-  uint32_t _hashNum;
+  uint32_t _hash_num;
 
   // The number of combined hash functions
-  uint32_t _combinedHashNum;
+  uint32_t _combined_hash_num;
 };
 
 using LSHCombinedHashPolicy = CombinedHashPolicy<MinMurmurHashPolicy>;
-
-template<typename T>
-class CombinedHashNum {
-public:
-  static uint32_t get(T &) {
-    return 0;
-  }
-
-  static void set(T &, uint32_t) {
-  }
-};
-
-template<>
-class CombinedHashNum<LSHCombinedHashPolicy> {
-public:
-  static uint32_t get(LSHCombinedHashPolicy &policy) {
-    return policy.getCombinedHashNum();
-  }
-
-  static void set(LSHCombinedHashPolicy &policy, uint32_t combinedHashNum) {
-    policy.setCombinedHashNum(combinedHashNum);
-  }
-};
 
 class Coarsening {
 public:
   using VertexId = HypernodeID;
   using EdgeId = HyperedgeID;
 
-  static Hypergraph build(const Hypergraph &hypergraph, std::vector<VertexId> &clusters, PartitionID partitionId) {
-    EdgeId numEdges = hypergraph.currentNumEdges();
+  static Hypergraph build(const Hypergraph& hypergraph, std::vector<VertexId>& clusters,
+                          const PartitionID partition_id) {
+    EdgeId num_edges = hypergraph.currentNumEdges();
 
     // 0 : reenumerate
-    VertexId numVertices = reenumerateClusters(clusters);
+    VertexId num_vertices = reenumerateClusters(clusters);
 
     // 1 : build vector of indicies and pins for hyperedges
-    std::vector<size_t> indicesOfEdges;
-    indicesOfEdges.reserve(numEdges + 1);
+    std::vector<size_t> indices_of_edges;
+    indices_of_edges.reserve(num_edges + 1);
 
-    std::vector<VertexId> pinsOfEdges;
-    pinsOfEdges.reserve(hypergraph.currentNumPins());
+    std::vector<VertexId> pins_of_edges;
+    pins_of_edges.reserve(hypergraph.currentNumPins());
 
-    hash_map_no_erase<Edge, std::pair<EdgeId, HyperedgeWeight>, HashEdge, false> parallelEdges(3 * numEdges);
+    hash_map_no_erase<Edge, std::pair<EdgeId, HyperedgeWeight>, HashEdge, false> parallel_edges(3 * num_edges);
 
     size_t offset = 0;
-    size_t removedEdges = 0;
-    size_t nonDisabledEdgeId = 0;
-    for (auto edgeId : hypergraph.edges()) {
-      auto pinsRange = hypergraph.pins(edgeId);
-      hash_set_no_erase<VertexId> newPins(pinsRange.second - pinsRange.first);
+    size_t removed_edges = 0;
+    size_t non_disabled_edge_id = 0;
+    for (auto edge_id : hypergraph.edges()) {
+      auto pins_range = hypergraph.pins(edge_id);
+      hash_set_no_erase<VertexId> new_pins(pins_range.second - pins_range.first);
 
-      for (auto vertexId : pinsRange) {
-        newPins.insert(clusters[vertexId]);
+      for (auto vertex_id : pins_range) {
+        new_pins.insert(clusters[vertex_id]);
       }
 
       // if we have only one vertex in a hyperedge then we remove the hyperedge
-      if (newPins.size() <= 1) {
-        ++removedEdges;
-        ++nonDisabledEdgeId;
+      if (new_pins.size() <= 1) {
+        ++removed_edges;
+        ++non_disabled_edge_id;
         continue;
       }
 
-      for (auto newPin : newPins) {
-        pinsOfEdges.push_back(newPin);
+      for (auto new_pin : new_pins) {
+        pins_of_edges.push_back(new_pin);
       }
 
       // check for parallel edges
-      Edge edge(pinsOfEdges.begin() + offset, pinsOfEdges.begin() + offset + newPins.size());
+      Edge edge(pins_of_edges.begin() + offset, pins_of_edges.begin() + offset + new_pins.size());
 
-      if (!parallelEdges.contains(edge)) {
+      if (!parallel_edges.contains(edge)) {
         // no parallel edges
-        indicesOfEdges.push_back(offset);
-        offset += newPins.size();
-        parallelEdges.insert(std::make_pair(edge, std::make_pair(nonDisabledEdgeId - removedEdges,
-                                                                 hypergraph.edgeWeight(edgeId))));
+        indices_of_edges.push_back(offset);
+        offset += new_pins.size();
+        parallel_edges.insert(std::make_pair(edge, std::make_pair(non_disabled_edge_id - removed_edges,
+                                                                 hypergraph.edgeWeight(edge_id))));
       } else {
-        ++parallelEdges[edge].second;
+        ++parallel_edges[edge].second;
 
-        ++removedEdges;
-        pinsOfEdges.resize(pinsOfEdges.size() - newPins.size());
+        ++removed_edges;
+        pins_of_edges.resize(pins_of_edges.size() - new_pins.size());
       }
-      ++nonDisabledEdgeId;
+      ++non_disabled_edge_id;
     }
-    indicesOfEdges.push_back(offset);
+    indices_of_edges.push_back(offset);
 
     // 2 : calculate weights of vertices in contracted graph
-    std::vector<HypernodeWeight> vertexWeights(numVertices);
+    std::vector<HypernodeWeight> vertex_weights(num_vertices);
 
-    for (auto clusterId : clusters) {
-      ++vertexWeights[clusterId];
+    for (auto cluster_id : clusters) {
+      ++vertex_weights[cluster_id];
     }
 
     // 3 : calculate weights of hyper edgs in contracted graph
-    numEdges -= removedEdges;
-    std::vector<HyperedgeWeight> edgeWeights(numEdges);
-    for (const auto &value : parallelEdges) {
-      edgeWeights[value.second.first] = value.second.second;
+    num_edges -= removed_edges;
+    std::vector<HyperedgeWeight> edge_weights(num_edges);
+    for (const auto& value : parallel_edges) {
+      edge_weights[value.second.first] = value.second.second;
     }
 
-    return Hypergraph(numVertices, numEdges, indicesOfEdges, pinsOfEdges, partitionId, &edgeWeights, &vertexWeights);
+    return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges, partition_id, &edge_weights, &vertex_weights);
   }
 
 private:
@@ -288,49 +265,49 @@ private:
     if (clusters.empty())
       return 0;
 
-    std::vector<VertexId> newClusters(clusters.size());
+    std::vector<VertexId> new_clusters(clusters.size());
 
     for (auto clst : clusters)
-      newClusters[clst] = 1;
+      new_clusters[clst] = 1;
 
-    for (size_t i = 1; i < newClusters.size(); ++i)
-      newClusters[i] += newClusters[i - 1];
+    for (size_t i = 1; i < new_clusters.size(); ++i)
+      new_clusters[i] += new_clusters[i - 1];
 
     for (size_t node = 0; node < clusters.size(); ++node)
-      clusters[node] = newClusters[clusters[node]] - 1;
+      clusters[node] = new_clusters[clusters[node]] - 1;
 
-    return newClusters.back();
+    return new_clusters.back();
   }
 
   struct Edge {
-    IncidenceIterator Begin, End;
+    IncidenceIterator _begin, _end;
 
     Edge() {
     }
 
     Edge(IncidenceIterator begin, IncidenceIterator end)
-            : Begin(begin), End(end) {
+            : _begin(begin), _end(end) {
 
     }
 
     IncidenceIterator begin() const {
-      return Begin;
+      return _begin;
     }
 
     IncidenceIterator end() const {
-      return End;
+      return _end;
     }
 
-    bool operator==(const Edge &edge) const {
-      size_t thisSize = End - Begin;
-      size_t otherSize = edge.End - edge.Begin;
+    bool operator==(const Edge& edge) const {
+      size_t this_size = _end - _begin;
+      size_t other_size = edge._end - edge._begin;
 
-      if (thisSize != otherSize) {
+      if (this_size != other_size) {
         return false;
       }
 
-      for (size_t offset = 0; offset < thisSize; ++offset) {
-        if (*(Begin + offset) != *(edge.Begin + offset)) {
+      for (size_t offset = 0; offset < this_size; ++offset) {
+        if (*(_begin + offset) != *(edge._begin + offset)) {
           return false;
         }
       }
@@ -338,31 +315,31 @@ private:
       return true;
     }
 
-    bool operator<(const Edge &edge) const {
-      size_t thisSize = End - Begin;
-      size_t otherSize = edge.End - edge.Begin;
+    bool operator<(const Edge& edge) const {
+      size_t this_size = _end - _begin;
+      size_t other_size = edge._end - edge._begin;
 
-      size_t size = std::min(thisSize, otherSize);
+      size_t size = std::min(this_size, other_size);
 
       for (size_t offset = 0; offset < size; ++offset) {
-        if (*(Begin + offset) < *(edge.Begin + offset)) {
+        if (*(_begin + offset) < *(edge._begin + offset)) {
           return true;
         } else {
-          if (*(Begin + offset) > *(edge.Begin + offset)) {
+          if (*(_begin + offset) > *(edge._begin + offset)) {
             return false;
           }
         }
       }
-      return thisSize < otherSize;
+      return this_size < other_size;
     }
   };
 
   struct HashEdge {
-    size_t operator()(const Edge &edge) const {
+    size_t operator()(const Edge& edge) const {
       size_t hash = 0;
-      math::MurmurHash <uint32_t> hashFunc;
-      for (auto edgeId : edge) {
-        hash ^= hashFunc(edgeId);
+      math::MurmurHash <uint32_t> hash_func;
+      for (auto edge_id : edge) {
+        hash ^= hash_func(edge_id);
       }
       return hash;
     }
@@ -373,10 +350,10 @@ class Uncoarsening {
 public:
   using VertexId = HypernodeID;
 
-  static void applyPartition(const Hypergraph &coarsanedGraph, std::vector<VertexId> &clusters,
-                             Hypergraph &originalGraph) {
-    for (auto vertexId : originalGraph.nodes()) {
-      originalGraph.setNodePart(vertexId, coarsanedGraph.partID(clusters[vertexId]));
+  static void applyPartition(const Hypergraph& coarsaned_graph, std::vector<VertexId>& clusters,
+                             Hypergraph& original_graph) {
+    for (auto vertex_id : original_graph.nodes()) {
+      original_graph.setNodePart(vertex_id, coarsaned_graph.partID(clusters[vertex_id]));
     }
   }
 };
