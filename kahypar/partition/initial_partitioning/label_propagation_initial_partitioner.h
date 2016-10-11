@@ -176,9 +176,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       // five additional hypernodes and assign them to the part with minimum weight to continue with
       // Label Propagation.
 
-      if (converged && getUnassignedNode2() != kInvalidNode) {
+      if (converged && getUnassignedNode() != kInvalidNode) {
         for (auto i = 0; i < _config.initial_partitioning.lp_assign_vertex_to_part; ++i) {
-          HypernodeID hn = getUnassignedNode2();
+          HypernodeID hn = getUnassignedNode();
           if (hn == kInvalidNode) {
             break;
           }
@@ -189,8 +189,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     }
 
     // If there are any unassigned hypernodes left, we assign them to a part with minimum weight.
-    while (getUnassignedNode2() != kInvalidNode) {
-      HypernodeID hn = getUnassignedNode2();
+    while (getUnassignedNode() != kInvalidNode) {
+      HypernodeID hn = getUnassignedNode();
       assignHypernodeToPartWithMinimumPartWeight(hn);
     }
 
@@ -394,7 +394,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (assigned_nodes == k) {
         break;
       } else if (_bfs_queue.empty()) {
-        const HypernodeID unassigned = getUnassignedNode2();
+        const HypernodeID unassigned = getUnassignedNode();
         if (unassigned == kInvalidNode) {
           break;
         } else {
@@ -414,20 +414,6 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     }
     ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << " is already assigned to a part!");
     _hg.setNodePart(hn, p);
-  }
-
-  HypernodeID getUnassignedNode2() {
-    HypernodeID unassigned_node = kInvalidNode;
-    for (size_t i = 0; i < _unassigned_node_bound; ++i) {
-      HypernodeID hn = _unassigned_nodes[i];
-      if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
-        unassigned_node = hn;
-        break;
-      } else {
-        std::swap(_unassigned_nodes[i--], _unassigned_nodes[--_unassigned_node_bound]);
-      }
-    }
-    return unassigned_node;
   }
 
   using InitialPartitionerBase::_hg;
