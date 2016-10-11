@@ -1465,13 +1465,13 @@ class GenericHypergraph {
    *
    */
   HypernodeID currentNumNodes() const {
-//    ASSERT([&]() {
-//          HypernodeID count = 0;
-//          for (const HypernodeID hn : nodes()) {
-//            ++count;
-//          }
-//          return count == _current_num_hypernodes;
-//        } ());
+   ASSERT([&]() {
+       HypernodeID count = 0;
+       for (const HypernodeID hn : nodes()) {
+         ++count;
+       }
+       return count == _current_num_hypernodes;
+     } ());
     return _current_num_hypernodes;
   }
 
