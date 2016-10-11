@@ -71,7 +71,7 @@ class MinHashPolicy {
                          MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto vertex_id : vertices) {
-      size_t last_hash = _hash_func_vector.getHashNum() - 1;
+      const size_t last_hash = _hash_func_vector.getHashNum() - 1;
       hash_set[last_hash][vertex_id] = minHash(_hash_func_vector[last_hash],
                                                graph.incidentEdges(vertex_id));
     }
@@ -82,7 +82,7 @@ class MinHashPolicy {
                          MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto it = begin; it != end; ++it) {
-      size_t last_hash = _hash_func_vector.getHashNum() - 1;
+      const size_t last_hash = _hash_func_vector.getHashNum() - 1;
       hash_set[last_hash][*it] = minHash(_hash_func_vector[last_hash], graph.incidentEdges(*it));
     }
   }
@@ -217,7 +217,7 @@ class Coarsening {
     EdgeId num_edges = hypergraph.currentNumEdges();
 
     // 0 : reenumerate
-    VertexId num_vertices = reenumerateClusters(clusters);
+    const VertexId num_vertices = reenumerateClusters(clusters);
 
     // 1 : build vector of indicies and pins for hyperedges
     std::vector<size_t> indices_of_edges;
@@ -252,7 +252,8 @@ class Coarsening {
       }
 
       // check for parallel edges
-      Edge edge(pins_of_edges.begin() + offset, pins_of_edges.begin() + offset + new_pins.size());
+      const Edge edge(pins_of_edges.begin() + offset,
+                      pins_of_edges.begin() + offset + new_pins.size());
 
       if (!parallel_edges.contains(edge)) {
         // no parallel edges
@@ -292,29 +293,35 @@ class Coarsening {
   using IncidenceIterator = Hypergraph::IncidenceIterator;
 
   static VertexId reenumerateClusters(std::vector<VertexId>& clusters) {
-    if (clusters.empty())
+    if (clusters.empty()) {
       return 0;
+    }
 
     std::vector<VertexId> new_clusters(clusters.size());
 
-    for (auto clst : clusters)
+    for (auto clst : clusters) {
       new_clusters[clst] = 1;
+    }
 
-    for (size_t i = 1; i < new_clusters.size(); ++i)
+    for (size_t i = 1; i < new_clusters.size(); ++i) {
       new_clusters[i] += new_clusters[i - 1];
+    }
 
-    for (size_t node = 0; node < clusters.size(); ++node)
+
+    for (size_t node = 0; node < clusters.size(); ++node) {
       clusters[node] = new_clusters[clusters[node]] - 1;
+    }
 
     return new_clusters.back();
   }
 
   struct Edge {
-    IncidenceIterator _begin, _end;
+    IncidenceIterator _begin;
+    IncidenceIterator _end;
 
     Edge() { }
 
-    Edge(IncidenceIterator begin, IncidenceIterator end) :
+    Edge(const IncidenceIterator begin, const IncidenceIterator end) :
       _begin(begin),
       _end(end) { }
 
@@ -327,8 +334,8 @@ class Coarsening {
     }
 
     bool operator== (const Edge& edge) const {
-      size_t this_size = _end - _begin;
-      size_t other_size = edge._end - edge._begin;
+      const size_t this_size = _end - _begin;
+      const size_t other_size = edge._end - edge._begin;
 
       if (this_size != other_size) {
         return false;
@@ -344,8 +351,8 @@ class Coarsening {
     }
 
     bool operator< (const Edge& edge) const {
-      size_t this_size = _end - _begin;
-      size_t other_size = edge._end - edge._begin;
+      const size_t this_size = _end - _begin;
+      const size_t other_size = edge._end - edge._begin;
 
       size_t size = std::min(this_size, other_size);
 
@@ -376,9 +383,7 @@ class Coarsening {
 
 class Uncoarsening {
  public:
-  using VertexId = HypernodeID;
-
-  static void applyPartition(const Hypergraph& coarsaned_graph, std::vector<VertexId>& clusters,
+  static void applyPartition(const Hypergraph& coarsaned_graph, std::vector<HypernodeID>& clusters,
                              Hypergraph& original_graph) {
     for (auto vertex_id : original_graph.nodes()) {
       original_graph.setNodePart(vertex_id, coarsaned_graph.partID(clusters[vertex_id]));
