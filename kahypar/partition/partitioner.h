@@ -43,8 +43,8 @@
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
 #include "kahypar/partition/preprocessing/adaptive_lsh.h"
+#include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/utils/randomize.h"
@@ -253,14 +253,15 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
     LOG("Before sparcification: hypernodes = " << hypergraph.initialNumNodes());
     LOG("Before sparcification: hyperedges = " << hypergraph.initialNumEdges());
 
-    AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(hypergraph,
-                                                  config.partition.seed,
-                                                  config.preprocessing.minHashSparsifierParameters.maxHyperedgeSize,
-                                                  config.preprocessing.minHashSparsifierParameters.maxClusterSize,
-                                                  config.preprocessing.minHashSparsifierParameters.minClusterSize,
-                                                  config.preprocessing.minHashSparsifierParameters.numHashFunc,
-                                                  config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc,
-                                                  config.partition.collect_stats);
+    AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(
+      hypergraph,
+      config.partition.seed,
+      config.preprocessing.min_hash_sparsifier_parameters.max_hyperedge_size,
+      config.preprocessing.min_hash_sparsifier_parameters.max_cluster_size,
+      config.preprocessing.min_hash_sparsifier_parameters.min_cluster_size,
+      config.preprocessing.min_hash_sparsifier_parameters.num_hash_functions,
+      config.preprocessing.min_hash_sparsifier_parameters.combined_num_hash_functions,
+      config.partition.collect_stats);
 
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 

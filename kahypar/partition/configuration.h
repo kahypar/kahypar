@@ -46,18 +46,6 @@ struct PreprocessingParameters {
   MinHashSparsifierParameters min_hash_sparsifier_parameters;
 };
 
-inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
-  str << "Preprocessing Parameters:" << std::endl;
-  str << "  use min hash sparsifier:            " << std::boolalpha
-  << params.use_min_hash_sparsifier << std::endl;
-  str << "  remove parallel HEs:                " << std::boolalpha
-  << params.remove_parallel_hes << std::endl;
-  str << "  remove HEs that always will be cut: " << std::boolalpha
-  << params.remove_always_cut_hes << std::endl;
-  str << min_hash_sparsifier_parameters << std::endl;
-  return str;
-}
-
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
   str << "MinHash Sparsifier Parameters:" << std::endl;
   str << "  max hyperedge size:                 "
@@ -72,6 +60,20 @@ inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParam
   << params.combined_num_hash_functions << std::endl;
   return str;
 }
+
+
+inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
+  str << "Preprocessing Parameters:" << std::endl;
+  str << "  use min hash sparsifier:            " << std::boolalpha
+  << params.use_min_hash_sparsifier << std::endl;
+  str << "  remove parallel HEs:                " << std::boolalpha
+  << params.remove_parallel_hes << std::endl;
+  str << "  remove HEs that always will be cut: " << std::boolalpha
+  << params.remove_always_cut_hes << std::endl;
+  str << params.min_hash_sparsifier_parameters << std::endl;
+  return str;
+}
+
 
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::heavy_lazy;

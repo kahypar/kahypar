@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2016 Yaroslav Akhremtsev <yaroslav.akhremtsev@kit.edu>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+******************************************************************************/
 #pragma once
 
 #include "kahypar/datastructure/hash_table.h"
@@ -9,18 +28,19 @@
 #include <vector>
 
 namespace kahypar {
-
-template<typename _HashFunc>
+template <typename _HashFunc>
 class MinHashPolicy {
-public:
+ public:
   using HashFunc = _HashFunc;
   using VertexId = Hypergraph::HypernodeID;
   using HashValue = typename HashFunc::HashValue;
   using MyHashSet = HashSet<HashValue>;
   using VertexSet = std::vector<VertexId>;
 
-  explicit MinHashPolicy(const uint32_t hash_num = 0, const uint32_t seed = 0)
-          : _dim(hash_num), _seed(seed), _hash_func_vector(hash_num, seed) {}
+  explicit MinHashPolicy(const uint32_t hash_num = 0, const uint32_t seed = 0) :
+    _dim(hash_num),
+    _seed(seed),
+    _hash_func_vector(hash_num, seed) { }
 
   void reset(const uint32_t seed) {
     _seed = seed;
@@ -35,7 +55,7 @@ public:
   }
 
   // calculates minHashes for vertices in [begin, end)
-  void operator()(const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto vertex_id = begin; vertex_id != end; ++vertex_id) {
       for (uint32_t hash_num = 0; hash_num < _hash_func_vector.getHashNum(); ++hash_num) {
@@ -52,7 +72,7 @@ public:
     }
   }
 
-  template<typename Iterator>
+  template <typename Iterator>
   void calculateLastHash(const Hypergraph& graph, Iterator begin, Iterator end,
                          MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
@@ -93,7 +113,7 @@ public:
     _hash_func_vector.reserve(size);
   }
 
-protected:
+ protected:
   // The number of dimensions for buckets where we put hash values.
   // In this policy we put a hash value of ith hash function to ith dimension
   uint32_t _dim;
@@ -103,7 +123,7 @@ protected:
   HashFuncVector<HashFunc> _hash_func_vector;
 
   // calculates minHash from incident edges of a particular vertex
-  template<typename ValuesRange>
+  template <typename ValuesRange>
   HashValue minHash(HashFunc hash, const ValuesRange& values_range) const {
     HashValue res = std::numeric_limits<HashValue>::max();
 
@@ -112,24 +132,26 @@ protected:
     }
     return res;
   }
-
 };
 
-using MinMurmurHashPolicy = MinHashPolicy<math::MurmurHash<uint32_t>>;
+using MinMurmurHashPolicy = MinHashPolicy<math::MurmurHash<uint32_t> >;
 
-template<typename _THashFunc>
+template <typename _THashFunc>
 class CombinedHashPolicy {
-public:
+ public:
   using BaseHashPolicy = _THashFunc;
   using VertexId = Hypergraph::HypernodeID;
   using HashValue = typename BaseHashPolicy::HashValue;
   using MyHashSet = HashSet<HashValue>;
 
-  CombinedHashPolicy(const uint32_t hash_num, const uint32_t combined_hash_num, const uint32_t seed)
-          : _seed(seed), _dim(hash_num), _hash_num(hash_num), _combined_hash_num(combined_hash_num) {}
+  CombinedHashPolicy(const uint32_t hash_num, const uint32_t combined_hash_num, const uint32_t seed) :
+    _seed(seed),
+    _dim(hash_num),
+    _hash_num(hash_num),
+    _combined_hash_num(combined_hash_num) { }
 
   // calculates minHashes for vertices in [begin, end)
-  void operator()(const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     HashFuncVector<BaseHashPolicy> hash_func_vectors(_hash_num);
 
@@ -163,7 +185,7 @@ public:
     _combined_hash_num = combined_hash_num;
   }
 
-private:
+ private:
   uint32_t _seed;
 
   // The number of dimensions for buckets where we put hash values.
@@ -180,7 +202,7 @@ private:
 using LSHCombinedHashPolicy = CombinedHashPolicy<MinMurmurHashPolicy>;
 
 class Coarsening {
-public:
+ public:
   using VertexId = HypernodeID;
   using EdgeId = HyperedgeID;
 
@@ -198,14 +220,14 @@ public:
     std::vector<VertexId> pins_of_edges;
     pins_of_edges.reserve(hypergraph.currentNumPins());
 
-    hash_map_no_erase<Edge, std::pair<EdgeId, HyperedgeWeight>, HashEdge, false> parallel_edges(3 * num_edges);
+    ds::InsertOnlyHashMap<Edge, std::pair<EdgeId, HyperedgeWeight>, HashEdge, false> parallel_edges(3 * num_edges);
 
     size_t offset = 0;
     size_t removed_edges = 0;
     size_t non_disabled_edge_id = 0;
     for (auto edge_id : hypergraph.edges()) {
       auto pins_range = hypergraph.pins(edge_id);
-      hash_set_no_erase<VertexId> new_pins(pins_range.second - pins_range.first);
+      ds::InsertOnlyHashSet<VertexId> new_pins(pins_range.second - pins_range.first);
 
       for (auto vertex_id : pins_range) {
         new_pins.insert(clusters[vertex_id]);
@@ -230,7 +252,7 @@ public:
         indices_of_edges.push_back(offset);
         offset += new_pins.size();
         parallel_edges.insert(std::make_pair(edge, std::make_pair(non_disabled_edge_id - removed_edges,
-                                                                 hypergraph.edgeWeight(edge_id))));
+                                                                  hypergraph.edgeWeight(edge_id))));
       } else {
         ++parallel_edges[edge].second;
 
@@ -258,7 +280,7 @@ public:
     return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges, partition_id, &edge_weights, &vertex_weights);
   }
 
-private:
+ private:
   using IncidenceIterator = Hypergraph::IncidenceIterator;
 
   static VertexId reenumerateClusters(std::vector<VertexId>& clusters) {
@@ -282,13 +304,11 @@ private:
   struct Edge {
     IncidenceIterator _begin, _end;
 
-    Edge() {
-    }
+    Edge() { }
 
-    Edge(IncidenceIterator begin, IncidenceIterator end)
-            : _begin(begin), _end(end) {
-
-    }
+    Edge(IncidenceIterator begin, IncidenceIterator end) :
+      _begin(begin),
+      _end(end) { }
 
     IncidenceIterator begin() const {
       return _begin;
@@ -298,7 +318,7 @@ private:
       return _end;
     }
 
-    bool operator==(const Edge& edge) const {
+    bool operator== (const Edge& edge) const {
       size_t this_size = _end - _begin;
       size_t other_size = edge._end - edge._begin;
 
@@ -315,7 +335,7 @@ private:
       return true;
     }
 
-    bool operator<(const Edge& edge) const {
+    bool operator< (const Edge& edge) const {
       size_t this_size = _end - _begin;
       size_t other_size = edge._end - edge._begin;
 
@@ -335,9 +355,9 @@ private:
   };
 
   struct HashEdge {
-    size_t operator()(const Edge& edge) const {
+    size_t operator() (const Edge& edge) const {
       size_t hash = 0;
-      math::MurmurHash <uint32_t> hash_func;
+      math::MurmurHash<uint32_t> hash_func;
       for (auto edge_id : edge) {
         hash ^= hash_func(edge_id);
       }
@@ -347,7 +367,7 @@ private:
 };
 
 class Uncoarsening {
-public:
+ public:
   using VertexId = HypernodeID;
 
   static void applyPartition(const Hypergraph& coarsaned_graph, std::vector<VertexId>& clusters,
@@ -357,5 +377,4 @@ public:
     }
   }
 };
-
 }

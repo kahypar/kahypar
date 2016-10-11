@@ -266,19 +266,19 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
     ("p-sparsifier-max-hyperedge-size",
-     po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.maxHyperedgeSize)->value_name("<int>"),
-     "Max hyperedge size allowed considered by sparsifier")
+    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier_parameters.max_hyperedge_size)->value_name("<int>"),
+    "Max hyperedge size allowed considered by sparsifier")
     ("p-sparsifier-max-cluster-size",
-     po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.maxClusterSize)->value_name("<int>"),
-     "Max cluster size which is built by sparsifier")
+    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier_parameters.max_cluster_size)->value_name("<int>"),
+    "Max cluster size which is built by sparsifier")
     ("p-sparsifier-min-cluster-size",
-    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.minClusterSize)->value_name("<int>"),
+    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier_parameters.min_cluster_size)->value_name("<int>"),
     "Min cluster size which is built by sparsifier")
     ("p-sparsifier-num-hash-func",
-    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.numHashFunc)->value_name("<int>"),
+    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier_parameters.num_hash_functions)->value_name("<int>"),
     "Number of hash functions")
     ("p-sparsifier-combined-num-hash-func",
-    po::value<uint32_t>(&config.preprocessing.minHashSparsifierParameters.combinedNumHashFunc)->value_name("<int>"),
+    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier_parameters.combined_num_hash_functions)->value_name("<int>"),
     "Number of combined hash functions")
     ("p-parallel-net-removal",
     po::value<bool>(&config.preprocessing.remove_parallel_hes)->value_name("<bool>"),
