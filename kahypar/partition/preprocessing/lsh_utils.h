@@ -19,13 +19,14 @@
 ******************************************************************************/
 #pragma once
 
+#include <algorithm>
+#include <limits>
+#include <utility>
+#include <vector>
+
 #include "kahypar/datastructure/hash_table.h"
 #include "kahypar/definitions.h"
 #include "kahypar/utils/hash_vector.h"
-
-#include <algorithm>
-#include <limits>
-#include <vector>
 
 namespace kahypar {
 template <typename _HashFunc>
@@ -55,20 +56,24 @@ class MinHashPolicy {
   }
 
   // calculates minHashes for vertices in [begin, end)
-  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end,
+                   MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto vertex_id = begin; vertex_id != end; ++vertex_id) {
       for (uint32_t hash_num = 0; hash_num < _hash_func_vector.getHashNum(); ++hash_num) {
-        hash_set[hash_num][vertex_id] = minHash(_hash_func_vector[hash_num], graph.incidentEdges(vertex_id));
+        hash_set[hash_num][vertex_id] = minHash(_hash_func_vector[hash_num],
+                                                graph.incidentEdges(vertex_id));
       }
     }
   }
 
-  void calculateLastHash(const Hypergraph& graph, const VertexSet& vertices, MyHashSet& hash_set) const {
+  void calculateLastHash(const Hypergraph& graph, const VertexSet& vertices,
+                         MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto vertex_id : vertices) {
       size_t last_hash = _hash_func_vector.getHashNum() - 1;
-      hash_set[last_hash][vertex_id] = minHash(_hash_func_vector[last_hash], graph.incidentEdges(vertex_id));
+      hash_set[last_hash][vertex_id] = minHash(_hash_func_vector[last_hash],
+                                               graph.incidentEdges(vertex_id));
     }
   }
 
@@ -151,7 +156,8 @@ class CombinedHashPolicy {
     _combined_hash_num(combined_hash_num) { }
 
   // calculates minHashes for vertices in [begin, end)
-  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end, MyHashSet& hash_set) const {
+  void operator() (const Hypergraph& graph, const VertexId begin, const VertexId end,
+                   MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     HashFuncVector<BaseHashPolicy> hash_func_vectors(_hash_num);
 
@@ -220,7 +226,8 @@ class Coarsening {
     std::vector<VertexId> pins_of_edges;
     pins_of_edges.reserve(hypergraph.currentNumPins());
 
-    ds::InsertOnlyHashMap<Edge, std::pair<EdgeId, HyperedgeWeight>, HashEdge, false> parallel_edges(3 * num_edges);
+    ds::InsertOnlyHashMap<Edge, std::pair<EdgeId, HyperedgeWeight>,
+                          HashEdge, false> parallel_edges(3 * num_edges);
 
     size_t offset = 0;
     size_t removed_edges = 0;
@@ -277,7 +284,8 @@ class Coarsening {
       edge_weights[value.second.first] = value.second.second;
     }
 
-    return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges, partition_id, &edge_weights, &vertex_weights);
+    return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
+                      partition_id, &edge_weights, &vertex_weights);
   }
 
  private:
@@ -377,4 +385,4 @@ class Uncoarsening {
     }
   }
 };
-}
+}  // namespace kahypar
