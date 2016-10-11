@@ -19,12 +19,14 @@
 ******************************************************************************/
 #pragma once
 
-#include "kahypar/datastructure/hash_table.h"
-
+#include <algorithm>
+#include <fstream>
 #include <random>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
-#include <fstream>
+#include "kahypar/datastructure/hash_table.h"
 
 namespace kahypar {
 template <typename _HashFunc>
@@ -212,4 +214,4 @@ using FastHashBuckets = Buckets<ds::HashMap<HashFunc, ds::HashSet<TObject> > >;
 
 template <typename HashFunc, typename TObject>
 using HashBuckets = Buckets<ds::HashMap<HashFunc, std::unordered_multiset<TObject> > >;
-}
+}  // namespace kahypar
