@@ -25,8 +25,7 @@ if(KAHYPAR_USE_MINIMAL_BOOST)
   include(ExternalProject)
   ExternalProject_Add(boost
     URL
-    https://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.tar.bz2/download
-    URL_MD5 a744cf167b05d72335f27c88115f211d
+    http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.bz2
     #URL_MD5 6095876341956f65f9d35939ccea1a9f
     DOWNLOAD_DIR /tmp/
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost
