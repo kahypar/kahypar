@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/hash_table.h"
+#include "kahypar/definitions.h"
 #include "kahypar/partition/preprocessing/pin_sparsifier.h"
 #include "kahypar/utils/stats.h"
 
@@ -33,13 +34,11 @@ namespace kahypar {
 template <typename _HashPolicy>
 class AdaptiveLSHWithConnectedComponents {
  private:
-  using VertexId = Hypergraph::HypernodeID;
-  using VertexWeight = Hypergraph::HypernodeWeight;
   using HashPolicy = _HashPolicy;
   using BaseHashPolicy = typename HashPolicy::BaseHashPolicy;
   using HashValue = typename HashPolicy::HashValue;
   using MyHashSet = HashSet<HashValue>;
-  using Buckets = HashBuckets<HashValue, VertexId>;
+  using Buckets = HashBuckets<HashValue, HypernodeID>;
 
  public:
   explicit AdaptiveLSHWithConnectedComponents(const Hypergraph& hypergraph,
@@ -60,19 +59,19 @@ class AdaptiveLSHWithConnectedComponents {
     _collect_stats(collect_stats)
   { }
 
-  std::vector<VertexId> build() {
+  std::vector<HypernodeID> build() {
     return adaptiveWhole();
   }
 
  private:
-  std::vector<VertexId> adaptiveWhole() {
+  std::vector<HypernodeID> adaptiveWhole() {
     std::default_random_engine eng(_seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
     MyHashSet main_hash_set(0, _hypergraph.currentNumNodes());
     main_hash_set.reserve(20);
 
-    std::vector<VertexId> clusters;
+    std::vector<HypernodeID> clusters;
     clusters.reserve(_hypergraph.currentNumNodes());
 
     std::vector<uint32_t> cluster_size(_hypergraph.currentNumNodes(), 1);
@@ -80,21 +79,21 @@ class AdaptiveLSHWithConnectedComponents {
     std::vector<uint8_t> active_clusters_bool_set(_hypergraph.currentNumNodes(), true);
     uint32_t num_active_vertices = _hypergraph.currentNumNodes();
 
-    for (VertexId vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+    for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
       clusters.push_back(vertex_id);
     }
 
-    std::vector<VertexId> inactive_clusters;
+    std::vector<HypernodeID> inactive_clusters;
     inactive_clusters.reserve(_hypergraph.currentNumNodes());
 
     while (num_active_vertices > 0 && main_hash_set.getHashNum() < _max_num_hash_func) {
       main_hash_set.addHashVector();
 
-      std::vector<VertexId> active_vertices_set;
+      std::vector<HypernodeID> active_vertices_set;
       active_vertices_set.reserve(num_active_vertices);
 
-      for (VertexId vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
-        VertexId cluster = clusters[vertex_id];
+      for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+        HypernodeID cluster = clusters[vertex_id];
         if (active_clusters_bool_set[cluster]) {
           active_vertices_set.push_back(vertex_id);
         }
@@ -156,7 +155,7 @@ class AdaptiveLSHWithConnectedComponents {
     return clusters;
   }
 
-  void incrementalParametersEstimation(std::vector<VertexId>& active_vertices, const uint32_t seed,
+  void incrementalParametersEstimation(std::vector<HypernodeID>& active_vertices, const uint32_t seed,
                                        MyHashSet& main_hash_set, const uint32_t main_hash_num) {
     MyHashSet hash_set(0, _hypergraph.currentNumNodes());
     hash_set.reserve(_max_combined_num_hash_func);
@@ -174,7 +173,7 @@ class AdaptiveLSHWithConnectedComponents {
 
     const size_t buckets_num = _hypergraph.currentNumNodes();
 
-    using Pair = std::pair<HashValue, VertexId>;
+    using Pair = std::pair<HashValue, HypernodeID>;
 
     std::vector<Pair> buckets;
     buckets.reserve(buckets_num);
@@ -221,7 +220,7 @@ class AdaptiveLSHWithConnectedComponents {
         while (end != buckets.end() && begin->first == end->first) {
           ++end;
         }
-        std::vector<VertexId> vertices;
+        std::vector<HypernodeID> vertices;
         vertices.reserve(end - begin);
         for (auto it = begin; it != end; ++it) {
           vertices.push_back(it->second);
@@ -257,7 +256,7 @@ class AdaptiveLSHWithConnectedComponents {
           while (new_end != new_hashes.end() && new_begin->first == new_end->first) {
             ++new_end;
           }
-          const VertexId bucket_size = new_end - new_begin;
+          const HypernodeID bucket_size = new_end - new_begin;
           if ((bucket_size <= max_bucket_size && hash_set.getHashNum() >= min_hash_num) ||
               hash_set.getHashNum() >= _max_combined_num_hash_func
               ) {
@@ -277,15 +276,15 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
   // distributes vertices among bucket according to the new hash values
-  void calculateOneDimBucket(const VertexId num_vertex,
+  void calculateOneDimBucket(const HypernodeID num_vertex,
                              const std::vector<uint8_t>& active_clusters_bool_set,
-                             const std::vector<VertexId>& clusters, const MyHashSet& hash_set,
+                             const std::vector<HypernodeID>& clusters, const MyHashSet& hash_set,
                              Buckets& buckets, const uint32_t hash_num) {
     ASSERT(buckets.isOneDimensional(), "Bucket should be one dimensional");
     const uint32_t dim = 0;
 
-    for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
-      const VertexId cluster = clusters[vertex_id];
+    for (HypernodeID vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
+      const HypernodeID cluster = clusters[vertex_id];
       if (active_clusters_bool_set[cluster]) {
         buckets.put(dim, hash_set[hash_num][vertex_id], vertex_id);
       }
@@ -293,24 +292,24 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
   // incrementally calculates clusters according to the new bucket
-  void calculateClustersIncrementally(const VertexId num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
-                                      std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
+  void calculateClustersIncrementally(const HypernodeID num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+                                      std::vector<HypernodeID>& clusters, std::vector<uint32_t>& cluster_size,
                                       const MyHashSet& hash_set, const uint32_t hash_num, Buckets& buckets,
-                                      std::vector<VertexId>& inactive_clusters) {
+                                      std::vector<HypernodeID>& inactive_clusters) {
     // Calculate clusters according to connected components
     // of an implicit graph induced by buckets. We use BFS on this graph.
     runIncrementalBfs(num_vertex, active_clusters_bool_set, hash_set, buckets, hash_num,
                       clusters, cluster_size, inactive_clusters);
   }
 
-  void runIncrementalBfs(const VertexId num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+  void runIncrementalBfs(const HypernodeID num_vertex, std::vector<uint8_t>& active_clusters_bool_set,
                          const MyHashSet& hash_set, Buckets& buckets, const uint32_t hash_num,
-                         std::vector<VertexId>& clusters, std::vector<uint32_t>& cluster_size,
-                         std::vector<VertexId>& inactive_clusters) {
-    std::queue<VertexId> vertex_queue;
+                         std::vector<HypernodeID>& clusters, std::vector<uint32_t>& cluster_size,
+                         std::vector<HypernodeID>& inactive_clusters) {
+    std::queue<HypernodeID> vertex_queue;
     std::vector<char> visited(num_vertex, false);
-    for (VertexId vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
-      const VertexId cluster = clusters[vertex_id];
+    for (HypernodeID vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
+      const HypernodeID cluster = clusters[vertex_id];
       if (!visited[vertex_id] && active_clusters_bool_set[cluster]) {
         visited[vertex_id] = true;
         vertex_queue.push(vertex_id);
@@ -320,25 +319,25 @@ class AdaptiveLSHWithConnectedComponents {
     }
   }
 
-  void runIncrementalBfs(const VertexId cur_vertex, std::vector<uint8_t>& active_clusters_bool_set,
+  void runIncrementalBfs(const HypernodeID cur_vertex, std::vector<uint8_t>& active_clusters_bool_set,
                          const MyHashSet& hash_set,
                          Buckets& buckets, std::vector<char>& visited,
-                         const uint32_t hash_num, std::vector<VertexId>& clusters,
+                         const uint32_t hash_num, std::vector<HypernodeID>& clusters,
                          std::vector<uint32_t>& cluster_size,
-                         std::vector<VertexId>& inactive_clusters) {
-    const VertexId cur_cluster = clusters[cur_vertex];
+                         std::vector<HypernodeID>& inactive_clusters) {
+    const HypernodeID cur_cluster = clusters[cur_vertex];
     const HashValue hash = hash_set[hash_num][cur_vertex];
     const uint32_t dim = buckets.isOneDimensional() ? 0 : hash_num;
 
-    std::vector<VertexId> neighbours;
+    std::vector<HypernodeID> neighbours;
     neighbours.reserve(_max_hyperedge_size);
 
     const auto iters = buckets.getObjects(dim, hash);
     for (auto neighbour_iter = iters.first; neighbour_iter != iters.second; ++neighbour_iter) {
       const auto neighbour = *neighbour_iter;
-      const VertexId neighbour_cluster = clusters[neighbour];
+      const HypernodeID neighbour_cluster = clusters[neighbour];
       if (active_clusters_bool_set[neighbour_cluster]) {
-        const VertexWeight weight = _hypergraph.nodeWeight(neighbour);
+        const HypernodeWeight weight = _hypergraph.nodeWeight(neighbour);
         if (cluster_size[cur_cluster] + weight > _max_cluster_size) {
           ASSERT(cluster_size[cur_cluster] <= _max_cluster_size, "Cluster is overflowed");
           break;
