@@ -27,7 +27,7 @@
 
 #include "kahypar/datastructure/hash_table.h"
 #include "kahypar/definitions.h"
-#include "kahypar/partition/preprocessing/pin_sparsifier.h"
+#include "kahypar/utils/hash_vector.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -366,6 +366,4 @@ class AdaptiveLSHWithConnectedComponents {
   const Hypergraph& _hypergraph;
   const Configuration& _config;
 };
-
-using MinHashSparsifier = AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy>;
 }  // namespace kahypar
