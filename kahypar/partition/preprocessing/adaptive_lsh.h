@@ -34,9 +34,12 @@ template <typename _HashPolicy>
 class AdaptiveLSHWithConnectedComponents {
  private:
   using VertexId = Hypergraph::HypernodeID;
+  using VertexWeight = Hypergraph::HypernodeWeight;
   using HashPolicy = _HashPolicy;
   using BaseHashPolicy = typename HashPolicy::BaseHashPolicy;
   using HashValue = typename HashPolicy::HashValue;
+  using MyHashSet = HashSet<HashValue>;
+  using Buckets = HashBuckets<HashValue, VertexId>;
 
  public:
   explicit AdaptiveLSHWithConnectedComponents(const Hypergraph& hypergraph,
@@ -62,18 +65,6 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
  private:
-  using MyHashSet = HashSet<HashValue>;
-  using Buckets = HashBuckets<HashValue, VertexId>;
-  using VertexWeight = Hypergraph::HypernodeWeight;
-
-  const Hypergraph& _hypergraph;
-  const uint32_t _seed;
-  const uint32_t _max_hyperedge_size;
-  const uint32_t _max_cluster_size;
-  const uint32_t _min_cluster_size;
-  const uint32_t _max_num_hash_func;
-  const uint32_t _max_combined_num_hash_func;
-  const bool _collect_stats;
 
   std::vector<VertexId> adaptiveWhole() {
     std::default_random_engine eng(_seed);
@@ -112,8 +103,7 @@ class AdaptiveLSHWithConnectedComponents {
 
       const uint32_t hash_num = main_hash_set.getHashNum() - 1;
       auto start = std::chrono::high_resolution_clock::now();
-      incrementalParametersEstimation(active_vertices_set, rnd(eng), _max_cluster_size,
-                                      main_hash_set, hash_num);
+      incrementalParametersEstimation(active_vertices_set, rnd(eng), main_hash_set, hash_num);
       auto end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_collect_stats, "Adaptive LSH: Incremental parameter estimation",
                                    std::chrono::duration<double>(end - start).count());
@@ -167,20 +157,8 @@ class AdaptiveLSHWithConnectedComponents {
     return clusters;
   }
 
-  struct VecHash {
-    size_t operator() (const std::vector<uint64_t>& vec) const {
-      size_t res = 0;
-      for (auto el : vec) {
-        res ^= el;
-      }
-
-      return res;
-    }
-  };
-
   void incrementalParametersEstimation(std::vector<VertexId>& active_vertices, const uint32_t seed,
-                                       const uint32_t bucket_min_size, MyHashSet& main_hash_set,
-                                       const uint32_t main_hash_num) {
+                                       MyHashSet& main_hash_set, const uint32_t main_hash_num) {
     MyHashSet hash_set(0, _hypergraph.currentNumNodes());
     hash_set.reserve(_max_combined_num_hash_func);
 
@@ -386,6 +364,15 @@ class AdaptiveLSHWithConnectedComponents {
       buckets.removeObject(dim, hash_set[hash_num][neighbour], neighbour);
     }
   }
+
+  const Hypergraph& _hypergraph;
+  const uint32_t _seed;
+  const uint32_t _max_hyperedge_size;
+  const uint32_t _max_cluster_size;
+  const uint32_t _min_cluster_size;
+  const uint32_t _max_num_hash_func;
+  const uint32_t _max_combined_num_hash_func;
+  const bool _collect_stats;
 };
 
 using MinHashSparsifier = AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy>;

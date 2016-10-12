@@ -316,10 +316,9 @@ class Coarsening {
   }
 
   struct Edge {
-    IncidenceIterator _begin;
-    IncidenceIterator _end;
-
-    Edge() { }
+    Edge()  :
+      _begin(),
+      _end() { }
 
     Edge(const IncidenceIterator begin, const IncidenceIterator end) :
       _begin(begin),
@@ -367,6 +366,9 @@ class Coarsening {
       }
       return this_size < other_size;
     }
+
+    IncidenceIterator _begin;
+    IncidenceIterator _end;
   };
 
   struct HashEdge {

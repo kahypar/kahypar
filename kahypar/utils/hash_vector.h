@@ -161,8 +161,8 @@ class Buckets {
   static_assert(std::is_integral<TObject>::value, "Object should be of integral type");
 
   Buckets(const uint8_t dim, const size_t capacity) :
-    _dim(dim) {
-    _buckets_sets = std::make_unique<MultiContainer[]>(_dim);
+    _dim(dim),
+    _buckets_sets(std::make_unique<MultiContainer[]>(_dim)) {
     for (uint8_t dim = 0; dim < _dim; ++dim) {
       Reserve<HasReserve<MultiContainer>::value>::reserve(_buckets_sets[dim], capacity);
     }

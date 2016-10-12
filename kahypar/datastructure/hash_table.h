@@ -19,7 +19,9 @@
 ******************************************************************************/
 #pragma once
 
+#include <algorithm>
 #include <limits>
+#include <utility>
 #include <vector>
 
 namespace std   {
@@ -72,11 +74,12 @@ class HashTableIterator {
     }
   }
 
-  void operator++ () {
+  HashTableIterator& operator++ () {
     ++_offset;
     if (_specials < _num_specials) {
       ++_specials;
     }
+    return *this;
   }
 
   bool operator== (const HashTableIterator& it) {
@@ -119,7 +122,9 @@ class HashMap {
     _ht_size(max_size * SizeFactor),
     _max_size(max_size),
     _ht(_ht_size + _max_size * 1.1, std::make_pair(_empty_element.first, Value())),
+    _poses(),
     _pos_in_position(_ht_size + _max_size * 1.1),
+    _hash(),
     _last_key(_empty_element.first),
     _last_position(0) {
     _poses.reserve(max_size);
@@ -128,7 +133,7 @@ class HashMap {
   HashMap(const TSelf&) = default;
   HashMap(TSelf&&) = default;
 
-  TSelf& operator=(TSelf& other) {
+  TSelf& operator= (TSelf& other) {
     _ht_size = other._ht_size;
     _max_size = other._max_size;
     _ht = other._ht;
@@ -143,7 +148,7 @@ class HashMap {
     return *this;
   }
 
-  TSelf& operator=(TSelf&& other) {
+  TSelf& operator= (TSelf&& other) {
     this->swap(other);
     return *this;
   }
@@ -370,6 +375,8 @@ class InsertOnlyHashMap {
     _ht_size(max_size * SizeFactor),
     _max_size(max_size),
     _ht(_ht_size + _max_size * 1.1, std::make_pair(_empty_element.first, Value())),
+    _poses(),
+    _hash(),
     _last_key(_empty_element.first),
     _last_position(0) {
     _poses.reserve(max_size);
@@ -378,7 +385,7 @@ class InsertOnlyHashMap {
   InsertOnlyHashMap(const TSelf&) = default;
   InsertOnlyHashMap(TSelf&&) = default;
 
-  TSelf& operator=(TSelf& other) {
+  TSelf& operator= (TSelf& other) {
     _ht_size = other._ht_size;
     _max_size = other._max_size;
     _ht = other._ht;
@@ -390,7 +397,7 @@ class InsertOnlyHashMap {
     return *this;
   }
 
-  TSelf& operator=(TSelf&& other) {
+  TSelf& operator= (TSelf&& other) {
     this->swap(other);
     return *this;
   }
@@ -572,9 +579,9 @@ class HashSet {
   HashSet(const TSelf&) = default;
   HashSet(TSelf&&) = default;
 
-  TSelf& operator=(const TSelf& other) {
+  TSelf& operator= (const TSelf& other) {
     _ht_size = other._ht_size;
-    _max_size= other._max_size;
+    _max_size = other._max_size;
     _ht = other._ht;
     _poses = other._poses;
     _last_key = other._last_key;
@@ -585,7 +592,7 @@ class HashSet {
     return *this;
   }
 
-  TSelf& operator=(TSelf&& other) {
+  TSelf& operator= (TSelf&& other) {
     this->swap(other);
     return *this;
   }
@@ -772,6 +779,8 @@ class InsertOnlyHashSet {
     _ht_size(max_size * SizeFactor),
     _max_size(max_size),
     _ht(_ht_size + _max_size * 1.1, _empty_element),
+    _poses(),
+    _hash(),
     _last_key(_empty_element),
     _last_position(0) {
     _poses.reserve(max_size);
@@ -780,7 +789,7 @@ class InsertOnlyHashSet {
   InsertOnlyHashSet(const TSelf&) = default;
   InsertOnlyHashSet(TSelf&&) = default;
 
-  TSelf& operator=(TSelf& other) {
+  TSelf& operator= (TSelf& other) {
     _ht_size = other._ht_size;
     _max_size = other._max_size;
     _ht = other._ht;
@@ -791,10 +800,10 @@ class InsertOnlyHashSet {
     return *this;
   }
 
-  TSelf& operator=(TSelf&& other) {
+  TSelf& operator= (TSelf&& other) {
     this->swap(other);
     return *this;
-  };
+  }
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
