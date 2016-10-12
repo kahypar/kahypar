@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/hash_table.h"
-#include "kahypar/partition/preprocessing/lsh_utils.h"
+#include "kahypar/partition/preprocessing/pin_sparsifier.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -65,7 +65,6 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
  private:
-
   std::vector<VertexId> adaptiveWhole() {
     std::default_random_engine eng(_seed);
     std::uniform_int_distribution<uint32_t> rnd;
