@@ -267,7 +267,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
 
     clusters = sparsifier.build();
 
-    sparseHypergraph = Coarsening::build(hypergraph, clusters, config.partition.k);
+    sparseHypergraph = sparsifier::build(hypergraph, clusters, config.partition.k);
 
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Stats::instance().addToTotal(config, "MinHashSparsifier",
@@ -282,7 +282,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseH
                                      std::vector<Hypergraph::HypernodeID>& clusters,
                                      const Configuration& config) {
   if (config.preprocessing.use_min_hash_sparsifier) {
-    Uncoarsening::applyPartition(sparseHypergraph, clusters, hypergraph);
+    sparsifier::applyPartition(sparseHypergraph, clusters, hypergraph);
   }
 
   if (config.preprocessing.remove_always_cut_hes) {

@@ -207,169 +207,102 @@ class CombinedHashPolicy {
 
 using LSHCombinedHashPolicy = CombinedHashPolicy<MinMurmurHashPolicy>;
 
-class Coarsening {
- public:
-  using VertexId = HypernodeID;
-  using EdgeId = HyperedgeID;
+namespace sparsifier {
+struct Edge {
+  Edge()  :
+    _begin(),
+    _end() { }
 
-  static Hypergraph build(const Hypergraph& hypergraph, std::vector<VertexId>& clusters,
-                          const PartitionID partition_id) {
-    EdgeId num_edges = hypergraph.currentNumEdges();
+  Edge(const IncidenceIterator begin, const IncidenceIterator end) :
+    _begin(begin),
+    _end(end) { }
 
-    // 0 : reenumerate
-    const VertexId num_vertices = reenumerateClusters(clusters);
-
-    // 1 : build vector of indicies and pins for hyperedges
-    std::vector<size_t> indices_of_edges;
-    indices_of_edges.reserve(num_edges + 1);
-
-    std::vector<VertexId> pins_of_edges;
-    pins_of_edges.reserve(hypergraph.currentNumPins());
-
-    ds::InsertOnlyHashMap<Edge, std::pair<EdgeId, HyperedgeWeight>,
-                          HashEdge, false> parallel_edges(3 * num_edges);
-
-    size_t offset = 0;
-    size_t removed_edges = 0;
-    size_t non_disabled_edge_id = 0;
-    for (auto edge_id : hypergraph.edges()) {
-      auto pins_range = hypergraph.pins(edge_id);
-      ds::InsertOnlyHashSet<VertexId> new_pins(pins_range.second - pins_range.first);
-
-      for (auto vertex_id : pins_range) {
-        new_pins.insert(clusters[vertex_id]);
-      }
-
-      // if we have only one vertex in a hyperedge then we remove the hyperedge
-      if (new_pins.size() <= 1) {
-        ++removed_edges;
-        ++non_disabled_edge_id;
-        continue;
-      }
-
-      for (auto new_pin : new_pins) {
-        pins_of_edges.push_back(new_pin);
-      }
-
-      // check for parallel edges
-      const Edge edge(pins_of_edges.begin() + offset,
-                      pins_of_edges.begin() + offset + new_pins.size());
-
-      if (!parallel_edges.contains(edge)) {
-        // no parallel edges
-        indices_of_edges.push_back(offset);
-        offset += new_pins.size();
-        parallel_edges.insert(std::make_pair(edge, std::make_pair(non_disabled_edge_id - removed_edges,
-                                                                  hypergraph.edgeWeight(edge_id))));
-      } else {
-        ++parallel_edges[edge].second;
-
-        ++removed_edges;
-        pins_of_edges.resize(pins_of_edges.size() - new_pins.size());
-      }
-      ++non_disabled_edge_id;
-    }
-    indices_of_edges.push_back(offset);
-
-    // 2 : calculate weights of vertices in contracted graph
-    std::vector<HypernodeWeight> vertex_weights(num_vertices);
-
-    for (auto cluster_id : clusters) {
-      ++vertex_weights[cluster_id];
-    }
-
-    // 3 : calculate weights of hyper edgs in contracted graph
-    num_edges -= removed_edges;
-    std::vector<HyperedgeWeight> edge_weights(num_edges);
-    for (const auto& value : parallel_edges) {
-      edge_weights[value.second.first] = value.second.second;
-    }
-
-    return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
-                      partition_id, &edge_weights, &vertex_weights);
+  IncidenceIterator begin() const {
+    return _begin;
   }
 
- private:
-  using IncidenceIterator = Hypergraph::IncidenceIterator;
-
-  static VertexId reenumerateClusters(std::vector<VertexId>& clusters) {
-    if (clusters.empty()) {
-      return 0;
-    }
-
-    std::vector<VertexId> new_clusters(clusters.size());
-
-    for (auto clst : clusters) {
-      new_clusters[clst] = 1;
-    }
-
-    for (size_t i = 1; i < new_clusters.size(); ++i) {
-      new_clusters[i] += new_clusters[i - 1];
-    }
-
-
-    for (size_t node = 0; node < clusters.size(); ++node) {
-      clusters[node] = new_clusters[clusters[node]] - 1;
-    }
-
-    return new_clusters.back();
+  IncidenceIterator end() const {
+    return _end;
   }
 
-  struct Edge {
-    Edge()  :
-      _begin(),
-      _end() { }
+  bool operator== (const Edge& edge) const {
+    const size_t this_size = _end - _begin;
+    const size_t other_size = edge._end - edge._begin;
 
-    Edge(const IncidenceIterator begin, const IncidenceIterator end) :
-      _begin(begin),
-      _end(end) { }
-
-    IncidenceIterator begin() const {
-      return _begin;
+    if (this_size != other_size) {
+      return false;
     }
 
-    IncidenceIterator end() const {
-      return _end;
-    }
-
-    bool operator== (const Edge& edge) const {
-      const size_t this_size = _end - _begin;
-      const size_t other_size = edge._end - edge._begin;
-
-      if (this_size != other_size) {
+    for (size_t offset = 0; offset < this_size; ++offset) {
+      if (*(_begin + offset) != *(edge._begin + offset)) {
         return false;
       }
+    }
 
-      for (size_t offset = 0; offset < this_size; ++offset) {
-        if (*(_begin + offset) != *(edge._begin + offset)) {
+    return true;
+  }
+
+  bool operator< (const Edge& edge) const {
+    const size_t this_size = _end - _begin;
+    const size_t other_size = edge._end - edge._begin;
+
+    size_t size = std::min(this_size, other_size);
+
+    for (size_t offset = 0; offset < size; ++offset) {
+      if (*(_begin + offset) < *(edge._begin + offset)) {
+        return true;
+      } else {
+        if (*(_begin + offset) > *(edge._begin + offset)) {
           return false;
         }
       }
-
-      return true;
     }
+    return this_size < other_size;
+  }
 
-    bool operator< (const Edge& edge) const {
-      const size_t this_size = _end - _begin;
-      const size_t other_size = edge._end - edge._begin;
+  IncidenceIterator _begin;
+  IncidenceIterator _end;
+};
 
-      size_t size = std::min(this_size, other_size);
 
-      for (size_t offset = 0; offset < size; ++offset) {
-        if (*(_begin + offset) < *(edge._begin + offset)) {
-          return true;
-        } else {
-          if (*(_begin + offset) > *(edge._begin + offset)) {
-            return false;
-          }
-        }
-      }
-      return this_size < other_size;
-    }
+static inline HypernodeID reenumerateClusters(std::vector<HypernodeID>& clusters) {
+  if (clusters.empty()) {
+    return 0;
+  }
 
-    IncidenceIterator _begin;
-    IncidenceIterator _end;
-  };
+  std::vector<HypernodeID> new_clusters(clusters.size());
+
+  for (auto clst : clusters) {
+    new_clusters[clst] = 1;
+  }
+
+  for (size_t i = 1; i < new_clusters.size(); ++i) {
+    new_clusters[i] += new_clusters[i - 1];
+  }
+
+
+  for (size_t node = 0; node < clusters.size(); ++node) {
+    clusters[node] = new_clusters[clusters[node]] - 1;
+  }
+
+  return new_clusters.back();
+}
+
+
+static inline Hypergraph build(const Hypergraph& hypergraph, std::vector<HypernodeID>& clusters,
+                               const PartitionID partition_id) {
+  HyperedgeID num_edges = hypergraph.currentNumEdges();
+
+  // 0 : reenumerate
+  const HypernodeID num_vertices = reenumerateClusters(clusters);
+
+  // 1 : build vector of indicies and pins for hyperedges
+  std::vector<size_t> indices_of_edges;
+  indices_of_edges.reserve(num_edges + 1);
+
+  std::vector<HypernodeID> pins_of_edges;
+  pins_of_edges.reserve(hypergraph.currentNumPins());
+
 
   struct HashEdge {
     size_t operator() (const Edge& edge) const {
@@ -381,15 +314,76 @@ class Coarsening {
       return hash;
     }
   };
-};
 
-class Uncoarsening {
- public:
-  static void applyPartition(const Hypergraph& coarsaned_graph, std::vector<HypernodeID>& clusters,
-                             Hypergraph& original_graph) {
-    for (auto vertex_id : original_graph.nodes()) {
-      original_graph.setNodePart(vertex_id, coarsaned_graph.partID(clusters[vertex_id]));
+  ds::InsertOnlyHashMap<Edge, std::pair<HyperedgeID, HyperedgeWeight>,
+                        HashEdge, false> parallel_edges(3 * num_edges);
+
+  size_t offset = 0;
+  size_t removed_edges = 0;
+  size_t non_disabled_edge_id = 0;
+  for (auto edge_id : hypergraph.edges()) {
+    auto pins_range = hypergraph.pins(edge_id);
+    ds::InsertOnlyHashSet<HypernodeID> new_pins(pins_range.second - pins_range.first);
+
+    for (auto vertex_id : pins_range) {
+      new_pins.insert(clusters[vertex_id]);
     }
+
+    // if we have only one vertex in a hyperedge then we remove the hyperedge
+    if (new_pins.size() <= 1) {
+      ++removed_edges;
+      ++non_disabled_edge_id;
+      continue;
+    }
+
+    for (auto new_pin : new_pins) {
+      pins_of_edges.push_back(new_pin);
+    }
+
+    // check for parallel edges
+    const Edge edge(pins_of_edges.begin() + offset,
+                    pins_of_edges.begin() + offset + new_pins.size());
+
+    if (!parallel_edges.contains(edge)) {
+      // no parallel edges
+      indices_of_edges.push_back(offset);
+      offset += new_pins.size();
+      parallel_edges.insert(std::make_pair(edge, std::make_pair(non_disabled_edge_id - removed_edges,
+                                                                hypergraph.edgeWeight(edge_id))));
+    } else {
+      ++parallel_edges[edge].second;
+
+      ++removed_edges;
+      pins_of_edges.resize(pins_of_edges.size() - new_pins.size());
+    }
+    ++non_disabled_edge_id;
   }
-};
+  indices_of_edges.push_back(offset);
+
+  // 2 : calculate weights of vertices in contracted graph
+  std::vector<HypernodeWeight> vertex_weights(num_vertices);
+
+  for (auto cluster_id : clusters) {
+    ++vertex_weights[cluster_id];
+  }
+
+  // 3 : calculate weights of hyper edgs in contracted graph
+  num_edges -= removed_edges;
+  std::vector<HyperedgeWeight> edge_weights(num_edges);
+  for (const auto& value : parallel_edges) {
+    edge_weights[value.second.first] = value.second.second;
+  }
+
+  return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
+                    partition_id, &edge_weights, &vertex_weights);
+}
+
+
+static inline void applyPartition(const Hypergraph& coarsaned_graph, std::vector<HypernodeID>& clusters,
+                                  Hypergraph& original_graph) {
+  for (auto vertex_id : original_graph.nodes()) {
+    original_graph.setNodePart(vertex_id, coarsaned_graph.partID(clusters[vertex_id]));
+  }
+}
+}  // namespace sparsifier
 }  // namespace kahypar
