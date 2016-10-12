@@ -92,7 +92,7 @@ class AdaptiveLSHWithConnectedComponents {
       incrementalParametersEstimation(active_vertices_set, rnd(eng), main_hash_set, hash_num);
       auto end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_config.partition.collect_stats,
-                                   "Adaptive LSH: Incremental parameter estimation",
+                                   "adaptive_lsh_incremental_parameter_estimation",
                                    std::chrono::duration<double>(end - start).count());
 
       Buckets buckets(1, _hypergraph.currentNumNodes());
@@ -101,7 +101,7 @@ class AdaptiveLSHWithConnectedComponents {
                             main_hash_set, buckets, hash_num);
       end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_config.partition.collect_stats,
-                                   "Adaptive LSH: Construction of buckets",
+                                   "adaptive_lsh_construction_of_buckets",
                                    std::chrono::duration<double>(end - start).count());
 
       start = std::chrono::high_resolution_clock::now();
@@ -110,7 +110,7 @@ class AdaptiveLSHWithConnectedComponents {
                                      main_hash_set, hash_num, buckets, inactive_clusters);
       end = std::chrono::high_resolution_clock::now();
       Stats::instance().addToTotal(_config.partition.collect_stats,
-                                   "Adaptive LSH: Construction of clustering",
+                                   "adaptive_lsh_construction_of_clustering",
                                    std::chrono::duration<double>(end - start).count());
 
       std::vector<char> bit_map(clusters.size());
