@@ -82,11 +82,11 @@ class HashFuncVector {
 };
 
 template <typename _HashValue>
-class HashSet {
+class HashStorage {
  public:
   using HashValue = _HashValue;
 
-  explicit HashSet(const size_t hash_num, const size_t obj_number) :
+  explicit HashStorage(const size_t hash_num, const size_t obj_number) :
     _obj_number(obj_number)
     ,
     _hash_vectors(hash_num) {

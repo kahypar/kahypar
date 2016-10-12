@@ -37,7 +37,7 @@ class AdaptiveLSHWithConnectedComponents {
   using HashPolicy = _HashPolicy;
   using BaseHashPolicy = typename HashPolicy::BaseHashPolicy;
   using HashValue = typename HashPolicy::HashValue;
-  using MyHashSet = HashSet<HashValue>;
+  using MyHashSet = HashStorage<HashValue>;
   using Buckets = HashBuckets<HashValue, HypernodeID>;
 
  public:

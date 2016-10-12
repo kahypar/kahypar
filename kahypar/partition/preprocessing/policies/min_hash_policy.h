@@ -33,7 +33,7 @@ class MinHashPolicy {
   using HashFunc = _HashFunc;
   using VertexId = Hypergraph::HypernodeID;
   using HashValue = typename HashFunc::HashValue;
-  using MyHashSet = HashSet<HashValue>;
+  using MyHashSet = HashStorage<HashValue>;
   using VertexSet = std::vector<VertexId>;
 
   explicit MinHashPolicy(const uint32_t hash_num = 0, const uint32_t seed = 0) :
@@ -144,7 +144,7 @@ class CombinedHashPolicy {
   using BaseHashPolicy = _THashFunc;
   using VertexId = Hypergraph::HypernodeID;
   using HashValue = typename BaseHashPolicy::HashValue;
-  using MyHashSet = HashSet<HashValue>;
+  using MyHashSet = HashStorage<HashValue>;
 
   CombinedHashPolicy(const uint32_t hash_num, const uint32_t combined_hash_num, const uint32_t seed) :
     _seed(seed),
