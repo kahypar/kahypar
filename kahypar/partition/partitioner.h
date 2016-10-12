@@ -284,7 +284,11 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration
 inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
                                      const Configuration& config) {
   ASSERT(config.preprocessing.use_min_hash_sparsifier);
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   _pin_sparsifier.applyPartition(sparseHypergraph, hypergraph);
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  Stats::instance().addToTotal(config, "MinHashSparsifier",
+                               std::chrono::duration<double>(end - start).count());
   postprocess(hypergraph, config);
 }
 

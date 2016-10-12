@@ -144,6 +144,8 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   << " s [currently not implemented]" << std::endl;
   std::cout << "  | initial large HE removal     = "
   << Stats::instance().get("InitialLargeHEremoval") << " s" << std::endl;
+  std::cout << "  | min hash sparsifier          = "
+  << Stats::instance().get("MinHashSparsifier") << " s" << std::endl;
   std::cout << "  | coarsening                   = "
   << Stats::instance().get("Coarsening") << " s" << std::endl;
   std::cout << "  | initial partitioning         = "
