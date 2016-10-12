@@ -43,7 +43,7 @@ struct PreprocessingParameters {
   bool use_min_hash_sparsifier = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
-  MinHashSparsifierParameters min_hash_sparsifier_parameters = MinHashSparsifierParameters();
+  MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
 };
 
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
@@ -70,7 +70,7 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
   << params.remove_always_cut_hes << std::endl;
-  str << params.min_hash_sparsifier_parameters << std::endl;
+  str << params.min_hash_sparsifier << std::endl;
   return str;
 }
 
