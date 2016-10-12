@@ -17,13 +17,40 @@ add_subdirectory(external_tools/googletest)
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOURCE_DIR}/../googlemock/)
 
-set(BOOST_MIN_VERSION "1.48.0")
-find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
-if(Boost_FOUND)
-  include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-  message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
-  message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
-  message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
+
+option(KAHYPAR_USE_MINIMAL_BOOST
+  "Download boost automatically and compile required libraries." OFF)
+
+if(KAHYPAR_USE_MINIMAL_BOOST)
+  include(ExternalProject)
+  ExternalProject_Add(boost
+    URL
+    https://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.tar.bz2/download
+    URL_MD5 a744cf167b05d72335f27c88115f211d
+    #URL_MD5 6095876341956f65f9d35939ccea1a9f
+    DOWNLOAD_DIR /tmp/
+    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost/src/boost/)
+
+  # glob boost sources
+  file(GLOB MINI_BOOST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost/src/boost/libs/program_options/src/*.cpp)
+
+  add_library(mini_boost STATIC ${MINI_BOOST_SOURCES})
+  set_target_properties(mini_boost PROPERTIES LINKER_LANGUAGE CXX)
+  set(Boost_LIBRARIES mini_boost)
+else()
+  set(BOOST_MIN_VERSION "1.48.0")
+  find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS program_options REQUIRED)
+  if(Boost_FOUND)
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
+    message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
+    message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
+  endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
