@@ -31,11 +31,36 @@
 #include "kahypar/partition/configuration_enum_classes.h"
 
 namespace kahypar {
+struct MinHashSparsifierParameters {
+  uint32_t max_hyperedge_size = 1200;
+  uint32_t max_cluster_size = 10;
+  uint32_t min_cluster_size = 2;
+  uint32_t num_hash_functions = 5;
+  uint32_t combined_num_hash_functions = 100;
+};
+
 struct PreprocessingParameters {
   bool use_min_hash_sparsifier = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
+  MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
 };
+
+inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
+  str << "MinHash Sparsifier Parameters:" << std::endl;
+  str << "  max hyperedge size:                 "
+  << params.max_hyperedge_size << std::endl;
+  str << "  max cluster size:                   "
+  << params.max_cluster_size << std::endl;
+  str << "  min cluster size:                   "
+  << params.min_cluster_size << std::endl;
+  str << "  number of hash functions:           "
+  << params.num_hash_functions << std::endl;
+  str << "  number of combined hash functions:  "
+  << params.combined_num_hash_functions << std::endl;
+  return str;
+}
+
 
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
   str << "Preprocessing Parameters:" << std::endl;
@@ -45,8 +70,10 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
   << params.remove_always_cut_hes << std::endl;
+  str << params.min_hash_sparsifier << std::endl;
   return str;
 }
+
 
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::heavy_lazy;

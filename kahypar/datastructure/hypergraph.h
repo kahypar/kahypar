@@ -590,11 +590,31 @@ class GenericHypergraph {
     }
   }
 
-  GenericHypergraph(const GenericHypergraph&) = delete;
-  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
+  GenericHypergraph() :
+    _num_hypernodes(0),
+    _num_hyperedges(0),
+    _num_pins(0),
+    _total_weight(0),
+    _k(2),
+    _type(Type::Unweighted),
+    _current_num_hypernodes(0),
+    _current_num_hyperedges(0),
+    _current_num_pins(0),
+    _threshold_active(1),
+    _threshold_marked(2),
+    _hypernodes(),
+    _hyperedges(),
+    _incidence_array(),
+    _part_info(_k),
+    _pins_in_part(),
+    _connectivity_sets(),
+    _hes_not_containing_u() { }
 
   GenericHypergraph(GenericHypergraph&&) = default;
-  GenericHypergraph& operator= (GenericHypergraph&&) = delete;
+  GenericHypergraph& operator= (GenericHypergraph&&) = default;
+
+  GenericHypergraph(const GenericHypergraph&) = delete;
+  GenericHypergraph& operator= (const GenericHypergraph&) = delete;
 
   /*!
    * Debug information:
@@ -1445,13 +1465,13 @@ class GenericHypergraph {
    *
    */
   HypernodeID currentNumNodes() const {
-    ASSERT([&]() {
-          HypernodeID count = 0;
-          for (const HypernodeID hn : nodes()) {
-            ++count;
-          }
-          return count == _current_num_hypernodes;
-        } ());
+   ASSERT([&]() {
+       HypernodeID count = 0;
+       for (const HypernodeID hn : nodes()) {
+         ++count;
+       }
+       return count == _current_num_hypernodes;
+     } ());
     return _current_num_hypernodes;
   }
 
@@ -1648,31 +1668,6 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation);
   FRIEND_TEST(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation);
   FRIEND_TEST(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes);
-
-  /*!
-   * Default constructor is private, because we do not allow the user to create
-   * empty hypergraphs. However the functions extractPartAsUnpartitionedHypergraphForBisection
-   * and reindex internally use default constructed hypergraphs.
-   */
-  GenericHypergraph() :
-    _num_hypernodes(0),
-    _num_hyperedges(0),
-    _num_pins(0),
-    _total_weight(0),
-    _k(2),
-    _type(Type::Unweighted),
-    _current_num_hypernodes(0),
-    _current_num_hyperedges(0),
-    _current_num_pins(0),
-    _threshold_active(1),
-    _threshold_marked(2),
-    _hypernodes(),
-    _hyperedges(),
-    _incidence_array(),
-    _part_info(_k),
-    _pins_in_part(),
-    _connectivity_sets(),
-    _hes_not_containing_u() { }
 
   /*!
    * Returns true if hypernode is a border-node.
