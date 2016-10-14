@@ -76,7 +76,7 @@ class MinHashPolicy {
   }
 
   template <typename Iterator>
-  void calculateLastHash(const Hypergraph& graph, Iterator begin, Iterator end,
+  void calculateLastHash(const Hypergraph& graph, const Iterator begin, const Iterator end,
                          MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
     for (auto it = begin; it != end; ++it) {
