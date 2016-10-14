@@ -518,8 +518,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   std::ifstream file(config_path.c_str());
   if (!file) {
-    std::cout << "Could not load config file at: " << config_path << std::endl;
-    exit(0);
+    std::cerr << "Could not load config file at: " << config_path << std::endl;
+    std::exit(-1);
   }
 
   po::options_description ini_line_options;
@@ -540,9 +540,9 @@ int main(int argc, char* argv[]) {
   sanityCheck(config);
 
   if (config.partition.global_search_iterations != 0) {
-    LOG("Coarsener does not check if HNs are in same part.");
-    LOG("Therefore v-cycles are currently disabled.");
-    exit(0);
+    std::cerr << "Coarsened does not check if HNs are in same part." << std::endl;
+    std::cerr << "Therefore v-cycles are currently disabled." << std::endl;
+    std::exit(-1);
   }
 
   kahypar::Randomize::instance().setSeed(config.partition.seed);
