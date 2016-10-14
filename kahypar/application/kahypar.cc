@@ -508,7 +508,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
 
   // placing vm.count("help") here prevents required attributes raising an
-  // error of only help was supplied
+  // error if only help was supplied
   if (cmd_vm.count("help")) {
     std::cout << cmd_line_options << "n";
     exit(0);
