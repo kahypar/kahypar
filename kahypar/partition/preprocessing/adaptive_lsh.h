@@ -47,11 +47,6 @@ class AdaptiveLSHWithConnectedComponents {
     _config(config) { }
 
   std::vector<HypernodeID> build() {
-    return adaptiveWhole();
-  }
-
- private:
-  std::vector<HypernodeID> adaptiveWhole() {
     std::default_random_engine eng(_config.partition.seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
@@ -73,12 +68,13 @@ class AdaptiveLSHWithConnectedComponents {
     std::vector<HypernodeID> inactive_clusters;
     inactive_clusters.reserve(_hypergraph.currentNumNodes());
 
+    std::vector<HypernodeID> active_vertices_set;
+    active_vertices_set.reserve(num_active_vertices);
+
     while (num_active_vertices > 0 && main_hash_set.getHashNum() <
            _config.preprocessing.min_hash_sparsifier.num_hash_functions) {
       main_hash_set.addHashVector();
-
-      std::vector<HypernodeID> active_vertices_set;
-      active_vertices_set.reserve(num_active_vertices);
+      active_vertices_set.clear();
 
       for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
         HypernodeID cluster = clusters[vertex_id];
@@ -126,7 +122,6 @@ class AdaptiveLSHWithConnectedComponents {
       }
       LOG("Num clusters: " << num_cl);
 
-
       std::sort(inactive_clusters.begin(), inactive_clusters.end());
       auto end_iter = std::unique(inactive_clusters.begin(), inactive_clusters.end());
       inactive_clusters.resize(end_iter - inactive_clusters.begin());
@@ -146,8 +141,10 @@ class AdaptiveLSHWithConnectedComponents {
     return clusters;
   }
 
-  void incrementalParametersEstimation(std::vector<HypernodeID>& active_vertices, const uint32_t seed,
-                                       MyHashSet& main_hash_set, const uint32_t main_hash_num) {
+ private:
+  void incrementalParametersEstimation(std::vector<HypernodeID>& active_vertices,
+                                       const uint32_t seed, MyHashSet& main_hash_set,
+                                       const uint32_t main_hash_num) {
     MyHashSet hash_set(0, _hypergraph.currentNumNodes());
     hash_set.reserve(_config.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
 
