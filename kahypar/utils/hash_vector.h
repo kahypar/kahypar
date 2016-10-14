@@ -168,17 +168,17 @@ class Buckets {
     }
   }
 
-  void put(const uint8_t dim, HashValue hash_value, TObject object) {
+  void put(const uint8_t dim, const HashValue hash_value, const TObject object) {
     _buckets_sets[dim][hash_value].insert(object);
   }
 
-  auto getObjects(const uint8_t dim, HashValue hash_value) {
+  auto getObjects(const uint8_t dim, const HashValue hash_value) {
     auto& bucket = _buckets_sets[dim][hash_value];
 
     return std::make_pair(bucket.begin(), bucket.end());
   };
 
-  size_t getBucketSize(const uint8_t dim, HashValue hash_value) const {
+  size_t getBucketSize(const uint8_t dim, const HashValue hash_value) const {
     return _buckets_sets[dim].at(hash_value).size();
   }
 
@@ -186,7 +186,7 @@ class Buckets {
     return _dim == 1;
   }
 
-  void removeObject(const uint8_t dim, HashValue hash_value, TObject object) {
+  void removeObject(const uint8_t dim, const HashValue hash_value, const TObject object) {
     _buckets_sets[dim][hash_value].erase(object);
   }
 
