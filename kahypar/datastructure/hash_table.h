@@ -334,7 +334,8 @@ class HashMap {
       }
     }
 
-    throw std::logic_error("hash table overflowed");
+    std::cerr << "hash table overflowed" << std::endl;
+    std::exit(-1);
   }
 
   const Position _num_specials = 2;
@@ -532,7 +533,8 @@ class InsertOnlyHashMap {
       }
     }
 
-    throw std::logic_error("_hash table is oveflowed");
+     std::cerr << "hash table overflowed" << std::endl;
+     std::exit(-1);
   }
 
   const Position _num_specials = 1;
@@ -741,7 +743,8 @@ class HashSet {
       }
     }
 
-    throw std::logic_error("_hash table is oveflowed");
+     std::cerr << "hash table overflowed" << std::endl;
+     std::exit(-1);
   }
 
   const Position _num_specials = 2;
@@ -906,7 +909,8 @@ class InsertOnlyHashSet {
       }
     }
 
-    throw std::logic_error("_hash table is oveflowed");
+     std::cerr << "hash table overflowed" << std::endl;
+     std::exit(-1);
   }
 
   const Position _num_specials = 2;
