@@ -198,8 +198,7 @@ TEST_F(AHypergraphWithHypernodeAndHyperedgeWeights, CanBeWrittenToFile) {
 }
 
 TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
-  _partitioner.partition(_hypergraph, *_coarsener, *_refiner, _config,
-                         0, (_config.partition.k - 1));
+  _partitioner.partition(_hypergraph, *_coarsener, *_refiner, _config);
   writePartitionFile(_hypergraph, _config.partition.graph_partition_filename);
 
   std::vector<PartitionID> read_partition;

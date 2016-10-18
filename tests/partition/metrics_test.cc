@@ -88,7 +88,7 @@ class APartitionedHypergraph : public Test {
       50.0 * (2 * pow((1 + config.partition.epsilon), exp)
               * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
                          / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
-    partitioner.partition(hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
+    partitioner.partition(hypergraph, *coarsener, *refiner, config);
   }
 
   Hypergraph hypergraph;
