@@ -96,10 +96,8 @@ class Stats {
 
 #ifdef GATHER_STATS
 
-static inline void gatherCoarseningStats(const Hypergraph& hypergraph,
-                                         const int vcycle,
-                                         const PartitionID k1,
-                                         const PartitionID k2) {
+static inline void gatherCoarseningStats(const Configuration& config,
+                                         const Hypergraph& hypergraph) {
   std::map<HyperedgeID, HypernodeID> node_degree_map;
   std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
   std::map<HyperedgeWeight, HypernodeID> edge_weight_map;
@@ -160,51 +158,38 @@ static inline void gatherCoarseningStats(const Hypergraph& hypergraph,
   //   }
   //   std::cout << " " << entry.second << std::endl;
   // }
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_numCoarseHNs", vcycle, hypergraph.numNodes());
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_numCoarseHEs", vcycle, hypergraph.numEdges());
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_SumExposedHEWeight", vcycle, sum_exposed_he_weight);
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_NumHNsToInitialNumHNsRATIO", vcycle,
-                        static_cast<double>(hypergraph.numNodes()) / hypergraph.initialNumNodes());
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_NumHEsToInitialNumHEsRATIO", vcycle,
-                        static_cast<double>(hypergraph.numEdges()) / hypergraph.initialNumEdges());
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_ExposedHEWeightToInitialExposedHEWeightRATIO", vcycle,
+  Stats::instance().add(config, "numCoarseHNs", hypergraph.currentNumNodes());
+  Stats::instance().add(config, "numCoarseHEs", hypergraph.currentNumEdges());
+  Stats::instance().add(config, "sumExposedHEWeight", sum_exposed_he_weight);
+  Stats::instance().add(config, "numHNsToInitialNumHNsRATIO",
+                        static_cast<double>(hypergraph.currentNumNodes()) /
+                        hypergraph.initialNumNodes());
+  Stats::instance().add(config, "numHEsToInitialNumHEsRATIO",
+                        static_cast<double>(hypergraph.currentNumEdges()) /
+                        hypergraph.initialNumEdges());
+  Stats::instance().add(config, "exposedHEWeightToInitialExposedHEWeightRATIO",
                         static_cast<double>(sum_exposed_he_weight) / hypergraph.initialNumEdges());
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HEsizeMIN", vcycle,
+  Stats::instance().add(config, "HEsizeMIN",
                         (edge_size_map.size() > 0 ? edge_size_map.begin()->first : 0));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HEsizeMAX", vcycle,
+  Stats::instance().add(config, "HEsizeMAX",
                         (edge_size_map.size() > 0 ? edge_size_map.rbegin()->first : 0));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HEsizeAVG", vcycle,
+  Stats::instance().add(config, "HEsizeAVG",
                         metrics::avgHyperedgeDegree(hypergraph));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HNdegreeMIN", vcycle,
+  Stats::instance().add(config, "HNdegreeMIN",
                         (node_degree_map.size() > 0 ? node_degree_map.begin()->first : 0));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HNdegreeMAX", vcycle,
+  Stats::instance().add(config, "HNdegreeMAX",
                         (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HNdegreeAVG", vcycle,
+  Stats::instance().add(config, "HNdegreeAVG",
                         metrics::avgHypernodeDegree(hypergraph));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HNweightMIN", vcycle,
+  Stats::instance().add(config, "HNweightMIN",
                         (node_weight_map.size() > 0 ? node_weight_map.begin()->first : 0));
-  Stats::instance().add("l" + std::to_string(k1) + "_" + "u" + std::to_string(k2)
-                        + "_HNweightMAX", vcycle,
+  Stats::instance().add(config, "HNweightMAX",
                         (node_weight_map.size() > 0 ? node_weight_map.rbegin()->first : 0));
 }
 
 #else
 
-static inline void gatherCoarseningStats(const Hypergraph&, const int, const PartitionID,
-                                         const PartitionID) { }
+static inline void gatherCoarseningStats(const Configuration&, const Hypergraph&) { }
 
 #endif
 }  // namespace kahypar

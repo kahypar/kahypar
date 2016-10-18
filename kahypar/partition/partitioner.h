@@ -146,11 +146,10 @@ class Partitioner {
   inline void initialPartitioningViaKaHyPar(Hypergraph& hg, const Configuration& config);
 
   inline void partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                        const Configuration& config, const PartitionID k1, const PartitionID k2);
+                        const Configuration& config);
 
   inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                              const Configuration& config, const int vcycle, const PartitionID k1,
-                              const PartitionID k2);
+                              const Configuration& config);
   inline HypernodeID originalHypernode(const HypernodeID hn,
                                        const MappingStack& mapping_stack) const;
   inline double calculateRelaxedEpsilon(const HypernodeWeight original_hypergraph_weight,
@@ -430,15 +429,14 @@ inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configu
 
 
 inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                                   const Configuration& config, const PartitionID k1,
-                                   const PartitionID k2) {
+                                   const Configuration& config) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "Coarsening",
                                std::chrono::duration<double>(end - start).count());
 
-  gatherCoarseningStats(hypergraph, 0, k1, k2);
+  gatherCoarseningStats(config, hypergraph);
 
   // hypergraph.printGraphState();
 
@@ -458,16 +456,14 @@ inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener
 }
 
 inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
-                                         IRefiner& refiner, const Configuration& config,
-                                         const int vcycle, const PartitionID k1,
-                                         const PartitionID k2) {
+                                         IRefiner& refiner, const Configuration& config) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "VCycleCoarsening",
                                std::chrono::duration<double>(end - start).count());
 
-  gatherCoarseningStats(hypergraph, vcycle, k1, k2);
+  gatherCoarseningStats(config, hypergraph);
 
   hypergraph.initializeNumCutHyperedges();
 
@@ -813,7 +809,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           // TODO(schlag): we could integrate v-cycles in a similar fashion as is
           // performDirectKwayPartitioning
-          partition(current_hypergraph, *coarsener, *refiner, current_config, k1, k2);
+          partition(current_hypergraph, *coarsener, *refiner, current_config);
 
           if (current_config.partition.verbose_output) {
             LOG("-------------------------------------------------------------");
@@ -861,7 +857,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   // TODO(schlag): find better solution
   _internals.append(coarsener->policyString() + " " + refiner->policyString());
 
-  partition(hypergraph, *coarsener, *refiner, config, 0, (config.partition.k - 1));
+  partition(hypergraph, *coarsener, *refiner, config);
 
   DBG(dbg_partition_vcycles,
       "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
@@ -869,10 +865,8 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
-  for (int vcycle = 1; vcycle <= config.partition.global_search_iterations;
-       ++vcycle) {
-    const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener,
-                                                    *refiner, config, vcycle, 0, (config.partition.k - 1));
+  for (int vcycle = 1; vcycle <= config.partition.global_search_iterations; ++vcycle) {
+    const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener, *refiner, config);
 
     DBG(dbg_partition_vcycles,
         "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
