@@ -89,13 +89,13 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
 };
 
 TEST_F(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
   ASSERT_THAT(hypergraph->partID(3), Eq(0));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
   hypergraph->printGraphState();
   ASSERT_THAT(hypergraph->partID(0), Eq(1));
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
@@ -111,7 +111,7 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
@@ -122,7 +122,7 @@ TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;
   DBG(true, metrics::hyperedgeCut(*hypergraph));
-  partitioner.partition(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
   hypergraph->printGraphState();
   DBG(true, metrics::hyperedgeCut(*hypergraph));
   metrics::hyperedgeCut(*hypergraph);

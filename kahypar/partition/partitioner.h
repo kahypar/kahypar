@@ -131,27 +131,22 @@ class Partitioner {
   friend class io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
   friend class metrics::APartitionedHypergraph;
 
+  inline void setupConfig(const Hypergraph& hypergraph, Configuration& config) const;
+
+  inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
+  inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+                         const Configuration& config);
+
+  inline void partitionInternal(Hypergraph& hypergraph, const Configuration& config);
+
   inline void performDirectKwayPartitioning(Hypergraph& hypergraph,
                                             const Configuration& config);
 
   inline void performRecursiveBisectionPartitioning(Hypergraph& hypergraph,
                                                     const Configuration& config);
-
-  inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                   CoarsenedToHmetisMapping& hg_to_hmetis,
-                                                   const Hypergraph& hg);
-  void performInitialPartitioning(Hypergraph& hg, const Configuration& config);
-
-  inline void initialPartitioningViaExternalTools(Hypergraph& hg, const Configuration& config);
-  inline void initialPartitioningViaKaHyPar(Hypergraph& hg, const Configuration& config);
-
-  inline void partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                        const Configuration& config);
-
-  inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                              const Configuration& config);
   inline HypernodeID originalHypernode(const HypernodeID hn,
                                        const MappingStack& mapping_stack) const;
+
   inline double calculateRelaxedEpsilon(const HypernodeWeight original_hypergraph_weight,
                                         const HypernodeWeight current_hypergraph_weight,
                                         const PartitionID k,
@@ -164,22 +159,26 @@ class Partitioner {
                                                               const PartitionID k0,
                                                               const PartitionID k1) const;
 
+  inline void performPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
+                                  const Configuration& config);
 
+  inline void performInitialPartitioning(Hypergraph& hg, const Configuration& config);
+  inline void initialPartitioningViaExternalTools(Hypergraph& hg, const Configuration& config);
+  inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
+                                                   CoarsenedToHmetisMapping& hg_to_hmetis,
+                                                   const Hypergraph& hg);
+  inline void initialPartitioningViaKaHyPar(Hypergraph& hg, const Configuration& config);
   inline Configuration createConfigurationForInitialPartitioning(const Hypergraph& hg,
                                                                  const Configuration& original_config,
                                                                  double init_alpha) const;
 
-  inline void partitionInternal(Hypergraph& hypergraph, const Configuration& config);
-
-  inline void setupConfig(const Hypergraph& hypergraph, Configuration& config) const;
-
-  inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
-  inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
-                         const Configuration& config);
-
   inline void postprocess(Hypergraph& hypergraph, const Configuration& config);
   inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
                           const Configuration& config);
+
+
+  inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
+                              const Configuration& config);
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
   LargeHyperedgeRemover _large_he_remover;
@@ -428,8 +427,10 @@ inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configu
 }
 
 
-inline void Partitioner::partition(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
-                                   const Configuration& config) {
+inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
+                                             ICoarsener& coarsener,
+                                             IRefiner& refiner,
+                                             const Configuration& config) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -747,8 +748,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
     if (hypergraph_stack.back().lower_k == hypergraph_stack.back().upper_k) {
       for (const HypernodeID hn : current_hypergraph.nodes()) {
-        const HypernodeID original_hn = originalHypernode(hn,
-                                                          mapping_stack);
+        const HypernodeID original_hn = originalHypernode(hn, mapping_stack);
         const PartitionID current_part = input_hypergraph.partID(original_hn);
         ASSERT(current_part != Hypergraph::kInvalidPartition, V(current_part));
         if (current_part != hypergraph_stack.back().lower_k) {
@@ -809,7 +809,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           // TODO(schlag): we could integrate v-cycles in a similar fashion as is
           // performDirectKwayPartitioning
-          partition(current_hypergraph, *coarsener, *refiner, current_config);
+          performPartitioning(current_hypergraph, *coarsener, *refiner, current_config);
 
           if (current_config.partition.verbose_output) {
             LOG("-------------------------------------------------------------");
@@ -857,7 +857,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   // TODO(schlag): find better solution
   _internals.append(coarsener->policyString() + " " + refiner->policyString());
 
-  partition(hypergraph, *coarsener, *refiner, config);
+  performPartitioning(hypergraph, *coarsener, *refiner, config);
 
   DBG(dbg_partition_vcycles,
       "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
