@@ -116,6 +116,14 @@ class MinHashPolicy {
     _hash_func_vector.reserve(size);
   }
 
+  void clear() {
+    _hash_func_vector.clear();
+  }
+
+  void setSeed(const uint32_t seed) {
+    _seed = seed;
+  }
+
  protected:
   // The number of dimensions for buckets where we put hash values.
   // In this policy we put a hash value of ith hash function to ith dimension

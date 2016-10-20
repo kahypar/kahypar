@@ -2,6 +2,7 @@
  * This file is part of KaHyPar.
  *
  * Copyright (C) 2016 Yaroslav Akhremtsev <yaroslav.akhremtsev@kit.edu>
+ * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,36 +36,38 @@ class HashFuncVector {
   using HashFunc = _HashFunc;
 
   HashFuncVector(const uint8_t hash_num, const uint32_t seed = 0) :
-    _hashFunctions(hash_num) {
-    ALWAYS_ASSERT(_hashFunctions.size() >= 0, "HashNum should be greater that 0");
-
+    _hash_functions(hash_num) {
     reset(seed);
   }
 
   inline constexpr size_t getHashNum() const {
-    return _hashFunctions.size();
+    return _hash_functions.size();
   }
 
   const HashFunc& operator[] (const size_t index) const {
-    return _hashFunctions[index];
+    return _hash_functions[index];
   }
 
   HashFunc& operator[] (const size_t index) {
-    return _hashFunctions[index];
+    return _hash_functions[index];
   }
 
   void resize(const size_t hash_num) {
     ALWAYS_ASSERT(hash_num >= 0, "HashNum should be greater that 0");
-    _hashFunctions.resize(hash_num);
+    _hash_functions.resize(hash_num);
   }
 
   void addHashFunction(const uint32_t seed) {
-    _hashFunctions.push_back(HashFunc());
-    _hashFunctions.back().reset(seed);
+    _hash_functions.push_back(HashFunc());
+    _hash_functions.back().reset(seed);
   }
 
   void reserve(const uint32_t hash_num) {
-    _hashFunctions.reserve(hash_num);
+    _hash_functions.reserve(hash_num);
+  }
+
+  void clear() {
+    _hash_functions.clear();
   }
 
   template <typename ... TArgs>
@@ -72,13 +75,13 @@ class HashFuncVector {
     std::default_random_engine eng(seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
-    for (auto& hash_function : _hashFunctions) {
+    for (auto& hash_function : _hash_functions) {
       hash_function.reset(rnd(eng), std::forward<TArgs>(args) ...);
     }
   }
 
  private:
-  std::vector<HashFunc> _hashFunctions;
+  std::vector<HashFunc> _hash_functions;
 };
 
 template <typename _HashValue>
@@ -87,68 +90,57 @@ class HashStorage {
   using HashValue = _HashValue;
 
   explicit HashStorage(const size_t hash_num, const size_t obj_number) :
-    _obj_number(obj_number)
-    ,
-    _hash_vectors(hash_num) {
-    for (auto& hash_vec : _hash_vectors) {
-      hash_vec = std::make_unique<HashValue[]>(_obj_number);
-    }
-  }
+    _obj_number(obj_number),
+    _current_num_hash_vectors(hash_num),
+    _max_capacity(hash_num),
+    _hash_vectors() { }
 
   const HashValue* operator[] (const uint8_t hash_num) const {
-    return _hash_vectors[hash_num].get();
+    ASSERT(hash_num < _current_num_hash_vectors);
+    return &_hash_vectors[hash_num * _obj_number];
   }
 
   HashValue* operator[] (const uint8_t hash_num) {
-    return _hash_vectors[hash_num].get();
+    ASSERT(hash_num < _current_num_hash_vectors);
+    return &_hash_vectors[hash_num * _obj_number];
   }
 
   size_t getHashNum() const {
-    return _hash_vectors.size();
+    return _current_num_hash_vectors;
   }
 
   void reserve(const size_t hash_num) {
-    _hash_vectors.reserve(hash_num);
+    _hash_vectors.reserve(hash_num * _obj_number);
+    for (size_t i = 0; i < hash_num; ++i) {
+      for (size_t j = 0; j < _obj_number; ++j) {
+        _hash_vectors.emplace_back(HashValue());
+      }
+    }
+    _max_capacity = hash_num;
   }
 
   void addHashVector() {
-    _hash_vectors.push_back(std::make_unique<HashValue[]>(_obj_number));
+    if (_current_num_hash_vectors == _max_capacity) {
+      for (size_t j = 0; j < _obj_number; ++j) {
+        _hash_vectors.emplace_back(HashValue());
+      }
+      ++_max_capacity;
+    }
+    ++_current_num_hash_vectors;
+  }
+
+  void clear() {
+    _current_num_hash_vectors = 0;
   }
 
  private:
   const size_t _obj_number;
+  size_t _current_num_hash_vectors;
+  size_t _max_capacity;
 
   // We use std::unique_ptr<HashValue[]> instead of std::vector<HashValue>
   // because we want move constructor to be used during reallocation of std::vector _hash_vectors
-  std::vector<std::unique_ptr<HashValue[]> > _hash_vectors;
-};
-
-template <bool HasReserve>
-struct Reserve {
-  template <typename Container>
-  static void reserve(Container& container, const size_t capacity) {
-    container.reserve(capacity);
-  }
-};
-
-template <>
-struct Reserve<false>{
-  template <typename Container>
-  static void reserve(Container& container, const size_t capacity) { }
-};
-
-template <typename Container>
-class HasReserve {
-  typedef char One;
-  typedef long Two;
-
-  template <typename C>
-  static One test(decltype(&C::reserve));
-  template <typename C>
-  static Two test(...);
-
- public:
-  enum { value = sizeof(test<Container>(0)) == sizeof(char) };
+  std::vector<HashValue> _hash_vectors;
 };
 
 template <typename MultiContainer>
@@ -160,58 +152,46 @@ class Buckets {
   static_assert(std::is_integral<HashValue>::value, "HashFunc value should be of integral type");
   static_assert(std::is_integral<TObject>::value, "Object should be of integral type");
 
-  Buckets(const uint8_t dim, const size_t capacity) :
-    _dim(dim),
-    _buckets_sets(std::make_unique<MultiContainer[]>(_dim)) {
-    for (uint8_t dim = 0; dim < _dim; ++dim) {
-      Reserve<HasReserve<MultiContainer>::value>::reserve(_buckets_sets[dim], capacity);
-    }
+  Buckets(const size_t capacity) :
+    _buckets() {
+    _buckets.reserve(capacity);
   }
 
-  void put(const uint8_t dim, const HashValue hash_value, const TObject object) {
-    _buckets_sets[dim][hash_value].insert(object);
+  void put(const HashValue hash_value, const TObject object) {
+    _buckets[hash_value].insert(object);
   }
 
-  auto getObjects(const uint8_t dim, const HashValue hash_value) {
-    auto& bucket = _buckets_sets[dim][hash_value];
-
-    return std::make_pair(bucket.begin(), bucket.end());
+  auto getObjects(const HashValue hash_value) {
+    return std::make_pair(_buckets[hash_value].begin(), _buckets[hash_value].end());
   };
 
-  size_t getBucketSize(const uint8_t dim, const HashValue hash_value) const {
-    return _buckets_sets[dim].at(hash_value).size();
+  size_t getBucketSize(const HashValue hash_value) const {
+    return _buckets[hash_value].size();
   }
 
-  bool isOneDimensional() const {
-    return _dim == 1;
+  void removeObject(const HashValue hash_value, const TObject object) {
+    _buckets[hash_value].erase(object);
   }
 
-  void removeObject(const uint8_t dim, const HashValue hash_value, const TObject object) {
-    _buckets_sets[dim][hash_value].erase(object);
+  void clear() {
+    _buckets.clear();
   }
 
   std::pair<size_t, size_t> getMaxSize() const {
     size_t max = 0;
     size_t hash = 0;
-    for (const auto& buckets_set : _buckets_sets) {
-      for (const auto& bucket : buckets_set) {
-        max = std::max(max, bucket.second.size());
-        if (max == bucket.second.size()) {
-          hash = bucket.first;
-        }
+    for (const auto& bucket : _buckets) {
+      max = std::max(max, bucket.second.size());
+      if (max == bucket.second.size()) {
+        hash = bucket.first;
       }
     }
     return std::make_pair(hash, max);
   }
 
  private:
-  const uint8_t _dim;
-  std::unique_ptr<MultiContainer[]> _buckets_sets;
+  MultiContainer _buckets;
 };
-
-// not usable disnce since HashSet is not growable
-//template <typename HashFunc, typename TObject>
-//using FastHashBuckets = Buckets<ds::HashMap<HashFunc, ds::HashSet<TObject> > >;
 
 template <typename HashFunc, typename TObject>
 using HashBuckets = Buckets<ds::HashMap<HashFunc, std::unordered_multiset<TObject> > >;
