@@ -61,21 +61,21 @@ class TwoWayFMGainCache {
   TwoWayFMGainCache(TwoWayFMGainCache&&) = default;
   TwoWayFMGainCache& operator= (TwoWayFMGainCache&&) = default;
 
-  T delta(const size_t index) const {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE T delta(const size_t index) const {
     ASSERT(index < _size);
     return _cache[index].delta;
   }
 
-  T value(const size_t index) const {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE T value(const size_t index) const {
     ASSERT(index < _size);
     return _cache[index].value;
   }
 
-  size_t size() const {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE size_t size() const {
     return _size;
   }
 
-  void setDelta(const size_t index, const T value) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void setDelta(const size_t index, const T value) {
     ASSERT(index < _size);
     if (_cache[index].delta == 0) {
       _used_delta_entries.push_back(index);
@@ -83,34 +83,34 @@ class TwoWayFMGainCache {
     _cache[index].delta = value;
   }
 
-  void setNotCached(const size_t index) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void setNotCached(const size_t index) {
     ASSERT(index < _size);
     _cache[index].value = kNotCached;
   }
 
-  bool isCached(const size_t index) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool isCached(const size_t index) {
     ASSERT(index < _size);
     return _cache[index].value != kNotCached;
   }
 
-  void setValue(const size_t index, const T value) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void setValue(const size_t index, const T value) {
     ASSERT(index < _size);
     _cache[index].value = value;
   }
 
-  void updateValue(const size_t index, const T value) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updateValue(const size_t index, const T value) {
     ASSERT(index < _size);
     _cache[index].value += value;
   }
 
-  void uncheckedSetDelta(const size_t index, const T value) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void uncheckedSetDelta(const size_t index, const T value) {
     ASSERT(index < _size);
     ASSERT(_cache[index].delta != 0,
            "Index " << index << " is still unused and not tracked for reset!");
     _cache[index].delta = value;
   }
 
-  void updateCacheAndDelta(const size_t index, const T delta) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updateCacheAndDelta(const size_t index, const T delta) {
     ASSERT(index < _size);
     if (_cache[index].delta == 0) {
       _used_delta_entries.push_back(index);
