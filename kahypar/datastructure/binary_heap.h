@@ -252,7 +252,7 @@ class BinaryHeapBase {
   }
 
  protected:
-  inline void upHeap(size_t heap_position) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void upHeap(size_t heap_position) {
     ASSERT(heap_position != 0, "calling upHeap for the sentinel");
     ASSERT(_next_slot > heap_position, "position specified larger than heap size");
 
@@ -273,7 +273,7 @@ class BinaryHeapBase {
     ASSERT(isHeap(), "Heap invariant violated!");
   }
 
-  inline void downHeap(size_t heap_position) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void downHeap(size_t heap_position) {
     ASSERT(0 != heap_position, "calling downHeap for the sentinel");
     ASSERT(_next_slot > heap_position, "position specified larger than heap size");
     const KeyType dropping_key = _heap[heap_position].key;
