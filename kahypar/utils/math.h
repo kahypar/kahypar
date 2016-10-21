@@ -2,6 +2,7 @@
  * This file is part of KaHyPar.
  *
  * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2016 Yaroslav Akhremtsev <yaroslav.akhremtsev@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -162,6 +163,24 @@ private:
         return h;
     }
 };
-    
+
+#define XXH_PRIVATE_API
+#include "xxhash.h"
+template <typename Key>
+struct XXHash {
+  using HashValue = std::uint64_t;
+
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE uint64_t operator()(const Key k) const {
+    auto local = k;
+    return XXH64(&local, sizeof(Key), _seed);
+  }
+
+  void reset(const uint64_t seed) {
+    _seed = seed;
+  }
+
+ private:
+  uint64_t _seed;
+};
 }  // namespace math
 }  // namespace kahypar
