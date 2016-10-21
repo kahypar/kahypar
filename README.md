@@ -39,11 +39,11 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 Currently we provide two different presets that correspond to the configuration used in the 
 [ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) submission and the [ALENEX'17]() submission.
 
-To start KaHyPar in recursive bisection mode optimizing the cut-net objective run:
+To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rb_alenex16.ini
     
-To start KaHyPar in direct k-way mode optimizing the (connectivity - 1) objective run:   
+To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity - 1) objective run:   
   
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_alenex17.ini
     
@@ -62,7 +62,8 @@ Licensing:
 KaHyPar is free software provided under the GNU General Public License (GPLv3). 
 For more information see the [COPYING file][CF].
 
-We distribute this framework freely to foster the use and development of hypergraph partitioning tools. If you use KaHyPar in an academic setting please cite the following paper:
+We distribute this framework freely to foster the use and development of hypergraph partitioning tools. 
+If you use KaHyPar-R in an academic setting please cite the following paper:
     
     @inproceedings{shhmss2016alenex,
      author    = {Sebastian Schlag and
@@ -79,6 +80,19 @@ We distribute this framework freely to foster the use and development of hypergr
     }
 
 A preliminary version is available [here on arxiv][ALENEX16PAPER].
+
+If you use KaHyPar-K in an academic setting please cite the following paper:
+
+    @inproceedings{ahss2017alenex,
+     author    = {Yaroslav Akhremtsev and
+                  Tobias Heuer and
+                  Peter Sanders and
+                  Sebastian Schlag},
+     title     = {Engineering a direct \emph{k}-way Hypergraph Partitioning Algorithm},
+     booktitle = {19th Workshop on Algorithm Engineering and Experiments, (ALENEX 2017)},
+     pages     = {tba},
+     year      = {2017},
+    }
 
 Contributing:
 ------------
