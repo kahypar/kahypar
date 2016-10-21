@@ -22,7 +22,6 @@
 
 #include <limits>
 #include <memory>
-#include <vector>
 
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
@@ -105,8 +104,7 @@ class LPGainCache {
   LPGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
     _num_hns(num_hns),
-    _cache(nullptr),
-    _deltas() {
+    _cache(nullptr) {
     _cache = static_cast<Byte*>(malloc(num_hns * sizeOfCacheElement()));
     for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
       new(cacheElement(hn))LPCacheElement(k);
@@ -241,6 +239,5 @@ class LPGainCache {
   PartitionID _k;
   HypernodeID _num_hns;
   Byte* _cache;
-  std::vector<RollbackElement> _deltas;
 };
 }  // namespace kahypar
