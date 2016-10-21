@@ -7,3 +7,6 @@
 [submodule "external_tools/googletest"]
 	path = external_tools/googletest
 	url = https://github.com/google/googletest.git
+[submodule "external_tools/xxHash"]
+	path = external_tools/xxHash
+	url = git@github.com:Cyan4973/xxHash.git
