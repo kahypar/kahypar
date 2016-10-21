@@ -26,6 +26,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
+#include "kahypar/partition/refinement/gain_cache_element.h"
 
 namespace kahypar {
 struct LPGain {
@@ -96,183 +97,10 @@ class LPGainCache {
 
   using Byte = char;
   using Gain = LPGain;
-
-  enum class RollbackAction : Byte {
-    do_remove,
-    do_add,
-    do_nothing
-  };
-
-  struct RollbackElement {
-    const HypernodeID hn;
-    const PartitionID part;
-    const Gain delta;
-    const RollbackAction action;
-
-    RollbackElement(const HypernodeID hn_, const PartitionID part_, const Gain delta_,
-                    const RollbackAction act) :
-      hn(hn_),
-      part(part_),
-      delta(delta_),
-      action(act) { }
-
-    RollbackElement(const RollbackElement&) = delete;
-    RollbackElement& operator= (const RollbackElement&) = delete;
-
-    RollbackElement(RollbackElement&&) = default;
-    RollbackElement& operator= (RollbackElement&&) = default;
-  };
-
-  struct Element {
-    PartitionID index;
-    Gain gain;
-    Element(const PartitionID idx, const Gain g) :
-      index(idx),
-      gain(g) { }
-  };
-
-  // Internal structure for cache entries.
-  // For each HN, a cache element contains a flag whether or not
-  // the cache entry is active and afterwards the corresponding
-  // cache entries. This memory is allocated outside of the structure
-  // using a memory arena.
-  class CacheElement {
- public:
-    explicit CacheElement(const PartitionID k) :
-      _k(k),
-      _size(0) {
-      // static_assert(sizeof(Gain) == sizeof(PartitionID), "Size is not correct");
-      for (PartitionID i = 0; i < k; ++i) {
-        new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
-        new(reinterpret_cast<Element*>(&_size + _k + 1) + i)Element(kInvalidPart, { kNotCached, kNotCached });
-      }
-    }
-
-    CacheElement(const CacheElement&) = delete;
-    CacheElement(CacheElement&&) = delete;
-    CacheElement& operator= (const CacheElement&) = delete;
-    CacheElement& operator= (CacheElement&&) = delete;
-
-    const PartitionID* begin()  const {
-      return &_size + 1;
-    }
-
-    const PartitionID* end() const {
-      ASSERT(_size <= _k, V(_size));
-      return &_size + 1 + _size;
-    }
-
-
-    void add(const PartitionID part, const Gain gain) {
-      ASSERT(part < _k, V(part));
-      ASSERT((sparse(part).index >= _size || dense(sparse(part).index) != part), V(part));
-      sparse(part).index = _size;
-      sparse(part).gain = gain;
-      dense(_size++) = part;
-      ASSERT(_size <= _k, V(_size));
-    }
-
-    void addToActiveParts(const PartitionID part) {
-      ASSERT(part < _k, V(part));
-      ASSERT(sparse(part).gain != LPGain(kNotCached, kNotCached), V(part));
-      ASSERT((sparse(part).index >= _size || dense(sparse(part).index) != part), V(part));
-      sparse(part).index = _size;
-      dense(_size++) = part;
-      ASSERT(_size <= _k, V(_size));
-    }
-
-
-    void remove(const PartitionID part) {
-      ASSERT(part < _k, V(part));
-      const PartitionID index = sparse(part).index;
-      ASSERT(index < _size && dense(index) == part, V(part));
-      ASSERT(_size > 0, V(_size));
-      const PartitionID e = dense(--_size);
-      ASSERT(_size >= 0, V(_size));
-      dense(index) = e;
-      sparse(e).index = index;
-      // This has to be done here in case there is only one element!
-      sparse(part).index = kInvalidPart;
-      sparse(part).gain = { kNotCached, kNotCached };
-    }
-
-    Gain gain(const PartitionID part) const {
-      ASSERT(part < _k, V(part));
-      return sparse(part).gain;
-    }
-
-    void update(const PartitionID part, const Gain delta) {
-      // Since we use these in rollback before adding the corresponding part to dense()
-      // we cannot assert that here.
-      // ASSERT(sparse(part).index < _size && dense(sparse(part).index) == part, V(part));
-      ASSERT(part < _k, V(part));
-      sparse(part).gain += delta;
-    }
-
-    void set(const PartitionID part, const Gain gain) {
-      // Since we use these in rollback before adding the corresponding part to dense()
-      // we cannot assert that here.
-      // ASSERT(sparse(part).index < _size && dense(sparse(part).index) == part, V(part));
-      ASSERT(part < _k, V(part));
-      sparse(part).gain = gain;
-    }
-
-    KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool contains(const PartitionID part) const {
-      ASSERT(part < _k, V(part));
-      ASSERT([&]() {
-          const PartitionID index = sparse(part).index;
-          if (index < _size && dense(index) == part && gain(part) == LPGain(kNotCached, kNotCached)) {
-            LOG("contained but invalid gain");
-            LOGVAR(part);
-            return false;
-          }
-          if ((sparse(part).index >= _size ||
-               dense(sparse(part).index) != part) && gain(part) != LPGain(kNotCached, kNotCached)) {
-            LOG("not contained but gain value present");
-            LOGVAR(part);
-            return false;
-          }
-          return true;
-        } (), "Cache Element Inconsistent");
-      return sparse(part).index != kInvalidPart;
-    }
-
-    void clear() {
-      _size = 0;
-      for (PartitionID i = 0; i < _k; ++i) {
-        sparse(i) = { kInvalidPart, { kNotCached, kNotCached } };
-      }
-    }
-
- private:
-    // To avoid code duplication we implement non-const version in terms of const version
-    PartitionID & dense(const PartitionID part) {
-      return const_cast<PartitionID&>(static_cast<const CacheElement&>(*this).dense(part));
-    }
-
-    const PartitionID & dense(const PartitionID part) const {
-      ASSERT(part < _k, V(part));
-      return *(&_size + 1 + part);
-    }
-
-    // To avoid code duplication we implement non-const version in terms of const version
-    Element & sparse(const PartitionID part) {
-      return const_cast<Element&>(static_cast<const CacheElement&>(*this).sparse(part));
-    }
-
-    const Element & sparse(const PartitionID part) const {
-      ASSERT(part < _k, V(part));
-      return reinterpret_cast<const Element*>(&_size + 1 + _k)[part];
-    }
-
-    const PartitionID _k;
-    PartitionID _size;
-    // The cache entries follow after size
-  };
+  using LPCacheElement = CacheElement<LPGain>;
 
  public:
-  static constexpr HyperedgeWeight kNotCached = std::numeric_limits<HyperedgeWeight>::max();
-  static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
+  static constexpr HyperedgeWeight kNotCached = LPCacheElement::kNotCached;
 
   LPGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
@@ -281,7 +109,7 @@ class LPGainCache {
     _deltas() {
     _cache = static_cast<Byte*>(malloc(num_hns * sizeOfCacheElement()));
     for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
-      new(cacheElement(hn))CacheElement(k);
+      new(cacheElement(hn))LPCacheElement(k);
     }
   }
 
@@ -347,7 +175,8 @@ class LPGainCache {
           << "and part " << from_part << " previous cache entry ="
           << cacheElement(moved_hn)->gain(from_part)
           << " now= " << kNotCached);
-      ASSERT(cacheElement(moved_hn)->gain(from_part) == LPGain(kNotCached, kNotCached), V(moved_hn) << V(from_part));
+      ASSERT(cacheElement(moved_hn)->gain(from_part) == LPGain(kNotCached, kNotCached),
+             V(moved_hn) << V(from_part));
     }
     removeEntryDueToConnectivityDecrease(moved_hn, to_part);
   }
@@ -385,28 +214,28 @@ class LPGainCache {
     cacheElement(hn)->update(part, delta);
   }
 
-  const CacheElement & adjacentParts(const HypernodeID hn) const {
+  const LPCacheElement & adjacentParts(const HypernodeID hn) const {
     return *cacheElement(hn);
   }
 
   void clear() {
     for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
-      new(cacheElement(hn))CacheElement(_k);
+      new(cacheElement(hn))LPCacheElement(_k);
     }
   }
 
  private:
-  const CacheElement* cacheElement(const HypernodeID hn) const {
-    return reinterpret_cast<CacheElement*>(_cache + hn * sizeOfCacheElement());
+  const LPCacheElement* cacheElement(const HypernodeID hn) const {
+    return reinterpret_cast<LPCacheElement*>(_cache + hn * sizeOfCacheElement());
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
-  CacheElement* cacheElement(const HypernodeID he) {
-    return const_cast<CacheElement*>(static_cast<const LPGainCache&>(*this).cacheElement(he));
+  LPCacheElement* cacheElement(const HypernodeID he) {
+    return const_cast<LPCacheElement*>(static_cast<const LPGainCache&>(*this).cacheElement(he));
   }
 
   size_t sizeOfCacheElement() const {
-    return sizeof(CacheElement) + _k * sizeof(Element) + _k * sizeof(PartitionID);
+    return sizeof(LPCacheElement) + _k * sizeof(LPCacheElement::Element) + _k * sizeof(PartitionID);
   }
 
   PartitionID _k;
