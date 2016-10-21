@@ -171,8 +171,7 @@ struct XXHash {
   using HashValue = std::uint64_t;
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE uint64_t operator()(const Key k) const {
-    auto local = k;
-    return XXH64(&local, sizeof(Key), _seed);
+    return XXH64(&k, sizeof(Key), _seed);
   }
 
   void reset(const uint64_t seed) {
