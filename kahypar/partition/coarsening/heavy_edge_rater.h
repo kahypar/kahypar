@@ -27,7 +27,6 @@
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/partition/coarsening/rating_tie_breaking_policies.h"
 #include "kahypar/partition/configuration.h"
 
 namespace kahypar {

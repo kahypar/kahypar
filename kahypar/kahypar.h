@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "meta/policy_registry.h"
 #include "meta/registrar.h"
 #include "partition/coarsening/do_nothing_coarsener.h"
