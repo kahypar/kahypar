@@ -20,20 +20,20 @@
 
 #pragma once
 
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/registrar.h"
+#include "kahypar/partition/coarsening/do_nothing_coarsener.h"
+#include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/ml_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
-#include "meta/policy_registry.h"
-#include "meta/registrar.h"
-#include "partition/coarsening/do_nothing_coarsener.h"
-#include "partition/coarsening/full_vertex_pair_coarsener.h"
-#include "partition/coarsening/heavy_edge_rater.h"
-#include "partition/coarsening/lazy_vertex_pair_coarsener.h"
-#include "partition/coarsening/ml_coarsener.h"
-#include "partition/configuration.h"
-#include "partition/factories.h"
-#include "partition/initial_partitioning/initial_partitioning.h"
-#include "partition/metrics.h"
-#include "partition/partitioner.h"
-#include "partition/refinement/do_nothing_refiner.h"
+#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/factories.h"
+#include "kahypar/partition/initial_partitioning/initial_partitioning.h"
+#include "kahypar/partition/metrics.h"
+#include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/refinement/do_nothing_refiner.h"
 
 #define REGISTER_COARSENER(id, coarsener)                              \
   static meta::Registrar<CoarsenerFactory> register_ ## coarsener(     \

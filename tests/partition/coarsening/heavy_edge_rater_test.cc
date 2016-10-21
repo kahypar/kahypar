@@ -24,6 +24,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 
 using::testing::Test;
 using::testing::Eq;

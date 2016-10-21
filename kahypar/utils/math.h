@@ -33,6 +33,8 @@
 #include <utility>
 #include <vector>
 
+#include "kahypar/macros.h"
+
 namespace kahypar {
 namespace math {
 // See: Warren, Henry S. Hacker's Delight (Second Edition), p.61

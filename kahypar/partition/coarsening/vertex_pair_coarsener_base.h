@@ -35,6 +35,7 @@
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
