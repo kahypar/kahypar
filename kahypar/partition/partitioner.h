@@ -515,12 +515,12 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
 
   switch (config.initial_partitioning.tool) {
     case InitialPartitioner::hMetis:
-      io::writeHypergraphForhMetisPartitioning(hg,
-                                               config.partition.coarse_graph_filename, hg_to_hmetis);
+      io::writeHypergraphForhMetisPartitioning(hg, config.partition.coarse_graph_filename,
+                                               hg_to_hmetis);
       break;
     case InitialPartitioner::PaToH:
-      io::writeHypergraphForPaToHPartitioning(hg,
-                                              config.partition.coarse_graph_filename, hg_to_hmetis);
+      io::writeHypergraphForPaToHPartitioning(hg, config.partition.coarse_graph_filename,
+                                              hg_to_hmetis);
       break;
     case InitialPartitioner::KaHyPar:
       break;
@@ -532,11 +532,10 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
   best_partitioning.reserve(hg.currentNumNodes());
 
   HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-  HyperedgeWeight current_cut =
-    std::numeric_limits<HyperedgeWeight>::max();
+  HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
 
   for (int attempt = 0; attempt < config.initial_partitioning.nruns; ++attempt) {
-    int seed = int_dist(generator);
+    const int seed = int_dist(generator);
     std::string initial_partitioner_call;
     switch (config.initial_partitioning.tool) {
       case InitialPartitioner::hMetis:
@@ -546,11 +545,8 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
                                    + std::to_string(seed) + " -ufactor="
                                    + std::to_string(
           config.initial_partitioning.hmetis_ub_factor
-          < 0.1 ?
-          0.1 :
-          config.initial_partitioning.hmetis_ub_factor)
-                                   + (config.partition.verbose_output ?
-                                      "" : " > /dev/null");
+          < 0.1 ? 0.1 : config.initial_partitioning.hmetis_ub_factor)
+                                   + (config.partition.verbose_output ? "" : " > /dev/null");
         break;
       case InitialPartitioner::PaToH:
         initial_partitioner_call = config.initial_partitioning.tool_path + " "
@@ -562,8 +558,7 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
                                    + " UM=U"    // net-cut metric
                                    + " WI=1"    // write partition info
                                    + " BO=C"    // balance on cell weights
-                                   + (config.partition.verbose_output ?
-                                      " OD=2" : " > /dev/null");
+                                   + (config.partition.verbose_output ? " OD=2" : " > /dev/null");
         break;
       case InitialPartitioner::KaHyPar:
         break;
@@ -577,27 +572,24 @@ void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Conf
     ASSERT(partitioning.size() == hg.currentNumNodes(), "Partition file has incorrect size");
 
     current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
-    DBG(dbg_partition_initial_partitioning,
-        "attempt " << attempt << " seed(" << seed << "):" << current_cut
-        << " - balance=" << metrics::imbalance(hg, hg_to_hmetis, partitioning, config));
+    DBG(dbg_partition_initial_partitioning, V(attempt) << V(seed) << V(current_cut)
+        << V(metrics::imbalance(hg, hg_to_hmetis, partitioning, config)));
     Stats::instance().add(config, "initialCut_" + std::to_string(attempt), current_cut);
 
     if (current_cut < best_cut) {
-      DBG(dbg_partition_initial_partitioning,
-          "Attempt " << attempt << " improved initial cut from " << best_cut << " to " << current_cut);
+      DBG(dbg_partition_initial_partitioning, "Attempt " << attempt << " improved initial cut from "
+          << best_cut << " to " << current_cut);
       best_partitioning.swap(partitioning);
       best_cut = current_cut;
     }
     partitioning.clear();
   }
 
-  ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max(),
-         "No min cut calculated");
+  ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max());
   for (size_t i = 0; i < best_partitioning.size(); ++i) {
     hg.setNodePart(hmetis_to_hg[i], best_partitioning[i]);
   }
-  ASSERT(metrics::hyperedgeCut(hg) == best_cut,
-         "Cut induced by hypergraph does not equal " << "best initial cut");
+  ASSERT(metrics::hyperedgeCut(hg) == best_cut);
 }
 
 inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
@@ -798,9 +790,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           // TODO(schlag): find better solution
           if (_internals.empty()) {
-            _internals.append(
-              coarsener->policyString() + " "
-              + refiner->policyString());
+            _internals.append(coarsener->policyString() + " " + refiner->policyString());
           }
 
           if (current_config.partition.verbose_output) {
@@ -821,10 +811,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
 
           hypergraph_stack.back().state =
             RBHypergraphState::partitionedAndPart1Extracted;
-          hypergraph_stack.emplace_back(
-            HypergraphPtr(extractedHypergraph_1.first.release(),
-                          delete_hypergraph),
-            RBHypergraphState::unpartitioned, k1 + km, k2);
+          hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_1.first.release(),
+                                                      delete_hypergraph),
+                                        RBHypergraphState::unpartitioned, k1 + km, k2);
         }
         break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
@@ -833,10 +822,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
               current_hypergraph, 0, original_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
-          hypergraph_stack.emplace_back(
-            HypergraphPtr(extractedHypergraph_0.first.release(),
-                          delete_hypergraph),
-            RBHypergraphState::unpartitioned, k1, k1 + km - 1);
+          hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_0.first.release(),
+                                                      delete_hypergraph),
+                                        RBHypergraphState::unpartitioned, k1, k1 + km - 1);
         }
         break;
     }
@@ -868,8 +856,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   for (int vcycle = 1; vcycle <= config.partition.global_search_iterations; ++vcycle) {
     const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener, *refiner, config);
 
-    DBG(dbg_partition_vcycles,
-        "vcycle # " << vcycle << ": cut=" << metrics::hyperedgeCut(hypergraph));
+    DBG(dbg_partition_vcycles, V(vcycle) << V(metrics::hyperedgeCut(hypergraph)));
     if (!found_improved_cut) {
       LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
       break;
