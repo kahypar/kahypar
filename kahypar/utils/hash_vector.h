@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <fstream>
 #include <random>
-#include <unordered_set>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -194,5 +194,5 @@ class Buckets {
 };
 
 template <typename HashFunc, typename TObject>
-using HashBuckets = Buckets<ds::HashMap<HashFunc, std::unordered_multiset<TObject> > >;
+using HashBuckets = Buckets<ds::HashMap<HashFunc, std::set<TObject> > >;
 }  // namespace kahypar
