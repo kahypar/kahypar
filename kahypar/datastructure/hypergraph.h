@@ -144,7 +144,7 @@ class GenericHypergraph {
     //! Number of nets \f$e \in I(v)\f$ with \f$\lambda(e) > 1 \f$
     HyperedgeID num_incident_cut_hes = 0;
     //! State during local search: inactive/active/marked
-    std::uint32_t state = 0;
+    uint32_t state = 0;
   };
 
   //! A dummy data structure that is used in GenericHypergraph::changeNodePart
@@ -381,7 +381,7 @@ class GenericHypergraph {
 
 
   //! The data type used to incident nets of vertices and pins of nets
-  using VertexID = std::uint32_t;
+  using VertexID = uint32_t;
   //! The data type for hypernodes
   using Hypernode = HypergraphElement<HypernodeTraits, AdditionalHypernodeData>;
   //! The data type for hyperedges
@@ -1563,7 +1563,7 @@ class GenericHypergraph {
 
   //! Resets the state of all hypernodes to inactive and unmarked.
   void resetHypernodeState() {
-    if (_threshold_marked == std::numeric_limits<std::uint32_t>::max()) {
+    if (_threshold_marked == std::numeric_limits<uint32_t>::max()) {
       for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
         hypernode(hn).state = 0;
       }
@@ -1944,9 +1944,9 @@ class GenericHypergraph {
   HypernodeID _current_num_pins;
 
   //! Current threshold value to indicate an active hypernode
-  std::uint32_t _threshold_active;
+  uint32_t _threshold_active;
   //! Current threshold value to indicate a marked hypernode
-  std::uint32_t _threshold_marked;
+  uint32_t _threshold_marked;
 
   //! The hypernodes of the hypergraph
   std::vector<Hypernode> _hypernodes;

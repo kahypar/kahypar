@@ -106,7 +106,7 @@ static inline T hash(const T& x) {
 template <typename Key>
 class MurmurHash {
  public:
-  using HashValue = std::uint64_t;
+  using HashValue = uint64_t;
 
   explicit MurmurHash(const uint32_t seed = 0) :
     _seed(seed)
@@ -168,7 +168,7 @@ class MurmurHash {
 #include "xxhash.h"
 template <typename Key>
 struct XXHash {
-  using HashValue = std::uint64_t;
+  using HashValue = uint64_t;
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE uint64_t operator() (const Key k) const {
     return XXH64(&k, sizeof(Key), _seed);

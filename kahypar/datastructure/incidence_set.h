@@ -167,7 +167,7 @@ class IncidenceSet {
 
   bool contains(const T key) const {
     const Position start_position = math::crc32(key) % _max_sparse_size;
-    const Position before = mod(static_cast<std::uint32_t>(start_position) - 1, _max_sparse_size);
+    const Position before = mod(static_cast<uint32_t>(start_position) - 1, _max_sparse_size);
     for (Position position = start_position; position < _max_sparse_size; position = (position + 1) % _max_sparse_size) {
       if (sparse()[position].first == empty) {
         return false;
@@ -269,7 +269,7 @@ class IncidenceSet {
     return reinterpret_cast<const Element*>(dense() + _max_size + 1);
   }
 
-  std::int32_t mod(std::int32_t a, std::int32_t b) const {
+  int32_t mod(int32_t a, int32_t b) const {
     return (a % b + b) % b;
   }
 

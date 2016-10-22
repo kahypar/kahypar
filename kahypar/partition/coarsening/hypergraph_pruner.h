@@ -293,6 +293,6 @@ class HypergraphPruner {
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;
-  ds::FastResetFlagArray<std::uint64_t> _contained_hypernodes;
+  ds::FastResetFlagArray<uint64_t> _contained_hypernodes;
 };
 }  // namespace kahypar

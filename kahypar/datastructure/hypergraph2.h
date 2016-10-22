@@ -120,7 +120,7 @@ class GenericHypergraph2 {
   struct AdditionalHypernodeData : public HypernodeData {
     PartitionID part_id = kInvalidPartition;
     HyperedgeID num_incident_cut_hes = 0;
-    std::uint32_t state = 0;
+    uint32_t state = 0;
   };
 
   struct Dummy {
@@ -1177,7 +1177,7 @@ class GenericHypergraph2 {
   }
 
   void resetHypernodeState() {
-    if (_threshold_marked == std::numeric_limits<std::uint32_t>::max()) {
+    if (_threshold_marked == std::numeric_limits<uint32_t>::max()) {
       for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
         hypernode(hn).state = 0;
       }
@@ -1462,8 +1462,8 @@ class GenericHypergraph2 {
   HyperedgeID _current_num_hyperedges;
   HypernodeID _current_num_pins;
 
-  std::uint32_t _threshold_active;
-  std::uint32_t _threshold_marked;
+  uint32_t _threshold_active;
+  uint32_t _threshold_marked;
 
   std::vector<HypernodeVertex> _hypernodes;
   std::vector<HyperedgeVertex> _hyperedges;

@@ -34,11 +34,11 @@
 // #define GATHER_STATS
 
 namespace kahypar {
-using HypernodeID = std::uint32_t;
-using HyperedgeID = std::uint32_t;
-using HypernodeWeight = std::uint32_t;
-using HyperedgeWeight = std::int32_t;
-using PartitionID = std::int32_t;
+using HypernodeID = uint32_t;
+using HyperedgeID = uint32_t;
+using HypernodeWeight = uint32_t;
+using HyperedgeWeight = int32_t;
+using PartitionID = int32_t;
 using Gain = HyperedgeWeight;
 
 using Hypergraph = kahypar::ds::GenericHypergraph<HypernodeID,
