@@ -396,9 +396,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   }),
     "Stopping Rule for IP Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
-    " - adaptive1:    new nGP implementation \n"
-    " - adaptive2:    original nGP implementation \n"
-    " - simple:       threshold based on i-r-i\n"
+    " - simple:       ALENEX'16 threshold based on i-r-i\n"
     "(default: simple)")
     ("i-r-fm-stop-i",
     po::value<int>(&config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),

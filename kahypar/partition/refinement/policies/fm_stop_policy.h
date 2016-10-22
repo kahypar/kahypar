@@ -99,55 +99,6 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
   using RandomWalkModel::updateStatistics;
 };
 
-
-class RandomWalkModelStopsSearch : public StoppingPolicy,
-                                   private RandomWalkModel {
- public:
-  bool searchShouldStop(const int, const Configuration& config, const double beta,
-                        const HyperedgeWeight, const HyperedgeWeight) {
-    DBG(false, "step=" << _num_steps);
-    DBG(false, _num_steps << "*" << _Mk << "^2=" << _num_steps * _Mk * _Mk);
-    DBG(false, config.local_search.fm.adaptive_stopping_alpha << "*" << _variance << "+" << beta << "="
-        << config.local_search.fm.adaptive_stopping_alpha * _variance + beta);
-    DBG(false, "return=" << ((_num_steps * _Mk * _Mk >
-                              config.local_search.fm.adaptive_stopping_alpha * _variance + beta) && (_num_steps != 1)));
-    return (_num_steps * _Mk * _Mk > config.local_search.fm.adaptive_stopping_alpha * _variance + beta) && (_num_steps != 1);
-  }
-
-  using RandomWalkModel::resetStatistics;
-  using RandomWalkModel::updateStatistics;
-};
-
-
-class nGPRandomWalkStopsSearch : public StoppingPolicy {
- public:
-  bool searchShouldStop(const int num_moves_since_last_improvement,
-                        const Configuration& config, const double beta,
-                        const HyperedgeWeight best_cut, const HyperedgeWeight cut) {
-    // When statistics are reset best_cut = cut and therefore we should not stop
-    return !!(best_cut - cut) && (num_moves_since_last_improvement
-                                  >= config.local_search.fm.adaptive_stopping_alpha *
-                                  ((_sum_gains_squared * num_moves_since_last_improvement)
-                                   / (2.0 * (static_cast<double>(best_cut) - cut)
-                                      * (static_cast<double>(best_cut) - cut) - 0.5)
-                                   + beta));
-  }
-
-  void resetStatistics() {
-    _sum_gains_squared = 0.0;
-  }
-
-  template <typename Gain>
-  void updateStatistics(const Gain gain) {
-    _sum_gains_squared += gain * gain;
-  }
-
- private:
-  double _sum_gains_squared = 0.0;
-};
-
 using StoppingPolicyClasses = meta::Typelist<NumberOfFruitlessMovesStopsSearch,
-                                             AdvancedRandomWalkModelStopsSearch,
-                                             RandomWalkModelStopsSearch,
-                                             nGPRandomWalkStopsSearch>;
+                                             AdvancedRandomWalkModelStopsSearch>;
 }  // namespace kahypar
