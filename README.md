@@ -97,7 +97,7 @@ If you use KaHyPar-K in an academic setting please cite the following paper:
 Contributing:
 ------------
 If you are interested in contributing to the KaHyPar framework
-feel free to contact any of the authors or create an issue on the
+feel free to contact me or create an issue on the
 [issue tracking system](https://github.com/SebastianSchlag/kahypar/issues).
 
 
