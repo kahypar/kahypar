@@ -37,7 +37,6 @@ class KaHyParK : public::testing::Test {
     config.coarsening.algorithm = CoarseningAlgorithm::ml_style;
     config.coarsening.max_allowed_weight_multiplier = 1;
     config.coarsening.contraction_limit_multiplier = 160;
-    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.initial_partitioning.mode = Mode::recursive_bisection;
     config.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
     config.initial_partitioning.coarsening.algorithm = CoarseningAlgorithm::ml_style;
@@ -68,7 +67,6 @@ class KaHyParR : public::testing::Test {
     config.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
     config.coarsening.max_allowed_weight_multiplier = 3.25;
     config.coarsening.contraction_limit_multiplier = 160;
-    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.initial_partitioning.mode = Mode::direct_kway;
     config.initial_partitioning.technique = InitialPartitioningTechnique::flat;
     config.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
