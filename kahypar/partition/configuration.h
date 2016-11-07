@@ -150,15 +150,12 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
 
 struct InitialPartitioningParameters {
   InitialPartitioningParameters() :
-    tool(InitialPartitioner::KaHyPar),
     mode(Mode::recursive_bisection),
     technique(InitialPartitioningTechnique::flat),
     algo(InitialPartitionerAlgorithm::pool),
     coarsening(),
     local_search(),
     nruns(20),
-    hmetis_ub_factor(-1.0),
-    tool_path(),
     k(2),
     epsilon(0.05),
     upper_allowed_partition_weight(),
@@ -182,20 +179,12 @@ struct InitialPartitioningParameters {
     local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
   }
 
-  InitialPartitioner tool;
   Mode mode;
   InitialPartitioningTechnique technique;
   InitialPartitionerAlgorithm algo;
   CoarseningParameters coarsening;
   LocalSearchParameters local_search;
   int nruns;
-  // If hMetis-R is used as initial partitioner, we have to calculate the
-  // appropriate ub_factor to ensure that the final initial partition is
-  // balanced.
-  double hmetis_ub_factor;
-  // If external tools are used to do initial partitioning, tool_path stores
-  // the path to binary.
-  std::string tool_path;
 
   // The following parameters are only used internally and are not supposed to
   // be changed by the user.
@@ -220,20 +209,14 @@ struct InitialPartitioningParameters {
 inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningParameters& params) {
   str << "---------------------------------------------------------------------" << std::endl;
   str << "Initial Partitioning Parameters:" << std::endl;
-  str << "  Tool:                               " << toString(params.tool) << std::endl;
   str << "  # IP trials:                        " << params.nruns << std::endl;
-  if (params.tool == InitialPartitioner::KaHyPar) {
-    str << "  Mode:                               " << toString(params.mode) << std::endl;
-    str << "  Technique:                          " << toString(params.technique) << std::endl;
-    str << "  Algorithm:                          " << toString(params.algo) << std::endl;
-    str << "IP Coarsening:                        " << std::endl;
-    str << params.coarsening;
-    str << "IP Local Search:                      " << std::endl;
-    str << params.local_search;
-  } else {
-    str << "  IP Path:                            " << params.tool_path << std::endl;
-    str << "  hmetis_ub_factor:                   " << params.hmetis_ub_factor << std::endl;
-  }
+  str << "  Mode:                               " << toString(params.mode) << std::endl;
+  str << "  Technique:                          " << toString(params.technique) << std::endl;
+  str << "  Algorithm:                          " << toString(params.algo) << std::endl;
+  str << "IP Coarsening:                        " << std::endl;
+  str << params.coarsening;
+  str << "IP Local Search:                      " << std::endl;
+  str << params.local_search;
   str << "---------------------------------------------------------------------" << std::endl;
   return str;
 }

@@ -34,12 +34,6 @@ enum class InitialPartitioningTechnique : uint8_t {
   flat
 };
 
-enum class InitialPartitioner : uint8_t {
-  hMetis,
-  PaToH,
-  KaHyPar
-};
-
 enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
@@ -113,18 +107,6 @@ static std::string toString(const InitialPartitioningTechnique& technique) {
       return std::string("flat");
     case InitialPartitioningTechnique::multilevel:
       return std::string("multilevel");
-  }
-  return std::string("UNDEFINED");
-}
-
-static std::string toString(const InitialPartitioner& algo) {
-  switch (algo) {
-    case InitialPartitioner::hMetis:
-      return std::string("hMetis");
-    case InitialPartitioner::PaToH:
-      return std::string("PaToH");
-    case InitialPartitioner::KaHyPar:
-      return std::string("KaHyPar");
   }
   return std::string("UNDEFINED");
 }
@@ -285,19 +267,6 @@ static InitialPartitionerAlgorithm initialPartitioningAlgorithmFromString(const 
   std::cout << "Illegal option:" << mode << std::endl;
   exit(0);
   return InitialPartitionerAlgorithm::greedy_global;
-}
-
-static InitialPartitioner initialPartitionerFromString(const std::string& algo) {
-  if (algo == "hMetis") {
-    return InitialPartitioner::hMetis;
-  } else if (algo == "PaToH") {
-    return InitialPartitioner::PaToH;
-  } else if (algo == "KaHyPar") {
-    return InitialPartitioner::KaHyPar;
-  }
-  std::cout << "Illegal option:" << algo << std::endl;
-  exit(0);
-  return InitialPartitioner::KaHyPar;
 }
 
 static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(const std::string& technique) {

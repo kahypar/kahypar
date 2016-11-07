@@ -78,9 +78,6 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << " coarsening_hypernode_weight_fraction=" << config.coarsening.hypernode_weight_fraction
   << " coarsening_max_allowed_node_weight=" << config.coarsening.max_allowed_node_weight
   << " coarsening_contraction_limit=" << config.coarsening.contraction_limit
-  << " IP_tool=" << toString(config.initial_partitioning.tool)
-  << " IP_tool_path=" << config.initial_partitioning.tool_path
-  << " IP_hmetis_ub_factor=" << config.initial_partitioning.hmetis_ub_factor
   << " IP_mode=" << toString(config.initial_partitioning.mode)
   << " IP_technique=" << toString(config.initial_partitioning.technique)
   << " IP_algorithm=" << toString(config.initial_partitioning.algo)

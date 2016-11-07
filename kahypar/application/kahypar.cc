@@ -58,7 +58,6 @@ using kahypar::InitialPartitionerAlgorithm;
 using kahypar::RefinementStoppingRule;
 using kahypar::GlobalRebalancingMode;
 using kahypar::InitialPartitioningTechnique;
-using kahypar::InitialPartitioner;
 
 int getTerminalWidth() {
   int columns = 0;
@@ -315,17 +314,6 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::options_description ip_options("Initial Partitioning Options", num_columns);
   ip_options.add_options()
-    ("i-type",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& initial_partitioner) {
-    config.initial_partitioning.tool =
-      kahypar::initialPartitionerFromString(initial_partitioner);
-  }),
-    "Initial Partitioner:\n"
-    " - KaHyPar\n"
-    " - hMetis\n"
-    " - PaToH\n"
-    "(default: KaHyPar)")
     ("i-mode",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_mode) {
@@ -411,29 +399,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     }
   }),
     "Max. # local search repetitions on each level \n"
-    "(default:1, no limit:-1)")
-    ("i-path",
-    po::value<std::string>(&config.initial_partitioning.tool_path)->value_name("<string>")->notifier(
-      [&](const std::string& tool_path) {
-    if (tool_path == "-") {
-      switch (config.initial_partitioning.tool) {
-        case InitialPartitioner::hMetis:
-          config.initial_partitioning.tool_path =
-            "/software/hmetis-2.0pre1/Linux-x86_64/hmetis2.0pre1";
-          break;
-        case InitialPartitioner::PaToH:
-          config.initial_partitioning.tool_path =
-            "/software/patoh-Linux-x86_64/Linux-x86_64/patoh";
-          break;
-        case InitialPartitioner::KaHyPar:
-          config.initial_partitioning.tool_path = "-";
-          break;
-      }
-    }
-  }),
-    "Path to hMetis or PaToH binary.\n"
-    "Only necessary if hMetis or PaToH is chosen as initial partitioner.");
-
+    "(default:1, no limit:-1)");
 
   po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()

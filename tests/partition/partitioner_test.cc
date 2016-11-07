@@ -51,7 +51,6 @@ class APartitioner : public Test {
     config.coarsening.contraction_limit = 2;
     config.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     config.coarsening.max_allowed_node_weight = 5;
-    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.partition.graph_filename = "PartitionerTest.hgr";
     config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";

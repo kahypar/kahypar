@@ -72,7 +72,6 @@ class APartitionedHypergraph : public Test {
     config.partition.total_graph_weight = 7;
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "Test";
-    config.initial_partitioning.tool = InitialPartitioner::KaHyPar;
     config.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     config.partition.coarse_graph_filename = "test_coarse.hgr";
     config.partition.coarse_graph_partition_filename = "test_coarse.hgr.part.2";
@@ -83,11 +82,6 @@ class APartitionedHypergraph : public Test {
                                            * config.partition.perfect_balance_part_weights[0];
     config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
                                            * config.partition.perfect_balance_part_weights[1];
-    double exp = 1.0 / log2(config.partition.k);
-    config.initial_partitioning.hmetis_ub_factor =
-      50.0 * (2 * pow((1 + config.partition.epsilon), exp)
-              * pow(ceil(static_cast<double>(config.partition.total_graph_weight)
-                         / config.partition.k) / config.partition.total_graph_weight, exp) - 1);
     partitioner.performPartitioning(hypergraph, *coarsener, *refiner, config);
   }
 

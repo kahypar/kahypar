@@ -163,11 +163,9 @@ class Partitioner {
                                   const Configuration& config);
 
   inline void performInitialPartitioning(Hypergraph& hg, const Configuration& config);
-  inline void initialPartitioningViaExternalTools(Hypergraph& hg, const Configuration& config);
   inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
                                                    CoarsenedToHmetisMapping& hg_to_hmetis,
                                                    const Hypergraph& hg);
-  inline void initialPartitioningViaKaHyPar(Hypergraph& hg, const Configuration& config);
   inline Configuration createConfigurationForInitialPartitioning(const Hypergraph& hg,
                                                                  const Configuration& original_config,
                                                                  double init_alpha) const;
@@ -209,25 +207,8 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
   config.coarsening.max_allowed_node_weight = ceil(config.coarsening.hypernode_weight_fraction
                                                    * config.partition.total_graph_weight);
 
-// We use hMetis-RB as initial partitioner. If called to partition a graph into k parts
-// with an UBfactor of b, the maximal allowed partition size will be 0.5+(b/100)^(log2(k)) n.
-// In order to provide a balanced initial partitioning, we determine the UBfactor such that
-// the maximal allowed partiton size corresponds to our upper bound i.e.
-// (1+epsilon) * ceil(total_weight / k).
-  double exp = 1.0 / log2(config.partition.k);
-  config.initial_partitioning.hmetis_ub_factor =
-    50.0
-    * (2 * pow((1 + config.partition.epsilon), exp)
-       * pow(
-         ceil(
-           static_cast<double>(config.partition.total_graph_weight)
-           / config.partition.k)
-         / config.partition.total_graph_weight,
-         exp) - 1);
-
   // the main partitioner should track stats
   config.partition.collect_stats = true;
-
 
   io::printPartitionerConfiguration(config);
 }
@@ -297,12 +278,73 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
                               config.partition.coarse_graph_filename.find_last_of("/")
                               + 1));
   }
-  if (config.initial_partitioning.tool == InitialPartitioner::hMetis ||
-      config.initial_partitioning.tool == InitialPartitioner::PaToH) {
-    initialPartitioningViaExternalTools(hg, config);
-  } else if (config.initial_partitioning.tool == InitialPartitioner::KaHyPar) {
-    initialPartitioningViaKaHyPar(hg, config);
+
+  std::uniform_int_distribution<int> int_dist;
+  auto extracted_init_hypergraph = ds::reindex(hg);
+  std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
+
+  double init_alpha = config.initial_partitioning.init_alpha;
+  double best_imbalance = std::numeric_limits<double>::max();
+  std::vector<PartitionID> best_imbalanced_partition(
+    extracted_init_hypergraph.first->initialNumNodes(), 0);
+
+  do {
+    extracted_init_hypergraph.first->resetPartitioning();
+    Configuration init_config = Partitioner::createConfigurationForInitialPartitioning(
+      *extracted_init_hypergraph.first, config, init_alpha);
+
+
+    if (config.partition.verbose_output) {
+      LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
+          << " " << toString(config.initial_partitioning.mode) << " "
+          << toString(config.initial_partitioning.algo)
+          << " (k=" << init_config.initial_partitioning.k << ", epsilon="
+          << init_config.initial_partitioning.epsilon << ")");
+    }
+    if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+        config.initial_partitioning.mode == Mode::direct_kway) {
+      // If the direct k-way flat initial partitioner is used we call the
+      // corresponding initial partitioing algorithm, otherwise...
+      std::unique_ptr<IInitialPartitioner> partitioner(
+        InitialPartitioningFactory::getInstance().createObject(
+          config.initial_partitioning.algo,
+          *extracted_init_hypergraph.first, init_config));
+      partitioner->partition(*extracted_init_hypergraph.first,
+                             init_config);
+    } else {
+      // ... we call the partitioner again with the new configuration.
+      partitionInternal(*extracted_init_hypergraph.first, init_config);
+    }
+
+    const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, config);
+    if (imbalance < best_imbalance) {
+      for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+        best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
+      }
+    }
+    init_alpha -= 0.1;
+  } while (metrics::imbalance(*extracted_init_hypergraph.first, config)
+           > config.partition.epsilon && init_alpha > 0.0);
+
+  ASSERT([&]() {
+      for (const HypernodeID hn : hg.nodes()) {
+        if (hg.partID(hn) != -1) {
+          return false;
+        }
+      }
+      return true;
+    } (), "The original hypergraph isn't unpartitioned!");
+
+  // Apply the best balanced partition to the original hypergraph
+  for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+    PartitionID part = extracted_init_hypergraph.first->partID(hn);
+    if (part != best_imbalanced_partition[hn]) {
+      part = best_imbalanced_partition[hn];
+    }
+    hg.setNodePart(mapping[hn], part);
   }
+
+
   Stats::instance().addToTotal(config, "InitialCut", metrics::hyperedgeCut(hg));
 }
 
@@ -495,171 +537,6 @@ inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight origina
   return std::min(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0, 0.99);
 }
 
-void Partitioner::initialPartitioningViaExternalTools(Hypergraph& hg, const Configuration& config) {
-  std::uniform_int_distribution<int> int_dist;
-  std::mt19937 generator(config.partition.seed);
-
-  DBG(dbg_partition_initial_partitioning, "# unconnected hypernodes = " << std::to_string([&]() {
-      HypernodeID count = 0;
-      for (const HypernodeID hn : hg.nodes()) {
-        if (hg.nodeDegree(hn) == 0) {
-          ++count;
-        }
-      }
-      return count;
-    } ()));
-
-  HmetisToCoarsenedMapping hmetis_to_hg(hg.currentNumNodes(), 0);
-  CoarsenedToHmetisMapping hg_to_hmetis;
-  createMappingsForInitialPartitioning(hmetis_to_hg, hg_to_hmetis, hg);
-
-  switch (config.initial_partitioning.tool) {
-    case InitialPartitioner::hMetis:
-      io::writeHypergraphForhMetisPartitioning(hg, config.partition.coarse_graph_filename,
-                                               hg_to_hmetis);
-      break;
-    case InitialPartitioner::PaToH:
-      io::writeHypergraphForPaToHPartitioning(hg, config.partition.coarse_graph_filename,
-                                              hg_to_hmetis);
-      break;
-    case InitialPartitioner::KaHyPar:
-      break;
-  }
-
-  std::vector<PartitionID> partitioning;
-  std::vector<PartitionID> best_partitioning;
-  partitioning.reserve(hg.currentNumNodes());
-  best_partitioning.reserve(hg.currentNumNodes());
-
-  HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-  HyperedgeWeight current_cut = std::numeric_limits<HyperedgeWeight>::max();
-
-  for (int attempt = 0; attempt < config.initial_partitioning.nruns; ++attempt) {
-    const int seed = int_dist(generator);
-    std::string initial_partitioner_call;
-    switch (config.initial_partitioning.tool) {
-      case InitialPartitioner::hMetis:
-        initial_partitioner_call = config.initial_partitioning.tool_path + " "
-                                   + config.partition.coarse_graph_filename + " "
-                                   + std::to_string(config.partition.k) + " -seed="
-                                   + std::to_string(seed) + " -ufactor="
-                                   + std::to_string(
-          config.initial_partitioning.hmetis_ub_factor
-          < 0.1 ? 0.1 : config.initial_partitioning.hmetis_ub_factor)
-                                   + (config.partition.verbose_output ? "" : " > /dev/null");
-        break;
-      case InitialPartitioner::PaToH:
-        initial_partitioner_call = config.initial_partitioning.tool_path + " "
-                                   + config.partition.coarse_graph_filename + " "
-                                   + std::to_string(config.partition.k) + " SD="
-                                   + std::to_string(seed) + " FI="
-                                   + std::to_string(config.partition.epsilon)
-                                   + " PQ=Q"    // quality preset
-                                   + " UM=U"    // net-cut metric
-                                   + " WI=1"    // write partition info
-                                   + " BO=C"    // balance on cell weights
-                                   + (config.partition.verbose_output ? " OD=2" : " > /dev/null");
-        break;
-      case InitialPartitioner::KaHyPar:
-        break;
-    }
-
-    LOG(initial_partitioner_call);
-    LOGVAR(config.initial_partitioning.hmetis_ub_factor);
-    std::system(initial_partitioner_call.c_str());
-
-    io::readPartitionFile(config.partition.coarse_graph_partition_filename, partitioning);
-    ASSERT(partitioning.size() == hg.currentNumNodes(), "Partition file has incorrect size");
-
-    current_cut = metrics::hyperedgeCut(hg, hg_to_hmetis, partitioning);
-    DBG(dbg_partition_initial_partitioning, V(attempt) << V(seed) << V(current_cut)
-        << V(metrics::imbalance(hg, hg_to_hmetis, partitioning, config)));
-    Stats::instance().add(config, "initialCut_" + std::to_string(attempt), current_cut);
-
-    if (current_cut < best_cut) {
-      DBG(dbg_partition_initial_partitioning, "Attempt " << attempt << " improved initial cut from "
-          << best_cut << " to " << current_cut);
-      best_partitioning.swap(partitioning);
-      best_cut = current_cut;
-    }
-    partitioning.clear();
-  }
-
-  ASSERT(best_cut != std::numeric_limits<HyperedgeWeight>::max());
-  for (size_t i = 0; i < best_partitioning.size(); ++i) {
-    hg.setNodePart(hmetis_to_hg[i], best_partitioning[i]);
-  }
-  ASSERT(metrics::hyperedgeCut(hg) == best_cut);
-}
-
-inline void Partitioner::initialPartitioningViaKaHyPar(Hypergraph& hg,
-                                                       const Configuration& config) {
-  std::uniform_int_distribution<int> int_dist;
-  auto extracted_init_hypergraph = ds::reindex(hg);
-  std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
-
-  double init_alpha = config.initial_partitioning.init_alpha;
-  double best_imbalance = std::numeric_limits<double>::max();
-  std::vector<PartitionID> best_imbalanced_partition(
-    extracted_init_hypergraph.first->initialNumNodes(), 0);
-
-  do {
-    extracted_init_hypergraph.first->resetPartitioning();
-    Configuration init_config = Partitioner::createConfigurationForInitialPartitioning(
-      *extracted_init_hypergraph.first, config, init_alpha);
-
-
-    if (config.partition.verbose_output) {
-      LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
-          << " " << toString(config.initial_partitioning.mode) << " "
-          << toString(config.initial_partitioning.algo)
-          << " (k=" << init_config.initial_partitioning.k << ", epsilon="
-          << init_config.initial_partitioning.epsilon << ")");
-    }
-    if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-        config.initial_partitioning.mode == Mode::direct_kway) {
-      // If the direct k-way flat initial partitioner is used we call the
-      // corresponding initial partitioing algorithm, otherwise...
-      std::unique_ptr<IInitialPartitioner> partitioner(
-        InitialPartitioningFactory::getInstance().createObject(
-          config.initial_partitioning.algo,
-          *extracted_init_hypergraph.first, init_config));
-      partitioner->partition(*extracted_init_hypergraph.first,
-                             init_config);
-    } else {
-      // ... we call the partitioner again with the new configuration.
-      partitionInternal(*extracted_init_hypergraph.first, init_config);
-    }
-
-    const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, config);
-    if (imbalance < best_imbalance) {
-      for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
-        best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
-      }
-    }
-    init_alpha -= 0.1;
-  } while (metrics::imbalance(*extracted_init_hypergraph.first, config)
-           > config.partition.epsilon && init_alpha > 0.0);
-
-  ASSERT([&]() {
-      for (const HypernodeID hn : hg.nodes()) {
-        if (hg.partID(hn) != -1) {
-          return false;
-        }
-      }
-      return true;
-    } (), "The original hypergraph isn't unpartitioned!");
-
-  // Apply the best balanced partition to the original hypergraph
-  for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
-    PartitionID part = extracted_init_hypergraph.first->partID(hn);
-    if (part != best_imbalanced_partition[hn]) {
-      part = best_imbalanced_partition[hn];
-    }
-    hg.setNodePart(mapping[hn], part);
-  }
-}
-
 inline Configuration Partitioner::createConfigurationForCurrentBisection(const Configuration& original_config,
                                                                          const Hypergraph& original_hypergraph,
                                                                          const Hypergraph& current_hypergraph,
@@ -702,15 +579,6 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
   current_config.coarsening.max_allowed_node_weight = ceil(
     current_config.coarsening.hypernode_weight_fraction
     * current_config.partition.total_graph_weight);
-
-  current_config.initial_partitioning.hmetis_ub_factor =
-    100.0
-    * ((1 + current_config.partition.epsilon)
-       * (ceil(
-            static_cast<double>(current_config.partition.total_graph_weight)
-            / current_config.partition.k)
-          / current_config.partition.total_graph_weight)
-       - 0.5);
 
   current_config.partition.coarse_graph_partition_filename =
     current_config.partition.coarse_graph_filename + ".part."
