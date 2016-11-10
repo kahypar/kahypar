@@ -257,6 +257,10 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<bool>(&config.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
+   ("p-sparsifier-min-median-he-size",
+    po::value<HypernodeID>(&config.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
+    "Minimum median hyperedge size necessary for sparsifier application \n"
+    "(default: 28)")
     ("p-sparsifier-max-hyperedge-size",
     po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
     "Max hyperedge size allowed considered by sparsifier")

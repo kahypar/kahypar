@@ -37,7 +37,7 @@ struct MinHashSparsifierParameters {
   uint32_t min_cluster_size = 2;
   uint32_t num_hash_functions = 5;
   uint32_t combined_num_hash_functions = 100;
-  uint32_t min_median_he_size = 28;
+  HypernodeID min_median_he_size = 28;
   bool is_active = false;
 };
 
