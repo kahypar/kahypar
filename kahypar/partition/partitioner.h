@@ -237,6 +237,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
   ASSERT(config.preprocessing.enable_min_hash_sparsifier);
   LOG("Before sparsification: hypernodes = " << hypergraph.initialNumNodes());
   LOG("Before sparsification: hyperedges = " << hypergraph.initialNumEdges());
+  LOG("Before sparsification: pins = " << hypergraph.initialNumPins());
 
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   sparseHypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
@@ -246,6 +247,11 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
 
   LOG("After sparsification: hypernodes = " << sparseHypergraph.initialNumNodes());
   LOG("After sparsification: hyperedges = " << sparseHypergraph.initialNumEdges());
+  LOG("After sparsification: pins = " << sparseHypergraph.initialNumPins());
+  if (config.partition.verbose_output) {
+    kahypar::io::printHypergraphInfo(sparseHypergraph, "sparsified hypergraph");
+  }
+
 }
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration& config) {
