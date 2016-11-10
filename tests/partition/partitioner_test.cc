@@ -53,8 +53,6 @@ class APartitioner : public Test {
     config.coarsening.max_allowed_node_weight = 5;
     config.partition.graph_filename = "PartitionerTest.hgr";
     config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
-    config.partition.coarse_graph_filename = "PartitionerTest_coarse.hgr";
-    config.partition.coarse_graph_partition_filename = "PartitionerTest_coarse.hgr.part.2";
     config.partition.epsilon = 0.15;
     config.partition.k = 2;
     config.partition.rb_lower_k = 0;

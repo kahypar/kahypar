@@ -273,10 +273,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseH
 
 inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
   if (config.partition.verbose_output) {
-    io::printHypergraphInfo(hg,
-                            config.partition.coarse_graph_filename.substr(
-                              config.partition.coarse_graph_filename.find_last_of("/")
-                              + 1));
+    io::printHypergraphInfo(hg, "Coarsened Hypergraph");
   }
 
   std::uniform_int_distribution<int> int_dist;
@@ -580,9 +577,6 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
     current_config.coarsening.hypernode_weight_fraction
     * current_config.partition.total_graph_weight);
 
-  current_config.partition.coarse_graph_partition_filename =
-    current_config.partition.coarse_graph_filename + ".part."
-    + std::to_string(current_config.partition.k);
   return current_config;
 }
 

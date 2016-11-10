@@ -243,9 +243,7 @@ struct PartitioningParameters {
     verbose_output(false),
     collect_stats(false),
     graph_filename(),
-    graph_partition_filename(),
-    coarse_graph_filename(),
-    coarse_graph_partition_filename() { }
+    graph_partition_filename() { }
 
   Mode mode;
   Objective objective;
@@ -266,16 +264,12 @@ struct PartitioningParameters {
 
   std::string graph_filename;
   std::string graph_partition_filename;
-  std::string coarse_graph_filename;
-  std::string coarse_graph_partition_filename;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
   str << "KaHyPar Partitioning Parameters:" << std::endl;
   str << "  Hypergraph:                         " << params.graph_filename << std::endl;
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
-  str << "  Coarsened Hypergraph:               " << params.coarse_graph_filename << std::endl;
-  str << "  Coarsened Partition File:           " << params.coarse_graph_partition_filename << std::endl;
   str << "  Mode:                               " << toString(params.mode) << std::endl;
   str << "  Objective:                          " << toString(params.objective) << std::endl;
   str << "  k:                                  " << params.k << std::endl;

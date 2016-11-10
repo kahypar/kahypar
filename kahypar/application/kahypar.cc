@@ -186,17 +186,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("hypergraph,h",
     po::value<std::string>(&config.partition.graph_filename)->value_name("<string>")->required()->notifier(
       [&](const std::string&) {
-    config.partition.coarse_graph_filename =
-      std::string("/tmp/PID_")
-      + std::to_string(getProcessID()) + std::string("_coarse_")
-      + config.partition.graph_filename.substr(
-        config.partition.graph_filename.find_last_of("/") + 1);
     config.partition.graph_partition_filename =
       config.partition.graph_filename + ".part."
       + std::to_string(config.partition.k) + ".KaHyPar";
-    config.partition.coarse_graph_partition_filename =
-      config.partition.coarse_graph_filename + ".part."
-      + std::to_string(config.partition.k);
   }),
     "Hypergraph filename")
     ("blocks,k",
@@ -537,9 +529,6 @@ int main(int argc, char* argv[]) {
   kahypar::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
   kahypar::io::writePartitionFile(hypergraph,
                                   config.partition.graph_partition_filename);
-
-  std::remove(config.partition.coarse_graph_filename.c_str());
-  std::remove(config.partition.coarse_graph_partition_filename.c_str());
 
   kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
   return 0;

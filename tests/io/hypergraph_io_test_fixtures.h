@@ -228,8 +228,6 @@ class APartitionOfAHypergraph : public Test {
     _config.coarsening.max_allowed_node_weight = 5;
     _config.partition.graph_filename = "APartitionOfAHypergraphTest";
     _config.partition.graph_partition_filename = "APartitionOfAHypergraphTest.hgr.part.2.KaHyPar";
-    _config.partition.coarse_graph_filename = "APartitionOfAHypergraphTest_coarse.hgr";
-    _config.partition.coarse_graph_partition_filename = "APartitionOfAHypergraphTest_coarse.hgr.part.2";
     _config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
     _config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
     _config.partition.max_part_weights[0] = (1 + _config.partition.epsilon)
