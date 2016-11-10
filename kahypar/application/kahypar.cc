@@ -39,6 +39,7 @@
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
+#include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
 
 namespace po = boost::program_options;
@@ -253,7 +254,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::options_description preprocessing_options("Preprocessing Options", num_columns);
   preprocessing_options.add_options()
     ("p-use-sparsifier",
-    po::value<bool>(&config.preprocessing.use_min_hash_sparsifier)->value_name("<bool>"),
+    po::value<bool>(&config.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
     ("p-sparsifier-max-hyperedge-size",
@@ -506,6 +507,20 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
+
+  if (config.preprocessing.enable_min_hash_sparsifier) {
+    // determine whether or not to apply the sparsifier
+    std::vector<HypernodeID> he_sizes;
+    he_sizes.reserve(hypergraph.currentNumEdges());
+    for (auto he : hypergraph.edges()) {
+      he_sizes.push_back(hypergraph.edgeSize(he));
+    }
+    std::sort(he_sizes.begin(), he_sizes.end());
+    if (kahypar::math::median(he_sizes) >=
+        config.preprocessing.min_hash_sparsifier.min_median_he_size) {
+      config.preprocessing.min_hash_sparsifier.is_active = true;
+    }
+  }
 
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(hypergraph,

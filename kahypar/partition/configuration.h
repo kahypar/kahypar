@@ -38,10 +38,11 @@ struct MinHashSparsifierParameters {
   uint32_t num_hash_functions = 5;
   uint32_t combined_num_hash_functions = 100;
   uint32_t min_median_he_size = 28;
+  bool is_active = false;
 };
 
 struct PreprocessingParameters {
-  bool use_min_hash_sparsifier = false;
+  bool enable_min_hash_sparsifier = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
@@ -59,21 +60,23 @@ inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParam
   << params.num_hash_functions << std::endl;
   str << "  number of combined hash functions:  "
   << params.combined_num_hash_functions << std::endl;
-  str << "  active at median net size:          "
-  << params.min_median_he_size;
+  str << "  active at median net size >=:       "
+  << params.min_median_he_size << std::endl;
+  str << "  sparsifier is active:               " << std::boolalpha
+  << params.is_active;
   return str;
 }
 
 
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
   str << "Preprocessing Parameters:" << std::endl;
-  str << "  use min hash sparsifier:            " << std::boolalpha
-  << params.use_min_hash_sparsifier << std::endl;
+  str << "  enable min hash sparsifier:         " << std::boolalpha
+  << params.enable_min_hash_sparsifier << std::endl;
   str << "  remove parallel HEs:                " << std::boolalpha
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
   << params.remove_always_cut_hes << std::endl;
-  if (params.use_min_hash_sparsifier) {
+  if (params.enable_min_hash_sparsifier) {
     str << "---------------------------------------------------------------------" << std::endl;
     str << params.min_hash_sparsifier << std::endl;
   }

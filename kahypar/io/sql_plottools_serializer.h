@@ -56,8 +56,8 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << " L_opt1=" << config.partition.perfect_balance_part_weights[1]
   << " L_max0=" << config.partition.max_part_weights[0]
   << " L_max1=" << config.partition.max_part_weights[1]
-  << " pre_use_min_hash_sparsifier=" << std::boolalpha
-  << config.preprocessing.use_min_hash_sparsifier
+  << " pre_enable_min_hash_sparsifier=" << std::boolalpha
+  << config.preprocessing.enable_min_hash_sparsifier
   << " pre_remove_parallel_hes=" << std::boolalpha
   << config.preprocessing.remove_parallel_hes
   << " pre_remove_always_cut_hes=" << std::boolalpha
@@ -71,6 +71,11 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << " pre_min_hash_num_hash_functions="
   << config.preprocessing.min_hash_sparsifier.num_hash_functions
   << " pre_min_hash_combined_num_hash_functions="
+  << config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
+  << " pre_min_sparsifier_is_active="
+  << config.preprocessing.min_hash_sparsifier.is_active
+  << " pre_min_sparsifier_activation_median_he_size="
+  << config.preprocessing.min_hash_sparsifier.min_median_he_size
   << config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
   << " coarsening_algo=" << toString(config.coarsening.algorithm)
   << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier

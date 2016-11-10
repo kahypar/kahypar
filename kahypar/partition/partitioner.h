@@ -234,7 +234,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration&
 inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
                                     const Configuration& config) {
   preprocess(hypergraph, config);
-  ASSERT(config.preprocessing.use_min_hash_sparsifier);
+  ASSERT(config.preprocessing.enable_min_hash_sparsifier);
   LOG("Before sparsification: hypernodes = " << hypergraph.initialNumNodes());
   LOG("Before sparsification: hyperedges = " << hypergraph.initialNumEdges());
 
@@ -262,7 +262,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
                                      const Configuration& config) {
-  ASSERT(config.preprocessing.use_min_hash_sparsifier);
+  ASSERT(config.preprocessing.enable_min_hash_sparsifier);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   _pin_sparsifier.applyPartition(sparseHypergraph, hypergraph);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -442,7 +442,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config) {
   setupConfig(hypergraph, config);
 
-  if (config.preprocessing.use_min_hash_sparsifier) {
+  if (config.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, config);
     partitionInternal(sparseHypergraph, config);
