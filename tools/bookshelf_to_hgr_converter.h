@@ -1,0 +1,122 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+
+#pragma once
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <regex>
+#include <vector>
+#include <unordered_map>
+
+#include "kahypar/macros.h"
+#include "kahypar/definitions.h"
+
+using kahypar::HypernodeID;
+
+static inline void convertBookshelfToHgr(const std::string& bookshelf_source_filename,
+                                         const std::string& hgr_target_filename) {
+  std::ifstream bookshelf_stream(bookshelf_source_filename);
+  std::string line;
+
+  // get header line
+  std::getline(bookshelf_stream, line);
+  if (line != "UCLA nets 1.0") {
+    std::cout << "File has wrong header" << std::endl;
+    std::exit(-1);
+  }
+
+  // skip any comments
+  std::getline(bookshelf_stream, line);
+  while (line[0] == '#') {
+    std::getline(bookshelf_stream, line);
+    std::cout << line << std::endl;
+  }
+
+  // get number of nets and number of pins
+  std::getline(bookshelf_stream, line);
+  ALWAYS_ASSERT(line.find("NumNets") != std::string::npos,"Error");
+  const uint32_t num_hyperedges = std::stoi(line.substr(line.find_last_of(" ")+1));
+  std::getline(bookshelf_stream, line);
+  const uint32_t num_pins = std::stoi(line.substr(line.find_last_of(" ")+1));
+
+  std::cout << V(num_hyperedges) << std::endl;
+  std::cout << V(num_pins) << std::endl;
+
+  //skip empty line
+  std::getline(bookshelf_stream, line);
+
+  std::unordered_map<std::string,HypernodeID> node_to_hn;
+  std::vector<std::vector<HypernodeID>> hyperedges;
+
+  const std::regex digit_regex("[[:digit:]]+");
+  const std::regex pin_regex("(o|p)[[:digit:]]+");
+  std::smatch match;
+
+  HypernodeID num_hypernodes = 0;
+  while (std::getline(bookshelf_stream, line)) {
+    ALWAYS_ASSERT(line.substr(0,9) == "NetDegree", "Error");
+    // new hyperedge
+    hyperedges.emplace_back(std::vector<HypernodeID>());
+    std::regex_search(line, match, digit_regex);
+    const HypernodeID he_size = std::stoi(match.str());
+    for (HypernodeID i = 0; i < he_size; ++i) {
+      std::getline(bookshelf_stream, line);
+      std::regex_search(line, match, pin_regex);
+      const auto entry = node_to_hn.find(match.str());
+      if(entry != node_to_hn.end()) {
+        ALWAYS_ASSERT(entry->second < num_hypernodes, "Error");
+        hyperedges.back().push_back(entry->second);
+      } else {
+        hyperedges.back().push_back(num_hypernodes);
+        node_to_hn[match.str()] = num_hypernodes++;
+      }
+    }
+  }
+
+  bookshelf_stream.close();
+
+  // sanity check
+  ALWAYS_ASSERT(num_hyperedges == hyperedges.size(), "wrong # HEs");
+  ALWAYS_ASSERT([&](){
+      size_t pins = 0;
+      for (const auto& he : hyperedges) {
+        pins += he.size();
+      }
+      return pins;
+    }() == num_pins, "wrong # pins");
+
+  std::ofstream out_stream(hgr_target_filename.c_str());
+  out_stream << num_hyperedges << " " << num_hypernodes << std::endl;
+  for (const auto& hyperedge : hyperedges) {
+    ALWAYS_ASSERT(!hyperedge.empty(), "Instance contains empty hypereges");
+    for (auto pin_iter = hyperedge.cbegin(); pin_iter != hyperedge.cend(); ++pin_iter) {
+      // hgr format is 1-based;
+      out_stream << (*pin_iter + 1);
+      if (pin_iter + 1 != hyperedge.end()) {
+        out_stream << " ";
+      }
+    }
+    out_stream << std::endl;
+  }
+  out_stream.close();
+}
