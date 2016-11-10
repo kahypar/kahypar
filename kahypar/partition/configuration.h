@@ -37,6 +37,7 @@ struct MinHashSparsifierParameters {
   uint32_t min_cluster_size = 2;
   uint32_t num_hash_functions = 5;
   uint32_t combined_num_hash_functions = 100;
+  uint32_t min_median_he_size = 28;
 };
 
 struct PreprocessingParameters {
@@ -58,6 +59,8 @@ inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParam
   << params.num_hash_functions << std::endl;
   str << "  number of combined hash functions:  "
   << params.combined_num_hash_functions << std::endl;
+  str << "  active at median net size:          "
+  << params.min_median_he_size;
   return str;
 }
 
@@ -70,7 +73,10 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
   << params.remove_always_cut_hes << std::endl;
-  str << params.min_hash_sparsifier << std::endl;
+  if (params.use_min_hash_sparsifier) {
+    str << "---------------------------------------------------------------------" << std::endl;
+    str << params.min_hash_sparsifier << std::endl;
+  }
   return str;
 }
 
