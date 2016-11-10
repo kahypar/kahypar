@@ -76,7 +76,6 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << config.preprocessing.min_hash_sparsifier.is_active
   << " pre_min_sparsifier_activation_median_he_size="
   << config.preprocessing.min_hash_sparsifier.min_median_he_size
-  << config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
   << " coarsening_algo=" << toString(config.coarsening.algorithm)
   << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
   << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier
