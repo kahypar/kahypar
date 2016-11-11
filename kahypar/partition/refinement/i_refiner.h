@@ -48,15 +48,9 @@ class IRefiner {
                       best_metrics);
   }
 
-#ifdef USE_BUCKET_PQ
   void initialize(const HyperedgeWeight max_gain) {
     initializeImpl(max_gain);
   }
-#else
-  void initialize() {
-    initializeImpl();
-  }
-#endif
 
   std::string policyString() const {
     return policyStringImpl();
@@ -74,11 +68,7 @@ class IRefiner {
                           const UncontractionGainChanges& uncontraction_changes,
                           Metrics& best_metrics) = 0;
 
-#ifdef USE_BUCKET_PQ
   virtual void initializeImpl(const HyperedgeWeight) = 0;
-#else
-  virtual void initializeImpl() = 0;
-#endif
 
   virtual std::string policyStringImpl() const = 0;
 };

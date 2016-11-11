@@ -67,19 +67,11 @@ class AKwayFMRefiner : public Test {
 using AKwayFMRefinerDeathTest = AKwayFMRefiner;
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation) {
-#ifdef USE_BUCKET_PQ
   ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
-#else
-  ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
-#endif
 }
 
 TEST_F(AKwayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInducedGainComputation) {
-#ifdef USE_BUCKET_PQ
   ASSERT_DEBUG_DEATH(refiner->initialize(100), ".*");
-#else
-  ASSERT_DEBUG_DEATH(refiner->initialize(), ".*");
-#endif
 }
 
 TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
@@ -91,11 +83,7 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
   refiner->_hg.activate(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);

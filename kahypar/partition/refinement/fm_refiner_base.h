@@ -23,6 +23,7 @@
 #include <limits>
 #include <vector>
 
+#include "kahypar/datastructure/bucket_queue.h"
 #include "kahypar/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration.h"
@@ -49,8 +50,18 @@ class FMRefinerBase {
     locked = std::numeric_limits<PartitionID>::max(),
   };
 
+#ifdef USE_BUCKET_QUEUE
+  using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
+                                                 std::numeric_limits<Gain>,
+                                                 false,
+                                                 ds::EnhancedBucketQueue<HypernodeID,
+                                                                         Gain,
+                                                                         std::numeric_limits<Gain>
+                                                                         > >;
+#else
   using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                                  std::numeric_limits<Gain> >;
+#endif
 
 
   FMRefinerBase(Hypergraph& hypergraph, const Configuration& config) :

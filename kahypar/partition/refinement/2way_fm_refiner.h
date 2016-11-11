@@ -143,37 +143,21 @@ class TwoWayFMRefiner final : public IRefiner,
   FRIEND_TEST(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputation);
   FRIEND_TEST(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive);
 
-#ifdef USE_BUCKET_PQ
   void initializeImpl(const HyperedgeWeight max_gain) override final {
     if (!_is_initialized) {
+#ifdef USE_BUCKET_QUEUE
       _pq.initialize(_hg.initialNumNodes(), max_gain);
-      _is_initialized = true;
-    }
-    if (UseGlobalRebalancing) {
-      _rebalance_pqs[0].clear();
-      _rebalance_pqs[1].clear();
-    }
-    _gain_cache.clear();
-    for (const HypernodeID hn : _hg.nodes()) {
-      _gain_cache.setValue(hn, computeGain(hn));
-      if (UseGlobalRebalancing) {
-        _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache.value(hn));
-      }
-      ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
-             << V(_gain_cache.value(hn)) << V(computeGain(hn)));
-    }
-  }
 #else
-  void initializeImpl() override final {
-    if (!_is_initialized) {
+      (void)max_gain;
       _pq.initialize(_hg.initialNumNodes());
+#endif
       _is_initialized = true;
     }
-    _gain_cache.clear();
     if (UseGlobalRebalancing()) {
       _rebalance_pqs[0].clear();
       _rebalance_pqs[1].clear();
     }
+    _gain_cache.clear();
     for (const HypernodeID hn : _hg.nodes()) {
       _gain_cache.setValue(hn, computeGain(hn));
       if (UseGlobalRebalancing()) {
@@ -183,7 +167,6 @@ class TwoWayFMRefiner final : public IRefiner,
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
     }
   }
-#endif
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const HypernodeWeightArray& max_allowed_part_weights,

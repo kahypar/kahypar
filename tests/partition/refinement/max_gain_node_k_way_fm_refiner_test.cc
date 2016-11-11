@@ -53,11 +53,7 @@ class AMaxGainNodeKWayFMRefiner : public Test {
     config.local_search.fm.max_number_of_fruitless_moves = 50;
     config.partition.total_graph_weight = 8;
     refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
-#ifdef USE_BUCKET_PQ
     refiner->initialize(100);
-#else
-    refiner->initialize();
-#endif
   }
 
   Configuration config;
@@ -93,11 +89,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesGainOfHypernodeMoves) {
   hypergraph->setNodePart(7, 2);
   hypergraph->setNodePart(8, 1);
   hypergraph->initializeNumCutHyperedges();
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   // positive gain
   ASSERT_THAT(refiner->computeMaxGainMove(1).first, Eq(2));
@@ -141,11 +133,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
     * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   refiner->moveHypernode(7, 3, 2);
   ASSERT_THAT(hypergraph->partID(7), Eq(2));
@@ -186,7 +174,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, PerformsMovesThatDontLeadToImbalancedPartition
   config.partition.max_part_weights[1] = 0;
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
+#ifdef USE_BUCKET_QUEUE
   refiner->initialize(100);
 #else
   refiner->initialize();
@@ -232,11 +220,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectGainValues) {
     * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(2).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(2).second, Eq(0));
@@ -273,11 +257,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ComputesCorrectConnectivityDecreaseValues) {
     * config.partition.perfect_balance_part_weights[1];
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(0));
 }
@@ -316,11 +296,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ChoosesMaxGainMoveHNWithHighesConnectivityDecr
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(3).first, Eq(0));
   ASSERT_THAT(refiner->computeMaxGainMove(3).second, Eq(2));
@@ -350,11 +326,7 @@ TEST_F(AMaxGainNodeKWayFMRefiner, ConsidersSingleNodeHEsDuringGainComputation) {
   hypergraph->initializeNumCutHyperedges();
 
   refiner.reset(new KWayFMRefinerSimpleStopping(*hypergraph, config));
-#ifdef USE_BUCKET_PQ
   refiner->initialize(100);
-#else
-  refiner->initialize();
-#endif
 
   ASSERT_THAT(refiner->computeMaxGainMove(0).first, Eq(1));
   ASSERT_THAT(refiner->computeMaxGainMove(0).second, Eq(1));

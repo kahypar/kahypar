@@ -94,7 +94,22 @@ class InitialPartitionerBase {
                      _hg, _config));
       }
 
-      refiner->initialize();
+#ifdef USE_BUCKET_QUEUE
+      HyperedgeID max_degree = 0;
+      for (const HypernodeID hn : _hg.nodes()) {
+        max_degree = std::max(max_degree, _hg.nodeDegree(hn));
+      }
+      HyperedgeWeight max_he_weight = 0;
+      for (const HyperedgeID he : _hg.edges()) {
+        max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
+      }
+      LOGVAR(max_degree);
+      LOGVAR(max_he_weight);
+      refiner->initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
+#else
+      refiner->initialize(0);
+#endif
+
       std::vector<HypernodeID> refinement_nodes;
       Metrics current_metrics = { metrics::hyperedgeCut(_hg),
                                   metrics::km1(_hg),

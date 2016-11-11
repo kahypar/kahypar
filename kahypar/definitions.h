@@ -28,7 +28,7 @@
 // #include "datastructure/GenericHypergraph2.h"
 
 // Use bucket PQ for FM refinement.
-// #define USE_BUCKET_PQ
+// #define USE_BUCKET_QUEUE
 
 // Gather advanced statistics
 // #define GATHER_STATS

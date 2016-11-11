@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "kahypar/datastructure/binary_heap.h"
-#include "kahypar/datastructure/bucket_queue.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
@@ -36,13 +35,10 @@ namespace ds {
 template <typename IDType = Mandatory,
           typename KeyType = Mandatory,
           typename MetaKey = Mandatory,
-          bool UseRandomTieBreaking = false>
+          bool UseRandomTieBreaking = false,
+          class Queue = BinaryMaxHeap<IDType, KeyType> >
 class KWayPriorityQueue {
-#ifdef USE_BUCKET_PQ
-  using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
-#else
-  using Queue = BinaryMaxHeap<IDType, KeyType>;
-#endif
+  // using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
 
   static constexpr size_t kInvalidIndex = std::numeric_limits<size_t>::max();
   static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();

@@ -48,7 +48,8 @@ class ACoarsenerBase : public Test {
     config(),
     coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
     refiner(new DoNothingRefiner()) {
-    refiner->initialize();
+    refiner->initialize(999999);
+
     config.partition.epsilon = 0.3;
     config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
     config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
@@ -197,7 +198,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
-  refiner->initialize();
+  refiner->initialize(999999);
 
   coarsener.coarsen(2);
   hypergraph.setNodePart(0, 0);
@@ -238,7 +239,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   config.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
-  refiner->initialize();
+  refiner->initialize(999999);
 
   coarsener.coarsen(2);
 
