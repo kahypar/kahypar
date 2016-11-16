@@ -80,20 +80,27 @@ static inline void writeHGRFile(const Hyperedges& hyperedges,
                                 const uint64_t num_hyperedges,
                                 const uint64_t num_hypernodes,
                                 const std::string& hgr_target_filename) {
-  ALWAYS_ASSERT(hyperedges.size() == num_hyperedges, V(num_hyperedges));
   std::ofstream out_stream(hgr_target_filename.c_str());
   out_stream << num_hyperedges << " " << num_hypernodes << std::endl;
+  uint64_t num_nonempty_hes = 0;
   for (const auto& hyperedge : hyperedges) {
-    ALWAYS_ASSERT(!hyperedge.empty(), "SAT instance contains empty hypereges");
-    for (auto pin_iter = hyperedge.cbegin(); pin_iter != hyperedge.cend(); ++pin_iter) {
-      out_stream << *pin_iter;
-      if (pin_iter + 1 != hyperedge.end()) {
-        out_stream << " ";
+    if (!hyperedge.empty()) {
+      for (auto pin_iter = hyperedge.cbegin(); pin_iter != hyperedge.cend(); ++pin_iter) {
+        out_stream << *pin_iter;
+        if (pin_iter + 1 != hyperedge.end()) {
+          out_stream << " ";
+        }
       }
+      out_stream << std::endl;
+      ++num_nonempty_hes;
     }
-    out_stream << std::endl;
   }
   out_stream.close();
+  if (num_nonempty_hes != num_hyperedges) {
+    std::remove(hgr_target_filename.c_str());
+    std::cerr << "Hypergraph contained empty hyperedges" << std::endl;
+    exit(-1);
+  }
 }
 
 static inline void convertToLiteral(std::ifstream& cnf_file,
@@ -139,20 +146,18 @@ static inline void convertToT(std::ifstream& cnf_file,
                               const uint64_t num_variables,
                               const uint64_t num_clauses,
                               const std::string& hgr_target_filename) {
-  uint64_t num_hypernodes = 0;
   uint64_t num_hyperedges = 0;
-
   if (std::is_same<T, PrimalRepresentationTag>::value) {
-    num_hypernodes = num_variables;
     num_hyperedges = num_clauses;
   } else if (std::is_same<T, DualRepresentationTag>::value) {
-    num_hypernodes = num_clauses;
     num_hyperedges = num_variables;
   }
 
   Hyperedges hyperedges(num_hyperedges);
+  std::unordered_map<uint64_t, uint64_t> hypernode_map;
 
   int64_t literal = 0;
+  uint64_t num_hypernodes = 0;
   std::string line;
   // parse hyperedges
   for (uint32_t i = 0; i < num_clauses; ++i) {
@@ -162,12 +167,28 @@ static inline void convertToT(std::ifstream& cnf_file,
       if (literal != 0) {
         const uint64_t variable = std::abs(literal);
         ALWAYS_ASSERT(variable <= num_variables, V(variable));
+        if (hypernode_map.find(variable) == hypernode_map.end()) {
+          ++num_hypernodes;
+          hypernode_map[variable] = num_hypernodes;
+        }
         if (std::is_same<T, PrimalRepresentationTag>::value) {
-          hyperedges[i].push_back(variable);
+          hyperedges[i].push_back(hypernode_map[variable]);
         } else if (std::is_same<T, DualRepresentationTag>::value) {
           // internally HE-IDs start with 0, while HN-IDs start with 1
-          hyperedges[variable - 1].push_back(i + 1);
+          hyperedges[hypernode_map[variable] - 1].push_back(i + 1);
         }
+      }
+    }
+  }
+
+  // in dual representation, the number of hypernodes equals the number of clauses
+  if (std::is_same<T, DualRepresentationTag>::value) {
+    num_hypernodes = num_clauses;
+    // since hyperedges corresponding to unused variable ids might be empty,
+    // we adjust the number of hyperedges accordingly
+    for (const auto& hyperedge : hyperedges) {
+      if (hyperedge.empty()) {
+        --num_hyperedges;
       }
     }
   }

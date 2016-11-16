@@ -38,7 +38,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoLiteralHypergraphRepres
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 8);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
-  ASSERT_EQ(hypergraph.currentNumEdges(), 3);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 3);
 
   std::vector<HypernodeID> pins_he_0({ 0, 1, 2 });
   size_t i = 0;
@@ -68,22 +68,22 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoPrimalHypergraphReprese
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 5);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
-  ASSERT_EQ(hypergraph.currentNumEdges(), 3);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 3);
 
-  std::vector<HypernodeID> pins_he_0({ 0, 1, 4 });
+  std::vector<HypernodeID> pins_he_0({ 0, 1, 2 });
   size_t i = 0;
   for (const HypernodeID pin : hypergraph.pins(0)) {
     ASSERT_EQ(pin, pins_he_0[i++]);
   }
 
   i = 0;
-  std::vector<HypernodeID> pins_he_1({ 2, 3 });
+  std::vector<HypernodeID> pins_he_1({ 3, 4 });
   for (const HypernodeID pin : hypergraph.pins(1)) {
     ASSERT_EQ(pin, pins_he_1[i++]);
   }
 
   i = 0;
-  std::vector<HypernodeID> pins_he_2({ 0, 1, 3 });
+  std::vector<HypernodeID> pins_he_2({ 0, 1, 4 });
   for (const HypernodeID pin : hypergraph.pins(2)) {
     ASSERT_EQ(pin, pins_he_2[i++]);
   }
@@ -98,7 +98,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoDualHypergraphRepresent
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 3);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
-  ASSERT_EQ(hypergraph.currentNumEdges(), 5);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 5);
 
   const std::vector<HypernodeID> pins_he_0({ 0, 2 });
   size_t i = 0;
@@ -113,21 +113,112 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoDualHypergraphRepresent
   }
 
   i = 0;
-  const std::vector<HypernodeID> pins_he_2({ 1 });
+  const std::vector<HypernodeID> pins_he_2({ 0 });
   for (const HypernodeID pin : hypergraph.pins(2)) {
     ASSERT_EQ(pin, pins_he_2[i++]);
   }
 
   i = 0;
-  const std::vector<HypernodeID> pins_he_3({ 1, 2 });
+  const std::vector<HypernodeID> pins_he_3({ 1 });
   for (const HypernodeID pin : hypergraph.pins(3)) {
     ASSERT_EQ(pin, pins_he_3[i++]);
   }
 
   i = 0;
-  const std::vector<HypernodeID> pins_he_4({ 0 });
+  const std::vector<HypernodeID> pins_he_4({ 1, 2 });
   for (const HypernodeID pin : hypergraph.pins(4)) {
     ASSERT_EQ(pin, pins_he_4[i++]);
+  }
+}
+
+TEST(ACnfToHgrConversionRoutine, IgnoresMissingVariablesInPrimalRepresentation) {
+  std::string cnf_filename("test_instances/SampleSAT_missing_variables.cnf");
+  std::string hgr_filename("test_instances/SampleSAT_missing_variables.cnf.hgr");
+  convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Primal);
+
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+
+  ASSERT_EQ(hypergraph.initialNumNodes(), 8);
+  ASSERT_EQ(hypergraph.initialNumPins(), 10);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 3);
+
+  const std::vector<HypernodeID> pins_he_0({ 0, 1, 2 });
+  size_t i = 0;
+  for (const HypernodeID pin : hypergraph.pins(0)) {
+    ASSERT_EQ(pin, pins_he_0[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_1({ 3, 4, 5 });
+  for (const HypernodeID pin : hypergraph.pins(1)) {
+    ASSERT_EQ(pin, pins_he_1[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_2({ 6, 1, 0, 7 });
+  for (const HypernodeID pin : hypergraph.pins(2)) {
+    ASSERT_EQ(pin, pins_he_2[i++]);
+  }
+}
+
+
+TEST(ACnfToHgrConversionRoutine, IgnoresMissingVariablesInDualRepresentation) {
+  std::string cnf_filename("test_instances/SampleSAT_missing_variables.cnf");
+  std::string hgr_filename("test_instances/SampleSAT_missing_variables.cnf.hgr");
+  convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Dual);
+
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+
+  ASSERT_EQ(hypergraph.initialNumNodes(), 3);
+  ASSERT_EQ(hypergraph.initialNumPins(), 10);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 8);
+
+  const std::vector<HypernodeID> pins_he_0({ 0, 2 });
+  size_t i = 0;
+  for (const HypernodeID pin : hypergraph.pins(0)) {
+    ASSERT_EQ(pin, pins_he_0[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_1({ 0, 2 });
+  for (const HypernodeID pin : hypergraph.pins(1)) {
+    ASSERT_EQ(pin, pins_he_1[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_2({ 0 });
+  for (const HypernodeID pin : hypergraph.pins(2)) {
+    ASSERT_EQ(pin, pins_he_2[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_3({ 1 });
+  for (const HypernodeID pin : hypergraph.pins(3)) {
+    ASSERT_EQ(pin, pins_he_3[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_4({ 1 });
+  for (const HypernodeID pin : hypergraph.pins(4)) {
+    ASSERT_EQ(pin, pins_he_4[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_5({ 1 });
+  for (const HypernodeID pin : hypergraph.pins(5)) {
+    ASSERT_EQ(pin, pins_he_5[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_6({ 2 });
+  for (const HypernodeID pin : hypergraph.pins(6)) {
+    ASSERT_EQ(pin, pins_he_6[i++]);
+  }
+
+  i = 0;
+  const std::vector<HypernodeID> pins_he_7({ 2 });
+  for (const HypernodeID pin : hypergraph.pins(7)) {
+    ASSERT_EQ(pin, pins_he_7[i++]);
   }
 }
 }  // namespace cnfconversion
