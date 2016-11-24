@@ -163,6 +163,7 @@ class IncidenceSet {
     swap(_end, other._end);
     swap(_size, other._size);
     swap(_max_size, other._max_size);
+    swap(_max_sparse_size, other._max_sparse_size);
   }
 
   bool contains(const T key) const {

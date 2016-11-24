@@ -170,6 +170,7 @@ TEST(AnSmallIncidenceSet, GrowsAutomatically) {
   size_t i = 0;
   for (const auto& element : sparse_map) {
     ASSERT_THAT(element, Eq(w[i++]));
+    ASSERT_TRUE(sparse_map.contains(element));
   }
 }
 
@@ -216,7 +217,6 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
 ///////////////////////////////////////////////
 // simulate contraction of (0,4)
 ///////////////////////////////////////////////
-  const HyperedgeID old_size_0 = hypernodes[0]->size();
   for (const HyperedgeID he : incident_edges_4) {
     LOG("looking at HE " << he);
     if (!hyperedges[he]->contains(0)) {
