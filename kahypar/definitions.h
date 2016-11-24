@@ -68,11 +68,19 @@ static kahypar::IncidenceIterator end(const std::pair<kahypar::IncidenceIterator
   return x.second;
 }
 
-// static const HypernodeID* begin(std::pair<const HypernodeID*, const HypernodeID*>& x) {
+// static const kahypar::HypernodeID* begin(std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
 //   return x.first;
 // }
 
-// static const HypernodeID* end(std::pair<const HypernodeID*, const HypernodeID*>& x) {
+// static const kahypar::HypernodeID* end(std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
+//   return x.second;
+// }
+
+// static const kahypar::HypernodeID* begin(const std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
+//   return x.first;
+// }
+
+// static const kahypar::HypernodeID* end(const std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
 //   return x.second;
 // }
 }  // namespace std
