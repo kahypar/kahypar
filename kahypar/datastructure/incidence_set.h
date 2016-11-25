@@ -42,6 +42,7 @@ class IncidenceSet {
     _dense(nullptr),
     _end(nullptr),
     _sparse(nullptr),
+    _size(0),
     _max_sparse_size(0) {
     const size_t internal_size = math::nextPowerOfTwoCeiled(max_size + 1);
     _max_sparse_size = InitialSizeFactor * internal_size;
@@ -78,6 +79,7 @@ class IncidenceSet {
     _dense(other._dense),
     _end(other._end),
     _sparse(other._sparse),
+    _size(other._size),
     _max_sparse_size(other._max_sparse_size) {
     other._end = nullptr;
     other._sparse = nullptr;
@@ -90,9 +92,10 @@ class IncidenceSet {
       resize();
     }
 
-    insert(element, _end - _dense);
+    insert(element, _size);
     *_end = element;
     ++_end;
+    ++_size;
   }
 
   void insertIfNotContained(const T element) {
@@ -102,9 +105,10 @@ class IncidenceSet {
   }
 
   void undoRemoval(const T element) {
-    insert(element, _end - _dense);
+    insert(element, _size);
     *_end = element;
     ++_end;
+    ++_size;
   }
 
   void remove(const T v) {
@@ -119,6 +123,7 @@ class IncidenceSet {
     // delete v
     sparse_v.first = deleted;
     --_end;
+    --_size;
   }
 
   // reuse position of v to store u
@@ -135,7 +140,7 @@ class IncidenceSet {
     sparse_v.first = deleted;
 
     // add u at v's place in dense
-    insert(u, _end - _dense - 1);
+    insert(u, _size - 1);
     *(_end - 1) = u;
   }
 
@@ -163,6 +168,7 @@ class IncidenceSet {
     swap(_dense, other._dense);
     swap(_end, other._end);
     swap(_sparse, other._sparse);
+    swap(_size, other._size);
     swap(_max_sparse_size, other._max_sparse_size);
   }
 
@@ -197,7 +203,7 @@ class IncidenceSet {
   }
 
   T size() const {
-    return _end - _dense;
+    return _size;
   }
 
   const T* begin() const {
@@ -284,6 +290,7 @@ class IncidenceSet {
   T* _dense;
   T* _end;
   Element* _sparse;
+  T _size;
   T _max_sparse_size;
 };
 }  // namespace ds
