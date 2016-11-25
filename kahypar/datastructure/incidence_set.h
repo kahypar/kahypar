@@ -256,7 +256,7 @@ class IncidenceSet {
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Position startPosition(const T key) const {
     ASSERT((_max_sparse_size & (_max_sparse_size - 1)) == 0,
            V(_max_sparse_size) << "is no power of 2");
-    return math::crc32(key) & (_max_sparse_size - 1);
+    return math::identity(key) & (_max_sparse_size - 1);
   }
 
   size_t sizeOfDense(const size_t max_size) const {

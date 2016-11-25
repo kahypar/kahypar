@@ -94,6 +94,11 @@ static inline T crc32(const T& x) {
 }
 
 template <typename T>
+static inline T identity(const T& x) {
+  return x;
+}
+
+template <typename T>
 static inline T cs2(const T& x) {
   return x * x;
 }
