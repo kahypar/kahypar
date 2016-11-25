@@ -62,6 +62,9 @@ class IncidenceSet {
     }
   }
 
+  IncidenceSet() :
+    IncidenceSet(5) { }
+
   ~IncidenceSet() {
     free(_dense);
   }
