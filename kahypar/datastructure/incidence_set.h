@@ -170,7 +170,9 @@ class IncidenceSet {
       return true;
     } else {
       // We use the element key at start_position as sentinel for the
-      // circular linear probing search.
+      // circular linear probing search. The sentinel is necessary,
+      // because we cannot ensure that there always is at least one
+      // empty slot. All 'unused' slots can potentially be marked as deleted.
       _sparse[start_position].first = key;
       Position position = nextPosition(start_position);
       for ( ; ; ) {
