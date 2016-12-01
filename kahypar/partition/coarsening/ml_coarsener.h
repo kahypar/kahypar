@@ -140,9 +140,7 @@ class MLCoarsener final : public ICoarsener,
         }
       }
     }
-    if (_tmp_ratings.contains(u)) {
-      _tmp_ratings.remove(u);
-    }
+    ASSERT(!_tmp_ratings.contains(u), V(u));
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
