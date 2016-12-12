@@ -347,8 +347,15 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
     hg.setNodePart(mapping[hn], part);
   }
 
-
-  Stats::instance().addToTotal(config, "InitialCut", metrics::hyperedgeCut(hg));
+  switch (config.partition.objective) {
+    case Objective::cut:
+      Stats::instance().addToTotal(config, "initialCut", metrics::hyperedgeCut(hg));
+      break;
+    case Objective::km1:
+      Stats::instance().addToTotal(config, "initialKm1", metrics::km1(hg));
+      break;
+  }
+  Stats::instance().addToTotal(config, "initialImbalance", metrics::imbalance(hg, config));
 }
 
 inline Configuration Partitioner::createConfigurationForInitialPartitioning(const Hypergraph& hg,
