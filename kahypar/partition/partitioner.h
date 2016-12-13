@@ -324,6 +324,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
       for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
         best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
       }
+      best_imbalance = imbalance;
     }
     init_alpha -= 0.1;
   } while (metrics::imbalance(*extracted_init_hypergraph.first, config)
