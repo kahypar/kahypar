@@ -91,7 +91,7 @@ If you use KaHyPar-K in an academic setting please cite the following paper:
                   Sebastian Schlag},
      title     = {Engineering a direct \emph{k}-way Hypergraph Partitioning Algorithm},
      booktitle = {19th Workshop on Algorithm Engineering and Experiments, (ALENEX 2017)},
-     pages     = {tba},
+     pages     = {28--42},
      year      = {2017},
     }
 
