@@ -487,11 +487,20 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
+
+
+  std::string epsilon_str = std::to_string (config.partition.epsilon);
+  epsilon_str.erase(epsilon_str.find_last_not_of('0')+  1, std::string::npos);
+
   config.partition.graph_partition_filename =
-    config.partition.graph_filename + ".part"
-    + std::to_string(config.partition.k) + "."
-    + std::to_string(std::round(config.partition.epsilon * 100)) + "."
-    + std::to_string(config.partition.seed) + ".KaHyPar";
+    config.partition.graph_filename
+      + ".part"
+      + std::to_string(config.partition.k)
+      + ".epsilon"
+      + epsilon_str
+      + ".seed"
+      + std::to_string(config.partition.seed)
+      + ".KaHyPar";
 }
 
 int main(int argc, char* argv[]) {
