@@ -187,9 +187,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("hypergraph,h",
     po::value<std::string>(&config.partition.graph_filename)->value_name("<string>")->required()->notifier(
       [&](const std::string&) {
-    config.partition.graph_partition_filename =
-      config.partition.graph_filename + ".part."
-      + std::to_string(config.partition.k) + ".KaHyPar";
+
   }),
     "Hypergraph filename")
     ("blocks,k",
@@ -492,6 +490,12 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
+  int epsilonhelp = std::round(config.partition.epsilon * 100);
+  config.partition.graph_partition_filename =
+    config.partition.graph_filename + ".part"
+    + std::to_string(config.partition.k) + "."
+    + std::to_string(epsilonhelp) + "."
+    + std::to_string(config.partition.seed) + ".KaHyPar";
 }
 
 int main(int argc, char* argv[]) {
