@@ -20,17 +20,17 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <regex>
-#include <vector>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
-#include "kahypar/macros.h"
 #include "kahypar/definitions.h"
+#include "kahypar/macros.h"
 
 using kahypar::HypernodeID;
 
@@ -55,10 +55,10 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
 
   // get number of nets and number of pins
   std::getline(bookshelf_stream, line);
-  ALWAYS_ASSERT(line.find("NumNets") != std::string::npos,"Error");
-  const uint32_t num_hyperedges = std::stoi(line.substr(line.find_last_of(" ")+1));
+  ALWAYS_ASSERT(line.find("NumNets") != std::string::npos, "Error");
+  const uint32_t num_hyperedges = std::stoi(line.substr(line.find_last_of(" ") + 1));
   std::getline(bookshelf_stream, line);
-  const uint32_t num_pins = std::stoi(line.substr(line.find_last_of(" ")+1));
+  const uint32_t num_pins = std::stoi(line.substr(line.find_last_of(" ") + 1));
 
   std::cout << V(num_hyperedges) << std::endl;
   std::cout << V(num_pins) << std::endl;
@@ -66,8 +66,8 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
   //skip empty line
   std::getline(bookshelf_stream, line);
 
-  std::unordered_map<std::string,HypernodeID> node_to_hn;
-  std::vector<std::vector<HypernodeID>> hyperedges;
+  std::unordered_map<std::string, HypernodeID> node_to_hn;
+  std::vector<std::vector<HypernodeID> > hyperedges;
 
   // since netlists can contain nets with duplicate pins
   // we use this set to make sure that we have each pin only
@@ -82,7 +82,7 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
   HypernodeID num_actual_pins = 0;
   HypernodeID num_duplicate_pins = 0;
   while (std::getline(bookshelf_stream, line)) {
-    ALWAYS_ASSERT(line.substr(0,9) == "NetDegree", "Error");
+    ALWAYS_ASSERT(line.substr(0, 9) == "NetDegree", "Error");
     // new hyperedge
     hyperedges.emplace_back(std::vector<HypernodeID>());
     contained_pins.clear();
@@ -95,7 +95,7 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
       std::regex_search(line, match, pin_regex);
       const auto entry = node_to_hn.find(match.str());
 
-      if(entry != node_to_hn.end()) {
+      if (entry != node_to_hn.end()) {
         ALWAYS_ASSERT(entry->second < num_hypernodes, "Error");
         if (contained_pins.find(entry->second) == contained_pins.end()) {
           hyperedges.back().push_back(entry->second);

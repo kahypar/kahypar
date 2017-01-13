@@ -252,7 +252,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<bool>(&config.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
-   ("p-sparsifier-min-median-he-size",
+    ("p-sparsifier-min-median-he-size",
     po::value<HypernodeID>(&config.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
     "Minimum median hyperedge size necessary for sparsifier application \n"
     "(default: 28)")
@@ -489,18 +489,18 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::notify(cmd_vm);
 
 
-  std::string epsilon_str = std::to_string (config.partition.epsilon);
-  epsilon_str.erase(epsilon_str.find_last_not_of('0')+  1, std::string::npos);
+  std::string epsilon_str = std::to_string(config.partition.epsilon);
+  epsilon_str.erase(epsilon_str.find_last_not_of('0') + 1, std::string::npos);
 
   config.partition.graph_partition_filename =
     config.partition.graph_filename
-      + ".part"
-      + std::to_string(config.partition.k)
-      + ".epsilon"
-      + epsilon_str
-      + ".seed"
-      + std::to_string(config.partition.seed)
-      + ".KaHyPar";
+    + ".part"
+    + std::to_string(config.partition.k)
+    + ".epsilon"
+    + epsilon_str
+    + ".seed"
+    + std::to_string(config.partition.seed)
+    + ".KaHyPar";
 }
 
 int main(int argc, char* argv[]) {

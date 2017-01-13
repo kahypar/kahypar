@@ -533,8 +533,8 @@ class InsertOnlyHashMap {
       }
     }
 
-     std::cerr << "hash table overflowed" << std::endl;
-     std::exit(-1);
+    std::cerr << "hash table overflowed" << std::endl;
+    std::exit(-1);
   }
 
   const Position _num_specials = 1;
@@ -743,8 +743,8 @@ class HashSet {
       }
     }
 
-     std::cerr << "hash table overflowed" << std::endl;
-     std::exit(-1);
+    std::cerr << "hash table overflowed" << std::endl;
+    std::exit(-1);
   }
 
   const Position _num_specials = 2;
@@ -909,8 +909,8 @@ class InsertOnlyHashSet {
       }
     }
 
-     std::cerr << "hash table overflowed" << std::endl;
-     std::exit(-1);
+    std::cerr << "hash table overflowed" << std::endl;
+    std::exit(-1);
   }
 
   const Position _num_specials = 2;

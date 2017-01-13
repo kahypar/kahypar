@@ -56,7 +56,7 @@
 // arises.
 template <size_t size>
 class TypeWithSize {
-  public:
+ public:
   // This prevents the user from using TypeWithSize<N> with incorrect
   // values of N.
   typedef void UInt;
@@ -65,7 +65,7 @@ class TypeWithSize {
 // The specialization for size 4.
 template <>
 class TypeWithSize<4>{
-  public:
+ public:
   // unsigned int has size 4 in both gcc and MSVC.
   //
   // As base/basictypes.h doesn't compile on Windows, we cannot use
@@ -77,7 +77,7 @@ class TypeWithSize<4>{
 // The specialization for size 8.
 template <>
 class TypeWithSize<8>{
-  public:
+ public:
 #if GTEST_OS_WINDOWS
   typedef __int64 Int;
   typedef unsigned __int64 UInt;
@@ -119,7 +119,7 @@ class TypeWithSize<8>{
 //   RawType: the raw floating-point type (either float or double)
 template <typename RawType>
 class FloatingPoint {
-  public:
+ public:
   // Defines the unsigned integer type that has the same size as the
   // floating point number.
   typedef typename TypeWithSize<sizeof(RawType)>::UInt Bits;
@@ -220,7 +220,7 @@ class FloatingPoint {
            <= kMaxUlps;
   }
 
-  private:
+ private:
   // The data type used to store the actual floating-point number.
   union FloatingPointUnion {
     RawType value_;     // The raw floating-point number.

@@ -251,7 +251,6 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(sparseHypergraph, "sparsified hypergraph");
   }
-
 }
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration& config) {

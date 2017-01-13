@@ -138,7 +138,7 @@ class ConnectivitySets final {
     other._k = 0;
     other._connectivity_sets = nullptr;
     return *this;
-  };
+  }
 
   void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
     _k = k;

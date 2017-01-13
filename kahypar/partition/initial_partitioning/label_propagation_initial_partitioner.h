@@ -96,7 +96,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           }
         }
         return true;
-      }());
+      } ());
 
     bool converged = false;
     size_t iterations = 0;
