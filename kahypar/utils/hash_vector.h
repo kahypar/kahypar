@@ -152,7 +152,7 @@ class Buckets {
   static_assert(std::is_integral<HashValue>::value, "HashFunc value should be of integral type");
   static_assert(std::is_integral<TObject>::value, "Object should be of integral type");
 
-  Buckets(const size_t capacity) :
+  explicit Buckets(const size_t capacity) :
     _buckets() {
     _buckets.reserve(capacity);
   }
@@ -163,7 +163,7 @@ class Buckets {
 
   auto getObjects(const HashValue hash_value) {
     return std::make_pair(_buckets[hash_value].begin(), _buckets[hash_value].end());
-  };
+  }
 
   size_t getBucketSize(const HashValue hash_value) const {
     return _buckets[hash_value].size();

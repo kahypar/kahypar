@@ -708,7 +708,7 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
   ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
   ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
 
-  for (const HyperedgeID he: extr_part0.first->edges()) {
+  for (const HyperedgeID he : extr_part0.first->edges()) {
     ASSERT_THAT(extr_part0.first->connectivity(he), Eq(0));
   }
 

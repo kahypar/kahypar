@@ -39,4 +39,4 @@ TEST(NearestMultipleOf, WorksAsExpected) {
   ASSERT_THAT(nearestMultipleOf(65, 64), Eq(128));
 }
 }  // namespace math
-}  // namespace patition
+}  // namespace kahypar

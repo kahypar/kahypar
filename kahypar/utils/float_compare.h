@@ -1,5 +1,7 @@
 #ifndef EXTERNAL_UTILS_H_
 #define EXTERNAL_UTILS_H_
+#include <limits>
+
 // taken from http://stackoverflow.com/questions/17333/most-effective-way-for-float-and-double-comparison
 
 // Copyright 2005, Google Inc.

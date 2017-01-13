@@ -68,7 +68,7 @@ TEST(AnInsertOnlySparseSet, HandlesThresholdOverflow) {
 
   sparse_set._threshold = std::numeric_limits<PartitionID>::max() - 1;
   sparse_set.clear();
-  ASSERT_TRUE(sparse_set._threshold == 0);
+  ASSERT_EQ(sparse_set._threshold, 0);
   ASSERT_FALSE(sparse_set.contains(5));
 }
 
