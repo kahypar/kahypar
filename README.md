@@ -62,7 +62,7 @@ We encourage you to report any problems with KaHyPar via the [github issue track
 Licensing:
 ---------
 
-KaHyPar is free software provided under the GNU General Public License (GPLv3). 
+KaHyPar is free software provided under the GNU General Public License (GPLv3).
 For more information see the [COPYING file][CF].
 
 We distribute this framework freely to foster the use and development of hypergraph partitioning tools. 
