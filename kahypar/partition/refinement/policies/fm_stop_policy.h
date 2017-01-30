@@ -90,7 +90,7 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
     static double factor = (config.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
     DBG(false, V(_num_steps) << " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
         << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
-    const bool ret = _Mk > 0 ? false : (_num_steps > beta) &&
+    const bool ret = (_num_steps > beta) &&
                      ((_Mk == 0) || (_num_steps >= (_variance / (_Mk * _Mk)) * factor));
     DBG(false, "return=" << ret);
     return ret;
