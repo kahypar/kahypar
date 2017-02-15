@@ -95,7 +95,7 @@ public:
             HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed_seconds = end - start;
             LOG("Louvain-Pass #" << iteration << " Time: " << elapsed_seconds.count() << "s");
-            improvement = cur_quality - old_quality > _config.preprocessing.min_eps_improvement || max_iterations == 2;
+            improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement || max_iterations == 2;
             
             LOG("Louvain-Pass #" << iteration << " improve quality from " << old_quality << " to " << cur_quality);
             
@@ -239,7 +239,7 @@ private:
             
             LOG("Iteration #" << iterations << ": Moving " << node_moves << " nodes to new communities.");
             
-        } while(node_moves > 0 && iterations < _config.preprocessing.max_louvain_pass_iterations);
+        } while(node_moves > 0 && iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
         
 
         return quality.quality();

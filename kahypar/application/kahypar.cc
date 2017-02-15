@@ -282,25 +282,25 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " of the weight of their pins \n"
     "(default: false)")
     ("p-use-louvain",
-     po::value<bool>(&config.preprocessing.use_louvain)->value_name("<bool>"),
+     po::value<bool>(&config.preprocessing.enable_louvain_community_detection)->value_name("<bool>"),
      "Using louvain community detection for coarsening\n"
      "(default: false)")
     ("p-use-louvain-in-ip",
-     po::value<bool>(&config.preprocessing.use_louvain_in_ip)->value_name("<bool>"),
+     po::value<bool>(&config.preprocessing.louvain_community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
      "Using louvain community detection for coarsening during initial partitioning\n"
      "(default: false)")
     ("p-max-louvain-pass-iterations",
-     po::value<int>(&config.preprocessing.max_louvain_pass_iterations)->value_name("<int>"),
+     po::value<int>(&config.preprocessing.louvain_community_detection.max_pass_iterations)->value_name("<int>"),
      "Maximum number of iterations over all nodes of one louvain pass\n"
      "(default: 100)")
     ("p-min-eps-improvement",
-     po::value<long double>(&config.preprocessing.min_eps_improvement)->value_name("<long double>"),
+     po::value<long double>(&config.preprocessing.louvain_community_detection.min_eps_improvement)->value_name("<long double>"),
      "Minimum improvement of quality during a louvain pass which leads to further passes\n"
      "(default: 0.001)")
     ("p-louvain-edge-weight",
      po::value<std::string>()->value_name("<string>")->notifier(
          [&](const std::string& ptype) {
-             config.preprocessing.louvain_edge_weight = kahypar::edgeWeightFromString(ptype);
+             config.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
          }),
      "Weights:\n"
      " - hybrid \n"
@@ -309,7 +309,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
      " - degree \n"
      "(default: hybrid)")
     ("p-louvain-use-bipartite-graph",
-     po::value<bool>(&config.preprocessing.louvain_use_bipartite_graph)->value_name("<bool>"),
+     po::value<bool>(&config.preprocessing.louvain_community_detection.use_bipartite_graph)->value_name("<bool>"),
      "If true, hypergraph is transformed into bipartite graph. If false, hypergraph is transformed into clique graph.\n"
      "(default: true)");
 
@@ -567,16 +567,16 @@ int main(int argc, char* argv[]) {
     }
   }
   
-  if(config.preprocessing.use_louvain && config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::hybrid) {
+  if(config.preprocessing.enable_louvain_community_detection && config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
       double density = static_cast<double>(hypergraph.initialNumEdges())/static_cast<double>(hypergraph.initialNumNodes());
       if(density < 0.75) {
-          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::degree;
+          config.preprocessing.louvain_community_detection.edge_weight  = LouvainEdgeWeight::degree;
       }
       else if(density >= 0.75 && density <= 1.25) {
-          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::uniform;
+          config.preprocessing.louvain_community_detection.edge_weight  = LouvainEdgeWeight::uniform;
       }
       else {
-          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::uniform;
+          config.preprocessing.louvain_community_detection.edge_weight  = LouvainEdgeWeight::uniform;
       }
   }
 

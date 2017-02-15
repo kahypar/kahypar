@@ -45,7 +45,7 @@ public:
                           hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                                    HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
                                    config() { 
-        config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::non_uniform;
+        config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
         louvain = std::make_shared<Louvain<Modularity>>(hypergraph,config);
     }
                    
@@ -77,7 +77,7 @@ public:
                             edges.push_back(e);
                         }
                    }
-                   config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::non_uniform;
+                   config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
                    graph = std::make_shared<Graph>(adj_array,edges,config);
                    louvain = std::make_shared<Louvain<Modularity>>(*graph,config);
                }
@@ -93,7 +93,7 @@ public:
                            hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                                  HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
                            graph(nullptr) { 
-        config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::non_uniform;     
+        config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;     
         graph = std::make_shared<Graph>(hypergraph,config);
         modularity = std::make_shared<Modularity>(*graph,config);
     }

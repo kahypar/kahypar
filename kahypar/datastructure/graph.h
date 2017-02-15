@@ -103,7 +103,7 @@ class Graph {
 public:
     
     Graph(const Hypergraph& hypergraph, const Configuration& config) 
-                                        : _N(hypergraph.currentNumNodes()+(config.preprocessing.louvain_use_bipartite_graph ? hypergraph.currentNumEdges() : 0)),
+    : _N(hypergraph.currentNumNodes()+(config.preprocessing.louvain_community_detection.use_bipartite_graph ? hypergraph.currentNumEdges() : 0)),
                                           _config(config), _adj_array(_N+1), _nodes(_N), _shuffleNodes(_N), _edges(), 
                                           _selfloop(_N,0.0L), _weightedDegree(_N,0.0L), _cluster_id(_N), _cluster_size(_N,1), _num_comm(_N),
                                           _incidentClusterWeight(_N,IncidentClusterWeight(0,0.0L)),
@@ -112,7 +112,7 @@ public:
         std::iota(_nodes.begin(),_nodes.end(),0);
         std::iota(_shuffleNodes.begin(),_shuffleNodes.end(),0);
         std::iota(_cluster_id.begin(),_cluster_id.end(),0);
-        if(_config.preprocessing.louvain_use_bipartite_graph) {
+        if(_config.preprocessing.louvain_community_detection.use_bipartite_graph) {
             constructBipartiteGraph(hypergraph);
         }
         else {
@@ -447,11 +447,11 @@ private:
             for(HyperedgeID he : hg.incidentEdges(hn)) {
                 Edge e;
                 e.targetNode = _hypernodeMapping[N + he];
-                if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::degree) {
+                if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::degree) {
                     e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he))*static_cast<EdgeWeight>(hg.nodeDegree(hn)))/
                                static_cast<EdgeWeight>(hg.edgeSize(he));
                 }
-                else if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::non_uniform) {
+                else if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::non_uniform) {
                     e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he)))/
                                static_cast<EdgeWeight>(hg.edgeSize(he));
                 } else {
@@ -468,11 +468,11 @@ private:
            for(HypernodeID hn : hg.pins(he)) {
                 Edge e;
                 e.targetNode = _hypernodeMapping[hn];
-                if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::degree) {
+                if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::degree) {
                     e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he))*static_cast<EdgeWeight>(hg.nodeDegree(hn)))/
                                static_cast<EdgeWeight>(hg.edgeSize(he));
                 }
-                else if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::non_uniform) {
+                else if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::non_uniform) {
                     e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he)))/
                                static_cast<EdgeWeight>(hg.edgeSize(he));
                 } else {
@@ -558,12 +558,12 @@ private:
                     if(hn == pin) continue;
                     Edge e; NodeID v = _hypernodeMapping[pin];
                     e.targetNode = v;
-                    if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::degree) {
+                    if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::degree) {
                         e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he)*hg.nodeDegree(hn))/
                         (static_cast<EdgeWeight>(hg.edgeSize(he)
                         *(static_cast<EdgeWeight>(hg.edgeSize(he)-1.0)/2.0)));
                     }
-                    else if(_config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::non_uniform) {
+                    else if(_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::non_uniform) {
                         e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he))/
                         (static_cast<EdgeWeight>(hg.edgeSize(he)
                         *(static_cast<EdgeWeight>(hg.edgeSize(he)-1.0)/2.0)));

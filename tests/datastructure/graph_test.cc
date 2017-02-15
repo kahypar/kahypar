@@ -43,7 +43,7 @@ public:
     ABipartiteGraph() : graph(nullptr), config(),
                         hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                                    HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { 
-        config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::non_uniform;
+        config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
         graph = std::make_shared<Graph>(hypergraph,config);
     }
                    
@@ -57,8 +57,8 @@ public:
     ACliqueGraph() : graph(nullptr), config(),
                         hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                                    HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) { 
-        config.preprocessing.louvain_use_bipartite_graph = false;
-        config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::non_uniform;
+        config.preprocessing.louvain_community_detection.use_bipartite_graph = false;
+        config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
         graph = std::make_shared<Graph>(hypergraph,config);
     }
                    

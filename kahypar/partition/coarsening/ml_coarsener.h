@@ -85,7 +85,7 @@ class MLCoarsener final : public ICoarsener,
     std::vector<HypernodeID> current_hns;
     ds::FastResetFlagArray<> already_matched(_hg.initialNumNodes());
     
-    if(_config.preprocessing.use_louvain) {
+    if(_config.preprocessing.enable_louvain_community_detection) {
         performLouvainCommunityDetection();
     }
     
