@@ -49,7 +49,7 @@ struct PreprocessingParameters {
   
   //Louvain-Configuration
   bool use_louvain = false;
-  bool use_louvain_in_ip = true;
+  bool use_louvain_in_ip = false;
   LouvainEdgeWeight louvain_edge_weight = LouvainEdgeWeight::hybrid;
   bool louvain_use_bipartite_graph = true;
   int max_louvain_pass_iterations = 10;

@@ -288,7 +288,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("p-use-louvain-in-ip",
      po::value<bool>(&config.preprocessing.use_louvain_in_ip)->value_name("<bool>"),
      "Using louvain community detection for coarsening during initial partitioning\n"
-     "(default: true)")
+     "(default: false)")
     ("p-max-louvain-pass-iterations",
      po::value<int>(&config.preprocessing.max_louvain_pass_iterations)->value_name("<int>"),
      "Maximum number of iterations over all nodes of one louvain pass\n"
@@ -572,7 +572,7 @@ int main(int argc, char* argv[]) {
       if(density < 0.75) {
           config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::degree;
       }
-      else if(density >= 0.75 && density < 1.25) {
+      else if(density >= 0.75 && density <= 1.25) {
           config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::uniform;
       }
       else {

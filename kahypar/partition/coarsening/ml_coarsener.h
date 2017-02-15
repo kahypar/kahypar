@@ -138,17 +138,15 @@ class MLCoarsener final : public ICoarsener,
 
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    std::set<ClusterID> distinct_comm;
     EdgeWeight quality = _louvain.louvain();   
     for(HypernodeID hn : _hg.nodes()) {
         _comm[hn] = _louvain.clusterID(hn);
-        distinct_comm.insert(_comm[hn]);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
     Stats::instance().addToTotal(_config,"louvainTime",elapsed_seconds.count());
-    Stats::instance().addToTotal(_config,"communities",distinct_comm.size());
+    Stats::instance().addToTotal(_config,"communities",_louvain.numCommunities());
     Stats::instance().addToTotal(_config,"modularity",quality);
   }
   
@@ -165,9 +163,6 @@ class MLCoarsener final : public ICoarsener,
           }
         }
       }
-    }
-    if (_tmp_ratings.contains(u)) {
-        _tmp_ratings.remove(u);
     }
     ASSERT(!_tmp_ratings.contains(u), V(u));
 
