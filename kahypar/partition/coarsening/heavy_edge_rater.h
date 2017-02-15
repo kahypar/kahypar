@@ -134,10 +134,6 @@ class HeavyEdgeRater {
     return _config.coarsening.max_allowed_node_weight;
   }
   
-  void resetCommunities() {
-      _comm.assign(_comm.size(),0);
-  }
-  
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     EdgeWeight quality = _louvain.louvain();   

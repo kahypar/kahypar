@@ -2,6 +2,7 @@
  * This file is part of KaHyPar.
  *
  * Copyright (C) 2017 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Tobias Heuer <tobias.heuer@gmx.net>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
