@@ -76,6 +76,15 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   << config.preprocessing.min_hash_sparsifier.is_active
   << " pre_min_sparsifier_activation_median_he_size="
   << config.preprocessing.min_hash_sparsifier.min_median_he_size
+  << " use_louvain=" << std::boolalpha 
+  << config.preprocessing.use_louvain
+  << " use_louvain_in_ip=" << std::boolalpha 
+  << config.preprocessing.use_louvain_in_ip
+  << " max_louvain_pass_iterations=" << config.preprocessing.max_louvain_pass_iterations
+  << " min_louvain_eps_improvement=" << config.preprocessing.min_eps_improvement
+  << " louvain_edge_weight=" << toString(config.preprocessing.louvain_edge_weight)
+  << " louvain_use_bipartite_graph=" << std::boolalpha
+  << config.preprocessing.louvain_use_bipartite_graph
   << " coarsening_algo=" << toString(config.coarsening.algorithm)
   << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
   << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier

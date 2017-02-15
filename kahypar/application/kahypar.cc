@@ -53,6 +53,7 @@ using kahypar::Partitioner;
 using kahypar::Configuration;
 using kahypar::Mode;
 using kahypar::Objective;
+using kahypar::LouvainEdgeWeight;
 using kahypar::CoarseningAlgorithm;
 using kahypar::RefinementAlgorithm;
 using kahypar::InitialPartitionerAlgorithm;
@@ -279,7 +280,38 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<bool>(&config.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
     "Remove hyperedges that will always be cut because"
     " of the weight of their pins \n"
-    "(default: false)");
+    "(default: false)")
+    ("p-use-louvain",
+     po::value<bool>(&config.preprocessing.use_louvain)->value_name("<bool>"),
+     "Using louvain community detection for coarsening\n"
+     "(default: false)")
+    ("p-use-louvain-in-ip",
+     po::value<bool>(&config.preprocessing.use_louvain_in_ip)->value_name("<bool>"),
+     "Using louvain community detection for coarsening during initial partitioning\n"
+     "(default: true)")
+    ("p-max-louvain-pass-iterations",
+     po::value<int>(&config.preprocessing.max_louvain_pass_iterations)->value_name("<int>"),
+     "Maximum number of iterations over all nodes of one louvain pass\n"
+     "(default: 100)")
+    ("p-min-eps-improvement",
+     po::value<long double>(&config.preprocessing.min_eps_improvement)->value_name("<long double>"),
+     "Minimum improvement of quality during a louvain pass which leads to further passes\n"
+     "(default: 0.001)")
+    ("p-louvain-edge-weight",
+     po::value<std::string>()->value_name("<string>")->notifier(
+         [&](const std::string& ptype) {
+             config.preprocessing.louvain_edge_weight = kahypar::edgeWeightFromString(ptype);
+         }),
+     "Weights:\n"
+     " - hybrid \n"
+     " - uniform\n"
+     " - non_uniform\n"
+     " - degree \n"
+     "(default: hybrid)")
+    ("p-louvain-use-bipartite-graph",
+     po::value<bool>(&config.preprocessing.louvain_use_bipartite_graph)->value_name("<bool>"),
+     "If true, hypergraph is transformed into bipartite graph. If false, hypergraph is transformed into clique graph.\n"
+     "(default: true)");
 
   po::options_description coarsening_options("Coarsening Options", num_columns);
   coarsening_options.add_options()
@@ -533,6 +565,19 @@ int main(int argc, char* argv[]) {
         config.preprocessing.min_hash_sparsifier.min_median_he_size) {
       config.preprocessing.min_hash_sparsifier.is_active = true;
     }
+  }
+  
+  if(config.preprocessing.use_louvain && config.preprocessing.louvain_edge_weight == LouvainEdgeWeight::hybrid) {
+      double density = static_cast<double>(hypergraph.initialNumEdges())/static_cast<double>(hypergraph.initialNumNodes());
+      if(density < 0.75) {
+          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::degree;
+      }
+      else if(density >= 0.75 && density < 1.25) {
+          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::uniform;
+      }
+      else {
+          config.preprocessing.louvain_edge_weight = LouvainEdgeWeight::uniform;
+      }
   }
 
   if (config.partition.verbose_output) {

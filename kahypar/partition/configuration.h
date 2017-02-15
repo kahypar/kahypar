@@ -46,6 +46,14 @@ struct PreprocessingParameters {
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
+  
+  //Louvain-Configuration
+  bool use_louvain = false;
+  bool use_louvain_in_ip = true;
+  LouvainEdgeWeight louvain_edge_weight = LouvainEdgeWeight::hybrid;
+  bool louvain_use_bipartite_graph = true;
+  int max_louvain_pass_iterations = 10;
+  long double min_eps_improvement = 0.01;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
@@ -80,6 +88,19 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
     str << "---------------------------------------------------------------------" << std::endl;
     str << params.min_hash_sparsifier << std::endl;
   }
+  str << "Community Detection Parameters:" << std::endl;
+  str << "  use louvain community detection:    " << std::boolalpha
+  << params.use_louvain << std::endl;
+  str << "  use louvain in IP:                  " << std::boolalpha
+  << params.use_louvain_in_ip << std::endl;
+  str << "  use bipartite graph representation: " << std::boolalpha
+  << params.louvain_use_bipartite_graph << std::endl;
+  str << "  maximum louvain-pass iterations:    " 
+  << params.max_louvain_pass_iterations << std::endl;
+  str << "  minimum quality improvement:        " 
+  << params.min_eps_improvement << std::endl;
+  str << "  louvain edge weight:                " 
+  << toString(params.louvain_edge_weight) << std::endl;
   return str;
 }
 

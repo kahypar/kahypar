@@ -66,6 +66,13 @@ enum class InitialPartitionerAlgorithm : uint8_t {
   pool
 };
 
+enum class LouvainEdgeWeight : uint8_t {
+    hybrid,
+    uniform,
+    non_uniform,
+    degree
+};
+
 enum class RefinementStoppingRule : uint8_t {
   simple,
   adaptive_opt,
@@ -175,6 +182,20 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
   return std::string("UNDEFINED");
 }
 
+static std::string toString(const LouvainEdgeWeight& weight) {
+    switch (weight) {
+        case LouvainEdgeWeight::hybrid:
+            return std::string("hybrid");
+        case LouvainEdgeWeight::uniform:
+            return std::string("uniform");
+        case LouvainEdgeWeight::non_uniform:
+            return std::string("non_uniform");
+        case LouvainEdgeWeight::degree:
+            return std::string("degree");
+    }
+    return std::string("UNDEFINED");
+}
+
 static std::string toString(const RefinementStoppingRule& algo) {
   switch (algo) {
     case RefinementStoppingRule::simple:
@@ -278,6 +299,21 @@ static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(cons
   std::cout << "Illegal option:" << technique << std::endl;
   exit(0);
   return InitialPartitioningTechnique::multilevel;
+}
+
+static LouvainEdgeWeight edgeWeightFromString(const std::string& type) {
+    if(type == "hybrid") {
+        return LouvainEdgeWeight::hybrid;
+    } else if (type == "uniform") {
+        return LouvainEdgeWeight::uniform;
+    } else if (type == "non_uniform") {
+        return LouvainEdgeWeight::non_uniform;
+    } else if (type == "degree") {
+        return LouvainEdgeWeight::degree;
+    }
+    std::cout << "Illegal option:" << type << std::endl;
+    exit(0);
+    return LouvainEdgeWeight::uniform;
 }
 
 static Mode modeFromString(const std::string& mode) {
