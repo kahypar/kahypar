@@ -197,7 +197,7 @@ private:
                 quality.insert(node,best_cid,best_incident_cluster_weight);
                 
                 if(best_cid != cur_cid) {
-                    ASSERT([&]() {
+                    /*ASSERT([&]() {
                         quality.remove(node,best_incident_cluster_weight); //Remove node from best cluster...
                         quality.insert(node,cur_cid,cur_incident_cluster_weight); // ... and insert in his old cluster.
                         EdgeWeight quality_before = quality.quality();
@@ -210,7 +210,7 @@ private:
                             return false;
                         }
                         return true;
-                    }(),"Move did not increase the quality!");
+                    }(),"Move did not increase the quality!");*/
                     
                     node_moves++;
                 }

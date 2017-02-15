@@ -115,6 +115,7 @@ class MLCoarsener final : public ICoarsener,
             already_matched.set(hn, true);
             already_matched.set(rating.target, true);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
+            ASSERT(_comm[hn] == _comm[rating.target], "Contracted nodes are not in same community!");
             performContraction(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
@@ -143,7 +144,6 @@ class MLCoarsener final : public ICoarsener,
         _comm[hn] = _louvain.clusterID(hn);
         distinct_comm.insert(_comm[hn]);
     }
-    LOGVAR(distinct_comm.size());
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
