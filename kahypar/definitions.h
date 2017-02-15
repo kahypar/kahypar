@@ -53,6 +53,12 @@ using HyperedgeWeightVector = Hypergraph::HyperedgeWeightVector;
 using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
 using IncidenceIterator = Hypergraph::IncidenceIterator;
 
+//#########Graph-Definitions#############
+using NodeID = HypernodeID;
+using EdgeID = HyperedgeID;
+using EdgeWeight = long double;
+using ClusterID = PartitionID;
+
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 }  // namespace kahypar
 
