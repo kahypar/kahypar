@@ -53,7 +53,7 @@ To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity -
 
 To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
-   ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
