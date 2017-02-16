@@ -39,8 +39,9 @@ The binary is located at: `build/kahypar/application/`.
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
-Currently we provide two different presets that correspond to the configuration used in the 
-[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) submission and the [ALENEX'17](http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3) submission.
+Currently we provide three different presets that correspond to the configuration used in the 
+[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) publication, the [ALENEX'17](http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3) publication,
+and our [SEA'17](https://nms.kcl.ac.uk/informatics/events/SEA2017/) submission.
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
@@ -49,7 +50,11 @@ To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net 
 To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity - 1) objective run:   
   
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_alenex17.ini
-    
+
+To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
+
+   ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
+
 All preset parameters can be overwritten by using the corresponding command line options.
 
 
