@@ -41,37 +41,65 @@ struct MinHashSparsifierParameters {
   bool is_active = false;
 };
 
+struct LouvainCommunityDetection {
+  bool enable_in_initial_partitioning = false;
+  LouvainEdgeWeight edge_weight = LouvainEdgeWeight::hybrid;
+  bool use_bipartite_graph = true;
+  int max_pass_iterations = 100;
+  long double min_eps_improvement = 0.0001;
+};
+
 struct PreprocessingParameters {
   bool enable_min_hash_sparsifier = false;
+  bool enable_louvain_community_detection = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
+  LouvainCommunityDetection louvain_community_detection = LouvainCommunityDetection();
 };
 
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
-  str << "MinHash Sparsifier Parameters:" << std::endl;
-  str << "  max hyperedge size:                 "
-  << params.max_hyperedge_size << std::endl;
-  str << "  max cluster size:                   "
-  << params.max_cluster_size << std::endl;
-  str << "  min cluster size:                   "
-  << params.min_cluster_size << std::endl;
-  str << "  number of hash functions:           "
-  << params.num_hash_functions << std::endl;
-  str << "  number of combined hash functions:  "
-  << params.combined_num_hash_functions << std::endl;
-  str << "  active at median net size >=:       "
-  << params.min_median_he_size << std::endl;
-  str << "  sparsifier is active:               " << std::boolalpha
-  << params.is_active;
-  return str;
+    str << "MinHash Sparsifier Parameters:" << std::endl;
+    str << "  max hyperedge size:                 "
+    << params.max_hyperedge_size << std::endl;
+    str << "  max cluster size:                   "
+    << params.max_cluster_size << std::endl;
+    str << "  min cluster size:                   "
+    << params.min_cluster_size << std::endl;
+    str << "  number of hash functions:           "
+    << params.num_hash_functions << std::endl;
+    str << "  number of combined hash functions:  "
+    << params.combined_num_hash_functions << std::endl;
+    str << "  active at median net size >=:       "
+    << params.min_median_he_size << std::endl;
+    str << "  sparsifier is active:               " << std::boolalpha
+    << params.is_active;
+    return str;
 }
+
+inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetection& params) {
+    str << "Community Detection Parameters:" << std::endl;
+    str << "  use louvain in IP:                  " << std::boolalpha
+    << params.enable_in_initial_partitioning << std::endl;
+    str << "  use bipartite graph representation: " << std::boolalpha
+    << params.use_bipartite_graph << std::endl;
+    str << "  maximum louvain-pass iterations:    " 
+    << params.max_pass_iterations << std::endl;
+    str << "  minimum quality improvement:        " 
+    << params.min_eps_improvement << std::endl;
+    str << "  graph edge weight:                  " 
+    << toString(params.edge_weight) << std::endl;
+    return str;
+}
+
 
 
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
   str << "Preprocessing Parameters:" << std::endl;
   str << "  enable min hash sparsifier:         " << std::boolalpha
   << params.enable_min_hash_sparsifier << std::endl;
+  str << "  enable louvain community detection: " << std::boolalpha
+  << params.enable_louvain_community_detection << std::endl;
   str << "  remove parallel HEs:                " << std::boolalpha
   << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
@@ -80,6 +108,11 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
     str << "---------------------------------------------------------------------" << std::endl;
     str << params.min_hash_sparsifier << std::endl;
   }
+  if(params.enable_louvain_community_detection) {
+    str << "---------------------------------------------------------------------" << std::endl;
+    str << params.louvain_community_detection << std::endl;      
+  }
+  
   return str;
 }
 

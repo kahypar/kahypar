@@ -28,6 +28,9 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/configuration.h"
+#include "kahypar/partition/preprocessing/louvain.h"
+#include "kahypar/partition/preprocessing/quality_measure.h"
+#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 static const bool dbg_partition_rating = false;
@@ -68,7 +71,9 @@ class HeavyEdgeRater {
   HeavyEdgeRater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
-    _tmp_ratings(_hg.initialNumNodes()) { }
+    _tmp_ratings(_hg.initialNumNodes()), 
+    _comm(_hg.initialNumNodes(),0), 
+    _louvain(hypergraph,_config)  { }
 
   HeavyEdgeRater(const HeavyEdgeRater&) = delete;
   HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
@@ -84,7 +89,7 @@ class HeavyEdgeRater {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (const HypernodeID v : _hg.pins(he)) {
-        if (v != u &&
+        if (v != u && _comm[u] == _comm[v] &&
             belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
             (part_u == _hg.partID(v))) {
           _tmp_ratings[v] += score;
@@ -128,6 +133,20 @@ class HeavyEdgeRater {
   HypernodeWeight thresholdNodeWeight() const {
     return _config.coarsening.max_allowed_node_weight;
   }
+  
+  void performLouvainCommunityDetection() {
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    EdgeWeight quality = _louvain.louvain();   
+    for(HypernodeID hn : _hg.nodes()) {
+        _comm[hn] = _louvain.clusterID(hn);
+    }
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
+    Stats::instance().addToTotal(_config,"louvainTime",elapsed_seconds.count());
+    Stats::instance().addToTotal(_config,"communities",_louvain.numCommunities());
+    Stats::instance().addToTotal(_config,"modularity",quality);
+  }
 
  private:
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
@@ -142,5 +161,7 @@ class HeavyEdgeRater {
   Hypergraph& _hg;
   const Configuration& _config;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
+  std::vector<ClusterID> _comm;
+  Louvain<Modularity> _louvain;
 };
 }  // namespace kahypar
