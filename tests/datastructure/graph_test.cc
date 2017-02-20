@@ -220,17 +220,17 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   graph->setClusterID(6, 2);
   graph->setClusterID(10, 2);
 
-  std::sort(graph->_shuffleNodes.begin(), graph->_shuffleNodes.end());
-  std::sort(graph->_shuffleNodes.begin(), graph->_shuffleNodes.end(), [&](const NodeID& n1, const NodeID& n2) {
+  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end());
+  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
         return graph->_cluster_id[n1] < graph->_cluster_id[n2] || (graph->_cluster_id[n1] == graph->_cluster_id[n2] && n1 < n2);
       });
 
-  std::pair<NodeIterator, NodeIterator> cluster0 = std::make_pair(graph->_shuffleNodes.begin(),
-                                                                  graph->_shuffleNodes.begin() + 3);
-  std::pair<NodeIterator, NodeIterator> cluster1 = std::make_pair(graph->_shuffleNodes.begin() + 3,
-                                                                  graph->_shuffleNodes.begin() + 8);
-  std::pair<NodeIterator, NodeIterator> cluster2 = std::make_pair(graph->_shuffleNodes.begin() + 8,
-                                                                  graph->_shuffleNodes.begin() + 11);
+  auto cluster0 = std::make_pair(graph->_shuffle_nodes.begin(),
+                                                                  graph->_shuffle_nodes.begin() + 3);
+  auto cluster1 = std::make_pair(graph->_shuffle_nodes.begin() + 3,
+                                                                  graph->_shuffle_nodes.begin() + 8);
+  auto cluster2 = std::make_pair(graph->_shuffle_nodes.begin() + 8,
+                                                                  graph->_shuffle_nodes.begin() + 11);
 
   //Checks incident clusters of cluster with ID 0
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
@@ -271,17 +271,17 @@ TEST_F(ACliqueGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   graph->setClusterID(5, 2);
   graph->setClusterID(6, 2);
 
-  std::sort(graph->_shuffleNodes.begin(), graph->_shuffleNodes.end());
-  std::sort(graph->_shuffleNodes.begin(), graph->_shuffleNodes.end(), [&](const NodeID& n1, const NodeID& n2) {
+  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end());
+  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
         return graph->_cluster_id[n1] < graph->_cluster_id[n2] || (graph->_cluster_id[n1] == graph->_cluster_id[n2] && n1 < n2);
       });
 
-  std::pair<NodeIterator, NodeIterator> cluster0 = std::make_pair(graph->_shuffleNodes.begin(),
-                                                                  graph->_shuffleNodes.begin() + 2);
-  std::pair<NodeIterator, NodeIterator> cluster1 = std::make_pair(graph->_shuffleNodes.begin() + 2,
-                                                                  graph->_shuffleNodes.begin() + 5);
-  std::pair<NodeIterator, NodeIterator> cluster2 = std::make_pair(graph->_shuffleNodes.begin() + 5,
-                                                                  graph->_shuffleNodes.begin() + 7);
+  auto cluster0 = std::make_pair(graph->_shuffle_nodes.begin(),
+                                                                  graph->_shuffle_nodes.begin() + 2);
+  auto cluster1 = std::make_pair(graph->_shuffle_nodes.begin() + 2,
+                                                                  graph->_shuffle_nodes.begin() + 5);
+  auto cluster2 = std::make_pair(graph->_shuffle_nodes.begin() + 5,
+                                                                  graph->_shuffle_nodes.begin() + 7);
 
   //Checks incident clusters of cluster with ID 0
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.5L, 2.0L / 3.0L };
