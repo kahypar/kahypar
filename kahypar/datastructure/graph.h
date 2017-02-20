@@ -27,8 +27,8 @@
 #include <memory>
 #include <queue>
 #include <set>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "gtest/gtest_prod.h"
 
@@ -42,7 +42,6 @@
 
 namespace kahypar {
 namespace ds {
-
 struct Edge {
   Edge() :
     targetNode(0),
@@ -78,8 +77,8 @@ class Graph {
 
   Graph(const Hypergraph& hypergraph, const Configuration& config) :
     _num_nodes(hypergraph.currentNumNodes() +
-       (config.preprocessing.louvain_community_detection.use_bipartite_graph ?
-        hypergraph.currentNumEdges() : 0)),
+               (config.preprocessing.louvain_community_detection.use_bipartite_graph ?
+                hypergraph.currentNumEdges() : 0)),
     _config(config),
     _adj_array(_num_nodes + 1),
     _nodes(_num_nodes),
@@ -98,9 +97,75 @@ class Graph {
     std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     if (_config.preprocessing.louvain_community_detection.use_bipartite_graph) {
-      constructBipartiteGraph(hypergraph);
+      switch (_config.preprocessing.louvain_community_detection.edge_weight) {
+        case LouvainEdgeWeight::degree:
+          constructBipartiteGraph(hypergraph,
+                                  [&](const Hypergraph& hg,
+                                      const HyperedgeID he,
+                                      const HypernodeID hn) {
+              return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
+                      static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
+              static_cast<EdgeWeight>(hg.edgeSize(he));
+            });
+          break;
+        case LouvainEdgeWeight::non_uniform:
+          constructBipartiteGraph(hypergraph,
+                                  [&](const Hypergraph& hg,
+                                      const HyperedgeID he,
+                                      const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
+              static_cast<EdgeWeight>(hg.edgeSize(he));
+            });
+
+          break;
+        case LouvainEdgeWeight::uniform:
+          constructBipartiteGraph(hypergraph,
+                                  [&](const Hypergraph& hg,
+                                      const HyperedgeID he,
+                                      const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he));
+            });
+          break;
+        case LouvainEdgeWeight::hybrid:
+          LOG("Hybrid edge weight should only be used implicitly");
+          break;
+      }
     } else {
-      constructCliqueGraph(hypergraph);
+      switch (_config.preprocessing.louvain_community_detection.edge_weight) {
+        case LouvainEdgeWeight::degree:
+          constructCliqueGraph(hypergraph,
+                               [&](const Hypergraph& hg,
+                                   const HyperedgeID he,
+                                   const HypernodeID hn) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he) *
+                                             hg.nodeDegree(hn)) /
+              (static_cast<EdgeWeight>(hg.edgeSize(he) *
+                                       (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
+            });
+          break;
+        case LouvainEdgeWeight::non_uniform:
+          constructCliqueGraph(hypergraph,
+                               [&](const Hypergraph& hg,
+                                   const HyperedgeID he,
+                                   const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
+              (static_cast<EdgeWeight>(hg.edgeSize(he)
+                                       * (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
+            });
+
+          break;
+        case LouvainEdgeWeight::uniform:
+          constructCliqueGraph(hypergraph,
+                               [&](const Hypergraph& hg,
+                                   const HyperedgeID he,
+                                   const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he));
+            });
+          break;
+        case LouvainEdgeWeight::hybrid:
+          LOG("Hybrid edge weight should only be used implicitly");
+          break;
+      }
     }
   }
 
@@ -440,11 +505,10 @@ class Graph {
    * @param cid ClusterID, which incident clusters should be evaluated
    * @return Iterator to all incident clusters of ClusterID cid
    */
-  std::pair<IncidentClusterWeightIterator, IncidentClusterWeightIterator>
-  incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range);
+  std::pair<IncidentClusterWeightIterator, IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range);
 
-
-  void constructBipartiteGraph(const Hypergraph& hg) {
+  template <typename EdgeWeightFunction>
+  void constructBipartiteGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
     NodeID sum_edges = 0;
 
     const size_t num_nodes = static_cast<size_t>(hg.initialNumNodes());
@@ -476,24 +540,7 @@ class Graph {
       for (HyperedgeID he : hg.incidentEdges(hn)) {
         Edge e;
         e.targetNode = _hypernode_mapping[num_nodes + he];
-
-        switch (_config.preprocessing.louvain_community_detection.edge_weight) {
-          case LouvainEdgeWeight::degree:
-            e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he)) * static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
-                       static_cast<EdgeWeight>(hg.edgeSize(he));
-            break;
-          case LouvainEdgeWeight::non_uniform:
-            e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he))) /
-                       static_cast<EdgeWeight>(hg.edgeSize(he));
-            break;
-          case LouvainEdgeWeight::uniform:
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he));
-            break;
-          case LouvainEdgeWeight::hybrid:
-            LOG("Hybrid edge weight should only be used implicitly");
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he));
-            break;
-        }
+        e.weight = edgeWeight(hg, he, hn);
         _total_weight += e.weight;
         _weighted_degree[graph_node] += e.weight;
         _edges[_adj_array[graph_node] + pos++] = e;
@@ -505,24 +552,7 @@ class Graph {
       for (HypernodeID hn : hg.pins(he)) {
         Edge e;
         e.targetNode = _hypernode_mapping[hn];
-        switch (_config.preprocessing.louvain_community_detection.edge_weight) {
-          case LouvainEdgeWeight::degree:
-            e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he)) * static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
-                       static_cast<EdgeWeight>(hg.edgeSize(he));
-            break;
-          case LouvainEdgeWeight::non_uniform:
-            e.weight = (static_cast<EdgeWeight>(hg.edgeWeight(he))) /
-                       static_cast<EdgeWeight>(hg.edgeSize(he));
-            break;
-          case LouvainEdgeWeight::uniform:
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he));
-            break;
-          case LouvainEdgeWeight::hybrid:
-            LOG("Hybrid edge weight should only be used implicitly");
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he));
-            break;
-        }
-
+        e.weight = edgeWeight(hg, he, hn);
         const NodeID cur_node = _hypernode_mapping[num_nodes + he];
         _total_weight += e.weight;
         _weighted_degree[cur_node] += e.weight;
@@ -583,7 +613,8 @@ class Graph {
         } (), "Bipartite Graph is not equivalent with hypergraph");
   }
 
-  void constructCliqueGraph(const Hypergraph& hg) {
+  template <typename EdgeWeightFunction>
+  void constructCliqueGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
     NodeID sum_edges = 0;
     NodeID cur_node_id = 0;
 
@@ -602,17 +633,7 @@ class Graph {
           Edge e;
           NodeID v = _hypernode_mapping[pin];
           e.targetNode = v;
-          if (_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::degree) {
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he) * hg.nodeDegree(hn)) /
-                       (static_cast<EdgeWeight>(hg.edgeSize(he)
-                                                * (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
-          } else if (_config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::non_uniform) {
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he)) /
-                       (static_cast<EdgeWeight>(hg.edgeSize(he)
-                                                * (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
-          } else {
-            e.weight = static_cast<EdgeWeight>(hg.edgeWeight(he));
-          }
+          e.weight = edgeWeight(hg, he, hn);
           tmp_edges.push_back(e);
           _total_weight += e.weight;
           _weighted_degree[cur_node] += e.weight;
@@ -697,8 +718,8 @@ std::pair<Graph::IncidentClusterWeightIterator,
   }
 
   ASSERT([&]() {
-      const auto it = std::make_pair(_incident_cluster_weight.begin(),
-                                     _incident_cluster_weight.begin() + idx);
+        const auto it = std::make_pair(_incident_cluster_weight.begin(),
+                                       _incident_cluster_weight.begin() + idx);
         std::set<ClusterID> incidentCluster;
         if (clusterID(node) != -1) incidentCluster.insert(clusterID(node));
         for (Edge e : incidentEdges(node)) {
@@ -741,8 +762,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
 }
 
 std::pair<Graph::IncidentClusterWeightIterator,
-          Graph::IncidentClusterWeightIterator> Graph::incidentClusterWeightOfCluster(
-              const std::pair<NodeIterator, NodeIterator>& cluster_range) {
+          Graph::IncidentClusterWeightIterator> Graph::incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
   _incident_cluster_weight_position.clear();
   size_t idx = 0;
 
@@ -884,6 +904,5 @@ std::pair<Graph, std::vector<NodeID> > Graph::contractCluster() {
 }
 
 constexpr NodeID Graph::kInvalidNode;
-
 }  // namespace ds
 }  // namespace kahypar
