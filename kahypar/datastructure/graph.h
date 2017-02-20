@@ -139,51 +139,6 @@ class Graph {
           }
           break;
       }
-    } else {
-      const auto degreeWeight = [&](const Hypergraph& hg,
-                                    const HyperedgeID he,
-                                    const HypernodeID hn) {
-                                  return static_cast<EdgeWeight>(hg.edgeWeight(he) *
-                                                                 hg.nodeDegree(hn)) /
-                                         (static_cast<EdgeWeight>(hg.edgeSize(he) *
-                                                                  (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
-                                };
-      const auto uniformWeight = [&](const Hypergraph& hg,
-                                     const HyperedgeID he,
-                                     const HypernodeID) {
-                                   return static_cast<EdgeWeight>(hg.edgeWeight(he));
-                                 };
-
-      switch (_config.preprocessing.louvain_community_detection.edge_weight) {
-        case LouvainEdgeWeight::degree:
-          constructCliqueGraph(hypergraph, degreeWeight);
-          break;
-        case LouvainEdgeWeight::non_uniform:
-          constructCliqueGraph(hypergraph,
-                               [&](const Hypergraph& hg,
-                                   const HyperedgeID he,
-                                   const HypernodeID) {
-              return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
-              (static_cast<EdgeWeight>(hg.edgeSize(he)
-                                       * (static_cast<EdgeWeight>(hg.edgeSize(he) - 1.0) / 2.0)));
-            });
-
-          break;
-        case LouvainEdgeWeight::uniform:
-          constructCliqueGraph(hypergraph, uniformWeight);
-          break;
-        case LouvainEdgeWeight::hybrid:
-          const double density = static_cast<double>(hypergraph.initialNumEdges()) /
-                                 static_cast<double>(hypergraph.initialNumNodes());
-          if (density < 0.75) {
-            constructCliqueGraph(hypergraph, degreeWeight);
-          } else if (density >= 0.75 && density <= 1.25) {
-            constructCliqueGraph(hypergraph, uniformWeight);
-          } else {
-            constructCliqueGraph(hypergraph, uniformWeight);
-          }
-          break;
-      }
     }
   }
 
@@ -629,84 +584,6 @@ class Graph {
           }
           return true;
         } (), "Bipartite Graph is not equivalent with hypergraph");
-  }
-
-  template <typename EdgeWeightFunction>
-  void constructCliqueGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
-    NodeID sum_edges = 0;
-    NodeID cur_node_id = 0;
-
-    for (HypernodeID hn : hg.nodes()) {
-      _hypernode_mapping[hn] = cur_node_id++;
-    }
-
-    for (HypernodeID hn : hg.nodes()) {
-      const NodeID cur_node = _hypernode_mapping[hn];
-      _adj_array[cur_node] = sum_edges;
-      std::vector<Edge> tmp_edges;
-
-      for (HyperedgeID he : hg.incidentEdges(hn)) {
-        for (HypernodeID pin : hg.pins(he)) {
-          if (hn == pin) continue;
-          Edge e;
-          NodeID v = _hypernode_mapping[pin];
-          e.targetNode = v;
-          e.weight = edgeWeight(hg, he, hn);
-          tmp_edges.push_back(e);
-          _total_weight += e.weight;
-          _weighted_degree[cur_node] += e.weight;
-        }
-      }
-
-      std::sort(tmp_edges.begin(), tmp_edges.end(), [&](const Edge& e1, const Edge& e2) {
-            return e1.targetNode < e2.targetNode;
-          });
-      Edge sentinel;
-      sentinel.targetNode = kInvalidNode;
-      tmp_edges.push_back(sentinel);
-      if (tmp_edges.size() > 1) {
-        Edge cur_edge;
-        cur_edge.targetNode = tmp_edges[0].targetNode;
-        cur_edge.weight = tmp_edges[0].weight;
-        for (size_t i = 1; i < tmp_edges.size(); ++i) {
-          if (cur_edge.targetNode == tmp_edges[i].targetNode) {
-            cur_edge.weight += tmp_edges[i].weight;
-          } else {
-            _edges.push_back(cur_edge);
-            cur_edge.targetNode = tmp_edges[i].targetNode;
-            cur_edge.weight = tmp_edges[i].weight;
-          }
-        }
-        sum_edges = _edges.size();
-      }
-    }
-
-    _adj_array[_num_nodes] = sum_edges;
-
-    ASSERT([&]() {
-          for (HypernodeID hn : hg.nodes()) {
-            std::set<HypernodeID> incident_nodes;
-            for (HyperedgeID he : hg.incidentEdges(hn)) {
-              for (HypernodeID pin : hg.pins(he)) {
-                incident_nodes.insert(pin);
-              }
-            }
-            incident_nodes.erase(hn);
-            if (incident_nodes.size() != degree(hn)) {
-              LOGVAR(incident_nodes.size());
-              LOGVAR(degree(hn));
-              return false;
-            }
-            for (Edge e : incidentEdges(hn)) {
-              if (incident_nodes.find(e.targetNode) == incident_nodes.end()) {
-                LOGVAR(hn);
-                LOGVAR(e.targetNode);
-                return false;
-              }
-            }
-          }
-          return true;
-        } (), "Clique Graph is not equivalent with Hypergraph");
   }
 };
 
