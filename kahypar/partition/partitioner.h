@@ -364,10 +364,10 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                                             double init_alpha) const {
   Configuration config(original_config);
 
-  if(!config.preprocessing.louvain_community_detection.enable_in_initial_partitioning) {
-      config.preprocessing.enable_louvain_community_detection = false;
+  if (!config.preprocessing.louvain_community_detection.enable_in_initial_partitioning) {
+    config.preprocessing.enable_louvain_community_detection = false;
   }
-  
+
   config.partition.epsilon = init_alpha * original_config.partition.epsilon;
   config.partition.collect_stats = false;
   config.partition.global_search_iterations = 0;

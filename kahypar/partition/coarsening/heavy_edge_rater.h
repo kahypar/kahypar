@@ -71,9 +71,9 @@ class HeavyEdgeRater {
   HeavyEdgeRater(Hypergraph& hypergraph, const Configuration& config) :
     _hg(hypergraph),
     _config(config),
-    _tmp_ratings(_hg.initialNumNodes()), 
-    _comm(_hg.initialNumNodes(),0), 
-    _louvain(hypergraph,_config)  { }
+    _tmp_ratings(_hg.initialNumNodes()),
+    _comm(_hg.initialNumNodes(), 0),
+    _louvain(hypergraph, _config) { }
 
   HeavyEdgeRater(const HeavyEdgeRater&) = delete;
   HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
@@ -133,19 +133,19 @@ class HeavyEdgeRater {
   HypernodeWeight thresholdNodeWeight() const {
     return _config.coarsening.max_allowed_node_weight;
   }
-  
+
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    EdgeWeight quality = _louvain.louvain();   
-    for(HypernodeID hn : _hg.nodes()) {
-        _comm[hn] = _louvain.clusterID(hn);
+    EdgeWeight quality = _louvain.louvain();
+    for (HypernodeID hn : _hg.nodes()) {
+      _comm[hn] = _louvain.clusterID(hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
-    Stats::instance().addToTotal(_config,"louvainTime",elapsed_seconds.count());
-    Stats::instance().addToTotal(_config,"communities",_louvain.numCommunities());
-    Stats::instance().addToTotal(_config,"modularity",quality);
+    Stats::instance().addToTotal(_config, "louvainTime", elapsed_seconds.count());
+    Stats::instance().addToTotal(_config, "communities", _louvain.numCommunities());
+    Stats::instance().addToTotal(_config, "modularity", quality);
   }
 
  private:
