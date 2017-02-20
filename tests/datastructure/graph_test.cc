@@ -72,7 +72,7 @@ class ACliqueGraph : public Test {
 
 bool bicoloring(NodeID cur, int cur_col, std::vector<int>& col, std::shared_ptr<Graph>& graph) {
   col[cur] = cur_col;
-  for (Edge e : graph->adjacentNodes(cur)) {
+  for (Edge e : graph->incidentEdges(cur)) {
     NodeID id = e.targetNode;
     if (col[id] == INVALID) return bicoloring(id, 1 - cur_col, col, graph);
     else if (col[id] == col[cur]) return false;
@@ -99,7 +99,7 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
       edges.insert(numNodes + he);
     }
     ASSERT_EQ(edges.size(), graph->degree(hn));
-    for (Edge e : graph->adjacentNodes(hn)) {
+    for (Edge e : graph->incidentEdges(hn)) {
       ASSERT_FALSE(edges.find(e.targetNode) == edges.end());
     }
   }
@@ -110,7 +110,7 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
       edges.insert(pin);
     }
     ASSERT_EQ(edges.size(), graph->degree(he + numNodes));
-    for (Edge e : graph->adjacentNodes(he + numNodes)) {
+    for (Edge e : graph->incidentEdges(he + numNodes)) {
       ASSERT_FALSE(edges.find(e.targetNode) == edges.end());
       ASSERT_EQ(e.weight, static_cast<EdgeWeight>(hypergraph.edgeWeight(he)) /
                 static_cast<EdgeWeight>(hypergraph.edgeSize(he)));
@@ -130,7 +130,7 @@ TEST_F(ACliqueGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
   }
   for (NodeID node : graph->nodes()) {
     ASSERT_EQ(graph->degree(node), clique_graph[node].size());
-    for (Edge e : graph->adjacentNodes(node)) {
+    for (Edge e : graph->incidentEdges(node)) {
       ASSERT_FALSE(clique_graph[node].find(e.targetNode) == clique_graph[node].end());
     }
   }
@@ -364,7 +364,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 0
   std::vector<EdgeWeight> edge_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(0)) {
+  for (Edge e : graph.incidentEdges(0)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -374,7 +374,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 1
   edge_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(1)) {
+  for (Edge e : graph.incidentEdges(1)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -384,7 +384,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 2
   edge_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(2)) {
+  for (Edge e : graph.incidentEdges(2)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -406,7 +406,7 @@ TEST_F(ACliqueGraph, ReturnCorrectContractedGraph) {
   //Check cluster 0
   std::vector<EdgeWeight> edge_weight = { 2.0L, 0.5L, 2.0L / 3.0L };
   std::vector<bool> incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(0)) {
+  for (Edge e : graph.incidentEdges(0)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -416,7 +416,7 @@ TEST_F(ACliqueGraph, ReturnCorrectContractedGraph) {
   //Check cluster 1
   edge_weight = { 0.5L, 5.0L / 3.0L, 2.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(1)) {
+  for (Edge e : graph.incidentEdges(1)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -426,7 +426,7 @@ TEST_F(ACliqueGraph, ReturnCorrectContractedGraph) {
   //Check cluster 2
   edge_weight = { 2.0L / 3.0L, 2.0L / 3.0L, 2.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.adjacentNodes(2)) {
+  for (Edge e : graph.incidentEdges(2)) {
     NodeID n_id = e.targetNode;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);

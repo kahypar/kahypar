@@ -192,7 +192,7 @@ class Louvain {
         EdgeWeight best_incident_cluster_weight = 0.0L;
         EdgeWeight best_gain = 0.0L;
 
-        for (Edge e : g.adjacentNodes(node)) {
+        for (Edge e : g.incidentEdges(node)) {
           if (g.clusterID(e.targetNode) == cur_cid && e.targetNode != node) {
             cur_incident_cluster_weight += e.weight;
           }

@@ -165,7 +165,7 @@ class Modularity : public QualityMeasure {
     EdgeWeight m2 = graph.totalWeight();
 
     for (NodeID u : graph.nodes()) {
-      for (Edge edge : graph.adjacentNodes(u)) {
+      for (Edge edge : graph.incidentEdges(u)) {
         NodeID v = edge.targetNode;
         vis.set(v, true);
         if (graph.clusterID(u) == graph.clusterID(v)) {

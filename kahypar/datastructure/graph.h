@@ -127,7 +127,7 @@ class Graph {
     std::iota(_hypernode_mapping.begin(), _hypernode_mapping.end(), 0);
 
     for (NodeID node : nodes()) {
-      for (Edge e : adjacentNodes(node)) {
+      for (Edge e : incidentEdges(node)) {
         if (node == e.targetNode) {
           _selfloop[node] = e.weight;
         }
@@ -161,7 +161,7 @@ class Graph {
     for (NodeID node : nodes()) {
       if (_cluster_size[_cluster_id[node]] == 0) _num_comm++;
       _cluster_size[_cluster_id[node]]++;
-      for (Edge e : adjacentNodes(node)) {
+      for (Edge e : incidentEdges(node)) {
         if (node == e.targetNode) {
           _selfloop[node] = e.weight;
         }
@@ -257,7 +257,7 @@ class Graph {
   }
 
 
-  std::pair<EdgeIterator, EdgeIterator> adjacentNodes(const NodeID node) const {
+  std::pair<EdgeIterator, EdgeIterator> incidentEdges(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
     return std::make_pair(_edges.cbegin() + _adj_array[node], _edges.cbegin() + _adj_array[node + 1]);
   }
@@ -403,7 +403,7 @@ class Graph {
 
     for (NodeID n : nodes()) {
       std::cout << "Node ID: " << n << "(Comm.: " << clusterID(n) << "), Adj. List: ";
-      for (Edge e : adjacentNodes(n)) {
+      for (Edge e : incidentEdges(n)) {
         std::cout << "(" << e.targetNode << ",w=" << e.weight << ") ";
       }
       std::cout << "\n";
@@ -550,7 +550,7 @@ class Graph {
             for (HyperedgeID he : hg.incidentEdges(hn)) {
               incident_edges.insert(_hypernode_mapping[num_nodes + he]);
             }
-            for (Edge e : adjacentNodes(_hypernode_mapping[hn])) {
+            for (Edge e : incidentEdges(_hypernode_mapping[hn])) {
               HyperedgeID he = e.targetNode;
               if (incident_edges.find(he) == incident_edges.end()) {
                 LOGVAR(_hypernode_mapping[hn]);
@@ -571,7 +571,7 @@ class Graph {
             for (HypernodeID hn : hg.pins(he)) {
               pins.insert(_hypernode_mapping[hn]);
             }
-            for (Edge e : adjacentNodes(_hypernode_mapping[he + num_nodes])) {
+            for (Edge e : incidentEdges(_hypernode_mapping[he + num_nodes])) {
               if (pins.find(e.targetNode) == pins.end()) {
                 LOGVAR(_hypernode_mapping[he + num_nodes]);
                 LOGVAR(e.targetNode);
@@ -658,7 +658,7 @@ class Graph {
               LOGVAR(degree(hn));
               return false;
             }
-            for (Edge e : adjacentNodes(hn)) {
+            for (Edge e : incidentEdges(hn)) {
               if (incident_nodes.find(e.targetNode) == incident_nodes.end()) {
                 LOGVAR(hn);
                 LOGVAR(e.targetNode);
@@ -681,7 +681,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
     _incident_cluster_weight_position[clusterID(node)] = idx++;
   }
 
-  for (Edge e : adjacentNodes(node)) {
+  for (Edge e : incidentEdges(node)) {
     const NodeID id = e.targetNode;
     const EdgeWeight w = e.weight;
     const ClusterID c_id = clusterID(id);
@@ -701,7 +701,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
                                      _incident_cluster_weight.begin() + idx);
         std::set<ClusterID> incidentCluster;
         if (clusterID(node) != -1) incidentCluster.insert(clusterID(node));
-        for (Edge e : adjacentNodes(node)) {
+        for (Edge e : incidentEdges(node)) {
           ClusterID cid = clusterID(e.targetNode);
           if (cid != -1) incidentCluster.insert(cid);
         }
@@ -713,7 +713,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
             return false;
           }
           EdgeWeight incWeight = 0.0L;
-          for (Edge e : adjacentNodes(node)) {
+          for (Edge e : incidentEdges(node)) {
             ClusterID inc_cid = clusterID(e.targetNode);
             if (inc_cid == cid) incWeight += e.weight;
           }
@@ -747,7 +747,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
   size_t idx = 0;
 
   for (NodeID node : cluster_range) {
-    for (Edge e : adjacentNodes(node)) {
+    for (Edge e : incidentEdges(node)) {
       const NodeID id = e.targetNode;
       const EdgeWeight w = e.weight;
       const ClusterID c_id = clusterID(id);
@@ -766,7 +766,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
   ASSERT([&]() {
         std::set<ClusterID> incidentCluster;
         for (NodeID node : cluster_range) {
-          for (Edge e : adjacentNodes(node)) {
+          for (Edge e : incidentEdges(node)) {
             ClusterID cid = clusterID(e.targetNode);
             if (cid != -1) incidentCluster.insert(cid);
           }
@@ -780,7 +780,7 @@ std::pair<Graph::IncidentClusterWeightIterator,
           }
           EdgeWeight incWeight = 0.0L;
           for (NodeID node : cluster_range) {
-            for (Edge e : adjacentNodes(node)) {
+            for (Edge e : incidentEdges(node)) {
               ClusterID inc_cid = clusterID(e.targetNode);
               if (inc_cid == cid) incWeight += e.weight;
             }
