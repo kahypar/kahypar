@@ -77,6 +77,8 @@ class Graph {
     _num_nodes(hypergraph.currentNumNodes() +
                (config.preprocessing.louvain_community_detection.use_bipartite_graph ?
                 hypergraph.currentNumEdges() : 0)),
+    _num_communities(_num_nodes),
+    _total_weight(0.0L),
     _adj_array(_num_nodes + 1),
     _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
@@ -85,9 +87,7 @@ class Graph {
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(_num_nodes),
     _cluster_size(_num_nodes, 1),
-    _num_communities(_num_nodes),
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
-    _total_weight(0.0L),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
     std::iota(_nodes.begin(), _nodes.end(), 0);
@@ -141,6 +141,8 @@ class Graph {
 
   Graph(const std::vector<NodeID>& adj_array, const std::vector<Edge>& edges) :
     _num_nodes(adj_array.size() - 1),
+    _num_communities(_num_nodes),
+    _total_weight(0.0L),
     _adj_array(adj_array),
     _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
@@ -149,9 +151,7 @@ class Graph {
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(_num_nodes),
     _cluster_size(_num_nodes, 1),
-    _num_communities(_num_nodes),
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
-    _total_weight(0.0L),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(_num_nodes, kInvalidNode) {
     std::iota(_nodes.begin(), _nodes.end(), 0);
@@ -488,6 +488,8 @@ class Graph {
         const std::vector<NodeID> hypernodeMapping,
         const std::vector<ClusterID> cluster_id) :
     _num_nodes(adj_array.size() - 1),
+    _num_communities(0),
+    _total_weight(0.0L),
     _adj_array(adj_array),
     _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
@@ -496,9 +498,7 @@ class Graph {
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(cluster_id),
     _cluster_size(_num_nodes, 0),
-    _num_communities(0),
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
-    _total_weight(0.0L),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypernodeMapping) {
     std::iota(_nodes.begin(), _nodes.end(), 0);
@@ -700,6 +700,8 @@ class Graph {
   }
 
   NodeID _num_nodes;
+  size_t _num_communities;
+  EdgeWeight _total_weight;
   std::vector<NodeID> _adj_array;
   std::vector<NodeID> _nodes;
   std::vector<NodeID> _shuffle_nodes;
@@ -708,13 +710,10 @@ class Graph {
   std::vector<EdgeWeight> _weighted_degree;
   std::vector<ClusterID> _cluster_id;
   std::vector<size_t> _cluster_size;
-  size_t _num_communities;
   std::vector<IncidentClusterWeight> _incident_cluster_weight;
-  EdgeWeight _total_weight;
   SparseMap<ClusterID, size_t> _incident_cluster_weight_position;
   std::vector<NodeID> _hypernode_mapping;
 };
-
 
 constexpr NodeID Graph::kInvalidNode;
 }  // namespace ds
