@@ -35,8 +35,6 @@ namespace kahypar {
 using ds::Graph;
 using ds::Edge;
 
-#define EPS 1e-5
-
 template <class QualityMeasure = Mandatory>
 class Louvain {
  public:
@@ -82,7 +80,7 @@ class Louvain {
       //Checks if quality of the coarse graph is equal with the quality of next level finer graph
       ASSERT([&]() {
           if (cur_idx == 0) return true;
-          if (std::abs(cur_quality - quality.quality()) > EPS) {
+          if (std::abs(cur_quality - quality.quality()) > Graph::kEpsilon) {
             LOGVAR(cur_quality);
             LOGVAR(quality.quality());
             return false;
@@ -98,7 +96,8 @@ class Louvain {
       LOG("Louvain-Pass #" << iteration << " Time: " << elapsed_seconds.count() << "s");
       improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement;
 
-      LOG("Louvain-Pass #" << iteration << " improve quality from " << old_quality << " to " << cur_quality);
+      LOG("Louvain-Pass #" << iteration << " improve quality from " << old_quality
+          << " to " << cur_quality);
 
       if (improvement) {
         cur_quality = quality.quality();
@@ -116,9 +115,10 @@ class Louvain {
       LOG("");
     } while (improvement && iteration < max_passes);
 
-    ASSERT((mapping_stack.size() + 1) == _graph_hierarchy.size(), "Unequality between graph and mapping stack!");
+    ASSERT((mapping_stack.size() + 1) == _graph_hierarchy.size());
     while (!mapping_stack.empty()) {
-      assignClusterToNextLevelFinerGraph(_graph_hierarchy[cur_idx - 1], _graph_hierarchy[cur_idx], mapping_stack[cur_idx - 1]);
+      assignClusterToNextLevelFinerGraph(_graph_hierarchy[cur_idx - 1], _graph_hierarchy[cur_idx],
+                                         mapping_stack[cur_idx - 1]);
       _graph_hierarchy.pop_back();
       mapping_stack.pop_back();
       cur_idx--;
@@ -221,7 +221,7 @@ class Louvain {
               quality.remove(node,cur_incident_cluster_weight); //Remove node again from his old cluster ...
               quality.insert(node,best_cid,best_incident_cluster_weight); //... and insert it in cluster with best gain.
               EdgeWeight quality_after = quality.quality();
-              if(quality_after - quality_before < -EPS) {
+              if(quality_after - quality_before < -Graph::kEpsilon) {
                   LOGVAR(quality_before);
                   LOGVAR(quality_after);
                   return false;

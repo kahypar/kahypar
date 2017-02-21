@@ -66,9 +66,9 @@ struct IncidentClusterWeight {
 class Graph {
  private:
   static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max();
-  static constexpr long double kEpsilon = 1e-5;
 
  public:
+  static constexpr long double kEpsilon = 1e-5;
   using NodeIterator = std::vector<NodeID>::const_iterator;
   using EdgeIterator = std::vector<Edge>::const_iterator;
   using IncidentClusterWeightIterator = std::vector<IncidentClusterWeight>::const_iterator;
