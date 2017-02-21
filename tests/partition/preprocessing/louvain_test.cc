@@ -28,7 +28,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/quality_measure.h"
+#include "kahypar/partition/preprocessing/modularity.h"
 
 using::testing::Eq;
 using::testing::Test;
@@ -64,7 +64,7 @@ class AModularityMeasure : public Test {
     graph(nullptr) {
     config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
     graph = std::make_shared<Graph>(hypergraph, config);
-    modularity = std::make_shared<Modularity>(*graph, config);
+    modularity = std::make_shared<Modularity>(*graph);
   }
 
   std::shared_ptr<Modularity> modularity;
@@ -77,16 +77,16 @@ TEST_F(AModularityMeasure, IsCorrectInitialized) {
   std::vector<EdgeWeight> expected_in = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
   std::vector<EdgeWeight> expected_tot = { 0.75L, 0.25L, 0.5L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 1.0L / 3.0L, 2.0L / 3.0L, 1.0L, 1.0L, 1.0L, 1.0L };
   for (NodeID node : graph->nodes()) {
-    ASSERT_LE(std::abs(expected_in[node] - modularity->in[node]), EPS);
-    ASSERT_LE(std::abs(expected_tot[node] - modularity->tot[node]), EPS);
+    ASSERT_LE(std::abs(expected_in[node] - modularity->_in[node]), EPS);
+    ASSERT_LE(std::abs(expected_tot[node] - modularity->_tot[node]), EPS);
   }
 }
 
 TEST_F(AModularityMeasure, RemoveNodeFromCommunity) {
   for (NodeID node : graph->nodes()) {
     modularity->remove(node, 0.0L);
-    ASSERT_EQ(0.0L, modularity->in[node]);
-    ASSERT_EQ(0.0L, modularity->tot[node]);
+    ASSERT_EQ(0.0L, modularity->_in[node]);
+    ASSERT_EQ(0.0L, modularity->_tot[node]);
     ASSERT_EQ(graph->clusterID(node), -1);
   }
 }
@@ -99,26 +99,26 @@ TEST_F(AModularityMeasure, RemoveNodeFromCommunityWithMoreThanOneNode) {
 
   modularity->remove(8, 0.5);
 
-  ASSERT_EQ(0.0L, modularity->in[8]);
-  ASSERT_LE(std::abs(0.5L + 1.0L / 3.0L - modularity->tot[8]), EPS);
+  ASSERT_EQ(0.0L, modularity->_in[8]);
+  ASSERT_LE(std::abs(0.5L + 1.0L / 3.0L - modularity->_tot[8]), EPS);
   ASSERT_EQ(graph->clusterID(8), -1);
 }
 
 TEST_F(AModularityMeasure, InsertNodeInCommunity) {
   modularity->remove(1, 0.0L);
   modularity->insert(1, 8, 0.25L);
-  ASSERT_EQ(0.0L, modularity->in[1]);
-  ASSERT_EQ(0.0L, modularity->tot[1]);
-  ASSERT_EQ(0.5L, modularity->in[8]);
-  ASSERT_EQ(1.25L, modularity->tot[8]);
+  ASSERT_EQ(0.0L, modularity->_in[1]);
+  ASSERT_EQ(0.0L, modularity->_tot[1]);
+  ASSERT_EQ(0.5L, modularity->_in[8]);
+  ASSERT_EQ(1.25L, modularity->_tot[8]);
   ASSERT_EQ(graph->clusterID(1), 8);
 
   modularity->remove(3, 0.0L);
   modularity->insert(3, 8, 0.25L);
-  ASSERT_EQ(0.0L, modularity->in[3]);
-  ASSERT_EQ(0.0L, modularity->tot[3]);
-  ASSERT_EQ(1.0L, modularity->in[8]);
-  ASSERT_LE(std::abs(1.25L + (0.25L + 1.0L / 3.0L) - modularity->tot[8]), EPS);
+  ASSERT_EQ(0.0L, modularity->_in[3]);
+  ASSERT_EQ(0.0L, modularity->_tot[3]);
+  ASSERT_EQ(1.0L, modularity->_in[8]);
+  ASSERT_LE(std::abs(1.25L + (0.25L + 1.0L / 3.0L) - modularity->_tot[8]), EPS);
   ASSERT_EQ(graph->clusterID(3), 8);
 }
 
@@ -143,7 +143,7 @@ TEST_F(AModularityMeasure, CalculatesCorrectGainValuesForIsolatedNode) {
 
 TEST_F(ALouvainAlgorithm, DoesOneLouvainPass) {
   Graph graph(hypergraph, config);
-  Modularity modularity(graph, config);
+  Modularity modularity(graph);
   EdgeWeight quality_before = modularity.quality();
   EdgeWeight quality_after = louvain->louvain_pass(graph, modularity);
   ASSERT_LE(quality_before, quality_after);
@@ -151,7 +151,7 @@ TEST_F(ALouvainAlgorithm, DoesOneLouvainPass) {
 
 TEST_F(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph) {
   Graph graph(hypergraph, config);
-  Modularity modularity(graph, config);
+  Modularity modularity(graph);
   louvain->louvain_pass(graph, modularity);
   auto contraction = graph.contractCluster();
   Graph coarseGraph = std::move(contraction.first);

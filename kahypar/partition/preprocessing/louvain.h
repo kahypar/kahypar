@@ -69,7 +69,7 @@ class Louvain {
     do {
       LOG("Graph Number Nodes: " << _graph_hierarchy[cur_idx].numNodes());
       LOG("Graph Number Edges: " << _graph_hierarchy[cur_idx].numEdges());
-      QualityMeasure quality(_graph_hierarchy[cur_idx], _config);
+      QualityMeasure quality(_graph_hierarchy[cur_idx]);
       if (iteration == 0) {
         cur_quality = quality.quality();
       }

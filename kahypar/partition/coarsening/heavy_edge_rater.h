@@ -29,7 +29,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/quality_measure.h"
+#include "kahypar/partition/preprocessing/modularity.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {

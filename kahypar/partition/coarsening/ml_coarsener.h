@@ -30,7 +30,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/quality_measure.h"
+#include "kahypar/partition/preprocessing/modularity.h"
 
 namespace kahypar {
 class MLCoarsener final : public ICoarsener,
