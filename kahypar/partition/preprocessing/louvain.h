@@ -42,45 +42,20 @@ class Louvain {
  public:
   Louvain(const Hypergraph& hypergraph,
           const Configuration& config) :
-    _graph(hypergraph, config),
-    _config(config) { }
+    _graph_hierarchy(),
+    _config(config) {
+    _graph_hierarchy.emplace_back(hypergraph, config);
+  }
 
   Louvain(const std::vector<NodeID>& adj_array,
           const std::vector<Edge>& edges,
           const Configuration& config) :
-    _graph(adj_array, edges),
-    _config(config) { }
+    _graph_hierarchy(),
+    _config(config) {
+    _graph_hierarchy.emplace_back(adj_array, edges);
+  }
 
   EdgeWeight run() {
-    return run(_graph);
-  }
-
-  Graph getGraph() {
-    return _graph;
-  }
-
-  ClusterID clusterID(const HypernodeID hn) const {
-    return _graph.hypernodeClusterID(hn);
-  }
-
-  ClusterID hypernodeClusterID(const HypernodeID hn) const {
-    return _graph.hypernodeClusterID(hn);
-  }
-
-  ClusterID hyperedgeClusterID(const HyperedgeID he, const HypernodeID num_hns) const {
-    return _graph.hyperedgeClusterID(he, num_hns);
-  }
-
-  size_t numCommunities() const {
-    return _graph.numCommunities();
-  }
-
- private:
-  FRIEND_TEST(ALouvainAlgorithm, DoesOneLouvainPass);
-  FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
-  FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
-
-  EdgeWeight run(Graph& graph) {
     bool improvement = false;
     size_t iteration = 0;
     EdgeWeight old_quality = -1.0L;
@@ -90,15 +65,13 @@ class Louvain {
 
 
     std::vector<std::vector<NodeID> > mapping_stack;
-    std::vector<Graph> graph_stack;
-
-    graph_stack.emplace_back(std::move(graph));
+    ASSERT(_graph_hierarchy.size() == 1);
     int cur_idx = 0;
 
     do {
-      LOG("Graph Number Nodes: " << graph_stack[cur_idx].numNodes());
-      LOG("Graph Number Edges: " << graph_stack[cur_idx].numEdges());
-      QualityMeasure quality(graph_stack[cur_idx], _config);
+      LOG("Graph Number Nodes: " << _graph_hierarchy[cur_idx].numNodes());
+      LOG("Graph Number Edges: " << _graph_hierarchy[cur_idx].numEdges());
+      QualityMeasure quality(_graph_hierarchy[cur_idx], _config);
       if (iteration == 0) {
         cur_quality = quality.quality();
       }
@@ -119,7 +92,7 @@ class Louvain {
 
       old_quality = cur_quality;
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-      cur_quality = louvain_pass(graph_stack[cur_idx], quality);
+      cur_quality = louvain_pass(_graph_hierarchy[cur_idx], quality);
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
       LOG("Louvain-Pass #" << iteration << " Time: " << elapsed_seconds.count() << "s");
@@ -131,32 +104,58 @@ class Louvain {
         cur_quality = quality.quality();
         LOG("Starting Contraction of communities...");
         start = std::chrono::high_resolution_clock::now();
-        auto contraction = graph_stack[cur_idx++].contractCluster();
+        auto contraction = _graph_hierarchy[cur_idx++].contractCluster();
         end = std::chrono::high_resolution_clock::now();
         elapsed_seconds = end - start;
         LOG("Contraction Time: " << elapsed_seconds.count() << "s");
-        graph_stack.push_back(std::move(contraction.first));
+        _graph_hierarchy.push_back(std::move(contraction.first));
         mapping_stack.push_back(std::move(contraction.second));
-        LOG("Current number of communities: " << graph_stack[cur_idx].numNodes());
+        LOG("Current number of communities: " << _graph_hierarchy[cur_idx].numNodes());
       }
 
       LOG("");
     } while (improvement && iteration < max_passes);
 
-    ASSERT((mapping_stack.size() + 1) == graph_stack.size(), "Unequality between graph and mapping stack!");
+    ASSERT((mapping_stack.size() + 1) == _graph_hierarchy.size(), "Unequality between graph and mapping stack!");
     while (!mapping_stack.empty()) {
-      assignClusterToNextLevelFinerGraph(graph_stack[cur_idx - 1], graph_stack[cur_idx], mapping_stack[cur_idx - 1]);
-      graph_stack.pop_back();
+      assignClusterToNextLevelFinerGraph(_graph_hierarchy[cur_idx - 1], _graph_hierarchy[cur_idx], mapping_stack[cur_idx - 1]);
+      _graph_hierarchy.pop_back();
       mapping_stack.pop_back();
       cur_idx--;
     }
 
-    graph = std::move(graph_stack[0]);
-
+    ASSERT(_graph_hierarchy.size() == 1);
     return cur_quality;
   }
 
-  void assignClusterToNextLevelFinerGraph(Graph& fineGraph, Graph& coarseGraph, std::vector<NodeID>& mapping) {
+
+  Graph getGraph() {
+    return _graph_hierarchy[0];
+  }
+
+  ClusterID clusterID(const HypernodeID hn) const {
+    return _graph_hierarchy[0].hypernodeClusterID(hn);
+  }
+
+  ClusterID hypernodeClusterID(const HypernodeID hn) const {
+    return _graph_hierarchy[0].hypernodeClusterID(hn);
+  }
+
+  ClusterID hyperedgeClusterID(const HyperedgeID he, const HypernodeID num_hns) const {
+    return _graph_hierarchy[0].hyperedgeClusterID(he, num_hns);
+  }
+
+  size_t numCommunities() const {
+    return _graph_hierarchy[0].numCommunities();
+  }
+
+ private:
+  FRIEND_TEST(ALouvainAlgorithm, DoesOneLouvainPass);
+  FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
+  FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
+
+  void assignClusterToNextLevelFinerGraph(Graph& fineGraph, const Graph& coarseGraph,
+                                          const std::vector<NodeID>& mapping) {
     for (NodeID node : fineGraph.nodes()) {
       fineGraph.setClusterID(node, coarseGraph.clusterID(mapping[node]));
     }
@@ -175,26 +174,25 @@ class Louvain {
       } (), "Mapping from coarse to fine graph failed!");
   }
 
-  EdgeWeight louvain_pass(Graph& g, QualityMeasure& quality) {
+  EdgeWeight louvain_pass(Graph& graph, QualityMeasure& quality) {
     size_t node_moves = 0;
     int iterations = 0;
 
     //TODO(heuer): Think about shuffling nodes before louvain pass
-
-    g.shuffleNodes();
+    graph.shuffleNodes();
 
     do {
       LOG("######## Starting Louvain-Pass-Iteration #" << ++iterations << " ########");
       node_moves = 0;
-      for (NodeID node : g.nodes()) {
-        const ClusterID cur_cid = g.clusterID(node);
+      for (NodeID node : graph.nodes()) {
+        const ClusterID cur_cid = graph.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
         EdgeWeight best_incident_cluster_weight = 0.0L;
         EdgeWeight best_gain = 0.0L;
 
-        for (Edge e : g.incidentEdges(node)) {
-          if (g.clusterID(e.targetNode) == cur_cid && e.targetNode != node) {
+        for (Edge e : graph.incidentEdges(node)) {
+          if (graph.clusterID(e.targetNode) == cur_cid && e.targetNode != node) {
             cur_incident_cluster_weight += e.weight;
           }
         }
@@ -202,7 +200,7 @@ class Louvain {
 
         quality.remove(node, cur_incident_cluster_weight);
 
-        for (auto cluster : g.incidentClusterWeightOfNode(node)) {
+        for (auto cluster : graph.incidentClusterWeightOfNode(node)) {
           const ClusterID cid = cluster.clusterID;
           const EdgeWeight weight = cluster.weight;
           const EdgeWeight gain = quality.gain(node, cid, weight);
@@ -242,7 +240,7 @@ class Louvain {
     return quality.quality();
   }
 
-  Graph _graph;
+  std::vector<Graph> _graph_hierarchy;
   const Configuration& _config;
 };
 }  // namespace kahypar
