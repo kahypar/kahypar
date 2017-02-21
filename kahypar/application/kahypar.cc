@@ -567,6 +567,19 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  if (config.preprocessing.enable_louvain_community_detection &&
+      config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
+    const double density = static_cast<double>(hypergraph.initialNumEdges()) /
+                           static_cast<double>(hypergraph.initialNumNodes());
+    if (density < 0.75) {
+      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::degree;
+    } else if (density >= 0.75 && density <= 1.25) {
+      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::uniform;
+    } else {
+      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::uniform;
+    }
+  }
+
 
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(hypergraph,
