@@ -67,6 +67,36 @@ class Graph {
  private:
   static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max();
 
+  class NodeIDIterator : public std::iterator<
+                           std::forward_iterator_tag, // iterator_category
+                           NodeID, // value_type
+                           std::ptrdiff_t, // difference_type
+                           NodeID*, // pointer
+                           NodeID>{ // reference
+ public:
+    NodeIDIterator(const NodeID start) :
+      _i(start) { }
+
+    reference operator* () const {
+      return _i;
+    }
+    NodeIDIterator& operator++ () {
+      ++_i;
+      return *this;
+    }
+    NodeIDIterator operator++ (int) {
+      NodeIDIterator copy(*this);
+      ++_i;
+      return copy;
+    }
+
+    bool operator== (const NodeIDIterator& other) const { return _i == other._i; }
+    bool operator!= (const NodeIDIterator& other) const { return _i != other._i; }
+
+ private:
+    NodeID _i;
+  };
+
  public:
   static constexpr long double kEpsilon = 1e-5;
   using NodeIterator = std::vector<NodeID>::const_iterator;
@@ -80,7 +110,6 @@ class Graph {
     _num_communities(_num_nodes),
     _total_weight(0.0L),
     _adj_array(_num_nodes + 1),
-    _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
     _edges(),
     _selfloop(_num_nodes, 0.0L),
@@ -90,7 +119,6 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
-    std::iota(_nodes.begin(), _nodes.end(), 0);
     std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     if (config.preprocessing.louvain_community_detection.use_bipartite_graph) {
@@ -144,7 +172,6 @@ class Graph {
     _num_communities(_num_nodes),
     _total_weight(0.0L),
     _adj_array(adj_array),
-    _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
     _edges(edges),
     _selfloop(_num_nodes, 0.0L),
@@ -154,7 +181,6 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(_num_nodes, kInvalidNode) {
-    std::iota(_nodes.begin(), _nodes.end(), 0);
     std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     std::iota(_hypernode_mapping.begin(), _hypernode_mapping.end(), 0);
@@ -176,8 +202,8 @@ class Graph {
   Graph(Graph&& other) = default;
   Graph& operator= (Graph&& other) = delete;
 
-  std::pair<NodeIterator, NodeIterator> nodes() const {
-    return std::make_pair(_nodes.begin(), _nodes.end());
+  std::pair<NodeIDIterator, NodeIDIterator> nodes() const {
+    return std::make_pair(NodeIDIterator(0), NodeIDIterator(_num_nodes));
   }
 
   std::pair<NodeIterator, NodeIterator> randomNodeOrder() {
@@ -281,7 +307,7 @@ class Graph {
           size_t from_size = 0;
           size_t to_size = 0;
 
-          for (NodeID node : nodes()) {
+          for (const NodeID node : nodes()) {
             if (clusterID(node) != -1) distinct_comm.insert(clusterID(node));
             if (from != -1 && clusterID(node) == from) from_size++;
             if (to != -1 && clusterID(node) == to) to_size++;
@@ -395,7 +421,7 @@ class Graph {
     std::vector<NodeID> cluster2Node(numNodes(), kInvalidNode);
     std::vector<NodeID> node2contractedNode(numNodes(), kInvalidNode);
     ClusterID new_cid = 0;
-    for (NodeID node : nodes()) {
+    for (const NodeID node : nodes()) {
       const ClusterID cid = clusterID(node);
       if (cluster2Node[cid] == kInvalidNode) {
         cluster2Node[cid] = new_cid++;
@@ -491,7 +517,6 @@ class Graph {
     _num_communities(0),
     _total_weight(0.0L),
     _adj_array(adj_array),
-    _nodes(_num_nodes),
     _shuffle_nodes(_num_nodes),
     _edges(edges),
     _selfloop(_num_nodes, 0.0L),
@@ -501,10 +526,9 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypernodeMapping) {
-    std::iota(_nodes.begin(), _nodes.end(), 0);
     std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
 
-    for (NodeID node : nodes()) {
+    for (const NodeID node : nodes()) {
       if (_cluster_size[_cluster_id[node]] == 0) _num_communities++;
       _cluster_size[_cluster_id[node]]++;
       for (Edge e : incidentEdges(node)) {
@@ -603,7 +627,7 @@ class Graph {
 
     // Construct adj. array for all hypernodes.
     // Number of edges is equal to the degree of the corresponding hypernode.
-    for (HypernodeID hn : hg.nodes()) {
+    for (const HypernodeID hn : hg.nodes()) {
       _hypernode_mapping[hn] = cur_node_id;
       _adj_array[cur_node_id++] = sum_edges;
       sum_edges += hg.nodeDegree(hn);
@@ -611,7 +635,7 @@ class Graph {
 
     // Construct adj. array for all hyperedges.
     // Number of edges is equal to the size of the corresponding hyperedge.
-    for (HyperedgeID he : hg.edges()) {
+    for (const HyperedgeID he : hg.edges()) {
       _hypernode_mapping[num_nodes + he] = cur_node_id;
       _adj_array[cur_node_id++] = sum_edges;
       sum_edges += hg.edgeSize(he);
@@ -620,7 +644,7 @@ class Graph {
     _adj_array[_num_nodes] = sum_edges;
     _edges.resize(sum_edges);
 
-    for (HypernodeID hn : hg.nodes()) {
+    for (const HypernodeID hn : hg.nodes()) {
       size_t pos = 0;
       const NodeID graph_node = _hypernode_mapping[hn];
       for (HyperedgeID he : hg.incidentEdges(hn)) {
@@ -633,9 +657,9 @@ class Graph {
       }
     }
 
-    for (HyperedgeID he : hg.edges()) {
+    for (const HyperedgeID he : hg.edges()) {
       size_t pos = 0;
-      for (HypernodeID hn : hg.pins(he)) {
+      for (const HypernodeID hn : hg.pins(he)) {
         Edge e;
         e.target_node = _hypernode_mapping[hn];
         e.weight = edgeWeight(hg, he, hn);
@@ -656,18 +680,18 @@ class Graph {
 
     ASSERT([&]() {
           //Check Hypernodes in Graph
-          for (HypernodeID hn : hg.nodes()) {
+          for (const HypernodeID hn : hg.nodes()) {
             if (hg.nodeDegree(hn) != degree(_hypernode_mapping[hn])) {
               LOGVAR(hg.nodeDegree(hn));
               LOGVAR(degree(_hypernode_mapping[hn]));
               return false;
             }
             std::set<HyperedgeID> incident_edges;
-            for (HyperedgeID he : hg.incidentEdges(hn)) {
+            for (const HyperedgeID he : hg.incidentEdges(hn)) {
               incident_edges.insert(_hypernode_mapping[num_nodes + he]);
             }
-            for (Edge e : incidentEdges(_hypernode_mapping[hn])) {
-              HyperedgeID he = e.target_node;
+            for (const Edge e : incidentEdges(_hypernode_mapping[hn])) {
+              const HyperedgeID he = e.target_node;
               if (incident_edges.find(he) == incident_edges.end()) {
                 LOGVAR(_hypernode_mapping[hn]);
                 LOGVAR(he);
@@ -677,17 +701,17 @@ class Graph {
           }
 
           //Checks Hyperedges in Graph
-          for (HyperedgeID he : hg.edges()) {
+          for (const HyperedgeID he : hg.edges()) {
             if (hg.edgeSize(he) != degree(_hypernode_mapping[he + num_nodes])) {
               LOGVAR(hg.edgeSize(he));
               LOGVAR(degree(_hypernode_mapping[he + num_nodes]));
               return false;
             }
             std::set<HypernodeID> pins;
-            for (HypernodeID hn : hg.pins(he)) {
+            for (const HypernodeID hn : hg.pins(he)) {
               pins.insert(_hypernode_mapping[hn]);
             }
-            for (Edge e : incidentEdges(_hypernode_mapping[he + num_nodes])) {
+            for (const Edge e : incidentEdges(_hypernode_mapping[he + num_nodes])) {
               if (pins.find(e.target_node) == pins.end()) {
                 LOGVAR(_hypernode_mapping[he + num_nodes]);
                 LOGVAR(e.target_node);
@@ -703,7 +727,6 @@ class Graph {
   size_t _num_communities;
   EdgeWeight _total_weight;
   std::vector<NodeID> _adj_array;
-  std::vector<NodeID> _nodes;
   std::vector<NodeID> _shuffle_nodes;
   std::vector<Edge> _edges;
   std::vector<EdgeWeight> _selfloop;
