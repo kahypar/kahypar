@@ -33,7 +33,6 @@
 
 #include "kahypar/macros.h"
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/configuration.h"
@@ -193,7 +192,8 @@ class Graph {
 
   std::pair<EdgeIterator, EdgeIterator> incidentEdges(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
-    return std::make_pair(_edges.cbegin() + _adj_array[node], _edges.cbegin() + _adj_array[node + 1]);
+    return std::make_pair(_edges.cbegin() + _adj_array[node],
+                          _edges.cbegin() + _adj_array[node + 1]);
   }
 
   size_t numNodes() const {
