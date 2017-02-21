@@ -40,11 +40,14 @@ using ds::Edge;
 template <class QualityMeasure = Mandatory>
 class Louvain {
  public:
-  Louvain(const Hypergraph& hypergraph, const Configuration& config) :
+  Louvain(const Hypergraph& hypergraph,
+          const Configuration& config) :
     _graph(hypergraph, config),
     _config(config) { }
 
-  Louvain(const std::vector<NodeID>& adj_array, const std::vector<Edge>& edges, const Configuration& config) :
+  Louvain(const std::vector<NodeID>& adj_array,
+          const std::vector<Edge>& edges,
+          const Configuration& config) :
     _graph(adj_array, edges),
     _config(config) { }
 
@@ -83,7 +86,7 @@ class Louvain {
     EdgeWeight old_quality = -1.0L;
     EdgeWeight cur_quality = -1.0L;
 
-    const size_t max_iterations = std::numeric_limits<size_t>::max();
+    const size_t max_passes = std::numeric_limits<size_t>::max();
 
 
     std::vector<std::vector<NodeID> > mapping_stack;
@@ -120,7 +123,7 @@ class Louvain {
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
       LOG("Louvain-Pass #" << iteration << " Time: " << elapsed_seconds.count() << "s");
-      improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement || max_iterations == 2;
+      improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement;
 
       LOG("Louvain-Pass #" << iteration << " improve quality from " << old_quality << " to " << cur_quality);
 
@@ -138,7 +141,7 @@ class Louvain {
       }
 
       LOG("");
-    } while (improvement && iteration < max_iterations);
+    } while (improvement && iteration < max_passes);
 
     ASSERT((mapping_stack.size() + 1) == graph_stack.size(), "Unequality between graph and mapping stack!");
     while (!mapping_stack.empty()) {
