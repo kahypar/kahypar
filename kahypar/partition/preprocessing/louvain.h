@@ -86,7 +86,7 @@ class Louvain {
             return false;
           }
           return true;
-        } (), "Quality of the contracted graph is not equal with quality of its corresponding uncontracted graph!");
+        } (), "Quality of contracted graph does not match quality of uncontracted graph");
 
       old_quality = cur_quality;
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -215,11 +215,15 @@ class Louvain {
 
         if (best_cid != cur_cid) {
           /*ASSERT([&]() {
-              quality.remove(node,best_incident_cluster_weight); //Remove node from best cluster...
-              quality.insert(node,cur_cid,cur_incident_cluster_weight); // ... and insert in his old cluster.
+          // Remove node from best cluster...
+              quality.remove(node,best_incident_cluster_weight);
+              // ... and insert in his old cluster.
+              quality.insert(node,cur_cid,cur_incident_cluster_weight);
               EdgeWeight quality_before = quality.quality();
-              quality.remove(node,cur_incident_cluster_weight); //Remove node again from his old cluster ...
-              quality.insert(node,best_cid,best_incident_cluster_weight); //... and insert it in cluster with best gain.
+              //Remove node again from its old cluster ...
+              quality.remove(node,cur_incident_cluster_weight);
+              // ... and insert it in cluster with best gain.
+              quality.insert(node,best_cid,best_incident_cluster_weight);
               EdgeWeight quality_after = quality.quality();
               if(quality_after - quality_before < -Graph::kEpsilon) {
                   LOGVAR(quality_before);
@@ -234,7 +238,8 @@ class Louvain {
       }
 
       LOG("Iteration #" << iterations << ": Moving " << node_moves << " nodes to new communities.");
-    } while (node_moves > 0 && iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
+    } while (node_moves > 0 &&
+             iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
 
 
     return quality.quality();
