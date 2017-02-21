@@ -136,7 +136,7 @@ class HeavyEdgeRater {
 
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    EdgeWeight quality = _louvain.louvain();
+    EdgeWeight quality = _louvain.run();
     for (HypernodeID hn : _hg.nodes()) {
       _comm[hn] = _louvain.clusterID(hn);
     }

@@ -48,13 +48,42 @@ class Louvain {
     _graph(adj_array, edges),
     _config(config) { }
 
-  EdgeWeight louvain(Graph& graph) {
+  EdgeWeight run() {
+    return run(_graph);
+  }
+
+  Graph getGraph() {
+    return _graph;
+  }
+
+  ClusterID clusterID(const HypernodeID hn) const {
+    return _graph.hypernodeClusterID(hn);
+  }
+
+  ClusterID hypernodeClusterID(const HypernodeID hn) const {
+    return _graph.hypernodeClusterID(hn);
+  }
+
+  ClusterID hyperedgeClusterID(const HyperedgeID he, const HypernodeID num_hns) const {
+    return _graph.hyperedgeClusterID(he, num_hns);
+  }
+
+  size_t numCommunities() const {
+    return _graph.numCommunities();
+  }
+
+ private:
+  FRIEND_TEST(ALouvainAlgorithm, DoesOneLouvainPass);
+  FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
+  FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
+
+  EdgeWeight run(Graph& graph) {
     bool improvement = false;
     size_t iteration = 0;
     EdgeWeight old_quality = -1.0L;
     EdgeWeight cur_quality = -1.0L;
 
-    size_t max_iterations = std::numeric_limits<size_t>::max();
+    const size_t max_iterations = std::numeric_limits<size_t>::max();
 
 
     std::vector<std::vector<NodeID> > mapping_stack;
@@ -71,7 +100,8 @@ class Louvain {
         cur_quality = quality.quality();
       }
 
-      LOG("######## Starting Louvain-Pass #" << ++iteration << " ########");
+      ++iteration;
+      LOG("######## Starting Louvain-Pass #" << iteration << " ########");
 
       //Checks if quality of the coarse graph is equal with the quality of next level finer graph
       ASSERT([&]() {
@@ -123,36 +153,6 @@ class Louvain {
     return cur_quality;
   }
 
-
-  EdgeWeight louvain() {
-    return louvain(_graph);
-  }
-
-  Graph getGraph() {
-    return _graph;
-  }
-
-  ClusterID clusterID(const HypernodeID hn) const {
-    return _graph.hypernodeClusterID(hn);
-  }
-
-  ClusterID hypernodeClusterID(const HypernodeID hn) const {
-    return _graph.hypernodeClusterID(hn);
-  }
-
-  ClusterID hyperedgeClusterID(const HyperedgeID he, const HypernodeID num_hns) const {
-    return _graph.hyperedgeClusterID(he, num_hns);
-  }
-
-  size_t numCommunities() const {
-    return _graph.numCommunities();
-  }
-
- private:
-  FRIEND_TEST(ALouvainAlgorithm, DoesOneLouvainPass);
-  FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
-  FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
-
   void assignClusterToNextLevelFinerGraph(Graph& fineGraph, Graph& coarseGraph, std::vector<NodeID>& mapping) {
     for (NodeID node : fineGraph.nodes()) {
       fineGraph.setClusterID(node, coarseGraph.clusterID(mapping[node]));
@@ -184,7 +184,7 @@ class Louvain {
       LOG("######## Starting Louvain-Pass-Iteration #" << ++iterations << " ########");
       node_moves = 0;
       for (NodeID node : g.nodes()) {
-        ClusterID cur_cid = g.clusterID(node);
+        const ClusterID cur_cid = g.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
         EdgeWeight best_incident_cluster_weight = 0.0L;
@@ -200,9 +200,9 @@ class Louvain {
         quality.remove(node, cur_incident_cluster_weight);
 
         for (auto cluster : g.incidentClusterWeightOfNode(node)) {
-          ClusterID cid = cluster.clusterID;
-          EdgeWeight weight = cluster.weight;
-          EdgeWeight gain = quality.gain(node, cid, weight);
+          const ClusterID cid = cluster.clusterID;
+          const EdgeWeight weight = cluster.weight;
+          const EdgeWeight gain = quality.gain(node, cid, weight);
           if (gain > best_gain) {
             best_gain = gain;
             best_incident_cluster_weight = weight;
@@ -228,7 +228,7 @@ class Louvain {
               return true;
           }(),"Move did not increase the quality!");*/
 
-          node_moves++;
+          ++node_moves;
         }
       }
 
