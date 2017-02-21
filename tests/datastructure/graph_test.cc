@@ -57,7 +57,7 @@ class ABipartiteGraph : public Test {
 bool bicoloring(NodeID cur, int cur_col, std::vector<int>& col, std::shared_ptr<Graph>& graph) {
   col[cur] = cur_col;
   for (Edge e : graph->incidentEdges(cur)) {
-    NodeID id = e.targetNode;
+    NodeID id = e.target_node;
     if (col[id] == INVALID) return bicoloring(id, 1 - cur_col, col, graph);
     else if (col[id] == col[cur]) return false;
   }
@@ -84,7 +84,7 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
     }
     ASSERT_EQ(edges.size(), graph->degree(hn));
     for (Edge e : graph->incidentEdges(hn)) {
-      ASSERT_FALSE(edges.find(e.targetNode) == edges.end());
+      ASSERT_FALSE(edges.find(e.target_node) == edges.end());
     }
   }
 
@@ -95,7 +95,7 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
     }
     ASSERT_EQ(edges.size(), graph->degree(he + numNodes));
     for (Edge e : graph->incidentEdges(he + numNodes)) {
-      ASSERT_FALSE(edges.find(e.targetNode) == edges.end());
+      ASSERT_FALSE(edges.find(e.target_node) == edges.end());
       ASSERT_EQ(e.weight, static_cast<EdgeWeight>(hypergraph.edgeWeight(he)) /
                 static_cast<EdgeWeight>(hypergraph.edgeSize(he)));
     }
@@ -156,11 +156,11 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
       });
 
   auto cluster0 = std::make_pair(graph->_shuffle_nodes.begin(),
-                                                                  graph->_shuffle_nodes.begin() + 3);
+                                 graph->_shuffle_nodes.begin() + 3);
   auto cluster1 = std::make_pair(graph->_shuffle_nodes.begin() + 3,
-                                                                  graph->_shuffle_nodes.begin() + 8);
+                                 graph->_shuffle_nodes.begin() + 8);
   auto cluster2 = std::make_pair(graph->_shuffle_nodes.begin() + 8,
-                                                                  graph->_shuffle_nodes.begin() + 11);
+                                 graph->_shuffle_nodes.begin() + 11);
 
   //Checks incident clusters of cluster with ID 0
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
@@ -230,7 +230,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   std::vector<EdgeWeight> edge_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_nodes = { true, true, true };
   for (Edge e : graph.incidentEdges(0)) {
-    NodeID n_id = e.targetNode;
+    NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
@@ -240,7 +240,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   edge_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_nodes = { true, true, true };
   for (Edge e : graph.incidentEdges(1)) {
-    NodeID n_id = e.targetNode;
+    NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
@@ -250,7 +250,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   edge_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_nodes = { true, true, true };
   for (Edge e : graph.incidentEdges(2)) {
-    NodeID n_id = e.targetNode;
+    NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
@@ -274,6 +274,5 @@ TEST_F(ABipartiteGraph, HasCorrectSelfloopWeights) {
   ASSERT_LE(std::abs((1.5L + 4.0L / 3.0L) - graph.selfloopWeight(1)), EPS);
   ASSERT_LE(std::abs(4.0L / 3.0L - graph.selfloopWeight(2)), EPS);
 }
-
 }  //namespace ds
 }  //namespace kahypar

@@ -57,35 +57,35 @@ class Modularity {
     }
   }
 
-  inline void remove(const NodeID node, const EdgeWeight incidentCommWeight) {
+  inline void remove(const NodeID node, const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     const ClusterID cid = _graph.clusterID(node);
 
-    _in[cid] -= 2.0L * incidentCommWeight + _graph.selfloopWeight(node);
+    _in[cid] -= 2.0L * incident_community_weight + _graph.selfloopWeight(node);
     _tot[cid] -= _graph.weightedDegree(node);
 
     _graph.setClusterID(node, -1);
   }
 
   inline void insert(const NodeID node, const ClusterID new_cid,
-                     const EdgeWeight incidentCommWeight) {
+                     const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
 
-    _in[new_cid] += 2.0L * incidentCommWeight + _graph.selfloopWeight(node);
+    _in[new_cid] += 2.0L * incident_community_weight + _graph.selfloopWeight(node);
     _tot[new_cid] += _graph.weightedDegree(node);
 
     _graph.setClusterID(node, new_cid);
 
     ASSERT([&]() {
         if (!dbg_modularity_function) return true;
-        EdgeWeight q = quality();
+        const EdgeWeight q = quality();
         return q < std::numeric_limits<EdgeWeight>::max();
       } (), "");
   }
 
   inline EdgeWeight gain(const NodeID node, const ClusterID cid,
-                         const EdgeWeight incidentCommWeight) {
+                         const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
 
@@ -93,15 +93,15 @@ class Modularity {
     const EdgeWeight m2 = _graph.totalWeight();
     const EdgeWeight w_degree = _graph.weightedDegree(node);
 
-    const EdgeWeight gain = incidentCommWeight - totc * w_degree / m2;
+    const EdgeWeight gain = incident_community_weight - totc * w_degree / m2;
 
     ASSERT([&]() {
         if (!dbg_modularity_function) return true;
-        EdgeWeight modularity_before = modularity();
-        insert(node, cid, incidentCommWeight);
-        EdgeWeight modularity_after = modularity();
-        remove(node, incidentCommWeight);
-        EdgeWeight real_gain = modularity_after - modularity_before;
+        const EdgeWeight modularity_before = modularity();
+        insert(node, cid, incident_community_weight);
+        const EdgeWeight modularity_after = modularity();
+        remove(node, incident_community_weight);
+        const EdgeWeight real_gain = modularity_after - modularity_before;
         if (std::abs(2.0L * gain / m2 - real_gain) > Graph::kEpsilon) {
           LOGVAR(real_gain);
           LOGVAR(2.0L * gain / m2);
@@ -144,7 +144,7 @@ class Modularity {
 
     for (NodeID u : _graph.nodes()) {
       for (Edge edge : _graph.incidentEdges(u)) {
-        NodeID v = edge.targetNode;
+        const NodeID v = edge.target_node;
         _vis.set(v, true);
         if (_graph.clusterID(u) == _graph.clusterID(v)) {
           q += edge.weight - (_graph.weightedDegree(u) * _graph.weightedDegree(v)) / m2;

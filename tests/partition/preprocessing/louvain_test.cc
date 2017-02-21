@@ -190,7 +190,7 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
     adj_array[u + 1] = adj_array[u] + adj_list[u].size();
     for (NodeID v : adj_list[u]) {
       Edge e;
-      e.targetNode = v;
+      e.target_node = v;
       e.weight = 1.0L;
       edges.push_back(e);
     }
