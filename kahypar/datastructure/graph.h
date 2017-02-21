@@ -313,7 +313,73 @@ class Graph {
    * @return Iterator to all incident clusters of NodeID node
    */
   std::pair<IncidentClusterWeightIterator,
-            IncidentClusterWeightIterator> incidentClusterWeightOfNode(const NodeID node);
+            IncidentClusterWeightIterator> incidentClusterWeightOfNode(const NodeID node) {
+    _incident_cluster_weight_position.clear();
+    size_t idx = 0;
+
+    if (clusterID(node) != -1) {
+      _incident_cluster_weight[idx] = IncidentClusterWeight(clusterID(node), 0.0L);
+      _incident_cluster_weight_position[clusterID(node)] = idx++;
+    }
+
+    for (Edge e : incidentEdges(node)) {
+      const NodeID id = e.targetNode;
+      const EdgeWeight w = e.weight;
+      const ClusterID c_id = clusterID(id);
+      if (c_id != -1) {
+        if (_incident_cluster_weight_position.contains(c_id)) {
+          size_t i = _incident_cluster_weight_position[c_id];
+          _incident_cluster_weight[i].weight += w;
+        } else {
+          _incident_cluster_weight[idx] = IncidentClusterWeight(c_id, w);
+          _incident_cluster_weight_position[c_id] = idx++;
+        }
+      }
+    }
+
+    ASSERT([&]() {
+          const auto it = std::make_pair(_incident_cluster_weight.begin(),
+                                         _incident_cluster_weight.begin() + idx);
+          std::set<ClusterID> incidentCluster;
+          if (clusterID(node) != -1) incidentCluster.insert(clusterID(node));
+          for (Edge e : incidentEdges(node)) {
+            ClusterID cid = clusterID(e.targetNode);
+            if (cid != -1) incidentCluster.insert(cid);
+          }
+          for (auto incCluster : it) {
+            ClusterID cid = incCluster.clusterID;
+            EdgeWeight weight = incCluster.weight;
+            if (incidentCluster.find(cid) == incidentCluster.end()) {
+              LOG("ClusterID " << cid << " occur multiple or is not incident to node " << node << "!");
+              return false;
+            }
+            EdgeWeight incWeight = 0.0L;
+            for (Edge e : incidentEdges(node)) {
+              ClusterID inc_cid = clusterID(e.targetNode);
+              if (inc_cid == cid) incWeight += e.weight;
+            }
+            if (abs(incWeight - weight) > kEpsilon) {
+              LOG("Weight calculation of incident cluster " << cid << " failed!");
+              LOGVAR(incWeight);
+              LOGVAR(weight);
+              return false;
+            }
+            incidentCluster.erase(cid);
+          }
+
+          if (incidentCluster.size() > 0) {
+            LOG("Missing cluster ids in iterator!");
+            for (ClusterID cid : incidentCluster) {
+              LOGVAR(cid);
+            }
+            return false;
+          }
+
+          return true;
+        } (), "Incident cluster weight calculation of node " << node << " failed!");
+
+    return std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
+  }
 
 
   /**
@@ -325,7 +391,79 @@ class Graph {
    * @return Pair which contains the contracted graph and a mapping from current to nodes to its
    * corresponding contrated nodes.
    */
-  std::pair<Graph, std::vector<NodeID> > contractCluster();
+  std::pair<Graph, std::vector<NodeID> > contractCluster() {
+    std::vector<NodeID> cluster2Node(numNodes(), kInvalidNode);
+    std::vector<NodeID> node2contractedNode(numNodes(), kInvalidNode);
+    ClusterID new_cid = 0;
+    for (NodeID node : nodes()) {
+      const ClusterID cid = clusterID(node);
+      if (cluster2Node[cid] == kInvalidNode) {
+        cluster2Node[cid] = new_cid++;
+      }
+      node2contractedNode[node] = cluster2Node[cid];
+      setClusterID(node, node2contractedNode[node]);
+    }
+
+    std::vector<NodeID> hypernodeMapping(_hypernode_mapping.size(), kInvalidNode);
+    for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
+      if (_hypernode_mapping[hn] != kInvalidNode) {
+        hypernodeMapping[hn] = node2contractedNode[_hypernode_mapping[hn]];
+      }
+    }
+
+    ASSERT([&]() {
+          for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
+            if (_hypernode_mapping[hn] != kInvalidNode && clusterID(_hypernode_mapping[hn]) != hypernodeMapping[hn]) {
+              LOGVAR(clusterID(_hypernode_mapping[hn]));
+              LOGVAR(hypernodeMapping[hn]);
+              return false;
+            }
+          }
+          return true;
+        } (), "Hypernodes are not correctly mapped to contracted graph");
+
+
+    std::vector<ClusterID> clusterID(new_cid);
+    std::iota(clusterID.begin(), clusterID.end(), 0);
+
+
+    std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end());
+    std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
+          return _cluster_id[n1] < _cluster_id[n2] || (_cluster_id[n1] == _cluster_id[n2] && n1 < n2);
+        });
+
+    //Add Sentinels
+    _shuffle_nodes.push_back(_cluster_id.size());
+    _cluster_id.push_back(new_cid);
+
+    std::vector<NodeID> new_adj_array(new_cid + 1, 0);
+    std::vector<Edge> new_edges;
+    size_t start_idx = 0;
+    for (size_t i = 0; i < _num_nodes + 1; ++i) {
+      if (_cluster_id[_shuffle_nodes[start_idx]] != _cluster_id[_shuffle_nodes[i]]) {
+        const ClusterID cid = _cluster_id[_shuffle_nodes[start_idx]];
+        new_adj_array[cid] = new_edges.size();
+        auto cluster_range = std::make_pair(_shuffle_nodes.begin() + start_idx,
+                                            _shuffle_nodes.begin() + i);
+        for (auto incident_cluster_weight : incidentClusterWeightOfCluster(cluster_range)) {
+          Edge e;
+          e.targetNode = static_cast<NodeID>(incident_cluster_weight.clusterID);
+          e.weight = incident_cluster_weight.weight;
+          new_edges.push_back(e);
+        }
+        start_idx = i;
+      }
+    }
+
+    //Remove Sentinels
+    _shuffle_nodes.pop_back();
+    _cluster_id.pop_back();
+
+    new_adj_array[new_cid] = new_edges.size();
+
+    return std::make_pair(Graph(new_adj_array, new_edges, hypernodeMapping, clusterID),
+                          node2contractedNode);
+  }
 
   void printGraph() {
     std::cout << "Number Nodes: " << numNodes() << std::endl;
@@ -387,7 +525,73 @@ class Graph {
    * @param cid ClusterID, which incident clusters should be evaluated
    * @return Iterator to all incident clusters of ClusterID cid
    */
-  std::pair<IncidentClusterWeightIterator, IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range);
+  std::pair<IncidentClusterWeightIterator,
+            IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
+    _incident_cluster_weight_position.clear();
+    size_t idx = 0;
+
+    for (NodeID node : cluster_range) {
+      for (Edge e : incidentEdges(node)) {
+        const NodeID id = e.targetNode;
+        const EdgeWeight w = e.weight;
+        const ClusterID c_id = clusterID(id);
+        if (_incident_cluster_weight_position.contains(c_id)) {
+          const size_t i = _incident_cluster_weight_position[c_id];
+          _incident_cluster_weight[i].weight += w;
+        } else {
+          _incident_cluster_weight[idx] = IncidentClusterWeight(c_id, w);
+          _incident_cluster_weight_position[c_id] = idx++;
+        }
+      }
+    }
+
+    auto it = std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
+
+    ASSERT([&]() {
+          std::set<ClusterID> incidentCluster;
+          for (NodeID node : cluster_range) {
+            for (Edge e : incidentEdges(node)) {
+              ClusterID cid = clusterID(e.targetNode);
+              if (cid != -1) incidentCluster.insert(cid);
+            }
+          }
+          for (auto incCluster : it) {
+            ClusterID cid = incCluster.clusterID;
+            EdgeWeight weight = incCluster.weight;
+            if (incidentCluster.find(cid) == incidentCluster.end()) {
+              LOG("ClusterID " << cid << " occur multiple or is not incident to cluster!");
+              return false;
+            }
+            EdgeWeight incWeight = 0.0L;
+            for (NodeID node : cluster_range) {
+              for (Edge e : incidentEdges(node)) {
+                ClusterID inc_cid = clusterID(e.targetNode);
+                if (inc_cid == cid) incWeight += e.weight;
+              }
+            }
+            if (abs(incWeight - weight) > kEpsilon) {
+              LOG("Weight calculation of incident cluster " << cid << " failed!");
+              LOGVAR(incWeight);
+              LOGVAR(weight);
+              return false;
+            }
+            incidentCluster.erase(cid);
+          }
+
+          if (incidentCluster.size() > 0) {
+            LOG("Missing cluster ids in iterator!");
+            for (ClusterID cid : incidentCluster) {
+              LOGVAR(cid);
+            }
+            return false;
+          }
+
+          return true;
+        } (), "Incident cluster weight calculation failed!");
+
+    return it;
+  }
+
 
   template <typename EdgeWeightFunction>
   void constructBipartiteGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
@@ -511,216 +715,6 @@ class Graph {
   std::vector<NodeID> _hypernode_mapping;
 };
 
-std::pair<Graph::IncidentClusterWeightIterator,
-          Graph::IncidentClusterWeightIterator> Graph::incidentClusterWeightOfNode(const NodeID node) {
-  _incident_cluster_weight_position.clear();
-  size_t idx = 0;
-
-  if (clusterID(node) != -1) {
-    _incident_cluster_weight[idx] = IncidentClusterWeight(clusterID(node), 0.0L);
-    _incident_cluster_weight_position[clusterID(node)] = idx++;
-  }
-
-  for (Edge e : incidentEdges(node)) {
-    const NodeID id = e.targetNode;
-    const EdgeWeight w = e.weight;
-    const ClusterID c_id = clusterID(id);
-    if (c_id != -1) {
-      if (_incident_cluster_weight_position.contains(c_id)) {
-        size_t i = _incident_cluster_weight_position[c_id];
-        _incident_cluster_weight[i].weight += w;
-      } else {
-        _incident_cluster_weight[idx] = IncidentClusterWeight(c_id, w);
-        _incident_cluster_weight_position[c_id] = idx++;
-      }
-    }
-  }
-
-  ASSERT([&]() {
-        const auto it = std::make_pair(_incident_cluster_weight.begin(),
-                                       _incident_cluster_weight.begin() + idx);
-        std::set<ClusterID> incidentCluster;
-        if (clusterID(node) != -1) incidentCluster.insert(clusterID(node));
-        for (Edge e : incidentEdges(node)) {
-          ClusterID cid = clusterID(e.targetNode);
-          if (cid != -1) incidentCluster.insert(cid);
-        }
-        for (auto incCluster : it) {
-          ClusterID cid = incCluster.clusterID;
-          EdgeWeight weight = incCluster.weight;
-          if (incidentCluster.find(cid) == incidentCluster.end()) {
-            LOG("ClusterID " << cid << " occur multiple or is not incident to node " << node << "!");
-            return false;
-          }
-          EdgeWeight incWeight = 0.0L;
-          for (Edge e : incidentEdges(node)) {
-            ClusterID inc_cid = clusterID(e.targetNode);
-            if (inc_cid == cid) incWeight += e.weight;
-          }
-          if (abs(incWeight - weight) > kEpsilon) {
-            LOG("Weight calculation of incident cluster " << cid << " failed!");
-            LOGVAR(incWeight);
-            LOGVAR(weight);
-            return false;
-          }
-          incidentCluster.erase(cid);
-        }
-
-        if (incidentCluster.size() > 0) {
-          LOG("Missing cluster ids in iterator!");
-          for (ClusterID cid : incidentCluster) {
-            LOGVAR(cid);
-          }
-          return false;
-        }
-
-        return true;
-      } (), "Incident cluster weight calculation of node " << node << " failed!");
-
-  return std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
-}
-
-std::pair<Graph::IncidentClusterWeightIterator,
-          Graph::IncidentClusterWeightIterator> Graph::incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
-  _incident_cluster_weight_position.clear();
-  size_t idx = 0;
-
-  for (NodeID node : cluster_range) {
-    for (Edge e : incidentEdges(node)) {
-      const NodeID id = e.targetNode;
-      const EdgeWeight w = e.weight;
-      const ClusterID c_id = clusterID(id);
-      if (_incident_cluster_weight_position.contains(c_id)) {
-        const size_t i = _incident_cluster_weight_position[c_id];
-        _incident_cluster_weight[i].weight += w;
-      } else {
-        _incident_cluster_weight[idx] = IncidentClusterWeight(c_id, w);
-        _incident_cluster_weight_position[c_id] = idx++;
-      }
-    }
-  }
-
-  auto it = std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
-
-  ASSERT([&]() {
-        std::set<ClusterID> incidentCluster;
-        for (NodeID node : cluster_range) {
-          for (Edge e : incidentEdges(node)) {
-            ClusterID cid = clusterID(e.targetNode);
-            if (cid != -1) incidentCluster.insert(cid);
-          }
-        }
-        for (auto incCluster : it) {
-          ClusterID cid = incCluster.clusterID;
-          EdgeWeight weight = incCluster.weight;
-          if (incidentCluster.find(cid) == incidentCluster.end()) {
-            LOG("ClusterID " << cid << " occur multiple or is not incident to cluster!");
-            return false;
-          }
-          EdgeWeight incWeight = 0.0L;
-          for (NodeID node : cluster_range) {
-            for (Edge e : incidentEdges(node)) {
-              ClusterID inc_cid = clusterID(e.targetNode);
-              if (inc_cid == cid) incWeight += e.weight;
-            }
-          }
-          if (abs(incWeight - weight) > kEpsilon) {
-            LOG("Weight calculation of incident cluster " << cid << " failed!");
-            LOGVAR(incWeight);
-            LOGVAR(weight);
-            return false;
-          }
-          incidentCluster.erase(cid);
-        }
-
-        if (incidentCluster.size() > 0) {
-          LOG("Missing cluster ids in iterator!");
-          for (ClusterID cid : incidentCluster) {
-            LOGVAR(cid);
-          }
-          return false;
-        }
-
-        return true;
-      } (), "Incident cluster weight calculation failed!");
-
-  return it;
-}
-
-
-std::pair<Graph, std::vector<NodeID> > Graph::contractCluster() {
-  std::vector<NodeID> cluster2Node(numNodes(), kInvalidNode);
-  std::vector<NodeID> node2contractedNode(numNodes(), kInvalidNode);
-  ClusterID new_cid = 0;
-  for (NodeID node : nodes()) {
-    const ClusterID cid = clusterID(node);
-    if (cluster2Node[cid] == kInvalidNode) {
-      cluster2Node[cid] = new_cid++;
-    }
-    node2contractedNode[node] = cluster2Node[cid];
-    setClusterID(node, node2contractedNode[node]);
-  }
-
-  std::vector<NodeID> hypernodeMapping(_hypernode_mapping.size(), kInvalidNode);
-  for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
-    if (_hypernode_mapping[hn] != kInvalidNode) {
-      hypernodeMapping[hn] = node2contractedNode[_hypernode_mapping[hn]];
-    }
-  }
-
-  ASSERT([&]() {
-        for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
-          if (_hypernode_mapping[hn] != kInvalidNode && clusterID(_hypernode_mapping[hn]) != hypernodeMapping[hn]) {
-            LOGVAR(clusterID(_hypernode_mapping[hn]));
-            LOGVAR(hypernodeMapping[hn]);
-            return false;
-          }
-        }
-        return true;
-      } (), "Hypernodes are not correctly mapped to contracted graph");
-
-
-  std::vector<ClusterID> clusterID(new_cid);
-  std::iota(clusterID.begin(), clusterID.end(), 0);
-
-
-  std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end());
-  std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
-        return _cluster_id[n1] < _cluster_id[n2] || (_cluster_id[n1] == _cluster_id[n2] && n1 < n2);
-      });
-
-  //Add Sentinels
-  _shuffle_nodes.push_back(_cluster_id.size());
-  _cluster_id.push_back(new_cid);
-
-  std::vector<NodeID> new_adj_array(new_cid + 1, 0);
-  std::vector<Edge> new_edges;
-  size_t start_idx = 0;
-  for (size_t i = 0; i < _num_nodes + 1; ++i) {
-    if (_cluster_id[_shuffle_nodes[start_idx]] != _cluster_id[_shuffle_nodes[i]]) {
-      const ClusterID cid = _cluster_id[_shuffle_nodes[start_idx]];
-      new_adj_array[cid] = new_edges.size();
-      auto cluster_range = std::make_pair(_shuffle_nodes.begin() + start_idx,
-                                          _shuffle_nodes.begin() + i);
-      for (auto incident_cluster_weight : incidentClusterWeightOfCluster(cluster_range)) {
-        Edge e;
-        e.targetNode = static_cast<NodeID>(incident_cluster_weight.clusterID);
-        e.weight = incident_cluster_weight.weight;
-        new_edges.push_back(e);
-      }
-      start_idx = i;
-    }
-  }
-
-  //Remove Sentinels
-  _shuffle_nodes.pop_back();
-  _cluster_id.pop_back();
-
-  new_adj_array[new_cid] = new_edges.size();
-
-  return std::make_pair(Graph(new_adj_array, new_edges, hypernodeMapping, clusterID),
-                        node2contractedNode);
-}
 
 constexpr NodeID Graph::kInvalidNode;
 }  // namespace ds
