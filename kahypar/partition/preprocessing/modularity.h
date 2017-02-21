@@ -57,7 +57,7 @@ class Modularity {
     }
   }
 
-  inline void remove(const NodeID node, const EdgeWeight incident_community_weight) {
+  void remove(const NodeID node, const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     const ClusterID cid = _graph.clusterID(node);
 
@@ -67,7 +67,7 @@ class Modularity {
     _graph.setClusterID(node, -1);
   }
 
-  inline void insert(const NodeID node, const ClusterID new_cid,
+  void insert(const NodeID node, const ClusterID new_cid,
                      const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
@@ -84,7 +84,7 @@ class Modularity {
       } (), "");
   }
 
-  inline EdgeWeight gain(const NodeID node, const ClusterID cid,
+  EdgeWeight gain(const NodeID node, const ClusterID cid,
                          const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
