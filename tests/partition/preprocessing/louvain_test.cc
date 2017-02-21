@@ -54,44 +54,6 @@ class ALouvainAlgorithm : public Test {
   Configuration config;
 };
 
-class ALouvainKarateClub : public Test {
- public:
-  ALouvainKarateClub() :
-    louvain(nullptr),
-    graph(nullptr),
-    config() {
-    std::string karate_club_file = "test_instances/karate_club.graph";
-    std::ifstream in(karate_club_file);
-    int N, M;
-    in >> N >> M;
-    std::vector<std::vector<NodeID> > adj_list(N, std::vector<NodeID>());
-    for (int i = 0; i < M; ++i) {
-      NodeID u, v;
-      in >> u >> v;
-      adj_list[--u].push_back(--v);
-      adj_list[v].push_back(u);
-    }
-    std::vector<NodeID> adj_array(N + 1, 0);
-    std::vector<Edge> edges;
-    for (NodeID u = 0; u < N; ++u) {
-      adj_array[u + 1] = adj_array[u] + adj_list[u].size();
-      for (NodeID v : adj_list[u]) {
-        Edge e;
-        e.targetNode = v;
-        e.weight = 1.0L;
-        edges.push_back(e);
-      }
-    }
-    config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
-    graph = std::make_shared<Graph>(adj_array, edges, config);
-    louvain = std::make_shared<Louvain<Modularity> >(*graph, config);
-  }
-
-  std::shared_ptr<Louvain<Modularity> > louvain;
-  std::shared_ptr<Graph> graph;
-  Configuration config;
-};
-
 class AModularityMeasure : public Test {
  public:
   AModularityMeasure() :
@@ -208,10 +170,42 @@ TEST_F(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph) {
   ASSERT_EQ(2, graph.clusterID(10));
 }
 
-TEST_F(ALouvainKarateClub, DoesLouvainAlgorithm) {
-  louvain->louvain();
-  std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0, 2, 0, 2, 0, 2, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2, 2 };
-  for (NodeID node : graph->nodes())
-    ASSERT_EQ(louvain->clusterID(node), expected_comm[node]);
+namespace  ds {
+TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
+  std::string karate_club_file = "test_instances/karate_club.graph";
+  std::ifstream in(karate_club_file);
+  NodeID num_nodes = 0;
+  NodeID num_edges = 0;
+  in >> num_nodes >> num_edges;
+  std::vector<std::vector<NodeID> > adj_list(num_nodes, std::vector<NodeID>());
+  for (EdgeID i = 0; i < num_edges; ++i) {
+    NodeID u, v;
+    in >> u >> v;
+    adj_list[--u].push_back(--v);
+    adj_list[v].push_back(u);
+  }
+  std::vector<NodeID> adj_array(num_nodes + 1, 0);
+  std::vector<Edge> edges;
+  for (NodeID u = 0; u < num_nodes; ++u) {
+    adj_array[u + 1] = adj_array[u] + adj_list[u].size();
+    for (NodeID v : adj_list[u]) {
+      Edge e;
+      e.targetNode = v;
+      e.weight = 1.0L;
+      edges.push_back(e);
+    }
+  }
+  Configuration config;
+
+  config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+  Graph graph(adj_array, edges);
+  Louvain<Modularity> louvain(adj_array, edges, config);
+
+  louvain.louvain();
+  std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,
+                                           2, 0, 2, 0, 2, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2, 2 };
+  for (NodeID node : graph.nodes())
+    ASSERT_EQ(louvain.clusterID(node), expected_comm[node]);
 }
+}  // namespace ds
 }  //namespace kahypar

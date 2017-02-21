@@ -44,16 +44,11 @@ class Louvain {
     _graph(hypergraph, config),
     _config(config) { }
 
-  Louvain(Graph& graph, const Configuration& config) :
-    _graph(graph),
+  Louvain(const std::vector<NodeID>& adj_array, const std::vector<Edge>& edges, const Configuration& config) :
+    _graph(adj_array, edges),
     _config(config) { }
 
-  Louvain(Graph&& graph, const Configuration& config) :
-    _graph(std::move(graph)),
-    _config(config) { }
-
-
-  EdgeWeight louvain() {
+  EdgeWeight louvain(Graph& graph) {
     bool improvement = false;
     size_t iteration = 0;
     EdgeWeight old_quality = -1.0L;
@@ -65,7 +60,7 @@ class Louvain {
     std::vector<std::vector<NodeID> > mapping_stack;
     std::vector<Graph> graph_stack;
 
-    graph_stack.push_back(_graph);
+    graph_stack.emplace_back(std::move(graph));
     int cur_idx = 0;
 
     do {
@@ -123,12 +118,14 @@ class Louvain {
       cur_idx--;
     }
 
-    for (NodeID node : _graph.nodes()) {
-      _graph.setClusterID(node, graph_stack[0].clusterID(node));
-    }
-
+    graph = std::move(graph_stack[0]);
 
     return cur_quality;
+  }
+
+
+  EdgeWeight louvain() {
+    return louvain(_graph);
   }
 
   Graph getGraph() {
@@ -154,6 +151,7 @@ class Louvain {
  private:
   FRIEND_TEST(ALouvainAlgorithm, DoesOneLouvainPass);
   FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
+  FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
 
   void assignClusterToNextLevelFinerGraph(Graph& fineGraph, Graph& coarseGraph, std::vector<NodeID>& mapping) {
     for (NodeID node : fineGraph.nodes()) {
