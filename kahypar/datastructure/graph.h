@@ -25,7 +25,6 @@
 #include <functional>
 #include <limits>
 #include <memory>
-#include <queue>
 #include <set>
 #include <utility>
 #include <vector>
@@ -176,7 +175,7 @@ class Graph {
   Graph& operator= (const Graph& other) = delete;
 
   Graph(Graph&& other) = default;
-  Graph& operator= (Graph&& other) = default;
+  Graph& operator= (Graph&& other) = delete;
 
   std::pair<NodeIterator, NodeIterator> nodes() const {
     return std::make_pair(_nodes.begin(), _nodes.end());
