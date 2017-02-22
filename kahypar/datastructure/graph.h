@@ -74,7 +74,7 @@ class Graph {
                            NodeID*,  // pointer
                            NodeID>{  // reference
  public:
-    NodeIDIterator(const NodeID start) :
+    explicit NodeIDIterator(const NodeID start) :
       _i(start) { }
 
     reference operator* () const {
@@ -452,8 +452,6 @@ class Graph {
     std::vector<ClusterID> clusterID(new_cid);
     std::iota(clusterID.begin(), clusterID.end(), 0);
 
-
-    std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end());
     std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
           return _cluster_id[n1] < _cluster_id[n2] || (_cluster_id[n1] == _cluster_id[n2] && n1 < n2);
         });
