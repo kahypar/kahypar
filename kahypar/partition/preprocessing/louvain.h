@@ -113,7 +113,7 @@ class Louvain {
         LOG("Contraction Time: " << elapsed_seconds.count() << "s");
         _graph_hierarchy.push_back(std::move(contraction.first));
         mapping_stack.push_back(std::move(contraction.second));
-        LOG("Current number of communities: " << _graph_hierarchy[cur_idx].numNodes());
+        LOG("Current number of communities: " << _graph_hierarchy[cur_idx].numCommunities());
       }
 
       LOG("");
