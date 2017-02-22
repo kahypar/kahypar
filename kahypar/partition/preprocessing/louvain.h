@@ -107,7 +107,7 @@ class Louvain {
         cur_quality = quality.quality();
         LOG("Starting Contraction of communities...");
         start = std::chrono::high_resolution_clock::now();
-        auto contraction = _graph_hierarchy[cur_idx++].contractCluster();
+        auto contraction = _graph_hierarchy[cur_idx++].contractClusters();
         end = std::chrono::high_resolution_clock::now();
         elapsed_seconds = end - start;
         LOG("Contraction Time: " << elapsed_seconds.count() << "s");

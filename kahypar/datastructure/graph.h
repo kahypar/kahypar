@@ -415,7 +415,7 @@ class Graph {
    * @return Pair which contains the contracted graph and a mapping from current to nodes to its
    * corresponding contrated nodes.
    */
-  std::pair<Graph, std::vector<NodeID> > contractCluster() {
+  std::pair<Graph, std::vector<NodeID> > contractClusters() {
     std::vector<NodeID> cluster_to_node(numNodes(), kInvalidNode);
     std::vector<NodeID> node_to_contracted_node(numNodes(), kInvalidNode);
     ClusterID new_cid = 0;

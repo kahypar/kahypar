@@ -153,7 +153,7 @@ TEST_F(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph) {
   Graph graph(hypergraph, config);
   Modularity modularity(graph);
   louvain->louvain_pass(graph, modularity);
-  auto contraction = graph.contractCluster();
+  auto contraction = graph.contractClusters();
   Graph coarseGraph = std::move(contraction.first);
   std::vector<NodeID> mapping = std::move(contraction.second);
   louvain->assignClusterToNextLevelFinerGraph(graph, coarseGraph, mapping);

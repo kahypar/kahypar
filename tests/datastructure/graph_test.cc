@@ -204,7 +204,7 @@ TEST_F(ABipartiteGraph, ReturnsCorrectMappingToContractedGraph) {
   graph->setClusterID(9, 3);
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
-  auto contractedGraph = graph->contractCluster();
+  auto contractedGraph = graph->contractClusters();
   Graph graph(std::move(contractedGraph.first));
   std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
   std::vector<NodeID> correctMappingToOriginalGraph = { 0, 1, 0, 1, 1, 2, 2, 0, 1, 1, 2 };
@@ -222,7 +222,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   graph->setClusterID(9, 3);
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
-  auto contractedGraph = graph->contractCluster();
+  auto contractedGraph = graph->contractClusters();
   Graph graph(std::move(contractedGraph.first));
   std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
 
@@ -268,7 +268,7 @@ TEST_F(ABipartiteGraph, HasCorrectSelfloopWeights) {
   graph->setClusterID(9, 3);
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
-  auto contractedGraph = graph->contractCluster();
+  auto contractedGraph = graph->contractClusters();
   Graph graph(std::move(contractedGraph.first));
   std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
 
