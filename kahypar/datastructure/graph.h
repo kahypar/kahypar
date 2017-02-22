@@ -242,9 +242,9 @@ class Graph {
   }
 
 
-  ClusterID hyperedgeClusterID(const HyperedgeID he, const size_t N) const {
-    ASSERT(_hypernode_mapping[N + he] != kInvalidNode);
-    return _cluster_id[_hypernode_mapping[N + he]];
+  ClusterID hyperedgeClusterID(const HyperedgeID he, const size_t num_hypernodes) const {
+    ASSERT(_hypernode_mapping[num_hypernodes + he] != kInvalidNode);
+    return _cluster_id[_hypernode_mapping[num_hypernodes + he]];
   }
 
   size_t numCommunities() const {
@@ -530,15 +530,14 @@ class Graph {
   }
 
   /**
-   * Creates an iterator to all incident Clusters of ClusterID cid. Iterator points to an
-   * IncidentClusterWeight-Struct which contains the incident ClusterID clusterID and the sum of
-   * the weights of all incident edges from cid to clusterID.
-   *
-   * @param cid ClusterID, which incident clusters should be evaluated
-   * @return Iterator to all incident clusters of ClusterID cid
+   * Creates an iterator pair to the weights of all clusters incident to the cluster
+   * that is implicitly defined by the nodes in range cluster_range.
+   * This is a helper method for contractCluster.
    */
   std::pair<IncidentClusterWeightIterator,
             IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
+    ASSERT(std::all_of(cluster_range.first, cluster_range.second,
+                       [&](const NodeID i){return clusterID(i) == clusterID(*cluster_range.first);}));
     _incident_cluster_weight_position.clear();
     size_t idx = 0;
 
