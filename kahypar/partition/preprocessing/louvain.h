@@ -158,24 +158,11 @@ class Louvain {
   FRIEND_TEST(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph);
   FRIEND_TEST(ALouvainKarateClub, DoesLouvainAlgorithm);
 
-  void assignClusterToNextLevelFinerGraph(Graph& fineGraph, const Graph& coarseGraph,
+  void assignClusterToNextLevelFinerGraph(Graph& fine_graph, const Graph& coarse_graph,
                                           const std::vector<NodeID>& mapping) {
-    for (NodeID node : fineGraph.nodes()) {
-      fineGraph.setClusterID(node, coarseGraph.clusterID(mapping[node]));
+    for (NodeID node : fine_graph.nodes()) {
+      fine_graph.setClusterID(node, coarse_graph.clusterID(mapping[node]));
     }
-
-    //Check if cluster ids from coarse graph are succesfully mapped to the nodes of
-    //next level finer graph
-    ASSERT([&]() {
-        for (NodeID node : fineGraph.nodes()) {
-          if (fineGraph.clusterID(node) != coarseGraph.clusterID(mapping[node])) {
-            LOGVAR(fineGraph.clusterID(node));
-            LOGVAR(coarseGraph.clusterID(mapping[node]));
-            return false;
-          }
-        }
-        return true;
-      } (), "Mapping from coarse to fine graph failed!");
   }
 
   EdgeWeight louvain_pass(Graph& graph, QualityMeasure& quality) {
