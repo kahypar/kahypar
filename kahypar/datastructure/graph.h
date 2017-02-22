@@ -436,18 +436,20 @@ class Graph {
       setClusterID(node, node2contractedNode[node]);
     }
 
-    std::vector<NodeID> hypernodeMapping(_hypernode_mapping.size(), kInvalidNode);
+    std::vector<NodeID> new_hypernode_mapping(_hypernode_mapping.size(), kInvalidNode);
     for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
       if (_hypernode_mapping[hn] != kInvalidNode) {
-        hypernodeMapping[hn] = node2contractedNode[_hypernode_mapping[hn]];
+        new_hypernode_mapping[hn] = node2contractedNode[_hypernode_mapping[hn]];
       }
     }
 
     ASSERT([&]() {
           for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
-            if (_hypernode_mapping[hn] != kInvalidNode && clusterID(_hypernode_mapping[hn]) != hypernodeMapping[hn]) {
+            if (_hypernode_mapping[hn] != kInvalidNode &&
+                static_cast<NodeID>(clusterID(_hypernode_mapping[hn])) !=
+                new_hypernode_mapping[hn]) {
               LOGVAR(clusterID(_hypernode_mapping[hn]));
-              LOGVAR(hypernodeMapping[hn]);
+              LOGVAR(new_hypernode_mapping[hn]);
               return false;
             }
           }
@@ -491,7 +493,7 @@ class Graph {
 
     new_adj_array[new_cid] = new_edges.size();
 
-    return std::make_pair(Graph(new_adj_array, new_edges, hypernodeMapping, clusterID),
+    return std::make_pair(Graph(new_adj_array, new_edges, new_hypernode_mapping, clusterID),
                           node2contractedNode);
   }
 
@@ -515,7 +517,7 @@ class Graph {
 
 
   Graph(const std::vector<NodeID>& adj_array, const std::vector<Edge>& edges,
-        const std::vector<NodeID> hypernodeMapping,
+        const std::vector<NodeID> new_hypernode_mapping,
         const std::vector<ClusterID> cluster_id) :
     _num_nodes(adj_array.size() - 1),
     _num_communities(0),
@@ -529,7 +531,7 @@ class Graph {
     _cluster_size(_num_nodes, 0),
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
-    _hypernode_mapping(hypernodeMapping) {
+    _hypernode_mapping(new_hypernode_mapping) {
     std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
 
     for (const NodeID node : nodes()) {
