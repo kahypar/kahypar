@@ -35,8 +35,6 @@ using::testing::Test;
 
 
 namespace kahypar {
-#define INVALID -1
-#define EPS 1e-5
 
 class ALouvainAlgorithm : public Test {
  public:
@@ -77,8 +75,8 @@ TEST_F(AModularityMeasure, IsCorrectInitialized) {
   std::vector<EdgeWeight> expected_in = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
   std::vector<EdgeWeight> expected_tot = { 0.75L, 0.25L, 0.5L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 1.0L / 3.0L, 2.0L / 3.0L, 1.0L, 1.0L, 1.0L, 1.0L };
   for (NodeID node : graph->nodes()) {
-    ASSERT_LE(std::abs(expected_in[node] - modularity->_in[node]), EPS);
-    ASSERT_LE(std::abs(expected_tot[node] - modularity->_tot[node]), EPS);
+    ASSERT_LE(std::abs(expected_in[node] - modularity->_in[node]), Graph::kEpsilon);
+    ASSERT_LE(std::abs(expected_tot[node] - modularity->_tot[node]), Graph::kEpsilon);
   }
 }
 
@@ -100,7 +98,7 @@ TEST_F(AModularityMeasure, RemoveNodeFromCommunityWithMoreThanOneNode) {
   modularity->remove(8, 0.5);
 
   ASSERT_EQ(0.0L, modularity->_in[8]);
-  ASSERT_LE(std::abs(0.5L + 1.0L / 3.0L - modularity->_tot[8]), EPS);
+  ASSERT_LE(std::abs(0.5L + 1.0L / 3.0L - modularity->_tot[8]), Graph::kEpsilon);
   ASSERT_EQ(graph->clusterID(8), -1);
 }
 
@@ -118,7 +116,7 @@ TEST_F(AModularityMeasure, InsertNodeInCommunity) {
   ASSERT_EQ(0.0L, modularity->_in[3]);
   ASSERT_EQ(0.0L, modularity->_tot[3]);
   ASSERT_EQ(1.0L, modularity->_in[8]);
-  ASSERT_LE(std::abs(1.25L + (0.25L + 1.0L / 3.0L) - modularity->_tot[8]), EPS);
+  ASSERT_LE(std::abs(1.25L + (0.25L + 1.0L / 3.0L) - modularity->_tot[8]), Graph::kEpsilon);
   ASSERT_EQ(graph->clusterID(3), 8);
 }
 
@@ -137,7 +135,7 @@ TEST_F(AModularityMeasure, CalculatesCorrectGainValuesForIsolatedNode) {
     EdgeWeight expected_gain = std::numeric_limits<EdgeWeight>::max() / 2.0L;
     if (cid == 8) expected_gain = 0.116319444L;
     else if (cid == 9) expected_gain = 0.260416667L;
-    ASSERT_LE(std::abs(expected_gain - gain), EPS);
+    ASSERT_LE(std::abs(expected_gain - gain), Graph::kEpsilon);
   }
 }
 

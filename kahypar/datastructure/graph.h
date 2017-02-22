@@ -729,5 +729,6 @@ class Graph {
 };
 
 constexpr NodeID Graph::kInvalidNode;
+constexpr long double Graph::kEpsilon;
 }  // namespace ds
 }  // namespace kahypar

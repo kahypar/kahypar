@@ -33,11 +33,9 @@ using::testing::Test;
 
 namespace kahypar {
 namespace ds {
-#define INVALID -1
-#define EPS 1e-5
-#define INVALID_NODE std::numeric_limits<NodeID>::max()
 
 class ABipartiteGraph : public Test {
+
  public:
   ABipartiteGraph() :
     graph(nullptr),
@@ -54,24 +52,28 @@ class ABipartiteGraph : public Test {
 };
 
 
-bool bicoloring(NodeID cur, int cur_col, std::vector<int>& col, std::shared_ptr<Graph>& graph) {
+bool bicoloring(const NodeID cur, const int cur_col, std::vector<int>& col,
+                const std::shared_ptr<Graph>& graph) {
   col[cur] = cur_col;
   for (Edge e : graph->incidentEdges(cur)) {
-    NodeID id = e.target_node;
-    if (col[id] == INVALID) return bicoloring(id, 1 - cur_col, col, graph);
-    else if (col[id] == col[cur]) return false;
+    const NodeID id = e.target_node;
+    if (col[id] == -1) {
+      return bicoloring(id, 1 - cur_col, col, graph);
+    } else if (col[id] == col[cur]) {
+      return false;
+    }
   }
   return true;
 }
 
 
 TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsBipartite) {
-  bool isBipartite = true;
-  std::vector<int> col(graph->numNodes(), INVALID);
+  std::vector<int> col(graph->numNodes(), -1);
   for (NodeID id : graph->nodes()) {
-    if (col[id] == INVALID) isBipartite && bicoloring(id, 0, col, graph);
+    if (col[id] == -1) {
+      ASSERT_TRUE(bicoloring(id, 0, col, graph));
+    }
   }
-  ASSERT_TRUE(isBipartite);
 }
 
 
@@ -103,7 +105,7 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
 }
 
 TEST_F(ABipartiteGraph, HasCorrectTotalWeight) {
-  ASSERT_LE(std::abs(8.0L - graph->totalWeight()), EPS);
+  ASSERT_LE(std::abs(8.0L - graph->totalWeight()), Graph::kEpsilon);
 }
 
 TEST_F(ABipartiteGraph, HasCorrectInitializedClusterIDs) {
@@ -171,7 +173,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
-    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), EPS);
+    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
 
   //Checks incident clusters of cluster with ID 1
@@ -181,7 +183,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
-    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), EPS);
+    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
 
   //Checks incident clusters of cluster with ID 2
@@ -191,7 +193,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
-    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), EPS);
+    ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
 }
 
@@ -235,7 +237,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
-    ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
+    ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
 
   //Check cluster 1
@@ -245,7 +247,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
-    ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
+    ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
 
   //Check cluster 2
@@ -255,7 +257,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
-    ASSERT_LE(std::abs(edge_weight[n_id] - weight), EPS);
+    ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
 }
 
@@ -272,9 +274,9 @@ TEST_F(ABipartiteGraph, HasCorrectSelfloopWeights) {
   Graph graph(std::move(contractedGraph.first));
   std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
 
-  ASSERT_LE(std::abs(2.0L - graph.selfloopWeight(0)), EPS);
-  ASSERT_LE(std::abs((1.5L + 4.0L / 3.0L) - graph.selfloopWeight(1)), EPS);
-  ASSERT_LE(std::abs(4.0L / 3.0L - graph.selfloopWeight(2)), EPS);
+  ASSERT_LE(std::abs(2.0L - graph.selfloopWeight(0)), Graph::kEpsilon);
+  ASSERT_LE(std::abs((1.5L + 4.0L / 3.0L) - graph.selfloopWeight(1)), Graph::kEpsilon);
+  ASSERT_LE(std::abs(4.0L / 3.0L - graph.selfloopWeight(2)), Graph::kEpsilon);
 }
 }  //namespace ds
 }  //namespace kahypar
