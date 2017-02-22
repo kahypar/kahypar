@@ -199,7 +199,7 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
 
   config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
   Graph graph(adj_array, edges);
-  Louvain<Modularity> louvain(adj_array, edges, config);
+  Louvain<Modularity, false> louvain(adj_array, edges, config);
 
   louvain.run();
   std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,

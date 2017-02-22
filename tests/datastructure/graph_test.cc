@@ -150,17 +150,19 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   graph->setClusterID(6, 2);
   graph->setClusterID(10, 2);
 
-  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end());
-  std::sort(graph->_shuffle_nodes.begin(), graph->_shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
+  std::vector<NodeID> node_ids(graph->numNodes());
+  std::iota(node_ids.begin(), node_ids.end(), 0);
+
+  std::sort(node_ids.begin(), node_ids.end(), [&](const NodeID& n1, const NodeID& n2) {
         return graph->_cluster_id[n1] < graph->_cluster_id[n2] || (graph->_cluster_id[n1] == graph->_cluster_id[n2] && n1 < n2);
       });
 
-  auto cluster0 = std::make_pair(graph->_shuffle_nodes.begin(),
-                                 graph->_shuffle_nodes.begin() + 3);
-  auto cluster1 = std::make_pair(graph->_shuffle_nodes.begin() + 3,
-                                 graph->_shuffle_nodes.begin() + 8);
-  auto cluster2 = std::make_pair(graph->_shuffle_nodes.begin() + 8,
-                                 graph->_shuffle_nodes.begin() + 11);
+  auto cluster0 = std::make_pair(node_ids.begin(),
+                                 node_ids.begin() + 3);
+  auto cluster1 = std::make_pair(node_ids.begin() + 3,
+                                 node_ids.begin() + 8);
+  auto cluster2 = std::make_pair(node_ids.begin() + 8,
+                                 node_ids.begin() + 11);
 
   //Checks incident clusters of cluster with ID 0
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.25L, 1.0L / 3.0L };

@@ -30,17 +30,20 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/partition/configuration.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 using ds::Graph;
 using ds::Edge;
 
-template <class QualityMeasure = Mandatory>
+template <class QualityMeasure = Mandatory,
+          bool RandomizeNodes = true>
 class Louvain {
  public:
   Louvain(const Hypergraph& hypergraph,
           const Configuration& config) :
     _graph_hierarchy(),
+    _random_node_order(),
     _config(config) {
     _graph_hierarchy.emplace_back(hypergraph, config);
   }
@@ -49,6 +52,7 @@ class Louvain {
           const std::vector<Edge>& edges,
           const Configuration& config) :
     _graph_hierarchy(),
+    _random_node_order(),
     _config(config) {
     _graph_hierarchy.emplace_back(adj_array, edges);
   }
@@ -178,13 +182,20 @@ class Louvain {
     size_t node_moves = 0;
     int iterations = 0;
 
-    //TODO(heuer): Think about shuffling nodes before louvain pass
-    graph.shuffleNodes();
+    _random_node_order.clear();
+    for (const NodeID node : graph.nodes()) {
+      _random_node_order.push_back(node);
+    }
+
+    // only false for testing purposes
+    if (RandomizeNodes) {
+      Randomize::instance().shuffleVector(_random_node_order, _random_node_order.size());
+    }
 
     do {
       LOG("######## Starting Louvain-Pass-Iteration #" << ++iterations << " ########");
       node_moves = 0;
-      for (NodeID node : graph.nodes()) {
+      for (const NodeID node : _random_node_order) {
         const ClusterID cur_cid = graph.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
@@ -246,6 +257,7 @@ class Louvain {
   }
 
   std::vector<Graph> _graph_hierarchy;
+  std::vector<NodeID> _random_node_order;
   const Configuration& _config;
 };
 }  // namespace kahypar

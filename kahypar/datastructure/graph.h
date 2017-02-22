@@ -110,7 +110,6 @@ class Graph {
     _num_communities(_num_nodes),
     _total_weight(0.0L),
     _adj_array(_num_nodes + 1),
-    _shuffle_nodes(_num_nodes),
     _edges(),
     _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
@@ -119,7 +118,6 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
-    std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     if (config.preprocessing.louvain_community_detection.use_bipartite_graph) {
       const auto degreeWeight = [&](const Hypergraph& hg,
@@ -172,7 +170,6 @@ class Graph {
     _num_communities(_num_nodes),
     _total_weight(0.0L),
     _adj_array(adj_array),
-    _shuffle_nodes(_num_nodes),
     _edges(edges),
     _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
@@ -181,7 +178,6 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(_num_nodes, kInvalidNode) {
-    std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     std::iota(_hypernode_mapping.begin(), _hypernode_mapping.end(), 0);
 
@@ -205,16 +201,6 @@ class Graph {
   std::pair<NodeIDIterator, NodeIDIterator> nodes() const {
     return std::make_pair(NodeIDIterator(0), NodeIDIterator(_num_nodes));
   }
-
-  std::pair<NodeIterator, NodeIterator> randomNodeOrder() {
-    Randomize::instance().shuffleVector(_shuffle_nodes, _shuffle_nodes.size());
-    return std::make_pair(_shuffle_nodes.begin(), _shuffle_nodes.end());
-  }
-
-  void shuffleNodes() {
-    Randomize::instance().shuffleVector(_shuffle_nodes, _shuffle_nodes.size());
-  }
-
 
   std::pair<EdgeIterator, EdgeIterator> incidentEdges(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
@@ -308,9 +294,15 @@ class Graph {
           size_t to_size = 0;
 
           for (const NodeID node : nodes()) {
-            if (clusterID(node) != -1) distinct_comm.insert(clusterID(node));
-            if (from != -1 && clusterID(node) == from) from_size++;
-            if (to != -1 && clusterID(node) == to) to_size++;
+            if (clusterID(node) != -1) {
+              distinct_comm.insert(clusterID(node));
+            }
+            if (from != -1 && clusterID(node) == from) {
+              from_size++;
+            }
+            if (to != -1 && clusterID(node) == to) {
+              to_size++;
+            }
           }
           if (distinct_comm.size() != _num_communities) {
             LOGVAR(_num_communities);
@@ -460,23 +452,26 @@ class Graph {
     std::vector<ClusterID> clusterID(new_cid);
     std::iota(clusterID.begin(), clusterID.end(), 0);
 
-    std::sort(_shuffle_nodes.begin(), _shuffle_nodes.end(), [&](const NodeID& n1, const NodeID& n2) {
+    std::vector<NodeID> node_ids(_num_nodes);
+    std::iota(node_ids.begin(), node_ids.end(), 0);
+
+    std::sort(node_ids.begin(), node_ids.end(), [&](const NodeID& n1, const NodeID& n2) {
           return _cluster_id[n1] < _cluster_id[n2] || (_cluster_id[n1] == _cluster_id[n2] && n1 < n2);
         });
 
     //Add Sentinels
-    _shuffle_nodes.push_back(_cluster_id.size());
+    node_ids.push_back(_cluster_id.size());
     _cluster_id.push_back(new_cid);
 
     std::vector<NodeID> new_adj_array(new_cid + 1, 0);
     std::vector<Edge> new_edges;
     size_t start_idx = 0;
     for (size_t i = 0; i < _num_nodes + 1; ++i) {
-      if (_cluster_id[_shuffle_nodes[start_idx]] != _cluster_id[_shuffle_nodes[i]]) {
-        const ClusterID cid = _cluster_id[_shuffle_nodes[start_idx]];
+      if (_cluster_id[node_ids[start_idx]] != _cluster_id[node_ids[i]]) {
+        const ClusterID cid = _cluster_id[node_ids[start_idx]];
         new_adj_array[cid] = new_edges.size();
-        auto cluster_range = std::make_pair(_shuffle_nodes.begin() + start_idx,
-                                            _shuffle_nodes.begin() + i);
+        auto cluster_range = std::make_pair(node_ids.begin() + start_idx,
+                                            node_ids.begin() + i);
         for (auto incident_cluster_weight : incidentClusterWeightOfCluster(cluster_range)) {
           Edge e;
           e.target_node = static_cast<NodeID>(incident_cluster_weight.clusterID);
@@ -488,7 +483,7 @@ class Graph {
     }
 
     //Remove Sentinels
-    _shuffle_nodes.pop_back();
+    node_ids.pop_back();
     _cluster_id.pop_back();
 
     new_adj_array[new_cid] = new_edges.size();
@@ -523,7 +518,6 @@ class Graph {
     _num_communities(0),
     _total_weight(0.0L),
     _adj_array(adj_array),
-    _shuffle_nodes(_num_nodes),
     _edges(edges),
     _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
@@ -532,8 +526,6 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(new_hypernode_mapping) {
-    std::iota(_shuffle_nodes.begin(), _shuffle_nodes.end(), 0);
-
     for (const NodeID node : nodes()) {
       if (_cluster_size[_cluster_id[node]] == 0) _num_communities++;
       _cluster_size[_cluster_id[node]]++;
@@ -737,7 +729,6 @@ class Graph {
   size_t _num_communities;
   EdgeWeight _total_weight;
   std::vector<NodeID> _adj_array;
-  std::vector<NodeID> _shuffle_nodes;
   std::vector<Edge> _edges;
   std::vector<EdgeWeight> _selfloop_weight;
   std::vector<EdgeWeight> _weighted_degree;
