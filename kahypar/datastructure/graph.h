@@ -68,11 +68,11 @@ class Graph {
   static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max();
 
   class NodeIDIterator : public std::iterator<
-                           std::forward_iterator_tag, // iterator_category
-                           NodeID, // value_type
-                           std::ptrdiff_t, // difference_type
-                           NodeID*, // pointer
-                           NodeID>{ // reference
+                           std::forward_iterator_tag,  // iterator_category
+                           NodeID,  // value_type
+                           std::ptrdiff_t,  // difference_type
+                           NodeID*,  // pointer
+                           NodeID>{  // reference
  public:
     NodeIDIterator(const NodeID start) :
       _i(start) { }
@@ -112,7 +112,7 @@ class Graph {
     _adj_array(_num_nodes + 1),
     _shuffle_nodes(_num_nodes),
     _edges(),
-    _selfloop(_num_nodes, 0.0L),
+    _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(_num_nodes),
     _cluster_size(_num_nodes, 1),
@@ -174,7 +174,7 @@ class Graph {
     _adj_array(adj_array),
     _shuffle_nodes(_num_nodes),
     _edges(edges),
-    _selfloop(_num_nodes, 0.0L),
+    _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(_num_nodes),
     _cluster_size(_num_nodes, 1),
@@ -188,7 +188,7 @@ class Graph {
     for (NodeID node : nodes()) {
       for (Edge e : incidentEdges(node)) {
         if (node == e.target_node) {
-          _selfloop[node] = e.weight;
+          _selfloop_weight[node] = e.weight;
         }
         _total_weight += e.weight;
         _weighted_degree[node] += e.weight;
@@ -242,7 +242,7 @@ class Graph {
 
   EdgeWeight selfloopWeight(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
-    return _selfloop[node];
+    return _selfloop_weight[node];
   }
 
 
@@ -519,7 +519,7 @@ class Graph {
     _adj_array(adj_array),
     _shuffle_nodes(_num_nodes),
     _edges(edges),
-    _selfloop(_num_nodes, 0.0L),
+    _selfloop_weight(_num_nodes, 0.0L),
     _weighted_degree(_num_nodes, 0.0L),
     _cluster_id(cluster_id),
     _cluster_size(_num_nodes, 0),
@@ -533,7 +533,7 @@ class Graph {
       _cluster_size[_cluster_id[node]]++;
       for (Edge e : incidentEdges(node)) {
         if (node == e.target_node) {
-          _selfloop[node] = e.weight;
+          _selfloop_weight[node] = e.weight;
         }
         _total_weight += e.weight;
         _weighted_degree[node] += e.weight;
@@ -729,7 +729,7 @@ class Graph {
   std::vector<NodeID> _adj_array;
   std::vector<NodeID> _shuffle_nodes;
   std::vector<Edge> _edges;
-  std::vector<EdgeWeight> _selfloop;
+  std::vector<EdgeWeight> _selfloop_weight;
   std::vector<EdgeWeight> _weighted_degree;
   std::vector<ClusterID> _cluster_id;
   std::vector<size_t> _cluster_size;
