@@ -30,7 +30,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/quality_measure.h"
+#include "kahypar/partition/preprocessing/modularity.h"
 
 namespace kahypar {
 class MLCoarsener final : public ICoarsener,
@@ -69,7 +69,9 @@ class MLCoarsener final : public ICoarsener,
   MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
               const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, config, weight_of_heaviest_node),
-    _tmp_ratings(_hg.initialNumNodes()), _comm(_hg.initialNumNodes(),0), _louvain(hypergraph,_config)  { }
+    _tmp_ratings(_hg.initialNumNodes()),
+    _comm(_hg.initialNumNodes(), 0),
+    _louvain(hypergraph, _config) { }
 
   virtual ~MLCoarsener() { }
 
@@ -84,11 +86,11 @@ class MLCoarsener final : public ICoarsener,
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
     ds::FastResetFlagArray<> already_matched(_hg.initialNumNodes());
-    
-    if(_config.preprocessing.enable_louvain_community_detection) {
-        performLouvainCommunityDetection();
+
+    if (_config.preprocessing.enable_louvain_community_detection) {
+      performLouvainCommunityDetection();
     }
-    
+
     while (_hg.currentNumNodes() > limit) {
       LOGVAR(pass_nr);
       LOGVAR(_hg.currentNumNodes());
@@ -127,29 +129,29 @@ class MLCoarsener final : public ICoarsener,
           }
         }
       }
-      
+
       if (num_hns_before_pass == _hg.currentNumNodes()) {
         break;
       }
       ++pass_nr;
     }
-    Stats::instance().addToTotal(_config,"hns_after_coarsening",_hg.currentNumNodes());
+    Stats::instance().addToTotal(_config, "hns_after_coarsening", _hg.currentNumNodes());
   }
 
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    EdgeWeight quality = _louvain.louvain();   
-    for(HypernodeID hn : _hg.nodes()) {
-        _comm[hn] = _louvain.clusterID(hn);
+    EdgeWeight quality = _louvain.run();
+    for (HypernodeID hn : _hg.nodes()) {
+      _comm[hn] = _louvain.clusterID(hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
-    Stats::instance().addToTotal(_config,"louvainTime",elapsed_seconds.count());
-    Stats::instance().addToTotal(_config,"communities",_louvain.numCommunities());
-    Stats::instance().addToTotal(_config,"modularity",quality);
+    Stats::instance().addToTotal(_config, "louvainTime", elapsed_seconds.count());
+    Stats::instance().addToTotal(_config, "communities", _louvain.numCommunities());
+    Stats::instance().addToTotal(_config, "modularity", quality);
   }
-  
+
   Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
