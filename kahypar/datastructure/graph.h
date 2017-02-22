@@ -424,22 +424,22 @@ class Graph {
    * corresponding contrated nodes.
    */
   std::pair<Graph, std::vector<NodeID> > contractCluster() {
-    std::vector<NodeID> cluster2Node(numNodes(), kInvalidNode);
-    std::vector<NodeID> node2contractedNode(numNodes(), kInvalidNode);
+    std::vector<NodeID> cluster_to_node(numNodes(), kInvalidNode);
+    std::vector<NodeID> node_to_contracted_node(numNodes(), kInvalidNode);
     ClusterID new_cid = 0;
     for (const NodeID node : nodes()) {
       const ClusterID cid = clusterID(node);
-      if (cluster2Node[cid] == kInvalidNode) {
-        cluster2Node[cid] = new_cid++;
+      if (cluster_to_node[cid] == kInvalidNode) {
+        cluster_to_node[cid] = new_cid++;
       }
-      node2contractedNode[node] = cluster2Node[cid];
-      setClusterID(node, node2contractedNode[node]);
+      node_to_contracted_node[node] = cluster_to_node[cid];
+      setClusterID(node, node_to_contracted_node[node]);
     }
 
     std::vector<NodeID> new_hypernode_mapping(_hypernode_mapping.size(), kInvalidNode);
     for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
       if (_hypernode_mapping[hn] != kInvalidNode) {
-        new_hypernode_mapping[hn] = node2contractedNode[_hypernode_mapping[hn]];
+        new_hypernode_mapping[hn] = node_to_contracted_node[_hypernode_mapping[hn]];
       }
     }
 
@@ -494,7 +494,7 @@ class Graph {
     new_adj_array[new_cid] = new_edges.size();
 
     return std::make_pair(Graph(new_adj_array, new_edges, new_hypernode_mapping, clusterID),
-                          node2contractedNode);
+                          node_to_contracted_node);
   }
 
   void printGraph() {
