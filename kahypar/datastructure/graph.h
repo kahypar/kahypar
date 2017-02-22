@@ -236,16 +236,6 @@ class Graph {
     return _total_weight;
   }
 
-  void setHypernodeClusterID(const HypernodeID hn, const ClusterID c_id) {
-    ASSERT(_hypernode_mapping[hn] != kInvalidNode);
-    _cluster_id[_hypernode_mapping[hn]] = c_id;
-  }
-
-  void setHyperedgeClusterID(const HyperedgeID he, const ClusterID c_id, const size_t N) {
-    ASSERT(_hypernode_mapping[N + he] != kInvalidNode);
-    _cluster_id[_hypernode_mapping[N + he]] = c_id;
-  }
-
   ClusterID hypernodeClusterID(const HypernodeID hn) const {
     ASSERT(_hypernode_mapping[hn] != kInvalidNode);
     return _cluster_id[_hypernode_mapping[hn]];
