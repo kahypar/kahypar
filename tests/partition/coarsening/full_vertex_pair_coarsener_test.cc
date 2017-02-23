@@ -111,7 +111,6 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
   Configuration config;
-  config.coarsening.max_allowed_node_weight = 5;
   config.coarsening.max_allowed_node_weight = 3;
   kahypar::Randomize::instance().setSeed(config.partition.seed);
   std::string graph_file("../../../../special_instances/bad_for_ec.hgr");

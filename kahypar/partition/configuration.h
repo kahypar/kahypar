@@ -73,7 +73,7 @@ inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParam
   str << "  active at median net size >=:       "
   << params.min_median_he_size << std::endl;
   str << "  sparsifier is active:               " << std::boolalpha
-  << params.is_active;
+  << params.is_active << std::noboolalpha;
   return str;
 }
 

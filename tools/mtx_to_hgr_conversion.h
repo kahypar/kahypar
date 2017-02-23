@@ -29,11 +29,11 @@ enum class MatrixFormat { COORDINATE };
 enum class MatrixSymmetry { GENERAL, SYMMETRIC };
 
 struct MatrixInfo {
-  MatrixFormat format;
-  MatrixSymmetry symmetry;
-  int num_rows;
-  int num_columns;
-  int num_entries;
+  MatrixFormat format = MatrixFormat::COORDINATE;
+  MatrixSymmetry symmetry = MatrixSymmetry::GENERAL;
+  int num_rows = 0;
+  int num_columns = 0;
+  int num_entries = 0;
 };
 
 using MatrixData = std::vector<std::vector<int> >;

@@ -582,7 +582,7 @@ class LPRefiner final : public IRefiner {
       }
     }
 
-    max_gain_part = (max_gain >= 0 || max_connectivity_decrease >= 0 || source_part_imbalanced) ?
+    max_gain_part = (max_gain > 0 || max_connectivity_decrease > 0 || source_part_imbalanced) ?
                     _max_score[(Randomize::instance().getRandomInt(0, _max_score.size() - 1))] : source_part;
 
     ASSERT(max_gain_part != Hypergraph::kInvalidPartition);
