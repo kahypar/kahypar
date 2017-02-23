@@ -25,6 +25,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <utility>
 #include <vector>
