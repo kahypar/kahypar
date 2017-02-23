@@ -174,6 +174,8 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   NodeID num_nodes = 0;
   NodeID num_edges = 0;
   in >> num_nodes >> num_edges;
+  ASSERT_EQ(num_nodes, 34);
+  ASSERT_EQ(num_edges, 78);
   std::vector<std::vector<NodeID> > adj_list(num_nodes, std::vector<NodeID>());
   for (EdgeID i = 0; i < num_edges; ++i) {
     NodeID u, v;
