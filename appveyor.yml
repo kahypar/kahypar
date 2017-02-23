@@ -14,7 +14,7 @@ before_build:
     echo Running cmake...
 
 
-    cd C:\projects\kahypar
+    cd C:\projects\kahypar-vr7q9
 
 
     md build
@@ -25,6 +25,6 @@ before_build:
 
     cmake -G "Visual Studio 14 Win64" -DBoost_USE_STATIC_LIBS="ON" -DBoost_USE_STATIC_RUNTIME="ON" ..
 build:
-  project: C:\projects\kahypar\build\KaHyPar.sln
+  project: C:\projects\kahypar-vr7q9\build\KaHyPar.sln
   parallel: true
   verbosity: normal
