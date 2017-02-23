@@ -142,7 +142,7 @@ class MLCoarsener final : public ICoarsener,
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     EdgeWeight quality = _louvain.run();
     for (const HypernodeID& hn : _hg.nodes()) {
-      _comm[hn] = _louvain.clusterID(hn);
+      _comm[hn] = _louvain.hypernodeClusterID(hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
