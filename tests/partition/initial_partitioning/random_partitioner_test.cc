@@ -89,7 +89,7 @@ class ARandomBisectionInitialPartitionerTest : public Test {
                                               &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
-    for (HypernodeID hn : hypergraph->nodes()) {
+    for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
     initializeConfiguration(config, k, hypergraph_weight);
@@ -127,7 +127,7 @@ class AKWayRandomInitialPartitionerTest : public Test {
                                               &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
-    for (HypernodeID hn : hypergraph->nodes()) {
+    for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
     initializeConfiguration(config, k, hypergraph_weight);
@@ -150,7 +150,7 @@ TEST_F(ARandomBisectionInitialPartitionerTest, HasValidImbalance) {
 TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   partitioner->partition(*hypergraph, config);
 
-  for (HypernodeID hn : hypergraph->nodes()) {
+  for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
@@ -191,7 +191,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   initializePartitioning(k);
   partitioner->partition(*hypergraph, config);
 
-  for (HypernodeID hn : hypergraph->nodes()) {
+  for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }

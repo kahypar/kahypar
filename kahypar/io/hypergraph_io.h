@@ -141,7 +141,7 @@ static inline Hypergraph createHypergraphFromFile(const std::string& filename,
 
 
 static inline void writeHypernodeWeights(std::ofstream& out_stream, const Hypergraph& hypergraph) {
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << hypergraph.nodeWeight(hn) << std::endl;
   }
 }
@@ -161,12 +161,12 @@ static inline void writeHypergraphFile(const Hypergraph& hypergraph, const std::
   std::ofstream out_stream(filename.c_str());
   writeHGRHeader(out_stream, hypergraph);
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     if (hypergraph.type() == HypergraphType::EdgeWeights ||
         hypergraph.type() == HypergraphType::EdgeAndNodeWeights) {
       out_stream << hypergraph.edgeWeight(he) << " ";
     }
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       out_stream << pin + 1 << " ";
     }
     out_stream << std::endl;
@@ -204,7 +204,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   out_stream << "<key id=\"d7\" for=\"node\" attr.name=\"modclass\" attr.type=\"int\"/>" << std::endl;
   out_stream << "<key id=\"d8\" for=\"node\" attr.name=\"color\" attr.type=\"string\"/>" << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
     if (hn_cluster_ids != nullptr) {
@@ -219,7 +219,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   }
 
   HyperedgeID edge_id = 0;
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     // const HyperedgeID he_id = hypergraph.initialNumNodes() + he;
     out_stream << "<node id=\"h" << he << "\">" << std::endl;
     out_stream << "<data key=\"d0\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
@@ -231,7 +231,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
     out_stream << "<data key=\"d2\">" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
     out_stream << "<data key=\"d8\">" << "red" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
       << he << "\"/>" << std::endl;
     }
@@ -254,9 +254,9 @@ static inline void writeHypergraphForhMetisPartitioning(const Hypergraph& hyperg
   out_stream << static_cast<int>(HypergraphType::EdgeAndNodeWeights);
   out_stream << std::endl;
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << mapping.find(pin)->second + 1 << " ";
     }
@@ -276,16 +276,16 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.currentNumEdges() << " " << hypergraph.currentNumPins();
   out_stream << " " << 3 << std::endl;  // weighting scheme: both edge and node weights
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << mapping.find(pin)->second + 1 << " ";
     }
     out_stream << std::endl;
   }
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << hypergraph.nodeWeight(hn) << " ";
   }
   out_stream << std::endl;
@@ -300,16 +300,16 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   out_stream << " " << hypergraph.currentNumNodes() << " " << hypergraph.currentNumEdges() << " " << hypergraph.currentNumPins();
   out_stream << " " << 3 << std::endl;  // weighting scheme: both edge and node weights
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     out_stream << hypergraph.edgeWeight(he) << " ";
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       // ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << pin << " ";
     }
     out_stream << std::endl;
   }
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << hypergraph.nodeWeight(hn) << " ";
   }
   out_stream << std::endl;
@@ -335,7 +335,7 @@ static inline void readPartitionFile(const std::string& filename, std::vector<Pa
 static inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ofstream out_stream(filename.c_str());
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << hypergraph.partID(hn) << std::endl;
   }
   out_stream.close();

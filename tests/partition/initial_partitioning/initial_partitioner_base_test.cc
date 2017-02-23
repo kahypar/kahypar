@@ -37,7 +37,7 @@ class InitialPartitionerBaseTest : public Test {
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     config() {
     HypernodeWeight hypergraph_weight = 0;
-    for (HypernodeID hn : hypergraph.nodes()) {
+    for (const HypernodeID& hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
 
@@ -103,7 +103,7 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToMinusOne) {
 
   config.initial_partitioning.unassigned_part = -1;
   partitioner->resetPartitioning();
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_EQ(hypergraph.partID(hn), -1);
   }
 }
@@ -119,7 +119,7 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
 
   config.initial_partitioning.unassigned_part = 0;
   partitioner->resetPartitioning();
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_EQ(hypergraph.partID(hn), 0);
   }
 }

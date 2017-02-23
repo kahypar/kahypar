@@ -113,8 +113,8 @@ class FullVertexPairCoarsener final : public ICoarsener,
   void reRateAffectedHypernodes(const HypernodeID rep_node,
                                 ds::FastResetFlagArray<>& rerated_hypernodes,
                                 ds::FastResetFlagArray<>& invalid_hypernodes) {
-    for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
-      for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(rep_node)) {
+      for (const HypernodeID& pin : _hg.pins(he)) {
         if (!rerated_hypernodes[pin] && !invalid_hypernodes[pin]) {
           const Rating rating = _rater.rate(pin);
           rerated_hypernodes.set(pin, true);

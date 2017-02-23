@@ -68,7 +68,7 @@ class MinHashPolicy {
   void calculateLastHash(const Hypergraph& graph, const VertexSet& vertices,
                          MyHashSet& hash_set) const {
     ALWAYS_ASSERT(getHashNum() > 0, "The number of hashes should be greater than zero");
-    for (auto vertex_id : vertices) {
+    for (const auto& vertex_id : vertices) {
       const size_t last_hash = _hash_func_vector.getHashNum() - 1;
       hash_set[last_hash][vertex_id] = minHash(_hash_func_vector[last_hash],
                                                graph.incidentEdges(vertex_id));
@@ -138,7 +138,7 @@ class MinHashPolicy {
   HashValue minHash(HashFunc hash, const ValuesRange& values_range) const {
     HashValue res = std::numeric_limits<HashValue>::max();
 
-    for (auto value : values_range) {
+    for (const auto& value : values_range) {
       res = std::min(res, hash(value));
     }
     return res;

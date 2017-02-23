@@ -84,7 +84,7 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
     PartitionID k = 2;
     initializeConfiguration(hypergraph, config, k);
 
-    for (HypernodeID hn : hypergraph.nodes()) {
+    for (const HypernodeID& hn : hypergraph.nodes()) {
       if (hn != 0) {
         hypergraph.setNodePart(hn, 1);
       } else {

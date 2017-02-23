@@ -130,7 +130,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
           }
         }
         if (apply_best_partition) {
-          for (const HypernodeID hn : _hg.nodes()) {
+          for (const HypernodeID& hn : _hg.nodes()) {
             best_partition[hn] = _hg.partID(hn);
           }
           applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
@@ -167,14 +167,14 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
     _config.initial_partitioning.unassigned_part = unassigned_part;
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       _hg.setNodePart(hn, best_partition[hn]);
     }
 
     _hg.initializeNumCutHyperedges();
 
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }

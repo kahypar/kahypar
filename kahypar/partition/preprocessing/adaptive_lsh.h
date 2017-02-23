@@ -130,12 +130,12 @@ class AdaptiveLSHWithConnectedComponents {
                                    std::chrono::duration<double>(end - start).count());
 
       std::vector<char> bit_map(clusters.size());
-      for (const auto clst : clusters) {
+      for (const auto& clst : clusters) {
         bit_map[clst] = 1;
       }
 
       size_t num_cl = 0;
-      for (const auto bit : bit_map) {
+      for (const auto& bit : bit_map) {
         if (bit) {
           ++num_cl;
         }
@@ -146,7 +146,7 @@ class AdaptiveLSHWithConnectedComponents {
       auto end_iter = std::unique(inactive_clusters.begin(), inactive_clusters.end());
       inactive_clusters.resize(end_iter - inactive_clusters.begin());
 
-      for (auto cluster : inactive_clusters) {
+      for (const auto& cluster : inactive_clusters) {
         active_clusters_bool_set[cluster] = false;
         num_active_vertices -= cluster_size[cluster];
       }
@@ -193,12 +193,12 @@ class AdaptiveLSHWithConnectedComponents {
       _base_hash_policy.calculateLastHash(_hypergraph, active_vertices, _hash_set);
 
       const uint32_t last_hash = _hash_set.getHashNum() - 1;
-      for (const auto ver : active_vertices) {
+      for (const auto& ver : active_vertices) {
         _hashes[ver] ^= _hash_set[last_hash][ver];
       }
     }
 
-    for (const auto ver : active_vertices) {
+    for (const auto& ver : active_vertices) {
       _buckets.emplace_back(_hashes[ver], ver);
     }
     std::sort(_buckets.begin(), _buckets.end());
@@ -237,7 +237,7 @@ class AdaptiveLSHWithConnectedComponents {
 
         _new_hashes.clear();
 
-        for (auto vertex : _vertices) {
+        for (const auto& vertex : _vertices) {
           const HashValue hash = _hash_set[last_hash][vertex];
           _hashes[vertex] ^= hash;
 
@@ -353,7 +353,7 @@ class AdaptiveLSHWithConnectedComponents {
       }
     }
 
-    for (const auto neighbour : _bfs_neighbours) {
+    for (const auto& neighbour : _bfs_neighbours) {
       _multiset_buckets.removeObject(hash_set[hash_num][neighbour], neighbour);
     }
   }

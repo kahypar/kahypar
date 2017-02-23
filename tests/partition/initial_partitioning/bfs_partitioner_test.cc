@@ -111,7 +111,7 @@ class AKWayBFSInitialPartitioner : public Test {
                                               &hypernode_weights);
 
     HypernodeWeight hypergraph_weight = 0;
-    for (HypernodeID hn : hypergraph->nodes()) {
+    for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
     initializeConfiguration(config, k, hypergraph_weight);
@@ -142,7 +142,7 @@ TEST_F(ABFSBisectionInitialPartioner, ChecksCorrectBisectionCut) {
 TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
   partitioner->partition(hypergraph, config);
 
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_NE(hypergraph.partID(hn), -1);
   }
 }
@@ -208,7 +208,7 @@ TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
 TEST_F(AKWayBFSInitialPartitioner, LeavesNoHypernodeUnassigned) {
   partitioner->partition(*hypergraph, config);
 
-  for (HypernodeID hn : hypergraph->nodes()) {
+  for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
@@ -217,7 +217,7 @@ TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
   config.initial_partitioning.unassigned_part = -1;
   partitioner->partition(*hypergraph, config);
 
-  for (HypernodeID hn : hypergraph->nodes()) {
+  for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }

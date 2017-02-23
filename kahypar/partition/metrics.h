@@ -41,7 +41,7 @@ static const bool dbg_metrics_hyperedge_cut = false;
 
 static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
-  for (const HyperedgeID he : hg.edges()) {
+  for (const HyperedgeID& he : hg.edges()) {
     if (hg.connectivity(he) > 1) {
       DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
       cut += hg.edgeWeight(he);
@@ -52,7 +52,7 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
 
 static inline HyperedgeWeight soed(const Hypergraph& hg) {
   HyperedgeWeight soed = 0;
-  for (const HyperedgeID he : hg.edges()) {
+  for (const HyperedgeID& he : hg.edges()) {
     if (hg.connectivity(he) > 1) {
       soed += hg.connectivity(he) * hg.edgeWeight(he);
     }
@@ -62,7 +62,7 @@ static inline HyperedgeWeight soed(const Hypergraph& hg) {
 
 static inline HyperedgeWeight km1(const Hypergraph& hg) {
   HyperedgeWeight k_minus_1 = 0;
-  for (const HyperedgeID he : hg.edges()) {
+  for (const HyperedgeID& he : hg.edges()) {
     k_minus_1 += (hg.connectivity(he) - 1) * hg.edgeWeight(he);
   }
   return k_minus_1;
@@ -71,7 +71,7 @@ static inline HyperedgeWeight km1(const Hypergraph& hg) {
 static inline double absorption(const Hypergraph& hg) {
   double absorption_val = 0.0;
   for (PartitionID part = 0; part < hg.k(); ++part) {
-    for (const HyperedgeID he : hg.edges()) {
+    for (const HyperedgeID& he : hg.edges()) {
       if (hg.pinCountInPart(he, part) > 0 && hg.edgeSize(he) > 1) {
         absorption_val += static_cast<double>((hg.pinCountInPart(he, part) - 1)) / (hg.edgeSize(he) - 1)
                           * hg.edgeWeight(he);
@@ -85,7 +85,7 @@ template <typename CoarsendToHmetisMapping, typename Partition>
 static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
                                            hg_to_hmetis, const Partition& partitioning) {
   HyperedgeWeight cut = 0;
-  for (const HyperedgeID he : hg.edges()) {
+  for (const HyperedgeID& he : hg.edges()) {
     auto begin = hg.pins(he).first;
     auto end = hg.pins(he).second;
     if (begin == end) {
@@ -126,7 +126,7 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
                                const PartitionID k) {
   std::vector<HypernodeWeight> part_weights(k, 0);
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
   }
 
@@ -180,7 +180,7 @@ static inline double imbalance(const Hypergraph& hypergraph, CoarsendToHmetisMap
          "Imbalance cannot be calculated correctly");
   std::vector<HypernodeWeight> part_weights(config.partition.k, 0);
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     part_weights[partitioning[hg_to_hmetis[hn]]] += hypergraph.nodeWeight(hn);
   }
 
@@ -220,7 +220,7 @@ static inline double avgHypernodeDegree(const Hypergraph& hypergraph) {
 
 static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {
   HypernodeWeight sum = 0;
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     sum += hypergraph.nodeWeight(hn);
   }
   return sum / hypergraph.currentNumNodes();
@@ -230,7 +230,7 @@ static inline double hypernodeWeightVariance(const Hypergraph& hypergraph) {
   double m = avgHypernodeWeight(hypergraph);
 
   double accum = 0.0;
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     accum += (hypergraph.nodeWeight(hn) - m) * (hypergraph.nodeWeight(hn) - m);
   }
 
@@ -241,7 +241,7 @@ static inline double hypernodeDegreeVariance(const Hypergraph& hypergraph) {
   double m = avgHypernodeDegree(hypergraph);
 
   double accum = 0.0;
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     accum += (hypergraph.nodeDegree(hn) - m) * (hypergraph.nodeDegree(hn) - m);
   }
 
@@ -252,7 +252,7 @@ static inline double hyperedgeSizeVariance(const Hypergraph& hypergraph) {
   double m = avgHyperedgeDegree(hypergraph);
 
   double accum = 0.0;
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     accum += (hypergraph.edgeSize(he) - m) * (hypergraph.edgeSize(he) - m);
   }
 
@@ -262,7 +262,7 @@ static inline double hyperedgeSizeVariance(const Hypergraph& hypergraph) {
 static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HypernodeID> he_sizes;
   he_sizes.reserve(hypergraph.currentNumEdges());
-  for (auto he : hypergraph.edges()) {
+  for (const auto& he : hypergraph.edges()) {
     he_sizes.push_back(hypergraph.edgeSize(he));
   }
   ASSERT(!he_sizes.empty(), "Hypergraph does not contain any hyperedges");
@@ -276,7 +276,7 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
 static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HyperedgeID> hn_degrees;
   hn_degrees.reserve(hypergraph.currentNumNodes());
-  for (auto hn : hypergraph.nodes()) {
+  for (const auto& hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
   }
   ASSERT(!hn_degrees.empty(), "Hypergraph does not contain any hypernodes");
@@ -289,12 +289,12 @@ static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph
 static inline void connectivityStats(const Hypergraph& hypergraph,
                                      std::vector<PartitionID>& connectivity_stats) {
   PartitionID max_connectivity = 0;
-  for (auto he : hypergraph.edges()) {
+  for (const auto& he : hypergraph.edges()) {
     max_connectivity = std::max(max_connectivity, hypergraph.connectivity(he));
   }
   connectivity_stats.resize(max_connectivity, 0);
 
-  for (auto he : hypergraph.edges()) {
+  for (const auto& he : hypergraph.edges()) {
     ++connectivity_stats[hypergraph.connectivity(he)];
   }
 }

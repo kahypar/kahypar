@@ -126,7 +126,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _unremovable_he_parts.reset();
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
-    for (const HypernodeID hn : refinement_nodes) {
+    for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
     }
 
@@ -168,7 +168,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       // Active nodes cannot be incident only to HEs larger than the threshold, because these
       // should never be activated.
       ASSERT([&]() {
-          for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
+          for (const HyperedgeID& he : _hg.incidentEdges(max_gain_node)) {
             if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
               return true;
             }
@@ -177,7 +177,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         } (), "HE threshold violated for " << V(max_gain_node));
 
       // remove all other possible moves of the current max_gain_node
-      for (const PartitionID part : _gain_cache.adjacentParts(max_gain_node)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(max_gain_node)) {
         if (part == to_part) {
           continue;
         }
@@ -242,9 +242,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
         // there aren't any gain-changes, we have to make sure that we activate
         // all remaining border nodes, since HEs with unremovable parts do not
         // automatically trigger new activations.
-        for (const HyperedgeID he : _hg.incidentEdges(max_gain_node)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(max_gain_node)) {
           if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-            for (const HypernodeID pin : _hg.pins(he)) {
+            for (const HypernodeID& pin : _hg.pins(he)) {
               if (!_hg.marked(pin) && !_hg.active(pin) && _hg.isBorderNode(pin)) {
                 activate(pin);
               }
@@ -300,7 +300,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         ASSERT(_pq.contains(hn, part), V(hn) << V(part));
         _pq.remove(hn, part);
       }
@@ -345,7 +345,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     const PartitionID source_part = _hg.partID(pin);
     if (source_part == from_part) {
       if (pin_state.two_pins_in_from_part_before) {
-        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
           if (_new_adjacent_part.get(pin) != part) {
             if (update_pq) {
               updatePin(pin, part, he, he_weight);
@@ -356,7 +356,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     } else if (source_part == to_part) {
       if (pin_state.two_pins_in_to_part_after) {
-        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
           if (_new_adjacent_part.get(pin) != part) {
             if (update_pq) {
               updatePin(pin, part, he, -he_weight);
@@ -466,7 +466,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                              pin_count_from_part_before_move == 2,
                              pin_count_to_part_after_move == 2);
 
-    for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HypernodeID& pin : _hg.pins(he)) {
       // LOG(V(pin) << V(_hg.active(pin)) << V(_hg.isBorderNode(pin)));
       if (!_hg.marked(pin)) {
         ASSERT(pin != moved_hn, V(pin));
@@ -518,7 +518,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                              pin_count_to_part_after_move == 2);
 
     if (move_decreased_connectivity || move_increased_connectivity) {
-      for (const HypernodeID pin : _hg.pins(he)) {
+      for (const HypernodeID& pin : _hg.pins(he)) {
         if (!_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
           if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
@@ -548,7 +548,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
     } else {
       if (pin_count_from_part_after_move == 1) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (_hg.partID(pin) == from_part) {
             if (_hg.active(pin)) {
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight, pin_state);
@@ -560,7 +560,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
       if (pin_count_to_part_after_move == 2) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (_hg.partID(pin) == to_part && pin != moved_hn) {
             if (_hg.active(pin)) {
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight, pin_state);
@@ -594,7 +594,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       if (pin_count_from_part_after_move == 1) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (_hg.partID(pin) == from_part) {
             deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight, pin_state);
             break;
@@ -602,7 +602,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
       }
       if (pin_count_to_part_after_move == 2) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (_hg.partID(pin) == to_part && pin != moved_hn) {
             deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight, pin_state);
             break;
@@ -638,20 +638,20 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _new_adjacent_part.resetUsedEntries();
 
     bool moved_hn_remains_conntected_to_from_part = false;
-    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
       const HypernodeID pins_in_source_part_after = _hg.pinCountInPart(he, from_part);
 
       ASSERT(!_gain_cache.entryExists(moved_hn, from_part), V(moved_hn) << V(from_part));
       moved_hn_remains_conntected_to_from_part |= pins_in_source_part_after != 0;
 
       if (pins_in_source_part_after == 0 && _hg.pinCountInPart(he, to_part) != 1) {
-        for (const PartitionID part : _gain_cache.adjacentParts(moved_hn)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(moved_hn)) {
           if (part != from_part && part != to_part) {
             _gain_cache.updateExistingEntry(moved_hn, part, -_hg.edgeWeight(he));
           }
         }
       } else if (pins_in_source_part_after != 0 && _hg.pinCountInPart(he, to_part) == 1) {
-        for (const PartitionID part : _gain_cache.adjacentParts(moved_hn)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(moved_hn)) {
           if (part != from_part && part != to_part) {
             _gain_cache.updateExistingEntry(moved_hn, part, _hg.edgeWeight(he));
           }
@@ -670,7 +670,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       ASSERT([&]() {
           // Search parts of hyperedge he which are unremoveable
           std::vector<bool> ur_parts(_config.partition.k, false);
-          for (const HypernodeID pin : _hg.pins(he)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hg.marked(pin)) {
               ur_parts[_hg.partID(pin)] = true;
             }
@@ -689,7 +689,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     // remove dups
     // TODO(schlag): fix this!!!
-    for (const HypernodeID hn : _hns_to_activate) {
+    for (const HypernodeID& hn : _hns_to_activate) {
       if (!_hg.active(hn)) {
         activate(hn);
       }
@@ -699,9 +699,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
     ASSERT([&]() {
         // This lambda checks verifies the internal state of KFM for all pins that could
         // have been touched during updateNeighbours.
-        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
           bool valid = true;
-          for (const HypernodeID pin : _hg.pins(he)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             ASSERT_THAT_CACHE_IS_VALID_FOR_HN(pin);
             // LOG("HN" << pin << " CHECK!");
             if (!_hg.isBorderNode(pin)) {
@@ -716,7 +716,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
               }
             } else {
               // Pin is a border HN
-              for (const PartitionID part : _hg.connectivitySet(he)) {
+              for (const PartitionID& part : _hg.connectivitySet(he)) {
                 ASSERT(_hg.pinCountInPart(he, part) > 0, V(he) << " not connected to " << V(part));
                 if (_pq.contains(pin, part)) {
                   // if the move to target.part is in the PQ, it has to have the correct gain
@@ -758,7 +758,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                     LOG("to_part=" << part);
                     LOG("would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part));
                     _hg.printNodeState(pin);
-                    for (const HyperedgeID incident_edge : _hg.incidentEdges(pin)) {
+                    for (const HyperedgeID& incident_edge : _hg.incidentEdges(pin)) {
                       for (PartitionID i = 0; i < _config.partition.k; ++i) {
                         LOG("Part " << i << " unremovable: "
                             << _unremovable_he_parts[he * _config.partition.k + i]);
@@ -785,7 +785,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
             // move is stale and should have been removed from the PQ.
             for (PartitionID part = 0; part < _config.partition.k; ++part) {
               bool connected = false;
-              for (const HyperedgeID incident_he : _hg.incidentEdges(pin)) {
+              for (const HyperedgeID& incident_he : _hg.incidentEdges(pin)) {
                 if (_hg.pinCountInPart(incident_he, part) > 0) {
                   connected = true;
                   break;
@@ -808,7 +808,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         return true;
       } (), V(moved_hn));
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.active(hn)) {
             bool valid = _hg.marked(hn) || !_hg.isBorderNode(hn);
             for (PartitionID part = 0; part < _config.partition.k; ++part) {
@@ -888,7 +888,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     ASSERT(target_part != _hg.partID(hn), V(hn) << V(target_part));
     Gain gain = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       gain += gainInducedByHyperedge(hn, he, target_part);
     }
@@ -896,7 +896,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   }
 
   void initializeGainCache() {
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       initializeGainCacheFor(hn);
     }
   }
@@ -905,10 +905,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _tmp_gains.clear();
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
-      for (const PartitionID part : _hg.connectivitySet(he)) {
+      for (const PartitionID& part : _hg.connectivitySet(he)) {
         _tmp_gains[part] += he_weight;
       }
     }
@@ -930,7 +930,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(_hg.isBorderNode(hn));
 
-    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
       ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
       ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
              V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
@@ -947,7 +947,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           ASSERT_THAT_CACHE_IS_VALID_FOR_HN(hn);
         }
         return true;
@@ -980,7 +980,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                V(hn) << V(part));
       }
     }
-    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
       ASSERT(adjacent_parts[part], V(part));
     }
   }

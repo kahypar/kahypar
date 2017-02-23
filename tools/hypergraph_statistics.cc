@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   double sd_hn_degree = 0.0;
   std::vector<HyperedgeID> hn_degrees;
   hn_degrees.reserve(hypergraph.currentNumNodes());
-  for (auto hn : hypergraph.nodes()) {
+  for (const auto& hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
     max_hn_degree = std::max(max_hn_degree, hypergraph.nodeDegree(hn));
     min_hn_degree = std::min(min_hn_degree, hypergraph.nodeDegree(hn));
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   double sd_he_size = 0.0;
   std::vector<HypernodeID> he_sizes;
   he_sizes.reserve(hypergraph.currentNumEdges());
-  for (auto he : hypergraph.edges()) {
+  for (const auto& he : hypergraph.edges()) {
     if (hypergraph.edgeSize(he) == 1) {
       ++num_single_node_hes;
     }

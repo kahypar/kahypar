@@ -147,7 +147,7 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowParti
 TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   this->lp->partition(*(this->hypergraph), this->config);
 
-  for (HypernodeID hn : this->hypergraph->nodes()) {
+  for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
   }
 }

@@ -49,7 +49,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
     _config.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       PartitionID p = -1;
       _already_tried_to_assign_hn_to_part.reset();
       int partition_sum = 0;
@@ -78,7 +78,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.unassigned_part = unassigned_part;
 
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }

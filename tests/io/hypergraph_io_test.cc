@@ -117,7 +117,7 @@ TEST_F(AHypergraphFileWithoutHyperedges, CanBeParsedIntoAHypergraphIfFileContain
                         2, &hyperedge_weights, &hypernode_weights);
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
   ASSERT_THAT(hypergraph.currentNumEdges(), Eq(0));
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_THAT(hypergraph.nodeWeight(hn), Eq(_control_hypernode_weights[hn]));
   }
 }
@@ -203,7 +203,7 @@ TEST_F(APartitionOfAHypergraph, IsCorrectlyWrittenToFile) {
 
   std::vector<PartitionID> read_partition;
   readPartitionFile(_config.partition.graph_partition_filename, read_partition);
-  for (const HypernodeID hn : _hypergraph.nodes()) {
+  for (const HypernodeID& hn : _hypergraph.nodes()) {
     ASSERT_THAT(read_partition[hn], Eq(_hypergraph.partID(hn)));
   }
 }

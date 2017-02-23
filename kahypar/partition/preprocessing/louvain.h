@@ -160,7 +160,7 @@ class Louvain {
 
   void assignClusterToNextLevelFinerGraph(Graph& fine_graph, const Graph& coarse_graph,
                                           const std::vector<NodeID>& mapping) {
-    for (NodeID node : fine_graph.nodes()) {
+    for (const NodeID& node : fine_graph.nodes()) {
       fine_graph.setClusterID(node, coarse_graph.clusterID(mapping[node]));
     }
   }
@@ -170,7 +170,7 @@ class Louvain {
     int iterations = 0;
 
     _random_node_order.clear();
-    for (const NodeID node : graph.nodes()) {
+    for (const NodeID& node : graph.nodes()) {
       _random_node_order.push_back(node);
     }
 
@@ -182,14 +182,14 @@ class Louvain {
     do {
       LOG("######## Starting Louvain-Pass-Iteration #" << ++iterations << " ########");
       node_moves = 0;
-      for (const NodeID node : _random_node_order) {
+      for (const NodeID& node : _random_node_order) {
         const ClusterID cur_cid = graph.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
         EdgeWeight best_incident_cluster_weight = 0.0L;
         EdgeWeight best_gain = 0.0L;
 
-        for (Edge e : graph.incidentEdges(node)) {
+        for (const Edge& e : graph.incidentEdges(node)) {
           if (graph.clusterID(e.target_node) == cur_cid && e.target_node != node) {
             cur_incident_cluster_weight += e.weight;
           }
@@ -198,7 +198,7 @@ class Louvain {
 
         quality.remove(node, cur_incident_cluster_weight);
 
-        for (auto cluster : graph.incidentClusterWeightOfNode(node)) {
+        for (const auto& cluster : graph.incidentClusterWeightOfNode(node)) {
           const ClusterID cid = cluster.clusterID;
           const EdgeWeight weight = cluster.weight;
           const EdgeWeight gain = quality.gain(node, cid, weight);

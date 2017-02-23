@@ -85,10 +85,10 @@ class HeavyEdgeRater {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
-    for (const HyperedgeID he : _hg.incidentEdges(u)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
-      for (const HypernodeID v : _hg.pins(he)) {
+      for (const HypernodeID& v : _hg.pins(he)) {
         if (v != u && _comm[u] == _comm[v] &&
             belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
             (part_u == _hg.partID(v))) {
@@ -137,7 +137,7 @@ class HeavyEdgeRater {
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     EdgeWeight quality = _louvain.run();
-    for (HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       _comm[hn] = _louvain.clusterID(hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

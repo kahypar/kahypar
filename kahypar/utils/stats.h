@@ -69,7 +69,7 @@ class Stats {
 
   std::string toString() const {
     std::ostringstream s;
-    for (auto& stat : _stats) {
+    for (const auto& stat : _stats) {
       s << " " << stat.first << "=" << stat.second;
     }
     return s.str();
@@ -82,7 +82,7 @@ class Stats {
 
   std::string toConsoleString() const {
     std::ostringstream s;
-    for (auto& stat : _stats) {
+    for (const auto& stat : _stats) {
       s << stat.first << " = " << stat.second << "\n";
     }
     return s.str();
@@ -103,12 +103,12 @@ static inline void gatherCoarseningStats(const Configuration& config,
   std::map<HyperedgeWeight, HypernodeID> edge_weight_map;
   std::map<HypernodeID, HyperedgeID> edge_size_map;
   HyperedgeWeight sum_exposed_he_weight = 0;
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     node_degree_map[hypergraph.nodeDegree(hn)] += 1;
     node_weight_map.emplace(std::pair<HypernodeWeight,
                                       HypernodeID>(hypergraph.nodeWeight(hn), hn));
   }
-  for (HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     edge_weight_map[hypergraph.edgeWeight(he)] += 1;
     sum_exposed_he_weight += hypergraph.edgeWeight(he);
     edge_size_map[hypergraph.edgeSize(he)] += 1;

@@ -71,7 +71,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::resetPartitioning();
 
     std::vector<HypernodeID> nodes;
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       if (_hg.nodeDegree(hn) > 0) {
         nodes.push_back(hn);
       }
@@ -117,8 +117,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         if (max_part != _hg.partID(v)) {
           ASSERT(
             [&]() {
-              for (const HyperedgeID he : _hg.incidentEdges(v)) {
-                for (const PartitionID part : _hg.connectivitySet(he)) {
+              for (const HyperedgeID& he : _hg.incidentEdges(v)) {
+                for (const PartitionID& part : _hg.connectivitySet(he)) {
                   if (part == max_part) {
                     return true;
                   }
@@ -185,7 +185,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _config.initial_partitioning.unassigned_part = unassigned_part;
 
     ASSERT([&]() {
-        for (HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }
@@ -215,7 +215,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _valid_parts.reset();
 
     HyperedgeWeight internal_weight = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       if (_hg.connectivity(he) == 1) {
         const PartitionID connected_part = *_hg.connectivitySet(he).begin();
@@ -223,7 +223,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         internal_weight += he_weight;
         _tmp_scores[connected_part] += he_weight;
       } else {
-        for (const PartitionID target_part : _hg.connectivitySet(he)) {
+        for (const PartitionID& target_part : _hg.connectivitySet(he)) {
           _valid_parts.set(target_part, true);
         }
       }
@@ -245,7 +245,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
               LOGVAR(target_part);
               LOGVAR(_tmp_scores[target_part]);
               LOGVAR(gain);
-              for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+              for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
                 _hg.printEdgeState(he);
               }
               return false;
@@ -274,7 +274,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
     const PartitionID source_part = _hg.partID(hn);
     HyperedgeWeight internal_weight = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       const HypernodeID pins_in_source_part = _hg.pinCountInPart(he, source_part);
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
@@ -285,7 +285,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           }
           break;
         case 2:
-          for (const PartitionID target_part : _hg.connectivitySet(he)) {
+          for (const PartitionID& target_part : _hg.connectivitySet(he)) {
             _valid_parts.set(target_part, true);
             if (pins_in_source_part == 1 && _hg.pinCountInPart(he, target_part) != 0) {
               _tmp_scores[target_part] += he_weight;
@@ -293,7 +293,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           }
           break;
         default:
-          for (const PartitionID target_part : _hg.connectivitySet(he)) {
+          for (const PartitionID& target_part : _hg.connectivitySet(he)) {
             _valid_parts.set(target_part, true);
           }
           break;
@@ -318,7 +318,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
               LOGVAR(target_part);
               LOGVAR(_tmp_scores[target_part]);
               LOGVAR(gain);
-              for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+              for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
                 _hg.printEdgeState(he);
               }
               return false;
@@ -361,9 +361,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (_hg.partID(node) == -1) {
         _hg.setNodePart(node, p);
         ++assigned_nodes;
-        for (const HyperedgeID he : _hg.incidentEdges(node)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(node)) {
           if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-            for (const HypernodeID pin : _hg.pins(he)) {
+            for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
                 _bfs_queue.push(pin);
                 _in_queue.set(pin, true);

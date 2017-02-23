@@ -181,8 +181,8 @@ class Graph {
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     std::iota(_hypernode_mapping.begin(), _hypernode_mapping.end(), 0);
 
-    for (NodeID node : nodes()) {
-      for (Edge e : incidentEdges(node)) {
+    for (const NodeID& node : nodes()) {
+      for (const Edge& e : incidentEdges(node)) {
         if (node == e.target_node) {
           _selfloop_weight[node] = e.weight;
         }
@@ -283,7 +283,7 @@ class Graph {
           size_t from_size = 0;
           size_t to_size = 0;
 
-          for (const NodeID node : nodes()) {
+          for (const NodeID& node : nodes()) {
             if (clusterID(node) != -1) {
               distinct_comm.insert(clusterID(node));
             }
@@ -330,7 +330,7 @@ class Graph {
       _incident_cluster_weight_position[clusterID(node)] = idx++;
     }
 
-    for (Edge e : incidentEdges(node)) {
+    for (const Edge& e : incidentEdges(node)) {
       const NodeID id = e.target_node;
       const EdgeWeight w = e.weight;
       const ClusterID c_id = clusterID(id);
@@ -352,13 +352,13 @@ class Graph {
           if (clusterID(node) != -1) {
             incident_cluster.insert(clusterID(node));
           }
-          for (const Edge e : incidentEdges(node)) {
+          for (const Edge& e : incidentEdges(node)) {
             const ClusterID cid = clusterID(e.target_node);
             if (cid != -1) {
               incident_cluster.insert(cid);
             }
           }
-          for (const auto cluster : incident_cluster_weight_range) {
+          for (const auto& cluster : incident_cluster_weight_range) {
             const ClusterID cid = cluster.clusterID;
             const EdgeWeight weight = cluster.weight;
             if (incident_cluster.find(cid) == incident_cluster.end()) {
@@ -367,7 +367,7 @@ class Graph {
               return false;
             }
             EdgeWeight incident_weight = 0.0L;
-            for (const Edge e : incidentEdges(node)) {
+            for (const Edge& e : incidentEdges(node)) {
               const ClusterID inc_cid = clusterID(e.target_node);
               if (inc_cid == cid) {
                 incident_weight += e.weight;
@@ -384,7 +384,7 @@ class Graph {
 
           if (incident_cluster.size() > 0) {
             LOG("Missing cluster ids in iterator!");
-            for (const ClusterID cid : incident_cluster) {
+            for (const ClusterID& cid : incident_cluster) {
               LOGVAR(cid);
             }
             return false;
@@ -409,7 +409,7 @@ class Graph {
     std::vector<NodeID> cluster_to_node(numNodes(), kInvalidNode);
     std::vector<NodeID> node_to_contracted_node(numNodes(), kInvalidNode);
     ClusterID new_cid = 0;
-    for (const NodeID node : nodes()) {
+    for (const NodeID& node : nodes()) {
       const ClusterID cid = clusterID(node);
       if (cluster_to_node[cid] == kInvalidNode) {
         cluster_to_node[cid] = new_cid++;
@@ -462,7 +462,7 @@ class Graph {
         new_adj_array[cid] = new_edges.size();
         auto cluster_range = std::make_pair(node_ids.begin() + start_idx,
                                             node_ids.begin() + i);
-        for (auto incident_cluster_weight : incidentClusterWeightOfCluster(cluster_range)) {
+        for (const auto& incident_cluster_weight : incidentClusterWeightOfCluster(cluster_range)) {
           Edge e;
           e.target_node = static_cast<NodeID>(incident_cluster_weight.clusterID);
           e.weight = incident_cluster_weight.weight;
@@ -486,9 +486,9 @@ class Graph {
     std::cout << "Number Nodes: " << numNodes() << std::endl;
     std::cout << "Number Edges: " << numEdges() << std::endl;
 
-    for (NodeID n : nodes()) {
+    for (const NodeID& n : nodes()) {
       std::cout << "Node ID: " << n << "(Comm.: " << clusterID(n) << "), Adj. List: ";
-      for (Edge e : incidentEdges(n)) {
+      for (const Edge& e : incidentEdges(n)) {
         std::cout << "(" << e.target_node << ",w=" << e.weight << ") ";
       }
       std::cout << "\n";
@@ -516,10 +516,10 @@ class Graph {
     _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(new_hypernode_mapping) {
-    for (const NodeID node : nodes()) {
+    for (const NodeID& node : nodes()) {
       if (_cluster_size[_cluster_id[node]] == 0) _num_communities++;
       _cluster_size[_cluster_id[node]]++;
-      for (Edge e : incidentEdges(node)) {
+      for (const Edge& e : incidentEdges(node)) {
         if (node == e.target_node) {
           _selfloop_weight[node] = e.weight;
         }
@@ -537,12 +537,12 @@ class Graph {
   std::pair<IncidentClusterWeightIterator,
             IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
     ASSERT(std::all_of(cluster_range.first, cluster_range.second,
-                       [&](const NodeID i){return clusterID(i) == clusterID(*cluster_range.first);}));
+                       [&](const NodeID i) { return clusterID(i) == clusterID(*cluster_range.first); }));
     _incident_cluster_weight_position.clear();
     size_t idx = 0;
 
-    for (NodeID node : cluster_range) {
-      for (Edge e : incidentEdges(node)) {
+    for (const NodeID& node : cluster_range) {
+      for (const Edge& e : incidentEdges(node)) {
         const NodeID id = e.target_node;
         const EdgeWeight w = e.weight;
         const ClusterID c_id = clusterID(id);
@@ -561,15 +561,15 @@ class Graph {
 
     ASSERT([&]() {
           std::set<ClusterID> incident_cluster;
-          for (const NodeID node : cluster_range) {
-            for (const Edge e : incidentEdges(node)) {
+          for (const NodeID& node : cluster_range) {
+            for (const Edge& e : incidentEdges(node)) {
               const ClusterID cid = clusterID(e.target_node);
               if (cid != -1) {
                 incident_cluster.insert(cid);
               }
             }
           }
-          for (const auto cluster : incident_cluster_weight_range) {
+          for (const auto& cluster : incident_cluster_weight_range) {
             const ClusterID cid = cluster.clusterID;
             const EdgeWeight weight = cluster.weight;
             if (incident_cluster.find(cid) == incident_cluster.end()) {
@@ -577,8 +577,8 @@ class Graph {
               return false;
             }
             EdgeWeight incident_weight = 0.0L;
-            for (const NodeID node : cluster_range) {
-              for (const Edge e : incidentEdges(node)) {
+            for (const NodeID& node : cluster_range) {
+              for (const Edge& e : incidentEdges(node)) {
                 const ClusterID inc_cid = clusterID(e.target_node);
                 if (inc_cid == cid) {
                   incident_weight += e.weight;
@@ -596,7 +596,7 @@ class Graph {
 
           if (incident_cluster.size() > 0) {
             LOG("Missing cluster ids in iterator!");
-            for (const ClusterID cid : incident_cluster) {
+            for (const ClusterID& cid : incident_cluster) {
               LOGVAR(cid);
             }
             return false;
@@ -618,7 +618,7 @@ class Graph {
 
     // Construct adj. array for all hypernodes.
     // Number of edges is equal to the degree of the corresponding hypernode.
-    for (const HypernodeID hn : hg.nodes()) {
+    for (const HypernodeID& hn : hg.nodes()) {
       _hypernode_mapping[hn] = cur_node_id;
       _adj_array[cur_node_id++] = sum_edges;
       sum_edges += hg.nodeDegree(hn);
@@ -626,7 +626,7 @@ class Graph {
 
     // Construct adj. array for all hyperedges.
     // Number of edges is equal to the size of the corresponding hyperedge.
-    for (const HyperedgeID he : hg.edges()) {
+    for (const HyperedgeID& he : hg.edges()) {
       _hypernode_mapping[num_nodes + he] = cur_node_id;
       _adj_array[cur_node_id++] = sum_edges;
       sum_edges += hg.edgeSize(he);
@@ -635,10 +635,10 @@ class Graph {
     _adj_array[_num_nodes] = sum_edges;
     _edges.resize(sum_edges);
 
-    for (const HypernodeID hn : hg.nodes()) {
+    for (const HypernodeID& hn : hg.nodes()) {
       size_t pos = 0;
       const NodeID graph_node = _hypernode_mapping[hn];
-      for (HyperedgeID he : hg.incidentEdges(hn)) {
+      for (const HyperedgeID& he : hg.incidentEdges(hn)) {
         Edge e;
         e.target_node = _hypernode_mapping[num_nodes + he];
         e.weight = edgeWeight(hg, he, hn);
@@ -648,9 +648,9 @@ class Graph {
       }
     }
 
-    for (const HyperedgeID he : hg.edges()) {
+    for (const HyperedgeID& he : hg.edges()) {
       size_t pos = 0;
-      for (const HypernodeID hn : hg.pins(he)) {
+      for (const HypernodeID& hn : hg.pins(he)) {
         Edge e;
         e.target_node = _hypernode_mapping[hn];
         e.weight = edgeWeight(hg, he, hn);
@@ -671,17 +671,17 @@ class Graph {
 
     ASSERT([&]() {
           //Check Hypernodes in Graph
-          for (const HypernodeID hn : hg.nodes()) {
+          for (const HypernodeID& hn : hg.nodes()) {
             if (hg.nodeDegree(hn) != degree(_hypernode_mapping[hn])) {
               LOGVAR(hg.nodeDegree(hn));
               LOGVAR(degree(_hypernode_mapping[hn]));
               return false;
             }
             std::set<HyperedgeID> incident_edges;
-            for (const HyperedgeID he : hg.incidentEdges(hn)) {
+            for (const HyperedgeID& he : hg.incidentEdges(hn)) {
               incident_edges.insert(_hypernode_mapping[num_nodes + he]);
             }
-            for (const Edge e : incidentEdges(_hypernode_mapping[hn])) {
+            for (const Edge& e : incidentEdges(_hypernode_mapping[hn])) {
               const HyperedgeID he = e.target_node;
               if (incident_edges.find(he) == incident_edges.end()) {
                 LOGVAR(_hypernode_mapping[hn]);
@@ -692,17 +692,17 @@ class Graph {
           }
 
           //Checks Hyperedges in Graph
-          for (const HyperedgeID he : hg.edges()) {
+          for (const HyperedgeID& he : hg.edges()) {
             if (hg.edgeSize(he) != degree(_hypernode_mapping[he + num_nodes])) {
               LOGVAR(hg.edgeSize(he));
               LOGVAR(degree(_hypernode_mapping[he + num_nodes]));
               return false;
             }
             std::set<HypernodeID> pins;
-            for (const HypernodeID hn : hg.pins(he)) {
+            for (const HypernodeID& hn : hg.pins(he)) {
               pins.insert(_hypernode_mapping[hn]);
             }
-            for (const Edge e : incidentEdges(_hypernode_mapping[he + num_nodes])) {
+            for (const Edge& e : incidentEdges(_hypernode_mapping[he + num_nodes])) {
               if (pins.find(e.target_node) == pins.end()) {
                 LOGVAR(_hypernode_mapping[he + num_nodes]);
                 LOGVAR(e.target_node);

@@ -73,14 +73,14 @@ class AModularityMeasure : public Test {
 TEST_F(AModularityMeasure, IsCorrectInitialized) {
   std::vector<EdgeWeight> expected_in = { 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
   std::vector<EdgeWeight> expected_tot = { 0.75L, 0.25L, 0.5L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 0.25L + 1.0L / 3.0L, 1.0L / 3.0L, 2.0L / 3.0L, 1.0L, 1.0L, 1.0L, 1.0L };
-  for (NodeID node : graph->nodes()) {
+  for (const NodeID& node : graph->nodes()) {
     ASSERT_LE(std::abs(expected_in[node] - modularity->_internal_weight[node]), Graph::kEpsilon);
     ASSERT_LE(std::abs(expected_tot[node] - modularity->_total_weight[node]), Graph::kEpsilon);
   }
 }
 
 TEST_F(AModularityMeasure, RemoveNodeFromCommunity) {
-  for (NodeID node : graph->nodes()) {
+  for (const NodeID& node : graph->nodes()) {
     modularity->remove(node, 0.0L);
     ASSERT_EQ(0.0L, modularity->_internal_weight[node]);
     ASSERT_EQ(0.0L, modularity->_total_weight[node]);
@@ -127,7 +127,7 @@ TEST_F(AModularityMeasure, CalculatesCorrectGainValuesForIsolatedNode) {
 
   modularity->remove(4, 0.0);
 
-  for (auto incidentClusterWeight : graph->incidentClusterWeightOfNode(4)) {
+  for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfNode(4)) {
     ClusterID cid = incidentClusterWeight.clusterID;
     EdgeWeight w = incidentClusterWeight.weight;
     EdgeWeight gain = modularity->gain(4, cid, w);
@@ -185,7 +185,7 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   std::vector<Edge> edges;
   for (NodeID u = 0; u < num_nodes; ++u) {
     adj_array[u + 1] = adj_array[u] + adj_list[u].size();
-    for (NodeID v : adj_list[u]) {
+    for (const NodeID& v : adj_list[u]) {
       Edge e;
       e.target_node = v;
       e.weight = 1.0L;
@@ -201,7 +201,7 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   louvain.run();
   std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,
                                            2, 0, 2, 0, 2, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2, 2 };
-  for (NodeID node : graph.nodes())
+  for (const NodeID& node : graph.nodes())
     ASSERT_EQ(louvain.clusterID(node), expected_comm[node]);
 }
 }  // namespace ds

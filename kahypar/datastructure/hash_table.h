@@ -251,7 +251,7 @@ class HashMap {
   }
 
   void clear() {
-    for (auto pos : _poses) {
+    for (const auto& pos : _poses) {
       _ht[pos].first = _empty_element.first;
     }
     _poses.clear();
@@ -465,7 +465,7 @@ class InsertOnlyHashMap {
   }
 
   void clear() {
-    for (auto pos : _poses) {
+    for (const auto& pos : _poses) {
       _ht[pos].first = _empty_element;
     }
 
@@ -664,7 +664,7 @@ class HashSet {
   }
 
   void clear() {
-    for (auto pos : _poses) {
+    for (const auto& pos : _poses) {
       _ht[pos] = _empty_element;
     }
 
@@ -845,7 +845,7 @@ class InsertOnlyHashSet {
   }
 
   void clear() {
-    for (auto pos : _poses) {
+    for (const auto& pos : _poses) {
       _ht[pos] = _empty_element;
     }
 

@@ -61,10 +61,10 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& queue,
                                        const HypernodeID hn) {
     const PartitionID part = _hg.partID(hn);
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       if (!_hyperedge_in_queue[part * _hg.initialNumEdges() + he]) {
         if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-          for (const HypernodeID pin : _hg.pins(he)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
                 !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
               queue.push(pin);
@@ -77,9 +77,9 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     }
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
           if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-            for (const HypernodeID pin : _hg.pins(he)) {
+            for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part &&
                   !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
                 return false;
@@ -170,7 +170,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     }
 
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.partID(hn) == -1) {
             return false;
           }

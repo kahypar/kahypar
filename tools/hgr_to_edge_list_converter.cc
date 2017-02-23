@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   EdgeVector edges = createEdgeVector(kahypar::io::createHypergraphFromFile(hgr_filename, 2));
 
   std::ofstream out_stream(graphml_filename.c_str());
-  for (const Edge edge : edges) {
+  for (const Edge& edge : edges) {
     out_stream << edge.src << " " << edge.dest << std::endl;
   }
 

@@ -142,7 +142,7 @@ class HypergraphPruner {
     // debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
     // [](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
     DBG(dbg_coarsening_fingerprinting, [&]() {
-        for (auto& fp : _fingerprints) {
+        for (const auto& fp : _fingerprints) {
           LOG("{" << fp.id << "," << fp.hash << "}");
         }
         return std::string("");
@@ -191,7 +191,7 @@ class HypergraphPruner {
         for (auto edge_it = hypergraph.incidentEdges(memento.contraction_memento.u).first;
              edge_it != hypergraph.incidentEdges(memento.contraction_memento.u).second; ++edge_it) {
           _contained_hypernodes.reset();
-          for (const HypernodeID pin : hypergraph.pins(*edge_it)) {
+          for (const HypernodeID& pin : hypergraph.pins(*edge_it)) {
             _contained_hypernodes.set(pin, 1);
           }
 
@@ -202,7 +202,7 @@ class HypergraphPruner {
             // is completely contained in a larger one and think that both are parallel.
             if (hypergraph.edgeSize(*edge_it) == hypergraph.edgeSize(*next_edge_it)) {
               bool parallel = true;
-              for (const HypernodeID pin :  hypergraph.pins(*next_edge_it)) {
+              for (const HypernodeID& pin :  hypergraph.pins(*next_edge_it)) {
                 parallel &= _contained_hypernodes[pin];
               }
               if (parallel) {
@@ -222,7 +222,7 @@ class HypergraphPruner {
 
   bool isParallelHyperedge(Hypergraph& hypergraph, const HyperedgeID he) const {
     bool is_parallel = true;
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       if (!_contained_hypernodes[pin]) {
         is_parallel = false;
         break;
@@ -235,7 +235,7 @@ class HypergraphPruner {
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) {
     _contained_hypernodes.reset();
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
       _contained_hypernodes.set(pin, 1);
     }
@@ -255,7 +255,7 @@ class HypergraphPruner {
 
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) {
     _fingerprints.clear();
-    for (const HyperedgeID he : hypergraph.incidentEdges(u)) {
+    for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
       if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
         hypergraph.edgeHash(he) -= math::hash(v);
         hypergraph.edgeHash(he) += math::hash(u);
@@ -265,7 +265,7 @@ class HypergraphPruner {
       hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = 42;
-          for (const HypernodeID pin : hypergraph.pins(he)) {
+          for (const HypernodeID& pin : hypergraph.pins(he)) {
             correct_hash += math::hash(pin);
           }
           if (correct_hash != hypergraph.edgeHash(he)) {

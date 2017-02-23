@@ -110,8 +110,8 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   }
 
   void invalidateAffectedHypernodes(const HypernodeID rep_node) {
-    for (const HyperedgeID he : _hg.incidentEdges(rep_node)) {
-      for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(rep_node)) {
+      for (const HypernodeID& pin : _hg.pins(he)) {
         _outdated_rating.set(pin, true);
       }
     }

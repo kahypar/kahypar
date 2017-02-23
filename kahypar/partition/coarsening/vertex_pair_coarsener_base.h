@@ -190,7 +190,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
   void createHypernodePermutation(std::vector<HypernodeID>& permutation) {
     permutation.reserve(_hg.initialNumNodes());
-    for (HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       permutation.push_back(hn);
     }
     Randomize::instance().shuffleVector(permutation, permutation.size());

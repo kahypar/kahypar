@@ -115,7 +115,7 @@ class MinHashSparsifier {
       size_t operator() (const Edge& edge) const {
         size_t hash = 0;
         math::MurmurHash<uint32_t> hash_func;
-        for (auto edge_id : edge) {
+        for (const auto& edge_id : edge) {
           hash ^= hash_func(edge_id);
         }
         return hash;
@@ -128,11 +128,11 @@ class MinHashSparsifier {
     size_t offset = 0;
     size_t removed_edges = 0;
     size_t non_disabled_edge_id = 0;
-    for (auto edge_id : hypergraph.edges()) {
+    for (const auto& edge_id : hypergraph.edges()) {
       auto pins_range = hypergraph.pins(edge_id);
       ds::InsertOnlyHashSet<HypernodeID> new_pins(pins_range.second - pins_range.first);
 
-      for (auto vertex_id : pins_range) {
+      for (const auto& vertex_id : pins_range) {
         new_pins.insert(_clusters[vertex_id]);
       }
 
@@ -143,7 +143,7 @@ class MinHashSparsifier {
         continue;
       }
 
-      for (auto new_pin : new_pins) {
+      for (const auto& new_pin : new_pins) {
         pins_of_edges.push_back(new_pin);
       }
 
@@ -170,7 +170,7 @@ class MinHashSparsifier {
     // 2 : calculate weights of vertices in contracted graph
     std::vector<HypernodeWeight> vertex_weights(num_vertices);
 
-    for (auto cluster_id : _clusters) {
+    for (const auto& cluster_id : _clusters) {
       ++vertex_weights[cluster_id];
     }
 
@@ -186,7 +186,7 @@ class MinHashSparsifier {
   }
 
   void applyPartition(const Hypergraph& coarsaned_graph, Hypergraph& original_graph) {
-    for (auto vertex_id : original_graph.nodes()) {
+    for (const auto& vertex_id : original_graph.nodes()) {
       original_graph.setNodePart(vertex_id, coarsaned_graph.partID(_clusters[vertex_id]));
     }
   }
@@ -199,7 +199,7 @@ class MinHashSparsifier {
 
     std::vector<HypernodeID> new_clusters(_clusters.size());
 
-    for (auto clst : _clusters) {
+    for (const auto& clst : _clusters) {
       new_clusters[clst] = 1;
     }
 

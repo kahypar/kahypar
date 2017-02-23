@@ -48,7 +48,7 @@ struct FMGainComputationPolicy {
     ASSERT(target_part != -1, V(target_part));
 
     Gain gain = 0;
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       if (hg.connectivity(he) == 1 && hg.pinCountInPart(he, target_part) == 0) {
         gain -= hg.edgeWeight(he);
@@ -69,7 +69,7 @@ struct FMGainComputationPolicy {
     }
 
     Gain gain = 0;
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       ASSERT(hg.edgeSize(he) > 1, "Computing gain for Single-Node HE");
       switch (hg.connectivity(he)) {
         case 1:
@@ -105,7 +105,7 @@ struct FMGainComputationPolicy {
                                                           PQ& pq,
                                                           const HypernodeID hn,
                                                           const PartitionID to) {
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       const HypernodeID pin_count_in_target_part_after = hg.pinCountInPart(he, to);
       const PartitionID connectivity = hg.connectivity(he);
       const HypernodeID he_size = hg.edgeSize(he);
@@ -114,7 +114,7 @@ struct FMGainComputationPolicy {
         switch (connectivity) {
           case 1: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
-              for (const HypernodeID node : hg.pins(he)) {
+              for (const HypernodeID& node : hg.pins(he)) {
                 if (node == hn) continue;
                 for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
                   if (i != to && pq.contains(node, i)) {
@@ -126,7 +126,7 @@ struct FMGainComputationPolicy {
             }
           case 2: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
-              for (const HypernodeID node : hg.pins(he)) {
+              for (const HypernodeID& node : hg.pins(he)) {
                 if (node == hn) continue;
                 for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
                   if (pq.contains(node, i) && (i == to || hg.pinCountInPart(he, i) == 0)) {
@@ -140,7 +140,7 @@ struct FMGainComputationPolicy {
       }
       if (connectivity == 2 && pin_count_in_target_part_after == he_size - 1) {
         const HyperedgeWeight he_weight = hg.edgeWeight(he);
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
@@ -158,7 +158,7 @@ struct FMGainComputationPolicy {
                                                     const HypernodeID hn,
                                                     const PartitionID from,
                                                     const PartitionID to) {
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       const HypernodeID pin_count_in_source_part_before = hg.pinCountInPart(he, from) + 1;
       const HypernodeID pin_count_in_target_part_after = hg.pinCountInPart(he, to);
       const HypernodeID he_size = hg.edgeSize(he);
@@ -168,7 +168,7 @@ struct FMGainComputationPolicy {
         // Update pin of a HE that is removed from the cut.
         ASSERT(hg.connectivity(he) == 1, V(hg.connectivity(he)));
         ASSERT(pin_count_in_source_part_before == 1, V(pin_count_in_source_part_before));
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
             if (i != to && pq.contains(node, i)) {
@@ -180,7 +180,7 @@ struct FMGainComputationPolicy {
         // Update pin of a HE that is not cut before applying the move.
         ASSERT(hg.connectivity(he) == 2, V(hg.connectivity(he)));
         ASSERT(pin_count_in_target_part_after == 1, V(pin_count_in_target_part_after));
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
             if (i != from && pq.contains(node, i)) {
@@ -193,7 +193,7 @@ struct FMGainComputationPolicy {
       if (he_size == 3 && pin_count_in_target_part_after == he_size - 1 &&
           pin_count_in_source_part_before == he_size - 1) {
         // special case for HEs with 3 pins
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
@@ -204,7 +204,7 @@ struct FMGainComputationPolicy {
         }
       } else if (pin_count_in_target_part_after == he_size - 1) {
         // Update single pin that remains outside of to_part after applying the move
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
@@ -213,7 +213,7 @@ struct FMGainComputationPolicy {
         }
       } else if (pin_count_in_source_part_before == he_size - 1) {
         // Update single pin that was outside from_part before applying the move.
-        for (const HypernodeID node : hg.pins(he)) {
+        for (const HypernodeID& node : hg.pins(he)) {
           if (node == hn) continue;
           if (hg.partID(node) != from && pq.contains(node, from)) {
             pq.updateKeyBy(node, from, -he_weight);
@@ -236,8 +236,8 @@ struct FMGainComputationPolicy {
       deltaGainUpdateforAssignedPart(hg, config, pq, hn, from, to);
     }
     ASSERT([&]() {
-        for (const HyperedgeID he : hg.incidentEdges(hn)) {
-          for (const HypernodeID node : hg.pins(he)) {
+        for (const HyperedgeID& he : hg.incidentEdges(hn)) {
+          for (const HypernodeID& node : hg.pins(he)) {
             if (node != hn) {
               for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
                 if (pq.contains(node, i)) {
@@ -272,9 +272,9 @@ struct MaxPinGainComputationPolicy {
                                    const PartitionID& target_part,
                                    ds::FastResetFlagArray<>& visit) {
     Gain gain = 0;
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
-        for (const HypernodeID pin : hg.pins(he)) {
+        for (const HypernodeID& pin : hg.pins(he)) {
           if (!visit[pin]) {
             if (hg.partID(pin) == target_part) {
               gain += hg.nodeWeight(pin);
@@ -295,8 +295,8 @@ struct MaxPinGainComputationPolicy {
                                      const PartitionID from,
                                      const PartitionID to, ds::FastResetFlagArray<>& visit) {
     if (from == -1) {
-      for (const HyperedgeID he : hg.incidentEdges(hn)) {
-        for (const HypernodeID pin : hg.pins(he)) {
+      for (const HyperedgeID& he : hg.incidentEdges(hn)) {
+        for (const HypernodeID& pin : hg.pins(he)) {
           if (!visit[pin]) {
             if (pq.contains(pin, to)) {
               pq.updateKeyBy(pin, to, hg.nodeWeight(hn));
@@ -306,8 +306,8 @@ struct MaxPinGainComputationPolicy {
         }
       }
     } else {
-      for (const HyperedgeID he : hg.incidentEdges(hn)) {
-        for (const HypernodeID pin : hg.pins(he)) {
+      for (const HyperedgeID& he : hg.incidentEdges(hn)) {
+        for (const HypernodeID& pin : hg.pins(he)) {
           if (!visit[pin]) {
             if (pq.contains(pin, to)) {
               pq.updateKeyBy(pin, to, hg.nodeWeight(hn));
@@ -333,7 +333,7 @@ struct MaxNetGainComputationPolicy {
                                    const PartitionID& target_part,
                                    const ds::FastResetFlagArray<>&) {
     Gain gain = 0;
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
         gain += hg.edgeWeight(he);
       }
@@ -347,7 +347,7 @@ struct MaxNetGainComputationPolicy {
                                      const HypernodeID hn, const PartitionID from,
                                      const PartitionID to,
                                      const ds::FastResetFlagArray<>&) {
-    for (const HyperedgeID he : hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       Gain pins_in_source_part = -1;
       if (from != -1) {
         pins_in_source_part = hg.pinCountInPart(he, from);
@@ -355,7 +355,7 @@ struct MaxNetGainComputationPolicy {
       const Gain pins_in_target_part = hg.pinCountInPart(he, to);
 
       if (pins_in_source_part == 0 || pins_in_target_part == 1) {
-        for (const HypernodeID pin : hg.pins(he)) {
+        for (const HypernodeID& pin : hg.pins(he)) {
           if (from != -1) {
             if (pins_in_source_part == 0 && pq.contains(pin, from)) {
               pq.updateKeyBy(pin, from, -hg.edgeWeight(he));

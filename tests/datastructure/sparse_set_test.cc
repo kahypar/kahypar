@@ -89,7 +89,7 @@ TYPED_TEST(ASparseSet, AllowsIterationOverSetElements) {
   this->sparse_set.add(3);
 
   size_t i = 0;
-  for (const auto element : this->sparse_set) {
+  for (const auto& element : this->sparse_set) {
     ASSERT_THAT(element, Eq(v[i++]));
   }
 }
@@ -142,7 +142,7 @@ TYPED_TEST(ASparseSetSupportingDeletions, DoesNotIterateOverDeletedElements) {
   this->sparse_set.remove(1);
   this->sparse_set.remove(7);
 
-  for (const auto element : this->sparse_set) {
+  for (const auto& element : this->sparse_set) {
     ASSERT_NE(element, 1);
     ASSERT_NE(element, 7);
   }

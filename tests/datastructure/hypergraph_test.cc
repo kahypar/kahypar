@@ -230,7 +230,7 @@ TEST_F(AHyperedgeIterator, SkipsInvalidHyperedgesWhenForwardIterating) {
 TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
   HypernodeID hypernode_count = 0;
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_THAT(hn, Eq(hypernode_count));
     ++hypernode_count;
   }
@@ -240,7 +240,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHypernodes) {
 TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
   HyperedgeID hyperedge_count = 0;
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     ASSERT_THAT(he, Eq(hyperedge_count));
     ++hyperedge_count;
   }
@@ -250,7 +250,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   int i = 0;
 
-  for (const HyperedgeID he : hypergraph.incidentEdges(6)) {
+  for (const HyperedgeID& he : hypergraph.incidentEdges(6)) {
     ASSERT_THAT(he, Eq(*(hypergraph._incidence_array.begin() +
                          hypergraph.hypernode(6).firstEntry() + i)));
     ++i;
@@ -259,7 +259,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
 
 TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
   int i = 0;
-  for (const HypernodeID pin : hypergraph.pins(2)) {
+  for (const HypernodeID& pin : hypergraph.pins(2)) {
     ASSERT_THAT(pin, Eq(*(hypergraph._incidence_array.begin() +
                           hypergraph.hyperedge(2).firstEntry() + i)));
     ++i;
@@ -544,7 +544,7 @@ TEST_F(AHypergraph, CalculatesPinCountsOfAHyperedge) {
 }
 
 TEST_F(AnUnPartitionedHypergraph, HasAllNodesInInvalidPartition) {
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_THAT(hypergraph.partID(hn), Eq(Hypergraph::kInvalidPartition));
   }
 }
@@ -606,7 +606,7 @@ TEST_F(AHypergraph, AllowsIterationOverConnectivitySetOfAHyperege) {
   ASSERT_THAT(hypergraph.connectivity(0), Eq(2));
 
   int part_id = 0;
-  for (const PartitionID part : hypergraph.connectivitySet(0)) {
+  for (const PartitionID& part : hypergraph.connectivitySet(0)) {
     ASSERT_THAT(part, Eq(part_id));
     ++part_id;
   }
@@ -708,11 +708,11 @@ TEST_F(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionIn
   ASSERT_THAT(extr_part0.first->_part_info.size(), Eq(2));
   ASSERT_THAT(extr_part0.first->_pins_in_part.size(), Eq(8));
 
-  for (const HyperedgeID he : extr_part0.first->edges()) {
+  for (const HyperedgeID& he : extr_part0.first->edges()) {
     ASSERT_THAT(extr_part0.first->connectivity(he), Eq(0));
   }
 
-  for (const HypernodeID hn : extr_part0.first->nodes()) {
+  for (const HypernodeID& hn : extr_part0.first->nodes()) {
     ASSERT_THAT(extr_part0.first->partID(hn), Eq(-1));
   }
 }

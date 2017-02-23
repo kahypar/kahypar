@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
   Hypergraph hypergraph(io::createHypergraphFromFile(in_hgr_filename, 2));
 
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     hypergraph.setEdgeWeight(he, hypergraph.edgeSize(he));
   }
 

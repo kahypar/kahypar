@@ -33,9 +33,7 @@ using::testing::Test;
 
 namespace kahypar {
 namespace ds {
-
 class ABipartiteGraph : public Test {
-
  public:
   ABipartiteGraph() :
     graph(nullptr),
@@ -55,7 +53,7 @@ class ABipartiteGraph : public Test {
 bool bicoloring(const NodeID cur, const int cur_col, std::vector<int>& col,
                 const std::shared_ptr<Graph>& graph) {
   col[cur] = cur_col;
-  for (Edge e : graph->incidentEdges(cur)) {
+  for (const Edge& e : graph->incidentEdges(cur)) {
     const NodeID id = e.target_node;
     if (col[id] == -1) {
       return bicoloring(id, 1 - cur_col, col, graph);
@@ -69,7 +67,7 @@ bool bicoloring(const NodeID cur, const int cur_col, std::vector<int>& col,
 
 TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsBipartite) {
   std::vector<int> col(graph->numNodes(), -1);
-  for (NodeID id : graph->nodes()) {
+  for (const NodeID& id : graph->nodes()) {
     if (col[id] == -1) {
       ASSERT_TRUE(bicoloring(id, 0, col, graph));
     }
@@ -79,24 +77,24 @@ TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsBipartite) {
 
 TEST_F(ABipartiteGraph, ConstructedFromAHypergraphIsEquivalentToHypergraph) {
   HypernodeID numNodes = hypergraph.initialNumNodes();
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     std::set<NodeID> edges;
-    for (HyperedgeID he : hypergraph.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hypergraph.incidentEdges(hn)) {
       edges.insert(numNodes + he);
     }
     ASSERT_EQ(edges.size(), graph->degree(hn));
-    for (Edge e : graph->incidentEdges(hn)) {
+    for (const Edge& e : graph->incidentEdges(hn)) {
       ASSERT_FALSE(edges.find(e.target_node) == edges.end());
     }
   }
 
-  for (HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     std::set<NodeID> edges;
-    for (HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       edges.insert(pin);
     }
     ASSERT_EQ(edges.size(), graph->degree(he + numNodes));
-    for (Edge e : graph->incidentEdges(he + numNodes)) {
+    for (const Edge& e : graph->incidentEdges(he + numNodes)) {
       ASSERT_FALSE(edges.find(e.target_node) == edges.end());
       ASSERT_EQ(e.weight, static_cast<EdgeWeight>(hypergraph.edgeWeight(he)) /
                 static_cast<EdgeWeight>(hypergraph.edgeSize(he)));
@@ -109,7 +107,7 @@ TEST_F(ABipartiteGraph, HasCorrectTotalWeight) {
 }
 
 TEST_F(ABipartiteGraph, HasCorrectInitializedClusterIDs) {
-  for (NodeID id : graph->nodes()) {
+  for (const NodeID& id : graph->nodes()) {
     ASSERT_EQ(id, graph->clusterID(id));
   }
 }
@@ -118,7 +116,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsCorrect) {
   NodeID node = 8;
   std::vector<EdgeWeight> cluster_weight = { 0.25L, 0.25L, 0.0L, 0.25L, 0.25L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
   std::vector<bool> incident_cluster = { true, true, false, true, true, false, false, false, true, false, false };
-  for (IncidentClusterWeight incidentClusterWeight : graph->incidentClusterWeightOfNode(node)) {
+  for (const IncidentClusterWeight& incidentClusterWeight : graph->incidentClusterWeightOfNode(node)) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
@@ -132,7 +130,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsCorrectAfterSomeNodesHas
   graph->setClusterID(3, 0);
   std::vector<EdgeWeight> cluster_weight = { 0.75L, 0.0L, 0.0L, 0.0L, 0.25L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L };
   std::vector<bool> incident_cluster = { true, false, false, false, true, false, false, false, true, false, false };
-  for (IncidentClusterWeight incidentClusterWeight : graph->incidentClusterWeightOfNode(node)) {
+  for (const IncidentClusterWeight& incidentClusterWeight : graph->incidentClusterWeightOfNode(node)) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
@@ -169,7 +167,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   //Checks incident clusters of cluster with ID 0
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_cluster = { true, true, true };
-  for (auto incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster0)) {
+  for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster0)) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
@@ -179,7 +177,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   //Checks incident clusters of cluster with ID 1
   cluster_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_cluster = { true, true, true };
-  for (auto incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster1)) {
+  for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster1)) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
@@ -189,7 +187,7 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   //Checks incident clusters of cluster with ID 2
   cluster_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_cluster = { true, true, true };
-  for (auto incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster2)) {
+  for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster2)) {
     ClusterID c_id = incidentClusterWeight.clusterID;
     EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
@@ -233,7 +231,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 0
   std::vector<EdgeWeight> edge_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_nodes = { true, true, true };
-  for (Edge e : graph.incidentEdges(0)) {
+  for (const Edge& e : graph.incidentEdges(0)) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -243,7 +241,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 1
   edge_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.incidentEdges(1)) {
+  for (const Edge& e : graph.incidentEdges(1)) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
@@ -253,7 +251,7 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 2
   edge_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (Edge e : graph.incidentEdges(2)) {
+  for (const Edge& e : graph.incidentEdges(2)) {
     NodeID n_id = e.target_node;
     EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);

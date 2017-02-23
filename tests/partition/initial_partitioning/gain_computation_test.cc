@@ -47,7 +47,7 @@ class AGainComputationPolicy : public Test {
     config(),
     visit(hypergraph.initialNumNodes()) {
     HypernodeWeight hypergraph_weight = 0;
-    for (HypernodeID hn : hypergraph.nodes()) {
+    for (const HypernodeID& hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
     pq.initialize(hypergraph.initialNumNodes());

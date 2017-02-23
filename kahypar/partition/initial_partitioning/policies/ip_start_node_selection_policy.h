@@ -45,7 +45,7 @@ struct BFSStartNodeSelectionPolicy {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
       size_t visited_nodes = 0;
-      for (const HypernodeID start_node : start_nodes) {
+      for (const HypernodeID& start_node : start_nodes) {
         bfs.push(start_node);
         in_queue.set(start_node, true);
       }
@@ -55,10 +55,10 @@ struct BFSStartNodeSelectionPolicy {
         lastHypernode = bfs.front();
         bfs.pop();
         visited_nodes++;
-        for (const HyperedgeID he : hg.incidentEdges(lastHypernode)) {
+        for (const HyperedgeID& he : hg.incidentEdges(lastHypernode)) {
           if (!hyperedge_in_queue[he]) {
             if (hg.edgeSize(he) <= config.partition.hyperedge_size_threshold) {
-              for (const HypernodeID pin : hg.pins(he)) {
+              for (const HypernodeID& pin : hg.pins(he)) {
                 if (!in_queue[pin]) {
                   bfs.push(pin);
                   in_queue.set(pin, true);
@@ -69,7 +69,7 @@ struct BFSStartNodeSelectionPolicy {
           }
         }
         if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
-          for (const HypernodeID hn : hg.nodes()) {
+          for (const HypernodeID& hn : hg.nodes()) {
             if (!in_queue[hn]) {
               bfs.push(hn);
               in_queue.set(hn, true);

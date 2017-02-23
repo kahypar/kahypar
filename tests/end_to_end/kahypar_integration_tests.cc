@@ -103,7 +103,7 @@ TEST_F(KaHyParK, ComputesDirectKwayCutPartitioning) {
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
   }
 
@@ -130,7 +130,7 @@ TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
   }
 
@@ -158,7 +158,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionCutPartitioning) {
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
   }
 
@@ -185,7 +185,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
   }
 

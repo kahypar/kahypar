@@ -281,7 +281,7 @@ class IncidenceSet {
 
   void resize() {
     IncidenceSet new_set((_max_sparse_size / 2) + 1);
-    for (const auto e : * this) {
+    for (const auto& e : * this) {
       new_set.add(e);
     }
     swap(new_set);

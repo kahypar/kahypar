@@ -158,7 +158,7 @@ class TwoWayFMRefiner final : public IRefiner,
       _rebalance_pqs[1].clear();
     }
     _gain_cache.clear();
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       _gain_cache.setValue(hn, computeGain(hn));
       if (UseGlobalRebalancing()) {
         _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache.value(hn));
@@ -202,7 +202,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
-    for (const HypernodeID hn : refinement_nodes) {
+    for (const HypernodeID& hn : refinement_nodes) {
       activate(hn, max_allowed_part_weights);
 
       // If Lmax0==Lmax1, then all border nodes should be active. However, if Lmax0 != Lmax1,
@@ -352,7 +352,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     if (UseGlobalRebalancing()) {
       ASSERT([&]() {
-          for (const HypernodeID hn : _hg.nodes()) {
+          for (const HypernodeID& hn : _hg.nodes()) {
             ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].contains(hn), V(hn));
             ASSERT(_rebalance_pqs[1 - _hg.partID(hn)].getKey(hn) == _gain_cache.value(hn), V(hn));
           }
@@ -451,7 +451,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void restoreRebalancePQ() {
     ASSERT(UseGlobalRebalancing(), "Method should only be called with active global rebalancing.");
-    for (const HypernodeID hn : _disabled_rebalance_hns) {
+    for (const HypernodeID& hn : _disabled_rebalance_hns) {
       _rebalance_pqs[1 - _hg.partID(hn)].push(hn, _gain_cache.value(hn));
     }
     _disabled_rebalance_hns.clear();
@@ -459,7 +459,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
 
   void removeInternalizedHns() {
-    for (const HypernodeID hn : _non_border_hns_to_remove) {
+    for (const HypernodeID& hn : _non_border_hns_to_remove) {
       // The just moved HN might be contained in the vector since changeNodePart
       // does not explicitly check for that HN. However it may still
       // be a border node - but it is marked as moved for sure.
@@ -536,7 +536,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache.setNotCached(moved_hn);
 
     // TODO(schlag): implement locking of HEs!
-    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
       ASSERT(_locked_hes.get(he) != HEState::locked, V(he));
       deltaUpdate<true>(from_part, to_part, he);
     }
@@ -552,8 +552,8 @@ class TwoWayFMRefiner final : public IRefiner,
     removeInternalizedHns();
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             const PartitionID other_part = 1 - _hg.partID(pin);
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
@@ -607,7 +607,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(-temp == computeGain(moved_hn), V(moved_hn));
     const Gain rb_delta = _gain_cache.delta(moved_hn);
     _gain_cache.setNotCached(moved_hn);
-    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
       if (_locked_hes.get(he) != HEState::locked) {
         if (_locked_hes.get(he) == to_part) {
           // he is loose
@@ -637,7 +637,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(!UseGlobalRebalancing() || (!_rebalance_pqs[from_part].contains(moved_hn) &&
                                        !_rebalance_pqs[to_part].contains(moved_hn)), V(moved_hn));
 
-    for (const HypernodeID hn : _hns_to_activate) {
+    for (const HypernodeID& hn : _hns_to_activate) {
       ASSERT(!_hg.active(hn), V(hn));
       activate(hn, max_allowed_part_weights);
     }
@@ -655,8 +655,8 @@ class TwoWayFMRefiner final : public IRefiner,
     removeInternalizedHns();
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             const PartitionID other_part = 1 - _hg.partID(pin);
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
@@ -757,7 +757,7 @@ class TwoWayFMRefiner final : public IRefiner,
       HypernodeID num_active_pins = 1;  // because moved_hn was active
 
       if (_hg.edgeSize(he) == 2) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           performNonZeroFullUpdate(pin, (_hg.partID(pin) == from_part ? 2 : -2) * he_weight,
                                    num_active_pins);
         }
@@ -765,18 +765,18 @@ class TwoWayFMRefiner final : public IRefiner,
         // HE was an internal edge before move and is a cut HE now.
         // Before the move, all pins had gain -w(e). Now after the move,
         // these pins have gain 0 (since all of them are in from_part).
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           performNonZeroFullUpdate(pin, he_weight, num_active_pins);
         }
       } else if (he_became_internal_he) {
         // HE was cut HE before move and is internal HE now.
         // Since the HE is now internal, moving a pin incurs gain -w(e)
         // and make it a cut HE again.
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           performNonZeroFullUpdate(pin, -he_weight, num_active_pins);
         }
       } else {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           // factor is unfortunately necessary because we need to iterate over all pins
           // since we night find new nodes for activation.
 
@@ -846,7 +846,7 @@ class TwoWayFMRefiner final : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
 
       if (_hg.edgeSize(he) == 2) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           const char factor = (_hg.partID(pin) == from_part ? 2 : -2);
           if (update_local_search_pq &&
               (is_rebalancing_update ? _hg.active(pin) : !_hg.marked(pin))) {
@@ -856,7 +856,7 @@ class TwoWayFMRefiner final : public IRefiner,
           updateGainCache(pin, factor * he_weight);
         }
       } else if (he_became_cut_he) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (update_local_search_pq &&
               (is_rebalancing_update ? _hg.active(pin) : !_hg.marked(pin))) {
             updatePin(pin, he_weight);
@@ -865,7 +865,7 @@ class TwoWayFMRefiner final : public IRefiner,
           updateGainCache(pin, he_weight);
         }
       } else if (he_became_internal_he) {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (update_local_search_pq &&
               (is_rebalancing_update ? _hg.active(pin) : !_hg.marked(pin))) {
             updatePin(pin, -he_weight);
@@ -874,7 +874,7 @@ class TwoWayFMRefiner final : public IRefiner,
           updateGainCache(pin, -he_weight);
         }
       } else {
-        for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
           if (_hg.partID(pin) == from_part) {
             if (increase_necessary) {
               if (update_local_search_pq &&
@@ -946,7 +946,7 @@ class TwoWayFMRefiner final : public IRefiner,
   Gain computeGain(const HypernodeID hn) const {
     Gain gain = 0;
     ASSERT(_hg.partID(hn) < 2);
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.pinCountInPart(he, _hg.partID(hn) ^ 1) == 0) {
         gain -= _hg.edgeWeight(he);
@@ -960,7 +960,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
             LOGVAR(hn);
             LOGVAR(_gain_cache.value(hn));

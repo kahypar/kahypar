@@ -100,7 +100,7 @@ class MLCoarsener final : public ICoarsener,
       current_hns.clear();
 
       const HypernodeID num_hns_before_pass = _hg.currentNumNodes();
-      for (const HypernodeID hn : _hg.nodes()) {
+      for (const HypernodeID& hn : _hg.nodes()) {
         current_hns.push_back(hn);
       }
       Randomize::instance().shuffleVector(current_hns, current_hns.size());
@@ -109,7 +109,7 @@ class MLCoarsener final : public ICoarsener,
       //             return _hg.nodeDegree(l) < _hg.nodeDegree(r);
       //           });
 
-      for (const HypernodeID hn : current_hns) {
+      for (const HypernodeID& hn : current_hns) {
         if (_hg.nodeIsEnabled(hn)) {
           const Rating rating = contractionPartner(hn, already_matched);
 
@@ -141,7 +141,7 @@ class MLCoarsener final : public ICoarsener,
   void performLouvainCommunityDetection() {
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     EdgeWeight quality = _louvain.run();
-    for (HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       _comm[hn] = _louvain.clusterID(hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -155,11 +155,11 @@ class MLCoarsener final : public ICoarsener,
   Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
-    for (const HyperedgeID he : _hg.incidentEdges(u)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
         const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
-        for (const HypernodeID v : _hg.pins(he)) {
+        for (const HypernodeID& v : _hg.pins(he)) {
           if ((v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)))) {
             _tmp_ratings[v] += score;
           }

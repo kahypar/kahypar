@@ -117,7 +117,7 @@ TEST_F(ALabelPropagationMaxGainMoveTest,
 }
 
 TEST_F(ALabelPropagationMaxGainMoveTest, AllMaxGainMovesAZeroGainMovesIfNoHypernodeIsAssigned) {
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     std::pair<PartitionID, Gain> max_move = partitioner->computeMaxGainMove(
       hn);
     ASSERT_EQ(max_move.first, -1);

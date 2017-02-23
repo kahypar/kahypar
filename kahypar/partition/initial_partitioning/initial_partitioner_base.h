@@ -48,7 +48,7 @@ class InitialPartitionerBase {
     _unassigned_nodes(),
     _unassigned_node_bound(std::numeric_limits<PartitionID>::max()),
     _max_hypernode_weight(hypergraph.weightOfHeaviestNode()) {
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       _unassigned_nodes.push_back(hn);
     }
     _unassigned_node_bound = _unassigned_nodes.size();
@@ -71,7 +71,7 @@ class InitialPartitionerBase {
   void resetPartitioning() {
     _hg.resetPartitioning();
     if (_config.initial_partitioning.unassigned_part != -1) {
-      for (const HypernodeID hn : _hg.nodes()) {
+      for (const HypernodeID& hn : _hg.nodes()) {
         _hg.setNodePart(hn, _config.initial_partitioning.unassigned_part);
       }
       _hg.initializeNumCutHyperedges();
@@ -96,11 +96,11 @@ class InitialPartitionerBase {
 
 #ifdef USE_BUCKET_QUEUE
       HyperedgeID max_degree = 0;
-      for (const HypernodeID hn : _hg.nodes()) {
+      for (const HypernodeID& hn : _hg.nodes()) {
         max_degree = std::max(max_degree, _hg.nodeDegree(hn));
       }
       HyperedgeWeight max_he_weight = 0;
-      for (const HyperedgeID he : _hg.edges()) {
+      for (const HyperedgeID& he : _hg.edges()) {
         max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
       }
       LOGVAR(max_degree);
@@ -128,7 +128,7 @@ class InitialPartitionerBase {
 
       do {
         refinement_nodes.clear();
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.isBorderNode(hn)) {
             refinement_nodes.push_back(hn);
           }

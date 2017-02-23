@@ -45,17 +45,17 @@ int main(int argc, char* argv[]) {
 
   out_stream << hypergraph.initialNumNodes() + hypergraph.initialNumEdges() << " " << hypergraph.initialNumPins() << std::endl;
 
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     // vertex ids start with 1
-    for (const HyperedgeID he : hypergraph.incidentEdges(hn)) {
+    for (const HyperedgeID& he : hypergraph.incidentEdges(hn)) {
       const HyperedgeID he_id = hypergraph.initialNumNodes() + he + 1;
       out_stream << he_id << " ";
     }
     out_stream << std::endl;
   }
 
-  for (const HyperedgeID he : hypergraph.edges()) {
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       const HypernodeID hn_id = pin + 1;
       out_stream << hn_id << " ";
     }

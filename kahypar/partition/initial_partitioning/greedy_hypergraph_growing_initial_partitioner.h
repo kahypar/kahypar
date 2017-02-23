@@ -280,10 +280,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // Pushing incident hypernode into bucket queue or update gain value
     // TODO(heuer): Shouldn't it be possible to do this within the deltaGainUpdate function?
     if (insert) {
-      for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+      for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_hyperedge_in_queue[target_part * _hg.initialNumEdges() + he]) {
           if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-            for (const HypernodeID pin : _hg.pins(he)) {
+            for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
                 insertNodeIntoPQ(pin, target_part);
                 ASSERT(_pq.contains(pin, target_part),
@@ -307,9 +307,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
           if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
-            for (const HypernodeID pin : _hg.pins(he)) {
+            for (const HypernodeID& pin : _hg.pins(he)) {
               for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
                 if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
                   const Gain gain = GainComputation::calculateGain(_hg, pin, i, _visit);

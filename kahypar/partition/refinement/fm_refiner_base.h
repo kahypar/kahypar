@@ -83,7 +83,7 @@ class FMRefinerBase {
   FMRefinerBase& operator= (FMRefinerBase&&) = delete;
 
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
-    for (const HyperedgeID he : _hg.incidentEdges(pin)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
       if (_hg.pinCountInPart(he, part) > 0) {
         return true;
       }

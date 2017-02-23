@@ -167,7 +167,7 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowParti
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassigned) {
   this->ghg->partition(*(this->hypergraph), this->config);
 
-  for (HypernodeID hn : this->hypergraph->nodes()) {
+  for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
   }
 }

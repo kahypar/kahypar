@@ -126,7 +126,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     reset();
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
-    for (const HypernodeID hn : refinement_nodes) {
+    for (const HypernodeID& hn : refinement_nodes) {
       activate(hn, max_allowed_part_weights[0]);
     }
 
@@ -271,8 +271,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
   void updateNeighbours(const HypernodeID moved_hn,
                         const HypernodeWeight max_allowed_part_weight) {
     _just_updated.reset();
-    for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-      for (const HypernodeID pin : _hg.pins(he)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
+      for (const HypernodeID& pin : _hg.pins(he)) {
         if (!_hg.marked(pin) && !_just_updated[pin]) {
           if (!_hg.active(pin)) {
             activate(pin, max_allowed_part_weight);
@@ -290,8 +290,8 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     }
 
     ASSERT([&]() {
-        for (const HyperedgeID he : _hg.incidentEdges(moved_hn)) {
-          for (const HypernodeID pin : _hg.pins(he)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
             if (!_hg.isBorderNode(pin)) {
               if (_pq.contains(pin)) {
                 LOG("HN " << pin << " should not be contained in PQ");
@@ -437,7 +437,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     PartitionID num_hes_with_only_hn_in_part = 0;
     Gain max_gain = 0;
 
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       switch (_hg.connectivity(he)) {
         case 1:
@@ -459,7 +459,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
           // for the max-gain-move & thus never consider the source_part-related values.
           num_hes_with_only_hn_in_part += _hg.pinCountInPart(he, _hg.partID(hn)) == 1;
 
-          for (const PartitionID part : _hg.connectivitySet(he)) {
+          for (const PartitionID& part : _hg.connectivitySet(he)) {
             // TODO(schlag): DIESES IF BEKOMMT MAN WEG, INDEM MAN ES HIER EINFACH LOESCHT
             //              UND UNTEN EINFACH EIN CONTINUE MACHT, WENN DER SOURCE PART KOMMT!
             if (part != _hg.partID(hn)) {
@@ -487,7 +487,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
           // For the same reason as above
           num_hes_with_only_hn_in_part += _hg.pinCountInPart(he, _hg.partID(hn)) == 1;
 
-          for (const PartitionID part : _hg.connectivitySet(he)) {
+          for (const PartitionID& part : _hg.connectivitySet(he)) {
             // in this case, the connectivity is > 2 and therefore it is more likely that
             // the expression is true than that it is false.
             // TODO(schlag): DIESES IF BEKOMMT MAN WEG, INDEM MAN ES HIER EINFACH LOESCHT
@@ -513,9 +513,9 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     ASSERT([&]() {
         ds::FastResetFlagArray<> connectivity_superset(_config.partition.k);
         PartitionID old_connectivity = 0;
-        for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
           connectivity_superset.reset();
-          for (const PartitionID part : _hg.connectivitySet(he)) {
+          for (const PartitionID& part : _hg.connectivitySet(he)) {
             if (!connectivity_superset[part]) {
               old_connectivity += 1;
               connectivity_superset.set(part, true);
@@ -527,9 +527,9 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
             PartitionID source_part = _hg.partID(hn);
             _hg.changeNodePart(hn, source_part, target_part);
             PartitionID new_connectivity = 0;
-            for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+            for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
               connectivity_superset.reset();
-              for (const PartitionID part : _hg.connectivitySet(he)) {
+              for (const PartitionID& part : _hg.connectivitySet(he)) {
                 if (!connectivity_superset[part]) {
                   new_connectivity += 1;
                   connectivity_superset.set(part, true);
@@ -557,7 +557,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     PartitionID max_connectivity_decrease = kInvalidDecrease;
     PartitionID max_gain_part = Hypergraph::kInvalidPartition;
     if (_tmp_max_gain_target_parts.size() > 1) {
-      for (const PartitionID tmp_max_part : _tmp_max_gain_target_parts) {
+      for (const PartitionID& tmp_max_part : _tmp_max_gain_target_parts) {
         ASSERT(tmp_max_part != _hg.partID(hn), V(hn) << V(_hg.partID(hn)));
         ASSERT(max_gain == _tmp_gains[tmp_max_part].gain, V(tmp_max_part));
 

@@ -320,7 +320,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
 
     const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, config);
     if (imbalance < best_imbalance) {
-      for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+      for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
         best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
       }
       best_imbalance = imbalance;
@@ -330,7 +330,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
            > config.partition.epsilon && init_alpha > 0.0);
 
   ASSERT([&]() {
-      for (const HypernodeID hn : hg.nodes()) {
+      for (const HypernodeID& hn : hg.nodes()) {
         if (hg.partID(hn) != -1) {
           return false;
         }
@@ -339,7 +339,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
     } (), "The original hypergraph isn't unpartitioned!");
 
   // Apply the best balanced partition to the original hypergraph
-  for (const HypernodeID hn : extracted_init_hypergraph.first->nodes()) {
+  for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
     PartitionID part = extracted_init_hypergraph.first->partID(hn);
     if (part != best_imbalanced_partition[hn]) {
       part = best_imbalanced_partition[hn];
@@ -618,7 +618,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
     Hypergraph& current_hypergraph = *hypergraph_stack.back().hypergraph;
 
     if (hypergraph_stack.back().lower_k == hypergraph_stack.back().upper_k) {
-      for (const HypernodeID hn : current_hypergraph.nodes()) {
+      for (const HypernodeID& hn : current_hypergraph.nodes()) {
         const HypernodeID original_hn = originalHypernode(hn, mapping_stack);
         const PartitionID current_part = input_hypergraph.partID(original_hn);
         ASSERT(current_part != Hypergraph::kInvalidPartition, V(current_part));
@@ -753,7 +753,7 @@ inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedM
                                                               CoarsenedToHmetisMapping& hg_to_hmetis,
                                                               const Hypergraph& hg) {
   int i = 0;
-  for (const HypernodeID hn : hg.nodes()) {
+  for (const HypernodeID& hn : hg.nodes()) {
     hg_to_hmetis[hn] = i;
     hmetis_to_hg[i] = hn;
     ++i;

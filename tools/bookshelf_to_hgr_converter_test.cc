@@ -41,19 +41,19 @@ TEST(TheBookshelfToHgrConverter, ConvertsBookshelfInstancesIntoHypergraphInstanc
 
   std::vector<HypernodeID> pins_he_0({ 0, 1, 2, 3 });
   size_t i = 0;
-  for (const HypernodeID pin : hypergraph.pins(0)) {
+  for (const HypernodeID& pin : hypergraph.pins(0)) {
     ASSERT_EQ(pin, pins_he_0[i++]);
   }
 
   i = 0;
   std::vector<HypernodeID> pins_he_1({ 1, 4, 5, 6, 7, 8, 3 });
-  for (const HypernodeID pin : hypergraph.pins(1)) {
+  for (const HypernodeID& pin : hypergraph.pins(1)) {
     ASSERT_EQ(pin, pins_he_1[i++]);
   }
 
   i = 0;
   std::vector<HypernodeID> pins_he_2({ 9, 10 });
-  for (const HypernodeID pin : hypergraph.pins(2)) {
+  for (const HypernodeID& pin : hypergraph.pins(2)) {
     ASSERT_EQ(pin, pins_he_2[i++]);
   }
 }

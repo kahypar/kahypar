@@ -44,13 +44,13 @@ class IInitialPartitioner {
       const HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
       if (current_cut < best_cut) {
         best_cut = current_cut;
-        for (HypernodeID hn : hg.nodes()) {
+        for (const HypernodeID& hn : hg.nodes()) {
           best_partition[hn] = hg.partID(hn);
         }
       }
     }
     hg.resetPartitioning();
-    for (HypernodeID hn : hg.nodes()) {
+    for (const HypernodeID& hn : hg.nodes()) {
       hg.setNodePart(hn, best_partition[hn]);
     }
   }

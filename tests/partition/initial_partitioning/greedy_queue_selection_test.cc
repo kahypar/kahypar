@@ -64,7 +64,7 @@ class AGreedyQueueSelectionTest : public Test {
     part_0.insert(6);
 
     if (assign) {
-      for (HypernodeID hn : hypergraph.nodes()) {
+      for (const HypernodeID& hn : hypergraph.nodes()) {
         if (part_0.find(hn) != part_0.end()) {
           hypergraph.setNodePart(hn, 0);
         } else {
@@ -73,7 +73,7 @@ class AGreedyQueueSelectionTest : public Test {
       }
     }
 
-    for (HypernodeID hn : nodes) {
+    for (const HypernodeID& hn : nodes) {
       if (part_0.find(hn) != part_0.end()) {
         insertHypernodeIntoPQ<GainComputationPolicy>(hn, 1);
       } else {
@@ -121,7 +121,7 @@ class AGreedyQueueSelectionTest : public Test {
 };
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     insertHypernodeIntoPQ<FMGainComputationPolicy>(hn, hn % 4);
   }
   ASSERT_EQ(current_id, 0);
@@ -152,7 +152,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisabled) {
-  for (HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     insertHypernodeIntoPQ<FMGainComputationPolicy>(hn, 2 * (hn % 2));
   }
   ASSERT_EQ(current_id, 0);

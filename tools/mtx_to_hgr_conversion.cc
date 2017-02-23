@@ -106,7 +106,7 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
   }
 
   int num_empty_hyperedges = 0;
-  for (auto hyperedge : matrix_data) {
+  for (const auto& hyperedge : matrix_data) {
     if (hyperedge.size() == 0) {
       ++num_empty_hyperedges;
     }
@@ -124,7 +124,7 @@ void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_dat
                             const std::string& filename) {
   std::ofstream out_stream(filename.c_str());
   out_stream << info.num_rows << " " << info.num_columns << std::endl;
-  for (auto hyperedge : matrix_data) {
+  for (const auto& hyperedge : matrix_data) {
     if (hyperedge.size() != 0) {
       for (auto pin_iter = hyperedge.begin(); pin_iter != hyperedge.end(); ++pin_iter) {
         // ids start at 1

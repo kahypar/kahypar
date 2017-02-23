@@ -557,7 +557,7 @@ int main(int argc, char* argv[]) {
     // determine whether or not to apply the sparsifier
     std::vector<HypernodeID> he_sizes;
     he_sizes.reserve(hypergraph.currentNumEdges());
-    for (auto he : hypergraph.edges()) {
+    for (const auto& he : hypergraph.edges()) {
       he_sizes.push_back(hypergraph.edgeSize(he));
     }
     std::sort(he_sizes.begin(), he_sizes.end());

@@ -46,12 +46,12 @@ int main(int argc, char* argv[]) {
   out_stream << " http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
   << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
-  for (const HypernodeID hn : hypergraph.nodes()) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\"/>" << std::endl;
   }
-  for (const HyperedgeID he : hypergraph.edges()) {
+  for (const HyperedgeID& he : hypergraph.edges()) {
     out_stream << "<hyperedge>" << std::endl;
-    for (const HypernodeID pin : hypergraph.pins(he)) {
+    for (const HypernodeID& pin : hypergraph.pins(he)) {
       out_stream << "<endpoint node=\"n" << pin << "\"/>" << std::endl;
     }
     out_stream << "</hyperedge>" << std::endl;

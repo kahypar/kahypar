@@ -65,7 +65,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
   const double avg_hn_degree = metrics::avgHypernodeDegree(hypergraph);
   double stdev_hn_degree = 0.0;
-  for (auto hn : hypergraph.nodes()) {
+  for (const auto& hn : hypergraph.nodes()) {
     hn_degrees.push_back(hypergraph.nodeDegree(hn));
     hn_weights.push_back(hypergraph.nodeWeight(hn));
     stdev_hn_degree += (hypergraph.nodeDegree(hn) - avg_hn_degree) *
@@ -76,7 +76,7 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
   const double avg_he_size = metrics::avgHyperedgeDegree(hypergraph);
   double stdev_he_size = 0.0;
-  for (auto he : hypergraph.edges()) {
+  for (const auto& he : hypergraph.edges()) {
     he_sizes.push_back(hypergraph.edgeSize(he));
     he_weights.push_back(hypergraph.edgeWeight(he));
     stdev_he_size += (hypergraph.edgeSize(he) - avg_he_size) *
@@ -95,13 +95,13 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
                                static_cast<double>(he_weights.size());
 
   double stdev_hn_weight = 0.0;
-  for (const HypernodeWeight hn_weight : hn_weights) {
+  for (const HypernodeWeight& hn_weight : hn_weights) {
     stdev_hn_weight += (hn_weight - avg_hn_weight) * (hn_weight - avg_hn_weight);
   }
   stdev_hn_weight = std::sqrt(stdev_hn_weight / (hypergraph.currentNumNodes() - 1));
 
   double stdev_he_weight = 0.0;
-  for (const HyperedgeWeight he_weight : he_weights) {
+  for (const HyperedgeWeight& he_weight : he_weights) {
     stdev_he_weight += (he_weight - avg_he_weight) * (he_weight - avg_he_weight);
   }
   stdev_he_weight = std::sqrt(stdev_he_weight / (hypergraph.currentNumNodes() - 1));

@@ -108,11 +108,11 @@ class CoarsenerBase {
   void initializeRefiner(IRefiner& refiner) {
 #ifdef USE_BUCKET_QUEUE
     HyperedgeID max_degree = 0;
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       max_degree = std::max(max_degree, _hg.nodeDegree(hn));
     }
     HyperedgeWeight max_he_weight = 0;
-    for (const HyperedgeID he : _hg.edges()) {
+    for (const HyperedgeID& he : _hg.edges()) {
       max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
     }
     LOGVAR(max_degree);

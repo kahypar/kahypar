@@ -93,7 +93,7 @@ class LPRefiner final : public IRefiner {
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
-    for (const HypernodeID cur_node : refinement_nodes) {
+    for (const HypernodeID& cur_node : refinement_nodes) {
       _gain_cache.clear(cur_node);
       initializeGainCacheFor(cur_node);
       if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
@@ -273,7 +273,7 @@ class LPRefiner final : public IRefiner {
                                  const HypernodeID pin_count_target_part_after_move) {
     if (pin_count_source_part_before_move == he_size) {
       // Update pin of a HE that is not cut before applying the move.
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         if (part != from_part && part != to_part) {
           ASSERT(_already_processed_part.get(hn) != part);
           _gain_cache.updateExistingEntry(hn, part, { he_weight, 0 });
@@ -282,7 +282,7 @@ class LPRefiner final : public IRefiner {
     }
     if (pin_count_target_part_after_move == he_size) {
       // Update pin of a HE that is removed from the cut.
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         if (part != to_part && part != from_part) {
           _gain_cache.updateExistingEntry(hn, part, { -he_weight, 0 });
         }
@@ -292,13 +292,13 @@ class LPRefiner final : public IRefiner {
 
     // km1 update
     if (pin_count_source_part_before_move - 1 == 0 && pin_count_target_part_after_move != 1) {
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         if (part != from_part && part != to_part) {
           _gain_cache.updateExistingEntry(hn, part, { 0, -he_weight });
         }
       }
     } else if (pin_count_source_part_before_move - 1 != 0 && pin_count_target_part_after_move == 1) {
-      for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         if (part != from_part && part != to_part) {
           _gain_cache.updateExistingEntry(hn, part, { 0, he_weight });
         }
@@ -316,7 +316,7 @@ class LPRefiner final : public IRefiner {
     if (pin_count_source_part_before_move == he_size) {
       ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
       ASSERT(pin_count_target_part_after_move == 1, V(pin_count_target_part_after_move));
-      for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
         if (part != from_part) {
           if (_already_processed_part.get(pin) != part) {
             _gain_cache.updateExistingEntry(pin, part, { he_weight, 0 });
@@ -328,7 +328,7 @@ class LPRefiner final : public IRefiner {
     if (pin_count_target_part_after_move == he_size) {
       ASSERT(_hg.connectivity(he) == 1, V(_hg.connectivity(he)));
       ASSERT(pin_count_source_part_before_move == 1, V(pin_count_source_part_before_move));
-      for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
         if (part != to_part) {
           _gain_cache.updateExistingEntry(pin, part, { -he_weight, 0 });
         }
@@ -353,7 +353,7 @@ class LPRefiner final : public IRefiner {
     const PartitionID source_part = _hg.partID(pin);
     if (source_part == from_part) {
       if (pin_count_source_part_before_move == 2) {
-        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
           if (_already_processed_part.get(pin) != part) {
             _gain_cache.updateExistingEntry(pin, part, { 0, he_weight });
           }
@@ -361,7 +361,7 @@ class LPRefiner final : public IRefiner {
       }
     } else if (source_part == to_part) {
       if (pin_count_target_part_after_move == 2) {
-        for (const PartitionID part : _gain_cache.adjacentParts(pin)) {
+        for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
           if (_already_processed_part.get(pin) != part) {
             _gain_cache.updateExistingEntry(pin, part, { 0, -he_weight });
           }
@@ -391,13 +391,13 @@ class LPRefiner final : public IRefiner {
   }
 
   void initializeGainCache() {
-    for (const HypernodeID hn : _hg.nodes()) {
+    for (const HypernodeID& hn : _hg.nodes()) {
       initializeGainCacheFor(hn);
     }
   }
 
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
-    for (const HyperedgeID he : _hg.incidentEdges(pin)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
       if (_hg.pinCountInPart(he, part) > 0) {
         return true;
       }
@@ -408,7 +408,7 @@ class LPRefiner final : public IRefiner {
   Gain gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     const PartitionID source_part = _hg.partID(hn);
     Gain gain = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.connectivity(he) == 1) {
         gain -= _hg.edgeWeight(he);
@@ -430,7 +430,7 @@ class LPRefiner final : public IRefiner {
 
     _tmp_gains.clear();
 
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
       switch (_hg.connectivity(he)) {
@@ -439,7 +439,7 @@ class LPRefiner final : public IRefiner {
           internal_weight += he_weight;
           break;
         case 2:
-          for (const PartitionID part : _hg.connectivitySet(he)) {
+          for (const PartitionID& part : _hg.connectivitySet(he)) {
             _tmp_gains[part].km1 += he_weight;
             if (_hg.pinCountInPart(he, part) == _hg.edgeSize(he) - 1) {
               _tmp_gains[part].cut += he_weight;
@@ -447,7 +447,7 @@ class LPRefiner final : public IRefiner {
           }
           break;
         default:
-          for (const PartitionID part : _hg.connectivitySet(he)) {
+          for (const PartitionID& part : _hg.connectivitySet(he)) {
             _tmp_gains[part].km1 += he_weight;
           }
           break;
@@ -483,7 +483,7 @@ class LPRefiner final : public IRefiner {
   Gain kM1gainInducedByHypergraph(const HypernodeID hn, const PartitionID target_part) const {
     ASSERT(target_part != _hg.partID(hn), V(hn) << V(target_part));
     Gain gain = 0;
-    for (const HyperedgeID he : _hg.incidentEdges(hn)) {
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       gain += kM1gainInducedByHyperedge(hn, he, target_part);
     }
@@ -492,7 +492,7 @@ class LPRefiner final : public IRefiner {
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
     ASSERT([&]() {
-        for (const HypernodeID hn : _hg.nodes()) {
+        for (const HypernodeID& hn : _hg.nodes()) {
           ASSERT_THAT_CACHE_IS_VALID_FOR_HN(hn);
         }
         return true;
@@ -529,7 +529,7 @@ class LPRefiner final : public IRefiner {
       }
     }
 #ifndef NDEBUG
-    for (const PartitionID part : _gain_cache.adjacentParts(hn)) {
+    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
       ASSERT(adjacent_parts[part], V(part));
     }
 #endif
@@ -549,7 +549,7 @@ class LPRefiner final : public IRefiner {
 
     _max_score.push_back(source_part);
 
-    for (const PartitionID target_part : _gain_cache.adjacentParts(hn)) {
+    for (const PartitionID& target_part : _gain_cache.adjacentParts(hn)) {
       ASSERT(_gain_cache.entry(hn, target_part).cut == gainInducedByHypergraph(hn, target_part),
              V(hn) << V(target_part) << V(_gain_cache.entry(hn, target_part)) <<
              V(gainInducedByHypergraph(hn, target_part)));

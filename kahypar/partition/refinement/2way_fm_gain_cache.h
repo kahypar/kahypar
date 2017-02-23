@@ -134,7 +134,7 @@ class TwoWayFMGainCache {
   }
 
   void resetDelta() {
-    for (const size_t used_entry : _used_delta_entries) {
+    for (const size_t& used_entry : _used_delta_entries) {
       _cache[used_entry].delta = 0;
     }
     _used_delta_entries.clear();
