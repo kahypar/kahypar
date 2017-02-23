@@ -32,7 +32,6 @@
 
 namespace kahypar {
 using ds::Edge;
-using ds::FastResetFlagArray;
 
 const bool dbg_modularity_function = false;
 
@@ -40,20 +39,13 @@ class Modularity {
  public:
   explicit Modularity(Graph& graph) :
     _graph(graph),
-    _in(graph.numNodes(), 0),
-    _tot(graph.numNodes(), 0),
+    _internal_weight(graph.numNodes(), 0),
+    _total_weight(graph.numNodes(), 0),
     _vis(graph.numNodes()) {
-    for (NodeID node : _graph.nodes()) {
-      const ClusterID cur_cid = _graph.clusterID(node);
-      for (auto cluster : _graph.incidentClusterWeightOfNode(node)) {
-        const ClusterID cid = cluster.clusterID;
-        const EdgeWeight weight = cluster.weight;
-        if (cid == cur_cid) {
-          _in[cur_cid] += weight;
-          break;
-        }
-      }
-      _tot[cur_cid] += _graph.weightedDegree(node);
+    for (const NodeID& node : _graph.nodes()) {
+      ASSERT(static_cast<NodeID>(_graph.clusterID(node)) == node);
+      _internal_weight[node] = _graph.selfloopWeight(node);
+      _total_weight[node] = _graph.weightedDegree(node);
     }
   }
 
@@ -61,19 +53,19 @@ class Modularity {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     const ClusterID cid = _graph.clusterID(node);
 
-    _in[cid] -= 2.0L * incident_community_weight + _graph.selfloopWeight(node);
-    _tot[cid] -= _graph.weightedDegree(node);
+    _internal_weight[cid] -= 2.0L * incident_community_weight + _graph.selfloopWeight(node);
+    _total_weight[cid] -= _graph.weightedDegree(node);
 
     _graph.setClusterID(node, -1);
   }
 
   void insert(const NodeID node, const ClusterID new_cid,
-                     const EdgeWeight incident_community_weight) {
+              const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
 
-    _in[new_cid] += 2.0L * incident_community_weight + _graph.selfloopWeight(node);
-    _tot[new_cid] += _graph.weightedDegree(node);
+    _internal_weight[new_cid] += 2.0L * incident_community_weight + _graph.selfloopWeight(node);
+    _total_weight[new_cid] += _graph.weightedDegree(node);
 
     _graph.setClusterID(node, new_cid);
 
@@ -85,11 +77,11 @@ class Modularity {
   }
 
   EdgeWeight gain(const NodeID node, const ClusterID cid,
-                         const EdgeWeight incident_community_weight) {
+                  const EdgeWeight incident_community_weight) {
     ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
     ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
 
-    const EdgeWeight totc = _tot[cid];
+    const EdgeWeight totc = _total_weight[cid];
     const EdgeWeight m2 = _graph.totalWeight();
     const EdgeWeight w_degree = _graph.weightedDegree(node);
 
@@ -117,9 +109,9 @@ class Modularity {
   EdgeWeight quality() {
     EdgeWeight q = 0.0L;
     const EdgeWeight m2 = _graph.totalWeight();
-    for (NodeID node : _graph.nodes()) {
-      if (_tot[node] > Graph::kEpsilon) {
-        q += _in[node] - (_tot[node] * _tot[node]) / m2;
+    for (const NodeID& node : _graph.nodes()) {
+      if (_total_weight[node] > Graph::kEpsilon) {
+        q += _internal_weight[node] - (_total_weight[node] * _total_weight[node]) / m2;
       }
     }
 
@@ -142,15 +134,15 @@ class Modularity {
     EdgeWeight q = 0.0L;
     const EdgeWeight m2 = _graph.totalWeight();
 
-    for (NodeID u : _graph.nodes()) {
-      for (Edge edge : _graph.incidentEdges(u)) {
+    for (const NodeID& u : _graph.nodes()) {
+      for (const Edge& edge : _graph.incidentEdges(u)) {
         const NodeID v = edge.target_node;
         _vis.set(v, true);
         if (_graph.clusterID(u) == _graph.clusterID(v)) {
           q += edge.weight - (_graph.weightedDegree(u) * _graph.weightedDegree(v)) / m2;
         }
       }
-      for (NodeID v : _graph.nodes()) {
+      for (const NodeID& v : _graph.nodes()) {
         if (_graph.clusterID(u) == _graph.clusterID(v) && !_vis[v]) {
           q -= (_graph.weightedDegree(u) * _graph.weightedDegree(v)) / m2;
         }
@@ -163,8 +155,8 @@ class Modularity {
   }
 
   Graph& _graph;
-  std::vector<EdgeWeight> _in;
-  std::vector<EdgeWeight> _tot;
-  FastResetFlagArray<> _vis;
+  std::vector<EdgeWeight> _internal_weight;
+  std::vector<EdgeWeight> _total_weight;
+  ds::FastResetFlagArray<> _vis;
 };
 }  // namespace kahypar
