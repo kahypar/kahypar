@@ -63,7 +63,7 @@ class LPRefiner final : public IRefiner {
     _max_score.reserve(configuration.partition.k);
   }
 
-  virtual ~LPRefiner() { }
+  ~LPRefiner() override = default;
 
   LPRefiner(const LPRefiner&) = delete;
   LPRefiner& operator= (const LPRefiner&) = delete;

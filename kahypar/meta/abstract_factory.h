@@ -45,6 +45,8 @@ class Factory {
   Factory& operator= (const Factory&) = delete;
   Factory& operator= (Factory&&) = delete;
 
+  ~Factory() = default;
+
   bool registerObject(const IdentifierType& id, ProductCreator creator) {
     return _callbacks.insert({ static_cast<UnderlyingIdentifierType>(id), creator }).second;
   }

@@ -27,7 +27,15 @@
 namespace kahypar {
 namespace meta {
 struct PolicyBase {
-  virtual ~PolicyBase() { }
+  PolicyBase() = default;
+
+  PolicyBase(const PolicyBase&) = default;
+  PolicyBase& operator= (const PolicyBase&) = default;
+
+  PolicyBase(PolicyBase&&) = default;
+  PolicyBase& operator= (PolicyBase&&) = default;
+
+  virtual ~PolicyBase() = default;
 };
 
 template <typename IDType>

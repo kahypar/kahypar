@@ -43,8 +43,8 @@ class BinaryHeapBase {
 
  protected:
   struct HeapElement {
-    HeapElement(const KeyType& key_ = BinaryHeapTraits<Derived>::sentinel(),
-                const IDType& id_ = 0) :
+    explicit HeapElement(const KeyType& key_ = BinaryHeapTraits<Derived>::sentinel(),
+                         const IDType& id_ = 0) :
       id(id_),
       key(key_) { }
 
@@ -72,6 +72,8 @@ class BinaryHeapBase {
 
   BinaryHeapBase(BinaryHeapBase&&) = default;
   BinaryHeapBase& operator= (BinaryHeapBase&&) = default;
+
+  ~BinaryHeapBase() = default;
 
   size_t size() const {
     return _next_slot - 1;
@@ -340,8 +342,8 @@ class BinaryMaxHeap final : public BinaryHeapBase<BinaryMaxHeap<IDType_, KeyType
   using KeyType = typename BinaryHeapTraits<BinaryMaxHeap>::KeyType;
 
   // Second parameter is used to satisfy EnhancedBucketPQ interface
-  BinaryMaxHeap(const IDType& storage_initializer,
-                const KeyType& UNUSED(unused) = 0) :
+  explicit BinaryMaxHeap(const IDType& storage_initializer,
+                         const KeyType& UNUSED(unused) = 0) :
     Base(storage_initializer) { }
 
   friend void swap(BinaryMaxHeap& a, BinaryMaxHeap& b) {
@@ -369,8 +371,8 @@ class BinaryMinHeap final : public BinaryHeapBase<BinaryMinHeap<IDType_, KeyType
   using KeyType = typename BinaryHeapTraits<BinaryMinHeap>::KeyType;
 
   // Second parameter is used to satisfy EnhancedBucketPQ interface
-  BinaryMinHeap(const IDType& storage_initializer,
-                const KeyType& UNUSED(unused) = 0) :
+  explicit BinaryMinHeap(const IDType& storage_initializer,
+                         const KeyType& UNUSED(unused) = 0) :
     Base(storage_initializer) { }
 
   friend void swap(BinaryMinHeap& a, BinaryMinHeap& b) {

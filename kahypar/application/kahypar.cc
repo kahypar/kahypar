@@ -54,10 +54,7 @@ using kahypar::Configuration;
 using kahypar::Mode;
 using kahypar::Objective;
 using kahypar::LouvainEdgeWeight;
-using kahypar::CoarseningAlgorithm;
 using kahypar::RefinementAlgorithm;
-using kahypar::InitialPartitionerAlgorithm;
-using kahypar::RefinementStoppingRule;
 using kahypar::GlobalRebalancingMode;
 using kahypar::InitialPartitioningTechnique;
 
@@ -68,7 +65,7 @@ int getTerminalWidth() {
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
   columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 #else
-  struct winsize w;
+  struct winsize w = { };
   ioctl(0, TIOCGWINSZ, &w);
   columns = w.ws_col;
 #endif
@@ -497,7 +494,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   // placing vm.count("help") here prevents required attributes raising an
   // error if only help was supplied
-  if (cmd_vm.count("help")) {
+  if (cmd_vm.count("help") != 0) {
     std::cout << cmd_line_options << "n";
     exit(0);
   }
@@ -584,7 +581,7 @@ int main(int argc, char* argv[]) {
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(hypergraph,
                                      config.partition.graph_filename.substr(
-                                       config.partition.graph_filename.find_last_of("/") + 1));
+                                       config.partition.graph_filename.find_last_of('/') + 1));
   }
 
   Partitioner partitioner;

@@ -54,6 +54,8 @@ class FastResetFlagArray {
   FastResetFlagArray(FastResetFlagArray&&) = default;
   FastResetFlagArray& operator= (FastResetFlagArray&&) = default;
 
+  ~FastResetFlagArray() = default;
+
   void swap(FastResetFlagArray& other) {
     using std::swap;
     swap(_v, other._v);

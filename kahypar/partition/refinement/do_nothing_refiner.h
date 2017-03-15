@@ -32,11 +32,12 @@ namespace kahypar {
 class DoNothingRefiner final : public IRefiner {
  public:
   template <typename ... Args>
-  DoNothingRefiner(Args&& ...) { }
+  explicit DoNothingRefiner(Args&& ...) noexcept { }
   DoNothingRefiner(const DoNothingRefiner&) = delete;
   DoNothingRefiner(DoNothingRefiner&&) = delete;
   DoNothingRefiner& operator= (const DoNothingRefiner&) = delete;
   DoNothingRefiner& operator= (DoNothingRefiner&&) = delete;
+  ~DoNothingRefiner() = default;
 
  private:
   bool refineImpl(std::vector<HypernodeID>&,

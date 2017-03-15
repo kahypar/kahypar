@@ -30,15 +30,16 @@ namespace kahypar {
 class DoNothingCoarsener final : public ICoarsener {
  public:
   template <typename ... Args>
-  DoNothingCoarsener(Args&& ...) { }
+  explicit DoNothingCoarsener(Args&& ...) { }
   DoNothingCoarsener(const DoNothingCoarsener&) = delete;
   DoNothingCoarsener(DoNothingCoarsener&&) = delete;
   DoNothingCoarsener& operator= (const DoNothingCoarsener&) = delete;
   DoNothingCoarsener& operator= (DoNothingCoarsener&&) = delete;
+  ~DoNothingCoarsener() override = default;
 
  private:
-  void coarsenImpl(const HypernodeID) override final { }
-  bool uncoarsenImpl(IRefiner&) override final { return false; }
-  std::string policyStringImpl() const override final { return std::string(""); }
+  void coarsenImpl(const HypernodeID) override { }
+  bool uncoarsenImpl(IRefiner&) override { return false; }
+  std::string policyStringImpl() const override { return std::string(""); }
 };
 }  // namespace kahypar

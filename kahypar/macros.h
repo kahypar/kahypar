@@ -45,12 +45,12 @@
 #define STR(macro) QUOTE(macro)
 
 // Idea taken from https://github.com/bingmann/parallel-string-sorting/blob/master/src/tools/debug.h
-#define DBGX(dbg, X)   do { if (dbg) { std::cout << X; } } while (0)
-#define DBG(dbg, X)    DBGX(dbg, __FUNCTION__ << "(): " << X << std::endl)
-#define DBGVAR(dbg, X) DBGX(dbg, __FUNCTION__ << "(): " << #X << "=" << X << std::endl)
+#define DBGX(dbg, X)   do { if (dbg) { std::cout << X; } } while (0)  // NOLINT
+#define DBG(dbg, X)    DBGX(dbg, __FUNCTION__ << "(): " << X << std::endl)  // NOLINT
+#define DBGVAR(dbg, X) DBGX(dbg, __FUNCTION__ << "(): " << #X << "=" << X << std::endl)  // NOLINT
 
-#define LOG(X) DBG(true, X)
-#define LOGVAR(X) DBGVAR(true, X)
+#define LOG(X) DBG(true, X)  // NOLINT
+#define LOGVAR(X) DBGVAR(true, X)  // NOLINT
 
 #define V(X) " " << #X << "=" << X << " "
 
@@ -75,9 +75,9 @@
       << msg << std::endl;                             \
       std::abort();                                    \
     }                                                  \
-  } while (0)
+  } while (0)  // NOLINT
 
-  #define ASSERT_1(cond) ASSERT_2(cond, "")
+  #define ASSERT_1(cond) ASSERT_2(cond, "")  // NOLINT
 #else
   #define ASSERT_2(cond, msg)
   #define ASSERT_1(cond)
@@ -85,7 +85,7 @@
 
 #define ASSERT_(N) ASSERT_ ## N
 #define ASSERT_EVAL(N) ASSERT_(N)
-#define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
+#define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))  // NOLINT
 
 // *** an always-on ASSERT
 #define ALWAYS_ASSERT(cond, msg)                       \
@@ -97,7 +97,7 @@
       << msg << std::endl;                             \
       std::abort();                                    \
     }                                                  \
-  } while (0)
+  } while (0)  // NOLINT
 
 #define ONLYDEBUG(x) ((void)x)
 #define UNUSED_FUNCTION(x) ((void)x)

@@ -40,7 +40,7 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
   std::ostringstream oss;
   oss << "RESULT"
   << " graph=" << config.partition.graph_filename.substr(
-    config.partition.graph_filename.find_last_of("/") + 1)
+    config.partition.graph_filename.find_last_of('/') + 1)
   << " numHNs=" << hypergraph.initialNumNodes()
   << " numHEs=" << hypergraph.initialNumEdges()
   << " " << hypergraph.typeAsString()

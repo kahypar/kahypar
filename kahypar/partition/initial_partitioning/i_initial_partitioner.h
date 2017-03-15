@@ -56,10 +56,10 @@ class IInitialPartitioner {
   }
 
 
-  virtual ~IInitialPartitioner() { }
+  virtual ~IInitialPartitioner() = default;
 
  protected:
-  IInitialPartitioner() { }
+  IInitialPartitioner() = default;
 
  private:
   virtual void partitionImpl() = 0;

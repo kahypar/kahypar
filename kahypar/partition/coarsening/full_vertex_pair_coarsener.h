@@ -48,7 +48,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
     _rater(_hg, _config),
     _target(hypergraph.initialNumNodes()) { }
 
-  virtual ~FullVertexPairCoarsener() { }
+  ~FullVertexPairCoarsener() override = default;
 
   FullVertexPairCoarsener(const FullVertexPairCoarsener&) = delete;
   FullVertexPairCoarsener& operator= (const FullVertexPairCoarsener&) = delete;

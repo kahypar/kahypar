@@ -47,6 +47,8 @@ class FastResetArray {
   FastResetArray(FastResetArray&&) = default;
   FastResetArray& operator= (FastResetArray&&) = default;
 
+  ~FastResetArray() = default;
+
   const T & get(const size_t index) const {
     return _entries[index];
   }

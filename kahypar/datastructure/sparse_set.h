@@ -72,7 +72,7 @@ class SparseSetBase {
     _size(0),
     _sparse(nullptr),
     _dense(nullptr) {
-    ValueType* raw = static_cast<ValueType*>(malloc(((2 * k)) * sizeof(ValueType)));
+    auto* raw = static_cast<ValueType*>(malloc(((2 * k)) * sizeof(ValueType)));
     for (ValueType i = 0; i < 2 * k; ++i) {
       raw[i] = std::numeric_limits<ValueType>::max();
     }
@@ -114,6 +114,8 @@ class SparseSet final : public SparseSetBase<ValueType, SparseSet<ValueType> >{
 
   SparseSet& operator= (SparseSet&&) = delete;
   SparseSet& operator= (const SparseSet&) = delete;
+
+  ~SparseSet() = default;
 
   void remove(const ValueType value) {
     const ValueType index = _sparse[value];
@@ -167,6 +169,8 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType,
 
   InsertOnlySparseSet& operator= (InsertOnlySparseSet&&) = delete;
   InsertOnlySparseSet& operator= (const InsertOnlySparseSet&) = delete;
+
+  ~InsertOnlySparseSet() = default;
 
  private:
   FRIEND_TEST(AnInsertOnlySparseSet, HandlesThresholdOverflow);

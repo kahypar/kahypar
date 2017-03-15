@@ -115,7 +115,9 @@ struct FMGainComputationPolicy {
           case 1: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
               for (const HypernodeID& node : hg.pins(he)) {
-                if (node == hn) continue;
+                if (node == hn) {
+                  continue;
+                }
                 for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
                   if (i != to && pq.contains(node, i)) {
                     pq.updateKeyBy(node, i, -he_weight);
@@ -127,7 +129,9 @@ struct FMGainComputationPolicy {
           case 2: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
               for (const HypernodeID& node : hg.pins(he)) {
-                if (node == hn) continue;
+                if (node == hn) {
+                  continue;
+                }
                 for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
                   if (pq.contains(node, i) && (i == to || hg.pinCountInPart(he, i) == 0)) {
                     pq.updateKeyBy(node, i, he_weight);
@@ -141,7 +145,9 @@ struct FMGainComputationPolicy {
       if (connectivity == 2 && pin_count_in_target_part_after == he_size - 1) {
         const HyperedgeWeight he_weight = hg.edgeWeight(he);
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
             break;
@@ -169,7 +175,9 @@ struct FMGainComputationPolicy {
         ASSERT(hg.connectivity(he) == 1, V(hg.connectivity(he)));
         ASSERT(pin_count_in_source_part_before == 1, V(pin_count_in_source_part_before));
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
             if (i != to && pq.contains(node, i)) {
               pq.updateKeyBy(node, i, -he_weight);
@@ -181,7 +189,9 @@ struct FMGainComputationPolicy {
         ASSERT(hg.connectivity(he) == 2, V(hg.connectivity(he)));
         ASSERT(pin_count_in_target_part_after == 1, V(pin_count_in_target_part_after));
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
             if (i != from && pq.contains(node, i)) {
               pq.updateKeyBy(node, i, he_weight);
@@ -194,7 +204,9 @@ struct FMGainComputationPolicy {
           pin_count_in_source_part_before == he_size - 1) {
         // special case for HEs with 3 pins
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
           }
@@ -205,7 +217,9 @@ struct FMGainComputationPolicy {
       } else if (pin_count_in_target_part_after == he_size - 1) {
         // Update single pin that remains outside of to_part after applying the move
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           if (hg.partID(node) != to && pq.contains(node, to)) {
             pq.updateKeyBy(node, to, he_weight);
             break;
@@ -214,7 +228,9 @@ struct FMGainComputationPolicy {
       } else if (pin_count_in_source_part_before == he_size - 1) {
         // Update single pin that was outside from_part before applying the move.
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) continue;
+          if (node == hn) {
+            continue;
+          }
           if (hg.partID(node) != from && pq.contains(node, from)) {
             pq.updateKeyBy(node, from, -he_weight);
             break;

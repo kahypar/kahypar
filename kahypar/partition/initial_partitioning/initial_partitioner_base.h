@@ -54,7 +54,13 @@ class InitialPartitionerBase {
     _unassigned_node_bound = _unassigned_nodes.size();
   }
 
-  virtual ~InitialPartitionerBase() { }
+  InitialPartitionerBase(const InitialPartitionerBase&) = delete;
+  InitialPartitionerBase& operator= (const InitialPartitionerBase&) = delete;
+
+  InitialPartitionerBase(InitialPartitionerBase&&) = default;
+  InitialPartitionerBase& operator= (InitialPartitionerBase&&) = delete;
+
+  virtual ~InitialPartitionerBase() = default;
 
   void recalculateBalanceConstraints(const double epsilon) {
     for (int i = 0; i < _config.initial_partitioning.k; ++i) {

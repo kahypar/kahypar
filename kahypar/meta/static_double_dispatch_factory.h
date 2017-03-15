@@ -41,7 +41,7 @@ class StaticDoubleDispatchFactory {
             typename ... Parameters>
   static ResultType go(BaseTypeLhs&& lhs, BaseTypeRhs&& rhs, Executor exec,
                        Parameters&& ... parameters) {
-    if (Head* p1 = dynamic_cast<Head*>(&lhs)) {
+    if (auto* p1 = dynamic_cast<Head*>(&lhs)) {
       return StaticDoubleDispatchFactory<Executor, TypesLhs, TypesRhs,
                                          ResultType>::dispatchRhs(
         *p1, rhs, exec,
@@ -61,7 +61,7 @@ class StaticDoubleDispatchFactory {
                                 Parameters&& ... parameters) {
     using Head = typename TypesRhs::Head;
     using Tail = typename TypesRhs::Tail;
-    if (Head* p2 = dynamic_cast<Head*>(&rhs)) {
+    if (auto* p2 = dynamic_cast<Head*>(&rhs)) {
       return exec.fire(lhs, *p2, std::forward<Parameters>(parameters) ...);
     } else {
       return StaticDoubleDispatchFactory<Executor, TypesLhs, Tail,

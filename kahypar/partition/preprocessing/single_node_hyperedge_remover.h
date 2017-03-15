@@ -41,6 +41,8 @@ class SingleNodeHyperedgeRemover {
   SingleNodeHyperedgeRemover(SingleNodeHyperedgeRemover&&) = delete;
   SingleNodeHyperedgeRemover& operator= (SingleNodeHyperedgeRemover&&) = delete;
 
+  ~SingleNodeHyperedgeRemover() = default;
+
   RemovalResult removeSingleNodeHyperedges(Hypergraph& hypergraph) {
     RemovalResult result { 0, 0 };
     for (const HyperedgeID& he : hypergraph.edges()) {

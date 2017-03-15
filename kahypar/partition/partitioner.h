@@ -56,11 +56,11 @@ namespace kahypar {
 // FRIEND_TEST macro.
 namespace io {
 class APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
-}
+}  // namespace io
 
 namespace metrics {
 class APartitionedHypergraph;
-}
+}  // namespace metrics
 
 static const bool dbg_partition_initial_partitioning = true;
 static const bool dbg_partition_vcycles = true;
@@ -105,6 +105,8 @@ class Partitioner {
   Partitioner(Partitioner&&) = delete;
   Partitioner& operator= (Partitioner&&) = delete;
 
+  ~Partitioner() = default;
+
   inline void partition(Hypergraph& hypergraph, Configuration& config);
 
   const std::string internals() const {
@@ -142,22 +144,22 @@ class Partitioner {
   inline void performDirectKwayPartitioning(Hypergraph& hypergraph,
                                             const Configuration& config);
 
-  inline void performRecursiveBisectionPartitioning(Hypergraph& hypergraph,
-                                                    const Configuration& config);
-  inline HypernodeID originalHypernode(const HypernodeID hn,
+  inline void performRecursiveBisectionPartitioning(Hypergraph& input_hypergraph,
+                                                    const Configuration& original_config);
+  inline HypernodeID originalHypernode(HypernodeID hn,
                                        const MappingStack& mapping_stack) const;
 
-  inline double calculateRelaxedEpsilon(const HypernodeWeight original_hypergraph_weight,
-                                        const HypernodeWeight current_hypergraph_weight,
-                                        const PartitionID k,
+  inline double calculateRelaxedEpsilon(HypernodeWeight original_hypergraph_weight,
+                                        HypernodeWeight current_hypergraph_weight,
+                                        PartitionID k,
                                         const Configuration& original_config) const;
 
   inline Configuration createConfigurationForCurrentBisection(const Configuration& original_config,
                                                               const Hypergraph& original_hypergraph,
                                                               const Hypergraph& current_hypergraph,
-                                                              const PartitionID current_k,
-                                                              const PartitionID k0,
-                                                              const PartitionID k1) const;
+                                                              PartitionID current_k,
+                                                              PartitionID k0,
+                                                              PartitionID k1) const;
 
   inline void performPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
                                   const Configuration& config);

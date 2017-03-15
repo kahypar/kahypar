@@ -59,6 +59,8 @@ class ConnectivitySets final {
     ConnectivitySet(ConnectivitySet&& other) = delete;
     ConnectivitySet& operator= (ConnectivitySet&&) = delete;
 
+    ~ConnectivitySet() = default;
+
     PartitionID* dense() {
       return &_size + 1;
     }
@@ -125,14 +127,14 @@ class ConnectivitySets final {
   ConnectivitySets(const ConnectivitySets&) = delete;
   ConnectivitySets& operator= (const ConnectivitySets&) = delete;
 
-  ConnectivitySets(ConnectivitySets&& other) :
+  ConnectivitySets(ConnectivitySets&& other) noexcept :
     _k(other._k),
     _connectivity_sets(other._connectivity_sets) {
     other._k = 0;
     other._connectivity_sets = nullptr;
   }
 
-  ConnectivitySets& operator= (ConnectivitySets&& other) {
+  ConnectivitySets& operator= (ConnectivitySets&& other) noexcept {
     _k = other._k;
     _connectivity_sets = other._connectivity_sets;
     other._k = 0;

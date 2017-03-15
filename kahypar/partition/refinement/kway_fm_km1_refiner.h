@@ -88,7 +88,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() { }
 
-  virtual ~KWayKMinusOneRefiner() { }
+  ~KWayKMinusOneRefiner() override = default;
 
   KWayKMinusOneRefiner(const KWayKMinusOneRefiner&) = delete;
   KWayKMinusOneRefiner& operator= (const KWayKMinusOneRefiner&) = delete;

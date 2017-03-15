@@ -49,7 +49,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       cut(cut),
       imbalance(imbalance) { }
 
-    void print_result(std::string desc) {
+    void print_result(const std::string& desc) const {
       LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
           << toString(algo) << "]");
     }
@@ -82,7 +82,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     _partitioner_pool.push_back(InitialPartitionerAlgorithm::random);  // 1th bit set to 1
   }
 
-  ~PoolInitialPartitioner() { }
+  ~PoolInitialPartitioner() override = default;
 
   PoolInitialPartitioner(const PoolInitialPartitioner&) = delete;
   PoolInitialPartitioner& operator= (const PoolInitialPartitioner&) = delete;

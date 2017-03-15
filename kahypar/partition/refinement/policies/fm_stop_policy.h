@@ -28,7 +28,7 @@
 namespace kahypar {
 struct StoppingPolicy : meta::PolicyBase {
  protected:
-  StoppingPolicy() { }
+  StoppingPolicy() = default;
 };
 
 class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {

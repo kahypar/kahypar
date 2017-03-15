@@ -68,6 +68,8 @@ class EnhancedBucketQueue {
   EnhancedBucketQueue(EnhancedBucketQueue&&) = default;
   EnhancedBucketQueue& operator= (EnhancedBucketQueue&&) = default;
 
+  ~EnhancedBucketQueue() = default;
+
   void swap(EnhancedBucketQueue& other) {
     using std::swap;
     swap(_num_elements, other._num_elements);

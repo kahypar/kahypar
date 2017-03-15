@@ -66,6 +66,8 @@ class KWayPriorityQueue {
   KWayPriorityQueue(KWayPriorityQueue&&) = default;
   KWayPriorityQueue& operator= (KWayPriorityQueue&&) = delete;
 
+  ~KWayPriorityQueue() = default;
+
   // PQ implementation might need different parameters for construction
   template <typename ... PQParameters>
   void initialize(PQParameters&& ... parameters) {

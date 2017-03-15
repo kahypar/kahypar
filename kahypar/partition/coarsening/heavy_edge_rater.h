@@ -60,6 +60,8 @@ class HeavyEdgeRater {
     HeavyEdgeRating(HeavyEdgeRating&&) = default;
     HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
 
+    ~HeavyEdgeRating() = default;
+
     HypernodeID target;
     RatingType value;
     bool valid;
@@ -80,6 +82,8 @@ class HeavyEdgeRater {
 
   HeavyEdgeRater(HeavyEdgeRater&&) = delete;
   HeavyEdgeRater& operator= (HeavyEdgeRater&&) = delete;
+
+  ~HeavyEdgeRater() = default;
 
   HeavyEdgeRating rate(const HypernodeID u) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);

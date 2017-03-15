@@ -79,7 +79,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
   }
 
-  virtual ~TwoWayFMRefiner() { }
+  ~TwoWayFMRefiner() override = default;
 
   TwoWayFMRefiner(const TwoWayFMRefiner&) = delete;
   TwoWayFMRefiner& operator= (const TwoWayFMRefiner&) = delete;

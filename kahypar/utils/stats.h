@@ -40,6 +40,8 @@ class Stats {
   Stats& operator= (const Stats&) = delete;
   Stats& operator= (Stats&&) = delete;
 
+  ~Stats() = default;
+
   void add(const Configuration& config, const std::string& key, double value) {
     if (config.partition.collect_stats) {
       _stats["v" + std::to_string(config.partition.current_v_cycle)

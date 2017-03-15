@@ -69,6 +69,8 @@ class HypergraphPruner {
   HypergraphPruner(HypergraphPruner&&) = delete;
   HypergraphPruner& operator= (HypergraphPruner&&) = delete;
 
+  ~HypergraphPruner() = default;
+
   void restoreSingleNodeHyperedges(Hypergraph& hypergraph,
                                    const CoarseningMemento& memento) {
     for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
@@ -237,7 +239,7 @@ class HypergraphPruner {
     DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
     for (const HypernodeID& pin : hypergraph.pins(he)) {
       DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
-      _contained_hypernodes.set(pin, 1);
+      _contained_hypernodes.set(pin, true);
     }
   }
 

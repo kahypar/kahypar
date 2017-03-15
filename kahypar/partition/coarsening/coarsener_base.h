@@ -67,7 +67,7 @@ class CoarsenerBase {
     _max_hn_weights.emplace_back(_hg.initialNumNodes(), weight_of_heaviest_node);
   }
 
-  virtual ~CoarsenerBase() { }
+  virtual ~CoarsenerBase() = default;
 
   CoarsenerBase(const CoarsenerBase&) = delete;
   CoarsenerBase& operator= (const CoarsenerBase&) = delete;

@@ -186,54 +186,54 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
                                                 const std::vector<PartitionID>* he_cluster_ids = nullptr) {
   std::ofstream out_stream(filename.c_str());
 
-  out_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
-  << " <graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\""
-  << " xmlns:java=\"http://www.yworks.com/xml/yfiles-common/1.0/java\""
-  << " xmlns:sys=\"http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0\""
-  << " xmlns:x=\"http://www.yworks.com/xml/yfiles-common/markup/2.0\""
-  << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-  << " xmlns:y=\"http://www.yworks.com/xml/graphml\""
-  << " xmlns:yed=\"http://www.yworks.com/xml/yed/3\""
-  << " xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns"
-  << "http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">"
+  out_stream << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>)"
+  << R"( <graphml xmlns="http://graphml.graphdrawing.org/xmlns")"
+  << R"( xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java")"
+  << R"( xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0")"
+  << R"( xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0")"
+  << R"( xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance")"
+  << R"( xmlns:y="http://www.yworks.com/xml/graphml")"
+  << R"( xmlns:yed="http://www.yworks.com/xml/yed/3")"
+  << R"( xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns)"
+  << R"(http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">)"
   << std::endl;
 
-  out_stream << "<key id=\"d0\" for=\"node\" attr.name=\"weight\" attr.type=\"double\"/>" << std::endl;
-  out_stream << "<key id=\"d1\" for=\"node\" attr.name=\"part\" attr.type=\"int\"/>" << std::endl;
-  out_stream << "<key id=\"d2\" for=\"node\" attr.name=\"iscutedge\" attr.type=\"int\"/>" << std::endl;
-  out_stream << "<key id=\"d7\" for=\"node\" attr.name=\"modclass\" attr.type=\"int\"/>" << std::endl;
-  out_stream << "<key id=\"d8\" for=\"node\" attr.name=\"color\" attr.type=\"string\"/>" << std::endl;
-  out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
+  out_stream << R"(<key id="d0" for="node" attr.name="weight" attr.type="double"/>)" << std::endl;
+  out_stream << R"(<key id="d1" for="node" attr.name="part" attr.type="int"/>)" << std::endl;
+  out_stream << R"(<key id="d2" for="node" attr.name="iscutedge" attr.type="int"/>)" << std::endl;
+  out_stream << R"(<key id="d7" for="node" attr.name="modclass" attr.type="int"/>)" << std::endl;
+  out_stream << R"(<key id="d8" for="node" attr.name="color" attr.type="string"/>)" << std::endl;
+  out_stream << R"(<graph id="G" edgedefault="undirected">)" << std::endl;
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << "<node id=\"n" << hn << "\">" << std::endl;
-    out_stream << "<data key=\"d0\">" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
+    out_stream << R"(<node id="n)" << hn << R"(">)" << std::endl;
+    out_stream << R"(<data key="d0">)" << hypergraph.nodeWeight(hn) << "</data>" << std::endl;
     if (hn_cluster_ids != nullptr) {
-      out_stream << "<data key=\"d7\">" << (*hn_cluster_ids)[hn] << "</data>" << std::endl;
+      out_stream << R"(<data key="d7">)" << (*hn_cluster_ids)[hn] << "</data>" << std::endl;
     } else {
-      out_stream << "<data key=\"d1\">" << hypergraph.partID(hn) << "</data>" << std::endl;
+      out_stream << R"(<data key="d1">)" << hypergraph.partID(hn) << "</data>" << std::endl;
     }
 
-    out_stream << "<data key=\"d2\">" << 42 << "</data>" << std::endl;
-    out_stream << "<data key=\"d8\">" << "blue" << "</data>" << std::endl;
+    out_stream << R"(<data key="d2">)" << 42 << "</data>" << std::endl;
+    out_stream << R"(<data key="d8">)" << "blue" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
   }
 
   HyperedgeID edge_id = 0;
   for (const HyperedgeID& he : hypergraph.edges()) {
     // const HyperedgeID he_id = hypergraph.initialNumNodes() + he;
-    out_stream << "<node id=\"h" << he << "\">" << std::endl;
-    out_stream << "<data key=\"d0\">" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
+    out_stream << R"(<node id="h)" << he << R"(">)" << std::endl;
+    out_stream << R"(<data key="d0">)" << hypergraph.edgeWeight(he) << "</data>" << std::endl;
     if (he_cluster_ids != nullptr) {
-      out_stream << "<data key=\"d7\">" << (*he_cluster_ids)[he] << "</data>" << std::endl;
+      out_stream << R"(<data key="d7">)" << (*he_cluster_ids)[he] << "</data>" << std::endl;
     } else {
-      out_stream << "<data key=\"d1\">" << -1 << "</data>" << std::endl;
+      out_stream << R"(<data key="d1">)" << -1 << "</data>" << std::endl;
     }
-    out_stream << "<data key=\"d2\">" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
-    out_stream << "<data key=\"d8\">" << "red" << "</data>" << std::endl;
+    out_stream << R"(<data key="d2">)" << (hypergraph.connectivity(he) > 1) << "</data>" << std::endl;
+    out_stream << R"(<data key="d8">)" << "red" << "</data>" << std::endl;
     out_stream << "</node>" << std::endl;
     for (const HypernodeID& pin : hypergraph.pins(he)) {
-      out_stream << "<edge id=\"e" << edge_id++ << "\" source=\"n" << pin << "\" target=\"h"
-      << he << "\"/>" << std::endl;
+      out_stream << R"(<edge id="e)" << edge_id++ << R"(" source="n)" << pin << R"(" target="h)"
+      << he << R"("/>)" << std::endl;
     }
   }
 

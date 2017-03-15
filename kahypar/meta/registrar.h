@@ -29,7 +29,7 @@ class Registrar {
  public:
   template <typename IdentifierType,
             typename ProductCreator>
-  Registrar(const IdentifierType& id, ProductCreator classFactoryFunction) {
+  Registrar(const IdentifierType& id, ProductCreator classFactoryFunction) noexcept {
     Factory::getInstance().registerObject(id, classFactoryFunction);
   }
 };

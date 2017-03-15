@@ -111,7 +111,7 @@ static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmeti
 // Hide original imbalance definitions that assume Lmax0=Lmax1=Lmax
 // Those should only be used in assertions.
 namespace {
-static inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
+inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight max_weight = hypergraph.partWeight(0);
   for (PartitionID i = 1; i != k; ++i) {
     max_weight = std::max(max_weight, hypergraph.partWeight(i));

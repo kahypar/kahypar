@@ -60,6 +60,8 @@ class MLCoarsener final : public ICoarsener,
     Rating(Rating&&) = default;
     Rating& operator= (Rating&&) = delete;
 
+    ~Rating() = default;
+
     HypernodeID target;
     RatingType value;
     bool valid;

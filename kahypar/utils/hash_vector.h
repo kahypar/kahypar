@@ -35,7 +35,7 @@ class HashFuncVector {
  public:
   using HashFunc = _HashFunc;
 
-  HashFuncVector(const uint8_t hash_num, const uint32_t seed = 0) :
+  explicit HashFuncVector(const uint8_t hash_num, const uint32_t seed = 0) :
     _hash_functions(hash_num) {
     reset(seed);
   }

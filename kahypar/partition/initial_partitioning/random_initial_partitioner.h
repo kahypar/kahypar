@@ -36,7 +36,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase(hypergraph, config),
     _already_tried_to_assign_hn_to_part(config.initial_partitioning.k) { }
 
-  ~RandomInitialPartitioner() { }
+  ~RandomInitialPartitioner() override = default;
 
   RandomInitialPartitioner(const RandomInitialPartitioner&) = delete;
   RandomInitialPartitioner& operator= (const RandomInitialPartitioner&) = delete;

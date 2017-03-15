@@ -51,7 +51,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     CoarsenerBase(hypergraph, config, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
 
-  ~VertexPairCoarsenerBase() { }
+  ~VertexPairCoarsenerBase() override = default;
 
   VertexPairCoarsenerBase(const VertexPairCoarsenerBase&) = delete;
   VertexPairCoarsenerBase& operator= (const VertexPairCoarsenerBase&) = delete;
@@ -179,11 +179,11 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
                          std::vector<HypernodeID>& target) {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
-    for (size_t i = 0; i < permutation.size(); ++i) {
-      const typename Rater::Rating rating = rater.rate(permutation[i]);
+    for (const HypernodeID hn : permutation) {
+      const typename Rater::Rating rating = rater.rate(hn);
       if (rating.valid) {
-        _pq.push(permutation[i], rating.value);
-        target[permutation[i]] = rating.target;
+        _pq.push(hn, rating.value);
+        target[hn] = rating.target;
       }
     }
   }

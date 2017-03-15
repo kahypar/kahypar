@@ -67,6 +67,10 @@ class MinHashSparsifier {
       return true;
     }
 
+    bool operator!= (const Edge& edge) const {
+      return !(*this == edge);
+    }
+
     bool operator< (const Edge& edge) const {
       const size_t this_size = _end - _begin;
       const size_t other_size = edge._end - edge._begin;
@@ -207,9 +211,8 @@ class MinHashSparsifier {
       new_clusters[i] += new_clusters[i - 1];
     }
 
-
-    for (size_t node = 0; node < _clusters.size(); ++node) {
-      _clusters[node] = new_clusters[_clusters[node]] - 1;
+    for (HypernodeID& cluster : _clusters) {
+      cluster = new_clusters[cluster] - 1;
     }
 
     return new_clusters.back();

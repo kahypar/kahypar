@@ -56,10 +56,10 @@ class IRefiner {
     return policyStringImpl();
   }
 
-  virtual ~IRefiner() { }
+  virtual ~IRefiner() = default;
 
  protected:
-  IRefiner() { }
+  IRefiner() = default;
   bool _is_initialized = false;
 
  private:
@@ -68,7 +68,7 @@ class IRefiner {
                           const UncontractionGainChanges& uncontraction_changes,
                           Metrics& best_metrics) = 0;
 
-  virtual void initializeImpl(const HyperedgeWeight) = 0;
+  virtual void initializeImpl(HyperedgeWeight) = 0;
 
   virtual std::string policyStringImpl() const = 0;
 };

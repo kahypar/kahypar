@@ -120,7 +120,7 @@ class StaticMultiDispatchFactory {
     // The remaining types that we need to try in case CurrentPolicyClass does not match.
     using RemainingPolicyClasses = typename CurrentPolicy::Tail;
 
-    if (CurrentPolicyClass* p1 = dynamic_cast<CurrentPolicyClass*>(&current_class)) {
+    if (auto* p1 = dynamic_cast<CurrentPolicyClass*>(&current_class)) {
       // We found the correct type of the current policy class.
       // Add it to the list of matched types and continue matching the class of the
       // next policy.

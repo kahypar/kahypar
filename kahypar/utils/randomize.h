@@ -29,6 +29,11 @@
 namespace kahypar {
 class Randomize {
  public:
+  Randomize(const Randomize&) = delete;
+  Randomize(Randomize&&) = delete;
+  Randomize& operator= (const Randomize&) = delete;
+  Randomize& operator= (Randomize&&) = delete;
+
   static Randomize & instance() {
     static Randomize instance;
     return instance;
@@ -80,9 +85,9 @@ class Randomize {
     _float_dist(0, 1),
     _norm_dist(0, 1) { }
 
-  ~Randomize() { }
+  ~Randomize() = default;
 
-  int _seed;
+  int _seed = -1;
   std::mt19937 _gen;
   std::uniform_int_distribution<int> _bool_dist;
   std::uniform_int_distribution<int> _int_dist;

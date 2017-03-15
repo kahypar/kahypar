@@ -31,7 +31,7 @@ struct numeric_limits<pair<T, V> >{
     return std::make_pair(numeric_limits<T>::max(), numeric_limits<V>::max());
   }
 };
-}
+}  // namespace std
 
 namespace kahypar {
 namespace ds {
@@ -106,11 +106,10 @@ class HashMap {
   using mapped_type = Value;
 
  private:
-  using TSelf = HashMap<Key, Value, Hash, Cache, SizeFactor>;
   using Position = uint32_t;
 
  public:
-  using Iterator = HashTableIterator<TSelf>;
+  using Iterator = HashTableIterator<HashMap>;
 
   friend Iterator;
 
@@ -130,28 +129,13 @@ class HashMap {
     _poses.reserve(max_size);
   }
 
-  HashMap(const TSelf&) = default;
-  HashMap(TSelf&&) = default;
+  HashMap(const HashMap&) = default;
+  HashMap(HashMap&&) = default;
 
-  TSelf& operator= (TSelf& other) {
-    _ht_size = other._ht_size;
-    _max_size = other._max_size;
-    _ht = other._ht;
-    _poses = other._poses;
-    _last_key = other._last_key;
-    _last_position = other._last_position;
-    _pos_in_position = other._pos_in_position;
-    _empty_element = other._empty_element;
-    _deleted_element = other._deleted_element;
-    _empty_element_key = other._empty_element_key;
-    _deleted_element_key = other._deleted_element_key;
-    return *this;
-  }
+  HashMap& operator= (const HashMap& other) = delete;
+  HashMap& operator= (HashMap&& other) = delete;
 
-  TSelf& operator= (TSelf&& other) {
-    this->swap(other);
-    return *this;
-  }
+  ~HashMap() = default;
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
@@ -235,11 +219,7 @@ class HashMap {
       return _deleted_element_key;
     }
 
-    if (_ht[findPosition(key)].first == _empty_element.first) {
-      return false;
-    }
-
-    return true;
+    return _ht[findPosition(key)].first != _empty_element.first;
   }
 
   void insert(const Element& elem) {
@@ -263,7 +243,7 @@ class HashMap {
     _deleted_element_key = false;
   }
 
-  void swap(TSelf& hash_map) {
+  void swap(HashMap& hash_map) {
     std::swap(_ht_size, hash_map._ht_size);
     std::swap(_max_size, hash_map._max_size);
     _ht.swap(hash_map._ht);
@@ -362,11 +342,10 @@ class InsertOnlyHashMap {
   using mapped_type = Value;
 
  private:
-  using TSelf = InsertOnlyHashMap<Key, Value, Hash, Cache, SizeFactor>;
   using Position = uint32_t;
 
  public:
-  using Iterator = HashTableIterator<TSelf>;
+  using Iterator = HashTableIterator<InsertOnlyHashMap>;
 
   friend Iterator;
 
@@ -383,25 +362,13 @@ class InsertOnlyHashMap {
     _poses.reserve(max_size);
   }
 
-  InsertOnlyHashMap(const TSelf&) = default;
-  InsertOnlyHashMap(TSelf&&) = default;
+  InsertOnlyHashMap(const InsertOnlyHashMap&) = default;
+  InsertOnlyHashMap(InsertOnlyHashMap&&) = default;
 
-  TSelf& operator= (TSelf& other) {
-    _ht_size = other._ht_size;
-    _max_size = other._max_size;
-    _ht = other._ht;
-    _poses = other._poses;
-    _last_key = other._last_key;
-    _last_position = other._last_position;
-    _empty_element = other._empty_element;
-    _empty_element_key = other._empty_element_key;
-    return *this;
-  }
+  InsertOnlyHashMap& operator= (const InsertOnlyHashMap& other) = default;
+  InsertOnlyHashMap& operator= (InsertOnlyHashMap&& other) = default;
 
-  TSelf& operator= (TSelf&& other) {
-    this->swap(other);
-    return *this;
-  }
+  ~InsertOnlyHashMap() = default;
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
@@ -449,11 +416,7 @@ class InsertOnlyHashMap {
       return _empty_element_key;
     }
 
-    if (_ht[findPosition(key)].first == _empty_element.first) {
-      return false;
-    }
-
-    return true;
+    return _ht[findPosition(key)].first != _empty_element.first;
   }
 
   void insert(const Element& elem) {
@@ -477,7 +440,7 @@ class InsertOnlyHashMap {
     _empty_element_key = false;
   }
 
-  void swap(TSelf& hash_map) {
+  void swap(InsertOnlyHashMap& hash_map) {
     std::swap(_ht_size, hash_map._ht_size);
     std::swap(_max_size, hash_map._max_size);
     _ht.swap(hash_map._ht);
@@ -556,11 +519,10 @@ class HashSet {
   using key_type = Key;
 
  private:
-  using TSelf = HashSet<Key, Hash, Cache, SizeFactor>;
   using Position = uint32_t;
 
  public:
-  using Iterator = HashTableIterator<TSelf>;
+  using Iterator = HashTableIterator<HashSet>;
 
   friend Iterator;
 
@@ -578,26 +540,13 @@ class HashSet {
     _poses.reserve(max_size);
   }
 
-  HashSet(const TSelf&) = default;
-  HashSet(TSelf&&) = default;
+  HashSet(const HashSet&) = default;
+  HashSet(HashSet&&) = default;
 
-  TSelf& operator= (const TSelf& other) {
-    _ht_size = other._ht_size;
-    _max_size = other._max_size;
-    _ht = other._ht;
-    _poses = other._poses;
-    _last_key = other._last_key;
-    _last_position = other._last_position;
-    _pos_in_position = other._pos_in_position;
-    _empty_element_key = other._empty_element_key;
-    _deleted_element_key = other._deleted_element_key;
-    return *this;
-  }
+  HashSet& operator= (const HashSet& other) = delete;
+  HashSet& operator= (HashSet&& other) = default;
 
-  TSelf& operator= (TSelf&& other) {
-    this->swap(other);
-    return *this;
-  }
+  ~HashSet() = default;
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
@@ -652,11 +601,7 @@ class HashSet {
       return _deleted_element_key;
     }
 
-    if (_ht[findPosition(key)] == _empty_element) {
-      return false;
-    }
-
-    return true;
+    return _ht[findPosition(key)] != _empty_element;
   }
 
   void insert(const Key& key) {
@@ -677,7 +622,7 @@ class HashSet {
     _deleted_element_key = false;
   }
 
-  void swap(TSelf& hash_set) {
+  void swap(HashSet& hash_set) {
     std::swap(_ht_size, hash_set._ht_size);
     std::swap(_max_size, hash_set._max_size);
     _ht.swap(hash_set._ht);
@@ -768,11 +713,10 @@ class InsertOnlyHashSet {
   using Element = Key;
 
  private:
-  using TSelf = InsertOnlyHashSet<Key, Hash, Cache, SizeFactor>;
   using Position = uint32_t;
 
  public:
-  using Iterator = HashTableIterator<TSelf>;
+  using Iterator = HashTableIterator<InsertOnlyHashSet>;
 
   friend Iterator;
 
@@ -789,24 +733,13 @@ class InsertOnlyHashSet {
     _poses.reserve(max_size);
   }
 
-  InsertOnlyHashSet(const TSelf&) = default;
-  InsertOnlyHashSet(TSelf&&) = default;
+  InsertOnlyHashSet(const InsertOnlyHashSet&) = default;
+  InsertOnlyHashSet(InsertOnlyHashSet&&) = default;
 
-  TSelf& operator= (TSelf& other) {
-    _ht_size = other._ht_size;
-    _max_size = other._max_size;
-    _ht = other._ht;
-    _poses = other._poses;
-    _last_key = other._last_key;
-    _last_position = other._last_position;
-    _empty_element_key = other._empty_element_key;
-    return *this;
-  }
+  InsertOnlyHashSet& operator= (const InsertOnlyHashSet& other) = default;
+  InsertOnlyHashSet& operator= (InsertOnlyHashSet&& other) = default;
 
-  TSelf& operator= (TSelf&& other) {
-    this->swap(other);
-    return *this;
-  }
+  ~InsertOnlyHashSet() = default;
 
   void reserve(const uint32_t max_size) {
     _ht_size = max_size * SizeFactor;
@@ -834,10 +767,7 @@ class InsertOnlyHashSet {
     if (key == _empty_element) {
       return _empty_element_key;
     }
-    if (_ht[findPosition(key)] == _empty_element) {
-      return false;
-    }
-    return true;
+    return _ht[findPosition(key)] != _empty_element;
   }
 
   void insert(const Key& key) {
@@ -857,7 +787,7 @@ class InsertOnlyHashSet {
     _empty_element_key = false;
   }
 
-  void swap(TSelf& hash_set) {
+  void swap(InsertOnlyHashSet& hash_set) {
     std::swap(_ht_size, hash_set._ht_size);
     std::swap(_max_size, hash_set._max_size);
     _ht.swap(hash_set._ht);

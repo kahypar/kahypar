@@ -72,7 +72,7 @@ class KWayFMRefiner final : public IRefiner,
     _gain_cache(_hg.initialNumNodes(), _config.partition.k),
     _stopping_policy() { }
 
-  virtual ~KWayFMRefiner() { }
+  ~KWayFMRefiner() override = default;
 
   KWayFMRefiner(const KWayFMRefiner&) = delete;
   KWayFMRefiner& operator= (const KWayFMRefiner&) = delete;

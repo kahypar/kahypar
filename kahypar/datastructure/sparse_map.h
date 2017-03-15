@@ -53,6 +53,8 @@ class SparseMapBase {
     MapElement& operator= (const MapElement&) = delete;
     MapElement(MapElement&&) = default;
     MapElement& operator= (MapElement&&) = default;
+
+    ~MapElement() = default;
   };
 
  public:
@@ -115,7 +117,7 @@ class SparseMapBase {
     _size(0),
     _sparse(nullptr),
     _dense(nullptr) {
-    char* raw = static_cast<char*>(malloc(max_size * sizeof(MapElement) +
+    auto* raw = static_cast<char*>(malloc(max_size * sizeof(MapElement) +
                                           max_size * sizeof(size_t)));
 
     _sparse = reinterpret_cast<size_t*>(raw);
@@ -158,16 +160,6 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
 
   SparseMap(const SparseMap&) = delete;
 
-  SparseMap& operator= (SparseMap& other) {
-    _sparse = std::move(other._sparse);
-    _size = 0;
-    _dense = std::move(other._dense);
-    other._size = 0;
-    other._sparse = nullptr;
-    other._dense = nullptr;
-    return *this;
-  }
-
   SparseMap(SparseMap&& other) :
     Base(std::move(other)) { }
 
@@ -180,6 +172,8 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
     other._dense = nullptr;
     return *this;
   }
+
+  ~SparseMap() = default;
 
   void remove(const Key key) {
     const size_t index = _sparse[key];

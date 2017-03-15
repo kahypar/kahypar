@@ -44,7 +44,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     _hypernode_in_queue(config.initial_partitioning.k * hypergraph.initialNumNodes()),
     _hyperedge_in_queue(config.initial_partitioning.k * hypergraph.initialNumEdges()) { }
 
-  ~BFSInitialPartitioner() { }
+  ~BFSInitialPartitioner() override = default;
 
   BFSInitialPartitioner(const BFSInitialPartitioner&) = delete;
   BFSInitialPartitioner& operator= (const BFSInitialPartitioner&) = delete;

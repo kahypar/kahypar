@@ -28,8 +28,13 @@ struct LastRatingWins {
     return true;
   }
 
- protected:
-  ~LastRatingWins() { }
+  LastRatingWins(const LastRatingWins&) = delete;
+  LastRatingWins& operator= (const LastRatingWins&) = delete;
+
+  LastRatingWins(LastRatingWins&&) = delete;
+  LastRatingWins& operator= (LastRatingWins&&) = delete;
+
+ protected: ~LastRatingWins() = default;
 };
 
 struct FirstRatingWins {
@@ -37,8 +42,13 @@ struct FirstRatingWins {
     return false;
   }
 
- protected:
-  ~FirstRatingWins() { }
+  FirstRatingWins(const FirstRatingWins&) = delete;
+  FirstRatingWins& operator= (const FirstRatingWins&) = delete;
+
+  FirstRatingWins(FirstRatingWins&&) = delete;
+  FirstRatingWins& operator= (FirstRatingWins&&) = delete;
+
+ protected: ~FirstRatingWins() = default;
 };
 
 struct RandomRatingWins {
@@ -47,7 +57,12 @@ struct RandomRatingWins {
     return Randomize::instance().flipCoin();
   }
 
- protected:
-  ~RandomRatingWins() { }
+  RandomRatingWins(const RandomRatingWins&) = delete;
+  RandomRatingWins& operator= (const RandomRatingWins&) = delete;
+
+  RandomRatingWins(RandomRatingWins&&) = delete;
+  RandomRatingWins& operator= (RandomRatingWins&&) = delete;
+
+ protected: ~RandomRatingWins() = default;
 };
 }  // namespace kahypar

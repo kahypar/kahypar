@@ -55,7 +55,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     _pq.initialize(_hg.initialNumNodes());
   }
 
-  ~GreedyHypergraphGrowingInitialPartitioner() { }
+  ~GreedyHypergraphGrowingInitialPartitioner() override = default;
 
   GreedyHypergraphGrowingInitialPartitioner(const GreedyHypergraphGrowingInitialPartitioner&) = delete;
   GreedyHypergraphGrowingInitialPartitioner& operator= (const GreedyHypergraphGrowingInitialPartitioner&) = delete;

@@ -29,6 +29,7 @@ struct UncontractionGainChanges {
   UncontractionGainChanges() :
     representative(),
     contraction_partner() { }
+  ~UncontractionGainChanges() = default;
 
   UncontractionGainChanges(const UncontractionGainChanges&) = delete;
   UncontractionGainChanges(UncontractionGainChanges&&) = delete;

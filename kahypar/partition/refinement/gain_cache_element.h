@@ -49,6 +49,8 @@ struct RollbackElement {
 
   RollbackElement(RollbackElement&&) = default;
   RollbackElement& operator= (RollbackElement&&) = default;
+
+  ~RollbackElement() = default;
 };
 
 // Internal structure for cache entries.
@@ -96,6 +98,8 @@ class CacheElement {
   CacheElement(CacheElement&&) = delete;
   CacheElement& operator= (const CacheElement&) = delete;
   CacheElement& operator= (CacheElement&&) = delete;
+
+  ~CacheElement() = default;
 
   const PartitionID* begin()  const {
     return &_size + 1;

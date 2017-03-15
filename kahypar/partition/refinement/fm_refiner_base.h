@@ -40,6 +40,15 @@ struct RollbackInfo {
 
 template <typename RollbackElement = Mandatory>
 class FMRefinerBase {
+ public:
+  ~FMRefinerBase() = default;
+
+  FMRefinerBase(const FMRefinerBase&) = delete;
+  FMRefinerBase& operator= (const FMRefinerBase&) = delete;
+
+  FMRefinerBase(FMRefinerBase&&) = delete;
+  FMRefinerBase& operator= (FMRefinerBase&&) = delete;
+
  protected:
   static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
   static constexpr Gain kInvalidGain = std::numeric_limits<Gain>::min();
@@ -73,14 +82,6 @@ class FMRefinerBase {
     _performed_moves.reserve(_hg.initialNumNodes());
     _hns_to_activate.reserve(_hg.initialNumNodes());
   }
-
-  ~FMRefinerBase() { }
-
-  FMRefinerBase(const FMRefinerBase&) = delete;
-  FMRefinerBase& operator= (const FMRefinerBase&) = delete;
-
-  FMRefinerBase(FMRefinerBase&&) = delete;
-  FMRefinerBase& operator= (FMRefinerBase&&) = delete;
 
   bool hypernodeIsConnectedToPart(const HypernodeID pin, const PartitionID part) const {
     for (const HyperedgeID& he : _hg.incidentEdges(pin)) {

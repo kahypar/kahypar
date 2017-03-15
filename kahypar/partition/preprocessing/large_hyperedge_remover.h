@@ -40,6 +40,8 @@ class LargeHyperedgeRemover {
   LargeHyperedgeRemover(LargeHyperedgeRemover&&) = delete;
   LargeHyperedgeRemover& operator= (LargeHyperedgeRemover&&) = delete;
 
+  ~LargeHyperedgeRemover() = default;
+
   void removeLargeHyperedges(Hypergraph& hypergraph, const Configuration& config) {
     // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
     // remove them from the graph, to make subsequent partitioning easier.

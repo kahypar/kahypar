@@ -258,31 +258,31 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
 }
 
 static InitialPartitionerAlgorithm initialPartitioningAlgorithmFromString(const std::string& mode) {
-  if (mode.compare("greedy_sequential") == 0) {
+  if (mode == "greedy_sequential") {
     return InitialPartitionerAlgorithm::greedy_sequential;
-  } else if (mode.compare("greedy_global") == 0) {
+  } else if (mode == "greedy_global") {
     return InitialPartitionerAlgorithm::greedy_global;
-  } else if (mode.compare("greedy_round") == 0) {
+  } else if (mode == "greedy_round") {
     return InitialPartitionerAlgorithm::greedy_round;
-  } else if (mode.compare("greedy_sequential_maxpin") == 0) {
+  } else if (mode == "greedy_sequential_maxpin") {
     return InitialPartitionerAlgorithm::greedy_sequential_maxpin;
-  } else if (mode.compare("greedy_global_maxpin") == 0) {
+  } else if (mode == "greedy_global_maxpin") {
     return InitialPartitionerAlgorithm::greedy_global_maxpin;
-  } else if (mode.compare("greedy_round_maxpin") == 0) {
+  } else if (mode == "greedy_round_maxpin") {
     return InitialPartitionerAlgorithm::greedy_round_maxpin;
-  } else if (mode.compare("greedy_sequential_maxnet") == 0) {
+  } else if (mode == "greedy_sequential_maxnet") {
     return InitialPartitionerAlgorithm::greedy_sequential_maxnet;
-  } else if (mode.compare("greedy_global_maxnet") == 0) {
+  } else if (mode == "greedy_global_maxnet") {
     return InitialPartitionerAlgorithm::greedy_global_maxnet;
-  } else if (mode.compare("greedy_round_maxnet") == 0) {
+  } else if (mode == "greedy_round_maxnet") {
     return InitialPartitionerAlgorithm::greedy_round_maxnet;
-  } else if (mode.compare("lp") == 0) {
+  } else if (mode == "lp") {
     return InitialPartitionerAlgorithm::lp;
-  } else if (mode.compare("bfs") == 0) {
+  } else if (mode == "bfs") {
     return InitialPartitionerAlgorithm::bfs;
-  } else if (mode.compare("random") == 0) {
+  } else if (mode == "random") {
     return InitialPartitionerAlgorithm::random;
-  } else if (mode.compare("pool") == 0) {
+  } else if (mode == "pool") {
     return InitialPartitionerAlgorithm::pool;
   }
   std::cout << "Illegal option:" << mode << std::endl;

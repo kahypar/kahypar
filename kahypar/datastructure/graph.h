@@ -42,16 +42,10 @@
 namespace kahypar {
 namespace ds {
 struct Edge {
-  Edge() :
-    target_node(0),
-    weight(0.0),
-    bfs_cnt(0),
-    reverse_edge(nullptr) { }
-
-  NodeID target_node;
-  EdgeWeight weight;
-  size_t bfs_cnt;
-  Edge* reverse_edge;
+  NodeID target_node = 0;
+  EdgeWeight weight = 0.0;
+  size_t bfs_cnt = 0;
+  Edge* reverse_edge = nullptr;
 };
 
 struct IncidentClusterWeight {
@@ -198,6 +192,8 @@ class Graph {
 
   Graph(Graph&& other) = default;
   Graph& operator= (Graph&& other) = delete;
+
+  ~Graph() = default;
 
   std::pair<NodeIDIterator, NodeIDIterator> nodes() const {
     return std::make_pair(NodeIDIterator(0), NodeIDIterator(_num_nodes));
@@ -503,8 +499,8 @@ class Graph {
 
 
   Graph(const std::vector<NodeID>& adj_array, const std::vector<Edge>& edges,
-        const std::vector<NodeID> new_hypernode_mapping,
-        const std::vector<ClusterID> cluster_id) :
+        const std::vector<NodeID>& new_hypernode_mapping,
+        const std::vector<ClusterID>& cluster_id) :
     _num_nodes(adj_array.size() - 1),
     _num_communities(0),
     _total_weight(0.0L),
@@ -518,7 +514,9 @@ class Graph {
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(new_hypernode_mapping) {
     for (const NodeID& node : nodes()) {
-      if (_cluster_size[_cluster_id[node]] == 0) _num_communities++;
+      if (_cluster_size[_cluster_id[node]] == 0) {
+        _num_communities++;
+      }
       _cluster_size[_cluster_id[node]]++;
       for (const Edge& e : incidentEdges(node)) {
         if (node == e.target_node) {
@@ -613,7 +611,7 @@ class Graph {
   void constructBipartiteGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
     NodeID sum_edges = 0;
 
-    const size_t num_nodes = static_cast<size_t>(hg.initialNumNodes());
+    const auto num_nodes = static_cast<size_t>(hg.initialNumNodes());
 
     NodeID cur_node_id = 0;
 

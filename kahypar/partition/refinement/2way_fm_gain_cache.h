@@ -45,6 +45,8 @@ class TwoWayFMGainCache {
 
     CacheElement(CacheElement&&) = default;
     CacheElement& operator= (CacheElement&&) = default;
+
+    ~CacheElement() = default;
   };
 
  public:
@@ -60,6 +62,8 @@ class TwoWayFMGainCache {
 
   TwoWayFMGainCache(TwoWayFMGainCache&&) = default;
   TwoWayFMGainCache& operator= (TwoWayFMGainCache&&) = default;
+
+  ~TwoWayFMGainCache() = default;
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE T delta(const size_t index) const {
     ASSERT(index < _size);

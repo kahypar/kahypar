@@ -48,7 +48,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
     _outdated_rating(hypergraph.initialNumNodes()),
     _target(_hg.initialNumNodes()) { }
 
-  virtual ~LazyVertexPairCoarsener() { }
+  ~LazyVertexPairCoarsener() override = default;
 
   LazyVertexPairCoarsener(const LazyVertexPairCoarsener&) = delete;
   LazyVertexPairCoarsener& operator= (const LazyVertexPairCoarsener&) = delete;

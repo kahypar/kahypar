@@ -26,7 +26,7 @@
 namespace kahypar {
 struct RebalancingPolicy : meta::PolicyBase {
  protected:
-  RebalancingPolicy() { }
+  RebalancingPolicy() = default;
 };
 
 struct GlobalRebalancing : public RebalancingPolicy,

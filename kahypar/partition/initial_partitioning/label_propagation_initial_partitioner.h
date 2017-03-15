@@ -56,7 +56,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                   "ScLaP-IP only supports FM gain");
   }
 
-  ~LabelPropagationInitialPartitioner() { }
+  ~LabelPropagationInitialPartitioner() override = default;
 
   LabelPropagationInitialPartitioner(const LabelPropagationInitialPartitioner&) = delete;
   LabelPropagationInitialPartitioner& operator= (const LabelPropagationInitialPartitioner&) = delete;
@@ -106,7 +106,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       converged = true;
 
       int unvisited_pos = nodes.size();
-      while (unvisited_pos) {
+      while (unvisited_pos != 0) {
         int pos = std::rand() % unvisited_pos;
         std::swap(nodes[pos], nodes[unvisited_pos - 1]);
         HypernodeID v = nodes[--unvisited_pos];

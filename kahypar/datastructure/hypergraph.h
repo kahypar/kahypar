@@ -150,7 +150,7 @@ class GenericHypergraph {
   //! A dummy data structure that is used in GenericHypergraph::changeNodePart
   //! for algorithms that do not need non-border-node detection.
   struct Dummy {
-    void push_back(HypernodeID) { }
+    void push_back(HypernodeID) { }  // NOLINT
   };
 
   //! Constant to denote invalid partition pin counts.
@@ -181,20 +181,17 @@ class GenericHypergraph {
                       const WeightType weight) :
       _begin(begin),
       _size(size),
-      _weight(weight),
-      _valid(true) { }
+      _weight(weight) { }
 
-    HypergraphElement() :
-      _begin(0),
-      _size(0),
-      _weight(1),
-      _valid(true) { }
+    HypergraphElement() = default;
 
     HypergraphElement(const HypergraphElement&) = default;
     HypergraphElement& operator= (const HypergraphElement&) = default;
 
     HypergraphElement(HypergraphElement&&) = default;
     HypergraphElement& operator= (HypergraphElement&&) = default;
+
+    ~HypergraphElement() = default;
 
     //! Disables the hypernode/hyperedge. Disable hypernodes/hyperedges will be skipped
     //! when iterating over the set of all nodes/edges.
@@ -270,13 +267,13 @@ class GenericHypergraph {
 
  private:
     //! Index of the first element in _incidence_array
-    IDType _begin;
+    IDType _begin = 0;
     //! Number of _incidence_array elements
-    IDType _size;
+    IDType _size = 0;
     //! Hypernode/Hyperedge weight
-    WeightType _weight;
+    WeightType _weight = 1;
     //! Flag indicating whether or not the element is active.
-    bool _valid;
+    bool _valid = true;
   };
 
   /*!
@@ -306,16 +303,15 @@ class GenericHypergraph {
     using IDType = typename ElementType::IDType;
 
  public:
+    HypergraphElementIterator() = default;
+
     HypergraphElementIterator(const HypergraphElementIterator& other) = default;
     HypergraphElementIterator& operator= (const HypergraphElementIterator& other) = default;
 
     HypergraphElementIterator(HypergraphElementIterator&& other) = default;
     HypergraphElementIterator& operator= (HypergraphElementIterator&& other) = default;
 
-    HypergraphElementIterator() :
-      _id(0),
-      _max_id(0),
-      _element(nullptr) { }
+    ~HypergraphElementIterator() = default;
 
     /*!
      * Construct a HypergraphElementIterator
@@ -372,11 +368,11 @@ class GenericHypergraph {
 
  private:
     // Handle to the HypergraphElement the iterator currently points to
-    IDType _id;
+    IDType _id = 0;
     // Maximum allowed index
-    const IDType _max_id;
+    const IDType _max_id = 0;
     // HypergraphElement the iterator currently points to
-    const ElementType* _element;
+    const ElementType* _element = nullptr;
   };
 
 
@@ -413,6 +409,8 @@ class GenericHypergraph {
       u_first_entry(u_first_entry_),
       u_size(u_size_),
       v(v_) { }
+
+    ~Memento() = default;
 
     //! The representative hypernode that remains in the hypergraph
     const HypernodeID u;
@@ -615,6 +613,8 @@ class GenericHypergraph {
 
   GenericHypergraph(const GenericHypergraph&) = delete;
   GenericHypergraph& operator= (const GenericHypergraph&) = delete;
+
+  ~GenericHypergraph() = default;
 
   /*!
    * Debug information:
@@ -867,7 +867,7 @@ class GenericHypergraph {
    */
   template <typename GainChanges>
   void uncontract(const Memento& memento, GainChanges& changes,
-                  meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) {
+                  meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) {  // NOLINT
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
     ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
@@ -1977,8 +1977,8 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                    const typename Hypergraph::PartitionID part,
-                                                                                                                    const bool split_nets);
+                                                                                                                    typename Hypergraph::PartitionID part,
+                                                                                                                    bool split_nets);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,

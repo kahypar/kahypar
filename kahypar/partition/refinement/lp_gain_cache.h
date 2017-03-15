@@ -50,6 +50,8 @@ struct LPGain {
   LPGain(const LPGain&) = default;
   LPGain& operator= (const LPGain&) = default;
 
+  ~LPGain() = default;
+
   LPGain& operator+= (const LPGain& rhs) {
     cut += rhs.cut;
     km1 += rhs.km1;

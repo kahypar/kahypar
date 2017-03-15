@@ -64,7 +64,7 @@ struct IPrinter {
   virtual std::string printChar() = 0;
   virtual std::string printInt() = 0;
   virtual std::string printSymbol() = 0;
-  virtual ~IPrinter() { }
+  virtual ~IPrinter() = default;
 };
 
 /*!
