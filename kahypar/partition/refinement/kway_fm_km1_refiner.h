@@ -626,13 +626,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
             !_unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + to_part]);
   }
 
-  bool moveFromUnremovableToRemovablePart(const HyperedgeID he, const PartitionID from_part,
-                                          const PartitionID to_part) const {
-    return _unremovable_he_parts[he * _config.partition.k + from_part] &&
-           !_unremovable_he_parts[he * _config.partition.k + to_part];
-  }
-
-
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part) {
     _new_adjacent_part.resetUsedEntries();
