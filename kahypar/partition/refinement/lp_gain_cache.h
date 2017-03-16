@@ -106,20 +106,13 @@ class LPGainCache {
   LPGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
     _num_hns(num_hns),
-    _cache(nullptr) {
-    _cache = static_cast<Byte*>(malloc(num_hns * sizeOfCacheElement()));
+    _cache(std::make_unique<Byte[]>(num_hns * sizeOfCacheElement())) {
     for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
       new(cacheElement(hn))LPCacheElement(k);
     }
   }
 
-  ~LPGainCache() {
-    // Since CacheElemment only contains PartitionIDs and these are PODs,
-    // we do not need to call destructors of CacheElement cacheElement(i)->~CacheElement();
-    // static_assert(std::is_pod<Gain>::value, "Gain is not a POD");
-    static_assert(std::is_pod<PartitionID>::value, "PartitionID is not a POD");
-    free(_cache);
-  }
+  ~LPGainCache() = default;
 
   LPGainCache(const LPGainCache&) = delete;
   LPGainCache& operator= (const LPGainCache&) = delete;
@@ -226,7 +219,7 @@ class LPGainCache {
 
  private:
   const LPCacheElement* cacheElement(const HypernodeID hn) const {
-    return reinterpret_cast<LPCacheElement*>(_cache + hn * sizeOfCacheElement());
+    return reinterpret_cast<LPCacheElement*>(_cache.get() + hn * sizeOfCacheElement());
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
@@ -240,6 +233,6 @@ class LPGainCache {
 
   PartitionID _k;
   HypernodeID _num_hns;
-  Byte* _cache;
+  std::unique_ptr<Byte[]> _cache;
 };
 }  // namespace kahypar

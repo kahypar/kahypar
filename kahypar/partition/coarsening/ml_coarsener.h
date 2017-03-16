@@ -75,7 +75,7 @@ class MLCoarsener final : public ICoarsener,
     _comm(_hg.initialNumNodes(), 0),
     _louvain(hypergraph, _config) { }
 
-  virtual ~MLCoarsener() { }
+  ~MLCoarsener() override = default;
 
   MLCoarsener(const MLCoarsener&) = delete;
   MLCoarsener& operator= (const MLCoarsener&) = delete;

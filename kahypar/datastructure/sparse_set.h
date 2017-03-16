@@ -70,20 +70,15 @@ class SparseSetBase {
  protected:
   explicit SparseSetBase(const ValueType k) :
     _size(0),
-    _sparse(nullptr),
+    _sparse(std::make_unique<ValueType[]>(2 * k)),
     _dense(nullptr) {
-    auto* raw = static_cast<ValueType*>(malloc(((2 * k)) * sizeof(ValueType)));
     for (ValueType i = 0; i < 2 * k; ++i) {
-      raw[i] = std::numeric_limits<ValueType>::max();
+      _sparse[i] = std::numeric_limits<ValueType>::max();
     }
-    _sparse = raw;
-    _dense = raw + k;
+    _dense = _sparse.get() + k;
   }
 
-  ~SparseSetBase() {
-    static_assert(std::is_pod<ValueType>::value, "ValueType should be POD");
-    free(_sparse);
-  }
+  ~SparseSetBase() = default;
 
   SparseSetBase(SparseSetBase&& other) :
     _size(other._size),
@@ -95,7 +90,7 @@ class SparseSetBase {
   }
 
   ValueType _size;
-  ValueType* _sparse;
+  std::unique_ptr<ValueType[]> _sparse;
   ValueType* _dense;
 };
 
@@ -190,7 +185,7 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType,
     _size = 0;
     ++_threshold;
     if (_threshold == std::numeric_limits<ValueType>::max()) {
-      for (ValueType i = 0; i < _dense - _sparse; ++i) {
+      for (ValueType i = 0; i < _dense - _sparse.get(); ++i) {
         _sparse[i] = std::numeric_limits<ValueType>::max();
       }
       _threshold = 0;

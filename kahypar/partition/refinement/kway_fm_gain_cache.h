@@ -48,21 +48,14 @@ class KwayGainCache {
     _cache_element_size(sizeof(KFMCacheElement) +
                         _k * sizeof(typename KFMCacheElement::Element) +
                         _k * sizeof(PartitionID)),
-    _cache(nullptr),
+    _cache(std::make_unique<Byte[]>(num_hns * _cache_element_size)),
     _deltas() {
-    _cache = static_cast<Byte*>(malloc(num_hns * _cache_element_size));
     for (HypernodeID hn = 0; hn < _num_hns; ++hn) {
       new(cacheElement(hn))KFMCacheElement(k);
     }
   }
 
-  ~KwayGainCache() {
-    // Since CacheElemment only contains PartitionIDs and these are PODs,
-    // we do not need to call destructors of CacheElement cacheElement(i)->~CacheElement();
-    static_assert(std::is_pod<Gain>::value, "Gain is not a POD");
-    static_assert(std::is_pod<PartitionID>::value, "PartitionID is not a POD");
-    free(_cache);
-  }
+  ~KwayGainCache() = default;
 
   KwayGainCache(const KwayGainCache&) = delete;
   KwayGainCache& operator= (const KwayGainCache&) = delete;
@@ -205,7 +198,7 @@ class KwayGainCache {
 
  private:
   const KFMCacheElement* cacheElement(const HypernodeID hn) const {
-    return reinterpret_cast<KFMCacheElement*>(_cache + hn * _cache_element_size);
+    return reinterpret_cast<KFMCacheElement*>(_cache.get() + hn * _cache_element_size);
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
@@ -216,7 +209,7 @@ class KwayGainCache {
   PartitionID _k;
   HypernodeID _num_hns;
   const size_t _cache_element_size;
-  Byte* _cache;
+  std::unique_ptr<Byte[]> _cache;
   std::vector<RollbackElement> _deltas;
 };
 }  // namespace kahypar

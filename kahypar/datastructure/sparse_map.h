@@ -115,34 +115,29 @@ class SparseMapBase {
   explicit SparseMapBase(const size_t max_size,
                          const Value initial_value = 0) :
     _size(0),
-    _sparse(nullptr),
+    _sparse(std::make_unique<size_t[]>((max_size * sizeof(MapElement) +
+                                        max_size * sizeof(size_t)) / sizeof(size_t))),
     _dense(nullptr) {
-    auto* raw = static_cast<char*>(malloc(max_size * sizeof(MapElement) +
-                                          max_size * sizeof(size_t)));
-
-    _sparse = reinterpret_cast<size_t*>(raw);
-    _dense = reinterpret_cast<MapElement*>(_sparse + max_size);
+    _dense = reinterpret_cast<MapElement*>(_sparse.get() + max_size);
     for (size_t i = 0; i < max_size; ++i) {
       _sparse[i] = std::numeric_limits<size_t>::max();
       _dense[i] = MapElement(std::numeric_limits<Key>::max(), initial_value);
     }
   }
 
-  ~SparseMapBase() {
-    free(_sparse);
-  }
+  ~SparseMapBase() = default;
 
   SparseMapBase(SparseMapBase&& other) :
     _size(other._size),
-    _sparse(other._sparse),
-    _dense(other._dense) {
+    _sparse(std::move(other._sparse)),
+    _dense(std::move(other._dense)) {
     other._size = 0;
     other._sparse = nullptr;
     other._dense = nullptr;
   }
 
   size_t _size;
-  size_t* _sparse;
+  std::unique_ptr<size_t[]> _sparse;
   MapElement* _dense;
 };
 
@@ -159,6 +154,7 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
     Base(max_size, initial_value) { }
 
   SparseMap(const SparseMap&) = delete;
+  SparseMap& operator= (const SparseMap& other) = delete;
 
   SparseMap(SparseMap&& other) :
     Base(std::move(other)) { }
