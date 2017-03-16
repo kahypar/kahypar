@@ -397,8 +397,8 @@ class GenericHypergraph {
    *
    */
   struct Memento {
-    Memento(const Memento& other) = delete;
-    Memento& operator= (const Memento& other) = delete;
+    Memento(const Memento& other) = default;
+    Memento& operator= (const Memento& other) = default;
 
     Memento(Memento&& other) = default;
     Memento& operator= (Memento&& other) = default;

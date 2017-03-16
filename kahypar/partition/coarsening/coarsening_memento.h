@@ -29,11 +29,11 @@ struct CoarseningMemento {
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
   Hypergraph::ContractionMemento contraction_memento;
-  explicit CoarseningMemento(Hypergraph::ContractionMemento&& contraction_memento_) :
+  explicit CoarseningMemento(const Hypergraph::ContractionMemento& contraction_memento_) :
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
     parallel_hes_size(0),
-    contraction_memento(std::move(contraction_memento_)) { }
+    contraction_memento(contraction_memento_) { }
 };
 }  // namespace kahypar
