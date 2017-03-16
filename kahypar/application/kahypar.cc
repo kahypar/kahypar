@@ -585,9 +585,9 @@ int main(int argc, char* argv[]) {
   }
 
   Partitioner partitioner;
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, config);
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
 
 #ifdef GATHER_STATS
