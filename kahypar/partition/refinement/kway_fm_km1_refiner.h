@@ -250,7 +250,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
               }
             }
           }
-          _unremovable_he_parts.set(he * _config.partition.k + from_part, 1);
+          _unremovable_he_parts.set(static_cast<size_t>(he) * _config.partition.k + from_part, 1);
         }
       }
     }
@@ -614,16 +614,16 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   bool fromAndToPartAreUnremovable(const HyperedgeID he, const PartitionID from_part,
                                    const PartitionID to_part) const {
-    return _unremovable_he_parts[he * _config.partition.k + from_part] &&
-           _unremovable_he_parts[he * _config.partition.k + to_part];
+    return _unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + from_part] &&
+           _unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + to_part];
   }
 
   bool fromAndToPartHaveUnequalStates(const HyperedgeID he, const PartitionID from_part,
                                       const PartitionID to_part) const {
-    return (!_unremovable_he_parts[he * _config.partition.k + from_part] &&
-            _unremovable_he_parts[he * _config.partition.k + to_part]) ||
-           (_unremovable_he_parts[he * _config.partition.k + from_part] &&
-            !_unremovable_he_parts[he * _config.partition.k + to_part]);
+    return (!_unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + from_part] &&
+            _unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + to_part]) ||
+           (_unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + from_part] &&
+            !_unremovable_he_parts[static_cast<size_t>(he) * _config.partition.k + to_part]);
   }
 
   bool moveFromUnremovableToRemovablePart(const HyperedgeID he, const PartitionID from_part,
@@ -665,7 +665,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       } else {
         fullUpdate(moved_hn, from_part, to_part, he);
       }
-      _unremovable_he_parts.set(he * _config.partition.k + to_part, 1);
+      _unremovable_he_parts.set(static_cast<size_t>(he) * _config.partition.k + to_part, 1);
 
       ASSERT([&]() {
           // Search parts of hyperedge he which are unremoveable

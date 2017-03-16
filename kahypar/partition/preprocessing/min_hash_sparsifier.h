@@ -109,7 +109,7 @@ class MinHashSparsifier {
 
     // 1 : build vector of indicies and pins for hyperedges
     std::vector<size_t> indices_of_edges;
-    indices_of_edges.reserve(num_edges + 1);
+    indices_of_edges.reserve(static_cast<size_t>(num_edges) + 1);
 
     std::vector<HypernodeID> pins_of_edges;
     pins_of_edges.reserve(hypergraph.currentNumPins());

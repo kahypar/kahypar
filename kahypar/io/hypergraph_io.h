@@ -73,7 +73,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
                                  hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
                                  true : false;
 
-    index_vector.reserve(num_hyperedges +  /*sentinel*/ 1);
+    index_vector.reserve(static_cast<size_t>(num_hyperedges) +  /*sentinel*/ 1);
     index_vector.push_back(edge_vector.size());
 
     std::string line;

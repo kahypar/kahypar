@@ -202,7 +202,7 @@ class Graph {
   std::pair<EdgeIterator, EdgeIterator> incidentEdges(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
     return std::make_pair(_edges.cbegin() + _adj_array[node],
-                          _edges.cbegin() + _adj_array[node + 1]);
+                          _edges.cbegin() + _adj_array[static_cast<size_t>(node) + 1]);
   }
 
   size_t numNodes() const {
@@ -215,7 +215,7 @@ class Graph {
 
   size_t degree(const NodeID node) const {
     ASSERT(node < numNodes(), "NodeID " << node << " doesn't exist!");
-    return static_cast<size_t>(_adj_array[node + 1] - _adj_array[node]);
+    return static_cast<size_t>(_adj_array[static_cast<size_t>(node) + 1] - _adj_array[node]);
   }
 
   EdgeWeight weightedDegree(const NodeID node) const {
@@ -453,7 +453,7 @@ class Graph {
     std::vector<NodeID> new_adj_array(new_cid + 1, 0);
     std::vector<Edge> new_edges;
     size_t start_idx = 0;
-    for (size_t i = 0; i < _num_nodes + 1; ++i) {
+    for (NodeID i = 0; i < _num_nodes + 1; ++i) {
       if (_cluster_id[node_ids[start_idx]] != _cluster_id[node_ids[i]]) {
         const ClusterID cid = _cluster_id[node_ids[start_idx]];
         new_adj_array[cid] = new_edges.size();
@@ -657,7 +657,8 @@ class Graph {
         _total_weight += e.weight;
         _weighted_degree[cur_node] += e.weight;
         _edges[_adj_array[cur_node] + pos++] = e;
-        for (size_t i = _adj_array[e.target_node]; i < _adj_array[e.target_node + 1]; ++i) {
+        for (size_t i = _adj_array[e.target_node];
+             i < _adj_array[static_cast<size_t>(e.target_node) + 1]; ++i) {
           if (_edges[i].target_node == cur_node) {
             _edges[i].reverse_edge = &_edges[_adj_array[cur_node] + pos - 1];
             _edges[_adj_array[cur_node] + pos - 1].reverse_edge = &_edges[i];

@@ -70,7 +70,7 @@ class SparseSetBase {
  protected:
   explicit SparseSetBase(const ValueType k) :
     _size(0),
-    _sparse(std::make_unique<ValueType[]>(2 * k)),
+    _sparse(std::make_unique<ValueType[]>(2 * static_cast<size_t>(k))),
     _dense(nullptr) {
     for (ValueType i = 0; i < 2 * k; ++i) {
       _sparse[i] = std::numeric_limits<ValueType>::max();

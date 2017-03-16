@@ -60,7 +60,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
   void pushIncidentHypernodesIntoQueue(std::queue<HypernodeID>& queue,
                                        const HypernodeID hn) {
-    const PartitionID part = _hg.partID(hn);
+    const size_t part = static_cast<size_t>(_hg.partID(hn));
     for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       if (!_hyperedge_in_queue[part * _hg.initialNumEdges() + he]) {
         if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
@@ -120,7 +120,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     std::vector<HypernodeID> startNodes;
     StartNodeSelection::calculateStartNodes(startNodes, _config, _hg,
                                             _config.initial_partitioning.k);
-    for (int k = 0; k < static_cast<int>(startNodes.size()); ++k) {
+    for (size_t k = 0; k < static_cast<size_t>(startNodes.size()); ++k) {
       _queues[k].push(startNodes[k]);
       _hypernode_in_queue.set(k * _hg.initialNumNodes() + startNodes[k], true);
     }
@@ -148,7 +148,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           }
 
           if (hn != kInvalidNode) {
-            _hypernode_in_queue.set(part * _hg.initialNumNodes() + hn, true);
+            _hypernode_in_queue.set(static_cast<size_t>(part) * _hg.initialNumNodes() + hn, true);
             ASSERT(_hg.partID(hn) == unassigned_part,
                    "Hypernode " << hn << " isn't a node from an unassigned part.");
 

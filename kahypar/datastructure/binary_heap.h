@@ -53,7 +53,7 @@ class BinaryHeapBase {
   };
 
   explicit BinaryHeapBase(const IDType& size) :
-    _heap(std::make_unique<HeapElement[]>(size + 1)),
+    _heap(std::make_unique<HeapElement[]>(static_cast<size_t>(size) + 1)),
     _handles(std::make_unique<size_t[]>(size)),
     _compare(),
     _next_slot(0),
