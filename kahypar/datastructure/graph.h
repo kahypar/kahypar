@@ -370,7 +370,7 @@ class Graph {
                 incident_weight += e.weight;
               }
             }
-            if (abs(incident_weight - weight) > kEpsilon) {
+            if (std::abs(incident_weight - weight) > kEpsilon) {
               LOG("Weight calculation of incident cluster " << cid << " failed!");
               LOGVAR(incident_weight);
               LOGVAR(weight);
@@ -584,7 +584,7 @@ class Graph {
                 }
               }
             }
-            if (abs(incident_weight - weight) > kEpsilon) {
+            if (std::abs(incident_weight - weight) > kEpsilon) {
               LOG("Weight calculation of incident cluster " << cid << " failed!");
               LOGVAR(incident_weight);
               LOGVAR(weight);
