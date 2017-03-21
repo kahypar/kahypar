@@ -7,10 +7,7 @@ sudo: required
 dist: trusty
 
 addons:
-  sonarqube:
-    organization: "sebastianschlag-github" # the key of the org you chose at step #3
-    token:
-      secure: "l82NqZakRxx+UTjwRxIU38RcGHre63kTTfXxrE8mM4A5LS5gO3c4TWQuZTvBWnJqGKHzjYxG8dQaspbH2tPlqBGOcUmARqcg9rQpZtmpXKd/BzMfgBSdNG61PLGEcewJbhNY7/TJSuR/3E1du6DoUGde0U2163UT5+S08wjkS091Bfpn1juiTsUNidnivoNkkkEiAxRvy70yGrtExa7ma1QK8S5bMy4VHHJ1RlfWMVQv7mXECbxpSi/iZi2V/Q9HE9wUJpF5psITXGfvuZgcy7FUQJ68+robVatQT8o3fyEGAqSApNDL2DqaqGGZrkxVGY1wx6R3qAruxnzVfrR8fp4jisuMISYk+5WE0k2kR7q3gOjTj/2bKN2hU/+HkkuBmnIjyLC+EtDomL3ZuZLCe0Osin7G9f2E0ye9/9qB2n5IeSpU0Ih2G80gkZ9LHIR5bmsjz6lfyg5hkh2w+q9n0qp8zlPnoWolkl4rM/B/037/vKUYcxYXctCyZd6RId3T0KDjQ2W6KGttfm3nYeYkhChp+vLV5/bTdEdQr8RHc5Lf5wy8CyX2d25Tu/AwLBzBdlcgAXrw9CHXsrb+JPJQFxTHxB6Aml22cQyzCs8XWR2vKuK411DNMBlVGno8/lVuxj7QBVIYVZQBWhAn97RyAMX+MkJCI1+Q2nLX19uM2Ro="
+
 
 matrix:
   include:
@@ -27,6 +24,10 @@ matrix:
             - g++-6
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
+        sonarqube:
+          organization: "sebastianschlag-github" # the key of the org you chose at step #3
+          token:
+            secure: "l82NqZakRxx+UTjwRxIU38RcGHre63kTTfXxrE8mM4A5LS5gO3c4TWQuZTvBWnJqGKHzjYxG8dQaspbH2tPlqBGOcUmARqcg9rQpZtmpXKd/BzMfgBSdNG61PLGEcewJbhNY7/TJSuR/3E1du6DoUGde0U2163UT5+S08wjkS091Bfpn1juiTsUNidnivoNkkkEiAxRvy70yGrtExa7ma1QK8S5bMy4VHHJ1RlfWMVQv7mXECbxpSi/iZi2V/Q9HE9wUJpF5psITXGfvuZgcy7FUQJ68+robVatQT8o3fyEGAqSApNDL2DqaqGGZrkxVGY1wx6R3qAruxnzVfrR8fp4jisuMISYk+5WE0k2kR7q3gOjTj/2bKN2hU/+HkkuBmnIjyLC+EtDomL3ZuZLCe0Osin7G9f2E0ye9/9qB2n5IeSpU0Ih2G80gkZ9LHIR5bmsjz6lfyg5hkh2w+q9n0qp8zlPnoWolkl4rM/B/037/vKUYcxYXctCyZd6RId3T0KDjQ2W6KGttfm3nYeYkhChp+vLV5/bTdEdQr8RHc5Lf5wy8CyX2d25Tu/AwLBzBdlcgAXrw9CHXsrb+JPJQFxTHxB6Aml22cQyzCs8XWR2vKuK411DNMBlVGno8/lVuxj7QBVIYVZQBWhAn97RyAMX+MkJCI1+Q2nLX19uM2Ro="
 
     # gcc 6 - Release Build
     - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS=""
