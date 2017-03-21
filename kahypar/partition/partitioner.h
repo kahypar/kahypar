@@ -165,9 +165,6 @@ class Partitioner {
                                   const Configuration& config);
 
   inline void performInitialPartitioning(Hypergraph& hg, const Configuration& config);
-  inline void createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                   CoarsenedToHmetisMapping& hg_to_hmetis,
-                                                   const Hypergraph& hg);
   inline Configuration createConfigurationForInitialPartitioning(const Hypergraph& hg,
                                                                  const Configuration& original_config,
                                                                  double init_alpha) const;
@@ -748,17 +745,6 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
 #ifndef NDEBUG
     initial_cut = metrics::hyperedgeCut(hypergraph);
 #endif
-  }
-}
-
-inline void Partitioner::createMappingsForInitialPartitioning(HmetisToCoarsenedMapping& hmetis_to_hg,
-                                                              CoarsenedToHmetisMapping& hg_to_hmetis,
-                                                              const Hypergraph& hg) {
-  int i = 0;
-  for (const HypernodeID& hn : hg.nodes()) {
-    hg_to_hmetis[hn] = i;
-    hmetis_to_hg[i] = hn;
-    ++i;
   }
 }
 }  // namespace kahypar
