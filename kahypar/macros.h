@@ -75,9 +75,9 @@
       << msg << std::endl;                             \
       std::abort();                                    \
     }                                                  \
-  } while (0)  // NOLINT
+  } while (0)
 
-  #define ASSERT_1(cond) ASSERT_2(cond, "")  // NOLINT
+  #define ASSERT_1(cond) ASSERT_2(cond, "")
 #else
   #define ASSERT_2(cond, msg)
   #define ASSERT_1(cond)
@@ -85,7 +85,7 @@
 
 #define ASSERT_(N) ASSERT_ ## N
 #define ASSERT_EVAL(N) ASSERT_(N)
-#define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))  // NOLINT
+#define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 // *** an always-on ASSERT
 #define ALWAYS_ASSERT(cond, msg)                       \
