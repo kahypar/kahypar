@@ -77,7 +77,7 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
     _tmp_max_gain_target_parts.reserve(_config.partition.k);
   }
 
-  virtual ~MaxGainNodeKWayFMRefiner() { }
+  ~MaxGainNodeKWayFMRefiner() override = default;
 
   MaxGainNodeKWayFMRefiner(const MaxGainNodeKWayFMRefiner&) = delete;
   MaxGainNodeKWayFMRefiner& operator= (const MaxGainNodeKWayFMRefiner&) = delete;
