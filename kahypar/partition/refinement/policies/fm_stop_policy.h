@@ -27,7 +27,7 @@
 #include "kahypar/utils/float_compare.h"
 
 namespace kahypar {
-class StoppingPolicy : meta::PolicyBase {
+class StoppingPolicy : public meta::PolicyBase {
  protected:
   StoppingPolicy() = default;
 };
