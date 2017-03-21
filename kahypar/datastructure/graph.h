@@ -150,8 +150,6 @@ class Graph {
                                  static_cast<double>(hypergraph.initialNumNodes());
           if (density < 0.75) {
             constructBipartiteGraph(hypergraph, degreeWeight);
-          } else if (density >= 0.75 && density <= 1.25) {
-            constructBipartiteGraph(hypergraph, uniformWeight);
           } else {
             constructBipartiteGraph(hypergraph, uniformWeight);
           }

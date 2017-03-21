@@ -146,7 +146,8 @@ class LPRefiner final : public IRefiner {
           _already_processed_part.resetUsedEntries();
           bool moved_hn_remains_conntected_to_from_part = false;
           for (const auto& he : _hg.incidentEdges(hn)) {
-            moved_hn_remains_conntected_to_from_part |= _hg.pinCountInPart(he, from_part) != 0;
+            moved_hn_remains_conntected_to_from_part = moved_hn_remains_conntected_to_from_part ||
+                                                       (_hg.pinCountInPart(he, from_part) != 0);
             const HypernodeID pin_count_source_part_before_move = _hg.pinCountInPart(he, from_part) + 1;
             const HypernodeID pin_count_target_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
             const HypernodeID pin_count_source_part_after_move = pin_count_source_part_before_move - 1;

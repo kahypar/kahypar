@@ -90,7 +90,7 @@ class KWayFMRefiner final : public IRefiner,
 #ifdef USE_BUCKET_QUEUE
       _pq.initialize(_hg.initialNumNodes(), max_gain);
 #else
-      (void)max_gain;
+      unused(max_gain);
       _pq.initialize(_hg.initialNumNodes());
 #endif
       _is_initialized = true;
