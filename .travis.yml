@@ -50,7 +50,7 @@ before_script:
   - cmake --version
 
   # configure
-  - mkdir build; cd build
+  - mkdir build; cp sonar-project.properties build; cd build
   - cmake
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX"
