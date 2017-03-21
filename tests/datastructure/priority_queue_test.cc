@@ -32,7 +32,6 @@ namespace kahypar {
 namespace ds {
 using MaxHeapQueue = BinaryMaxHeap<HypernodeID, HyperedgeWeight>;
 using BucketQueue = EnhancedBucketQueue<HypernodeID, HyperedgeWeight>;
-// using PairingHeapQueue = PairingHeapWrapper<HypernodeID, HyperedgeWeight>;
 
 template <typename T>
 class APriorityQueue : public Test {
@@ -250,38 +249,5 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
   ASSERT_THAT(_pqs[1].getKey(257), Eq(0));
 }
 
-// TEST(TwoPairingHeaps, CanBeMerged) {
-//   PairingHeapQueue first_pq(10, 100);
-//   PairingHeapQueue second_pq(10, 100);
-
-//   first_pq.push(4, 88);
-//   first_pq.push(1, 12);
-//   first_pq.push(3, 2);
-
-//   second_pq.push(5, 99);
-//   second_pq.push(9, 6);
-
-//   first_pq.merge(second_pq);
-
-//   // check that mapping remains valid
-//   ASSERT_TRUE(first_pq.contains(4));
-//   ASSERT_TRUE(first_pq.contains(1));
-//   ASSERT_TRUE(first_pq.contains(3));
-//   ASSERT_TRUE(first_pq.contains(5));
-//   ASSERT_TRUE(first_pq.contains(9));
-
-//   // check that second pq is empty
-//   ASSERT_TRUE(second_pq.empty());
-//   ASSERT_FALSE(second_pq.contains(5));
-//   ASSERT_FALSE(second_pq.contains(9));
-
-//   // check that first pq contains elements of second pq
-//   ASSERT_THAT(first_pq.getKey(5), Eq(99));
-//   ASSERT_THAT(first_pq.getKey(9), Eq(6));
-
-//   // verify that max is correct
-//   ASSERT_THAT(first_pq.top(), Eq(5));
-//   ASSERT_THAT(first_pq.topKey(), Eq(99));
-// }
 }  // namespace ds
 }  // namespace kahypar
