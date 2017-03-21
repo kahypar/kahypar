@@ -393,7 +393,8 @@ class BinaryMinHeap final : public BinaryHeapBase<BinaryMinHeap<IDType_, KeyType
 
 // Traits specialization for max heap:
 template <typename IDType_, typename KeyType_>
-struct BinaryHeapTraits<BinaryMaxHeap<IDType_, KeyType_> >{
+class BinaryHeapTraits<BinaryMaxHeap<IDType_, KeyType_> >{
+ public:
   using IDType = IDType_;
   using KeyType = KeyType_;
   using Comparator = std::less<KeyType>;
@@ -405,7 +406,8 @@ struct BinaryHeapTraits<BinaryMaxHeap<IDType_, KeyType_> >{
 
 // Traits specialization for min heap:
 template <typename IDType_, typename KeyType_>
-struct BinaryHeapTraits<BinaryMinHeap<IDType_, KeyType_> >{
+class BinaryHeapTraits<BinaryMinHeap<IDType_, KeyType_> >{
+ public:
   using IDType = IDType_;
   using KeyType = KeyType_;
   using Comparator = std::greater<KeyType>;

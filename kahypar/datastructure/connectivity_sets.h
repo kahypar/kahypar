@@ -40,11 +40,8 @@ class ConnectivitySets final {
   // Each contains the size of the connectivity set as  the header
   // and afterwards the _dense and sparse arrays and the partition pin counts.
   // This memory is allocated outside the structure using a memory arena.
-  struct ConnectivitySet {
-    const PartitionID _k;
-    PartitionID _size;
-    // After _size are the _dense and _sparse arrays.
-
+  class ConnectivitySet {
+ public:
     explicit ConnectivitySet(const PartitionID k) :
       _k(k),
       _size(0) {
@@ -103,6 +100,11 @@ class ConnectivitySets final {
     PartitionID size() const {
       return _size;
     }
+
+ private:
+    const PartitionID _k;
+    PartitionID _size;
+    // After _size are the _dense and _sparse arrays.
   };
 
 
