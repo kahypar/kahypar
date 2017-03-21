@@ -131,15 +131,9 @@ inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& 
   str << "  Algorithm:                          " << toString(params.algorithm) << std::endl;
   str << "  max-allowed-weight-multiplier:      " << params.max_allowed_weight_multiplier << std::endl;
   str << "  contraction-limit-multiplier:       " << params.contraction_limit_multiplier << std::endl;
-  if (params.hypernode_weight_fraction != 0.0) {
-    str << "  hypernode weight fraction:          " << params.hypernode_weight_fraction << std::endl;
-  }
-  if (params.max_allowed_node_weight != 0) {
-    str << "  max. allowed hypernode weight:      " << params.max_allowed_node_weight << std::endl;
-  }
-  if (params.contraction_limit != 0) {
-    str << "  contraction limit:                  " << params.contraction_limit << std::endl;
-  }
+  str << "  hypernode weight fraction:          " << params.hypernode_weight_fraction << std::endl;
+  str << "  max. allowed hypernode weight:      " << params.max_allowed_node_weight << std::endl;
+  str << "  contraction limit:                  " << params.contraction_limit << std::endl;
   return str;
 }
 

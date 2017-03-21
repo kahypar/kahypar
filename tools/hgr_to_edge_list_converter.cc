@@ -45,4 +45,5 @@ int main(int argc, char* argv[]) {
 
   out_stream.close();
   std::cout << "done" << std::endl;
+  return 0;
 }

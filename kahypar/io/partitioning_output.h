@@ -37,7 +37,7 @@
 
 namespace kahypar {
 namespace io {
-namespace {
+namespace internal {
 template <typename T>
 void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
                 const std::pair<double, double>& quartiles) {
@@ -51,7 +51,7 @@ void printStats(const std::string& name, const std::vector<T>& vec, double avg, 
   << "sd: " << std::setw(10) << std::left << stdev
   << "]" << std::endl;
 }
-}  // namespace
+}  // namespace internal
 
 inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string& name) {
   std::vector<HypernodeID> he_sizes;
@@ -110,13 +110,14 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   std::cout << "Name : " << name << std::endl;
   std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
   std::cout << "# HEs: " << hypergraph.currentNumEdges() << std::endl;
-  printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size, math::firstAndThirdQuartile(he_sizes));
-  printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
+  internal::printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size,
+                       math::firstAndThirdQuartile(he_sizes));
+  internal::printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
              math::firstAndThirdQuartile(he_weights));
   std::cout << "# HNs: " << hypergraph.currentNumNodes() << std::endl;
-  printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
+  internal::printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
              math::firstAndThirdQuartile(hn_degrees));
-  printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
+  internal::printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
              math::firstAndThirdQuartile(hn_weights));
 }
 

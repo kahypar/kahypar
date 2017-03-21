@@ -563,11 +563,7 @@ class LPRefiner final : public IRefiner {
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
       if (target_part_weight + node_weight <= _config.partition.max_part_weights[target_part % 2]) {
-        if (target_part_gain > max_gain) {
-          _max_score.clear();
-          max_gain = target_part_gain;
-          _max_score.push_back(target_part);
-        } else if (target_part_gain == max_gain) {
+        if (target_part_gain == max_gain) {
           if (target_part_connectivity_decrease > max_connectivity_decrease) {
             max_connectivity_decrease = target_part_connectivity_decrease;
             _max_score.clear();
@@ -575,7 +571,8 @@ class LPRefiner final : public IRefiner {
           } else if (target_part_connectivity_decrease == max_connectivity_decrease) {
             _max_score.push_back(target_part);
           }
-        } else if (source_part_imbalanced && target_part_weight < _hg.partWeight(max_gain_part)) {
+        } else if ((target_part_gain > max_gain) ||
+                   (source_part_imbalanced && target_part_weight < _hg.partWeight(max_gain_part))) {
           _max_score.clear();
           max_gain = target_part_gain;
           _max_score.push_back(target_part);

@@ -61,10 +61,8 @@ static inline std::string toString(const HypergraphRepresentation& rep) {
   switch (rep) {
     case HypergraphRepresentation::Primal:
       return std::string("primal");
-      break;
     case HypergraphRepresentation::Dual:
       return std::string("dual");
-      break;
     case HypergraphRepresentation::Literal:
       return std::string("literal");
   }
