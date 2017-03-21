@@ -60,11 +60,12 @@ before_script:
 script:
   - |
     if [[ "$BUILD_TYPE" == "RelWithDebInfo" && "$CMAKE_CXX" == "g++-6" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests;
+      build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
+    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" ]]; then
+      build-wrapper-linux-x86-64 --out-dir bw-output make -j4; sonar-scanner;
     else
-      build-wrapper-linux-x86-64 --out-dir bw-output make -j4;
+      make -j4;
     fi
-  - sonar-scanner
 
 cache:
   directories:
