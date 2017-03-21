@@ -27,7 +27,7 @@ matrix:
         sonarqube:
           organization: "sebastianschlag-github"
           token:
-            secure: "Zagex1M0oD8ktkLUdRkNcfW2gni0gvr2WeC0rcjmjzw/kEGEnvsaAQHBob2jz38Hhxtr9IDeMpTKdqCFBuCYbEAQqeq2PSIRhv7yQa4WEzcG/IRWUzoGRYJ6McIh2tYHXT7DxMuZ6Fnt6X1Or4d9eCtpWlAzShvHalLQhXXjnaCeq7rDVL1UARQtB6Tc73U57yIMDLqZrCX0S0SkVFKb0o/xfuLHgwyZ3QOg34hxw04sGBogaHjhVoTNgKAb0/DEYAZRNHa0ztxbC6k6G8uE52g09ZXLb/u2Y/WZSTYXv6uuqi8ZYtrqryVwDy3TSIKwGptQkR2CpghqRLKAFSgDs1rBSiUQ3fVOMcF5+mY4oN9DgGPDZy8oDphqEJh4EEr0XAS9lgt5Gmrusmyliyf0qJTQu99gQsJ50sRRSpYqygyIf59fN58mu5x0lGbG46qVzDKtn46ysRX3Vqb5sbgIfLmjEdhJCitRwHNJlKvppr7AfWEHkrk36qIQKgiQnSObb0xPS+a9F2MwCD9e+p2xAXvK2lyJ+Dlf5Hoj+ToKNz0IUXi1bLQfBwXdIGgqgB6LTh7pz9E9ArLMqFWZ+c1kr9vLw3m4XlUV+MuOOwKYjpV0PilR2tU7aPDLznn7T+0wiAXVf09CCNv+v4vzDtOsasPlvuQRwp4MEqpPl4q8jz0="
+            secure: "rLoVPSzxLAHMRQQpgYc3wGBtMrTujG7ihZgdVr/sFKjKujQjx/0JLM8Qgv9EUKntTp6XWO02oGmW4eICsMe3O/9PH9QC73qBPhA/ALGLZURcDFGsH5GRIBvDHAeq0MNRT+ECN9r1m/vrYOO1u7mQcq29L0jh/qn+ivrRf2z1fFFUoAbSj3Xlgs0w+zYNbd1ValrojyEgC5o5uFSv+bdkpLhbZxn3RtpAcvIwJSVu7QHxvBwn0J5dT4JVqJWzf0YgWbhZfA9QNOu9koz/m8EN5Hmd/9zIn2tchJAgDXiqq0f1lD4FpEZ8ur4o+QzsH2RTFGDUiHafUNfivlwNozkiDYDC2ek2uHX9jRA43xku9dXFMPfGutAFi3se3098DrBfhxwOHb7DbjZs2o5iwE97g9aWqYfILaIUrvGQotMmas7pHImsJMNXjKIsMtxhANrOcNGaJRh7kUa16Yk0xL5iZvUNxWx3GyvfqXB/lIK+SeWlO99B6Xl0N7SigS/zfyqKAIS645SkjP4/F9MqAzT7441tGBEGb6Yie/+eDINnYRBXYY553vJo/C1WjGoiCkl8VKs3KAoS1ypt3HiMMoEuyMLqFB4PPE5Hhsmgd8YieOUnOVDN6cbAoE3o1uO9vGAlZMOH+8mpqqLWMCjM7M/5R9l2oLfcqY+YNKmda+XEy3I="
 
     # gcc 6 - Release Build
     - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS=""
