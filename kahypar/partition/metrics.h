@@ -81,32 +81,6 @@ static inline double absorption(const Hypergraph& hg) {
   return absorption_val;
 }
 
-template <typename CoarsendToHmetisMapping, typename Partition>
-static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg, CoarsendToHmetisMapping&
-                                           hg_to_hmetis, const Partition& partitioning) {
-  HyperedgeWeight cut = 0;
-  for (const HyperedgeID& he : hg.edges()) {
-    auto begin = hg.pins(he).first;
-    auto end = hg.pins(he).second;
-    if (begin == end) {
-      continue;
-    }
-    ASSERT(begin != end, "Accessing empty hyperedge");
-
-    PartitionID partition = partitioning[hg_to_hmetis[*begin]];
-    ++begin;
-
-    for (auto pin_it = begin; pin_it != end; ++pin_it) {
-      if (partition != partitioning[hg_to_hmetis[*pin_it]]) {
-        DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
-        cut += hg.edgeWeight(he);
-        break;
-      }
-    }
-  }
-  return cut;
-}
-
 
 // Hide original imbalance definition that assumes Lmax0=Lmax1=Lmax
 // This definition should only be used in assertions.

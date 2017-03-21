@@ -90,40 +90,6 @@ class APartitionedHypergraph : public Test {
   std::unique_ptr<IRefiner> refiner;
 };
 
-class TheHyperedgeCutCalculationForInitialPartitioning : public AnUnPartitionedHypergraph {
- public:
-  TheHyperedgeCutCalculationForInitialPartitioning() :
-    AnUnPartitionedHypergraph(),
-    config(),
-    coarsener(hypergraph, config,  /* heaviest_node_weight */ 1),
-    hg_to_hmetis(),
-    partition() {
-    config.coarsening.contraction_limit = 2;
-    config.coarsening.max_allowed_node_weight = 5;
-    config.partition.graph_filename = "cutCalc_test.hgr";
-    config.partition.graph_partition_filename = "cutCalc_test.hgr.part.2.KaHyPar";
-    config.partition.epsilon = 0.15;
-    hg_to_hmetis[1] = 0;
-    hg_to_hmetis[3] = 1;
-    partition.push_back(1);
-    partition.push_back(0);
-  }
-
-  Configuration config;
-  FirstWinsCoarsener coarsener;
-  std::unordered_map<HypernodeID, HypernodeID> hg_to_hmetis;
-  std::vector<PartitionID> partition;
-};
-
-TEST_F(TheHyperedgeCutCalculationForInitialPartitioning, ReturnsCorrectResult) {
-  coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
-  ASSERT_THAT(hypergraph.nodeDegree(3), Eq(1));
-  hypergraph.setNodePart(1, 0);
-  hypergraph.setNodePart(3, 1);
-
-  ASSERT_THAT(hyperedgeCut(hypergraph, hg_to_hmetis, partition), Eq(hyperedgeCut(hypergraph)));
-}
 
 TEST_F(AnUnPartitionedHypergraph, HasHyperedgeCutZero) {
   ASSERT_THAT(hyperedgeCut(hypergraph), Eq(0));
