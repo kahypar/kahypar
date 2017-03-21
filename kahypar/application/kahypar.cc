@@ -58,6 +58,8 @@ using kahypar::RefinementAlgorithm;
 using kahypar::GlobalRebalancingMode;
 using kahypar::InitialPartitioningTechnique;
 
+namespace {
+
 int getTerminalWidth() {
   int columns = 0;
 #if defined(_MSC_VER)
@@ -154,6 +156,9 @@ void sanityCheck(Configuration& config) {
                     << " " << toString(config.initial_partitioning.technique));
       checkDirectKwayMode(config.local_search.algorithm);
       break;
+    default:
+      // should never happen, because partitioning is either done via RB or directly
+      break;
   }
   switch (config.initial_partitioning.mode) {
     case Mode::recursive_bisection:
@@ -166,6 +171,9 @@ void sanityCheck(Configuration& config) {
       if (config.partition.mode != Mode::recursive_bisection) {
         checkDirectKwayMode(config.initial_partitioning.local_search.algorithm);
       }
+      break;
+    default:
+      // should never happen, because initial partitioning is either done via RB or directly
       break;
   }
 }
@@ -531,6 +539,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     + std::to_string(config.partition.seed)
     + ".KaHyPar";
 }
+
+} // namespace
 
 int main(int argc, char* argv[]) {
   Configuration config;
