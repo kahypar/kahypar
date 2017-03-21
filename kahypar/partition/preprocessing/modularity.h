@@ -31,11 +31,14 @@
 #include "kahypar/macros.h"
 
 namespace kahypar {
-using ds::Edge;
 
 const bool dbg_modularity_function = false;
 
 class Modularity {
+ private:
+  using Edge = ds::Edge;
+  using Graph = ds::Graph;
+
  public:
   explicit Modularity(Graph& graph) :
     _graph(graph),

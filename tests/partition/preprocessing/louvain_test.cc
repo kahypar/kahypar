@@ -27,14 +27,17 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/datastructure/Graph.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/modularity.h"
 
 using::testing::Eq;
 using::testing::Test;
 
-
 namespace kahypar {
+
+using ds::Graph;
+
 class ALouvainAlgorithm : public Test {
  public:
   ALouvainAlgorithm() :

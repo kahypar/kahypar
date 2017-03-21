@@ -33,12 +33,14 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-using ds::Graph;
-using ds::Edge;
 
 template <class QualityMeasure = Mandatory,
           bool RandomizeNodes = true>
 class Louvain {
+ private:
+  using Edge = ds::Edge;
+  using Graph = ds::Graph;
+
  public:
   Louvain(const Hypergraph& hypergraph,
           const Configuration& config) :
