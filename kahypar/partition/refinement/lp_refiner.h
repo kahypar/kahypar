@@ -209,10 +209,6 @@ class LPRefiner final : public IRefiner {
   }
 
  private:
-  inline bool isCutHyperedge(HyperedgeID he) const {
-    return _hg.connectivity(he) > 1;
-  }
-
   PartitionID heaviestPart() const {
     PartitionID heaviest_part = 0;
     for (PartitionID part = 1; part < _config.partition.k; ++part) {
@@ -318,10 +314,8 @@ class LPRefiner final : public IRefiner {
       ASSERT(_hg.connectivity(he) == 2, V(_hg.connectivity(he)));
       ASSERT(pin_count_target_part_after_move == 1, V(pin_count_target_part_after_move));
       for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
-        if (part != from_part) {
-          if (_already_processed_part.get(pin) != part) {
-            _gain_cache.updateExistingEntry(pin, part, { he_weight, 0 });
-          }
+        if (part != from_part && _already_processed_part.get(pin) != part) {
+          _gain_cache.updateExistingEntry(pin, part, { he_weight, 0 });
         }
       }
     }
@@ -335,19 +329,15 @@ class LPRefiner final : public IRefiner {
         }
       }
     }
-    if (pin_count_target_part_after_move == he_size - 1) {
-      if (_hg.partID(pin) != to_part) {
-        // Update single pin that remains outside of to_part after applying the move
-        if (_already_processed_part.get(pin) != to_part) {
-          _gain_cache.updateEntryIfItExists(pin, to_part, { he_weight, 0 });
-        }
-      }
+    if (pin_count_target_part_after_move == he_size - 1 &&
+        _hg.partID(pin) != to_part &&
+        _already_processed_part.get(pin) != to_part) {
+      // Update single pin that remains outside of to_part after applying the move
+      _gain_cache.updateEntryIfItExists(pin, to_part, { he_weight, 0 });
     }
 
-    if (pin_count_source_part_before_move == he_size - 1) {
-      if (_hg.partID(pin) != from_part) {
+    if (pin_count_source_part_before_move == he_size - 1 && _hg.partID(pin) != from_part) {
         _gain_cache.updateEntryIfItExists(pin, from_part, { -he_weight, 0 });
-      }
     }
 
     // km1 updates
@@ -360,12 +350,10 @@ class LPRefiner final : public IRefiner {
           }
         }
       }
-    } else if (source_part == to_part) {
-      if (pin_count_target_part_after_move == 2) {
-        for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
-          if (_already_processed_part.get(pin) != part) {
-            _gain_cache.updateExistingEntry(pin, part, { 0, -he_weight });
-          }
+    } else if (source_part == to_part && pin_count_target_part_after_move == 2) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
+        if (_already_processed_part.get(pin) != part) {
+          _gain_cache.updateExistingEntry(pin, part, { 0, -he_weight });
         }
       }
     }
