@@ -1,4 +1,5 @@
 KaHyPar - Karlsruhe Hypergraph Partitioning
+===============
 
 License|Linux Build|Windows Build|Coverity Scan|SonarQube|
 |:--:|:--:|:--:|:--:|:--:|
