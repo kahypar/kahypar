@@ -26,8 +26,6 @@ matrix:
             - libboost-program-options1.55-dev
         sonarqube:
           organization: "sebastianschlag-github"
-          token:
-            secure: "rLoVPSzxLAHMRQQpgYc3wGBtMrTujG7ihZgdVr/sFKjKujQjx/0JLM8Qgv9EUKntTp6XWO02oGmW4eICsMe3O/9PH9QC73qBPhA/ALGLZURcDFGsH5GRIBvDHAeq0MNRT+ECN9r1m/vrYOO1u7mQcq29L0jh/qn+ivrRf2z1fFFUoAbSj3Xlgs0w+zYNbd1ValrojyEgC5o5uFSv+bdkpLhbZxn3RtpAcvIwJSVu7QHxvBwn0J5dT4JVqJWzf0YgWbhZfA9QNOu9koz/m8EN5Hmd/9zIn2tchJAgDXiqq0f1lD4FpEZ8ur4o+QzsH2RTFGDUiHafUNfivlwNozkiDYDC2ek2uHX9jRA43xku9dXFMPfGutAFi3se3098DrBfhxwOHb7DbjZs2o5iwE97g9aWqYfILaIUrvGQotMmas7pHImsJMNXjKIsMtxhANrOcNGaJRh7kUa16Yk0xL5iZvUNxWx3GyvfqXB/lIK+SeWlO99B6Xl0N7SigS/zfyqKAIS645SkjP4/F9MqAzT7441tGBEGb6Yie/+eDINnYRBXYY553vJo/C1WjGoiCkl8VKs3KAoS1ypt3HiMMoEuyMLqFB4PPE5Hhsmgd8YieOUnOVDN6cbAoE3o1uO9vGAlZMOH+8mpqqLWMCjM7M/5R9l2oLfcqY+YNKmda+XEy3I="
 
     # gcc 6 - Release Build
     - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS=""
