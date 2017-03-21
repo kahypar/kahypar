@@ -256,17 +256,6 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
                        );
   }
 
-  void rollback(int last_index, const int min_cut_index) {
-    DBG(false, "min_cut_index=" << min_cut_index);
-    DBG(false, "last_index=" << last_index);
-    while (last_index != min_cut_index) {
-      const HypernodeID hn = _performed_moves[last_index].hn;
-      const PartitionID from_part = _performed_moves[last_index].to_part;
-      const PartitionID to_part = _performed_moves[last_index].from_part;
-      _hg.changeNodePart(hn, from_part, to_part);
-      --last_index;
-    }
-  }
 
   void updateNeighbours(const HypernodeID moved_hn,
                         const HypernodeWeight max_allowed_part_weight) {

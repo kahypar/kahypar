@@ -256,8 +256,8 @@ foreach my $arg (@ARGV) {
     } 
 }
 # check uncrustify's version:
-my ($uncrustver) = filter_program("", "uncrustify", "--version");
-($uncrustver eq "uncrustify 0.61\n") or die("Requires uncrustify 0.61 to run correctly. ");
+#my ($uncrustver) = filter_program("", "uncrustify", "--version");
+#($uncrustver eq "uncrustify 0.61\n") or die("Requires uncrustify 0.61 to run correctly. ");
 
 my @filelist;
 

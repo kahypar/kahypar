@@ -284,19 +284,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                        );
   }
 
-  void rollback(int last_index, const int min_cut_index) {
-    DBG(false, "min_cut_index=" << min_cut_index);
-    DBG(false, "last_index=" << last_index);
-    while (last_index != min_cut_index) {
-      const HypernodeID hn = _performed_moves[last_index].hn;
-      const PartitionID from_part = _performed_moves[last_index].to_part;
-      const PartitionID to_part = _performed_moves[last_index].from_part;
-      // LOG("Rollback HN " << hn << "from " << from_part << " back to " << to_part);
-      _hg.changeNodePart(hn, from_part, to_part);
-      --last_index;
-    }
-  }
-
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);
@@ -354,8 +341,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
           }
         }
       }
-    } else if (source_part == to_part) {
-      if (pin_state.two_pins_in_to_part_after) {
+    } else if (source_part == to_part && pin_state.two_pins_in_to_part_after) {
         for (const PartitionID& part : _gain_cache.adjacentParts(pin)) {
           if (_new_adjacent_part.get(pin) != part) {
             if (update_pq) {
@@ -364,7 +350,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
             _gain_cache.updateExistingEntry(pin, part, -he_weight);
           }
         }
-      }
     }
 
     if (pin_state.one_pin_in_from_part_before && _gain_cache.entryExists(pin, from_part)) {

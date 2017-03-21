@@ -27,7 +27,7 @@
 #include "kahypar/utils/float_compare.h"
 
 namespace kahypar {
-struct StoppingPolicy : meta::PolicyBase {
+class StoppingPolicy : meta::PolicyBase {
  protected:
   StoppingPolicy() = default;
 };
@@ -39,10 +39,14 @@ class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
     return num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
   }
 
-  void resetStatistics() { }
+  void resetStatistics() {
+    // Intentionally unimplemented...
+  }
 
   template <typename Gain>
-  void updateStatistics(const Gain) { }
+  void updateStatistics(const Gain) {
+    // Intentionally unimplemented...
+  }
 };
 
 
