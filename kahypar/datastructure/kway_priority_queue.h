@@ -46,9 +46,6 @@ class KWayPriorityQueue {
   struct IndexPartMapping {
     PartitionID part;
     size_t index;
-    IndexPartMapping(const PartitionID p, const size_t i) :
-      part(p),
-      index(i) { }
   };
 
  public:
