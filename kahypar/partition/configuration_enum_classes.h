@@ -94,8 +94,9 @@ static std::string toString(const Mode& mode) {
       return std::string("recursive");
     case Mode::direct_kway:
       return std::string("direct");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const Objective& objective) {
@@ -104,8 +105,9 @@ static std::string toString(const Objective& objective) {
       return std::string("cut");
     case Objective::km1:
       return std::string("km1");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const InitialPartitioningTechnique& technique) {
@@ -114,8 +116,9 @@ static std::string toString(const InitialPartitioningTechnique& technique) {
       return std::string("flat");
     case InitialPartitioningTechnique::multilevel:
       return std::string("multilevel");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const CoarseningAlgorithm& algo) {
@@ -128,8 +131,9 @@ static std::string toString(const CoarseningAlgorithm& algo) {
       return std::string("ml_style");
     case CoarseningAlgorithm::do_nothing:
       return std::string("do_nothing");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const RefinementAlgorithm& algo) {
@@ -146,8 +150,9 @@ static std::string toString(const RefinementAlgorithm& algo) {
       return std::string("label_propagation");
     case RefinementAlgorithm::do_nothing:
       return std::string("do_nothing");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const InitialPartitionerAlgorithm& algo) {
@@ -178,8 +183,9 @@ static std::string toString(const InitialPartitionerAlgorithm& algo) {
       return std::string("lp");
     case InitialPartitionerAlgorithm::pool:
       return std::string("pool");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const LouvainEdgeWeight& weight) {
@@ -192,8 +198,9 @@ static std::string toString(const LouvainEdgeWeight& weight) {
       return std::string("non_uniform");
     case LouvainEdgeWeight::degree:
       return std::string("degree");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const RefinementStoppingRule& algo) {
@@ -202,8 +209,9 @@ static std::string toString(const RefinementStoppingRule& algo) {
       return std::string("simple");
     case RefinementStoppingRule::adaptive_opt:
       return std::string("adaptive_opt");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static std::string toString(const GlobalRebalancingMode& state) {
@@ -212,8 +220,9 @@ static std::string toString(const GlobalRebalancingMode& state) {
       return std::string("off");
     case GlobalRebalancingMode::on:
       return std::string("on");
+    default:
+      return std::string("UNDEFINED");
   }
-  return std::string("UNDEFINED");
 }
 
 static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {

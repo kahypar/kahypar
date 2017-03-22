@@ -254,12 +254,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           } (), "Calculated gain is invalid");
 
 
-        if (_hg.partWeight(target_part) + hn_weight
-            <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) {
-          if (_tmp_scores[target_part] > max_score) {
-            max_score = _tmp_scores[target_part];
-            max_part = target_part;
-          }
+        if ((_hg.partWeight(target_part) + hn_weight
+             <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
+            _tmp_scores[target_part] > max_score) {
+          max_score = _tmp_scores[target_part];
+          max_part = target_part;
         }
         _tmp_scores[target_part] = 0;
       }
@@ -326,12 +325,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             return true;
           } (), "Calculated gain is invalid");
 
-        if (_hg.partWeight(target_part) + hn_weight
-            <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) {
-          if (_tmp_scores[target_part] > max_score) {
-            max_score = _tmp_scores[target_part];
-            max_part = target_part;
-          }
+        if ((_hg.partWeight(target_part) + hn_weight
+             <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
+            _tmp_scores[target_part] > max_score) {
+          max_score = _tmp_scores[target_part];
+          max_part = target_part;
         }
       }
       _tmp_scores[target_part] = 0;

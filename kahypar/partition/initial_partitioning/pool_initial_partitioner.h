@@ -123,12 +123,10 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       LOG(toString(algo) << V(current_cut) << V(current_imbalance));
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
-        if (best_cut.cut != kInvalidCut) {
-          if (current_imbalance > _config.initial_partitioning.epsilon) {
-            if (current_imbalance > best_cut.imbalance) {
-              apply_best_partition = false;
-            }
-          }
+        if (best_cut.cut != kInvalidCut &&
+            current_imbalance > _config.initial_partitioning.epsilon &&
+            current_imbalance > best_cut.imbalance) {
+          apply_best_partition = false;
         }
         if (apply_best_partition) {
           for (const HypernodeID& hn : _hg.nodes()) {

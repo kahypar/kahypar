@@ -354,6 +354,9 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
     case Objective::km1:
       Stats::instance().addToTotal(config, "initialKm1", metrics::km1(hg));
       break;
+    default:
+      // do nothing
+      break;
   }
   Stats::instance().addToTotal(config, "initialImbalance", metrics::imbalance(hg, config));
 }
@@ -419,6 +422,9 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           // coarsening phase.
           config.partition.mode = Mode::direct_kway;
           break;
+        default:
+          LOG("Invalid IP mode");
+          std::exit(-1);
       }
       config.local_search.algorithm = config.initial_partitioning.local_search.algorithm;
       break;
@@ -440,6 +446,9 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
         case Mode::direct_kway:
           config.partition.mode = Mode::direct_kway;
           break;
+        default:
+          LOG("Invalid IP mode");
+          std::exit(-1);
       }
   }
   // We are now in initial partitioning mode, i.e. the next call to performInitialPartitioning
@@ -705,6 +714,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                       delete_hypergraph),
                                         RBHypergraphState::unpartitioned, k1, k1 + km - 1);
         }
+        break;
+      default:
+        LOG("Illegal recursive bisection state");
         break;
     }
   }

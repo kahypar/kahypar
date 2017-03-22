@@ -117,14 +117,13 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
         _max_hn_weights.pop_back();
       }
 
-      switch (_config.local_search.algorithm) {
-        case RefinementAlgorithm::twoway_fm:
-          _hg.uncontract(_history.back().contraction_memento, changes,
-                         meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
-          break;
-        default:
-          _hg.uncontract(_history.back().contraction_memento);
+      if (_config.local_search.algorithm == RefinementAlgorithm::twoway_fm) {
+        _hg.uncontract(_history.back().contraction_memento, changes,
+                       meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+      } else {
+        _hg.uncontract(_history.back().contraction_memento);
       }
+
       performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
