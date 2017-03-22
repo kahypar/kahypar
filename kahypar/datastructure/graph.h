@@ -154,6 +154,9 @@ class Graph {
             constructBipartiteGraph(hypergraph, uniformWeight);
           }
           break;
+        default:
+          LOG("Unknown edge weight for bipartite graph.");
+          std::exit(-1);
       }
     }
   }
