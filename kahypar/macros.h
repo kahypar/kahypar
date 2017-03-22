@@ -110,7 +110,9 @@
 #endif
 
 template <typename T>
-void unused(T&&) { }
+void unused(T&&) {
+  // Used to avoid warnings of unused variables
+}
 
 #if defined(__GNUC__) || defined(__clang__)
 #define KAHYPAR_ATTRIBUTE_ALWAYS_INLINE __attribute__ ((always_inline))
