@@ -149,8 +149,11 @@ class GenericHypergraph {
 
   //! A dummy data structure that is used in GenericHypergraph::changeNodePart
   //! for algorithms that do not need non-border-node detection.
-  struct Dummy {
-    void push_back(HypernodeID) { }  // NOLINT
+  class Dummy {
+ public:
+    void push_back(HypernodeID) {
+      // Intentionally unimplemented ...
+    }  // NOLINT
   };
 
   //! Constant to denote invalid partition pin counts.
@@ -357,10 +360,10 @@ class GenericHypergraph {
 
     //! Convenience function for range-based for-loops
     friend HypergraphElementIterator end<>(const std::pair<HypergraphElementIterator,
-                                                           HypergraphElementIterator>&);
+                                                           HypergraphElementIterator>& iter_pair);
     //! Convenience function for range-based for-loops
     friend HypergraphElementIterator begin<>(const std::pair<HypergraphElementIterator,
-                                                             HypergraphElementIterator>&);
+                                                             HypergraphElementIterator>& iter_pair);
 
     bool operator!= (const HypergraphElementIterator& rhs) {
       return _id != rhs._id;
@@ -397,21 +400,6 @@ class GenericHypergraph {
    *
    */
   struct Memento {
-    Memento(const Memento& other) = default;
-    Memento& operator= (const Memento& other) = default;
-
-    Memento(Memento&& other) = default;
-    Memento& operator= (Memento&& other) = default;
-
-    Memento(const HypernodeID u_, const HypernodeID u_first_entry_,
-            const HypernodeID u_size_, const HypernodeID v_) :
-      u(u_),
-      u_first_entry(u_first_entry_),
-      u_size(u_size_),
-      v(v_) { }
-
-    ~Memento() = default;
-
     //! The representative hypernode that remains in the hypergraph
     const HypernodeID u;
     //! The stating index of u's incidence structure before contraction
@@ -464,13 +452,14 @@ class GenericHypergraph {
    * a PartInfo object stores the number of hypernodes currently assigned to block \f$V_i\f$
    * as well as the sum of their weights.
    */
-  struct PartInfo {
-    HypernodeWeight weight;
-    HypernodeID size;
-
+  class PartInfo {
+ public:
     bool operator== (const PartInfo& other) const {
       return weight == other.weight && size == other.size;
     }
+
+    HypernodeWeight weight;
+    HypernodeID size;
   };
 
   //! The data type used to store indices into HyperedgeVector
@@ -855,7 +844,7 @@ class GenericHypergraph {
     }
     hypernode(v).disable();
     --_current_num_hypernodes;
-    return Memento(u, u_offset, u_size, v);
+    return Memento { u, u_offset, u_size, v };
   }
 
   /*!
@@ -1128,11 +1117,11 @@ class GenericHypergraph {
             }
           }
         }
-      } else if (!no_pins_left_in_source_part && only_one_pin_in_to_part) {
-        if (pinCountInPart(he, from) == edgeSize(he) - 1) {
-          for (const HypernodeID& pin : pins(he)) {
-            ++hypernode(pin).num_incident_cut_hes;
-          }
+      } else if (!no_pins_left_in_source_part &&
+                 only_one_pin_in_to_part &&
+                 pinCountInPart(he, from) == edgeSize(he) - 1) {
+        for (const HypernodeID& pin : pins(he)) {
+          ++hypernode(pin).num_incident_cut_hes;
         }
       }
       /**ASSERT([&]() -> bool {
@@ -1801,7 +1790,8 @@ class GenericHypergraph {
    */
   void resetReusedPinSlotToOriginalValue(const HyperedgeID he, const Memento& memento) {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    PinHandleIterator pin_begin, pin_end;
+    PinHandleIterator pin_begin;
+    PinHandleIterator pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
@@ -1894,6 +1884,9 @@ class GenericHypergraph {
         break;
       case Type::EdgeAndNodeWeights:
         typestring = "edgeWeights=true nodeWeights=true";
+        break;
+      default:
+        typestring = "edgeWeights=UNKNOWN nodeWeights=UNKNOWN";
         break;
     }
     return typestring;
