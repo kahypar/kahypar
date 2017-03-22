@@ -44,17 +44,6 @@ class SparseMapBase {
   struct MapElement {
     Key key;
     Value value;
-
-    MapElement(Key k, Value val) :
-      key(k),
-      value(val) { }
-
-    MapElement(const MapElement&) = delete;
-    MapElement& operator= (const MapElement&) = delete;
-    MapElement(MapElement&&) = default;
-    MapElement& operator= (MapElement&&) = default;
-
-    ~MapElement() = default;
   };
 
  public:
@@ -99,7 +88,7 @@ class SparseMapBase {
   Value& operator[] (const Key key) {
     const size_t index = _sparse[key];
     if (!contains(key)) {
-      _dense[_size] = MapElement(key, Value());
+      _dense[_size] = MapElement { key, Value() };
       _sparse[key] = _size++;
       return _dense[_size - 1].value;
     }
@@ -121,7 +110,7 @@ class SparseMapBase {
     _dense = reinterpret_cast<MapElement*>(_sparse.get() + max_size);
     for (size_t i = 0; i < max_size; ++i) {
       _sparse[i] = std::numeric_limits<size_t>::max();
-      _dense[i] = MapElement(std::numeric_limits<Key>::max(), initial_value);
+      _dense[i] = MapElement { std::numeric_limits<Key>::max(), initial_value };
     }
   }
 
