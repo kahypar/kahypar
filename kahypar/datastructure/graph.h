@@ -146,14 +146,16 @@ class Graph {
           constructBipartiteGraph(hypergraph, uniformWeight);
           break;
         case LouvainEdgeWeight::hybrid:
-          const double density = static_cast<double>(hypergraph.initialNumEdges()) /
-                                 static_cast<double>(hypergraph.initialNumNodes());
-          if (density < 0.75) {
-            constructBipartiteGraph(hypergraph, degreeWeight);
-          } else {
-            constructBipartiteGraph(hypergraph, uniformWeight);
+          {
+            const double density = static_cast<double>(hypergraph.initialNumEdges()) /
+                                   static_cast<double>(hypergraph.initialNumNodes());
+            if (density < 0.75) {
+              constructBipartiteGraph(hypergraph, degreeWeight);
+            } else {
+              constructBipartiteGraph(hypergraph, uniformWeight);
+            }
+            break;
           }
-          break;
         default:
           LOG("Unknown edge weight for bipartite graph.");
           std::exit(-1);
