@@ -282,7 +282,6 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
     io::printHypergraphInfo(hg, "Coarsened Hypergraph");
   }
 
-  std::uniform_int_distribution<int> int_dist;
   auto extracted_init_hypergraph = ds::reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
