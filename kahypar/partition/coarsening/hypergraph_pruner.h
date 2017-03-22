@@ -39,17 +39,11 @@ static const bool dbg_coarsening_fingerprinting = false;
 class HypergraphPruner {
  private:
   struct Fingerprint {
-    Fingerprint(HyperedgeID id_, size_t hash_) :
-      id(id_),
-      hash(hash_) { }
     HyperedgeID id;
     size_t hash;
   };
 
   struct ParallelHE {
-    ParallelHE(HyperedgeID representative_id_, HyperedgeID removed_id_) :
-      representative_id(representative_id_),
-      removed_id(removed_id_) { }
     const HyperedgeID representative_id;
     const HyperedgeID removed_id;
   };
@@ -252,7 +246,7 @@ class HypergraphPruner {
     DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
         << representative);
     hypergraph.removeEdge(to_remove);
-    _removed_parallel_hyperedges.emplace_back(representative, to_remove);
+    _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
   }
 
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) {
@@ -279,7 +273,7 @@ class HypergraphPruner {
         } (), V(he));
       DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
           << "= {" << he << "," << hypergraph.edgeHash(he) << "," << hypergraph.edgeSize(he) << "}");
-      _fingerprints.emplace_back(he, hypergraph.edgeHash(he));
+      _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he) });
     }
   }
 

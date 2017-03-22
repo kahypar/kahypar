@@ -30,7 +30,8 @@
 
 namespace kahypar {
 template <bool UseRandomStartHypernode = true>
-struct BFSStartNodeSelectionPolicy {
+class BFSStartNodeSelectionPolicy {
+ public:
   static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Configuration& config,
                                          const Hypergraph& hg, const PartitionID k) {
     HypernodeID start_hn = 0;
@@ -84,7 +85,8 @@ struct BFSStartNodeSelectionPolicy {
   }
 };
 
-struct RandomStartNodeSelectionPolicy {
+class RandomStartNodeSelectionPolicy {
+ public:
   static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration&,
                                          const Hypergraph& hg, const PartitionID k) {
     if (k == 2) {

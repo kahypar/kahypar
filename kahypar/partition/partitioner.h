@@ -79,17 +79,19 @@ class Partitioner {
     finished
   };
 
-  struct RBState {
-    HypergraphPtr hypergraph;
-    RBHypergraphState state;
-    PartitionID lower_k;
-    PartitionID upper_k;
+  class RBState {
+ public:
     RBState(HypergraphPtr h, RBHypergraphState s, const PartitionID lk,
             const PartitionID uk) :
       hypergraph(std::move(h)),
       state(s),
       lower_k(lk),
       upper_k(uk) { }
+
+    HypergraphPtr hypergraph;
+    RBHypergraphState state;
+    const PartitionID lower_k;
+    const PartitionID upper_k;
   };
 
  public:

@@ -23,7 +23,8 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-struct LastRatingWins {
+class LastRatingWins {
+ public:
   static bool acceptEqual() {
     return true;
   }
@@ -37,7 +38,8 @@ struct LastRatingWins {
  protected: ~LastRatingWins() = default;
 };
 
-struct FirstRatingWins {
+class FirstRatingWins {
+ public:
   static bool acceptEqual() {
     return false;
   }
@@ -51,7 +53,7 @@ struct FirstRatingWins {
  protected: ~FirstRatingWins() = default;
 };
 
-struct RandomRatingWins {
+class RandomRatingWins {
  public:
   static bool acceptEqual() {
     return Randomize::instance().flipCoin();

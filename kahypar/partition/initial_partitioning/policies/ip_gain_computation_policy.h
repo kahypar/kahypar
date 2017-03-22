@@ -40,7 +40,8 @@ enum class GainType : std::uint8_t {
   max_pin_gain
 };
 
-struct FMGainComputationPolicy {
+class FMGainComputationPolicy {
+ public:
   static inline Gain calculateGainForUnassignedHN(const Hypergraph& hg,
                                                   const HypernodeID& hn,
                                                   const PartitionID& target_part) {
@@ -83,6 +84,9 @@ struct FMGainComputationPolicy {
               hg.pinCountInPart(he, target_part) != 0) {
             gain += hg.edgeWeight(he);
           }
+          break;
+        default:
+          // do nothing
           break;
       }
     }
@@ -140,6 +144,9 @@ struct FMGainComputationPolicy {
               }
               break;
             }
+          default:
+            // do nothing
+            break;
         }
       }
       if (connectivity == 2 && pin_count_in_target_part_after == he_size - 1) {
@@ -283,7 +290,8 @@ struct FMGainComputationPolicy {
 };
 
 
-struct MaxPinGainComputationPolicy {
+class MaxPinGainComputationPolicy {
+ public:
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
                                    ds::FastResetFlagArray<>& visit) {
@@ -291,10 +299,8 @@ struct MaxPinGainComputationPolicy {
     for (const HyperedgeID& he : hg.incidentEdges(hn)) {
       if (hg.pinCountInPart(he, target_part) > 0) {
         for (const HypernodeID& pin : hg.pins(he)) {
-          if (!visit[pin]) {
-            if (hg.partID(pin) == target_part) {
-              gain += hg.nodeWeight(pin);
-            }
+          if (!visit[pin] && hg.partID(pin) == target_part) {
+            gain += hg.nodeWeight(pin);
           }
           visit.set(pin, true);
         }
@@ -344,7 +350,8 @@ struct MaxPinGainComputationPolicy {
   }
 };
 
-struct MaxNetGainComputationPolicy {
+class MaxNetGainComputationPolicy {
+ public:
   static inline Gain calculateGain(const Hypergraph& hg, const HypernodeID& hn,
                                    const PartitionID& target_part,
                                    const ds::FastResetFlagArray<>&) {
@@ -372,10 +379,10 @@ struct MaxNetGainComputationPolicy {
 
       if (pins_in_source_part == 0 || pins_in_target_part == 1) {
         for (const HypernodeID& pin : hg.pins(he)) {
-          if (from != -1) {
-            if (pins_in_source_part == 0 && pq.contains(pin, from)) {
-              pq.updateKeyBy(pin, from, -hg.edgeWeight(he));
-            }
+          if (from != -1 &&
+              pins_in_source_part == 0 &&
+              pq.contains(pin, from)) {
+            pq.updateKeyBy(pin, from, -hg.edgeWeight(he));
           }
           if (pins_in_target_part == 1 && pq.contains(pin, to)) {
             pq.updateKeyBy(pin, to, hg.edgeWeight(he));

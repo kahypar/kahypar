@@ -43,7 +43,8 @@ class HeavyEdgeRater {
  private:
   using TieBreakingPolicy = _TieBreakingPolicy;
 
-  struct HeavyEdgeRating {
+  class HeavyEdgeRating {
+ public:
     HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) :
       target(trgt),
       value(val),

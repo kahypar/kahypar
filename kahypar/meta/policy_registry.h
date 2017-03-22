@@ -26,7 +26,8 @@
 
 namespace kahypar {
 namespace meta {
-struct PolicyBase {
+class PolicyBase {
+ public:
   PolicyBase() = default;
 
   PolicyBase(const PolicyBase&) = default;

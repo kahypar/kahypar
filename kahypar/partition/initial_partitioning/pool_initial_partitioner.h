@@ -38,11 +38,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   static constexpr HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 
-  struct PartitioningResult {
-    InitialPartitionerAlgorithm algo;
-    HyperedgeWeight cut;
-    double imbalance;
-
+  class PartitioningResult {
+ public:
     PartitioningResult(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
                        double imbalance) :
       algo(algo),
@@ -53,6 +50,10 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
           << toString(algo) << "]");
     }
+
+    InitialPartitionerAlgorithm algo;
+    HyperedgeWeight cut;
+    double imbalance;
   };
 
  public:

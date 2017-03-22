@@ -28,7 +28,8 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-struct RoundRobinQueueSelectionPolicy {
+class RoundRobinQueueSelectionPolicy {
+ public:
   // Method returns the part which all hypernodes has to be assigned to before
   // initial partitioning. In experimental results we recognize that it is
   // desirable to let all hypernodes unassigned before initial partitioning
@@ -63,7 +64,8 @@ struct RoundRobinQueueSelectionPolicy {
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct GlobalQueueSelectionPolicy {
+class GlobalQueueSelectionPolicy {
+ public:
   // Method returns the part which all hypernodes has to be assigned to before
   // initial partitioning. In experimental results we recognize that it is
   // desirable to assign all hypernodes to part 1 before initial partitioning
@@ -111,7 +113,8 @@ struct GlobalQueueSelectionPolicy {
   static const Gain invalid_gain = std::numeric_limits<Gain>::max();
 };
 
-struct SequentialQueueSelectionPolicy {
+class SequentialQueueSelectionPolicy {
+ public:
   // Method returns the part which all hypernodes has to be assigned to before
   // initial partitioning. In experimental results we recognize that it is
   // desirable to assign all hypernodes to part 1 before initial partitioning

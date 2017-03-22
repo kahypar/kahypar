@@ -149,16 +149,10 @@ struct LocalSearchParameters {
     int max_number_iterations = std::numeric_limits<int>::max();
   };
 
-  LocalSearchParameters() :
-    fm(),
-    sclap(),
-    algorithm(RefinementAlgorithm::kway_fm),
-    iterations_per_level(std::numeric_limits<int>::max()) { }
-
-  FM fm;
-  Sclap sclap;
-  RefinementAlgorithm algorithm;
-  int iterations_per_level;
+  FM fm { };
+  Sclap sclap { };
+  RefinementAlgorithm algorithm = RefinementAlgorithm::kway_fm;
+  int iterations_per_level = std::numeric_limits<int>::max();
 };
 
 inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters& params) {
@@ -183,7 +177,8 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   return str;
 }
 
-struct InitialPartitioningParameters {
+class InitialPartitioningParameters {
+ public:
   InitialPartitioningParameters() :
     mode(Mode::recursive_bisection),
     technique(InitialPartitioningTechnique::flat),
@@ -257,48 +252,28 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
 }
 
 struct PartitioningParameters {
-  PartitioningParameters() :
-    mode(Mode::direct_kway),
-    objective(Objective::cut),
-    epsilon(0.03),
-    k(2),
-    rb_lower_k(0),
-    rb_upper_k(1),
-    seed(0),
-    global_search_iterations(0),
-    current_v_cycle(0),
-    perfect_balance_part_weights({
-      std::numeric_limits<HypernodeWeight>::max(),
-      std::numeric_limits<HypernodeWeight>::max()
-    }),
-    max_part_weights({ std::numeric_limits<HypernodeWeight>::max(),
-                       std::numeric_limits<HypernodeWeight>::max() }),
-    total_graph_weight(0),
-    hyperedge_size_threshold(std::numeric_limits<HypernodeID>::max()),
-    verbose_output(false),
-    collect_stats(false),
-    graph_filename(),
-    graph_partition_filename() { }
+  Mode mode = Mode::direct_kway;
+  Objective objective = Objective::cut;
+  double epsilon = 0.03;
+  PartitionID k = 2;
+  PartitionID rb_lower_k = 0;
+  PartitionID rb_upper_k = 1;
+  int seed = 0;
+  int global_search_iterations = 0;
+  int current_v_cycle = 0;
+  std::array<HypernodeWeight, 2> perfect_balance_part_weights {
+    std::numeric_limits<HypernodeWeight>::max(),
+    std::numeric_limits<HypernodeWeight>::max()
+  };
+  std::array<HypernodeWeight, 2> max_part_weights { 0, 0 };
+  HypernodeWeight total_graph_weight = 0;
+  HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
 
-  Mode mode;
-  Objective objective;
-  double epsilon;
-  PartitionID k;
-  PartitionID rb_lower_k;
-  PartitionID rb_upper_k;
-  int seed;
-  int global_search_iterations;
-  int current_v_cycle;
-  std::array<HypernodeWeight, 2> perfect_balance_part_weights;
-  std::array<HypernodeWeight, 2> max_part_weights;
-  HypernodeWeight total_graph_weight;
-  HyperedgeID hyperedge_size_threshold;
+  bool verbose_output = false;
+  bool collect_stats = false;
 
-  bool verbose_output;
-  bool collect_stats;
-
-  std::string graph_filename;
-  std::string graph_partition_filename;
+  std::string graph_filename { };
+  std::string graph_partition_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
@@ -324,17 +299,11 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 
 
 struct Configuration {
-  Configuration() :
-    partition(),
-    preprocessing(),
-    coarsening(),
-    initial_partitioning(),
-    local_search() { }
-  PartitioningParameters partition;
-  PreprocessingParameters preprocessing;
-  CoarseningParameters coarsening;
-  InitialPartitioningParameters initial_partitioning;
-  LocalSearchParameters local_search;
+  PartitioningParameters partition { };
+  PreprocessingParameters preprocessing { };
+  CoarseningParameters coarsening { };
+  InitialPartitioningParameters initial_partitioning { };
+  LocalSearchParameters local_search { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Configuration& config) {
