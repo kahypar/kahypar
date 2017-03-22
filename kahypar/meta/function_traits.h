@@ -27,7 +27,7 @@ namespace meta {
 // based on: http://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda
 
 template <typename T>
-struct FunctionTraits : public FunctionTraits<decltype(& T::operator())>{ };
+struct FunctionTraits : FunctionTraits<decltype(& T::operator())>{ };
 // For generic types, directly use the result of the signature of its 'operator()'
 
 template <typename ClassType, typename ReturnType, typename ... Args>
