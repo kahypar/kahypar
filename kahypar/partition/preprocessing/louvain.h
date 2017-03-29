@@ -30,10 +30,11 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/partition/configuration.h"
+#include "kahypar/partition/preprocessing/modularity.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/utils/stats.h"
 
 namespace kahypar {
-
 template <class QualityMeasure = Mandatory,
           bool RandomizeNodes = true>
 class Louvain {
@@ -249,4 +250,28 @@ class Louvain {
   std::vector<NodeID> _random_node_order;
   const Configuration& _config;
 };
+
+
+inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
+                                                const Configuration& config) {
+  Louvain<Modularity> louvain(hypergraph, config);
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const EdgeWeight quality = louvain.run();
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
+  Stats::instance().addToTotal(config, "louvainTime", elapsed_seconds.count());
+  Stats::instance().addToTotal(config, "communities", louvain.numCommunities());
+  Stats::instance().addToTotal(config, "modularity", quality);
+
+  std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    communities[hn] = louvain.hypernodeClusterID(hn);
+  }
+  ASSERT(std::none_of(communities.cbegin(), communities.cend(),
+                      [](ClusterID i) {
+      return i == -1;
+    }));
+  return communities;
+}
 }  // namespace kahypar

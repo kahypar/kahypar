@@ -137,11 +137,14 @@ class Partitioner {
 
   inline void setupConfig(const Hypergraph& hypergraph, Configuration& config) const;
 
+  inline void configurePreprocessing(const Hypergraph& hypergraph, Configuration& config) const;
+
   inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
                          const Configuration& config);
 
-  inline void partitionInternal(Hypergraph& hypergraph, const Configuration& config);
+  inline void partitionInternal(Hypergraph& hypergraph, Configuration& config);
+  inline void performPartitioning(Hypergraph& hypergraph, const Configuration& config);
 
   inline void performDirectKwayPartitioning(Hypergraph& hypergraph,
                                             const Configuration& config);
@@ -184,6 +187,34 @@ class Partitioner {
   MinHashSparsifier _pin_sparsifier;
   std::string _internals;
 };
+
+inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
+                                                Configuration& config) const {
+  if (config.preprocessing.enable_min_hash_sparsifier) {
+    // determine whether or not to apply the sparsifier
+    std::vector<HypernodeID> he_sizes;
+    he_sizes.reserve(hypergraph.currentNumEdges());
+    for (const auto& he : hypergraph.edges()) {
+      he_sizes.push_back(hypergraph.edgeSize(he));
+    }
+    std::sort(he_sizes.begin(), he_sizes.end());
+    if (kahypar::math::median(he_sizes) >=
+        config.preprocessing.min_hash_sparsifier.min_median_he_size) {
+      config.preprocessing.min_hash_sparsifier.is_active = true;
+    }
+  }
+
+  if (config.preprocessing.enable_louvain_community_detection &&
+      config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
+    const double density = static_cast<double>(hypergraph.initialNumEdges()) /
+                           static_cast<double>(hypergraph.initialNumNodes());
+    if (density < 0.75) {
+      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::degree;
+    } else {
+      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::uniform;
+    }
+  }
+}
 
 inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration& config) const {
   config.partition.total_graph_weight = hypergraph.totalWeight();
@@ -315,7 +346,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
                              init_config);
     } else {
       // ... we call the partitioner again with the new configuration.
-      partitionInternal(*extracted_init_hypergraph.first, init_config);
+      performPartitioning(*extracted_init_hypergraph.first, init_config);
     }
 
     const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, config);
@@ -466,21 +497,27 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config) {
+  configurePreprocessing(hypergraph, config);
+  partitionInternal(hypergraph, config);
+}
+
+
+inline void Partitioner::partitionInternal(Hypergraph& hypergraph, Configuration& config) {
   setupConfig(hypergraph, config);
 
   if (config.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, config);
-    partitionInternal(sparseHypergraph, config);
+    performPartitioning(sparseHypergraph, config);
     postprocess(hypergraph, sparseHypergraph, config);
   } else {
     preprocess(hypergraph, config);
-    partitionInternal(hypergraph, config);
+    performPartitioning(hypergraph, config);
     postprocess(hypergraph, config);
   }
 }
 
-inline void Partitioner::partitionInternal(Hypergraph& hypergraph, const Configuration& config) {
+inline void Partitioner::performPartitioning(Hypergraph& hypergraph, const Configuration& config) {
   switch (config.partition.mode) {
     case Mode::recursive_bisection:
       performRecursiveBisectionPartitioning(hypergraph, config);

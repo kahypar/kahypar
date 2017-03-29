@@ -61,9 +61,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
 
   void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
-    if (_config.preprocessing.enable_louvain_community_detection) {
-      _rater.performLouvainCommunityDetection();
-    }
+
     rateAllHypernodes(_rater, _target);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {

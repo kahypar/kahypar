@@ -29,7 +29,6 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/modularity.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -75,8 +74,13 @@ class HeavyEdgeRater {
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()),
-    _comm(_hg.initialNumNodes(), 0),
-    _louvain(hypergraph, _config) { }
+    _comm() {
+    if (_config.preprocessing.enable_louvain_community_detection) {
+      _comm = detectCommunities(_hg, _config);
+    } else {
+      _comm.resize(_hg.initialNumNodes(), 0);
+    }
+  }
 
   HeavyEdgeRater(const HeavyEdgeRater&) = delete;
   HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
@@ -139,20 +143,6 @@ class HeavyEdgeRater {
     return _config.coarsening.max_allowed_node_weight;
   }
 
-  void performLouvainCommunityDetection() {
-    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    EdgeWeight quality = _louvain.run();
-    for (const HypernodeID& hn : _hg.nodes()) {
-      _comm[hn] = _louvain.hypernodeClusterID(hn);
-    }
-    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
-    Stats::instance().addToTotal(_config, "louvainTime", elapsed_seconds.count());
-    Stats::instance().addToTotal(_config, "communities", _louvain.numCommunities());
-    Stats::instance().addToTotal(_config, "modularity", quality);
-  }
-
  private:
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
                                 const HypernodeWeight weight_v) const {
@@ -167,6 +157,5 @@ class HeavyEdgeRater {
   const Configuration& _config;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   std::vector<ClusterID> _comm;
-  Louvain<Modularity> _louvain;
 };
 }  // namespace kahypar

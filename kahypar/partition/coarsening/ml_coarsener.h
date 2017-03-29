@@ -91,7 +91,7 @@ class MLCoarsener final : public ICoarsener,
     ds::FastResetFlagArray<> already_matched(_hg.initialNumNodes());
 
     if (_config.preprocessing.enable_louvain_community_detection) {
-      performLouvainCommunityDetection();
+      _comm = detectCommunities(_hg, _config);
     }
 
     while (_hg.currentNumNodes() > limit) {
@@ -141,20 +141,6 @@ class MLCoarsener final : public ICoarsener,
     Stats::instance().addToTotal(_config, "hns_after_coarsening", _hg.currentNumNodes());
   }
 
-  void performLouvainCommunityDetection() {
-    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    EdgeWeight quality = _louvain.run();
-    for (const HypernodeID& hn : _hg.nodes()) {
-      _comm[hn] = _louvain.hypernodeClusterID(hn);
-    }
-    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    LOG("Louvain-Time: " << elapsed_seconds.count() << "s");
-    Stats::instance().addToTotal(_config, "louvainTime", elapsed_seconds.count());
-    Stats::instance().addToTotal(_config, "communities", _louvain.numCommunities());
-    Stats::instance().addToTotal(_config, "modularity", quality);
-  }
-
   Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
     DBG(dbg_partition_rating, "Calculating rating for HN " << u);
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
@@ -185,7 +171,7 @@ class MLCoarsener final : public ICoarsener,
 
     Rating ret;
     if (!FloatingPoint<RatingType>(max_rating).AlmostEquals(
-            FloatingPoint<RatingType>(std::numeric_limits<RatingType>::min()))) {
+          FloatingPoint<RatingType>(std::numeric_limits<RatingType>::min()))) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max());
       ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
@@ -205,8 +191,8 @@ class MLCoarsener final : public ICoarsener,
                     const HypernodeID old_target, const HypernodeID new_target,
                     const ds::FastResetFlagArray<>& already_matched) const {
     return max_rating < tmp ||
-                        (FloatingPoint<RatingType>(max_rating).AlmostEquals(
-                            FloatingPoint<RatingType>(tmp)) &&
+           (FloatingPoint<RatingType>(max_rating).AlmostEquals(
+              FloatingPoint<RatingType>(tmp)) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
              (already_matched[old_target] && already_matched[new_target] &&
               RandomRatingWins::acceptEqual()) ||

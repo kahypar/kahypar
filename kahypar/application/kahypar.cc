@@ -59,7 +59,6 @@ using kahypar::GlobalRebalancingMode;
 using kahypar::InitialPartitioningTechnique;
 
 namespace {
-
 int getTerminalWidth() {
   int columns = 0;
 #if defined(_MSC_VER)
@@ -196,29 +195,29 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("blocks,k",
     po::value<PartitionID>(&config.partition.k)->value_name("<int>")->required()->notifier(
       [&](const PartitionID) {
-    config.partition.rb_lower_k = 0;
-    config.partition.rb_upper_k = config.partition.k - 1;
-  }),
+      config.partition.rb_lower_k = 0;
+      config.partition.rb_upper_k = config.partition.k - 1;
+    }),
     "Number of blocks")
     ("epsilon,e",
     po::value<double>(&config.partition.epsilon)->value_name("<double>")->required(),
     "Imbalance parameter epsilon")
     ("objective,o",
     po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
-    if (s == "cut") {
-      config.partition.objective = Objective::cut;
-    } else if (s == "km1") {
-      config.partition.objective = Objective::km1;
-    }
-  }),
+      if (s == "cut") {
+        config.partition.objective = Objective::cut;
+      } else if (s == "km1") {
+        config.partition.objective = Objective::km1;
+      }
+    }),
     "Objective: \n"
     " - cut : cut-net metric \n"
     " - km1 : (lambda-1) metric")
     ("mode,m",
     po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
-    config.partition.mode = kahypar::modeFromString(mode);
-  }),
+      config.partition.mode = kahypar::modeFromString(mode);
+    }),
     "Partitioning mode: \n"
     " - (recursive) bisection \n"
     " - (direct) k-way");
@@ -241,10 +240,10 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("cmaxnet",
     po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
-    if (config.partition.hyperedge_size_threshold == -1) {
-      config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
-    }
-  }),
+      if (config.partition.hyperedge_size_threshold == -1) {
+        config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+      }
+    }),
     "Hyperedges larger than cmaxnet are ignored during partitioning process. \n"
     "(default: -1, disabled)")
     ("vcycles",
@@ -305,8 +304,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("p-louvain-edge-weight",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ptype) {
-    config.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
-  }),
+      config.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
+    }),
     "Weights:\n"
     " - hybrid \n"
     " - uniform\n"
@@ -323,8 +322,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ctype) {
-    config.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
-  }),
+      config.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+    }),
     "Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
@@ -346,8 +345,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-mode",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_mode) {
-    config.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
-  }),
+      config.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
+    }),
     "IP mode: \n"
     " - (recursive) bisection  \n"
     " - (direct) k-way\n"
@@ -355,9 +354,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-technique",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
-    config.initial_partitioning.technique =
-      kahypar::inititalPartitioningTechniqueFromString(ip_technique);
-  }),
+      config.initial_partitioning.technique =
+        kahypar::inititalPartitioningTechniqueFromString(ip_technique);
+    }),
     "IP Technique:\n"
     " - flat\n"
     " - (multi)level\n"
@@ -365,16 +364,16 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-algo",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_algo) {
-    config.initial_partitioning.algo =
-      kahypar::initialPartitioningAlgorithmFromString(ip_algo);
-  }),
+      config.initial_partitioning.algo =
+        kahypar::initialPartitioningAlgorithmFromString(ip_algo);
+    }),
     "Algorithm used to create initial partition: pool (default)")
     ("i-c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_ctype) {
-    config.initial_partitioning.coarsening.algorithm =
-      kahypar::coarseningAlgorithmFromString(ip_ctype);
-  }),
+      config.initial_partitioning.coarsening.algorithm =
+        kahypar::coarseningAlgorithmFromString(ip_ctype);
+    }),
     "IP Coarsening Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
@@ -396,9 +395,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_rtype) {
-    config.initial_partitioning.local_search.algorithm =
-      kahypar::refinementAlgorithmFromString(ip_rtype);
-  }),
+      config.initial_partitioning.local_search.algorithm =
+        kahypar::refinementAlgorithmFromString(ip_rtype);
+    }),
     "IP Local Search Algorithm:\n"
     " - twoway_fm   : 2-way FM algorithm\n"
     " - kway_fm     : k-way FM algorithm\n"
@@ -408,9 +407,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_stopfm) {
-    config.initial_partitioning.local_search.fm.stopping_rule =
-      kahypar::stoppingRuleFromString(ip_stopfm);
-  }),
+      config.initial_partitioning.local_search.fm.stopping_rule =
+        kahypar::stoppingRuleFromString(ip_stopfm);
+    }),
     "Stopping Rule for IP Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
     " - simple:       ALENEX'16 threshold based on i-r-i\n"
@@ -422,11 +421,11 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-r-runs",
     po::value<int>(&config.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
-    if (config.initial_partitioning.local_search.iterations_per_level == -1) {
-      config.initial_partitioning.local_search.iterations_per_level =
-        std::numeric_limits<int>::max();
-    }
-  }),
+      if (config.initial_partitioning.local_search.iterations_per_level == -1) {
+        config.initial_partitioning.local_search.iterations_per_level =
+          std::numeric_limits<int>::max();
+      }
+    }),
     "Max. # local search repetitions on each level \n"
     "(default:1, no limit:-1)");
 
@@ -435,8 +434,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rtype) {
-    config.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
-  }),
+      config.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
+    }),
     "Local Search Algorithm:\n"
     " - twoway_fm   : 2-way FM algorithm\n"
     " - kway_fm     : k-way FM algorithm (cut) \n"
@@ -446,10 +445,10 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-runs",
     po::value<int>(&config.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
-    if (config.local_search.iterations_per_level == -1) {
-      config.local_search.iterations_per_level = std::numeric_limits<int>::max();
-    }
-  }),
+      if (config.local_search.iterations_per_level == -1) {
+        config.local_search.iterations_per_level = std::numeric_limits<int>::max();
+      }
+    }),
     "Max. # local search repetitions on each level\n"
     "(default:1, no limit:-1)")
     ("r-sclap-runs",
@@ -459,8 +458,8 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& stopfm) {
-    config.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
-  }),
+      config.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
+    }),
     "Stopping Rule for Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
     " - adaptive1:    new nGP implementation \n"
@@ -478,12 +477,12 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-fm-global-rebalancing",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool global_rebalancing) {
-    if (global_rebalancing) {
-      config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
-    } else {
-      config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
-    }
-  }),
+      if (global_rebalancing) {
+        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
+      } else {
+        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
+      }
+    }),
     "Use global rebalancing PQs in twoway_fm \n"
     "(default: false)");
 
@@ -539,8 +538,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     + std::to_string(config.partition.seed)
     + ".KaHyPar";
 }
-
-} // namespace
+}  // namespace
 
 int main(int argc, char* argv[]) {
   Configuration config;
@@ -559,31 +557,6 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
-
-  if (config.preprocessing.enable_min_hash_sparsifier) {
-    // determine whether or not to apply the sparsifier
-    std::vector<HypernodeID> he_sizes;
-    he_sizes.reserve(hypergraph.currentNumEdges());
-    for (const auto& he : hypergraph.edges()) {
-      he_sizes.push_back(hypergraph.edgeSize(he));
-    }
-    std::sort(he_sizes.begin(), he_sizes.end());
-    if (kahypar::math::median(he_sizes) >=
-        config.preprocessing.min_hash_sparsifier.min_median_he_size) {
-      config.preprocessing.min_hash_sparsifier.is_active = true;
-    }
-  }
-
-  if (config.preprocessing.enable_louvain_community_detection &&
-      config.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
-    const double density = static_cast<double>(hypergraph.initialNumEdges()) /
-                           static_cast<double>(hypergraph.initialNumNodes());
-    if (density < 0.75) {
-      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::degree;
-    } else {
-      config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::uniform;
-    }
-  }
 
 
   if (config.partition.verbose_output) {
