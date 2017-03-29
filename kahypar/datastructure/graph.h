@@ -115,22 +115,15 @@ class Graph {
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
     if (config.preprocessing.louvain_community_detection.use_bipartite_graph) {
-      const auto degreeWeight = [&](const Hypergraph& hg,
-                                    const HyperedgeID he,
-                                    const HypernodeID hn) {
-                                  return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
-                                          static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
-                                         static_cast<EdgeWeight>(hg.edgeSize(he));
-                                };
-      const auto uniformWeight = [&](const Hypergraph& hg,
-                                     const HyperedgeID he,
-                                     const HypernodeID) {
-                                   return static_cast<EdgeWeight>(hg.edgeWeight(he));
-                                 };
-
       switch (config.preprocessing.louvain_community_detection.edge_weight) {
         case LouvainEdgeWeight::degree:
-          constructBipartiteGraph(hypergraph, degreeWeight);
+          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                  const HyperedgeID he,
+                                                  const HypernodeID hn) {
+              return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
+                      static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
+              static_cast<EdgeWeight>(hg.edgeSize(he));
+            });
           break;
         case LouvainEdgeWeight::non_uniform:
           constructBipartiteGraph(hypergraph,
@@ -143,19 +136,15 @@ class Graph {
 
           break;
         case LouvainEdgeWeight::uniform:
-          constructBipartiteGraph(hypergraph, uniformWeight);
+          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                  const HyperedgeID he,
+                                                  const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he));
+            });
           break;
         case LouvainEdgeWeight::hybrid:
-          {
-            const double density = static_cast<double>(hypergraph.initialNumEdges()) /
-                                   static_cast<double>(hypergraph.initialNumNodes());
-            if (density < 0.75) {
-              constructBipartiteGraph(hypergraph, degreeWeight);
-            } else {
-              constructBipartiteGraph(hypergraph, uniformWeight);
-            }
-            break;
-          }
+          LOG("Only uniform/non-uniform/degree edge weight is allowed at graph construction.");
+          std::exit(-1);
         default:
           LOG("Unknown edge weight for bipartite graph.");
           std::exit(-1);
