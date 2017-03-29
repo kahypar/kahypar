@@ -169,8 +169,8 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   std::vector<EdgeWeight> cluster_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_cluster = { true, true, true };
   for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster0)) {
-    ClusterID c_id = incidentClusterWeight.clusterID;
-    EdgeWeight weight = incidentClusterWeight.weight;
+    const ClusterID c_id = incidentClusterWeight.clusterID;
+    const EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
     ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
@@ -179,8 +179,8 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   cluster_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_cluster = { true, true, true };
   for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster1)) {
-    ClusterID c_id = incidentClusterWeight.clusterID;
-    EdgeWeight weight = incidentClusterWeight.weight;
+    const ClusterID c_id = incidentClusterWeight.clusterID;
+    const EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
     ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
@@ -189,8 +189,8 @@ TEST_F(ABipartiteGraph, DeterminesIncidentClusterWeightsOfAClusterCorrect) {
   cluster_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_cluster = { true, true, true };
   for (const auto& incidentClusterWeight : graph->incidentClusterWeightOfCluster(cluster2)) {
-    ClusterID c_id = incidentClusterWeight.clusterID;
-    EdgeWeight weight = incidentClusterWeight.weight;
+    const ClusterID c_id = incidentClusterWeight.clusterID;
+    const EdgeWeight weight = incidentClusterWeight.weight;
     ASSERT_TRUE(incident_cluster[c_id]);
     ASSERT_LE(std::abs(cluster_weight[c_id] - weight), Graph::kEpsilon);
   }
@@ -206,7 +206,6 @@ TEST_F(ABipartiteGraph, ReturnsCorrectMappingToContractedGraph) {
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
   auto contractedGraph = graph->contractClusters();
-  Graph graph(std::move(contractedGraph.first));
   std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
   std::vector<NodeID> correctMappingToOriginalGraph = { 0, 1, 0, 1, 1, 2, 2, 0, 1, 1, 2 };
   for (size_t i = 0; i < mappingToOriginalGraph.size(); ++i) {
@@ -223,18 +222,16 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   graph->setClusterID(9, 3);
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
-  auto contractedGraph = graph->contractClusters();
-  Graph graph(std::move(contractedGraph.first));
-  std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
+  Graph new_graph(std::move(graph->contractClusters().first));
 
-  ASSERT_EQ(3, graph.numNodes());
+  ASSERT_EQ(3, new_graph.numNodes());
 
   //Check cluster 0
   std::vector<EdgeWeight> edge_weight = { 2.0L, 0.25L, 1.0L / 3.0L };
   std::vector<bool> incident_nodes = { true, true, true };
-  for (const Edge& e : graph.incidentEdges(0)) {
-    NodeID n_id = e.target_node;
-    EdgeWeight weight = e.weight;
+  for (const Edge& e : new_graph.incidentEdges(0)) {
+    const NodeID n_id = e.target_node;
+    const EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
@@ -242,9 +239,9 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 1
   edge_weight = { 1.0L / 4.0L, 1.5L + 4.0L / 3.0L, 1.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (const Edge& e : graph.incidentEdges(1)) {
-    NodeID n_id = e.target_node;
-    EdgeWeight weight = e.weight;
+  for (const Edge& e : new_graph.incidentEdges(1)) {
+    const NodeID n_id = e.target_node;
+    const EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
@@ -252,9 +249,9 @@ TEST_F(ABipartiteGraph, ReturnCorrectContractedGraph) {
   //Check cluster 2
   edge_weight = { 1.0L / 3.0L, 1.0L / 3.0L, 4.0L / 3.0L };
   incident_nodes = { true, true, true };
-  for (const Edge& e : graph.incidentEdges(2)) {
-    NodeID n_id = e.target_node;
-    EdgeWeight weight = e.weight;
+  for (const Edge& e :  new_graph.incidentEdges(2)) {
+    const NodeID n_id = e.target_node;
+    const EdgeWeight weight = e.weight;
     ASSERT_TRUE(incident_nodes[n_id]);
     ASSERT_LE(std::abs(edge_weight[n_id] - weight), Graph::kEpsilon);
   }
@@ -269,13 +266,11 @@ TEST_F(ABipartiteGraph, HasCorrectSelfloopWeights) {
   graph->setClusterID(9, 3);
   graph->setClusterID(5, 6);
   graph->setClusterID(10, 6);
-  auto contractedGraph = graph->contractClusters();
-  Graph graph(std::move(contractedGraph.first));
-  std::vector<NodeID> mappingToOriginalGraph = contractedGraph.second;
+  Graph new_graph(std::move(graph->contractClusters().first));
 
-  ASSERT_LE(std::abs(2.0L - graph.selfloopWeight(0)), Graph::kEpsilon);
-  ASSERT_LE(std::abs((1.5L + 4.0L / 3.0L) - graph.selfloopWeight(1)), Graph::kEpsilon);
-  ASSERT_LE(std::abs(4.0L / 3.0L - graph.selfloopWeight(2)), Graph::kEpsilon);
+  ASSERT_LE(std::abs(2.0L - new_graph.selfloopWeight(0)), Graph::kEpsilon);
+  ASSERT_LE(std::abs((1.5L + 4.0L / 3.0L) - new_graph.selfloopWeight(1)), Graph::kEpsilon);
+  ASSERT_LE(std::abs(4.0L / 3.0L - new_graph.selfloopWeight(2)), Graph::kEpsilon);
 }
 }  //namespace ds
 }  //namespace kahypar

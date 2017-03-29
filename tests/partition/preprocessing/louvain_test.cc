@@ -25,9 +25,9 @@
 
 #include "gmock/gmock.h"
 
+#include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/datastructure/graph.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/modularity.h"
 
@@ -35,7 +35,6 @@ using::testing::Eq;
 using::testing::Test;
 
 namespace kahypar {
-
 using ds::Graph;
 
 class ALouvainAlgorithm : public Test {
@@ -135,8 +134,11 @@ TEST_F(AModularityMeasure, CalculatesCorrectGainValuesForIsolatedNode) {
     EdgeWeight w = incidentClusterWeight.weight;
     EdgeWeight gain = modularity->gain(4, cid, w);
     EdgeWeight expected_gain = std::numeric_limits<EdgeWeight>::max() / 2.0L;
-    if (cid == 8) expected_gain = 0.116319444L;
-    else if (cid == 9) expected_gain = 0.260416667L;
+    if (cid == 8) {
+      expected_gain = 0.116319444L;
+    } else if (cid == 9) {
+      expected_gain = 0.260416667L;
+    }
     ASSERT_LE(std::abs(expected_gain - gain), Graph::kEpsilon);
   }
 }
@@ -181,7 +183,8 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   ASSERT_EQ(num_edges, 78);
   std::vector<std::vector<NodeID> > adj_list(num_nodes, std::vector<NodeID>());
   for (EdgeID i = 0; i < num_edges; ++i) {
-    NodeID u, v;
+    NodeID u = 0;
+    NodeID v = 0;
     in >> u >> v;
     adj_list[--u].push_back(--v);
     adj_list[v].push_back(u);
