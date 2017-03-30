@@ -168,23 +168,5 @@ class MurmurHash {
 
   uint32_t _seed;
 };
-
-#define XXH_PRIVATE_API
-#include "xxhash.h"
-template <typename Key>
-struct XXHash {
-  using HashValue = uint64_t;
-
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE uint64_t operator() (const Key k) const {
-    return XXH64(&k, sizeof(Key), _seed);
-  }
-
-  void reset(const uint64_t seed) {
-    _seed = seed;
-  }
-
- private:
-  uint64_t _seed;
-};
 }  // namespace math
 }  // namespace kahypar
