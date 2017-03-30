@@ -261,11 +261,11 @@ struct PartitioningParameters {
   int seed = 0;
   int global_search_iterations = 0;
   int current_v_cycle = 0;
-  std::array<HypernodeWeight, 2> perfect_balance_part_weights {
-    std::numeric_limits<HypernodeWeight>::max(),
-    std::numeric_limits<HypernodeWeight>::max()
-  };
-  std::array<HypernodeWeight, 2> max_part_weights { 0, 0 };
+  std::array<HypernodeWeight, 2> perfect_balance_part_weights {{
+      std::numeric_limits<HypernodeWeight>::max(),
+      std::numeric_limits<HypernodeWeight>::max()
+          }};
+  std::array<HypernodeWeight, 2> max_part_weights { { 0, 0 } };
   HypernodeWeight total_graph_weight = 0;
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
 
