@@ -96,8 +96,7 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
     DBG(false, V(_num_steps) << " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
         << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
     const bool ret = (_num_steps > beta) &&
-                     ((FloatingPoint<double>(_Mk).AlmostEquals(
-                         FloatingPoint<double>(0.0))) || (_num_steps >= (_variance / (_Mk * _Mk)) * factor));
+                     ((_Mk == 0) || (_num_steps >= (_variance / (_Mk * _Mk)) * factor));
     DBG(false, "return=" << ret);
     return ret;
   }

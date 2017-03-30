@@ -170,8 +170,7 @@ class MLCoarsener final : public ICoarsener,
     }
 
     Rating ret;
-    if (!FloatingPoint<RatingType>(max_rating).AlmostEquals(
-          FloatingPoint<RatingType>(std::numeric_limits<RatingType>::min()))) {
+    if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max());
       ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
@@ -191,8 +190,7 @@ class MLCoarsener final : public ICoarsener,
                     const HypernodeID old_target, const HypernodeID new_target,
                     const ds::FastResetFlagArray<>& already_matched) const {
     return max_rating < tmp ||
-           (FloatingPoint<RatingType>(max_rating).AlmostEquals(
-              FloatingPoint<RatingType>(tmp)) &&
+           ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
              (already_matched[old_target] && already_matched[new_target] &&
               RandomRatingWins::acceptEqual()) ||
