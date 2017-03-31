@@ -20,7 +20,7 @@ net. By summing the (λ − 1)-values of all nets, one accurately models the tot
 volume of parallel sparse matrix-vector multiplication and once more gets a metric that reverts
 to edge-cut for plain graphs.
 
-Whay is KaHyPar?
+What is KaHyPar?
 -----------
 KaHyPar is a multilevel hypergraph partitioning framework for optimizing the cut- and the
 (λ − 1)-metric. It supports both *recursive bisection* and *direct k-way* partitioning.
