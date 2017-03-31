@@ -20,6 +20,20 @@ net. By summing the (λ − 1)-values of all nets, one accurately models the tot
 volume of parallel sparse matrix-vector multiplication and once more gets a metric that reverts
 to edge-cut for plain graphs.
 
+Whay is KaHyPar?
+-----------
+KaHyPar is a multilevel hypergraph partitioning framework for optimizing the cut- and the
+(λ − 1)-metric. It supports both *recursive bisection* and *direct k-way* partitioning.
+As a multilevel algorithm, it consist of three phases: In the *coarsening phase*, the
+hypergraph is coarsened to obtain a hierarchy of smaller hypergraphs. After applying an
+*initial partitioning* algorithm to the smallest hypergraph in the second phase, coarsening is
+undone and, at each level, a *local search* method is used to improve the partition induced by
+the coarser level. KaHyPar instantiates the multilevel approach its most extreme version,
+removing only a single vertex in every level of the hierarchy.
+By using this very fine grained *n*-level approach combined with strong local search heuristics,
+it computes solutions of very high quality.
+Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
+
 Requirements:
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
@@ -128,3 +142,4 @@ feel free to contact me or create an issue on the
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
 [CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
+[KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Publications "KaHyPar Publications"
