@@ -5,6 +5,20 @@ License|Linux & macOS Build|Windows Build|Coverity Scan|SonarQube|
 |:--:|:--:|:--:|:--:|:--:|
 |[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)](https://travis-ci.com/SebastianSchlag/kahypar.svg?token=ZcLRsjUs4Yprny1FyfPy&branch=master)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarqube.com/api/badges/gate?key=KaHyPar)](https://sonarqube.com/dashboard/index/KaHyPar)|
 
+What is a Hypergraph? What is Hypergraph Partitioning?
+-----------
+Hypergraphs are a generalization of graphs, where each (hyper)edge (also called net) can
+connect more than two vertices. The k-way hypergraph partitioning problem is the general-
+ization of the well-known graph partitioning problem: partition the vertex set into k disjoint
+blocks of bounded size (at most 1 + ε times the average block size), while minimizing an
+objective function defined on the nets. 
+The two most prominent objective functions are the cut-net and the connectivity (or λ − 1)
+metrics. Cut-net is a straightforward generalization of the edge-cut objective in graph partitioning
+(i.e., minimizing the sum of the weights of those nets that connect more than one block). The
+connectivity metric additionally takes into account the actual number λ of blocks connected by a
+net. By summing the λ − 1-values of all nets, one accurately models the total communication
+volume of parallel sparse matrix-vector multiplication and once more gets a metric that reverts
+to edge-cut for plain graphs.
 
 Requirements:
 -----------
