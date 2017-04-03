@@ -73,8 +73,7 @@ class MLCoarsener final : public ICoarsener,
               const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, config, weight_of_heaviest_node),
     _tmp_ratings(_hg.initialNumNodes()),
-    _comm(_hg.initialNumNodes(), 0),
-    _louvain(hypergraph, _config) { }
+    _comm(_hg.initialNumNodes(), 0) { }
 
   ~MLCoarsener() override = default;
 
@@ -217,6 +216,5 @@ class MLCoarsener final : public ICoarsener,
   using Base::_history;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   std::vector<ClusterID> _comm;
-  Louvain<Modularity> _louvain;
 };
 }  // namespace kahypar
