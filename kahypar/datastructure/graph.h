@@ -44,8 +44,6 @@ namespace ds {
 struct Edge {
   NodeID target_node = 0;
   EdgeWeight weight = 0.0;
-  size_t bfs_cnt = 0;
-  Edge* reverse_edge = nullptr;
 };
 
 struct IncidentClusterWeight {
@@ -649,14 +647,6 @@ class Graph {
         _total_weight += e.weight;
         _weighted_degree[cur_node] += e.weight;
         _edges[_adj_array[cur_node] + pos++] = e;
-        for (size_t i = _adj_array[e.target_node];
-             i < _adj_array[static_cast<size_t>(e.target_node) + 1]; ++i) {
-          if (_edges[i].target_node == cur_node) {
-            _edges[i].reverse_edge = &_edges[_adj_array[cur_node] + pos - 1];
-            _edges[_adj_array[cur_node] + pos - 1].reverse_edge = &_edges[i];
-            break;
-          }
-        }
       }
     }
 
