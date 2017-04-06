@@ -142,5 +142,5 @@ feel free to contact me or create an issue on the
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
 [CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
-[KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Publications "KaHyPar Publications"
+[KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Literature "KaHyPar Publications"
 [HYPERGRAPHWIKI]: https://en.wikipedia.org/wiki/Hypergraph "Hypergraphs"
