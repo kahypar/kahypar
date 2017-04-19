@@ -641,20 +641,21 @@ class GenericHypergraph2 {
   }
 
   /*!
-   * Debug information:
-   * Print the current state of hyperedge e. For valid hyperedges, this includes
-   * - the weight
-   * - the connectivity
-   * - all pins
-   * - the number of pins in each block the hyperedge connects
-   */
+  * Debug information:
+  * Print the current state of hyperedge e. For valid hyperedges, this includes
+  * - the weight
+  * - the connectivity
+  * - all pins
+  * - the number of pins in each block the hyperedge connects
+  */
   void printEdgeState(const HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
       LOG << "HE" << e << "(w=" << edgeWeight(e)
           << "connectivity=" << connectivity(e) << "):";
       for (const HypernodeID& pin : pins(e)) {
-        LOG << pin;
+        LLOG << pin;
       }
+      LOG << "";
       for (PartitionID i = 0; i != _k; ++i) {
         LOG << "Part[" << i << "]=" << pinCountInPart(e, i);
       }
@@ -676,14 +677,13 @@ class GenericHypergraph2 {
       LOG << "HN" << u << "(w=" << nodeWeight(u)
           << "block=" << hypernode(u).part_id << "): ";
       for (const HyperedgeID& he : incidentEdges(u)) {
-        LOG << he;
+        LLOG << he;
       }
     } else {
-      std::cout << u << "-- invalid --";
+      LOG << u << "-- invalid --";
     }
     LOG << "";
   }
-
 
   // ! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
   std::pair<const HyperedgeID*, const HyperedgeID*> incidentEdges(const HypernodeID u) const {

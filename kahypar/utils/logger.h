@@ -27,13 +27,15 @@
 namespace kahypar {
 class Logger {
  public:
-  Logger() :
+  explicit Logger(const bool newline) :
     _first(true),
+    _newline(newline),
     _oss() { }
 
   template <typename Arg, typename ... Args>
-  Logger(Arg&& arg, Args&& ... args) :
+  Logger(const bool newline, Arg&& arg, Args&& ... args) :
     _first(true),
+    _newline(newline),
     _oss() {
     _oss << "[" << std::forward<Arg>(arg);
     using expander = int[];
@@ -53,11 +55,17 @@ class Logger {
   }
 
   ~Logger() {
-    std::cout << _oss.str() << std::endl;
+    std::cout << _oss.str();
+    if (_newline) {
+      std::cout << std::endl;
+    } else {
+      std::cout << ' ';
+    }
   }
 
  private:
   bool _first;
+  bool _newline;
   std::ostringstream _oss;
 };
 

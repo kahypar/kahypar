@@ -691,8 +691,9 @@ class GenericHypergraph {
       LOG << "HE" << e << "(w=" << edgeWeight(e)
           << "connectivity=" << connectivity(e) << "):";
       for (const HypernodeID& pin : pins(e)) {
-        LOG << pin;
+        LLOG << pin;
       }
+      LOG << "";
       for (PartitionID i = 0; i != _k; ++i) {
         LOG << "Part[" << i << "]=" << pinCountInPart(e, i);
       }
@@ -714,10 +715,10 @@ class GenericHypergraph {
       LOG << "HN" << u << "(w=" << nodeWeight(u)
           << "block=" << hypernode(u).part_id << "): ";
       for (const HyperedgeID& he : incidentEdges(u)) {
-        LOG << he;
+        LLOG << he;
       }
     } else {
-      std::cout << u << "-- invalid --";
+      LOG << u << "-- invalid --";
     }
     LOG << "";
   }

@@ -41,28 +41,92 @@
 #define STR(macro) QUOTE(macro)
 
 // Logging inspired by https://github.com/thrill/thrill/blob/master/thrill/common/logger.hpp
-// ! Explicitly specify the condition for debug statements
-#define LOGCC(cond)   \
-  !(cond) ? (void)0 : \
-  kahypar::LoggerVoidify() & kahypar::Logger()
+/*!
 
-// ! Override default output: never or always output debug statements.
-#define LOG0 LOGCC(false)
-#define LOG LOGCC(true)
+\brief LOG and DBG
+
+This is a short description of how to use \ref LOG and \ref DBG.
+
+kahypar::Logger is not used directly.
+Instead there are the macros: \ref LOG and \ref DBG that can be used as such:
+\code
+LOG << "This will be printed with a newline";
+DBG << "This will be printed with a newline";
+\endcode
+
+DBG macros only print the lines if the boolean variable **debug** is
+true. This variable is searched for in the scope of the LOG, which means it can
+be set or overridden in the function scope, the class scope, from **inherited
+classes**, or even the global scope.
+
+LLOG and LDBG macros can used to force line-based output, i.e., the logger does
+not print a newline at the end.
+
+\code
+class MyClass
+{
+    static constexpr bool debug = true;
+
+    void func1()
+    {
+        LOG  << "This will always be printed";
+
+        LOG0 << "This is temporarily disabled.";
+        DBG0 << "This is temporarily disabled.";
+
+        DBG  << "This is printed because debug is true";
+        DBGC(true == true) << "DBGC statements will be printed iff debug == true"
+                           << " and the conditions are true."
+
+        for(int i = 0; i < 10; ++i) {
+          LLOG << i; // will print: 1 2 3 4 5 ...
+        }
+    }
+
+    void func2()
+    {
+        static constexpr bool debug = false;
+        LOG << "This is still printed";
+        DBG  << "This is not printed anymore.";
+        DBGC(true == true) << "This is not printed anymore.";
+        DBG1 << "This will still be printed."
+    }
+};
+\endcode
+
+After a module works as intended, one can just set `debug = false`, and all
+debug output will disappear.
+ */
+
+// ! Explicitly specify the condition for debug statements
+#define LOGCC(cond, newline) \
+  !(cond) ? (void)0 :        \
+  kahypar::LoggerVoidify() & kahypar::Logger(newline)
 
 // ! Explicitly specify the condition for logging
-#define DBGCC(cond)   \
-  !(cond) ? (void)0 : \
-  kahypar::LoggerVoidify() & kahypar::Logger(__FILENAME__, __FUNCTION__, __LINE__)
+#define DBGCC(cond, newline) \
+  !(cond) ? (void)0 :        \
+  kahypar::LoggerVoidify() & kahypar::Logger(newline, __FILENAME__, __FUNCTION__, __LINE__)
+
+// ! Override default output: never or always output debug statements.
+#define LOG0 LOGCC(false, true)
+#define LOG LOGCC(true, true)
 
 // ! Default debug method: output if the local debug variable is true.
-#define DBG  DBGCC(debug)
+#define DBG  DBGCC(debug, true)
 // ! Override default output: never or always output debug.
-#define DBG0 DBGCC(false)
-#define DBG1 DBGCC(true)
+#define DBG0 DBGCC(false, true)
+#define DBG1 DBGCC(true, true)
+
+// ! Line-based versions that do not print a newline on destruction.
+#define LLOG0 LOGCC(false, false)
+#define LLOG LOGCC(true, false)
+#define LDBG  DBGCC(debug, true, false)
+#define LDBG0 DBGCC(false, true, false)
+#define LDBG1 DBGCC(true, true, false)
 
 // ! Allow DBG to take an additional condition
-#define DBGC(condition) DBGCC(debug && (condition))
+#define DBGC(condition) DBGCC(debug && (condition), true)
 
 #define V(X) #X << "=" << X
 
