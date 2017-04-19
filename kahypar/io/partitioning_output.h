@@ -41,15 +41,16 @@ namespace internal {
 template <typename T>
 void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
                 const std::pair<double, double>& quartiles) {
-  std::cout << name << ":   [min: " << std::setw(5) << std::left
-            << (vec.empty() ? 0 : vec.front())
-            << "Q1: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.first)
-            << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : math::median(vec))
-            << "Q3: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.second)
-            << "max: " << std::setw(10) << std::left << (vec.empty() ? 0 : vec.back())
-            << "avg: " << std::setw(10) << std::left << avg
-            << "sd: " << std::setw(10) << std::left << stdev
-            << "]" << std::endl;
+  const uint8_t width = 10;
+  LOG << name
+      << ":   [min:" << std::setw(width) << std::left << (vec.empty() ? 0 : vec.front())
+      << "Q1:" << std::setw(width) << std::left << (vec.empty() ? 0 : quartiles.first)
+      << "med:" << std::setw(width) << std::left << (vec.empty() ? 0 : math::median(vec))
+      << "Q3:" << std::setw(width) << std::left << (vec.empty() ? 0 : quartiles.second)
+      << "max:" << std::setw(width) << std::left << (vec.empty() ? 0 : vec.back())
+      << "avg:" << std::setw(width) << std::left << avg
+      << "sd:" << std::setw(width) << std::left << stdev
+      << "]";
 }
 }  // namespace internal
 
@@ -106,15 +107,15 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   }
   stdev_he_weight = std::sqrt(stdev_he_weight / (hypergraph.currentNumNodes() - 1));
 
-  std::cout << "***********************Hypergraph Information************************" << std::endl;
-  std::cout << "Name : " << name << std::endl;
-  std::cout << "Type: " << hypergraph.typeAsString() << std::endl;
-  std::cout << "# HEs: " << hypergraph.currentNumEdges() << std::endl;
+  LOG << "***********************Hypergraph Information************************";
+  LOG << "Name :" << name;
+  LOG << "Type:" << hypergraph.typeAsString();
+  LOG << "# HEs:" << hypergraph.currentNumEdges();
   internal::printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size,
                        math::firstAndThirdQuartile(he_sizes));
   internal::printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
                        math::firstAndThirdQuartile(he_weights));
-  std::cout << "# HNs: " << hypergraph.currentNumNodes() << std::endl;
+  LOG << "# HNs:" << hypergraph.currentNumNodes();
   internal::printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
                        math::firstAndThirdQuartile(hn_degrees));
   internal::printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
@@ -123,66 +124,73 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
 
 template <class Configuration>
 inline void printPartitionerConfiguration(const Configuration& config) {
-  std::cout << "*********************Partitioning Configuration**********************" << std::endl;
-  std::cout << toString(config) << std::endl;
+  LOG << "*********************Partitioning Configuration**********************";
+  LOG << toString(config);
 }
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Configuration& config,
                                      const std::chrono::duration<double>& elapsed_seconds) {
-  std::cout << "***********************" << hypergraph.k()
-            << "-way Partition Result************************" << std::endl;
-  std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
-  std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
-  std::cout << "(k-1)          (minimize) = " << metrics::km1(hypergraph) << std::endl;
-  std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, config)
-            << std::endl;
-  std::cout << "Partition time            = " << elapsed_seconds.count() << " s" << std::endl;
+  LOG << "************************Partitioning Result**************************";
+  LOG << "Hyperedge Cut  (minimize) =" << metrics::hyperedgeCut(hypergraph);
+  LOG << "SOED           (minimize) =" << metrics::soed(hypergraph);
+  LOG << "(k-1)          (minimize) =" << metrics::km1(hypergraph);
+  LOG << "Absorption     (maximize) =" << metrics::absorption(hypergraph);
+  LOG << "Imbalance                 =" << metrics::imbalance(hypergraph, config);
+  LOG << "Partition time            =" << elapsed_seconds.count() << " s";
 
-  std::cout << "  | initial parallel HE removal  = "
-            << Stats::instance().get("InitialParallelHEremoval")
-            << " s [currently not implemented]" << std::endl;
-  std::cout << "  | initial large HE removal     = "
-            << Stats::instance().get("InitialLargeHEremoval") << " s" << std::endl;
-  std::cout << "  | min hash sparsifier          = "
-            << Stats::instance().get("MinHashSparsifier") << " s" << std::endl;
-  std::cout << "  | coarsening                   = "
-            << Stats::instance().get("Coarsening") << " s" << std::endl;
-  std::cout << "  | initial partitioning         = "
-            << Stats::instance().get("InitialPartitioning") << " s" << std::endl;
-  std::cout << "  | uncoarsening/refinement      = "
-            << Stats::instance().get("UncoarseningRefinement") << " s" << std::endl;
-  std::cout << "  | initial large HE restore     = "
-            << Stats::instance().get("InitialLargeHErestore") << " s" << std::endl;
-  std::cout << "  | initial parallel HE restore  = "
-            << Stats::instance().get("InitialParallelHErestore")
-            << " s [currently not implemented]" << std::endl;
+  LOG << "  | initial parallel HE removal  ="
+      << Stats::instance().get("InitialParallelHEremoval") << " s [currently not implemented]";
+  LOG << "  | initial large HE removal     = "
+      << Stats::instance().get("InitialLargeHEremoval") << " s";
+  LOG << "  | min hash sparsifier          = "
+      << Stats::instance().get("MinHashSparsifier") << " s";
+  LOG << "  | coarsening                   = "
+      << Stats::instance().get("Coarsening") << " s";
+  LOG << "  | initial partitioning         = "
+      << Stats::instance().get("InitialPartitioning") << " s";
+  LOG << "  | uncoarsening/refinement      = "
+      << Stats::instance().get("UncoarseningRefinement") << " s";
+  LOG << "  | initial large HE restore     = "
+      << Stats::instance().get("InitialLargeHErestore") << " s";
+  LOG << "  | initial parallel HE restore  = "
+      << Stats::instance().get("InitialParallelHErestore")
+      << " s [currently not implemented]";
   if (config.partition.global_search_iterations > 0) {
-    std::cout << " | v-cycle coarsening              = "
-              << Stats::instance().get("VCycleCoarsening") << " s" << std::endl;
-    std::cout << " | v-cycle uncoarsening/refinement = "
-              << Stats::instance().get("VCycleUnCoarseningRefinement") << " s" << std::endl;
+    LOG << " | v-cycle coarsening              = "
+        << Stats::instance().get("VCycleCoarsening") << " s";
+    LOG << " | v-cycle uncoarsening/refinement = "
+        << Stats::instance().get("VCycleUnCoarseningRefinement") << " s";
   }
-  std::cout << "Partition sizes and weights: " << std::endl;
+  LOG << "Partition sizes and weights: ";
+  HypernodeID max_part_size = 0;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
-              << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
+    max_part_size = std::max(max_part_size, hypergraph.partSize(i));
   }
+  const uint8_t part_digits = math::digits(max_part_size);
+  const uint8_t k_digits = math::digits(hypergraph.k());
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    LOG << "|part" << std::right << std::setw(k_digits) << i
+        << std::setw(1) << "| =" << std::right << std::setw(part_digits) << hypergraph.partSize(i)
+        << std::setw(1) << " w(" << std::right << std::setw(k_digits) << i
+        << std::setw(1) << ") =" << std::right << std::setw(part_digits)
+        << hypergraph.partWeight(i);
+  }
+  LOG << "*********************************************************************";
 }
 
 inline void printPartitioningStatistics() {
-  std::cout << "*****************************Statistics******************************" << std::endl;
-  std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
-  std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
-            << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
-  std::cout << Stats::instance().toConsoleString();
+  LOG << "*****************************Statistics******************************";
+  LOG << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE.";
+  LOG << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
+      << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights";
+  LOG << Stats::instance().toConsoleString();
 }
 
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {
-  std::cout << "*************************Connectivity Values*************************" << std::endl;
+  LOG << "*************************Connectivity Values*************************";
   for (size_t i = 0; i < connectivity_stats.size(); ++i) {
-    std::cout << "# HEs with λ=" << i << ": " << connectivity_stats[i] << std::endl;
+    LOG << "# HEs with λ=" << i << ": " << connectivity_stats[i];
   }
 }
 }  // namespace io

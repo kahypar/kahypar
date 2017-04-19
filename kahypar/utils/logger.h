@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -28,13 +29,11 @@ namespace kahypar {
 class Logger {
  public:
   explicit Logger(const bool newline) :
-    _first(true),
     _newline(newline),
     _oss() { }
 
   template <typename Arg, typename ... Args>
   Logger(const bool newline, Arg&& arg, Args&& ... args) :
-    _first(true),
     _newline(newline),
     _oss() {
     _oss << "[" << std::forward<Arg>(arg);
@@ -45,11 +44,16 @@ class Logger {
 
   template <typename T>
   Logger& operator<< (const T& output) {
-    if (!_first) {
-      _oss << ' ';
-    } else {
-      _first = false;
-    }
+    _oss << output << ' ';
+    return *this;
+  }
+
+  Logger& operator<< (const decltype(std::left)& output) {
+    _oss << output;
+    return *this;
+  }
+
+  Logger& operator<< (const decltype(std::setw(1))& output) {
     _oss << output;
     return *this;
   }
@@ -64,7 +68,6 @@ class Logger {
   }
 
  private:
-  bool _first;
   bool _newline;
   std::ostringstream _oss;
 };

@@ -67,8 +67,6 @@ class Partitioner {
  private:
   static constexpr bool debug = false;
 
-  using CoarsenedToHmetisMapping = std::unordered_map<HypernodeID, HypernodeID>;
-  using HmetisToCoarsenedMapping = std::vector<HypernodeID>;
   using PartitionWeights = std::vector<HypernodeWeight>;
   using Hyperedges = std::vector<HyperedgeID>;
   using HypergraphPtr = std::unique_ptr<Hypergraph, void (*)(Hypergraph*)>;

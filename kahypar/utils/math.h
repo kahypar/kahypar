@@ -168,5 +168,9 @@ class MurmurHash {
 
   uint32_t _seed;
 };
+
+static inline uint8_t digits(const uint64_t x) {
+  return x > 9 ? std::floor(std::log10(std::llabs(x))) + 1 : 1;
+}
 }  // namespace math
 }  // namespace kahypar

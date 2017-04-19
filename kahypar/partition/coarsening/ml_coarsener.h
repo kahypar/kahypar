@@ -94,9 +94,9 @@ class MLCoarsener final : public ICoarsener,
     }
 
     while (_hg.currentNumNodes() > limit) {
-      LOG << V(pass_nr);
-      LOG << V(_hg.currentNumNodes());
-      LOG << V(_hg.currentNumEdges());
+      DBG << V(pass_nr);
+      DBG << V(_hg.currentNumNodes());
+      DBG << V(_hg.currentNumEdges());
 
       already_matched.reset();
       current_hns.clear();
