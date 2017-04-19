@@ -29,9 +29,6 @@
 #include "kahypar/partition/configuration.h"
 
 namespace kahypar {
-static const bool dbg_refinement_fm_border_node_check = false;
-static const bool dbg_refinement_kway_fm_move = false;
-
 struct RollbackInfo {
   HypernodeID hn;
   PartitionID from_part;
@@ -40,14 +37,18 @@ struct RollbackInfo {
 
 template <typename RollbackElement = Mandatory>
 class FMRefinerBase {
+ private:
+  static constexpr bool debug = false;
+
  public:
-  ~FMRefinerBase() = default;
 
   FMRefinerBase(const FMRefinerBase&) = delete;
   FMRefinerBase& operator= (const FMRefinerBase&) = delete;
 
   FMRefinerBase(FMRefinerBase&&) = delete;
   FMRefinerBase& operator= (FMRefinerBase&&) = delete;
+
+  ~FMRefinerBase() = default;
 
  protected:
   static constexpr HypernodeID kInvalidHN = std::numeric_limits<HypernodeID>::max();
@@ -102,9 +103,9 @@ class FMRefinerBase {
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part,
                      const PartitionID to_part) {
-    ASSERT(_hg.isBorderNode(hn), "Hypernode " << hn << " is not a border node!");
-    DBG(dbg_refinement_kway_fm_move, "moving HN" << hn << " from " << from_part
-        << " to " << to_part << " (weight=" << _hg.nodeWeight(hn) << ")");
+    ASSERT(_hg.isBorderNode(hn), "Hypernode " << hn << "is not a border node!");
+    DBG << "moving HN" << hn << "from " << from_part
+        << "to " << to_part << "(weight=" << _hg.nodeWeight(hn) << ")";
     _hg.changeNodePart(hn, from_part, to_part);
   }
 
@@ -140,8 +141,8 @@ class FMRefinerBase {
   }
 
   void rollback(int last_index, const int min_cut_index) {
-    DBG(false, "min_cut_index=" << min_cut_index);
-    DBG(false, "last_index=" << last_index);
+    DBG << "min_cut_index=" << min_cut_index;
+    DBG << "last_index=" << last_index;
     while (last_index != min_cut_index) {
       const HypernodeID hn = _performed_moves[last_index].hn;
       const PartitionID from_part = _performed_moves[last_index].to_part;

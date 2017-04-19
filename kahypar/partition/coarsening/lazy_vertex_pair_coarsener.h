@@ -68,18 +68,17 @@ class LazyVertexPairCoarsener final : public ICoarsener,
       const HypernodeID rep_node = _pq.top();
 
       if (_outdated_rating[rep_node]) {
-        DBG(dbg_coarsening_coarsen,
-            "Rating for HN" << rep_node << " is invalid: " << _pq.topKey() << "--->"
-            << _rater.rate(rep_node).value << " target=" << _rater.rate(rep_node).target
-            << " valid= " << _rater.rate(rep_node).valid);
+        DBG << "Rating for HN" << rep_node << "is invalid: " << _pq.topKey() << "--->"
+            << _rater.rate(rep_node).value << "target=" << _rater.rate(rep_node).target
+            << "valid= " << _rater.rate(rep_node).valid;
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
       } else {
         const HypernodeID contracted_node = _target[rep_node];
 
-        DBG(dbg_coarsening_coarsen, "Contracting: (" << rep_node << ","
+        DBG << "Contracting: (" << rep_node << ","
             << _target[rep_node] << ") prio: " << _pq.topKey() <<
-            " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
-            " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node));
+          " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
+          " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node);
 
         ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
                <= _rater.thresholdNodeWeight());
@@ -126,10 +125,10 @@ class LazyVertexPairCoarsener final : public ICoarsener,
       // method is only called on rep_node, which is definetly in the PQ.
       ASSERT(_pq.contains(hn), V(hn));
       _pq.remove(hn);
-      DBG(dbg_coarsening_no_valid_contraction, "Progress [" << _hg.currentNumNodes() << "/"
+      DBG << "Progress [" << _hg.currentNumNodes() << "/"
           << _hg.initialNumNodes() << "]:HN " << hn
-          << " \t(w=" << _hg.nodeWeight(hn) << "," << " deg=" << _hg.nodeDegree(hn)
-          << ") did not find valid contraction partner.");
+          << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
+          << ") did not find valid contraction partner.";
 #ifdef GATHER_STATS
       Stats::instance().add(_config, "numHNsWithoutValidContractionPartner", 1);
 #endif

@@ -39,7 +39,7 @@ class Timer {
   void stop(std::string timing_name) {
     _end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = _end - _start;
-    LOG(timing_name << ": " << elapsed_seconds.count() << " s");
+    LOG << timing_name << ": " << elapsed_seconds.count() << " s";
   }
 
  private:

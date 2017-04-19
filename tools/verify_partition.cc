@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
   config.partition.k = max_part + 1;
 
   std::cout << "***********************" << hypergraph.k()
-  << "-way Partition Result************************" << std::endl;
+            << "-way Partition Result************************" << std::endl;
   std::cout << "cut=" << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "soed=" << metrics::soed(hypergraph) << std::endl;
   std::cout << "km1= " << metrics::km1(hypergraph) << std::endl;
   std::cout << "absorption= " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "imbalance= " << imb(hypergraph, config.partition.k)
-  << std::endl;
+            << std::endl;
   return 0;
 }

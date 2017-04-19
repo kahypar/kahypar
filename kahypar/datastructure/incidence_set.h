@@ -220,7 +220,7 @@ class IncidenceSet {
 
   void printAll() const {
     for (auto it = begin(); it != end(); ++it) {
-      LOGVAR(*it);
+      LOG << V(*it);
     }
   }
 

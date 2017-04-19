@@ -47,19 +47,14 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-static const bool dbg_refinement_2way_fm_improvements_cut = false;
-static const bool dbg_refinement_2way_fm_improvements_balance = false;
-static const bool dbg_refinement_2way_fm_stopping_crit = false;
-static const bool dbg_refinement_2way_fm_gain_update = false;
-static const bool dbg_refinement_2way_fm__activation = false;
-static const bool dbg_refinement_2way_locked_hes = false;
-
 template <class StoppingPolicy = Mandatory,
           class UseGlobalRebalancing = NoGlobalRebalancing,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
                               private FMRefinerBase<HypernodeID>{
  private:
+  static constexpr bool debug = false;
+
   using RebalancePQ = ds::BinaryMaxHeap<HypernodeID, Gain>;
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
   using Base = FMRefinerBase<HypernodeID>;
@@ -99,8 +94,8 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
 
-      DBG(dbg_refinement_2way_fm__activation, "inserting HN " << hn << " with gain "
-          << computeGain(hn) << " in PQ " << 1 - _hg.partID(hn));
+      DBG << "inserting HN " << hn << "with gain "
+          << computeGain(hn) << "in PQ " << 1 - _hg.partID(hn);
 
       _pq.insert(hn, 1 - _hg.partID(hn), _gain_cache.value(hn));
       if (_hg.partWeight(1 - _hg.partID(hn)) < max_allowed_part_weights[1 - _hg.partID(hn)]) {
@@ -270,9 +265,9 @@ class TwoWayFMRefiner final : public IRefiner,
         } ());
 
 
-      DBG(dbg_refinement_kway_fm_move, "moving HN" << max_gain_node << " from " << from_part
-          << " to " << to_part << " (gain= " << max_gain
-          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")" << V(used_rebalance_pqs));
+      DBG << "moving HN" << max_gain_node << "from " << from_part
+          << "to " << to_part << "(gain= " << max_gain
+          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")" << V(used_rebalance_pqs);
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
@@ -320,11 +315,10 @@ class TwoWayFMRefiner final : public IRefiner,
                                      improved_balance_less_equal_cut);
       ++touched_hns_since_last_improvement;
       if (move_is_feasible) {
-        DBG(dbg_refinement_2way_fm_improvements_balance && max_gain == 0,
-            "2WayFM improved balance between " << from_part << " and " << to_part
-            << "(max_gain=" << max_gain << ")");
-        DBG(dbg_refinement_2way_fm_improvements_cut && current_cut < best_metrics.cut,
-            "2WayFM improved cut from " << best_metrics.cut << " to " << current_cut);
+        DBGC(max_gain == 0) << "2WayFM improved balance between " << from_part << "and " << to_part
+                            << "(max_gain=" << max_gain << ")";
+        DBGC(current_cut < best_metrics.cut) << "2WayFM improved cut from " << best_metrics.cut
+                                             << "to " << current_cut;
         best_metrics.cut = current_cut;
         best_metrics.imbalance = current_imbalance;
         _stopping_policy.resetStatistics();
@@ -334,11 +328,11 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
 
-    DBG(dbg_refinement_2way_fm_stopping_crit, "KWayFM performed " << _performed_moves.size()
-        << " local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
+    DBG << "KWayFM performed " << _performed_moves.size()
+        << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
-                                              best_metrics.cut, current_cut)
-            == true ? "policy" : "empty queue"));
+                                          best_metrics.cut, current_cut)
+        == true ? "policy" : "empty queue");
 
 
     if (UseGlobalRebalancing()) {
@@ -409,9 +403,9 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(rebalance_gain == computeGain(max_gain_node), V(max_gain_node)
              << V(rebalance_gain) << V(computeGain(max_gain_node)));
 
-      DBG(false, "REBALANCING: cut=" << current_cut << " max_gain_node=" << max_gain_node
-          << " gain=" << rebalance_gain << " source_part=" << imbalanced_part
-          << " target_part=" << rebalance_to_part);
+      DBG << "REBALANCING: cut=" << current_cut << "max_gain_node=" << max_gain_node
+          << "gain=" << rebalance_gain << "source_part=" << imbalanced_part
+          << "target_part=" << rebalance_to_part;
 
       _hg.changeNodePart(max_gain_node, imbalanced_part, rebalance_to_part,
                          _non_border_hns_to_remove);
@@ -568,7 +562,7 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(!_hg.marked(pin), V(pin));
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
-                       << V(_hg.partID(pin)) << V(other_part));
+                              << V(_hg.partID(pin)) << V(other_part));
               }
             }
             // If the pin is either marked as moved or active, it should not be contained in the
@@ -586,7 +580,7 @@ class TwoWayFMRefiner final : public IRefiner,
                    (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
                     _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin)),
                    V(pin) << V(_hg.marked(pin)) << V(_hg.active(pin))
-                   << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
+                          << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
           }
         }
         return true;
@@ -610,21 +604,21 @@ class TwoWayFMRefiner final : public IRefiner,
         if (_locked_hes.get(he) == to_part) {
           // he is loose
           deltaUpdate(from_part, to_part, he);
-          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " maintained state: loose");
+          DBG << "HE " << he << "maintained state: loose";
         } else if (_locked_hes.get(he) == HEState::free) {
           // he is free.
           fullUpdate(from_part, to_part, he);
           _locked_hes.set(he, to_part);
-          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: free -> loose");
+          DBG << "HE " << he << "changed state: free -> loose";
         } else {
           // he is loose and becomes locked after the move
           fullUpdate(from_part, to_part, he);
           _locked_hes.uncheckedSet(he, HEState::locked);
-          DBG(dbg_refinement_2way_locked_hes, "HE " << he << " changed state: loose -> locked");
+          DBG << "HE " << he << "changed state: loose -> locked";
         }
       } else {
         // he is locked
-        DBG(dbg_refinement_2way_locked_hes, he << " is locked");
+        DBG << he << "is locked";
         // In case of 2-FM, nothing to do here except keeping the cache up to date
         deltaUpdate<  /*rebalacing update */ false,  /*update pq */ false>(from_part, to_part, he);
       }
@@ -668,9 +662,9 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(!_hg.marked(pin), V(pin));
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
-                       << V(_hg.partID(pin)) << V(other_part));
+                              << V(_hg.partID(pin)) << V(other_part));
               } else if (!_hg.marked(pin)) {
-                ASSERT(true == false, "HN " << pin << " not in PQ, but also not marked!");
+                ASSERT(true == false, "HN " << pin << "not in PQ, but also not marked!");
               }
             }
             // If the pin is either marked as moved or active, it should not be contained in the
@@ -688,7 +682,7 @@ class TwoWayFMRefiner final : public IRefiner,
                     (_rebalance_pqs[1 - _hg.partID(pin)].contains(pin) &&
                      _rebalance_pqs[1 - _hg.partID(pin)].getKey(pin) == computeGain(pin))),
                    V(pin) << V(_hg.marked(pin)) << V(_hg.active(pin))
-                   << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
+                          << V(_rebalance_pqs[1 - _hg.partID(pin)].contains(pin)));
           }
         }
         return true;
@@ -917,17 +911,17 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(!_hg.marked(pin));
     ASSERT(_gain_cache.isCached(pin), V(pin));
 
-    DBG(dbg_refinement_2way_fm_gain_update, "TwoWayFM updating gain of HN " << pin
-        << " from gain " << _pq.key(pin, target_part) << " to "
-        << _pq.key(pin, target_part) + gain_delta << " in PQ " << target_part);
+    DBG << "TwoWayFM updating gain of HN " << pin
+        << "from gain " << _pq.key(pin, target_part) << "to "
+        << _pq.key(pin, target_part) + gain_delta << "in PQ " << target_part;
 
     _pq.updateKeyBy(pin, target_part, gain_delta);
     _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 
   void rollback(int last_index, const int min_cut_index) {
-    DBG(false, "min_cut_index=" << min_cut_index);
-    DBG(false, "last_index=" << last_index);
+    DBG << "min_cut_index=" << min_cut_index;
+    DBG << "last_index=" << last_index;
     while (last_index != min_cut_index) {
       HypernodeID hn = _performed_moves[last_index];
       if (UseGlobalRebalancing()) {
@@ -960,9 +954,9 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
           if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
-            LOGVAR(hn);
-            LOGVAR(_gain_cache.value(hn));
-            LOGVAR(computeGain(hn));
+            LOG << V(hn);
+            LOG << V(_gain_cache.value(hn));
+            LOG << V(computeGain(hn));
             return false;
           }
         }

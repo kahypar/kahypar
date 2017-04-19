@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename = std::string(argv[2]);
 
   std::cout << "Converting bookshelf instance " << nets_filename << " to HGR hypergraph format: "
-  << hgr_filename << "..." << std::endl;
+            << hgr_filename << "..." << std::endl;
   convertBookshelfToHgr(nets_filename, hgr_filename);
   std::cout << " ... done!" << std::endl;
   return 0;

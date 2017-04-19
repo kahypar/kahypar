@@ -53,7 +53,7 @@ using HyperedgeWeightVector = Hypergraph::HyperedgeWeightVector;
 using HypernodeWeightVector = Hypergraph::HypernodeWeightVector;
 using IncidenceIterator = Hypergraph::IncidenceIterator;
 
-//#########Graph-Definitions#############
+// #########Graph-Definitions#############
 using NodeID = HypernodeID;
 using EdgeID = HyperedgeID;
 using EdgeWeight = long double;

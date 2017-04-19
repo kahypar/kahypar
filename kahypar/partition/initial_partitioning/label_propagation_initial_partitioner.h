@@ -126,7 +126,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
               }
               return false;
             } (),
-            "Partition " << max_part << " is not an incident label of hypernode " << v << "!");
+            "Partition " << max_part << "is not an incident label of hypernode " << v << "!");
 
 #ifndef NDEBUG
           PartitionID source_part = _hg.partID(v);
@@ -141,19 +141,19 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                   HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
                   _hg.changeNodePart(v, source_part, max_part);
                   if (metrics::hyperedgeCut(_hg) != (cut_before - gain)) {
-                    LOGVAR(v);
-                    LOGVAR(source_part);
-                    LOGVAR(max_part);
-                    LOGVAR(cut_before);
-                    LOGVAR(gain);
-                    LOGVAR(metrics::hyperedgeCut(_hg));
+                    LOG << V(v);
+                    LOG << V(source_part);
+                    LOG << V(max_part);
+                    LOG << V(cut_before);
+                    LOG << V(gain);
+                    LOG << V(metrics::hyperedgeCut(_hg));
                     return false;
                   }
                 }
                 return true;
               } (),
-              "Gain calculation failed of hypernode " << v << " failed from part "
-              << source_part << " to " << max_part << "!");
+              "Gain calculation failed of hypernode " << v << "failed from part "
+                                                      << source_part << "to " << max_part << "!");
 
             converged = false;
           }
@@ -240,11 +240,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
-              LOGVAR(hn);
-              LOGVAR(_hg.partID(hn));
-              LOGVAR(target_part);
-              LOGVAR(_tmp_scores[target_part]);
-              LOGVAR(gain);
+              LOG << V(hn);
+              LOG << V(_hg.partID(hn));
+              LOG << V(target_part);
+              LOG << V(_tmp_scores[target_part]);
+              LOG << V(gain);
               for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
                 _hg.printEdgeState(he);
               }
@@ -312,11 +312,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             ds::FastResetFlagArray<> bv(_hg.initialNumNodes());
             Gain gain = GainComputation::calculateGain(_hg, hn, target_part, bv);
             if (_tmp_scores[target_part] != gain) {
-              LOGVAR(hn);
-              LOGVAR(_hg.partID(hn));
-              LOGVAR(target_part);
-              LOGVAR(_tmp_scores[target_part]);
-              LOGVAR(gain);
+              LOG << V(hn);
+              LOG << V(_hg.partID(hn));
+              LOG << V(target_part);
+              LOG << V(_tmp_scores[target_part]);
+              LOG << V(gain);
               for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
                 _hg.printEdgeState(he);
               }
@@ -391,7 +391,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       p = (_hg.partWeight(i) < min_part_weight ? i : p);
       min_part_weight = std::min(_hg.partWeight(i), min_part_weight);
     }
-    ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << " is already assigned to a part!");
+    ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << "is already assigned to a part!");
     _hg.setNodePart(hn, p);
   }
 

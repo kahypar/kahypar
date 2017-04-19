@@ -93,7 +93,7 @@ class InitialPartitionerBase {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
                      _hg, _config));
-        LOG("WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.");
+        LOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.";
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
                      _config.local_search.algorithm,
@@ -109,8 +109,8 @@ class InitialPartitionerBase {
       for (const HyperedgeID& he : _hg.edges()) {
         max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
       }
-      LOGVAR(max_degree);
-      LOGVAR(max_he_weight);
+      LOG << V(max_degree);
+      LOG << V(max_he_weight);
       refiner->initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
 #else
       refiner->initialize(0);
@@ -175,8 +175,8 @@ class InitialPartitionerBase {
         }
       }
       ASSERT(_hg.partID(hn) == target_part,
-             "Assigned partition of Hypernode " << hn << " should be " << target_part
-             << ", but currently is " << _hg.partID(hn));
+             "Assigned partition of Hypernode " << hn << "should be " << target_part
+                                                << ", but currently is " << _hg.partID(hn));
       return true;
     } else {
       return false;

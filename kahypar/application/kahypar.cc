@@ -83,18 +83,18 @@ int getProcessID() {
 
 void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
-    std::cout << "WARNING: local search algorithm is set to "
-    << toString(algo)
-    << ". However " << toString(RefinementAlgorithm::twoway_fm)
-    << "  is better and faster." << std::endl;
-    std::cout << "Should the local search algorithm be changed to "
-    << toString(RefinementAlgorithm::twoway_fm) << " (Y/N)?" << std::endl;
+    LOG << "WARNING: local search algorithm is set to"
+        << toString(algo)
+        << ". However" << toString(RefinementAlgorithm::twoway_fm)
+        << "is better and faster.";
+    LOG << "Should the local search algorithm be changed to"
+        << toString(RefinementAlgorithm::twoway_fm) << "(Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
-      std::cout << "Changing local search algorithm to "
-      << toString(RefinementAlgorithm::twoway_fm) << std::endl;
+      LOG << "Changing local search algorithm to"
+          << toString(RefinementAlgorithm::twoway_fm);
       algo = RefinementAlgorithm::twoway_fm;
     }
   }
@@ -102,18 +102,17 @@ void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
 
 void checkDirectKwayMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::twoway_fm) {
-    std::cout << "WARNING: local search algorithm is set to "
-    << toString(algo)
-    << ". This algorithm cannot be used for direct k-way partitioning with k>2."
-    << std::endl;
-    std::cout << "Should the local search algorithm be changed to "
-    << toString(RefinementAlgorithm::kway_fm) << " (Y/N)?" << std::endl;
+    LOG << "WARNING: local search algorithm is set to"
+        << toString(algo)
+        << ". This algorithm cannot be used for direct k-way partitioning with k>2.";
+    LOG << "Should the local search algorithm be changed to"
+        << toString(RefinementAlgorithm::kway_fm) << "(Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
-      std::cout << "Changing local search algorithm to "
-      << toString(RefinementAlgorithm::kway_fm) << std::endl;
+      LOG << "Changing local search algorithm to"
+          << toString(RefinementAlgorithm::kway_fm);
       algo = RefinementAlgorithm::kway_fm;
     }
   }
@@ -152,7 +151,7 @@ void sanityCheck(Configuration& config) {
       ALWAYS_ASSERT(config.initial_partitioning.mode != Mode::direct_kway ||
                     config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
                     toString(config.initial_partitioning.mode)
-                    << " " << toString(config.initial_partitioning.technique));
+                    << toString(config.initial_partitioning.technique));
       checkDirectKwayMode(config.local_search.algorithm);
       break;
     default:
@@ -572,9 +571,9 @@ int main(int argc, char* argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
 #ifdef GATHER_STATS
-  LOG("*******************************");
-  LOG("***** GATHER_STATS ACTIVE *****");
-  LOG("*******************************");
+  LOG << "*******************************";
+  LOG << "***** GATHER_STATS ACTIVE *****";
+  LOG << "*******************************";
   kahypar::io::printPartitioningStatistics();
 #endif
 

@@ -80,9 +80,9 @@ template <class PrintChar,
 class Printer : public IPrinter {
  public:
   Printer(int a, int b, const std::string& test) {
-    LOG(a);
-    LOG(b);
-    LOG(test);
+    LOG << a;
+    LOG << b;
+    LOG << test;
   }
   std::string printChar() override { return PrintChar::print(); }
   std::string printInt() override { return PrintInt::print(); }
@@ -95,9 +95,9 @@ class Printer : public IPrinter {
 class Z99StarPrinter : public IPrinter {
  public:
   Z99StarPrinter(int a, int b, const std::string& test) {
-    LOG(a);
-    LOG(b);
-    LOG(test);
+    LOG << a;
+    LOG << b;
+    LOG << test;
   }
   std::string printChar() override { return std::string("Z"); }
   std::string printInt() override { return std::string("99"); }

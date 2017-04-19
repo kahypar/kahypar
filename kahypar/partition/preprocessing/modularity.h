@@ -31,7 +31,6 @@
 #include "kahypar/macros.h"
 
 namespace kahypar {
-
 const bool dbg_modularity_function = false;
 
 class Modularity {
@@ -53,7 +52,7 @@ class Modularity {
   }
 
   void remove(const NodeID node, const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
+    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
     const ClusterID cid = _graph.clusterID(node);
 
     _internal_weight[cid] -= 2.0L * incident_community_weight + _graph.selfloopWeight(node);
@@ -64,8 +63,8 @@ class Modularity {
 
   void insert(const NodeID node, const ClusterID new_cid,
               const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
-    ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
+    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(_graph.clusterID(node) == -1, "Node " << node << "isn't a isolated node!");
 
     _internal_weight[new_cid] += 2.0L * incident_community_weight + _graph.selfloopWeight(node);
     _total_weight[new_cid] += _graph.weightedDegree(node);
@@ -81,8 +80,8 @@ class Modularity {
 
   EdgeWeight gain(const NodeID node, const ClusterID cid,
                   const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << " doesn't exist!");
-    ASSERT(_graph.clusterID(node) == -1, "Node " << node << " isn't a isolated node!");
+    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(_graph.clusterID(node) == -1, "Node " << node << "isn't a isolated node!");
 
     const EdgeWeight totc = _total_weight[cid];
     const EdgeWeight m2 = _graph.totalWeight();
@@ -98,8 +97,8 @@ class Modularity {
         remove(node, incident_community_weight);
         const EdgeWeight real_gain = modularity_after - modularity_before;
         if (std::abs(2.0L * gain / m2 - real_gain) > Graph::kEpsilon) {
-          LOGVAR(real_gain);
-          LOGVAR(2.0L * gain / m2);
+          LOG << V(real_gain);
+          LOG << V(2.0L * gain / m2);
           return false;
         }
         return true;
@@ -122,7 +121,7 @@ class Modularity {
 
     ASSERT(!dbg_modularity_function || std::abs(q - modularity()) < Graph::kEpsilon,
            "Calculated modularity (q=" << q << ") is not equal with the real modularity "
-           << "(modularity=" << modularity() << ")!");
+                                       << "(modularity=" << modularity() << ")!");
 
     return q;
   }

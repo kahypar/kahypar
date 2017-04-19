@@ -47,8 +47,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       imbalance(imbalance) { }
 
     void print_result(const std::string& desc) const {
-      LOG(desc << " = " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
-          << toString(algo) << "]");
+      LOG << desc << "= " << "[Cut=" << cut << ", Imbalance=" << imbalance << ", Algorithm="
+          << toString(algo) << "]";
     }
 
     InitialPartitionerAlgorithm algo;
@@ -112,7 +112,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       if (algo == InitialPartitionerAlgorithm::greedy_round_maxpin ||
           algo == InitialPartitionerAlgorithm::greedy_global_maxpin ||
           algo == InitialPartitionerAlgorithm::greedy_sequential_maxpin) {
-        LOG("skipping maxpin");
+        LOG << "skipping maxpin";
         continue;
       }
       std::unique_ptr<IInitialPartitioner> partitioner(
@@ -120,7 +120,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       partitioner->partition(_hg, _config);
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _config);
-      LOG(toString(algo) << V(current_cut) << V(current_imbalance));
+      LOG << toString(algo) << V(current_cut) << V(current_imbalance);
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
         if (best_cut.cut != kInvalidCut &&
@@ -151,14 +151,14 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
     if (_config.partition.verbose_output) {
       std::cout << "\n*********************************Pool-Initial-Partitioner-Result*************"
-      << "********************" << std::endl;
+                << "********************" << std::endl;
       best_cut.print_result("Best Cut");
       min_cut.print_result("Minimum Cut");
       max_cut.print_result("Maximum Cut");
       min_imbalance.print_result("Minimum Imbalance");
       max_imbalance.print_result("Maximum Imbalance");
       std::cout << "*******************************************************************************"
-      << "*****************\n" << std::endl;
+                << "*****************\n" << std::endl;
     }
 
 

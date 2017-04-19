@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2015-2017 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,21 +18,51 @@
  *
  ******************************************************************************/
 
+#pragma once
+
 #include <iostream>
+#include <sstream>
 #include <string>
 
-#include "kahypar/macros.h"
-#include "tools/mtx_to_hgr_conversion.h"
+namespace kahypar {
+class Logger {
+ public:
+  Logger() :
+    _first(true),
+    _oss() { }
 
-int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    std::cout << "No .mtx file specified" << std::endl;
+  template <typename Arg, typename ... Args>
+  Logger(Arg&& arg, Args&& ... args) :
+    _first(true),
+    _oss() {
+    _oss << "[" << std::forward<Arg>(arg);
+    using expander = int[];
+    (void)expander { 0, (void(_oss << ":" << std::forward<Args>(args)), 0) ... };
+    _oss << "]: ";
   }
-  std::string mtx_filename(argv[1]);
-  std::string hgr_filename(mtx_filename + ".hgr");
-  std::cout << "Converting MTX matrix " << mtx_filename << " to HGR hypergraph format: "
-            << hgr_filename << "..." << std::endl;
-  mtxconversion::convertMtxToHgr(mtx_filename, hgr_filename);
-  std::cout << " ... done!" << std::endl;
-  return 0;
-}
+
+  template <typename T>
+  Logger& operator<< (const T& output) {
+    if (!_first) {
+      _oss << ' ';
+    } else {
+      _first = false;
+    }
+    _oss << output;
+    return *this;
+  }
+
+  ~Logger() {
+    std::cout << _oss.str() << std::endl;
+  }
+
+ private:
+  bool _first;
+  std::ostringstream _oss;
+};
+
+class LoggerVoidify {
+ public:
+  void operator& (Logger&) { }
+};
+}  // namespace kahypar

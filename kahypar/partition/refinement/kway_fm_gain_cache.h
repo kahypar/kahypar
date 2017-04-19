@@ -33,7 +33,7 @@ template <typename Gain = Mandatory>
 class KwayGainCache {
  private:
   static const bool debug = false;
-  static const HypernodeID hn_to_debug = 2225;
+  static const HypernodeID hn_to_debug = 2;
 
   using Byte = char;
   using KFMCacheElement = CacheElement<Gain>;
@@ -64,7 +64,7 @@ class KwayGainCache {
   KwayGainCache& operator= (KwayGainCache&&) = default;
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Gain entry(const HypernodeID hn, const PartitionID part) const {
-    DBG(debug && (hn == hn_to_debug), "entry access for HN " << hn << " and part " << part);
+    DBGC(hn == hn_to_debug) << "entry access for HN " << hn << "and part " << part;
     ASSERT(part < _k, V(part));
     return cacheElement(hn)->gain(part);
   }
@@ -72,8 +72,8 @@ class KwayGainCache {
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool entryExists(const HypernodeID hn,
                                                    const PartitionID part) const {
     ASSERT(part < _k, V(part));
-    DBG(debug && (hn == hn_to_debug), "existence check for HN " << hn << " and part " << part
-        << "=" << cacheElement(hn)->contains(part));
+    DBGC(hn == hn_to_debug) << "existence check for HN " << hn << "and part " << part
+                            << "=" << cacheElement(hn)->contains(part);
     return cacheElement(hn)->contains(part);
   }
 
@@ -81,9 +81,10 @@ class KwayGainCache {
                                                                             const PartitionID part) {
     ASSERT(part < _k, V(part));
     _deltas.emplace_back(hn, part, cacheElement(hn)->gain(part), RollbackAction::do_add);
-    DBG(debug && (hn == hn_to_debug), "removeEntryDueToConnectivityDecrease for " << hn
-        << "and part " << part << " previous cache entry =" << cacheElement(hn)->gain(part)
-        << " now= " << kNotCached);
+    DBGC(hn == hn_to_debug) << "removeEntryDueToConnectivityDecrease for " << hn
+                            << "and part " << part << "previous cache entry ="
+                            << cacheElement(hn)->gain(part)
+                            << "now= " << kNotCached;
     cacheElement(hn)->remove(part);
   }
 
@@ -93,9 +94,10 @@ class KwayGainCache {
     ASSERT(part < _k, V(part));
     ASSERT(!entryExists(hn, part), V(hn) << V(part));
     cacheElement(hn)->add(part, gain);
-    DBG(debug && (hn == hn_to_debug), "addEntryDueToConnectivityIncrease for " << hn
-        << "and part " << part << " new cache entry =" << cacheElement(hn)->gain(part));
-    DBG(debug && (hn == hn_to_debug), "delta emplace = " << kNotCached - gain);
+    DBGC(hn == hn_to_debug) << "addEntryDueToConnectivityIncrease for " << hn
+                            << "and part " << part << "new cache entry ="
+                            << cacheElement(hn)->gain(part);
+    DBGC(hn == hn_to_debug) << "delta emplace = " << kNotCached - gain;
     _deltas.emplace_back(hn, part, kNotCached - gain, RollbackAction::do_remove);
   }
 
@@ -104,18 +106,18 @@ class KwayGainCache {
                                                                     const PartitionID to_part,
                                                                     const bool remains_connected_to_from_part) {
     if (remains_connected_to_from_part) {
-      DBG(debug && (moved_hn == hn_to_debug),
-          "updateFromAndToPartOfMovedHN(" << moved_hn << "," << from_part << "," << to_part << ")");
+      DBGC(moved_hn == hn_to_debug) << "updateFromAndToPartOfMovedHN(" << moved_hn
+                                    << "," << from_part << "," << to_part << ")";
       const Gain to_part_gain = cacheElement(moved_hn)->gain(to_part);
       _deltas.emplace_back(moved_hn, from_part,
                            cacheElement(moved_hn)->gain(from_part) + to_part_gain,
                            RollbackAction::do_remove);
       cacheElement(moved_hn)->add(from_part, -to_part_gain);
     } else {
-      DBG(debug && (moved_hn == hn_to_debug), "pseudoremove  for " << moved_hn
-          << "and part " << from_part << " previous cache entry ="
-          << cacheElement(moved_hn)->gain(from_part)
-          << " now= " << kNotCached);
+      DBGC(moved_hn == hn_to_debug) << "pseudoremove  for " << moved_hn
+                                    << "and part " << from_part << "previous cache entry ="
+                                    << cacheElement(moved_hn)->gain(from_part)
+                                    << "now= " << kNotCached;
       ASSERT(cacheElement(moved_hn)->gain(from_part) == kNotCached, V(moved_hn) << V(from_part));
     }
     removeEntryDueToConnectivityDecrease(moved_hn, to_part);
@@ -123,14 +125,13 @@ class KwayGainCache {
 
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void clear(const HypernodeID hn) {
-    DBG(debug && (hn == hn_to_debug), "clear(" << hn << ")");
+    DBGC(hn == hn_to_debug) << "clear(" << hn << ")";
     cacheElement(hn)->clear();
   }
 
   void initializeEntry(const HypernodeID hn, const PartitionID part, const Gain value) {
     ASSERT(part < _k, V(part));
-    DBG(debug && (hn == hn_to_debug),
-        "initializeEntry(" << hn << "," << part << "," << value << ")");
+    DBGC(hn == hn_to_debug) << "initializeEntry(" << hn << "," << part << "," << value << ")";
     cacheElement(hn)->add(part, value);
   }
 
@@ -149,8 +150,7 @@ class KwayGainCache {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
     ASSERT(cacheElement(hn)->gain(part) != kNotCached, V(hn) << V(part));
-    DBG(debug && (hn == hn_to_debug),
-        "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")");
+    DBGC(hn == hn_to_debug) << "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")";
     cacheElement(hn)->update(part, delta);
     _deltas.emplace_back(hn, part, -delta, RollbackAction::do_nothing);
   }
@@ -162,17 +162,16 @@ class KwayGainCache {
       const PartitionID part = rit->part;
       const Gain delta = rit->delta;
       if (cacheElement(hn)->contains(part)) {
-        DBG(debug && (hn == hn_to_debug), "rollback: " << "G[" << hn << "," << part << "]="
-            << cacheElement(hn)->gain(part) << "+" << delta << "="
-            << (cacheElement(hn)->gain(part) + delta));
+        DBGC(hn == hn_to_debug) << "rollback: " << "G[" << hn << "," << part << "]="
+                                << cacheElement(hn)->gain(part) << "+" << delta << "="
+                                << (cacheElement(hn)->gain(part) + delta);
         cacheElement(hn)->update(part, delta);
         if (rit->action == RollbackAction::do_remove) {
           ASSERT(cacheElement(hn)->gain(part) == kNotCached, V(hn));
           cacheElement(hn)->remove(part);
         }
       } else {
-        DBG(debug && (hn == hn_to_debug), "rollback: SET " << "set G[" << hn << "," << part << "]="
-            << delta);
+        DBGC(hn == hn_to_debug) << "rollback: SET" << "set G[" << hn << "," << part << "]=" << delta;
         cacheElement(hn)->set(part, delta);
         if (rit->action == RollbackAction::do_add) {
           cacheElement(hn)->addToActiveParts(part);

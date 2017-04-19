@@ -45,22 +45,17 @@
 
 namespace kahypar {
 namespace ds {
-//! Helper function to allow range-based for loops
+// ! Helper function to allow range-based for loops
 template <typename Iterator>
 Iterator begin(const std::pair<Iterator, Iterator>& x) {
   return x.first;
 }
 
-//! Helper function to allow range-based for loops
+// ! Helper function to allow range-based for loops
 template <typename Iterator>
 Iterator end(const std::pair<Iterator, Iterator>& x) {
   return x.second;
 }
-
-static const bool dbg_hypergraph_uncontraction = false;
-static const bool dbg_hypergraph_contraction = false;
-static const bool dbg_hypergraph_restore_edge = false;
-
 
 /*!
  * The hypergraph data structure as described in
@@ -93,6 +88,9 @@ template <typename HypernodeType_ = Mandatory,
           class HypernodeData_ = meta::Empty,
           class HyperedgeData_ = meta::Empty>
 class GenericHypergraph {
+ private:
+  static constexpr bool debug = false;
+
  public:
   // export template parameters
   using HypernodeID = HypernodeType_;
@@ -124,30 +122,30 @@ class GenericHypergraph {
     using IDType = HyperedgeID;
   };
 
-  //! Additional information stored at each hyperedge
+  // ! Additional information stored at each hyperedge
   struct AdditionalHyperedgeData : public HyperedgeData {
-    //! Cardinality \f$ \lambda(e) \f$ of the connectivity set,
-    //! i.e., number of blocks net \f$e\f$ is connected to
+    // ! Cardinality \f$ \lambda(e) \f$ of the connectivity set,
+    // ! i.e., number of blocks net \f$e\f$ is connected to
     PartitionID connectivity = 0;
-    //! Fingerprint that will be used for parallel net detection
+    // ! Fingerprint that will be used for parallel net detection
     size_t hash = 42;
-    //! Type of contraction operation that was performed when
-    //! the net was last touched.
+    // ! Type of contraction operation that was performed when
+    // ! the net was last touched.
     ContractionType contraction_type = ContractionType::Initial;
   };
 
-  //! Additional information stored at each hypernode \f$v\f$
+  // ! Additional information stored at each hypernode \f$v\f$
   struct AdditionalHypernodeData : public HypernodeData {
-    //! Block \f$b[v]\f$ of the hypernode \f$v\f$
+    // ! Block \f$b[v]\f$ of the hypernode \f$v\f$
     PartitionID part_id = kInvalidPartition;
-    //! Number of nets \f$e \in I(v)\f$ with \f$\lambda(e) > 1 \f$
+    // ! Number of nets \f$e \in I(v)\f$ with \f$\lambda(e) > 1 \f$
     HyperedgeID num_incident_cut_hes = 0;
-    //! State during local search: inactive/active/marked
+    // ! State during local search: inactive/active/marked
     uint32_t state = 0;
   };
 
-  //! A dummy data structure that is used in GenericHypergraph::changeNodePart
-  //! for algorithms that do not need non-border-node detection.
+  // ! A dummy data structure that is used in GenericHypergraph::changeNodePart
+  // ! for algorithms that do not need non-border-node detection.
   class Dummy {
  public:
     void push_back(HypernodeID) {
@@ -155,7 +153,7 @@ class GenericHypergraph {
     }  // NOLINT
   };
 
-  //! Constant to denote invalid partition pin counts.
+  // ! Constant to denote invalid partition pin counts.
   static constexpr HypernodeID kInvalidCount = std::numeric_limits<HypernodeID>::max();
 
   /*!
@@ -195,8 +193,8 @@ class GenericHypergraph {
 
     ~HypergraphElement() = default;
 
-    //! Disables the hypernode/hyperedge. Disable hypernodes/hyperedges will be skipped
-    //! when iterating over the set of all nodes/edges.
+    // ! Disables the hypernode/hyperedge. Disable hypernodes/hyperedges will be skipped
+    // ! when iterating over the set of all nodes/edges.
     void disable() {
       ASSERT(!isDisabled());
       _valid = false;
@@ -211,19 +209,19 @@ class GenericHypergraph {
       _valid = true;
     }
 
-    //! Returns the index of the first element in _incidence_array
+    // ! Returns the index of the first element in _incidence_array
     IDType firstEntry() const {
       return _begin;
     }
 
-    //! Sets the index of the first element in _incidence_array to begin
+    // ! Sets the index of the first element in _incidence_array to begin
     void setFirstEntry(IDType begin) {
       ASSERT(!isDisabled());
       _begin = begin;
       _valid = true;
     }
 
-    //! Returns the index of the first element in _incidence_array
+    // ! Returns the index of the first element in _incidence_array
     IDType firstInvalidEntry() const {
       return _begin + _size;
     }
@@ -268,13 +266,13 @@ class GenericHypergraph {
     }
 
  private:
-    //! Index of the first element in _incidence_array
+    // ! Index of the first element in _incidence_array
     IDType _begin = 0;
-    //! Number of _incidence_array elements
+    // ! Number of _incidence_array elements
     IDType _size = 0;
-    //! Hypernode/Hyperedge weight
+    // ! Hypernode/Hyperedge weight
     WeightType _weight = 1;
-    //! Flag indicating whether or not the element is active.
+    // ! Flag indicating whether or not the element is active.
     bool _valid = true;
   };
 
@@ -335,12 +333,12 @@ class GenericHypergraph {
       }
     }
 
-    //! Returns the id of the element the iterator currently points to.
+    // ! Returns the id of the element the iterator currently points to.
     IDType operator* () const {
       return _id;
     }
 
-    //! Prefix increment. The iterator advances to the next valid element.
+    // ! Prefix increment. The iterator advances to the next valid element.
     HypergraphElementIterator& operator++ () {
       ASSERT(_id < _max_id);
       do {
@@ -350,17 +348,17 @@ class GenericHypergraph {
       return *this;
     }
 
-    //! Postfix increment. The iterator advances to the next valid element.
+    // ! Postfix increment. The iterator advances to the next valid element.
     HypergraphElementIterator operator++ (int) {
       HypergraphElementIterator copy = *this;
       operator++ ();
       return copy;
     }
 
-    //! Convenience function for range-based for-loops
+    // ! Convenience function for range-based for-loops
     friend HypergraphElementIterator end<>(const std::pair<HypergraphElementIterator,
                                                            HypergraphElementIterator>& iter_pair);
-    //! Convenience function for range-based for-loops
+    // ! Convenience function for range-based for-loops
     friend HypergraphElementIterator begin<>(const std::pair<HypergraphElementIterator,
                                                              HypergraphElementIterator>& iter_pair);
 
@@ -378,13 +376,13 @@ class GenericHypergraph {
   };
 
 
-  //! The data type used to incident nets of vertices and pins of nets
+  // ! The data type used to incident nets of vertices and pins of nets
   using VertexID = uint32_t;
-  //! The data type for hypernodes
+  // ! The data type for hypernodes
   using Hypernode = HypergraphElement<HypernodeTraits, AdditionalHypernodeData>;
-  //! The data type for hyperedges
+  // ! The data type for hyperedges
   using Hyperedge = HypergraphElement<HyperedgeTraits, AdditionalHyperedgeData>;
-  //! Iterator that is internally used to iterate over pins of nets and incident edges of vertices.
+  // ! Iterator that is internally used to iterate over pins of nets and incident edges of vertices.
   using PinHandleIterator = typename std::vector<VertexID>::iterator;
 
  public:
@@ -399,13 +397,13 @@ class GenericHypergraph {
    *
    */
   struct Memento {
-    //! The representative hypernode that remains in the hypergraph
+    // ! The representative hypernode that remains in the hypergraph
     const HypernodeID u;
-    //! The stating index of u's incidence structure before contraction
+    // ! The stating index of u's incidence structure before contraction
     const HypernodeID u_first_entry;
-    //! The size of u's incidence structure before contraction
+    // ! The size of u's incidence structure before contraction
     const HypernodeID u_size;
-    //! The contraction partner of u that is removed from the hypergraph after the contraction.
+    // ! The contraction partner of u that is removed from the hypergraph after the contraction.
     const HypernodeID v;
   };
 
@@ -428,7 +426,7 @@ class GenericHypergraph {
    * See GenericHypergraph::contract for details.
    */
   enum class ContractionType : size_t {
-    //! Net is not participating in contraction
+    // ! Net is not participating in contraction
     Initial = 0,
     /*!
      * Net \f$ e \f$ contained both \f$u\f$ and \f$v\f$.
@@ -461,25 +459,25 @@ class GenericHypergraph {
     HypernodeID size;
   };
 
-  //! The data type used to store indices into HyperedgeVector
+  // ! The data type used to store indices into HyperedgeVector
   using HyperedgeIndexVector = std::vector<size_t>;
-  //! The data type used to store the pins of all nets
+  // ! The data type used to store the pins of all nets
   using HyperedgeVector = std::vector<HypernodeID>;
-  //! The data type used to store the weights of hypernodes
+  // ! The data type used to store the weights of hypernodes
   using HypernodeWeightVector = std::vector<HypernodeWeight>;
-  //! The data type used to store the weights of hyperedges
+  // ! The data type used to store the weights of hyperedges
   using HyperedgeWeightVector = std::vector<HyperedgeWeight>;
-  //! The data type used to store the undo information of contraction operations
+  // ! The data type used to store the undo information of contraction operations
   using ContractionMemento = Memento;
-  //! Iterator to iterate over the set of incident nets of a hypernode
-  //! the set of pins of a hyperedge
+  // ! Iterator to iterate over the set of incident nets of a hypernode
+  // ! the set of pins of a hyperedge
   using IncidenceIterator = typename std::vector<VertexID>::const_iterator;
-  //! Iterator to iterator over the hypernodes
+  // ! Iterator to iterator over the hypernodes
   using HypernodeIterator = HypergraphElementIterator<const Hypernode>;
-  //! Iterator to iterator over the hyperedges
+  // ! Iterator to iterator over the hyperedges
   using HyperedgeIterator = HypergraphElementIterator<const Hyperedge>;
 
-  //! An invalid block has id kInvalidPartition
+  // ! An invalid block has id kInvalidPartition
   enum { kInvalidPartition = -1 };
 
   /*!
@@ -613,8 +611,8 @@ class GenericHypergraph {
   void printHyperedgeInfo() const {
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       if (!hyperedge(i).isDisabled()) {
-        std::cout << "hyperedge " << i << ": begin=" << hyperedge(i).firstEntry() << " size="
-        << hyperedge(i).size() << " weight=" << hyperedge(i).weight() << std::endl;
+        LOG << "hyperedge" << i << ": begin=" << hyperedge(i).firstEntry() << "size="
+            << hyperedge(i).size() << "weight=" << hyperedge(i).weight();
       }
     }
   }
@@ -626,8 +624,8 @@ class GenericHypergraph {
   void printHypernodeInfo() const {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       if (!hypernode(i).isDisabled()) {
-        std::cout << "hypernode " << i << ": begin=" << hypernode(i).firstEntry() << " size="
-        << hypernode(i).size() << " weight=" << hypernode(i).weight() << std::endl;
+        LOG << "hypernode" << i << ": begin=" << hypernode(i).firstEntry() << "size="
+            << hypernode(i).size() << "weight=" << hypernode(i).weight();
       }
     }
   }
@@ -638,7 +636,7 @@ class GenericHypergraph {
    */
   void printIncidenceArray() const {
     for (VertexID i = 0; i < _incidence_array.size(); ++i) {
-      std::cout << "_incidence_array[" << i << "]=" << _incidence_array[i] << std::endl;
+      LOG << "_incidence_array[" << i << "]=" << _incidence_array[i];
     }
   }
 
@@ -647,7 +645,7 @@ class GenericHypergraph {
    * Print the current state of all hyperedges to stdout.
    */
   void printHyperedges() const {
-    std::cout << "Hyperedges:" << std::endl;
+    LOG << "Hyperedges:";
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       if (!hyperedge(i).isDisabled()) {
         printEdgeState(i);
@@ -660,7 +658,7 @@ class GenericHypergraph {
    * Print the current state of all hypernodes to stdout.
    */
   void printHypernodes() const {
-    std::cout << "Hypernodes:" << std::endl;
+    LOG << "Hypernodes:";
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       if (!hypernode(i).isDisabled()) {
         printNodeState(i);
@@ -690,18 +688,18 @@ class GenericHypergraph {
    */
   void printEdgeState(const HyperedgeID e) const {
     if (!hyperedge(e).isDisabled()) {
-      std::cout << "HE " << e << " (w= " << edgeWeight(e)
-      << " connectivity=" << connectivity(e) << "): ";
+      LOG << "HE" << e << "(w=" << edgeWeight(e)
+          << "connectivity=" << connectivity(e) << "):";
       for (const HypernodeID& pin : pins(e)) {
-        std::cout << pin << " ";
+        LOG << pin;
       }
       for (PartitionID i = 0; i != _k; ++i) {
-        std::cout << " Part[" << i << "] =" << pinCountInPart(e, i);
+        LOG << "Part[" << i << "]=" << pinCountInPart(e, i);
       }
     } else {
-      std::cout << e << " -- invalid --";
+      LOG << e << "-- invalid --";
     }
-    std::cout << std::endl;
+    LOG << "";
   }
 
   /*!
@@ -713,27 +711,27 @@ class GenericHypergraph {
    */
   void printNodeState(const HypernodeID u) const {
     if (!hypernode(u).isDisabled()) {
-      std::cout << "HN " << u << " (w= " << nodeWeight(u)
-      << " block=" << hypernode(u).part_id << "): ";
+      LOG << "HN" << u << "(w=" << nodeWeight(u)
+          << "block=" << hypernode(u).part_id << "): ";
       for (const HyperedgeID& he : incidentEdges(u)) {
-        std::cout << he << " ";
+        LOG << he;
       }
     } else {
-      std::cout << u << " -- invalid --";
+      std::cout << u << "-- invalid --";
     }
-    std::cout << std::endl;
+    LOG << "";
   }
 
-  //! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
+  // ! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
     return std::make_pair(_incidence_array.cbegin() + hypernode(u).firstEntry(),
                           _incidence_array.cbegin() + hypernode(u).firstInvalidEntry());
   }
 
-  //! Returns a for-each iterator-pair to loop over the set pins of hyperedge e.
+  // ! Returns a for-each iterator-pair to loop over the set pins of hyperedge e.
   std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     return std::make_pair(_incidence_array.cbegin() + hyperedge(e).firstEntry(),
                           _incidence_array.cbegin() + hyperedge(e).firstInvalidEntry());
   }
@@ -760,10 +758,10 @@ class GenericHypergraph {
                                             _num_hyperedges, _num_hyperedges));
   }
 
-  //! Returns a reference to the connectivity set of hyperedge he.
+  // ! Returns a reference to the connectivity set of hyperedge he.
   const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet &
   connectivitySet(const HyperedgeID he) const {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     return _connectivity_sets[he];
   }
 
@@ -784,12 +782,12 @@ class GenericHypergraph {
    */
   Memento contract(const HypernodeID u, const HypernodeID v) {
     using std::swap;
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << v << " is disabled");
-    ASSERT(partID(u) == partID(v), "Hypernodes " << u << " & " << v << " are in different parts: "
-           << partID(u) << " & " << partID(v));
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
+    ASSERT(!hypernode(v).isDisabled(), "Hypernode " << v << "is disabled");
+    ASSERT(partID(u) == partID(v), "Hypernodes " << u << "& " << v << "are in different parts: "
+                                                 << partID(u) << "& " << partID(v));
 
-    DBG(dbg_hypergraph_contraction, "contracting (" << u << "," << v << ")");
+    DBG << "contracting (" << u << "," << v << ")";
 
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     const HypernodeID u_offset = hypernode(u).firstEntry();
@@ -858,24 +856,24 @@ class GenericHypergraph {
   template <typename GainChanges>
   void uncontract(const Memento& memento, GainChanges& changes,
                   meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>) {  // NOLINT
-    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
-    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
+    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << "is disabled");
+    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << "is not invalid");
     ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
     ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
 
     HyperedgeWeight& changes_u = changes.representative[0];
     HyperedgeWeight& changes_v = changes.contraction_partner[0];
 
-    DBG(dbg_hypergraph_uncontraction, "uncontracting (" << memento.u << "," << memento.v << ")");
+    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
 
     ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID " << partID(memento.u) << " of representative HN " << memento.u <<
+           "PartitionID " << partID(memento.u) << "of representative HN " << memento.u <<
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-           << memento.v);
+                          << memento.v);
 
     _hes_not_containing_u.reset();
     // Assume all HEs did not contain u and we have to undo Case 2 operations.
@@ -907,8 +905,8 @@ class GenericHypergraph {
       // to store the new edge to representative u during contraction as u was not a pin of e.
       for (const HyperedgeID& he : incidentEdges(memento.u)) {
         if (_hes_not_containing_u[he]) {
-          DBG(dbg_hypergraph_uncontraction, "resetting reused Pinslot of HE " << he << " from "
-              << memento.u << " to " << memento.v);
+          DBG << "resetting reused Pinslot of HE" << he << "from"
+              << memento.u << "to" << memento.v;
           resetReusedPinSlotToOriginalValue(he, memento);
 
           if (connectivity(he) > 1) {
@@ -943,14 +941,14 @@ class GenericHypergraph {
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     for (const HyperedgeID& he : incidentEdges(memento.v)) {
       if (!_hes_not_containing_u[he]) {
-        DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
-        ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+        DBG << "increasing size of HE" << he;
+        ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
         hyperedge(he).incrementSize();
         incrementPinCountInPart(he, partID(memento.v));
         ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
                "Incorrect case 1 restore of HE " << he << ": "
-               << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
-               << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
+                                                 << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
+                                                 << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
 
         if (connectivity(he) > 1) {
           ++hypernode(memento.v).num_incident_cut_hes;     // because v is connected to that cut HE
@@ -969,10 +967,10 @@ class GenericHypergraph {
 
     ASSERT(hypernode(memento.u).num_incident_cut_hes == numIncidentCutHEs(memento.u),
            V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes)
-           << V(numIncidentCutHEs(memento.u)));
+                        << V(numIncidentCutHEs(memento.u)));
     ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
            V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes)
-           << V(numIncidentCutHEs(memento.v)));
+                        << V(numIncidentCutHEs(memento.v)));
   }
 
   /*!
@@ -982,19 +980,19 @@ class GenericHypergraph {
   * \param memento Memento remembering the contraction operation that should be reverted
   */
   void uncontract(const Memento& memento) {
-    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
-    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << " is not invalid");
+    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << "is disabled");
+    ASSERT(hypernode(memento.v).isDisabled(), "Hypernode " << memento.v << "is not invalid");
 
-    DBG(dbg_hypergraph_uncontraction, "uncontracting (" << memento.u << "," << memento.v << ")");
+    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
 
     ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID " << partID(memento.u) << " of representative HN " << memento.u <<
+           "PartitionID " << partID(memento.u) << "of representative HN " << memento.u <<
            " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-           << memento.v);
+                          << memento.v);
 
     _hes_not_containing_u.reset();
     // Assume all HEs did not contain u and we have to undo Case 2 operations.
@@ -1014,8 +1012,7 @@ class GenericHypergraph {
       // to store the new edge to representative u during contraction as u was not a pin of e.
       for (const HyperedgeID& he : incidentEdges(memento.u)) {
         if (_hes_not_containing_u[he]) {
-          DBG(dbg_hypergraph_uncontraction, "resetting reused Pinslot of HE " << he << " from "
-              << memento.u << " to " << memento.v);
+          DBG << "resetting reused Pinslot of HE" << he << "from" << memento.u << "to" << memento.v;
           resetReusedPinSlotToOriginalValue(he, memento);
 
           if (connectivity(he) > 1) {
@@ -1044,14 +1041,14 @@ class GenericHypergraph {
     // Thus it is sufficient to just increase the size of the HE e to re-add the entry of v.
     for (const HyperedgeID& he : incidentEdges(memento.v)) {
       if (!_hes_not_containing_u[he]) {
-        DBG(dbg_hypergraph_uncontraction, "increasing size of HE " << he);
-        ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+        DBG << "increasing size of HE" << he;
+        ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
         hyperedge(he).incrementSize();
         incrementPinCountInPart(he, partID(memento.v));
         ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry() - 1] == memento.v,
                "Incorrect case 1 restore of HE " << he << ": "
-               << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
-               << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
+                                                 << _incidence_array[hyperedge(he).firstInvalidEntry() - 1] << "!=" << memento.v
+                                                 << "(while uncontracting: (" << memento.u << "," << memento.v << "))");
 
         if (connectivity(he) > 1) {
           ++hypernode(memento.v).num_incident_cut_hes;     // because v is connected to that cut HE
@@ -1094,10 +1091,10 @@ class GenericHypergraph {
   template <typename Container>
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to,
                       Container& non_border_hns_to_remove) {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partID(hn) == from, "Hypernode" << hn << " is not in partition " << from);
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << "is disabled");
+    ASSERT(partID(hn) == from, "Hypernode" << hn << "is not in partition " << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
-    ASSERT(from != to, "from part " << from << " == " << to << " part");
+    ASSERT(from != to, "from part " << from << "== " << to << "part");
     updatePartInfo(hn, from, to);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       const bool no_pins_left_in_source_part = decrementPinCountInPart(he, from);
@@ -1136,13 +1133,13 @@ class GenericHypergraph {
     //    for (const HyperedgeID he : incidentEdges(hn)) {
     //    for (const HypernodeID pin : pins(he)) {
     //      if (pin == 1891) {
-    //        LOG(V(hypernode(pin).num_incident_cut_hes));
+    //        LOG << V(hypernode(pin).num_incident_cut_hes);
     //      }
 
     //    if (hypernode(pin).num_incident_cut_hes != numIncidentCutHEs(pin)) {
-    //    LOGVAR(pin);
-    //    LOGVAR(hypernode(pin).num_incident_cut_hes);
-    //    LOGVAR(numIncidentCutHEs(pin));
+    //    LOG << V(pin);
+    //    LOG << V(hypernode(pin).num_incident_cut_hes);
+    //    LOG << V(numIncidentCutHEs(pin));
     //    return false;
     //    }
     //    }
@@ -1151,20 +1148,20 @@ class GenericHypergraph {
     //    } (), "Inconsisten #CutHEs state");
   }
 
-  //! Returns true if the hypernode is incident to at least one hyperedge connecting multiple blocks
+  // ! Returns true if the hypernode is incident to at least one hyperedge connecting multiple blocks
   bool isBorderNode(const HypernodeID hn) const {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << "is disabled");
     ASSERT(hypernode(hn).num_incident_cut_hes == numIncidentCutHEs(hn), V(hn));
     ASSERT((hypernode(hn).num_incident_cut_hes > 0) == isBorderNodeInternal(hn), V(hn));
     return hypernode(hn).num_incident_cut_hes > 0;
   }
 
 
-  //! Used to initially set the block ID of a hypernode after initial partitioning.
+  // ! Used to initially set the block ID of a hypernode after initial partitioning.
   void setNodePart(const HypernodeID hn, const PartitionID id) {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
-    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << " is not unpartitioned: "
-           << partID(hn));
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << "is disabled");
+    ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << "is not unpartitioned: "
+                                                        << partID(hn));
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
     updatePartInfo(hn, id);
     for (const HyperedgeID& he : incidentEdges(hn)) {
@@ -1240,7 +1237,7 @@ class GenericHypergraph {
       ASSERT(std::count(_incidence_array.begin() + hyperedge(he).firstEntry(),
                         _incidence_array.begin() + hyperedge(he).firstInvalidEntry(), u)
              == 0,
-             "HN " << u << " is already connected to HE " << he);
+             "HN " << u << "is already connected to HE " << he);
       ASSERT(_incidence_array[hyperedge(he).firstInvalidEntry()] == u,
              V(_incidence_array[hyperedge(he).firstInvalidEntry()]) << V(u));
       if (hyperedge(he).isDisabled()) {
@@ -1292,8 +1289,8 @@ class GenericHypergraph {
       ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
                         _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), he)
              == 0,
-             "HN " << pin << " is already connected to HE " << he);
-      DBG(dbg_hypergraph_restore_edge, "re-adding pin  " << pin << " to HE " << he);
+             "HN " << pin << "is already connected to HE " << he);
+      DBG << "re-adding pin" << pin << "to HE" << he;
       hypernode(pin).incrementSize();
       if (partID(pin) != kInvalidPartition) {
         incrementPinCountInPart(he, partID(pin));
@@ -1321,8 +1318,8 @@ class GenericHypergraph {
       ASSERT(std::count(_incidence_array.begin() + hypernode(pin).firstEntry(),
                         _incidence_array.begin() + hypernode(pin).firstInvalidEntry(), he)
              == 0,
-             "HN " << pin << " is already connected to HE " << he);
-      DBG(dbg_hypergraph_restore_edge, "re-adding pin  " << pin << " to HE " << he);
+             "HN " << pin << "is already connected to HE " << he);
+      DBG << "re-adding pin" << pin << "to HE" << he;
       hypernode(pin).incrementSize();
       if (partID(pin) != kInvalidPartition) {
         incrementPinCountInPart(he, partID(pin));
@@ -1338,7 +1335,7 @@ class GenericHypergraph {
     }
   }
 
-  //! Resets all partitioning related information
+  // ! Resets all partitioning related information
   void resetPartitioning() {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       hypernode(i).part_id = kInvalidPartition;
@@ -1371,78 +1368,78 @@ class GenericHypergraph {
   }
 
   HyperedgeID nodeDegree(const HypernodeID u) const {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
     return hypernode(u).size();
   }
 
   HypernodeID edgeSize(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     return hyperedge(e).size();
   }
 
   size_t & edgeHash(const HyperedgeID e) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     return hyperedge(e).hash;
   }
 
   ContractionType edgeContractionType(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     return hyperedge(e).contraction_type;
   }
 
   void resetEdgeContractionType(const HyperedgeID e) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     hyperedge(e).contraction_type = ContractionType::Initial;
   }
 
   HypernodeWeight nodeWeight(const HypernodeID u) const {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
     return hypernode(u).weight();
   }
 
   void setNodeWeight(const HypernodeID u, const HypernodeWeight weight) {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
     hypernode(u).setWeight(weight);
   }
 
   HyperedgeWeight edgeWeight(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     return hyperedge(e).weight();
   }
 
   void setEdgeWeight(const HyperedgeID e, const HyperedgeWeight weight) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     hyperedge(e).setWeight(weight);
   }
 
   PartitionID partID(const HypernodeID u) const {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
     return hypernode(u).part_id;
   }
 
-  //! Returns true if the hypernode is enabled
-  //! This is mainly used in assertions.
+  // ! Returns true if the hypernode is enabled
+  // ! This is mainly used in assertions.
   bool nodeIsEnabled(const HypernodeID u) const {
     return !hypernode(u).isDisabled();
   }
 
-  //! Returns true if the hyperedge is enabled
-  //! This is mainly used in assertions.
+  // ! Returns true if the hyperedge is enabled
+  // ! This is mainly used in assertions.
   bool edgeIsEnabled(const HyperedgeID e) const {
     return !hyperedge(e).isDisabled();
   }
 
-  //! Returns the original number of hypernodes
+  // ! Returns the original number of hypernodes
   HypernodeID initialNumNodes() const {
     return _num_hypernodes;
   }
 
-  //! Returns the original number of hyperedges
+  // ! Returns the original number of hyperedges
   HyperedgeID initialNumEdges() const {
     return _num_hyperedges;
   }
 
-  //! Returns the original number of pins
+  // ! Returns the original number of pins
   HypernodeID initialNumPins()  const {
     return _num_pins;
   }
@@ -1515,45 +1512,45 @@ class GenericHypergraph {
            _current_num_hyperedges != _num_hyperedges;
   }
 
-  //! Returns the number of blocks the hypergraph should be partitioned in.
+  // ! Returns the number of blocks the hypergraph should be partitioned in.
   PartitionID k() const {
     return _k;
   }
 
-  //! Returns true if the hypernode is marked as active.
+  // ! Returns true if the hypernode is marked as active.
   bool active(const HypernodeID u) const {
     return hypernode(u).state == _threshold_active;
   }
 
-  //! Returns true if the hypernode is marked as marked.
+  // ! Returns true if the hypernode is marked as marked.
   bool marked(const HypernodeID u) const {
     return hypernode(u).state == _threshold_marked;
   }
 
-  //! Marks hypernode as marked.
+  // ! Marks hypernode as marked.
   void mark(const HypernodeID u) {
     ASSERT(hypernode(u).state == _threshold_active, V(u));
     hypernode(u).state = _threshold_marked;
   }
 
-  //! Marks hypernode as rebalanced
+  // ! Marks hypernode as rebalanced
   void markRebalanced(const HypernodeID u) {
     hypernode(u).state = _threshold_marked;
   }
 
-  //! Marks hypernode as active
+  // ! Marks hypernode as active
   void activate(const HypernodeID u) {
     ASSERT(hypernode(u).state < _threshold_active, V(u));
     hypernode(u).state = _threshold_active;
   }
 
-  //! Marks hypernode as inactive
+  // ! Marks hypernode as inactive
   void deactivate(const HypernodeID u) {
     ASSERT(hypernode(u).state == _threshold_active, V(u));
     --hypernode(u).state;
   }
 
-  //! Resets the state of all hypernodes to inactive and unmarked.
+  // ! Resets the state of all hypernodes to inactive and unmarked.
   void resetHypernodeState() {
     if (_threshold_marked == std::numeric_limits<uint32_t>::max()) {
       for (HypernodeID hn = 0; hn < _num_hypernodes; ++hn) {
@@ -1596,51 +1593,51 @@ class GenericHypergraph {
     return max_weight;
   }
 
-  //! Returns the number of pins of a hyperedge that are in a certain block
+  // ! Returns the number of pins of a hyperedge that are in a certain block
   HypernodeID pinCountInPart(const HyperedgeID he, const PartitionID id) const {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
-    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << "is out of bounds");
     ASSERT(_pins_in_part[static_cast<size_t>(he) * _k + id] != kInvalidCount, V(he) << V(id));
     return _pins_in_part[static_cast<size_t>(he) * _k + id];
   }
 
-  //! Returns the number of blocks a hyperedge connects
+  // ! Returns the number of blocks a hyperedge connects
   PartitionID connectivity(const HyperedgeID he) const {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     return hyperedge(he).connectivity;
   }
 
-  //! Returns a reference to the partitioning information of all blocks
+  // ! Returns a reference to the partitioning information of all blocks
   const std::vector<PartInfo> & partInfos() const {
     return _part_info;
   }
 
-  //! Returns the sum of the weights of all hypernodes
+  // ! Returns the sum of the weights of all hypernodes
   HypernodeWeight totalWeight() const {
     return _total_weight;
   }
 
-  //! Returns the sum of the weights of all hypernodes in a block
+  // ! Returns the sum of the weights of all hypernodes in a block
   HypernodeWeight partWeight(const PartitionID id) const {
-    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << "is out of bounds");
     return _part_info[id].weight;
   }
 
-  //! Returns the number of hypernodes in a block
+  // ! Returns the number of hypernodes in a block
   HypernodeID partSize(const PartitionID id) const {
-    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << " is out of bounds");
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID " << id << "is out of bounds");
     return _part_info[id].size;
   }
 
-  //! Returns a reference to additional data stored on a hypernode
+  // ! Returns a reference to additional data stored on a hypernode
   HypernodeData & hypernodeData(const HypernodeID hn) {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << "is disabled");
     return hypernode(hn);
   }
 
-  //! Returns a reference to additional data stored on a hyperedge
+  // ! Returns a reference to additional data stored on a hyperedge
   HyperedgeData & hyperedgeData(const HyperedgeID he) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     return hyperedge(he);
   }
 
@@ -1666,7 +1663,7 @@ class GenericHypergraph {
    * This method is used internally to verify the consistency of the public isBorderNode method.
    */
   bool isBorderNodeInternal(const HypernodeID hn) const {
-    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << " is disabled");
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode " << hn << "is disabled");
     for (const HyperedgeID& he : incidentEdges(hn)) {
       if (connectivity(he) > 1) {
         return true;
@@ -1690,22 +1687,22 @@ class GenericHypergraph {
     return num_cut_hes;
   }
 
-  //! Assigns a previously unassigned hypernode to  a block.
+  // ! Assigns a previously unassigned hypernode to  a block.
   void updatePartInfo(const HypernodeID u, const PartitionID id) {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
-    ASSERT(hypernode(u).part_id == kInvalidPartition, "HN " << u << " is already assigned to part " << id);
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << "out of bounds!");
+    ASSERT(hypernode(u).part_id == kInvalidPartition, "HN " << u << "is already assigned to part " << id);
     hypernode(u).part_id = id;
     _part_info[id].weight += nodeWeight(u);
     ++_part_info[id].size;
   }
 
-  //! Moves an assigned hypernode to a different block
+  // ! Moves an assigned hypernode to a different block
   void updatePartInfo(const HypernodeID u, const PartitionID from, const PartitionID to) {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(from < _k && from != kInvalidPartition, "Part ID" << from << " out of bounds!");
-    ASSERT(to < _k && to != kInvalidPartition, "Part ID" << to << " out of bounds!");
-    ASSERT(hypernode(u).part_id == from, "HN " << u << " is not in part " << from);
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
+    ASSERT(from < _k && from != kInvalidPartition, "Part ID" << from << "out of bounds!");
+    ASSERT(to < _k && to != kInvalidPartition, "Part ID" << to << "out of bounds!");
+    ASSERT(hypernode(u).part_id == from, "HN " << u << "is not in part " << from);
     hypernode(u).part_id = to;
     _part_info[from].weight -= nodeWeight(u);
     --_part_info[from].size;
@@ -1713,12 +1710,12 @@ class GenericHypergraph {
     ++_part_info[to].size;
   }
 
-  //! Decrements the number of pins of a hyperedge in a block by one.
+  // ! Decrements the number of pins of a hyperedge in a block by one.
   bool decrementPinCountInPart(const HyperedgeID he, const PartitionID id) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     ASSERT(pinCountInPart(he, id) > 0,
            "HE " << he << "does not have any pins in partition " << id);
-    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << "out of bounds!");
     ASSERT(_pins_in_part[static_cast<size_t>(he) * _k + id] > 0, "invalid decrease");
     const size_t offset = static_cast<size_t>(he) * _k + id;
     _pins_in_part[offset] -= 1;
@@ -1730,13 +1727,13 @@ class GenericHypergraph {
     return connectivity_decreased;
   }
 
-  //! Increments the number of pins of a hyperedge in a block by one
+  // ! Increments the number of pins of a hyperedge in a block by one
   bool incrementPinCountInPart(const HyperedgeID he, const PartitionID id) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     ASSERT(pinCountInPart(he, id) <= edgeSize(he),
            "HE " << he << ": pin_count[" << id << "]=" << pinCountInPart(he, id)
-           << "edgesize=" << edgeSize(he));
-    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << " out of bounds!");
+                 << "edgesize=" << edgeSize(he));
+    ASSERT(id < _k && id != kInvalidPartition, "Part ID" << id << "out of bounds!");
     const size_t offset = static_cast<size_t>(he) * _k + id;
     _pins_in_part[offset] += 1;
     const bool connectivity_increased = _pins_in_part[offset] == 1;
@@ -1747,7 +1744,7 @@ class GenericHypergraph {
     return connectivity_increased;
   }
 
-  //! Invalidates the number of pins in each block.
+  // ! Invalidates the number of pins in each block.
   void invalidatePartitionPinCounts(const HyperedgeID he) {
     ASSERT(hyperedge(he).isDisabled(),
            "Invalidation of pin counts only allowed for disabled hyperedges");
@@ -1758,23 +1755,23 @@ class GenericHypergraph {
     _connectivity_sets[he].clear();
   }
 
-  //! Resets the number of pins in each block to zero.
+  // ! Resets the number of pins in each block to zero.
   void resetPartitionPinCounts(const HyperedgeID he) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     for (PartitionID part = 0; part < _k; ++part) {
       _pins_in_part[static_cast<size_t>(he) * _k + part] = 0;
     }
   }
 
   void enableEdge(const HyperedgeID e) {
-    ASSERT(hyperedge(e).isDisabled(), "HE " << e << " is already enabled!");
+    ASSERT(hyperedge(e).isDisabled(), "HE " << e << "is already enabled!");
     hyperedge(e).enable();
     ++_current_num_hyperedges;
   }
 
-  //! Restores the representative hypernode from the given memento.
+  // ! Restores the representative hypernode from the given memento.
   void restoreRepresentative(const Memento& memento) {
-    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << " is disabled");
+    ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode " << memento.u << "is disabled");
     hypernode(memento.u).setFirstEntry(memento.u_first_entry);
     hypernode(memento.u).setSize(memento.u_size);
     hypernode(memento.u).setWeight(hypernode(memento.u).weight() - hypernode(memento.v).weight());
@@ -1788,14 +1785,14 @@ class GenericHypergraph {
    * This method undoes this operation.
    */
   void resetReusedPinSlotToOriginalValue(const HyperedgeID he, const Memento& memento) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << " is disabled");
+    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge " << he << "is disabled");
     PinHandleIterator pin_begin;
     PinHandleIterator pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
     while (*pin_end != memento.u) {
-      ASSERT(pin_end != pin_begin, "Pin " << memento.u << " not found in pinlist of HE " << he);
+      ASSERT(pin_end != pin_begin, "Pin " << memento.u << "not found in pinlist of HE " << he);
       --pin_end;
     }
     ASSERT(*pin_end == memento.u && std::distance(_incidence_array.begin(), pin_begin)
@@ -1811,11 +1808,11 @@ class GenericHypergraph {
    */
   void connectHyperedgeToRepresentative(const HyperedgeID e, const HypernodeID u,
                                         bool& first_call) {
-    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << " is disabled");
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << " is disabled");
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode " << u << "is disabled");
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge " << e << "is disabled");
     ASSERT(partID(_incidence_array[hyperedge(e).firstInvalidEntry() - 1]) == partID(u),
            "Contraction target " << _incidence_array[hyperedge(e).firstInvalidEntry() - 1]
-           << "& representative " << u << "are in different parts");
+                                 << "& representative " << u << "are in different parts");
     // Hyperedge e does not contain u. Therefore we use the entry of v (i.e. the last entry
     // -- this is ensured by the contract method) in e's edge array to store the information
     // that u is now connected to e and add the edge (u,e) to indicate this conection also from
@@ -1830,7 +1827,7 @@ class GenericHypergraph {
       first_call = false;
     }
     ASSERT(nodeU.firstInvalidEntry() == _incidence_array.size(), "Incidence Info of HN " << u
-           << " is not at the end of the incidence array");
+                                                                                         << "is not at the end of the incidence array");
     _incidence_array.push_back(e);
     nodeU.incrementSize();
   }
@@ -1891,72 +1888,72 @@ class GenericHypergraph {
     return typestring;
   }
 
-  //! Accessor for handles of hypernodes contained in hyperedge (aka pins)
+  // ! Accessor for handles of hypernodes contained in hyperedge (aka pins)
   std::pair<PinHandleIterator, PinHandleIterator> pinHandles(const HyperedgeID he) {
     return std::make_pair(_incidence_array.begin() + hyperedge(he).firstEntry(),
                           _incidence_array.begin() + hyperedge(he).firstInvalidEntry());
   }
 
-  //! Accessor for hypernode-related information
+  // ! Accessor for hypernode-related information
   const Hypernode & hypernode(const HypernodeID u) const {
-    ASSERT(u < _num_hypernodes, "Hypernode " << u << " does not exist");
+    ASSERT(u < _num_hypernodes, "Hypernode " << u << "does not exist");
     return _hypernodes[u];
   }
 
-  //! Accessor for hyperedge-related information
+  // ! Accessor for hyperedge-related information
   const Hyperedge & hyperedge(const HyperedgeID e) const {
-    ASSERT(e < _num_hyperedges, "Hyperedge " << e << " does not exist");
+    ASSERT(e < _num_hyperedges, "Hyperedge " << e << "does not exist");
     return _hyperedges[e];
   }
 
-  //! To avoid code duplication we implement non-const version in terms of const version
+  // ! To avoid code duplication we implement non-const version in terms of const version
   Hypernode & hypernode(const HypernodeID u) {
     return const_cast<Hypernode&>(static_cast<const GenericHypergraph&>(*this).hypernode(u));
   }
 
-  //! To avoid code duplication we implement non-const version in terms of const version
+  // ! To avoid code duplication we implement non-const version in terms of const version
   Hyperedge & hyperedge(const HyperedgeID e) {
     return const_cast<Hyperedge&>(static_cast<const GenericHypergraph&>(*this).hyperedge(e));
   }
 
-  //! Original number of hypernodes |V|
+  // ! Original number of hypernodes |V|
   HypernodeID _num_hypernodes;
-  //! Original number of hyperedges |E|
+  // ! Original number of hyperedges |E|
   HyperedgeID _num_hyperedges;
-  //! Original number of pins |P|
+  // ! Original number of pins |P|
   HypernodeID _num_pins;
-  //! Sum of the weights of all hypernodes
+  // ! Sum of the weights of all hypernodes
   HypernodeWeight _total_weight;
-  //! Number of blocks the hypergraph will be partitioned in
+  // ! Number of blocks the hypergraph will be partitioned in
   int _k;
-  //! Type of the hypergraph
+  // ! Type of the hypergraph
   Type _type;
 
-  //! Current number of hypernodes
+  // ! Current number of hypernodes
   HypernodeID _current_num_hypernodes;
-  //! Current number of hyperedges
+  // ! Current number of hyperedges
   HyperedgeID _current_num_hyperedges;
-  //! Current number of pins
+  // ! Current number of pins
   HypernodeID _current_num_pins;
 
-  //! Current threshold value to indicate an active hypernode
+  // ! Current threshold value to indicate an active hypernode
   uint32_t _threshold_active;
-  //! Current threshold value to indicate a marked hypernode
+  // ! Current threshold value to indicate a marked hypernode
   uint32_t _threshold_marked;
 
-  //! The hypernodes of the hypergraph
+  // ! The hypernodes of the hypergraph
   std::vector<Hypernode> _hypernodes;
-  //! The hyperedges of the hypergraph
+  // ! The hyperedges of the hypergraph
   std::vector<Hyperedge> _hyperedges;
-  //! Incidence structure containing the ids of of pins of all hyperedges
-  //! and the ids of the incident edges of all hypernodes.
+  // ! Incidence structure containing the ids of of pins of all hyperedges
+  // ! and the ids of the incident edges of all hypernodes.
   std::vector<VertexID> _incidence_array;
 
-  //! Weight and size information for all blocks.
+  // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
-  //! For each hyperedge and each block, _pins_in_part stores the number of pins in that block
+  // ! For each hyperedge and each block, _pins_in_part stores the number of pins in that block
   std::vector<HypernodeID> _pins_in_part;
-  //! For each hyperedge, _connectivity_sets stores the blocks the hyperedge connects
+  // ! For each hyperedge, _connectivity_sets stores the blocks the hyperedge connects
   ConnectivitySets<PartitionID, HyperedgeID> _connectivity_sets;
 
   /*!

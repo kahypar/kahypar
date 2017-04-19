@@ -62,10 +62,11 @@ namespace metrics {
 class APartitionedHypergraph;
 }  // namespace metrics
 
-static const bool dbg_partition_initial_partitioning = true;
-static const bool dbg_partition_vcycles = true;
 
 class Partitioner {
+ private:
+  static constexpr bool debug = false;
+
   using CoarsenedToHmetisMapping = std::unordered_map<HypernodeID, HypernodeID>;
   using HmetisToCoarsenedMapping = std::vector<HypernodeID>;
   using PartitionWeights = std::vector<HypernodeWeight>;
@@ -248,10 +249,10 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration& config) {
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (config.partition.verbose_output && result.num_removed_single_node_hes > 0) {
-    LOG("\033[1m\033[31m" << "Removed " << result.num_removed_single_node_hes
-        << " hyperedges with |e|=1" << "\033[0m");
-    LOG("\033[1m\033[31m" << "===> " << result.num_unconnected_hns
-        << " unconnected HNs could have been removed" << "\033[0m");
+    LOG << "\033[1m\033[31m" << "Removed " << result.num_removed_single_node_hes
+        << "hyperedges with |e|=1" << "\033[0m";
+    LOG << "\033[1m\033[31m" << "===> " << result.num_unconnected_hns
+        << "unconnected HNs could have been removed" << "\033[0m";
   }
 
   if (config.preprocessing.remove_always_cut_hes) {
@@ -267,9 +268,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
                                     const Configuration& config) {
   preprocess(hypergraph, config);
   ASSERT(config.preprocessing.enable_min_hash_sparsifier);
-  LOG("Before sparsification: hypernodes = " << hypergraph.initialNumNodes());
-  LOG("Before sparsification: hyperedges = " << hypergraph.initialNumEdges());
-  LOG("Before sparsification: pins = " << hypergraph.initialNumPins());
+  LOG << "Before sparsification: hypernodes = " << hypergraph.initialNumNodes();
+  LOG << "Before sparsification: hyperedges = " << hypergraph.initialNumEdges();
+  LOG << "Before sparsification: pins = " << hypergraph.initialNumPins();
 
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   sparseHypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
@@ -277,9 +278,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
   Stats::instance().addToTotal(config, "MinHashSparsifier",
                                std::chrono::duration<double>(end - start).count());
 
-  LOG("After sparsification: hypernodes = " << sparseHypergraph.initialNumNodes());
-  LOG("After sparsification: hyperedges = " << sparseHypergraph.initialNumEdges());
-  LOG("After sparsification: pins = " << sparseHypergraph.initialNumPins());
+  LOG << "After sparsification: hypernodes = " << sparseHypergraph.initialNumNodes();
+  LOG << "After sparsification: hyperedges = " << sparseHypergraph.initialNumEdges();
+  LOG << "After sparsification: pins = " << sparseHypergraph.initialNumPins();
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(sparseHypergraph, "sparsified hypergraph");
   }
@@ -328,11 +329,11 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
 
 
     if (config.partition.verbose_output) {
-      LOG("Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
-          << " " << toString(config.initial_partitioning.mode) << " "
+      LOG << "Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
+          << "" << toString(config.initial_partitioning.mode) << ""
           << toString(config.initial_partitioning.algo)
-          << " (k=" << init_config.initial_partitioning.k << ", epsilon="
-          << init_config.initial_partitioning.epsilon << ")");
+          << "(k=" << init_config.initial_partitioning.k << ", epsilon="
+          << init_config.initial_partitioning.epsilon << ")";
     }
     if (config.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
         config.initial_partitioning.mode == Mode::direct_kway) {
@@ -454,7 +455,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           config.partition.mode = Mode::direct_kway;
           break;
         default:
-          LOG("Invalid IP mode");
+          LOG << "Invalid IP mode";
           std::exit(-1);
       }
       config.local_search.algorithm = config.initial_partitioning.local_search.algorithm;
@@ -478,7 +479,7 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
           config.partition.mode = Mode::direct_kway;
           break;
         default:
-          LOG("Invalid IP mode");
+          LOG << "Invalid IP mode";
           std::exit(-1);
       }
   }
@@ -610,7 +611,7 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
                                                              current_k, original_config);
   ASSERT(current_config.partition.epsilon > 0.0, "start partition already too imbalanced");
   if (current_config.partition.verbose_output) {
-    LOG(V(current_config.partition.epsilon));
+    LOG << V(current_config.partition.epsilon);
   }
   current_config.partition.total_graph_weight =
     current_hypergraph.totalWeight();
@@ -727,7 +728,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           performPartitioning(current_hypergraph, *coarsener, *refiner, current_config);
 
           if (current_config.partition.verbose_output) {
-            LOG("-------------------------------------------------------------");
+            LOG << "-------------------------------------------------------------";
           }
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
@@ -753,7 +754,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
         }
         break;
       default:
-        LOG("Illegal recursive bisection state");
+        LOG << "Illegal recursive bisection state";
         break;
     }
   }
@@ -775,8 +776,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
 
   performPartitioning(hypergraph, *coarsener, *refiner, config);
 
-  DBG(dbg_partition_vcycles,
-      "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph));
+  DBG << "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph);
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
 #endif
@@ -784,9 +784,9 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   for (int vcycle = 1; vcycle <= config.partition.global_search_iterations; ++vcycle) {
     const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener, *refiner, config);
 
-    DBG(dbg_partition_vcycles, V(vcycle) << V(metrics::hyperedgeCut(hypergraph)));
+    DBG << V(vcycle) << V(metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
-      LOG("Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.");
+      LOG << "Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.";
       break;
     }
 

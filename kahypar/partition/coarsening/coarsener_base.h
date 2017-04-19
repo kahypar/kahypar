@@ -38,14 +38,10 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-static const bool dbg_coarsening_coarsen = false;
-static const bool dbg_coarsening_rating = false;
-static const bool dbg_coarsening_no_valid_contraction = false;
-static const bool dbg_coarsening_uncoarsen = false;
-static const bool dbg_coarsening_uncoarsen_improvement = false;
-
 class CoarsenerBase {
  private:
+  static constexpr bool debug = false;
+
   struct CurrentMaxNodeWeight {
     HypernodeID num_nodes;
     HypernodeWeight max_weight;
@@ -114,8 +110,8 @@ class CoarsenerBase {
     for (const HyperedgeID& he : _hg.edges()) {
       max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
     }
-    LOGVAR(max_degree);
-    LOGVAR(max_he_weight);
+    LOG << V(max_degree);
+    LOG << V(max_he_weight);
     refiner.initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
 #else
     refiner.initialize(0);
@@ -165,10 +161,8 @@ class CoarsenerBase {
            (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::km1(_hg)),
            V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
 
-    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::cut),
-        old_cut << "-->" << current_metrics.cut);
-    DBG(dbg_coarsening_uncoarsen && (_config.partition.objective == Objective::km1),
-        old_km1 << "-->" << current_metrics.km1);
+    DBGC(_config.partition.objective == Objective::cut) << old_cut << "-->" << current_metrics.cut;
+    DBGC(_config.partition.objective == Objective::km1) << old_km1 << "-->" << current_metrics.km1;
     return improvement_found;
   }
 

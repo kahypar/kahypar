@@ -102,8 +102,8 @@ class GlobalQueueSelectionPolicy {
           }
         }
         return true;
-      } (), "Moving hypernode " << current_hn << " to part "
-           << current_id << " isn't the move with maximum gain!");
+      } (), "Moving hypernode " << current_hn << "to part "
+                                << current_id << "isn't the move with maximum gain!");
 
     return current_id != -1;
   }
@@ -149,7 +149,7 @@ class SequentialQueueSelectionPolicy {
         }
         if (current_id != config.initial_partitioning.k) {
           ASSERT(_pq.isEnabled(current_id),
-                 "PQ " << current_id << " should be enabled!");
+                 "PQ " << current_id << "should be enabled!");
           _pq.deleteMaxFromPartition(current_hn, current_gain,
                                      current_id);
         } else {

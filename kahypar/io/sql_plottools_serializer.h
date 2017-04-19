@@ -39,102 +39,102 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
                              const std::chrono::duration<double>& elapsed_seconds) {
   std::ostringstream oss;
   oss << "RESULT"
-  << " graph=" << config.partition.graph_filename.substr(
+      << " graph=" << config.partition.graph_filename.substr(
     config.partition.graph_filename.find_last_of('/') + 1)
-  << " numHNs=" << hypergraph.initialNumNodes()
-  << " numHEs=" << hypergraph.initialNumEdges()
-  << " " << hypergraph.typeAsString()
-  << " mode=" << toString(config.partition.mode)
-  << " objective=" << toString(config.partition.objective)
-  << " k=" << config.partition.k
-  << " epsilon=" << config.partition.epsilon
-  << " seed=" << config.partition.seed
-  << " num_v_cycles=" << config.partition.global_search_iterations
-  << " he_size_threshold=" << config.partition.hyperedge_size_threshold
-  << " total_graph_weight=" << config.partition.total_graph_weight
-  << " L_opt0=" << config.partition.perfect_balance_part_weights[0]
-  << " L_opt1=" << config.partition.perfect_balance_part_weights[1]
-  << " L_max0=" << config.partition.max_part_weights[0]
-  << " L_max1=" << config.partition.max_part_weights[1]
-  << " pre_enable_min_hash_sparsifier=" << std::boolalpha
-  << config.preprocessing.enable_min_hash_sparsifier
-  << " pre_remove_parallel_hes=" << std::boolalpha
-  << config.preprocessing.remove_parallel_hes
-  << " pre_remove_always_cut_hes=" << std::boolalpha
-  << config.preprocessing.remove_always_cut_hes
-  << " pre_min_hash_max_hyperedge_size="
-  << config.preprocessing.min_hash_sparsifier.max_hyperedge_size
-  << " pre_min_hash_max_cluster_size="
-  << config.preprocessing.min_hash_sparsifier.max_cluster_size
-  << " pre_min_hash_min_cluster_size="
-  << config.preprocessing.min_hash_sparsifier.min_cluster_size
-  << " pre_min_hash_num_hash_functions="
-  << config.preprocessing.min_hash_sparsifier.num_hash_functions
-  << " pre_min_hash_combined_num_hash_functions="
-  << config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
-  << " pre_min_sparsifier_is_active="
-  << config.preprocessing.min_hash_sparsifier.is_active
-  << " pre_min_sparsifier_activation_median_he_size="
-  << config.preprocessing.min_hash_sparsifier.min_median_he_size
-  << " enable_louvain_community_detection=" << std::boolalpha
-  << config.preprocessing.enable_louvain_community_detection
-  << " enable_louvain_in_initial_partitioning=" << std::boolalpha
-  << config.preprocessing.louvain_community_detection.enable_in_initial_partitioning
-  << " max_louvain_pass_iterations=" << config.preprocessing.louvain_community_detection.max_pass_iterations
-  << " min_louvain_eps_improvement=" << config.preprocessing.louvain_community_detection.min_eps_improvement
-  << " louvain_edge_weight=" << toString(config.preprocessing.louvain_community_detection.edge_weight)
-  << " louvain_use_bipartite_graph=" << std::boolalpha
-  << config.preprocessing.louvain_community_detection.use_bipartite_graph
-  << " coarsening_algo=" << toString(config.coarsening.algorithm)
-  << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
-  << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier
-  << " coarsening_hypernode_weight_fraction=" << config.coarsening.hypernode_weight_fraction
-  << " coarsening_max_allowed_node_weight=" << config.coarsening.max_allowed_node_weight
-  << " coarsening_contraction_limit=" << config.coarsening.contraction_limit
-  << " IP_mode=" << toString(config.initial_partitioning.mode)
-  << " IP_technique=" << toString(config.initial_partitioning.technique)
-  << " IP_algorithm=" << toString(config.initial_partitioning.algo)
-  << " IP_pool_type=" << config.initial_partitioning.pool_type
-  << " IP_num_runs=" << config.initial_partitioning.nruns
-  << " IP_coarsening_algo=" << toString(config.initial_partitioning.coarsening.algorithm)
-  << " IP_coarsening_max_allowed_weight_multiplier="
-  << config.initial_partitioning.coarsening.max_allowed_weight_multiplier
-  << " IP_coarsening_contraction_limit_multiplier="
-  << config.initial_partitioning.coarsening.contraction_limit_multiplier
-  << " IP_local_search_algorithm=" << toString(config.initial_partitioning.local_search.algorithm)
-  << " IP_local_search_iterations_per_level="
-  << config.initial_partitioning.local_search.iterations_per_level;
+      << " numHNs=" << hypergraph.initialNumNodes()
+      << " numHEs=" << hypergraph.initialNumEdges()
+      << " " << hypergraph.typeAsString()
+      << " mode=" << toString(config.partition.mode)
+      << " objective=" << toString(config.partition.objective)
+      << " k=" << config.partition.k
+      << " epsilon=" << config.partition.epsilon
+      << " seed=" << config.partition.seed
+      << " num_v_cycles=" << config.partition.global_search_iterations
+      << " he_size_threshold=" << config.partition.hyperedge_size_threshold
+      << " total_graph_weight=" << config.partition.total_graph_weight
+      << " L_opt0=" << config.partition.perfect_balance_part_weights[0]
+      << " L_opt1=" << config.partition.perfect_balance_part_weights[1]
+      << " L_max0=" << config.partition.max_part_weights[0]
+      << " L_max1=" << config.partition.max_part_weights[1]
+      << " pre_enable_min_hash_sparsifier=" << std::boolalpha
+      << config.preprocessing.enable_min_hash_sparsifier
+      << " pre_remove_parallel_hes=" << std::boolalpha
+      << config.preprocessing.remove_parallel_hes
+      << " pre_remove_always_cut_hes=" << std::boolalpha
+      << config.preprocessing.remove_always_cut_hes
+      << " pre_min_hash_max_hyperedge_size="
+      << config.preprocessing.min_hash_sparsifier.max_hyperedge_size
+      << " pre_min_hash_max_cluster_size="
+      << config.preprocessing.min_hash_sparsifier.max_cluster_size
+      << " pre_min_hash_min_cluster_size="
+      << config.preprocessing.min_hash_sparsifier.min_cluster_size
+      << " pre_min_hash_num_hash_functions="
+      << config.preprocessing.min_hash_sparsifier.num_hash_functions
+      << " pre_min_hash_combined_num_hash_functions="
+      << config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
+      << " pre_min_sparsifier_is_active="
+      << config.preprocessing.min_hash_sparsifier.is_active
+      << " pre_min_sparsifier_activation_median_he_size="
+      << config.preprocessing.min_hash_sparsifier.min_median_he_size
+      << " enable_louvain_community_detection=" << std::boolalpha
+      << config.preprocessing.enable_louvain_community_detection
+      << " enable_louvain_in_initial_partitioning=" << std::boolalpha
+      << config.preprocessing.louvain_community_detection.enable_in_initial_partitioning
+      << " max_louvain_pass_iterations=" << config.preprocessing.louvain_community_detection.max_pass_iterations
+      << " min_louvain_eps_improvement=" << config.preprocessing.louvain_community_detection.min_eps_improvement
+      << " louvain_edge_weight=" << toString(config.preprocessing.louvain_community_detection.edge_weight)
+      << " louvain_use_bipartite_graph=" << std::boolalpha
+      << config.preprocessing.louvain_community_detection.use_bipartite_graph
+      << " coarsening_algo=" << toString(config.coarsening.algorithm)
+      << " coarsening_max_allowed_weight_multiplier=" << config.coarsening.max_allowed_weight_multiplier
+      << " coarsening_contraction_limit_multiplier=" << config.coarsening.contraction_limit_multiplier
+      << " coarsening_hypernode_weight_fraction=" << config.coarsening.hypernode_weight_fraction
+      << " coarsening_max_allowed_node_weight=" << config.coarsening.max_allowed_node_weight
+      << " coarsening_contraction_limit=" << config.coarsening.contraction_limit
+      << " IP_mode=" << toString(config.initial_partitioning.mode)
+      << " IP_technique=" << toString(config.initial_partitioning.technique)
+      << " IP_algorithm=" << toString(config.initial_partitioning.algo)
+      << " IP_pool_type=" << config.initial_partitioning.pool_type
+      << " IP_num_runs=" << config.initial_partitioning.nruns
+      << " IP_coarsening_algo=" << toString(config.initial_partitioning.coarsening.algorithm)
+      << " IP_coarsening_max_allowed_weight_multiplier="
+      << config.initial_partitioning.coarsening.max_allowed_weight_multiplier
+      << " IP_coarsening_contraction_limit_multiplier="
+      << config.initial_partitioning.coarsening.contraction_limit_multiplier
+      << " IP_local_search_algorithm=" << toString(config.initial_partitioning.local_search.algorithm)
+      << " IP_local_search_iterations_per_level="
+      << config.initial_partitioning.local_search.iterations_per_level;
   if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
       config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm ||
       config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
     oss << " IP_local_search_fm_stopping_rule="
-    << toString(config.initial_partitioning.local_search.fm.stopping_rule)
-    << " IP_local_search_fm_max_number_of_fruitless_moves="
-    << config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves
-    << " IP_local_search_fm_global_rebalancing="
-    << toString(config.initial_partitioning.local_search.fm.global_rebalancing)
-    << " IP_local_search_fm_adaptive_stopping_alpha="
-    << config.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
+        << toString(config.initial_partitioning.local_search.fm.stopping_rule)
+        << " IP_local_search_fm_max_number_of_fruitless_moves="
+        << config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves
+        << " IP_local_search_fm_global_rebalancing="
+        << toString(config.initial_partitioning.local_search.fm.global_rebalancing)
+        << " IP_local_search_fm_adaptive_stopping_alpha="
+        << config.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
   if (config.initial_partitioning.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " IP_local_search_sclap_max_number_iterations="
-    << config.initial_partitioning.local_search.sclap.max_number_iterations;
+        << config.initial_partitioning.local_search.sclap.max_number_iterations;
   }
 
   oss << " local_search_algorithm=" << toString(config.local_search.algorithm)
-  << " local_search_iterations_per_level=" << config.local_search.iterations_per_level;
+      << " local_search_iterations_per_level=" << config.local_search.iterations_per_level;
   if (config.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
       config.local_search.algorithm == RefinementAlgorithm::kway_fm ||
       config.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
     oss << " local_search_fm_stopping_rule=" << toString(config.local_search.fm.stopping_rule)
-    << " local_search_fm_max_number_of_fruitless_moves="
-    << config.local_search.fm.max_number_of_fruitless_moves
-    << " local_search_fm_global_rebalancing=" << toString(config.local_search.fm.global_rebalancing)
-    << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha;
+        << " local_search_fm_max_number_of_fruitless_moves="
+        << config.local_search.fm.max_number_of_fruitless_moves
+        << " local_search_fm_global_rebalancing=" << toString(config.local_search.fm.global_rebalancing)
+        << " local_search_fm_adaptive_stopping_alpha=" << config.local_search.fm.adaptive_stopping_alpha;
   }
   if (config.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " local_search_sclap_max_number_iterations="
-    << config.local_search.sclap.max_number_iterations;
+        << config.local_search.sclap.max_number_iterations;
   }
   oss << partitioner.internals();
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
@@ -144,21 +144,21 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
     oss << " partWeight" << i << "=" << hypergraph.partWeight(i);
   }
   oss << " cut=" << metrics::hyperedgeCut(hypergraph)
-  << " soed=" << metrics::soed(hypergraph)
-  << " km1=" << metrics::km1(hypergraph)
-  << " absorption=" << metrics::absorption(hypergraph)
-  << " imbalance=" << metrics::imbalance(hypergraph, config)
-  << " totalPartitionTime=" << elapsed_seconds.count()
-  << " initialParallelHEremovalTime=" << Stats::instance().get("InitialParallelHEremoval")
-  << " initialLargeHEremovalTime=" << Stats::instance().get("InitialLargeHEremoval")
-  << " coarseningTime=" << Stats::instance().get("Coarsening")
-  << " initialPartitionTime=" << Stats::instance().get("InitialPartitioning")
-  << " uncoarseningRefinementTime=" << Stats::instance().get("UncoarseningRefinement")
-  << " initialParallelHErestoreTime=" << Stats::instance().get("InitialParallelHErestore")
-  << " initialLargeHErestoreTime=" << Stats::instance().get("InitialLargeHErestore")
-  << Stats::instance().toString()
-  << " git=" << STR(KaHyPar_BUILD_VERSION)
-  << std::endl;
+      << " soed=" << metrics::soed(hypergraph)
+      << " km1=" << metrics::km1(hypergraph)
+      << " absorption=" << metrics::absorption(hypergraph)
+      << " imbalance=" << metrics::imbalance(hypergraph, config)
+      << " totalPartitionTime=" << elapsed_seconds.count()
+      << " initialParallelHEremovalTime=" << Stats::instance().get("InitialParallelHEremoval")
+      << " initialLargeHEremovalTime=" << Stats::instance().get("InitialLargeHEremoval")
+      << " coarseningTime=" << Stats::instance().get("Coarsening")
+      << " initialPartitionTime=" << Stats::instance().get("InitialPartitioning")
+      << " uncoarseningRefinementTime=" << Stats::instance().get("UncoarseningRefinement")
+      << " initialParallelHErestoreTime=" << Stats::instance().get("InitialParallelHErestore")
+      << " initialLargeHErestoreTime=" << Stats::instance().get("InitialLargeHErestore")
+      << Stats::instance().toString()
+      << " git=" << STR(KaHyPar_BUILD_VERSION)
+      << std::endl;
 
   std::cout << oss.str() << std::endl;
 }

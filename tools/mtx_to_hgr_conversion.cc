@@ -25,17 +25,19 @@
 #include "tools/mtx_to_hgr_conversion.h"
 
 namespace mtxconversion {
+static constexpr bool debug = false;
+
 MatrixInfo parseHeader(std::ifstream& file) {
   std::string line;
   std::getline(file, line);
   std::istringstream sstream(line);
   std::string matrix_market, object, matrix_format, data_format, symmetry;
   sstream >> matrix_market >> object >> matrix_format >> data_format >> symmetry;
-  LOG("matrix_market=" << matrix_market);
-  LOG("object=" << object);
-  LOG("matrix_format=" << matrix_format);
-  LOG("data_format=" << data_format);
-  LOG("symmetry=" << symmetry);
+  LOG << "matrix_market=" << matrix_market;
+  LOG << "object=" << object;
+  LOG << "matrix_format=" << matrix_format;
+  LOG << "data_format=" << data_format;
+  LOG << "symmetry=" << symmetry;
   ALWAYS_ASSERT(matrix_market == "%%MatrixMarket", "Invalid Header " << V(matrix_market));
   ALWAYS_ASSERT(object == "matrix", "Invalid object type " << V(object));
 
@@ -66,9 +68,9 @@ void parseDimensionInformation(std::ifstream& file, MatrixInfo& info) {
   }
   std::istringstream sstream(line);
   sstream >> info.num_rows >> info.num_columns >> info.num_entries;
-  LOG("num_rows=" << info.num_rows);
-  LOG("num_columns=" << info.num_columns);
-  LOG("num_entries=" << info.num_entries);
+  LOG << "num_rows=" << info.num_rows;
+  LOG << "num_columns=" << info.num_columns;
+  LOG << "num_entries=" << info.num_entries;
 }
 
 void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data) {
@@ -89,7 +91,7 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
   int column = -1;
   for (int i = 0; i < info.num_entries; ++i) {
     std::getline(file, line);
-    DBG(false, line);
+    DBG << line;
     std::istringstream line_stream(line);
     line_stream >> row >> column;
 
@@ -97,11 +99,11 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
     --column;
     --row;
     matrix_data[row].push_back(column);
-    DBG(false, "_matrix_data[" << row << "].push_back(" << column << ")");
+    DBG << "_matrix_data[" << row << "].push_back(" << column << ")";
 
     if (info.symmetry == MatrixSymmetry::SYMMETRIC && row != column) {
       matrix_data[column].push_back(row);
-      DBG(false, "_matrix_data[" << column << "].push_back(" << row << ")");
+      DBG << "_matrix_data[" << column << "].push_back(" << row << ")";
     }
   }
 
@@ -113,9 +115,9 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
   }
   if (num_empty_hyperedges > 0) {
     std::cout << "WARNING: matrix contains " << num_empty_hyperedges << " empty hyperedges"
-    << std::endl;
+              << std::endl;
     std::cout << "Number of hyperedges in hypergraph will be adjusted!"
-    << std::endl;
+              << std::endl;
     info.num_rows -= num_empty_hyperedges;
   }
 }

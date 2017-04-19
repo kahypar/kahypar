@@ -39,6 +39,7 @@ template <typename IDType = Mandatory,
           class Queue = BinaryMaxHeap<IDType, KeyType> >
 class KWayPriorityQueue {
   // using Queue = EnhancedBucketQueue<IDType, KeyType, MetaKey>;
+  static constexpr bool debug = false;
 
   static constexpr size_t kInvalidIndex = std::numeric_limits<size_t>::max();
   static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
@@ -127,7 +128,7 @@ class KWayPriorityQueue {
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void insert(const IDType id, const PartitionID part,
                                               const KeyType key) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
-    DBG(false, "Insert: (" << id << "," << part << "," << key << ")");
+    DBG << "Insert: (" << id << "," << part << "," << key << ")";
     ASSERT((_mapping[part].index != kInvalidIndex) ||
            (_mapping[_num_nonempty_pqs].part == kInvalidPart),
            V(_mapping[_num_nonempty_pqs].part));

@@ -37,12 +37,12 @@ namespace kahypar {
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
  private:
-  static const bool dbg_partition_rating = false;
-
-  using Base = VertexPairCoarsenerBase;
+  static constexpr bool debug = false;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
   static constexpr RatingType kInvalidScore = std::numeric_limits<RatingType>::min();
+
+  using Base = VertexPairCoarsenerBase;
 
   struct Rating {
     Rating(HypernodeID trgt, RatingType val, bool is_valid) :
@@ -94,9 +94,9 @@ class MLCoarsener final : public ICoarsener,
     }
 
     while (_hg.currentNumNodes() > limit) {
-      LOGVAR(pass_nr);
-      LOGVAR(_hg.currentNumNodes());
-      LOGVAR(_hg.currentNumEdges());
+      LOG << V(pass_nr);
+      LOG << V(_hg.currentNumNodes());
+      LOG << V(_hg.currentNumEdges());
 
       already_matched.reset();
       current_hns.clear();
@@ -141,7 +141,7 @@ class MLCoarsener final : public ICoarsener,
   }
 
   Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
-    DBG(dbg_partition_rating, "Calculating rating for HN " << u);
+    DBG << "Calculating rating for HN " << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
@@ -161,7 +161,7 @@ class MLCoarsener final : public ICoarsener,
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value;
-      DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp_rating);
+      DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (_comm[u] == _comm[tmp_target] && acceptRating(tmp_rating, max_rating, target, tmp_target, already_matched)) {
         max_rating = tmp_rating;
         target = tmp_target;
@@ -180,8 +180,7 @@ class MLCoarsener final : public ICoarsener,
     _tmp_ratings.clear();
 
     ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
-    DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
-        << ret.valid << ")");
+    DBG << "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")";
     return ret;
   }
 

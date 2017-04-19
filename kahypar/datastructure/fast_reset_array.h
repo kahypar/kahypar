@@ -62,7 +62,7 @@ class FastResetArray {
 
   void uncheckedSet(const size_t index, const T value) {
     ASSERT(_entries[index] != _initial_value,
-           "Index " << index << " is still unused and not tracked for reset!");
+           "Index " << index << "is still unused and not tracked for reset!");
     _entries[index] = value;
   }
 

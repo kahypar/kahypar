@@ -213,4 +213,4 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
     ASSERT_EQ(louvain.clusterID(node), expected_comm[node]);
 }
 }  // namespace ds
-}  //namespace kahypar
+}  // namespace kahypar

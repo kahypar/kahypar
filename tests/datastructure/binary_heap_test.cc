@@ -252,7 +252,6 @@ TEST_F(AMinHeap, ReturnsTheMinimumElement) {
   this->_heap.push(0, 4);
   this->_heap.push(4, 1);
   ASSERT_EQ(this->_heap.top(), 4);
-  LOG("done");
 }
 
 TEST_F(AMinHeap, ReturnsTheMinimumKey) {

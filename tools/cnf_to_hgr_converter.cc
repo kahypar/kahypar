@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::cout << "Converting SAT instance " << cnf_filename << " to HGR hypergraph format: "
-  << hgr_filename << " ..." << std::endl;
+            << hgr_filename << " ..." << std::endl;
   cnfconversion::convertInstance(cnf_filename, hgr_filename, hypergraph_type);
   std::cout << " ... done!" << std::endl;
   return 0;

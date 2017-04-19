@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   out_stream << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
   out_stream << " xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns";
   out_stream << " http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">"
-  << std::endl;
+             << std::endl;
   out_stream << "<graph id=\"G\" edgedefault=\"undirected\">" << std::endl;
   for (const HypernodeID& hn : hypergraph.nodes()) {
     out_stream << "<node id=\"n" << hn << "\"/>" << std::endl;

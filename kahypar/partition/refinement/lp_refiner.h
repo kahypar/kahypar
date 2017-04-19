@@ -39,6 +39,9 @@
 
 namespace kahypar {
 class LPRefiner final : public IRefiner {
+ private:
+  static constexpr bool debug = false;
+
   using GainPartitionPair = std::pair<Gain, PartitionID>;
 
   using GainCache = LPGainCache;
@@ -120,9 +123,9 @@ class LPRefiner final : public IRefiner {
         const PartitionID from_part = _hg.partID(hn);
         const PartitionID to_part = gain_pair.second;
 
-        DBG(false, "cut=" << best_metrics.cut << " max_gain_node=" << hn
-            << " gain=" << gain_pair.first << " source_part=" << from_part
-            << " target_part=" << to_part);
+        DBG << "cut=" << best_metrics.cut << "max_gain_node=" << hn
+            << "gain=" << gain_pair.first << "source_part=" << from_part
+            << "target_part=" << to_part;
 
         const bool move_successful = moveHypernode(hn, from_part, gain_pair.second);
         if (move_successful) {
@@ -191,11 +194,11 @@ class LPRefiner final : public IRefiner {
 
       _cur_queue.swap(_next_queue);
       _contained_cur_queue.swap(_contained_next_queue);
-      // LOGVAR(i);
-      // LOG(V(best_metrics.cut) << "<" V(current_cut));
-      // LOG(V(best_metrics.imbalance) << "<" V(initial_imbalance));
+      // LOG << V(i);
+      // LOG << V(best_metrics.cut) << "<" V(current_cut);
+      // LOG << V(best_metrics.imbalance) << "<" V(initial_imbalance);
     }
-    // LOG("-----------------------------------");
+    // LOG << "-----------------------------------";
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
@@ -337,7 +340,7 @@ class LPRefiner final : public IRefiner {
     }
 
     if (pin_count_source_part_before_move == he_size - 1 && _hg.partID(pin) != from_part) {
-        _gain_cache.updateEntryIfItExists(pin, from_part, { -he_weight, 0 });
+      _gain_cache.updateEntryIfItExists(pin, from_part, { -he_weight, 0 });
     }
 
     // km1 updates
@@ -452,7 +455,7 @@ class LPRefiner final : public IRefiner {
              V(kM1gainInducedByHypergraph(hn, target_part.key)));
       ASSERT(target_part.value.cut - internal_weight == gainInducedByHypergraph(hn, target_part.key),
              "Cut Gain calculation failed! Should be " << V
-               (gainInducedByHypergraph(hn, target_part.key)));
+             (gainInducedByHypergraph(hn, target_part.key)));
       _gain_cache.initializeEntry(hn, target_part.key, { target_part.value.cut - internal_weight,
                                                          target_part.value.km1 - internal });
     }
@@ -504,13 +507,13 @@ class LPRefiner final : public IRefiner {
                << V(part));
       } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
-               << "_hg.partID(hn) != part");
+                                                         << "_hg.partID(hn) != part");
         ASSERT(_gain_cache.entry(hn, part).cut == GainCache::kNotCached, V(hn) << V(part));
         ASSERT(_gain_cache.entry(hn, part).km1 == GainCache::kNotCached, V(hn) << V(part));
       }
       if (_hg.partID(hn) == part) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
-               << "_hg.partID(hn) == part");
+                                                         << "_hg.partID(hn) == part");
         ASSERT(_gain_cache.entry(hn, part).cut == GainCache::kNotCached,
                V(hn) << V(part));
         ASSERT(_gain_cache.entry(hn, part).km1 == GainCache::kNotCached,

@@ -41,6 +41,8 @@ using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitioner : public Test {
  public:
+  static constexpr bool debug = false;
+
   APartitioner() :
     hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
@@ -118,10 +120,10 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   config.partition.global_search_iterations = 2;
-  DBG(true, metrics::hyperedgeCut(*hypergraph));
+  DBG1 << metrics::hyperedgeCut(*hypergraph);
   partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
   hypergraph->printGraphState();
-  DBG(true, metrics::hyperedgeCut(*hypergraph));
+  DBG1 << metrics::hyperedgeCut(*hypergraph);
   metrics::hyperedgeCut(*hypergraph);
 }
 }  // namespace kahypar

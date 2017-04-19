@@ -63,7 +63,7 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
   std::cout << V(num_hyperedges) << std::endl;
   std::cout << V(num_pins) << std::endl;
 
-  //skip empty line
+  // skip empty line
   std::getline(bookshelf_stream, line);
 
   std::unordered_map<std::string, HypernodeID> node_to_hn;

@@ -169,14 +169,14 @@ class CacheElement {
     ASSERT([&]() {
         const PartitionID index = sparse(part).index;
         if (index < _size && dense(index) == part && gain(part) == Gain(kNotCached)) {
-          LOG("contained but invalid gain");
-          LOGVAR(part);
+          LOG << "contained but invalid gain";
+          LOG << V(part);
           return false;
         }
         if ((sparse(part).index >= _size ||
              dense(sparse(part).index) != part) && gain(part) != Gain(kNotCached)) {
-          LOG("not contained but gain value present");
-          LOGVAR(part);
+          LOG << "not contained but gain value present";
+          LOG << V(part);
           return false;
         }
         return true;

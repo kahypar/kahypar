@@ -29,6 +29,7 @@
 namespace kahypar {
 class StoppingPolicy : public meta::PolicyBase {
  protected:
+  static constexpr bool debug = false;
   StoppingPolicy() = default;
 };
 
@@ -93,11 +94,11 @@ class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
   bool searchShouldStop(const int, const Configuration& config, const double beta,
                         const HyperedgeWeight, const HyperedgeWeight) {
     static double factor = (config.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
-    DBG(false, V(_num_steps) << " (" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
-        << factor << "=" << ((_variance / (_Mk * _Mk)) * factor));
+    DBG << V(_num_steps) << "(" << _variance << "/" << "( " << 4 << "*" << _Mk << "^2)) * "
+        << factor << "=" << ((_variance / (_Mk * _Mk)) * factor);
     const bool ret = (_num_steps > beta) &&
                      ((_Mk == 0) || (_num_steps >= (_variance / (_Mk * _Mk)) * factor));
-    DBG(false, "return=" << ret);
+    DBG << "return=" << ret;
     return ret;
   }
   using RandomWalkModel::resetStatistics;

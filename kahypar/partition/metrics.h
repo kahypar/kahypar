@@ -37,13 +37,13 @@ struct Metrics {
 
 
 namespace metrics {
-static const bool dbg_metrics_hyperedge_cut = false;
+static constexpr bool debug = false;
 
 static inline HyperedgeWeight hyperedgeCut(const Hypergraph& hg) {
   HyperedgeWeight cut = 0;
   for (const HyperedgeID& he : hg.edges()) {
     if (hg.connectivity(he) > 1) {
-      DBG(dbg_metrics_hyperedge_cut, "Hyperedge " << he << " is cut-edge");
+      DBG << "Hyperedge " << he << " is cut-edge";
       cut += hg.edgeWeight(he);
     }
   }
@@ -121,7 +121,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Configuration
          != config.partition.perfect_balance_part_weights[1] ||
          max_balance - 1.0 == internal::imbalance(hypergraph, config.partition.k),
          "Incorrect Imbalance: " << (max_balance - 1.0) << "!="
-         << V(internal::imbalance(hypergraph, config.partition.k)));
+                                 << V(internal::imbalance(hypergraph, config.partition.k)));
   return max_balance - 1.0;
 }
 

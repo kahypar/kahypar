@@ -32,12 +32,10 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-static const bool dbg_coarsening_single_node_he_removal = false;
-static const bool dbg_coarsening_parallel_he_removal = false;
-static const bool dbg_coarsening_fingerprinting = false;
-
 class HypergraphPruner {
  private:
+  static constexpr bool debug = false;
+
   struct Fingerprint {
     HyperedgeID id;
     size_t hash;
@@ -71,8 +69,8 @@ class HypergraphPruner {
          i >= memento.one_pin_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_single_node_hyperedges.size(),
              "Index out of bounds " << i);
-      DBG(dbg_coarsening_single_node_he_removal, "restore single-node HE "
-          << _removed_single_node_hyperedges[i]);
+      DBG << "restore single-node HE "
+          << _removed_single_node_hyperedges[i];
       hypergraph.restoreEdge(_removed_single_node_hyperedges[i]);
       _removed_single_node_hyperedges.pop_back();
     }
@@ -84,9 +82,9 @@ class HypergraphPruner {
          i >= memento.parallel_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_parallel_hyperedges.size(),
              "Index out of bounds: " << i);
-      DBG(dbg_coarsening_parallel_he_removal, "restore HE "
-          << _removed_parallel_hyperedges[i].removed_id << " which is parallel to "
-          << _removed_parallel_hyperedges[i].representative_id);
+      DBG << "restore HE "
+          << _removed_parallel_hyperedges[i].removed_id << "which is parallel to "
+          << _removed_parallel_hyperedges[i].representative_id;
       hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id,
                              _removed_parallel_hyperedges[i].representative_id);
       hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
@@ -109,7 +107,7 @@ class HypergraphPruner {
         _removed_single_node_hyperedges.push_back(*he_it);
         removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++memento.one_pin_hes_size;
-        DBG(dbg_coarsening_single_node_he_removal, "removing single-node HE " << *he_it);
+        DBG << "removing single-node HE " << *he_it;
         hypergraph.removeEdge(*he_it);
         --he_it;
         --end_it;
@@ -137,29 +135,27 @@ class HypergraphPruner {
 
     // debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
     // [](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
-    DBG(dbg_coarsening_fingerprinting, [&]() {
-        for (const auto& fp : _fingerprints) {
-          LOG("{" << fp.id << "," << fp.hash << "}");
-        }
-        return std::string("");
-      } ());
+    DBG <<[&]() {
+      for (const auto& fp : _fingerprints) {
+        LOG << "{" << fp.id << "," << fp.hash << "}";
+      }
+      return std::string("");
+      } ();
 
     size_t i = 0;
     HyperedgeWeight removed_parallel_hes = 0;
     bool filled_probe_bitset = false;
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
-      DBG(dbg_coarsening_fingerprinting, "i=" << i << ", j=" << j);
+      DBG << "i=" << i << ", j=" << j;
       if (_fingerprints[i].id != kInvalidID) {
         ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
           // If we are here, then we have a hash collision for _fingerprints[i].id and
           // _fingerprints[j].id.
-          DBG(dbg_coarsening_fingerprinting,
-              _fingerprints[i].hash << "==" << _fingerprints[j].hash);
-          DBG(dbg_coarsening_fingerprinting,
-              "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
-              << hypergraph.edgeSize(_fingerprints[j].id));
+          DBG << _fingerprints[i].hash << "==" << _fingerprints[j].hash;
+          DBG << "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
+              << hypergraph.edgeSize(_fingerprints[j].id);
           if (_fingerprints[j].id != kInvalidID &&
               hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id)) {
             ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
@@ -224,15 +220,15 @@ class HypergraphPruner {
         break;
       }
     }
-    DBG(dbg_coarsening_fingerprinting, "HE " << he << " is parallel HE= " << is_parallel);
+    DBG << "HE " << he << "is parallel HE= " << is_parallel;
     return is_parallel;
   }
 
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) {
     _contained_hypernodes.reset();
-    DBG(dbg_coarsening_fingerprinting, "Filling Bitprobe Set for HE " << he);
+    DBG << "Filling Bitprobe Set for HE " << he;
     for (const HypernodeID& pin : hypergraph.pins(he)) {
-      DBG(dbg_coarsening_fingerprinting, "_contained_hypernodes[" << pin << "]=1");
+      DBG << "_contained_hypernodes[" << pin << "]=1";
       _contained_hypernodes.set(pin, true);
     }
   }
@@ -243,8 +239,7 @@ class HypergraphPruner {
     hypergraph.setEdgeWeight(representative,
                              hypergraph.edgeWeight(representative)
                              + hypergraph.edgeWeight(to_remove));
-    DBG(dbg_coarsening_parallel_he_removal, "removed HE " << to_remove << " which was parallel to "
-        << representative);
+    DBG << "removed HE " << to_remove << "which was parallel to " << representative;
     hypergraph.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
   }
@@ -265,14 +260,14 @@ class HypergraphPruner {
             correct_hash += math::hash(pin);
           }
           if (correct_hash != hypergraph.edgeHash(he)) {
-            LOGVAR(correct_hash);
-            LOGVAR(hypergraph.edgeHash(he));
+            LOG << V(correct_hash);
+            LOG << V(hypergraph.edgeHash(he));
             return false;
           }
           return true;
         } (), V(he));
-      DBG(dbg_coarsening_fingerprinting, "Fingerprint for HE " << he
-          << "= {" << he << "," << hypergraph.edgeHash(he) << "," << hypergraph.edgeSize(he) << "}");
+      DBG << "Fingerprint for HE " << he << "= {" << he << "," << hypergraph.edgeHash(he)
+          << "," << hypergraph.edgeSize(he) << "}";
       _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he) });
     }
   }

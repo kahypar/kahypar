@@ -140,7 +140,7 @@ class AdaptiveLSHWithConnectedComponents {
           ++num_cl;
         }
       }
-      LOG("Num clusters: " << num_cl);
+      LOG << "Num clusters: " << num_cl;
 
       std::sort(inactive_clusters.begin(), inactive_clusters.end());
       auto end_iter = std::unique(inactive_clusters.begin(), inactive_clusters.end());
@@ -153,7 +153,7 @@ class AdaptiveLSHWithConnectedComponents {
       inactive_clusters.clear();
 
       if (num_cl <= _hypergraph.currentNumNodes() / 2) {
-        LOG("Adaptively chosen number of hash functions: " << main_hash_set.getHashNum());
+        LOG << "Adaptively chosen number of hash functions: " << main_hash_set.getHashNum();
         break;
       }
     }

@@ -95,28 +95,28 @@ int main(int argc, char* argv[]) {
   auto hn_deg_quartiles = kahypar::math::firstAndThirdQuartile(hn_degrees);
 
   out_stream << "RESULT graph=" << graph_name
-  << " HNs=" << num_hypernodes
-  << " HEs=" << num_hyperedges
-  << " pins=" << edge_vector.size()
-  << " numSingleNodeHEs=" << num_single_node_hes
-  << " avgHEsize=" << avg_he_size
-  << " sdHEsize=" << sd_he_size
-  << " minHEsize=" << min_he_size
-  << " heSize90thPercentile=" << kahypar::metrics::hyperedgeSizePercentile(hypergraph, 90)
-  << " Q1HEsize=" << he_size_quartiles.first
-  << " medHEsize=" << kahypar::math::median(he_sizes)
-  << " Q3HEsize=" << he_size_quartiles.second
-  << " maxHEsize=" << max_he_size
-  << " avgHNdegree=" << avg_hn_degree
-  << " sdHNdegree=" << sd_hn_degree
-  << " minHnDegree=" << min_hn_degree
-  << " hnDegree90thPercentile=" << kahypar::metrics::hypernodeDegreePercentile(hypergraph, 90)
-  << " maxHnDegree=" << max_hn_degree
-  << " Q1HNdegree=" << hn_deg_quartiles.first
-  << " medHNdegree=" << kahypar::math::median(hn_degrees)
-  << " Q3HNdegree=" << hn_deg_quartiles.second
-  << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
-  << std::endl;
+             << " HNs=" << num_hypernodes
+             << " HEs=" << num_hyperedges
+             << " pins=" << edge_vector.size()
+             << " numSingleNodeHEs=" << num_single_node_hes
+             << " avgHEsize=" << avg_he_size
+             << " sdHEsize=" << sd_he_size
+             << " minHEsize=" << min_he_size
+             << " heSize90thPercentile=" << kahypar::metrics::hyperedgeSizePercentile(hypergraph, 90)
+             << " Q1HEsize=" << he_size_quartiles.first
+             << " medHEsize=" << kahypar::math::median(he_sizes)
+             << " Q3HEsize=" << he_size_quartiles.second
+             << " maxHEsize=" << max_he_size
+             << " avgHNdegree=" << avg_hn_degree
+             << " sdHNdegree=" << sd_hn_degree
+             << " minHnDegree=" << min_hn_degree
+             << " hnDegree90thPercentile=" << kahypar::metrics::hypernodeDegreePercentile(hypergraph, 90)
+             << " maxHnDegree=" << max_hn_degree
+             << " Q1HNdegree=" << hn_deg_quartiles.first
+             << " medHNdegree=" << kahypar::math::median(hn_degrees)
+             << " Q3HNdegree=" << hn_deg_quartiles.second
+             << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
+             << std::endl;
   out_stream.flush();
 
   return 0;

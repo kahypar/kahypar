@@ -232,7 +232,7 @@ TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
   }
   file.close();
 
-  LOG(serialized_lines.size());
+  LOG << serialized_lines.size();
 
   file.open("test_instances/example_hypergraph.patoh", std::ifstream::in);
   while (getline(file, tmp)) {

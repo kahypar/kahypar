@@ -266,13 +266,13 @@ class FMGainComputationPolicy {
                 if (pq.contains(node, i)) {
                   const Gain gain = calculateGain(hg, node, i, foo);
                   if (pq.key(node, i) != gain) {
-                    LOGVAR(hn);
-                    LOGVAR(from);
-                    LOGVAR(to);
-                    LOGVAR(node);
-                    LOGVAR(i);
-                    LOGVAR(gain);
-                    LOGVAR(pq.key(node, i));
+                    LOG << V(hn);
+                    LOG << V(from);
+                    LOG << V(to);
+                    LOG << V(node);
+                    LOG << V(i);
+                    LOG << V(gain);
+                    LOG << V(pq.key(node, i));
                     return false;
                   }
                 }

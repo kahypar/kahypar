@@ -178,7 +178,7 @@ class StaticMultiDispatchFactory<Product,
             typename ... OtherPolicyClasses>
   static AbstractProduct* matchPolicy(ParameterTuple&&, PolicyClassToBeMatched&&,
                                       OtherPolicyClasses&& ...) {
-    LOG("Error policy not found");
+    LOG << "Error policy not found";
     std::exit(-1);
     return nullptr;
   }

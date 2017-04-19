@@ -107,7 +107,7 @@ static inline void convertToLiteral(std::ifstream& cnf_file,
                                     const std::string& hgr_target_filename) {
   // number of literals = 2x number of variables
   int num_possible_literals = 2 * num_variables;
-  LOGVAR(num_possible_literals);
+  LOG << V(num_possible_literals);
 
   Hyperedges hyperedges(num_clauses);
 
@@ -135,7 +135,7 @@ static inline void convertToLiteral(std::ifstream& cnf_file,
       }
     }
   }
-  LOGVAR(literal_to_hypernode.size());
+  LOG << V(literal_to_hypernode.size());
   writeHGRFile(hyperedges, num_clauses, num_hypernodes, hgr_target_filename);
 }
 
@@ -212,26 +212,26 @@ static inline void convertInstance(const std::string& cnf_source_filename,
   std::string header_start;
   sstream >> header_start;
   if (header_start.compare(std::string("p")) != 0) {
-    LOG("Invalid header:");
-    LOG("Expected: p");
-    LOG("Actual: " << header_start);
-    LOG("===============> aborting conversion");
+    LOG << "Invalid header:";
+    LOG << "Expected: p";
+    LOG << "Actual: " << header_start;
+    LOG << "===============> aborting conversion";
     exit(-1);
   } else {
     sstream >> header_start;
     if (header_start.compare(std::string("cnf")) != 0) {
-      LOG("Invalid header:");
-      LOG("Expected: cnf");
-      LOG("Actual: " << header_start);
-      LOG("===============> aborting conversion");
+      LOG << "Invalid header:";
+      LOG << "Expected: cnf";
+      LOG << "Actual: " << header_start;
+      LOG << "===============> aborting conversion";
       exit(-1);
     }
   }
   uint64_t num_variables = 0;
   uint64_t num_clauses = 0;
   sstream >> num_variables >> num_clauses;
-  LOGVAR(num_variables);
-  LOGVAR(num_clauses);
+  LOG << V(num_variables);
+  LOG << V(num_clauses);
 
   switch (representation) {
     case HypergraphRepresentation::Primal:

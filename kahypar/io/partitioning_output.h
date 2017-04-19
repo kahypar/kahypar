@@ -42,14 +42,14 @@ template <typename T>
 void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
                 const std::pair<double, double>& quartiles) {
   std::cout << name << ":   [min: " << std::setw(5) << std::left
-  << (vec.empty() ? 0 : vec.front())
-  << "Q1: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.first)
-  << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : math::median(vec))
-  << "Q3: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.second)
-  << "max: " << std::setw(10) << std::left << (vec.empty() ? 0 : vec.back())
-  << "avg: " << std::setw(10) << std::left << avg
-  << "sd: " << std::setw(10) << std::left << stdev
-  << "]" << std::endl;
+            << (vec.empty() ? 0 : vec.front())
+            << "Q1: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.first)
+            << "med: " << std::setw(10) << std::left << (vec.empty() ? 0 : math::median(vec))
+            << "Q3: " << std::setw(10) << std::left << (vec.empty() ? 0 : quartiles.second)
+            << "max: " << std::setw(10) << std::left << (vec.empty() ? 0 : vec.back())
+            << "avg: " << std::setw(10) << std::left << avg
+            << "sd: " << std::setw(10) << std::left << stdev
+            << "]" << std::endl;
 }
 }  // namespace internal
 
@@ -113,12 +113,12 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   internal::printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size,
                        math::firstAndThirdQuartile(he_sizes));
   internal::printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
-             math::firstAndThirdQuartile(he_weights));
+                       math::firstAndThirdQuartile(he_weights));
   std::cout << "# HNs: " << hypergraph.currentNumNodes() << std::endl;
   internal::printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
-             math::firstAndThirdQuartile(hn_degrees));
+                       math::firstAndThirdQuartile(hn_degrees));
   internal::printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
-             math::firstAndThirdQuartile(hn_weights));
+                       math::firstAndThirdQuartile(hn_weights));
 }
 
 template <class Configuration>
@@ -131,43 +131,43 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Configuration& config,
                                      const std::chrono::duration<double>& elapsed_seconds) {
   std::cout << "***********************" << hypergraph.k()
-  << "-way Partition Result************************" << std::endl;
+            << "-way Partition Result************************" << std::endl;
   std::cout << "Hyperedge Cut  (minimize) = " << metrics::hyperedgeCut(hypergraph) << std::endl;
   std::cout << "SOED           (minimize) = " << metrics::soed(hypergraph) << std::endl;
   std::cout << "(k-1)          (minimize) = " << metrics::km1(hypergraph) << std::endl;
   std::cout << "Absorption     (maximize) = " << metrics::absorption(hypergraph) << std::endl;
   std::cout << "Imbalance                 = " << metrics::imbalance(hypergraph, config)
-  << std::endl;
+            << std::endl;
   std::cout << "Partition time            = " << elapsed_seconds.count() << " s" << std::endl;
 
   std::cout << "  | initial parallel HE removal  = "
-  << Stats::instance().get("InitialParallelHEremoval")
-  << " s [currently not implemented]" << std::endl;
+            << Stats::instance().get("InitialParallelHEremoval")
+            << " s [currently not implemented]" << std::endl;
   std::cout << "  | initial large HE removal     = "
-  << Stats::instance().get("InitialLargeHEremoval") << " s" << std::endl;
+            << Stats::instance().get("InitialLargeHEremoval") << " s" << std::endl;
   std::cout << "  | min hash sparsifier          = "
-  << Stats::instance().get("MinHashSparsifier") << " s" << std::endl;
+            << Stats::instance().get("MinHashSparsifier") << " s" << std::endl;
   std::cout << "  | coarsening                   = "
-  << Stats::instance().get("Coarsening") << " s" << std::endl;
+            << Stats::instance().get("Coarsening") << " s" << std::endl;
   std::cout << "  | initial partitioning         = "
-  << Stats::instance().get("InitialPartitioning") << " s" << std::endl;
+            << Stats::instance().get("InitialPartitioning") << " s" << std::endl;
   std::cout << "  | uncoarsening/refinement      = "
-  << Stats::instance().get("UncoarseningRefinement") << " s" << std::endl;
+            << Stats::instance().get("UncoarseningRefinement") << " s" << std::endl;
   std::cout << "  | initial large HE restore     = "
-  << Stats::instance().get("InitialLargeHErestore") << " s" << std::endl;
+            << Stats::instance().get("InitialLargeHErestore") << " s" << std::endl;
   std::cout << "  | initial parallel HE restore  = "
-  << Stats::instance().get("InitialParallelHErestore")
-  << " s [currently not implemented]" << std::endl;
+            << Stats::instance().get("InitialParallelHErestore")
+            << " s [currently not implemented]" << std::endl;
   if (config.partition.global_search_iterations > 0) {
     std::cout << " | v-cycle coarsening              = "
-    << Stats::instance().get("VCycleCoarsening") << " s" << std::endl;
+              << Stats::instance().get("VCycleCoarsening") << " s" << std::endl;
     std::cout << " | v-cycle uncoarsening/refinement = "
-    << Stats::instance().get("VCycleUnCoarseningRefinement") << " s" << std::endl;
+              << Stats::instance().get("VCycleUnCoarseningRefinement") << " s" << std::endl;
   }
   std::cout << "Partition sizes and weights: " << std::endl;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     std::cout << "|part" << i << "| = " << std::setw(10) << std::left << hypergraph.partSize(i)
-    << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
+              << " w(" << i << ") = " << hypergraph.partWeight(i) << std::endl;
   }
 }
 
@@ -175,7 +175,7 @@ inline void printPartitioningStatistics() {
   std::cout << "*****************************Statistics******************************" << std::endl;
   std::cout << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE." << std::endl;
   std::cout << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
-  << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
+            << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights" << std::endl;
   std::cout << Stats::instance().toConsoleString();
 }
 

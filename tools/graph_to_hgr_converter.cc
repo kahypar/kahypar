@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
   std::string graph_filename(argv[1]);
   std::string hgr_filename(graph_filename + ".hgr");
   std::cout << "Converting graph " << graph_filename << " to HGR hypergraph format: "
-  << hgr_filename << "..." << std::endl;
+            << hgr_filename << "..." << std::endl;
 
   std::string line;
   std::ifstream in_stream(graph_filename.c_str());

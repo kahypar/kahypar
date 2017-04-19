@@ -115,7 +115,7 @@ static inline void gatherCoarseningStats(const Configuration& config,
     sum_exposed_he_weight += hypergraph.edgeWeight(he);
     edge_size_map[hypergraph.edgeSize(he)] += 1;
   }
-  // LOG("Hypernode weights:");
+  // LOG << "Hypernode weights:";
   // for (auto& entry : node_weight_map) {
   //   std::cout << "w(" << std::setw(10) << std::left << entry.second << "):";
   //   HypernodeWeight percent = ceil(entry.first * 100.0 / _config.coarsening.max_allowed_node_weight);
@@ -124,7 +124,7 @@ static inline void gatherCoarseningStats(const Configuration& config,
   //   }
   //   std::cout << " " << entry.first << std::endl;
   // }
-  // LOG("Hypernode degrees:");
+  // LOG << "Hypernode degrees:";
   // for (auto& entry : node_degree_map) {
   //   std::cout << "deg=" << std::setw(4) << std::left << entry.first << ":";
   //   for (HyperedgeID i = 0; i < entry.second; ++i) {
@@ -132,7 +132,7 @@ static inline void gatherCoarseningStats(const Configuration& config,
   //   }
   //   std::cout << " " << entry.second << std::endl;
   // }
-  // LOG("Hyperedge weights:");
+  // LOG << "Hyperedge weights:";
   // for (auto& entry : edge_weight_map) {
   //   std::cout << "w=" << std::setw(4) << std::left << entry.first << ":";
   //   for (HyperedgeID i = 0; i < entry.second && i < 100; ++i) {
@@ -146,7 +146,7 @@ static inline void gatherCoarseningStats(const Configuration& config,
   //   }
   //   std::cout << " " << entry.second << std::endl;
   // }
-  // LOG("Hyperedge sizes:");
+  // LOG << "Hyperedge sizes:";
   // for (auto& entry : edge_size_map) {
   //   std::cout << "|he|=" << std::setw(4) << std::left << entry.first << ":";
   //   for (HyperedgeID i = 0; i < entry.second && i < 100; ++i) {

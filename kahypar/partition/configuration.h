@@ -61,34 +61,34 @@ struct PreprocessingParameters {
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
   str << "MinHash Sparsifier Parameters:" << std::endl;
   str << "  max hyperedge size:                 "
-  << params.max_hyperedge_size << std::endl;
+      << params.max_hyperedge_size << std::endl;
   str << "  max cluster size:                   "
-  << params.max_cluster_size << std::endl;
+      << params.max_cluster_size << std::endl;
   str << "  min cluster size:                   "
-  << params.min_cluster_size << std::endl;
+      << params.min_cluster_size << std::endl;
   str << "  number of hash functions:           "
-  << params.num_hash_functions << std::endl;
+      << params.num_hash_functions << std::endl;
   str << "  number of combined hash functions:  "
-  << params.combined_num_hash_functions << std::endl;
+      << params.combined_num_hash_functions << std::endl;
   str << "  active at median net size >=:       "
-  << params.min_median_he_size << std::endl;
+      << params.min_median_he_size << std::endl;
   str << "  sparsifier is active:               " << std::boolalpha
-  << params.is_active << std::noboolalpha;
+      << params.is_active << std::noboolalpha;
   return str;
 }
 
 inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetection& params) {
   str << "Community Detection Parameters:" << std::endl;
   str << "  use louvain in IP:                  " << std::boolalpha
-  << params.enable_in_initial_partitioning << std::endl;
+      << params.enable_in_initial_partitioning << std::endl;
   str << "  use bipartite graph representation: " << std::boolalpha
-  << params.use_bipartite_graph << std::endl;
+      << params.use_bipartite_graph << std::endl;
   str << "  maximum louvain-pass iterations:    "
-  << params.max_pass_iterations << std::endl;
+      << params.max_pass_iterations << std::endl;
   str << "  minimum quality improvement:        "
-  << params.min_eps_improvement << std::endl;
+      << params.min_eps_improvement << std::endl;
   str << "  graph edge weight:                  "
-  << toString(params.edge_weight) << std::endl;
+      << toString(params.edge_weight) << std::endl;
   return str;
 }
 
@@ -96,13 +96,13 @@ inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetect
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
   str << "Preprocessing Parameters:" << std::endl;
   str << "  enable min hash sparsifier:         " << std::boolalpha
-  << params.enable_min_hash_sparsifier << std::endl;
+      << params.enable_min_hash_sparsifier << std::endl;
   str << "  enable louvain community detection: " << std::boolalpha
-  << params.enable_louvain_community_detection << std::endl;
+      << params.enable_louvain_community_detection << std::endl;
   str << "  remove parallel HEs:                " << std::boolalpha
-  << params.remove_parallel_hes << std::endl;
+      << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
-  << params.remove_always_cut_hes << std::endl;
+      << params.remove_always_cut_hes << std::endl;
   if (params.enable_min_hash_sparsifier) {
     str << "---------------------------------------------------------------------" << std::endl;
     str << params.min_hash_sparsifier << std::endl;
@@ -261,10 +261,10 @@ struct PartitioningParameters {
   int seed = 0;
   int global_search_iterations = 0;
   int current_v_cycle = 0;
-  std::array<HypernodeWeight, 2> perfect_balance_part_weights {{
-      std::numeric_limits<HypernodeWeight>::max(),
-      std::numeric_limits<HypernodeWeight>::max()
-          }};
+  std::array<HypernodeWeight, 2> perfect_balance_part_weights { {
+                                                                  std::numeric_limits<HypernodeWeight>::max(),
+                                                                  std::numeric_limits<HypernodeWeight>::max()
+                                                                } };
   std::array<HypernodeWeight, 2> max_part_weights { { 0, 0 } };
   HypernodeWeight total_graph_weight = 0;
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
@@ -289,9 +289,9 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
   str << "  total hypergraph weight:            " << params.total_graph_weight << std::endl;
   str << "  L_opt0:                             " << params.perfect_balance_part_weights[0]
-  << std::endl;
+      << std::endl;
   str << "  L_opt1:                             " << params.perfect_balance_part_weights[1]
-  << std::endl;
+      << std::endl;
   str << "  L_max0:                             " << params.max_part_weights[0] << std::endl;
   str << "  L_max1:                             " << params.max_part_weights[1] << std::endl;
   return str;
@@ -308,13 +308,13 @@ struct Configuration {
 
 inline std::ostream& operator<< (std::ostream& str, const Configuration& config) {
   str << config.partition
-  << "---------------------------------------------------------------------" << std::endl
-  << config.preprocessing
-  << "---------------------------------------------------------------------" << std::endl
-  << config.coarsening
-  << config.initial_partitioning
-  << config.local_search
-  << "---------------------------------------------------------------------" << std::endl;
+      << "---------------------------------------------------------------------" << std::endl
+      << config.preprocessing
+      << "---------------------------------------------------------------------" << std::endl
+      << config.coarsening
+      << config.initial_partitioning
+      << config.local_search
+      << "---------------------------------------------------------------------" << std::endl;
   return str;
 }
 

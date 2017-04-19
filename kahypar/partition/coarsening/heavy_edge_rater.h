@@ -32,14 +32,10 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-static const bool dbg_partition_rating = false;
-
 template <typename _RatingType, class _TieBreakingPolicy>
 class HeavyEdgeRater {
- public:
-  using RatingType = _RatingType;
-
  private:
+  static constexpr bool debug = false;
   using TieBreakingPolicy = _TieBreakingPolicy;
 
   class HeavyEdgeRating {
@@ -68,6 +64,7 @@ class HeavyEdgeRater {
   };
 
  public:
+  using RatingType = _RatingType;
   using Rating = HeavyEdgeRating;
 
   HeavyEdgeRater(Hypergraph& hypergraph, const Configuration& config) :
@@ -91,7 +88,7 @@ class HeavyEdgeRater {
   ~HeavyEdgeRater() = default;
 
   HeavyEdgeRating rate(const HypernodeID u) {
-    DBG(dbg_partition_rating, "Calculating rating for HN " << u);
+    DBG << "Calculating rating for HN " << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
@@ -112,7 +109,7 @@ class HeavyEdgeRater {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp = it->value /
                              (weight_u * _hg.nodeWeight(tmp_target));
-      DBG(false, "r(" << u << "," << tmp_target << ")=" << tmp);
+      DBG << "r(" << u << "," << tmp_target << ")=" << tmp;
       if (acceptRating(tmp, max_rating)) {
         max_rating = tmp;
         target = tmp_target;
@@ -132,10 +129,9 @@ class HeavyEdgeRater {
           flag = false;
         }
         return flag;
-      } (), "Representative " << u << " & contraction target " << ret.target
-           << " are in different parts!");
-    DBG(dbg_partition_rating, "rating=(" << ret.value << "," << ret.target << ","
-        << ret.valid << ")");
+      } (), "Representative " << u << "& contraction target " << ret.target
+                              << "are in different parts!");
+    DBG << "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")";
     return ret;
   }
 

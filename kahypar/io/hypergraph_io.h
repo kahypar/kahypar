@@ -89,7 +89,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
         HyperedgeWeight edge_weight;
         line_stream >> edge_weight;
         if (hyperedge_weights == nullptr) {
-          LOG(" ****** ignoring hyperedge weights ******");
+          LOG << "****** ignoring hyperedge weights ******";
         } else {
           ASSERT(hyperedge_weights != nullptr, "Hypergraph has hyperedge weights");
           hyperedge_weights->push_back(edge_weight);
@@ -107,7 +107,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
 
     if (has_hypernode_weights) {
       if (hypernode_weights == nullptr) {
-        LOG(" ****** ignoring hypernode weights ******");
+        LOG << " ****** ignoring hypernode weights ******";
       } else {
         ASSERT(hypernode_weights != nullptr, "Hypergraph has hypernode weights");
         for (HypernodeID i = 0; i < num_hypernodes; ++i) {
@@ -187,16 +187,16 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
   std::ofstream out_stream(filename.c_str());
 
   out_stream << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>)"
-  << R"( <graphml xmlns="http://graphml.graphdrawing.org/xmlns")"
-  << R"( xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java")"
-  << R"( xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0")"
-  << R"( xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0")"
-  << R"( xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance")"
-  << R"( xmlns:y="http://www.yworks.com/xml/graphml")"
-  << R"( xmlns:yed="http://www.yworks.com/xml/yed/3")"
-  << R"( xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns)"
-  << R"(http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">)"
-  << std::endl;
+             << R"( <graphml xmlns="http://graphml.graphdrawing.org/xmlns")"
+             << R"( xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java")"
+             << R"( xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0")"
+             << R"( xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0")"
+             << R"( xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance")"
+             << R"( xmlns:y="http://www.yworks.com/xml/graphml")"
+             << R"( xmlns:yed="http://www.yworks.com/xml/yed/3")"
+             << R"( xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns)"
+             << R"(http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">)"
+             << std::endl;
 
   out_stream << R"(<key id="d0" for="node" attr.name="weight" attr.type="double"/>)" << std::endl;
   out_stream << R"(<key id="d1" for="node" attr.name="part" attr.type="int"/>)" << std::endl;
@@ -233,7 +233,7 @@ static inline void writeHypergraphToGraphMLFile(const Hypergraph& hypergraph,
     out_stream << "</node>" << std::endl;
     for (const HypernodeID& pin : hypergraph.pins(he)) {
       out_stream << R"(<edge id="e)" << edge_id++ << R"(" source="n)" << pin << R"(" target="h)"
-      << he << R"("/>)" << std::endl;
+                 << he << R"("/>)" << std::endl;
     }
   }
 

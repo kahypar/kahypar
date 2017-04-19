@@ -248,6 +248,5 @@ TYPED_TEST(APriorityQueue, IsSwappable) {
 
   ASSERT_THAT(_pqs[1].getKey(257), Eq(0));
 }
-
 }  // namespace ds
 }  // namespace kahypar

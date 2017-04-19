@@ -73,27 +73,27 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
         initial_objective = current_metrics.cut;
         Stats::instance().add(_config, "initialCut", initial_objective);
         if (_config.partition.verbose_output) {
-          LOG("initial cut =" << initial_objective);
+          LOG << "initial cut =" << initial_objective;
         }
         break;
       case Objective::km1:
         initial_objective = current_metrics.km1;
         Stats::instance().add(_config, "initialKm1", initial_objective);
         if (_config.partition.verbose_output) {
-          LOG("initial km1 =" << initial_objective);
+          LOG << "initial km1 =" << initial_objective;
         }
         break;
       default:
-        LOG("Unknown Objective");
+        LOG << "Unknown Objective";
         exit(-1);
     }
 
     Stats::instance().add(_config, "initialImbalance", current_metrics.imbalance);
     if (_config.partition.verbose_output) {
-      LOG("initial imbalance=" << current_metrics.imbalance);
-      LOG("target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
-          << " w(1)=" << _config.partition.max_part_weights[1]);
-      LOG("initial weights (RB): w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
+      LOG << "initial imbalance=" << current_metrics.imbalance;
+      LOG << "target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
+          << "w(1)=" << _config.partition.max_part_weights[1];
+      LOG << "initial weights (RB): w(0)=" << _hg.partWeight(0) << "w(1)=" << _hg.partWeight(1);
     }
 
 
@@ -106,8 +106,8 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       restoreParallelHyperedges();
       restoreSingleNodeHyperedges();
 
-      DBG(dbg_coarsening_uncoarsen, "Uncontracting: (" << _history.back().contraction_memento.u << ","
-          << _history.back().contraction_memento.v << ")");
+      DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
+          << _history.back().contraction_memento.v << ")";
 
       refinement_nodes.clear();
       refinement_nodes.push_back(_history.back().contraction_memento.u);
@@ -135,17 +135,17 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     // In order to guarantee this, 2FM would have to force rebalancing by sacrificing cut-edges.
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
-    //        << " > " << _config.partition.epsilon);
+    //        << "> " << _config.partition.epsilon);
     Stats::instance().add(_config, "finalImbalance", current_metrics.imbalance);
     if (_config.partition.verbose_output) {
-      LOG("final weights (RB):   w(0)=" << _hg.partWeight(0) << " w(1)=" << _hg.partWeight(1));
+      LOG << "final weights (RB):   w(0)=" << _hg.partWeight(0) << "w(1)=" << _hg.partWeight(1);
     }
     bool improvement_found = false;
     switch (_config.partition.objective) {
       case Objective::cut:
         Stats::instance().add(_config, "finalCut", current_metrics.cut);
         if (_config.partition.verbose_output) {
-          LOG("final cut: " << current_metrics.cut);
+          LOG << "final cut: " << current_metrics.cut;
         }
         improvement_found = current_metrics.cut < initial_objective;
         break;
@@ -161,12 +161,12 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
         }
         Stats::instance().add(_config, "finalKm1", current_metrics.km1);
         if (_config.partition.verbose_output) {
-          LOG("final km1: " << current_metrics.km1);
+          LOG << "final km1: " << current_metrics.km1;
         }
         improvement_found = current_metrics.km1 < initial_objective;
         break;
       default:
-        LOG("Unknown Objective");
+        LOG << "Unknown Objective";
         exit(-1);
     }
 
