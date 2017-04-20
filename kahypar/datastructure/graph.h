@@ -190,7 +190,7 @@ class Graph {
   }
 
   std::pair<EdgeIterator, EdgeIterator> incidentEdges(const NodeID node) const {
-    ASSERT(node < numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
     return std::make_pair(_edges.cbegin() + _adj_array[node],
                           _edges.cbegin() + _adj_array[static_cast<size_t>(node) + 1]);
   }
@@ -204,17 +204,17 @@ class Graph {
   }
 
   size_t degree(const NodeID node) const {
-    ASSERT(node < numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
     return static_cast<size_t>(_adj_array[static_cast<size_t>(node) + 1] - _adj_array[node]);
   }
 
   EdgeWeight weightedDegree(const NodeID node) const {
-    ASSERT(node < numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
     return _weighted_degree[node];
   }
 
   EdgeWeight selfloopWeight(const NodeID node) const {
-    ASSERT(node < numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
     return _selfloop_weight[node];
   }
 
@@ -377,7 +377,7 @@ class Graph {
             return false;
           }
           return true;
-        } (), "Incident cluster weight calculation of node " << node << "failed!");
+        } (), "Incident cluster weight calculation of node" << node << "failed!");
 
     return std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
   }
@@ -470,11 +470,11 @@ class Graph {
   }
 
   void printGraph() {
-    std::cout << "Number Nodes: " << numNodes() << std::endl;
-    std::cout << "Number Edges: " << numEdges() << std::endl;
+    std::cout << "Number Nodes:" << numNodes() << std::endl;
+    std::cout << "Number Edges:" << numEdges() << std::endl;
 
     for (const NodeID& n : nodes()) {
-      std::cout << "Node ID: " << n << "(Comm.: " << clusterID(n) << "), Adj. List: ";
+      std::cout << "Node ID:" << n << "(Comm.:" << clusterID(n) << "), Adj. List: ";
       for (const Edge& e : incidentEdges(n)) {
         std::cout << "(" << e.target_node << ",w=" << e.weight << ") ";
       }

@@ -41,7 +41,6 @@ class FMRefinerBase {
   static constexpr bool debug = false;
 
  public:
-
   FMRefinerBase(const FMRefinerBase&) = delete;
   FMRefinerBase& operator= (const FMRefinerBase&) = delete;
 
@@ -103,9 +102,9 @@ class FMRefinerBase {
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part,
                      const PartitionID to_part) {
-    ASSERT(_hg.isBorderNode(hn), "Hypernode " << hn << "is not a border node!");
-    DBG << "moving HN" << hn << "from " << from_part
-        << "to " << to_part << "(weight=" << _hg.nodeWeight(hn) << ")";
+    ASSERT(_hg.isBorderNode(hn), "Hypernode" << hn << "is not a border node!");
+    DBG << "moving HN" << hn << "from" << from_part
+        << "to" << to_part << "(weight=" << _hg.nodeWeight(hn) << ")";
     _hg.changeNodePart(hn, from_part, to_part);
   }
 

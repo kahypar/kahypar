@@ -145,16 +145,16 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       }
 
       ASSERT(current_hn < _hg.initialNumNodes(),
-             "Current Hypernode " << current_hn << "is not a valid hypernode!");
-      ASSERT(current_id != -1, "Part " << current_id << "is no valid part!");
+             "Current Hypernode" << current_hn << "is not a valid hypernode!");
+      ASSERT(current_id != -1, "Part" << current_id << "is no valid part!");
       ASSERT(_hg.partID(current_hn) == _config.initial_partitioning.unassigned_part,
-             "The current selected hypernode " << current_hn
-                                               << "is already assigned to a part during initial partitioning!");
+             "The current selected hypernode" << current_hn
+                                              << "is already assigned to a part during initial partitioning!");
 
       if (assignHypernodeToPartition(current_hn, current_id)) {
         ASSERT(_hg.partID(current_hn) == current_id,
-               "Assignment of hypernode " << current_hn << "to partition " << current_id
-                                          << "failed!");
+               "Assignment of hypernode" << current_hn << "to partition" << current_id
+                                         << "failed!");
 
         ASSERT([&]() {
             if (_config.initial_partitioning.unassigned_part != -1 &&
@@ -169,7 +169,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               return true;
             }
           } (),
-               "Gain calculation of hypernode " << current_hn << "failed!");
+               "Gain calculation of hypernode" << current_hn << "failed!");
         insertAndUpdateNodesAfterMove(current_hn, current_id);
 
         if (_hg.partWeight(current_id)
@@ -262,9 +262,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         }
 
         ASSERT(_pq.contains(hn, target_part),
-               "Hypernode " << hn << "isn't succesfully inserted into pq " << target_part << "!");
+               "Hypernode" << hn << "isn't succesfully inserted into pq" << target_part << "!");
         ASSERT(_pq.isEnabled(target_part),
-               "PQ " << target_part << "is disabled!");
+               "PQ" << target_part << "is disabled!");
       } else if (updateGain) {
         const Gain gain = GainComputation::calculateGain(_hg, hn, target_part, _visit);
         _pq.updateKey(hn, target_part, gain);
@@ -287,8 +287,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               if (_hg.partID(pin) == _config.initial_partitioning.unassigned_part) {
                 insertNodeIntoPQ(pin, target_part);
                 ASSERT(_pq.contains(pin, target_part),
-                       "PQ of partition " << target_part << "should contain hypernode "
-                                          << pin << "!");
+                       "PQ of partition" << target_part << "should contain hypernode "
+                                         << pin << "!");
               }
             }
           }
@@ -337,7 +337,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       }
     }
     ASSERT(!_pq.contains(hn),
-           "Hypernode " << hn << "isn't succesfully deleted from all PQs.");
+           "Hypernode" << hn << "isn't succesfully deleted from all PQs.");
   }
 
   void insertUnassignedHypernodeIntoPQ(const PartitionID part) {

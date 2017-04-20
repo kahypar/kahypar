@@ -94,8 +94,8 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
 
-      DBG << "inserting HN " << hn << "with gain "
-          << computeGain(hn) << "in PQ " << 1 - _hg.partID(hn);
+      DBG << "inserting HN" << hn << "with gain "
+          << computeGain(hn) << "in PQ" << 1 - _hg.partID(hn);
 
       _pq.insert(hn, 1 - _hg.partID(hn), _gain_cache.value(hn));
       if (_hg.partWeight(1 - _hg.partID(hn)) < max_allowed_part_weights[1 - _hg.partID(hn)]) {
@@ -264,10 +264,8 @@ class TwoWayFMRefiner final : public IRefiner,
           return true;
         } ());
 
-
-      DBG << "moving HN" << max_gain_node << "from " << from_part
-          << "to " << to_part << "(gain= " << max_gain
-          << ",weight=" << _hg.nodeWeight(max_gain_node) << ")" << V(used_rebalance_pqs);
+      DBG << V(current_cut) << V(max_gain_node) << V(max_gain) << V(from_part) << V(to_part)
+          << V(_hg.nodeWeight(max_gain_node)) << V(used_rebalance_pqs);
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
@@ -315,10 +313,10 @@ class TwoWayFMRefiner final : public IRefiner,
                                      improved_balance_less_equal_cut);
       ++touched_hns_since_last_improvement;
       if (move_is_feasible) {
-        DBGC(max_gain == 0) << "2WayFM improved balance between " << from_part << "and " << to_part
+        DBGC(max_gain == 0) << "2WayFM improved balance between" << from_part << "and" << to_part
                             << "(max_gain=" << max_gain << ")";
-        DBGC(current_cut < best_metrics.cut) << "2WayFM improved cut from " << best_metrics.cut
-                                             << "to " << current_cut;
+        DBGC(current_cut < best_metrics.cut) << "2WayFM improved cut from" << best_metrics.cut
+                                             << "to" << current_cut;
         best_metrics.cut = current_cut;
         best_metrics.imbalance = current_imbalance;
         _stopping_policy.resetStatistics();
@@ -328,7 +326,7 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
 
-    DBG << "KWayFM performed " << _performed_moves.size()
+    DBG << "KWayFM performed" << _performed_moves.size()
         << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
         << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
                                           best_metrics.cut, current_cut)
@@ -604,17 +602,17 @@ class TwoWayFMRefiner final : public IRefiner,
         if (_locked_hes.get(he) == to_part) {
           // he is loose
           deltaUpdate(from_part, to_part, he);
-          DBG << "HE " << he << "maintained state: loose";
+          DBG << "HE" << he << "maintained state: loose";
         } else if (_locked_hes.get(he) == HEState::free) {
           // he is free.
           fullUpdate(from_part, to_part, he);
           _locked_hes.set(he, to_part);
-          DBG << "HE " << he << "changed state: free -> loose";
+          DBG << "HE" << he << "changed state: free -> loose";
         } else {
           // he is loose and becomes locked after the move
           fullUpdate(from_part, to_part, he);
           _locked_hes.uncheckedSet(he, HEState::locked);
-          DBG << "HE " << he << "changed state: loose -> locked";
+          DBG << "HE" << he << "changed state: loose -> locked";
         }
       } else {
         // he is locked
@@ -664,7 +662,7 @@ class TwoWayFMRefiner final : public IRefiner,
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
                               << V(_hg.partID(pin)) << V(other_part));
               } else if (!_hg.marked(pin)) {
-                ASSERT(true == false, "HN " << pin << "not in PQ, but also not marked!");
+                ASSERT(true == false, "HN" << pin << "not in PQ, but also not marked!");
               }
             }
             // If the pin is either marked as moved or active, it should not be contained in the
@@ -911,9 +909,9 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(!_hg.marked(pin));
     ASSERT(_gain_cache.isCached(pin), V(pin));
 
-    DBG << "TwoWayFM updating gain of HN " << pin
-        << "from gain " << _pq.key(pin, target_part) << "to "
-        << _pq.key(pin, target_part) + gain_delta << "in PQ " << target_part;
+    DBG << "TwoWayFM updating gain of HN" << pin
+        << "from gain" << _pq.key(pin, target_part) << "to "
+        << _pq.key(pin, target_part) + gain_delta << "in PQ" << target_part;
 
     _pq.updateKeyBy(pin, target_part, gain_delta);
     _gain_cache.updateCacheAndDelta(pin, gain_delta);

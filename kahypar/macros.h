@@ -76,7 +76,7 @@ class MyClass
 
         DBG  << "This is printed because debug is true";
         DBGC(true == true) << "DBGC statements will be printed iff debug == true"
-                           << " and the conditions are true."
+                           << "and the conditions are true."
 
         for(int i = 0; i < 10; ++i) {
           LLOG << i; // will print: 1 2 3 4 5 ...

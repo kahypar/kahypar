@@ -150,7 +150,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           if (hn != kInvalidNode) {
             _hypernode_in_queue.set(static_cast<size_t>(part) * _hg.initialNumNodes() + hn, true);
             ASSERT(_hg.partID(hn) == unassigned_part,
-                   "Hypernode " << hn << "isn't a node from an unassigned part.");
+                   "Hypernode" << hn << "isn't a node from an unassigned part.");
 
             if (assignHypernodeToPartition(hn, part)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);

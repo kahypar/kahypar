@@ -53,7 +53,7 @@ class LargeHyperedgeRemover {
     if (hypergraph.type() == Hypergraph::Type::Unweighted) {
       for (const HyperedgeID& he : hypergraph.edges()) {
         if (hypergraph.edgeSize(he) > max_part_weight) {
-          DBG << "Hyperedge " << he << ": |pins|=" << hypergraph.edgeSize(he) << "  exceeds Lmax: "
+          DBG << "Hyperedge" << he << ": |pins|=" << hypergraph.edgeSize(he) << "  exceeds Lmax: "
               << max_part_weight;
           _removed_hes.push_back(he);
           hypergraph.removeEdge(he);
@@ -67,7 +67,7 @@ class LargeHyperedgeRemover {
           sum_pin_weights += hypergraph.nodeWeight(pin);
         }
         if (sum_pin_weights > max_part_weight) {
-          DBG << "Hyperedge " << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
+          DBG << "Hyperedge" << he << ": w(pins) (" << sum_pin_weights << ")   exceeds Lmax: "
               << max_part_weight;
           _removed_hes.push_back(he);
           hypergraph.removeEdge(he);
@@ -75,14 +75,14 @@ class LargeHyperedgeRemover {
       }
     }
     Stats::instance().add(config, "numInitiallyRemovedLargeHEs", _removed_hes.size());
-    LOG << "removed " << _removed_hes.size() << "HEs that had more than "
+    LOG << "removed" << _removed_hes.size() << "HEs that had more than "
         << config.partition.hyperedge_size_threshold
         << "pins or weight of pins was greater than Lmax=" << max_part_weight;
   }
 
   void restoreLargeHyperedges(Hypergraph& hypergraph) {
     for (auto edge = _removed_hes.rbegin(); edge != _removed_hes.rend(); ++edge) {
-      DBG << "restore Hyperedge " << *edge;
+      DBG << "restore Hyperedge" << *edge;
       hypergraph.restoreEdge(*edge);
     }
     _removed_hes.clear();

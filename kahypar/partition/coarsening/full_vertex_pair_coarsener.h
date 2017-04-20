@@ -73,7 +73,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
       const HypernodeID rep_node = _pq.top();
       const HypernodeID contracted_node = _target[rep_node];
       DBG << "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio: " << _pq.topKey() <<
+          << _target[rep_node] << ") prio:" << _pq.topKey() <<
         " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
         " w(" << rep_node << ")=" << _hg.nodeWeight(rep_node) <<
         " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node) <<
@@ -130,7 +130,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
                                     ds::FastResetFlagArray<>& invalid_hypernodes) {
     if (rating.valid) {
       ASSERT(_pq.contains(hn), V(hn));
-      DBG << "Updating prio of HN " << hn << ": " << _pq.getKey(hn) << "(target="
+      DBG << "Updating prio of HN" << hn << ":" << _pq.getKey(hn) << "(target="
           << _target[hn] << ") --- >" << rating.value << "(target" << rating.target << ")";
       _pq.updateKey(hn, rating.value);
       _target[hn] = rating.target;
@@ -142,7 +142,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
       invalid_hypernodes.set(hn, true);
       _target[hn] = std::numeric_limits<HypernodeID>::max();
       DBG << "Progress [" << _hg.currentNumNodes() << "/"
-          << _hg.initialNumNodes() << "]:HN " << hn
+          << _hg.initialNumNodes() << "]:HN" << hn
           << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.";
 #ifdef GATHER_STATS

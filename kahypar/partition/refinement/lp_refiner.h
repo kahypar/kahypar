@@ -451,10 +451,10 @@ class LPRefiner final : public IRefiner {
         continue;
       }
       ASSERT(target_part.value.km1 - internal == kM1gainInducedByHypergraph(hn, target_part.key),
-             "Km1 Gain calculation failed! Should be " <<
+             "Km1 Gain calculation failed! Should be" <<
              V(kM1gainInducedByHypergraph(hn, target_part.key)));
       ASSERT(target_part.value.cut - internal_weight == gainInducedByHypergraph(hn, target_part.key),
-             "Cut Gain calculation failed! Should be " << V
+             "Cut Gain calculation failed! Should be" << V
              (gainInducedByHypergraph(hn, target_part.key)));
       _gain_cache.initializeEntry(hn, target_part.key, { target_part.value.cut - internal_weight,
                                                          target_part.value.km1 - internal });

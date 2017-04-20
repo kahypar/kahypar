@@ -52,7 +52,7 @@ class Modularity {
   }
 
   void remove(const NodeID node, const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
+    ASSERT(node < _graph.numNodes(), "NodeID" << node << "doesn't exist!");
     const ClusterID cid = _graph.clusterID(node);
 
     _internal_weight[cid] -= 2.0L * incident_community_weight + _graph.selfloopWeight(node);
@@ -63,8 +63,8 @@ class Modularity {
 
   void insert(const NodeID node, const ClusterID new_cid,
               const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
-    ASSERT(_graph.clusterID(node) == -1, "Node " << node << "isn't a isolated node!");
+    ASSERT(node < _graph.numNodes(), "NodeID" << node << "doesn't exist!");
+    ASSERT(_graph.clusterID(node) == -1, "Node" << node << "isn't a isolated node!");
 
     _internal_weight[new_cid] += 2.0L * incident_community_weight + _graph.selfloopWeight(node);
     _total_weight[new_cid] += _graph.weightedDegree(node);
@@ -80,8 +80,8 @@ class Modularity {
 
   EdgeWeight gain(const NodeID node, const ClusterID cid,
                   const EdgeWeight incident_community_weight) {
-    ASSERT(node < _graph.numNodes(), "NodeID " << node << "doesn't exist!");
-    ASSERT(_graph.clusterID(node) == -1, "Node " << node << "isn't a isolated node!");
+    ASSERT(node < _graph.numNodes(), "NodeID" << node << "doesn't exist!");
+    ASSERT(_graph.clusterID(node) == -1, "Node" << node << "isn't a isolated node!");
 
     const EdgeWeight totc = _total_weight[cid];
     const EdgeWeight m2 = _graph.totalWeight();

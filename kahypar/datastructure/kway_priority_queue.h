@@ -76,7 +76,7 @@ class KWayPriorityQueue {
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE size_t size(const PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     return (_mapping[part].index < _num_nonempty_pqs ? _queues[_mapping[part].index].size() : 0);
   }
 
@@ -87,7 +87,7 @@ class KWayPriorityQueue {
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool empty(const PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     return isUnused(part);
   }
 
@@ -104,12 +104,12 @@ class KWayPriorityQueue {
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool isEnabled(const PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     return _mapping[part].index < _num_enabled_pqs;
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void enablePart(const PartitionID part) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     if (!isUnused(part) && !isEnabled(part)) {
       swap(_mapping[part].index, _num_enabled_pqs);
       ++_num_enabled_pqs;
@@ -118,7 +118,7 @@ class KWayPriorityQueue {
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void disablePart(const PartitionID part) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     if (isEnabled(part)) {
       --_num_enabled_pqs;
       swap(_mapping[part].index, _num_enabled_pqs);
@@ -127,7 +127,7 @@ class KWayPriorityQueue {
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void insert(const IDType id, const PartitionID part,
                                               const KeyType key) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     DBG << "Insert: (" << id << "," << part << "," << key << ")";
     ASSERT((_mapping[part].index != kInvalidIndex) ||
            (_mapping[_num_nonempty_pqs].part == kInvalidPart),
@@ -155,7 +155,7 @@ class KWayPriorityQueue {
     ASSERT(max_index != kInvalidIndex, V(max_index));
     ASSERT(max_key != MetaKey::max(), V(max_key));
     ASSERT(max_part != kInvalidPart, V(max_part) << V(max_id));
-    ASSERT(static_cast<unsigned int>(max_part) < _queues.size(), "Invalid " << V(max_part));
+    ASSERT(static_cast<unsigned int>(max_part) < _queues.size(), "Invalid" << V(max_part));
 
     _queues[max_index].pop();
     if (_queues[max_index].empty()) {
@@ -171,7 +171,7 @@ class KWayPriorityQueue {
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxFromPartition(IDType& max_id, KeyType& max_key,
                                                               PartitionID part) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     size_t part_index = _mapping[part].index;
     ASSERT(part_index < _num_enabled_pqs, V(part_index));
 
@@ -197,7 +197,7 @@ class KWayPriorityQueue {
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE KeyType key(const IDType id,
                                               const PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_mapping[part].index].contains(id), V(id));
     return _queues[_mapping[part].index].getKey(id);
@@ -205,7 +205,7 @@ class KWayPriorityQueue {
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool contains(const IDType id,
                                                 const PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     return _mapping[part].index < _num_nonempty_pqs && _queues[_mapping[part].index].contains(id);
   }
 
@@ -221,21 +221,21 @@ class KWayPriorityQueue {
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updateKey(const IDType id, const PartitionID part,
                                                  const KeyType key) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     _queues[_mapping[part].index].updateKey(id, key);
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updateKeyBy(const IDType id, const PartitionID part,
                                                    const KeyType key_delta) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     _queues[_mapping[part].index].updateKeyBy(id, key_delta);
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void remove(const IDType id,
                                               const PartitionID part) {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     ASSERT(_mapping[part].index < _num_nonempty_pqs, V(part));
     ASSERT(_queues[_mapping[part].index].contains(id), V(id) << V(part));
     _queues[_mapping[part].index].remove(id);
@@ -268,7 +268,7 @@ class KWayPriorityQueue {
   }
 
   IDType max(PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].top();
   }
@@ -279,7 +279,7 @@ class KWayPriorityQueue {
   }
 
   KeyType maxKey(PartitionID part) const {
-    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid " << V(part));
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
     // Should only be used for testing
     return _queues[_mapping[part].index].topKey();
   }

@@ -247,9 +247,9 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration& config) {
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (config.partition.verbose_output && result.num_removed_single_node_hes > 0) {
-    LOG << "\033[1m\033[31m" << "Removed " << result.num_removed_single_node_hes
+    LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
         << "hyperedges with |e|=1" << "\033[0m";
-    LOG << "\033[1m\033[31m" << "===> " << result.num_unconnected_hns
+    LOG << "\033[1m\033[31m" << "===>" << result.num_unconnected_hns
         << "unconnected HNs could have been removed" << "\033[0m";
   }
 
@@ -266,9 +266,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
                                     const Configuration& config) {
   preprocess(hypergraph, config);
   ASSERT(config.preprocessing.enable_min_hash_sparsifier);
-  LOG << "Before sparsification: hypernodes = " << hypergraph.initialNumNodes();
-  LOG << "Before sparsification: hyperedges = " << hypergraph.initialNumEdges();
-  LOG << "Before sparsification: pins = " << hypergraph.initialNumPins();
+  LOG << "Before sparsification: hypernodes =" << hypergraph.initialNumNodes();
+  LOG << "Before sparsification: hyperedges =" << hypergraph.initialNumEdges();
+  LOG << "Before sparsification: pins =" << hypergraph.initialNumPins();
 
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   sparseHypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
@@ -276,9 +276,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHy
   Stats::instance().addToTotal(config, "MinHashSparsifier",
                                std::chrono::duration<double>(end - start).count());
 
-  LOG << "After sparsification: hypernodes = " << sparseHypergraph.initialNumNodes();
-  LOG << "After sparsification: hyperedges = " << sparseHypergraph.initialNumEdges();
-  LOG << "After sparsification: pins = " << sparseHypergraph.initialNumPins();
+  LOG << "After sparsification: hypernodes =" << sparseHypergraph.initialNumNodes();
+  LOG << "After sparsification: hyperedges =" << sparseHypergraph.initialNumEdges();
+  LOG << "After sparsification: pins =" << sparseHypergraph.initialNumPins();
   if (config.partition.verbose_output) {
     kahypar::io::printHypergraphInfo(sparseHypergraph, "sparsified hypergraph");
   }
@@ -327,7 +327,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
 
 
     if (config.partition.verbose_output) {
-      LOG << "Calling Initial Partitioner: " << toString(config.initial_partitioning.technique)
+      LOG << "Calling Initial Partitioner:" << toString(config.initial_partitioning.technique)
           << "" << toString(config.initial_partitioning.mode) << ""
           << toString(config.initial_partitioning.algo)
           << "(k=" << init_config.initial_partitioning.k << ", epsilon="
@@ -784,7 +784,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
 
     DBG << V(vcycle) << V(metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
-      LOG << "Cut could not be decreased in v-cycle " << vcycle << ". Stopping global search.";
+      LOG << "Cut could not be decreased in v-cycle" << vcycle << ". Stopping global search.";
       break;
     }
 

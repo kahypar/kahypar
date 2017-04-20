@@ -64,7 +64,7 @@ class KwayGainCache {
   KwayGainCache& operator= (KwayGainCache&&) = default;
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Gain entry(const HypernodeID hn, const PartitionID part) const {
-    DBGC(hn == hn_to_debug) << "entry access for HN " << hn << "and part " << part;
+    DBGC(hn == hn_to_debug) << "entry access for HN" << hn << "and part" << part;
     ASSERT(part < _k, V(part));
     return cacheElement(hn)->gain(part);
   }
@@ -72,7 +72,7 @@ class KwayGainCache {
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool entryExists(const HypernodeID hn,
                                                    const PartitionID part) const {
     ASSERT(part < _k, V(part));
-    DBGC(hn == hn_to_debug) << "existence check for HN " << hn << "and part " << part
+    DBGC(hn == hn_to_debug) << "existence check for HN" << hn << "and part" << part
                             << "=" << cacheElement(hn)->contains(part);
     return cacheElement(hn)->contains(part);
   }
@@ -81,10 +81,10 @@ class KwayGainCache {
                                                                             const PartitionID part) {
     ASSERT(part < _k, V(part));
     _deltas.emplace_back(hn, part, cacheElement(hn)->gain(part), RollbackAction::do_add);
-    DBGC(hn == hn_to_debug) << "removeEntryDueToConnectivityDecrease for " << hn
-                            << "and part " << part << "previous cache entry ="
+    DBGC(hn == hn_to_debug) << "removeEntryDueToConnectivityDecrease for" << hn
+                            << "and part" << part << "previous cache entry ="
                             << cacheElement(hn)->gain(part)
-                            << "now= " << kNotCached;
+                            << "now=" << kNotCached;
     cacheElement(hn)->remove(part);
   }
 
@@ -94,10 +94,10 @@ class KwayGainCache {
     ASSERT(part < _k, V(part));
     ASSERT(!entryExists(hn, part), V(hn) << V(part));
     cacheElement(hn)->add(part, gain);
-    DBGC(hn == hn_to_debug) << "addEntryDueToConnectivityIncrease for " << hn
-                            << "and part " << part << "new cache entry ="
+    DBGC(hn == hn_to_debug) << "addEntryDueToConnectivityIncrease for" << hn
+                            << "and part" << part << "new cache entry ="
                             << cacheElement(hn)->gain(part);
-    DBGC(hn == hn_to_debug) << "delta emplace = " << kNotCached - gain;
+    DBGC(hn == hn_to_debug) << "delta emplace =" << kNotCached - gain;
     _deltas.emplace_back(hn, part, kNotCached - gain, RollbackAction::do_remove);
   }
 
@@ -114,10 +114,10 @@ class KwayGainCache {
                            RollbackAction::do_remove);
       cacheElement(moved_hn)->add(from_part, -to_part_gain);
     } else {
-      DBGC(moved_hn == hn_to_debug) << "pseudoremove  for " << moved_hn
-                                    << "and part " << from_part << "previous cache entry ="
+      DBGC(moved_hn == hn_to_debug) << "pseudoremove  for" << moved_hn
+                                    << "and part" << from_part << "previous cache entry ="
                                     << cacheElement(moved_hn)->gain(from_part)
-                                    << "now= " << kNotCached;
+                                    << "now=" << kNotCached;
       ASSERT(cacheElement(moved_hn)->gain(from_part) == kNotCached, V(moved_hn) << V(from_part));
     }
     removeEntryDueToConnectivityDecrease(moved_hn, to_part);
@@ -150,7 +150,7 @@ class KwayGainCache {
     ASSERT(part < _k, V(part));
     ASSERT(entryExists(hn, part), V(hn) << V(part));
     ASSERT(cacheElement(hn)->gain(part) != kNotCached, V(hn) << V(part));
-    DBGC(hn == hn_to_debug) << "updateEntryAndDelta(" << hn << ", " << part << "," << delta << ")";
+    DBGC(hn == hn_to_debug) << "updateEntryAndDelta(" << hn << "," << part << "," << delta << ")";
     cacheElement(hn)->update(part, delta);
     _deltas.emplace_back(hn, part, -delta, RollbackAction::do_nothing);
   }
@@ -162,7 +162,7 @@ class KwayGainCache {
       const PartitionID part = rit->part;
       const Gain delta = rit->delta;
       if (cacheElement(hn)->contains(part)) {
-        DBGC(hn == hn_to_debug) << "rollback: " << "G[" << hn << "," << part << "]="
+        DBGC(hn == hn_to_debug) << "rollback:" << "G[" << hn << "," << part << "]="
                                 << cacheElement(hn)->gain(part) << "+" << delta << "="
                                 << (cacheElement(hn)->gain(part) + delta);
         cacheElement(hn)->update(part, delta);

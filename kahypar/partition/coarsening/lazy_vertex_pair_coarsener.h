@@ -68,15 +68,15 @@ class LazyVertexPairCoarsener final : public ICoarsener,
       const HypernodeID rep_node = _pq.top();
 
       if (_outdated_rating[rep_node]) {
-        DBG << "Rating for HN" << rep_node << "is invalid: " << _pq.topKey() << "--->"
+        DBG << "Rating for HN" << rep_node << "is invalid:" << _pq.topKey() << "--->"
             << _rater.rate(rep_node).value << "target=" << _rater.rate(rep_node).target
-            << "valid= " << _rater.rate(rep_node).valid;
+            << "valid=" << _rater.rate(rep_node).valid;
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
       } else {
         const HypernodeID contracted_node = _target[rep_node];
 
         DBG << "Contracting: (" << rep_node << ","
-            << _target[rep_node] << ") prio: " << _pq.topKey() <<
+            << _target[rep_node] << ") prio:" << _pq.topKey() <<
           " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
           " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node);
 
@@ -126,7 +126,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
       ASSERT(_pq.contains(hn), V(hn));
       _pq.remove(hn);
       DBG << "Progress [" << _hg.currentNumNodes() << "/"
-          << _hg.initialNumNodes() << "]:HN " << hn
+          << _hg.initialNumNodes() << "]:HN" << hn
           << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.";
 #ifdef GATHER_STATS

@@ -141,7 +141,7 @@ class MLCoarsener final : public ICoarsener,
   }
 
   Rating contractionPartner(const HypernodeID u, const ds::FastResetFlagArray<>& already_matched) {
-    DBG << "Calculating rating for HN " << u;
+    DBG << "Calculating rating for HN" << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));

@@ -126,7 +126,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
               }
               return false;
             } (),
-            "Partition " << max_part << "is not an incident label of hypernode " << v << "!");
+            "Partition" << max_part << "is not an incident label of hypernode" << v << "!");
 
 #ifndef NDEBUG
           PartitionID source_part = _hg.partID(v);
@@ -152,8 +152,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                 }
                 return true;
               } (),
-              "Gain calculation failed of hypernode " << v << "failed from part "
-                                                      << source_part << "to " << max_part << "!");
+              "Gain calculation failed of hypernode" << v << "failed from part "
+                                                     << source_part << "to" << max_part << "!");
 
             converged = false;
           }
@@ -391,7 +391,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       p = (_hg.partWeight(i) < min_part_weight ? i : p);
       min_part_weight = std::min(_hg.partWeight(i), min_part_weight);
     }
-    ASSERT(_hg.partID(hn) == -1, "Hypernode " << hn << "is already assigned to a part!");
+    ASSERT(_hg.partID(hn) == -1, "Hypernode" << hn << "is already assigned to a part!");
     _hg.setNodePart(hn, p);
   }
 

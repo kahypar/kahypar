@@ -68,7 +68,7 @@ class HypergraphPruner {
     for (int i = memento.one_pin_hes_begin + memento.one_pin_hes_size - 1;
          i >= memento.one_pin_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_single_node_hyperedges.size(),
-             "Index out of bounds " << i);
+             "Index out of bounds" << i);
       DBG << "restore single-node HE "
           << _removed_single_node_hyperedges[i];
       hypergraph.restoreEdge(_removed_single_node_hyperedges[i]);
@@ -81,7 +81,7 @@ class HypergraphPruner {
     for (int i = memento.parallel_hes_begin + memento.parallel_hes_size - 1;
          i >= memento.parallel_hes_begin; --i) {
       ASSERT(i >= 0 && static_cast<size_t>(i) < _removed_parallel_hyperedges.size(),
-             "Index out of bounds: " << i);
+             "Index out of bounds:" << i);
       DBG << "restore HE "
           << _removed_parallel_hyperedges[i].removed_id << "which is parallel to "
           << _removed_parallel_hyperedges[i].representative_id;
@@ -107,7 +107,7 @@ class HypergraphPruner {
         _removed_single_node_hyperedges.push_back(*he_it);
         removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++memento.one_pin_hes_size;
-        DBG << "removing single-node HE " << *he_it;
+        DBG << "removing single-node HE" << *he_it;
         hypergraph.removeEdge(*he_it);
         --he_it;
         --end_it;
@@ -220,13 +220,13 @@ class HypergraphPruner {
         break;
       }
     }
-    DBG << "HE " << he << "is parallel HE= " << is_parallel;
+    DBG << "HE" << he << "is parallel HE=" << is_parallel;
     return is_parallel;
   }
 
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) {
     _contained_hypernodes.reset();
-    DBG << "Filling Bitprobe Set for HE " << he;
+    DBG << "Filling Bitprobe Set for HE" << he;
     for (const HypernodeID& pin : hypergraph.pins(he)) {
       DBG << "_contained_hypernodes[" << pin << "]=1";
       _contained_hypernodes.set(pin, true);
@@ -239,7 +239,7 @@ class HypergraphPruner {
     hypergraph.setEdgeWeight(representative,
                              hypergraph.edgeWeight(representative)
                              + hypergraph.edgeWeight(to_remove));
-    DBG << "removed HE " << to_remove << "which was parallel to " << representative;
+    DBG << "removed HE" << to_remove << "which was parallel to" << representative;
     hypergraph.removeEdge(to_remove);
     _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
   }
@@ -266,7 +266,7 @@ class HypergraphPruner {
           }
           return true;
         } (), V(he));
-      DBG << "Fingerprint for HE " << he << "= {" << he << "," << hypergraph.edgeHash(he)
+      DBG << "Fingerprint for HE" << he << "= {" << he << "," << hypergraph.edgeHash(he)
           << "," << hypergraph.edgeSize(he) << "}";
       _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he) });
     }

@@ -88,7 +88,7 @@ class HeavyEdgeRater {
   ~HeavyEdgeRater() = default;
 
   HeavyEdgeRating rate(const HypernodeID u) {
-    DBG << "Calculating rating for HN " << u;
+    DBG << "Calculating rating for HN" << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
@@ -129,8 +129,8 @@ class HeavyEdgeRater {
           flag = false;
         }
         return flag;
-      } (), "Representative " << u << "& contraction target " << ret.target
-                              << "are in different parts!");
+      } (), "Representative" << u << "& contraction target" << ret.target
+                             << "are in different parts!");
     DBG << "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")";
     return ret;
   }

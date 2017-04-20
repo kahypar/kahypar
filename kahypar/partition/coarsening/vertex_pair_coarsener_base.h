@@ -135,7 +135,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     // In order to guarantee this, 2FM would have to force rebalancing by sacrificing cut-edges.
     // ASSERT(current_imbalance <= _config.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
-    //        << "> " << _config.partition.epsilon);
+    //        << ">" << _config.partition.epsilon);
     Stats::instance().add(_config, "finalImbalance", current_metrics.imbalance);
     if (_config.partition.verbose_output) {
       LOG << "final weights (RB):   w(0)=" << _hg.partWeight(0) << "w(1)=" << _hg.partWeight(1);
@@ -145,7 +145,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       case Objective::cut:
         Stats::instance().add(_config, "finalCut", current_metrics.cut);
         if (_config.partition.verbose_output) {
-          LOG << "final cut: " << current_metrics.cut;
+          LOG << "final cut:" << current_metrics.cut;
         }
         improvement_found = current_metrics.cut < initial_objective;
         break;
@@ -161,7 +161,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
         }
         Stats::instance().add(_config, "finalKm1", current_metrics.km1);
         if (_config.partition.verbose_output) {
-          LOG << "final km1: " << current_metrics.km1;
+          LOG << "final km1:" << current_metrics.km1;
         }
         improvement_found = current_metrics.km1 < initial_objective;
         break;

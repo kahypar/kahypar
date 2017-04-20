@@ -175,8 +175,8 @@ class InitialPartitionerBase {
         }
       }
       ASSERT(_hg.partID(hn) == target_part,
-             "Assigned partition of Hypernode " << hn << "should be " << target_part
-                                                << ", but currently is " << _hg.partID(hn));
+             "Assigned partition of Hypernode" << hn << "should be" << target_part
+                                               << ", but currently is" << _hg.partID(hn));
       return true;
     } else {
       return false;

@@ -74,8 +74,8 @@ class Louvain {
     int cur_idx = 0;
 
     do {
-      LOG << "Graph Number Nodes: " << _graph_hierarchy[cur_idx].numNodes();
-      LOG << "Graph Number Edges: " << _graph_hierarchy[cur_idx].numEdges();
+      LOG << "Graph Number Nodes:" << _graph_hierarchy[cur_idx].numNodes();
+      LOG << "Graph Number Edges:" << _graph_hierarchy[cur_idx].numEdges();
       QualityMeasure quality(_graph_hierarchy[cur_idx]);
       if (iteration == 0) {
         cur_quality = quality.quality();
@@ -100,11 +100,11 @@ class Louvain {
       cur_quality = louvain_pass(_graph_hierarchy[cur_idx], quality);
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
-      LOG << "Louvain-Pass #" << iteration << "Time: " << elapsed_seconds.count() << "s";
+      LOG << "Louvain-Pass #" << iteration << "Time:" << elapsed_seconds.count() << "s";
       improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement;
 
-      LOG << "Louvain-Pass #" << iteration << "improved quality from " << old_quality
-          << "to " << cur_quality;
+      LOG << "Louvain-Pass #" << iteration << "improved quality from" << old_quality
+          << "to" << cur_quality;
 
       if (improvement) {
         cur_quality = quality.quality();
@@ -113,10 +113,10 @@ class Louvain {
         auto contraction = _graph_hierarchy[cur_idx++].contractClusters();
         end = std::chrono::high_resolution_clock::now();
         elapsed_seconds = end - start;
-        LOG << "Contraction Time: " << elapsed_seconds.count() << "s";
+        LOG << "Contraction Time:" << elapsed_seconds.count() << "s";
         _graph_hierarchy.push_back(std::move(contraction.first));
         mapping_stack.push_back(std::move(contraction.second));
-        LOG << "Current number of communities: " << _graph_hierarchy[cur_idx].numCommunities();
+        LOG << "Current number of communities:" << _graph_hierarchy[cur_idx].numCommunities();
       }
 
       LOG << "";
@@ -238,7 +238,7 @@ class Louvain {
         }
       }
 
-      LOG << "Iteration #" << iterations << ": Moving " << node_moves << "nodes to new communities.";
+      LOG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
     } while (node_moves > 0 &&
              iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
 
@@ -259,7 +259,7 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   const EdgeWeight quality = louvain.run();
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  LOG << "Louvain-Time: " << elapsed_seconds.count() << "s";
+  LOG << "Louvain-Time:" << elapsed_seconds.count() << "s";
   Stats::instance().addToTotal(config, "louvainTime", elapsed_seconds.count());
   Stats::instance().addToTotal(config, "communities", louvain.numCommunities());
   Stats::instance().addToTotal(config, "modularity", quality);

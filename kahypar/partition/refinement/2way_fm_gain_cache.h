@@ -110,7 +110,7 @@ class TwoWayFMGainCache {
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void uncheckedSetDelta(const size_t index, const T value) {
     ASSERT(index < _size);
     ASSERT(_cache[index].delta != 0,
-           "Index " << index << "is still unused and not tracked for reset!");
+           "Index" << index << "is still unused and not tracked for reset!");
     _cache[index].delta = value;
   }
 
