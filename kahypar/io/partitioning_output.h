@@ -38,19 +38,76 @@
 namespace kahypar {
 namespace io {
 namespace internal {
+struct Statistic {
+  uint64_t min = 0;
+  uint64_t q1 = 0;
+  uint64_t med = 0;
+  uint64_t q3 = 0;
+  uint64_t max = 0;
+  double avg = 0.0;
+  double sd = 0.0;
+};
+
 template <typename T>
-void printStats(const std::string& name, const std::vector<T>& vec, double avg, double stdev,
-                const std::pair<double, double>& quartiles) {
-  const uint8_t width = 10;
-  LOG << name
-      << ":   [min:" << std::setw(width) << std::left << (vec.empty() ? 0 : vec.front())
-      << "Q1:" << std::setw(width) << std::left << (vec.empty() ? 0 : quartiles.first)
-      << "med:" << std::setw(width) << std::left << (vec.empty() ? 0 : math::median(vec))
-      << "Q3:" << std::setw(width) << std::left << (vec.empty() ? 0 : quartiles.second)
-      << "max:" << std::setw(width) << std::left << (vec.empty() ? 0 : vec.back())
-      << "avg:" << std::setw(width) << std::left << avg
-      << "sd:" << std::setw(width) << std::left << stdev
-      << "]";
+Statistic createStats(const std::vector<T>& vec, const double avg, const double stdev) {
+  internal::Statistic stats;
+  if (!vec.empty()) {
+    const auto quartiles = math::firstAndThirdQuartile(vec);
+    stats.min = vec.front();
+    stats.q1 = quartiles.first;
+    stats.med = math::median(vec);
+    stats.q3 = quartiles.second;
+    stats.max = vec.back();
+    stats.avg = avg;
+    stats.sd = stdev;
+  }
+  return stats;
+}
+
+
+void printStats(const Statistic& he_size_stats,
+                const Statistic& he_weight_stats,
+                const Statistic& hn_deg_stats,
+                const Statistic& hn_weight_stats) {
+  // default double precision is 7
+  const uint8_t double_width = 7;
+  const uint8_t he_size_width = std::max(math::digits(he_size_stats.max), double_width) + 4;
+  const uint8_t he_weight_width = std::max(math::digits(he_weight_stats.max), double_width) + 4;
+  const uint8_t hn_deg_width = std::max(math::digits(hn_deg_stats.max), double_width) + 4;
+  const uint8_t hn_weight_width = std::max(math::digits(hn_weight_stats.max), double_width) + 4;
+
+  LOG << "HE size" << std::right << std::setw(he_size_width + 10)
+      << "HE weight" << std::right << std::setw(he_weight_width + 8)
+      << "HN degree" << std::right << std::setw(hn_deg_width + 8)
+      << "HN weight";
+  LOG << "| min=" << std::left << std::setw(he_size_width) << he_size_stats.min
+      << " | min=" << std::left << std::setw(he_weight_width) << he_weight_stats.min
+      << " | min=" << std::left << std::setw(hn_deg_width) << hn_deg_stats.min
+      << " | min=" << std::left << std::setw(hn_weight_width) << hn_weight_stats.min;
+  LOG << "| Q1 =" << std::left << std::setw(he_size_width) << he_size_stats.q1
+      << " | Q1 =" << std::left << std::setw(he_weight_width) << he_weight_stats.q1
+      << " | Q1 =" << std::left << std::setw(hn_deg_width) << hn_deg_stats.q1
+      << " | Q1 =" << std::left << std::setw(hn_weight_width) << hn_weight_stats.q1;
+  LOG << "| med=" << std::left << std::setw(he_size_width) << he_size_stats.med
+      << " | med=" << std::left << std::setw(he_weight_width) << he_weight_stats.med
+      << " | med=" << std::left << std::setw(hn_deg_width) << hn_deg_stats.med
+      << " | med=" << std::left << std::setw(hn_weight_width) << hn_weight_stats.med;
+  LOG << "| Q3 =" << std::left << std::setw(he_size_width) << he_size_stats.q3
+      << " | Q3 =" << std::left << std::setw(he_weight_width) << he_weight_stats.q3
+      << " | Q3 =" << std::left << std::setw(hn_deg_width) << hn_deg_stats.q3
+      << " | Q3 =" << std::left << std::setw(hn_weight_width) << hn_weight_stats.q3;
+  LOG << "| max=" << std::left << std::setw(he_size_width) << he_size_stats.max
+      << " | max=" << std::left << std::setw(he_weight_width) << he_weight_stats.max
+      << " | max=" << std::left << std::setw(hn_deg_width) << hn_deg_stats.max
+      << " | max=" << std::left << std::setw(hn_weight_width) << hn_weight_stats.max;
+  LOG << "| avg=" << std::left << std::setw(he_size_width) << he_size_stats.avg
+      << " | avg=" << std::left << std::setw(he_weight_width) << he_weight_stats.avg
+      << " | avg=" << std::left << std::setw(hn_deg_width) << hn_deg_stats.avg
+      << " | avg=" << std::left << std::setw(hn_weight_width) << hn_weight_stats.avg;
+  LOG << "| sd =" << std::left << std::setw(he_size_width) << he_size_stats.sd
+      << " | sd =" << std::left << std::setw(he_weight_width) << he_weight_stats.sd
+      << " | sd =" << std::left << std::setw(hn_deg_width) << hn_deg_stats.sd
+      << " | sd =" << std::left << std::setw(hn_weight_width) << hn_weight_stats.sd;
 }
 }  // namespace internal
 
@@ -107,38 +164,53 @@ inline void printHypergraphInfo(const Hypergraph& hypergraph, const std::string&
   }
   stdev_he_weight = std::sqrt(stdev_he_weight / (hypergraph.currentNumNodes() - 1));
 
-  LOG << "***********************Hypergraph Information************************";
+  LOG << "Hypergraph Information";
   LOG << "Name :" << name;
   LOG << "Type:" << hypergraph.typeAsString();
-  LOG << "# HEs:" << hypergraph.currentNumEdges();
-  internal::printStats("HE size  ", he_sizes, avg_he_size, stdev_he_size,
-                       math::firstAndThirdQuartile(he_sizes));
-  internal::printStats("HE weight", he_weights, avg_he_weight, stdev_he_weight,
-                       math::firstAndThirdQuartile(he_weights));
-  LOG << "# HNs:" << hypergraph.currentNumNodes();
-  internal::printStats("HN degree", hn_degrees, avg_hn_degree, stdev_hn_degree,
-                       math::firstAndThirdQuartile(hn_degrees));
-  internal::printStats("HN weight", hn_weights, avg_hn_weight, stdev_hn_weight,
-                       math::firstAndThirdQuartile(hn_weights));
+  LOG << "# HNs :" << hypergraph.currentNumNodes()
+      << "# HEs :" << hypergraph.currentNumEdges()
+      << "# pins:" << hypergraph.currentNumPins();
+
+  internal::printStats(internal::createStats(he_sizes, avg_he_size, stdev_he_size),
+                       internal::createStats(he_weights, avg_he_weight, stdev_he_weight),
+                       internal::createStats(hn_degrees, avg_hn_degree, stdev_hn_degree),
+                       internal::createStats(hn_weights, avg_hn_weight, stdev_hn_weight));
 }
 
-template <class Configuration>
-inline void printPartitionerConfiguration(const Configuration& config) {
-  LOG << "*********************Partitioning Configuration**********************";
-  LOG << toString(config);
+inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
+  HypernodeID max_part_size = 0;
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    max_part_size = std::max(max_part_size, hypergraph.partSize(i));
+  }
+  const uint8_t part_digits = math::digits(max_part_size);
+  const uint8_t k_digits = math::digits(hypergraph.k());
+  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+    LOG << "|part" << std::right << std::setw(k_digits) << i
+        << std::setw(1) << "| =" << std::right << std::setw(part_digits) << hypergraph.partSize(i)
+        << std::setw(1) << " w(" << std::right << std::setw(k_digits) << i
+        << std::setw(1) << ") =" << std::right << std::setw(part_digits)
+        << hypergraph.partWeight(i);
+  }
 }
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Configuration& config,
                                      const std::chrono::duration<double>& elapsed_seconds) {
-  LOG << "************************Partitioning Result**************************";
+  LOG << "********************************************************************************";
+  LOG << "*                             Partitioning Result                              *";
+  LOG << "********************************************************************************";
+  LOG << "Objectives:";
   LOG << "Hyperedge Cut  (minimize) =" << metrics::hyperedgeCut(hypergraph);
   LOG << "SOED           (minimize) =" << metrics::soed(hypergraph);
   LOG << "(k-1)          (minimize) =" << metrics::km1(hypergraph);
   LOG << "Absorption     (maximize) =" << metrics::absorption(hypergraph);
   LOG << "Imbalance                 =" << metrics::imbalance(hypergraph, config);
-  LOG << "Partition time            =" << elapsed_seconds.count() << " s";
 
+  LOG << "\nPartition sizes and weights: ";
+  printPartSizesAndWeights(hypergraph);
+
+  LOG << "\nTimings:";
+  LOG << "Partition time                   =" << elapsed_seconds.count() << " s";
   LOG << "  | initial parallel HE removal  ="
       << Stats::instance().get("InitialParallelHEremoval") << " s [currently not implemented]";
   LOG << "  | initial large HE removal     = "
@@ -162,25 +234,10 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
     LOG << " | v-cycle uncoarsening/refinement = "
         << Stats::instance().get("VCycleUnCoarseningRefinement") << " s";
   }
-  LOG << "Partition sizes and weights: ";
-  HypernodeID max_part_size = 0;
-  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    max_part_size = std::max(max_part_size, hypergraph.partSize(i));
-  }
-  const uint8_t part_digits = math::digits(max_part_size);
-  const uint8_t k_digits = math::digits(hypergraph.k());
-  for (PartitionID i = 0; i != hypergraph.k(); ++i) {
-    LOG << "|part" << std::right << std::setw(k_digits) << i
-        << std::setw(1) << "| =" << std::right << std::setw(part_digits) << hypergraph.partSize(i)
-        << std::setw(1) << " w(" << std::right << std::setw(k_digits) << i
-        << std::setw(1) << ") =" << std::right << std::setw(part_digits)
-        << hypergraph.partWeight(i);
-  }
-  LOG << "*********************************************************************";
 }
 
 inline void printPartitioningStatistics() {
-  LOG << "*****************************Statistics******************************";
+  LOG << "\nStatistics ********************************************************************";
   LOG << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE.";
   LOG << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
       << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights";
@@ -188,7 +245,7 @@ inline void printPartitioningStatistics() {
 }
 
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {
-  LOG << "*************************Connectivity Values*************************";
+  LOG << "\nConnectivity Values ***********************************************************";
   for (size_t i = 0; i < connectivity_stats.size(); ++i) {
     LOG << "# HEs with λ=" << i << ": " << connectivity_stats[i];
   }

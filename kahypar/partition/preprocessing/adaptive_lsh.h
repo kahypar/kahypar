@@ -36,6 +36,8 @@ namespace kahypar {
 template <typename _HashPolicy>
 class AdaptiveLSHWithConnectedComponents {
  private:
+  static constexpr bool debug = false;
+
   using HashPolicy = _HashPolicy;
   using BaseHashPolicy = typename HashPolicy::BaseHashPolicy;
   using HashValue = typename HashPolicy::HashValue;
@@ -140,7 +142,7 @@ class AdaptiveLSHWithConnectedComponents {
           ++num_cl;
         }
       }
-      LOG << "Num clusters:" << num_cl;
+      DBG << "Num clusters:" << num_cl;
 
       std::sort(inactive_clusters.begin(), inactive_clusters.end());
       auto end_iter = std::unique(inactive_clusters.begin(), inactive_clusters.end());

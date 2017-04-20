@@ -139,7 +139,7 @@ class Partitioner {
   inline void configurePreprocessing(const Hypergraph& hypergraph, Configuration& config) const;
 
   inline void preprocess(Hypergraph& hypergraph, const Configuration& config);
-  inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+  inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                          const Configuration& config);
 
   inline void partitionInternal(Hypergraph& hypergraph, Configuration& config);
@@ -174,7 +174,7 @@ class Partitioner {
                                                                  double init_alpha) const;
 
   inline void postprocess(Hypergraph& hypergraph, const Configuration& config);
-  inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+  inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                           const Configuration& config);
 
 
@@ -240,11 +240,14 @@ inline void Partitioner::setupConfig(const Hypergraph& hypergraph, Configuration
 
   // the main partitioner should track stats
   config.partition.collect_stats = true;
-
-  io::printPartitionerConfiguration(config);
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration& config) {
+  if (config.partition.verbose_output) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                               Preprocessing...                               *";
+    LOG << "********************************************************************************";
+  }
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (config.partition.verbose_output && result.num_removed_single_node_hes > 0) {
     LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
@@ -262,25 +265,20 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration&
   }
 }
 
-inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                                     const Configuration& config) {
   preprocess(hypergraph, config);
   ASSERT(config.preprocessing.enable_min_hash_sparsifier);
-  LOG << "Before sparsification: hypernodes =" << hypergraph.initialNumNodes();
-  LOG << "Before sparsification: hyperedges =" << hypergraph.initialNumEdges();
-  LOG << "Before sparsification: pins =" << hypergraph.initialNumPins();
 
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  sparseHypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
+  sparse_hypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "MinHashSparsifier",
                                std::chrono::duration<double>(end - start).count());
 
-  LOG << "After sparsification: hypernodes =" << sparseHypergraph.initialNumNodes();
-  LOG << "After sparsification: hyperedges =" << sparseHypergraph.initialNumEdges();
-  LOG << "After sparsification: pins =" << sparseHypergraph.initialNumPins();
   if (config.partition.verbose_output) {
-    kahypar::io::printHypergraphInfo(sparseHypergraph, "sparsified hypergraph");
+    LOG << "After sparsification:";
+    kahypar::io::printHypergraphInfo(sparse_hypergraph, "sparsified hypergraph");
   }
 }
 
@@ -296,11 +294,11 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration
 }
 
 
-inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseHypergraph,
+inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                                      const Configuration& config) {
   ASSERT(config.preprocessing.enable_min_hash_sparsifier);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  _pin_sparsifier.applyPartition(sparseHypergraph, hypergraph);
+  _pin_sparsifier.applyPartition(sparse_hypergraph, hypergraph);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "MinHashSparsifier",
                                std::chrono::duration<double>(end - start).count());
@@ -308,10 +306,6 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparseH
 }
 
 inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Configuration& config) {
-  if (config.partition.verbose_output) {
-    io::printHypergraphInfo(hg, "Coarsened Hypergraph");
-  }
-
   auto extracted_init_hypergraph = ds::reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
@@ -326,7 +320,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
       *extracted_init_hypergraph.first, config, init_alpha);
 
 
-    if (config.partition.verbose_output) {
+    if (config.initial_partitioning.verbose_output) {
       LOG << "Calling Initial Partitioner:" << toString(config.initial_partitioning.technique)
           << "" << toString(config.initial_partitioning.mode) << ""
           << toString(config.initial_partitioning.algo)
@@ -396,6 +390,8 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
                                                                             original_config,
                                                                             double init_alpha) const {
   Configuration config(original_config);
+
+  config.type = ConfigType::initial_partitioning;
 
   if (!config.preprocessing.louvain_community_detection.enable_in_initial_partitioning) {
     config.preprocessing.enable_louvain_community_detection = false;
@@ -503,7 +499,16 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config
 
 inline void Partitioner::partitionInternal(Hypergraph& hypergraph, Configuration& config) {
   setupConfig(hypergraph, config);
-
+  if (config.type == ConfigType::main) {
+    LOG << config;
+    if (config.partition.verbose_output) {
+      LOG << "\n********************************************************************************";
+      LOG << "*                                    Input                                     *";
+      LOG << "********************************************************************************";
+      io::printHypergraphInfo(hypergraph, config.partition.graph_filename.substr(
+                                config.partition.graph_filename.find_last_of('/') + 1));
+    }
+  }
   if (config.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, config);
@@ -532,6 +537,11 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
                                              ICoarsener& coarsener,
                                              IRefiner& refiner,
                                              const Configuration& config) {
+  if (config.partition.verbose_output && config.type == ConfigType::main) {
+    LOG << "********************************************************************************";
+    LOG << "*                                Coarsening...                                 *";
+    LOG << "********************************************************************************";
+  }
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -540,8 +550,21 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
 
   gatherCoarseningStats(config, hypergraph);
 
-  // hypergraph.printGraphState();
-
+  if (config.partition.verbose_output && config.type == ConfigType::main) {
+    io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
+  }
+  if (config.type == ConfigType::main && (config.partition.verbose_output ||
+                                          config.initial_partitioning.verbose_output)) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                           Initial Partitioning...                            *";
+    LOG << "********************************************************************************";
+  } else if (config.type == ConfigType::initial_partitioning &&
+             config.initial_partitioning.verbose_output) {
+    LOG << "--------------------------------------------------------------------------------";
+    LOG << "Computing bisection (" << config.partition.rb_lower_k << ".."
+        << config.partition.rb_upper_k << ")";
+    LOG << "--------------------------------------------------------------------------------";
+  }
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, config);
   end = std::chrono::high_resolution_clock::now();
@@ -549,12 +572,43 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
                                std::chrono::duration<double>(end - start).count());
 
   hypergraph.initializeNumCutHyperedges();
-
+  if (config.partition.verbose_output && config.type == ConfigType::main) {
+    if (config.initial_partitioning.verbose_output) {
+      LOG << "--------------------------------------------------------------------------------\n";
+    }
+    LOG << "Initial Partitioning Result:";
+    LOG << "Initial" << toString(config.partition.objective) << "      ="
+        << (config.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+        metrics::km1(hypergraph));
+    LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, config);
+    LOG << "Initial part sizes and weights:";
+    io::printPartSizesAndWeights(hypergraph);
+    LLOG << "Target weights:";
+    if (config.partition.mode == Mode::direct_kway) {
+      LLOG << "w(*) =" << config.partition.max_part_weights[0] << "\n";
+    } else {
+      LLOG << "(RB): w(0)=" << config.partition.max_part_weights[0]
+           << "w(1)=" << config.partition.max_part_weights[1] << "\n";
+    }
+    LOG << "\n********************************************************************************";
+    LOG << "*                               Local Search...                                *";
+    LOG << "********************************************************************************";
+  }
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
   Stats::instance().addToTotal(config, "UncoarseningRefinement",
                                std::chrono::duration<double>(end - start).count());
+  if (config.partition.verbose_output && config.type == ConfigType::main) {
+    LOG << "Local Search Result:";
+    LOG << "Final" << toString(config.partition.objective) << "      ="
+        << (config.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+        metrics::km1(hypergraph));
+    LOG << "Final imbalance =" << metrics::imbalance(hypergraph, config);
+    LOG << "Final part sizes and weights:";
+    io::printPartSizesAndWeights(hypergraph);
+    LOG << "";
+  }
 }
 
 inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
@@ -608,9 +662,6 @@ inline Configuration Partitioner::createConfigurationForCurrentBisection(const C
                                                              current_hypergraph.totalWeight(),
                                                              current_k, original_config);
   ASSERT(current_config.partition.epsilon > 0.0, "start partition already too imbalanced");
-  if (current_config.partition.verbose_output) {
-    LOG << V(current_config.partition.epsilon);
-  }
   current_config.partition.total_graph_weight =
     current_hypergraph.totalWeight();
 
@@ -717,17 +768,9 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
             _internals.append(coarsener->policyString() + " " + refiner->policyString());
           }
 
-          if (current_config.partition.verbose_output) {
-            io::printHypergraphInfo(current_hypergraph, "---");
-          }
-
           // TODO(schlag): we could integrate v-cycles in a similar fashion as is
           // performDirectKwayPartitioning
           performPartitioning(current_hypergraph, *coarsener, *refiner, current_config);
-
-          if (current_config.partition.verbose_output) {
-            LOG << "-------------------------------------------------------------";
-          }
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1, current_config.partition.objective == Objective::km1 ? true : false);

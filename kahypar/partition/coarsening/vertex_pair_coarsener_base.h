@@ -72,16 +72,10 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       case Objective::cut:
         initial_objective = current_metrics.cut;
         Stats::instance().add(_config, "initialCut", initial_objective);
-        if (_config.partition.verbose_output) {
-          LOG << "initial cut =" << initial_objective;
-        }
         break;
       case Objective::km1:
         initial_objective = current_metrics.km1;
         Stats::instance().add(_config, "initialKm1", initial_objective);
-        if (_config.partition.verbose_output) {
-          LOG << "initial km1 =" << initial_objective;
-        }
         break;
       default:
         LOG << "Unknown Objective";
@@ -89,13 +83,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     }
 
     Stats::instance().add(_config, "initialImbalance", current_metrics.imbalance);
-    if (_config.partition.verbose_output) {
-      LOG << "initial imbalance=" << current_metrics.imbalance;
-      LOG << "target  weights (RB): w(0)=" << _config.partition.max_part_weights[0]
-          << "w(1)=" << _config.partition.max_part_weights[1];
-      LOG << "initial weights (RB): w(0)=" << _hg.partWeight(0) << "w(1)=" << _hg.partWeight(1);
-    }
-
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
@@ -137,16 +124,10 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _config)
     //        << ">" << _config.partition.epsilon);
     Stats::instance().add(_config, "finalImbalance", current_metrics.imbalance);
-    if (_config.partition.verbose_output) {
-      LOG << "final weights (RB):   w(0)=" << _hg.partWeight(0) << "w(1)=" << _hg.partWeight(1);
-    }
     bool improvement_found = false;
     switch (_config.partition.objective) {
       case Objective::cut:
         Stats::instance().add(_config, "finalCut", current_metrics.cut);
-        if (_config.partition.verbose_output) {
-          LOG << "final cut:" << current_metrics.cut;
-        }
         improvement_found = current_metrics.cut < initial_objective;
         break;
       case Objective::km1:
@@ -160,9 +141,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
           current_metrics.km1 = metrics::km1(_hg);
         }
         Stats::instance().add(_config, "finalKm1", current_metrics.km1);
-        if (_config.partition.verbose_output) {
-          LOG << "final km1:" << current_metrics.km1;
-        }
         improvement_found = current_metrics.km1 < initial_objective;
         break;
       default:

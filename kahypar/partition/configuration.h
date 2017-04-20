@@ -104,11 +104,13 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   str << "  remove HEs that always will be cut: " << std::boolalpha
       << params.remove_always_cut_hes << std::endl;
   if (params.enable_min_hash_sparsifier) {
-    str << "---------------------------------------------------------------------" << std::endl;
+    str << "-------------------------------------------------------------------------------"
+        << std::endl;
     str << params.min_hash_sparsifier << std::endl;
   }
   if (params.enable_louvain_community_detection) {
-    str << "---------------------------------------------------------------------" << std::endl;
+    str << "-------------------------------------------------------------------------------"
+        << std::endl;
     str << params.louvain_community_detection << std::endl;
   }
 
@@ -234,10 +236,12 @@ class InitialPartitioningParameters {
   // Amount of hypernodes which are assigned around each start vertex (LP)
   int lp_assign_vertex_to_part = 5;
   bool refinement = true;
+  bool verbose_output = false;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningParameters& params) {
-  str << "---------------------------------------------------------------------" << std::endl;
+  str << "-------------------------------------------------------------------------------"
+      << std::endl;
   str << "Initial Partitioning Parameters:" << std::endl;
   str << "  # IP trials:                        " << params.nruns << std::endl;
   str << "  Mode:                               " << toString(params.mode) << std::endl;
@@ -247,7 +251,8 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << params.coarsening;
   str << "IP Local Search:                      " << std::endl;
   str << params.local_search;
-  str << "---------------------------------------------------------------------" << std::endl;
+  str << "-------------------------------------------------------------------------------"
+      << std::endl;
   return str;
 }
 
@@ -277,7 +282,7 @@ struct PartitioningParameters {
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
-  str << "KaHyPar Partitioning Parameters:" << std::endl;
+  str << "Partitioning Parameters:" << std::endl;
   str << "  Hypergraph:                         " << params.graph_filename << std::endl;
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
   str << "  Mode:                               " << toString(params.mode) << std::endl;
@@ -304,23 +309,23 @@ struct Configuration {
   CoarseningParameters coarsening { };
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
+  ConfigType type = ConfigType::main;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Configuration& config) {
-  str << config.partition
-      << "---------------------------------------------------------------------" << std::endl
+  str << "*******************************************************************************\n"
+      << "*                         Partitioning Configuration                          *\n"
+      << "*******************************************************************************\n"
+      << config.partition
+      << "-------------------------------------------------------------------------------"
+      << std::endl
       << config.preprocessing
-      << "---------------------------------------------------------------------" << std::endl
+      << "-------------------------------------------------------------------------------"
+      << std::endl
       << config.coarsening
       << config.initial_partitioning
       << config.local_search
-      << "---------------------------------------------------------------------" << std::endl;
+      << "-------------------------------------------------------------------------------";
   return str;
-}
-
-inline std::string toString(const Configuration& config) {
-  std::ostringstream oss;
-  oss << config << std::endl;
-  return oss.str();
 }
 }  // namespace kahypar

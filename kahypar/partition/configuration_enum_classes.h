@@ -24,6 +24,11 @@
 #include <string>
 
 namespace kahypar {
+enum class ConfigType : bool {
+  main,
+  initial_partitioning
+};
+
 enum class Mode : uint8_t {
   recursive_bisection,
   direct_kway

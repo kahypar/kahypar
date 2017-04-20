@@ -184,7 +184,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   generic_options.add_options()
     ("help", "show help message")
     ("verbose,v", po::value<bool>(&config.partition.verbose_output)->value_name("<bool>"),
-    "Verbose partitioning output");
+    "Verbose main partitioning output")
+    ("vip", po::value<bool>(&config.initial_partitioning.verbose_output)->value_name("<bool>"),
+    "Verbose initial partitioning output");
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
@@ -540,6 +542,17 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 }  // namespace
 
 int main(int argc, char* argv[]) {
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+  LOG << R"(+                    _  __     _   _       ____                               +)";
+  LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
+  LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
+  LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
+  LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
+  LOG << R"(+                                    |___/                                    +)";
+  LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+
+
   Configuration config;
 
   processCommandLineInput(config, argc, argv);
@@ -556,13 +569,6 @@ int main(int argc, char* argv[]) {
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
                                           config.partition.k));
-
-
-  if (config.partition.verbose_output) {
-    kahypar::io::printHypergraphInfo(hypergraph,
-                                     config.partition.graph_filename.substr(
-                                       config.partition.graph_filename.find_last_of('/') + 1));
-  }
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -581,6 +587,7 @@ int main(int argc, char* argv[]) {
   kahypar::io::writePartitionFile(hypergraph,
                                   config.partition.graph_partition_filename);
 
+  LOG << "";
   kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
   return 0;
 }

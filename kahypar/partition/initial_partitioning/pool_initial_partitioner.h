@@ -151,16 +151,12 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
     }
 
-    if (_config.partition.verbose_output) {
-      std::cout << "\n*********************************Pool-Initial-Partitioner-Result*************"
-                << "********************" << std::endl;
-      best_cut.print_result("Best Cut         ");
+    if (_config.initial_partitioning.verbose_output) {
       min_cut.print_result("Minimum Cut      ");
       max_cut.print_result("Maximum Cut      ");
       min_imbalance.print_result("Minimum Imbalance");
       max_imbalance.print_result("Maximum Imbalance");
-      std::cout << "*******************************************************************************"
-                << "*****************\n" << std::endl;
+      best_cut.print_result("==> Best Cut     ");
     }
 
 
