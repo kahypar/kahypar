@@ -233,4 +233,6 @@ class LPGainCache {
   HypernodeID _num_hns;
   std::unique_ptr<Byte[]> _cache;
 };
+
+constexpr HyperedgeWeight LPGainCache::kNotCached;
 }  // namespace kahypar

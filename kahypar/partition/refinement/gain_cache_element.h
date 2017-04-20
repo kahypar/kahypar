@@ -216,4 +216,7 @@ class CacheElement {
   PartitionID _size;
   // The cache entries follow after size
 };
+
+template <typename Gain>
+constexpr HyperedgeWeight CacheElement<Gain>::kNotCached;
 }  // namespace kahypar

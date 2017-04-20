@@ -40,7 +40,6 @@ class KwayGainCache {
 
  public:
   static constexpr HyperedgeWeight kNotCached = KFMCacheElement::kNotCached;
-  static constexpr PartitionID kInvalidPart = KFMCacheElement::kInvalidPart;
 
   KwayGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
@@ -211,4 +210,7 @@ class KwayGainCache {
   std::unique_ptr<Byte[]> _cache;
   std::vector<RollbackElement> _deltas;
 };
+
+template <typename Gain>
+constexpr HyperedgeWeight KwayGainCache<Gain>::kNotCached;
 }  // namespace kahypar
