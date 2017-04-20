@@ -40,6 +40,8 @@
 namespace kahypar {
 template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
+ private:
+  static constexpr bool debug = false;
  protected:
   using CoarsenerBase::performLocalSearch;
   using CoarsenerBase::initializeRefiner;

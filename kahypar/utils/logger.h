@@ -48,7 +48,7 @@ class Logger {
     return *this;
   }
 
-  Logger& operator<< (const decltype(std::left)& output) {
+  Logger& operator<< (decltype(std::left)& output) {
     _oss << output;
     return *this;
   }

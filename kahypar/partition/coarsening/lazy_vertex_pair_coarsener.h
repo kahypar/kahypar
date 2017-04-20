@@ -37,6 +37,8 @@ template <class Rater = Mandatory>
 class LazyVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
  private:
+  static constexpr bool debug = false;
+
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;
 
