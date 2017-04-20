@@ -28,7 +28,7 @@ As a multilevel algorithm, it consist of three phases: In the *coarsening phase*
 hypergraph is coarsened to obtain a hierarchy of smaller hypergraphs. After applying an
 *initial partitioning* algorithm to the smallest hypergraph in the second phase, coarsening is
 undone and, at each level, a *local search* method is used to improve the partition induced by
-the coarser level. KaHyPar instantiates the multilevel approach its most extreme version,
+the coarser level. KaHyPar instantiates the multilevel approach in its most extreme version,
 removing only a single vertex in every level of the hierarchy.
 By using this very fine grained *n*-level approach combined with strong local search heuristics,
 it computes solutions of very high quality.
