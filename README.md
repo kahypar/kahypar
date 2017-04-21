@@ -68,9 +68,9 @@ The binary is located at: `build/kahypar/application/`.
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
-Currently we provide three different presets that correspond to the configuration used in the 
-[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5) publication, the [ALENEX'17](http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3) publication,
-and our [SEA'17](https://nms.kcl.ac.uk/informatics/events/SEA2017/) submission.
+Currently we provide three different presets that correspond to the configurations used in the publications at
+[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5), [ALENEX'17](http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3),
+and [SEA'17](https://nms.kcl.ac.uk/informatics/events/SEA2017/accepted.html).
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
