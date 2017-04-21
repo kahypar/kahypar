@@ -558,12 +558,6 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
     LOG << "\n********************************************************************************";
     LOG << "*                           Initial Partitioning...                            *";
     LOG << "********************************************************************************";
-  } else if (config.type == ConfigType::initial_partitioning &&
-             config.initial_partitioning.verbose_output) {
-    LOG << "--------------------------------------------------------------------------------";
-    LOG << "Computing bisection (" << config.partition.rb_lower_k << ".."
-        << config.partition.rb_upper_k << ")";
-    LOG << "--------------------------------------------------------------------------------";
   }
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, config);
@@ -710,6 +704,14 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                 RBHypergraphState::unpartitioned, 0,
                                 (original_config.partition.k - 1));
 
+  int bisection_counter = 0;
+
+  if ((original_config.type == ConfigType::main && original_config.partition.verbose_output) ||
+      (original_config.type == ConfigType::initial_partitioning &&
+       original_config.initial_partitioning.verbose_output)) {
+    LOG << "================================================================================";
+  }
+
   while (!hypergraph_stack.empty()) {
     Hypergraph& current_hypergraph = *hypergraph_stack.back().hypergraph;
 
@@ -748,7 +750,20 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                    k - km);
           current_config.partition.rb_lower_k = k1;
           current_config.partition.rb_upper_k = k2;
+          ++bisection_counter;
 
+          const bool verbose_output = (current_config.type == ConfigType::main &&
+                                       current_config.partition.verbose_output) ||
+                                      (current_config.type == ConfigType::initial_partitioning &&
+                                       current_config.initial_partitioning.verbose_output);
+
+          if (verbose_output) {
+            LOG << "Recursive Bisection No." << bisection_counter << ": Computing blocks ("
+                << current_config.partition.rb_lower_k << ".."
+                << current_config.partition.rb_upper_k << ")";
+            LOG << R"(========================================)"
+                   R"(========================================)";
+          }
           std::unique_ptr<ICoarsener> coarsener(
             CoarsenerFactory::getInstance().createObject(
               current_config.coarsening.algorithm,
@@ -773,7 +788,8 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           performPartitioning(current_hypergraph, *coarsener, *refiner, current_config);
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
-            current_hypergraph, 1, current_config.partition.objective == Objective::km1 ? true : false);
+            current_hypergraph, 1,
+            current_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state =
@@ -781,12 +797,18 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
           hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_1.first.release(),
                                                       delete_hypergraph),
                                         RBHypergraphState::unpartitioned, k1 + km, k2);
+
+          if (verbose_output) {
+            LOG << R"(========================================)"
+                   R"(========================================)";
+          }
         }
         break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 0, original_config.partition.objective == Objective::km1 ? true : false);
+              current_hypergraph, 0,
+              original_config.partition.objective == Objective::km1 ? true : false);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_0.first.release(),
