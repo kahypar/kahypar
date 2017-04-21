@@ -567,9 +567,6 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
 
   hypergraph.initializeNumCutHyperedges();
   if (config.partition.verbose_output && config.type == ConfigType::main) {
-    if (config.initial_partitioning.verbose_output) {
-      LOG << "--------------------------------------------------------------------------------\n";
-    }
     LOG << "Initial Partitioning Result:";
     LOG << "Initial" << toString(config.partition.objective) << "      ="
         << (config.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :

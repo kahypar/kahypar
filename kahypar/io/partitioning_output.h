@@ -210,29 +210,29 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   printPartSizesAndWeights(hypergraph);
 
   LOG << "\nTimings:";
-  LOG << "Partition time                   =" << elapsed_seconds.count() << " s";
+  LOG << "Partition time                   =" << elapsed_seconds.count() << "s";
   LOG << "  | initial parallel HE removal  ="
-      << Stats::instance().get("InitialParallelHEremoval") << " s [currently not implemented]";
-  LOG << "  | initial large HE removal     = "
-      << Stats::instance().get("InitialLargeHEremoval") << " s";
-  LOG << "  | min hash sparsifier          = "
-      << Stats::instance().get("MinHashSparsifier") << " s";
-  LOG << "  | coarsening                   = "
-      << Stats::instance().get("Coarsening") << " s";
-  LOG << "  | initial partitioning         = "
-      << Stats::instance().get("InitialPartitioning") << " s";
-  LOG << "  | uncoarsening/refinement      = "
-      << Stats::instance().get("UncoarseningRefinement") << " s";
-  LOG << "  | initial large HE restore     = "
-      << Stats::instance().get("InitialLargeHErestore") << " s";
-  LOG << "  | initial parallel HE restore  = "
+      << Stats::instance().get("InitialParallelHEremoval") << "s [currently not implemented]";
+  LOG << "  | initial large HE removal     ="
+      << Stats::instance().get("InitialLargeHEremoval") << "s";
+  LOG << "  | min hash sparsifier          ="
+      << Stats::instance().get("MinHashSparsifier") << "s";
+  LOG << "  | coarsening                   ="
+      << Stats::instance().get("Coarsening") << "s";
+  LOG << "  | initial partitioning         ="
+      << Stats::instance().get("InitialPartitioning") << "s";
+  LOG << "  | uncoarsening/refinement      ="
+      << Stats::instance().get("UncoarseningRefinement") << "s";
+  LOG << "  | initial large HE restore     ="
+      << Stats::instance().get("InitialLargeHErestore") << "s";
+  LOG << "  | initial parallel HE restore  ="
       << Stats::instance().get("InitialParallelHErestore")
       << " s [currently not implemented]";
   if (config.partition.global_search_iterations > 0) {
     LOG << " | v-cycle coarsening              = "
-        << Stats::instance().get("VCycleCoarsening") << " s";
-    LOG << " | v-cycle uncoarsening/refinement = "
-        << Stats::instance().get("VCycleUnCoarseningRefinement") << " s";
+        << Stats::instance().get("VCycleCoarsening") << "s";
+    LOG << " | v-cycle uncoarsening/refinement ="
+        << Stats::instance().get("VCycleUnCoarseningRefinement") << "s";
   }
 }
 
