@@ -35,7 +35,8 @@ class LastRatingWins {
   LastRatingWins(LastRatingWins&&) = delete;
   LastRatingWins& operator= (LastRatingWins&&) = delete;
 
- protected: ~LastRatingWins() = default;
+ protected:
+  ~LastRatingWins() = default;
 };
 
 class FirstRatingWins {
@@ -50,7 +51,8 @@ class FirstRatingWins {
   FirstRatingWins(FirstRatingWins&&) = delete;
   FirstRatingWins& operator= (FirstRatingWins&&) = delete;
 
- protected: ~FirstRatingWins() = default;
+ protected:
+  ~FirstRatingWins() = default;
 };
 
 class RandomRatingWins {
@@ -65,6 +67,7 @@ class RandomRatingWins {
   RandomRatingWins(RandomRatingWins&&) = delete;
   RandomRatingWins& operator= (RandomRatingWins&&) = delete;
 
- protected: ~RandomRatingWins() = default;
+ protected:
+  ~RandomRatingWins() = default;
 };
 }  // namespace kahypar

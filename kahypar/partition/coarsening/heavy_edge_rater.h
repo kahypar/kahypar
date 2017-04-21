@@ -24,19 +24,26 @@
 #include <stack>
 #include <vector>
 
+#include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/configuration.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-template <typename _RatingType, class _TieBreakingPolicy>
+template <typename _RatingType,
+          class _TieBreakingPolicy,
+          class _AcceptancePolicy = BestRatingWithRandomTieBreaking<_TieBreakingPolicy>,
+          class _NodeWeightPenalty = MultiplicativePenalty>
 class HeavyEdgeRater {
  private:
   static constexpr bool debug = false;
-  using TieBreakingPolicy = _TieBreakingPolicy;
+  using AcceptancePolicy = _AcceptancePolicy;
+  using NodeWeightPenalty = _NodeWeightPenalty;
 
   class HeavyEdgeRating {
  public:
@@ -71,7 +78,8 @@ class HeavyEdgeRater {
     _hg(hypergraph),
     _config(config),
     _tmp_ratings(_hg.initialNumNodes()),
-    _comm() {
+    _comm(),
+    _already_matched(_hg.initialNumNodes()) {
     if (_config.preprocessing.enable_louvain_community_detection) {
       _comm = detectCommunities(_hg, _config);
     } else {
@@ -95,8 +103,7 @@ class HeavyEdgeRater {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
       for (const HypernodeID& v : _hg.pins(he)) {
-        if (v != u && _comm[u] == _comm[v] &&
-            belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
+        if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
             (part_u == _hg.partID(v))) {
           _tmp_ratings[v] += score;
         }
@@ -107,14 +114,18 @@ class HeavyEdgeRater {
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp = it->value /
-                             (weight_u * _hg.nodeWeight(tmp_target));
-      DBG << "r(" << u << "," << tmp_target << ")=" << tmp;
-      if (acceptRating(tmp, max_rating)) {
-        max_rating = tmp;
+      const RatingType tmp_rating = it->value /
+                                    NodeWeightPenalty::penalty(weight_u,
+                                                               _hg.nodeWeight(tmp_target));
+      DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
+      if (_comm[u] == _comm[tmp_target] &&
+          AcceptancePolicy::acceptRating(tmp_rating, max_rating,
+                                         target, tmp_target, _already_matched)) {
+        max_rating = tmp_rating;
         target = tmp_target;
       }
     }
+
     _tmp_ratings.clear();
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
@@ -122,6 +133,7 @@ class HeavyEdgeRater {
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
+      ASSERT(_comm[u] == _comm[ret.target]);
     }
     ASSERT([&]() {
         bool flag = true;
@@ -135,6 +147,14 @@ class HeavyEdgeRater {
     return ret;
   }
 
+  void markAsMatched(const HypernodeID hn) {
+    _already_matched.set(hn, true);
+  }
+
+  void resetMatches() {
+    _already_matched.reset();
+  }
+
   HypernodeWeight thresholdNodeWeight() const {
     return _config.coarsening.max_allowed_node_weight;
   }
@@ -145,13 +165,10 @@ class HeavyEdgeRater {
     return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
   }
 
-  bool acceptRating(const RatingType tmp, const RatingType max_rating) const {
-    return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
-  }
-
   Hypergraph& _hg;
   const Configuration& _config;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   std::vector<ClusterID> _comm;
+  ds::FastResetFlagArray<> _already_matched;
 };
 }  // namespace kahypar
