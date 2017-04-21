@@ -39,7 +39,7 @@ Requirements:
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
  - A 64-bit operating system. Linux, Mac OS X and Windows are currently supported.
- - A modern, C++11 ready compiler such as `g++` version 4.9 or higher or `clang` version 3.2 or higher.
+ - A modern, ![C++14](https://img.shields.io/badge/C++-14-blue.svg?style=flat)-ready compiler such as `g++` version 5.2 or higher or `clang` version 3.2 or higher.
  - The [cmake][cmake] build system.
  - The [Boost.Program_options][Boost.Program_options] library.
 
