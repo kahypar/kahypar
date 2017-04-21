@@ -31,8 +31,8 @@
 #include "kahypar/partition/initial_partitioning/random_initial_partitioner.h"
 #include "kahypar/partition/metrics.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 void initializeConfiguration(Configuration& config, PartitionID k,

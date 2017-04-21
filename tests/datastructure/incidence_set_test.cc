@@ -24,8 +24,8 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 
-using::testing::Test;
-using::testing::Eq;
+using ::testing::Test;
+using ::testing::Eq;
 
 namespace kahypar {
 namespace ds {
@@ -232,7 +232,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HyperedgeID> expected_0 = { 1, 2, 3 };
   size_t i = 0;
   LOG << "incidence structure for HN" << 0;
-  for (const auto& he : * hypernodes[0]) {
+  for (const auto& he : *hypernodes[0]) {
     LOG << he;
     ASSERT_THAT(he, Eq(expected_0[i++]));
   }
@@ -240,7 +240,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HyperedgeID> expected_4 = { 2, 3 };
   i = 0;
   LOG << "incidence structure for HN" << 4;
-  for (const auto& he : * hypernodes[4]) {
+  for (const auto& he : *hypernodes[4]) {
     LOG << he;
     ASSERT_THAT(he, Eq(expected_4[i++]));
   }
@@ -248,7 +248,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HypernodeID> expected_pins_1 = { 0, 1 };
   i = 0;
   LOG << "incidence structure for HE" << 1;
-  for (const auto& pin : * hyperedges[1]) {
+  for (const auto& pin : *hyperedges[1]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_1[i++]));
   }
@@ -256,7 +256,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HypernodeID> expected_pins_2 = { 0, 1, 3 };
   i = 0;
   LOG << "incidence structure for HE" << 2;
-  for (const auto& pin : * hyperedges[2]) {
+  for (const auto& pin : *hyperedges[2]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_2[i++]));
   }
@@ -264,7 +264,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HypernodeID> expected_pins_3 = { 3, 6, 0 };
   i = 0;
   LOG << "incidence structure for HE" << 3;
-  for (const auto& pin : * hyperedges[3]) {
+  for (const auto& pin : *hyperedges[3]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_3[i++]));
   }
@@ -274,7 +274,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
 ///////////////////////////////////////////////
   LOG << "simulating uncontraction";
   std::vector<HyperedgeID> to_remove;
-  for (const HyperedgeID& he : * hypernodes[0]) {
+  for (const HyperedgeID& he : *hypernodes[0]) {
     if (hypernodes[4]->contains(he)) {
       // ... then we have to do some kind of restore operation.
       if (hyperedges[he]->peek() == 4) {
@@ -295,21 +295,21 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   LOG << "incidence structure for HN" << 0;
   std::vector<HyperedgeID> expected_0_uncontracted = { 1, 2 };
   i = 0;
-  for (const auto& he : * hypernodes[0]) {
+  for (const auto& he : *hypernodes[0]) {
     LOG << he;
     ASSERT_THAT(he, Eq(expected_0_uncontracted[i++]));
   }
 
   i = 0;
   LOG << "incidence structure for HN" << 4;
-  for (const auto& he : * hypernodes[4]) {
+  for (const auto& he : *hypernodes[4]) {
     LOG << he;
     ASSERT_THAT(he, Eq(expected_4[i++]));
   }
 
   i = 0;
   LOG << "incidence structure for HE" << 1;
-  for (const auto& pin : * hyperedges[1]) {
+  for (const auto& pin : *hyperedges[1]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_1[i++]));
   }
@@ -317,7 +317,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HypernodeID> expected_pins_2_uncontracted = { 0, 1, 3, 4 };
   i = 0;
   LOG << "incidence structure for HE" << 2;
-  for (const auto& pin : * hyperedges[2]) {
+  for (const auto& pin : *hyperedges[2]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_2_uncontracted[i++]));
   }
@@ -325,7 +325,7 @@ TEST(IncidenceSets, SupportOperationsForCoarsening) {
   std::vector<HypernodeID> expected_pins_3_uncontracted = { 3, 6, 4 };
   i = 0;
   LOG << "incidence structure for HE" << 3;
-  for (const auto& pin : * hyperedges[3]) {
+  for (const auto& pin : *hyperedges[3]) {
     LOG << pin;
     ASSERT_THAT(pin, Eq(expected_pins_3_uncontracted[i++]));
   }

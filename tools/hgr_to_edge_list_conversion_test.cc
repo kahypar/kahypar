@@ -24,7 +24,7 @@
 #include "kahypar/macros.h"
 #include "tools/hgr_to_edgelist_conversion.h"
 
-using::testing::Test;
+using ::testing::Test;
 using namespace kahypar;
 
 class HypergraphToEdgeListConversion : public Test {

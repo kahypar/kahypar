@@ -28,8 +28,8 @@
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 
 namespace kahypar {

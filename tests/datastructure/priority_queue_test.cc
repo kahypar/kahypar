@@ -24,9 +24,9 @@
 #include "kahypar/datastructure/bucket_queue.h"
 #include "kahypar/definitions.h"
 
-using::testing::Eq;
-using::testing::DoubleEq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::DoubleEq;
+using ::testing::Test;
 
 namespace kahypar {
 namespace ds {
@@ -43,7 +43,7 @@ class APriorityQueue : public Test {
   T prio_queue;
 };
 
-typedef::testing::Types<BucketQueue, MaxHeapQueue> Implementations;
+typedef ::testing::Types<BucketQueue, MaxHeapQueue> Implementations;
 
 TYPED_TEST_CASE(APriorityQueue, Implementations);
 

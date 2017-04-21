@@ -27,7 +27,7 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-class KaHyParK : public::testing::Test {
+class KaHyParK : public ::testing::Test {
  public:
   KaHyParK() :
     config() {
@@ -57,7 +57,7 @@ class KaHyParK : public::testing::Test {
 };
 
 
-class KaHyParR : public::testing::Test {
+class KaHyParR : public ::testing::Test {
  public:
   KaHyParR() :
     config() {

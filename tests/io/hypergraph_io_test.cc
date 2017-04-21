@@ -23,8 +23,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "tests/io/hypergraph_io_test_fixtures.h"
 
-using::testing::Eq;
-using::testing::ContainerEq;
+using ::testing::Eq;
+using ::testing::ContainerEq;
 
 namespace kahypar {
 namespace io {

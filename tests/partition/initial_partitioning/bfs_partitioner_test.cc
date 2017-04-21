@@ -31,8 +31,8 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
 #include "kahypar/partition/metrics.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 using TestStartNodeSelectionPolicy = BFSStartNodeSelectionPolicy<false>;

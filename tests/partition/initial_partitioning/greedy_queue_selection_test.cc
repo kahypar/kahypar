@@ -30,8 +30,8 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"
 #include "kahypar/partition/initial_partitioning/policies/ip_greedy_queue_selection_policy.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 class AGreedyQueueSelectionTest : public Test {

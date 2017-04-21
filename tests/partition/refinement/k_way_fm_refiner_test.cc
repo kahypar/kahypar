@@ -24,8 +24,8 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
-using::testing::Test;
-using::testing::Eq;
+using ::testing::Test;
+using ::testing::Eq;
 
 namespace kahypar {
 using KWayFMRefinerSimpleStopping = KWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;

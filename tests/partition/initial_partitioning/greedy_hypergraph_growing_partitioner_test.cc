@@ -36,8 +36,8 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
 #include "kahypar/partition/metrics.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
@@ -117,7 +117,7 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
   Configuration config;
 };
 
-typedef::testing::Types<
+typedef ::testing::Types<
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,
                          FMGainComputationPolicy, GlobalQueueSelectionPolicy>,
     GreedyTemplateStruct<BFSStartNodeSelectionPolicy<>,

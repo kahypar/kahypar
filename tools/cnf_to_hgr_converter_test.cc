@@ -24,7 +24,7 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "tools/cnf_to_hgr_conversion.h"
 
-using::testing::Test;
+using ::testing::Test;
 
 using namespace kahypar;
 

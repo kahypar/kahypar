@@ -35,7 +35,7 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
-using::testing::Test;
+using ::testing::Test;
 
 namespace kahypar {
 namespace io {

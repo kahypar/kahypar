@@ -24,7 +24,7 @@
 
 #include "kahypar/definitions.h"
 
-using::testing::Test;
+using ::testing::Test;
 
 namespace kahypar {
 namespace ds {

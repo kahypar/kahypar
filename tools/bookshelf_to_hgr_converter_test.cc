@@ -24,7 +24,7 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "tools/bookshelf_to_hgr_converter.h"
 
-using::testing::Test;
+using ::testing::Test;
 
 using namespace kahypar;
 

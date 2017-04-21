@@ -22,7 +22,7 @@
 
 #include "kahypar/utils/math.h"
 
-using::testing::Eq;
+using ::testing::Eq;
 
 namespace kahypar {
 namespace math {

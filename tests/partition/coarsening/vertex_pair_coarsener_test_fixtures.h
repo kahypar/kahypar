@@ -31,19 +31,19 @@
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
-using::testing::AnyOf;
-using::testing::DoubleEq;
-using::testing::Eq;
-using::testing::Le;
-using::testing::Test;
+using ::testing::AnyOf;
+using ::testing::DoubleEq;
+using ::testing::Eq;
+using ::testing::Le;
+using ::testing::Test;
 
 namespace kahypar {
 template <class CoarsenerType>
 class ACoarsenerBase : public Test {
  public:
   explicit ACoarsenerBase(Hypergraph* graph =
-                            new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-                                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
+                            new Hypergraph (7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
+                                            HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
     config(),
     coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),

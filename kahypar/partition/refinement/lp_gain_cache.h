@@ -86,7 +86,7 @@ struct LPGain {
     return lhs;
   }
 
-  friend std::ostream& operator<< (std::ostream& str, const LPGain& lhs) {
+  friend std ::ostream& operator<< (std::ostream& str, const LPGain& lhs) {
     return str << V(lhs.cut) << V(lhs.km1);
   }
 };

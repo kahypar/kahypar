@@ -29,9 +29,9 @@
 #include "kahypar/partition/coarsening/hypergraph_pruner.h"
 #include "tests/datastructure/hypergraph_test_fixtures.h"
 
-using::testing::Eq;
-using::testing::ContainerEq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::ContainerEq;
+using ::testing::Test;
 
 namespace kahypar {
 namespace ds {

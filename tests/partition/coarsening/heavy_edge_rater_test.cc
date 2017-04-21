@@ -26,10 +26,10 @@
 #include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 
-using::testing::Test;
-using::testing::Eq;
-using::testing::DoubleEq;
-using::testing::AnyOf;
+using ::testing::Test;
+using ::testing::Eq;
+using ::testing::DoubleEq;
+using ::testing::AnyOf;
 
 namespace kahypar {
 using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;

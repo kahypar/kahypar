@@ -23,9 +23,9 @@
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 
-using::testing::Eq;
-using::testing::DoubleEq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::DoubleEq;
+using ::testing::Test;
 
 namespace kahypar {
 namespace ds {

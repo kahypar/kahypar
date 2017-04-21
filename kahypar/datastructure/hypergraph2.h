@@ -722,7 +722,7 @@ class GenericHypergraph2 {
   }
 
   // ! Returns a reference to the connectivity set of hyperedge he.
-  const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet &
+  const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet&
   connectivitySet(const HyperedgeID he) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
     return _connectivity_sets[he];
@@ -1757,10 +1757,10 @@ class GenericHypergraph2 {
   ConnectivitySets<PartitionID, HyperedgeID> _connectivity_sets;
 
   template <typename Hypergraph>
-  friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                    const typename Hypergraph::PartitionID part,
-                                                                                                                    const bool split_nets);
+  friend std ::pair<std::unique_ptr<Hypergraph>,
+                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                     const typename Hypergraph::PartitionID part,
+                                                                                                                     const bool split_nets);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -1771,8 +1771,8 @@ class GenericHypergraph2 {
                                                  const Hypergraph& actual);
 
   template <typename Hypergraph>
-  friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
+  friend std ::pair<std::unique_ptr<Hypergraph>,
+                    std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
 };
 
 template <typename Hypergraph>

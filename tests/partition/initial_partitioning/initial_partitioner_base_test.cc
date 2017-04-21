@@ -24,8 +24,8 @@
 
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 class InitialPartitionerBaseTest : public Test {

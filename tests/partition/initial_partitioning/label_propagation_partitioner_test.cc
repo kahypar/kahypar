@@ -33,8 +33,8 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
 #include "kahypar/partition/metrics.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 void initializeConfiguration(Hypergraph& hg, Configuration& config,
@@ -110,7 +110,7 @@ class AKWayLabelPropagationInitialPartitionerTest : public Test {
   Configuration config;
 };
 
-typedef::testing::Types<
+typedef ::testing::Types<
     LPTemplateStruct<BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy>
     // LPTemplateStruct<BFSStartNodeSelectionPolicy<>,
     //                  MaxPinGainComputationPolicy>

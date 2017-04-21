@@ -25,7 +25,7 @@
 #include "kahypar/meta/registrar.h"
 #include "kahypar/meta/static_multi_dispatch_factory.h"
 
-using::testing::Test;
+using ::testing::Test;
 
 namespace kahypar {
 namespace meta {

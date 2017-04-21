@@ -23,8 +23,8 @@
 #include "kahypar/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 
-using::testing::Eq;
-using::testing::Test;
+using ::testing::Eq;
+using ::testing::Test;
 
 namespace kahypar {
 namespace ds {

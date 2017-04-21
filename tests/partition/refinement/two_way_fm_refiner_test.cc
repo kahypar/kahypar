@@ -26,8 +26,8 @@
 #include "kahypar/partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
-using::testing::Test;
-using::testing::Eq;
+using ::testing::Test;
+using ::testing::Eq;
 
 namespace kahypar {
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
