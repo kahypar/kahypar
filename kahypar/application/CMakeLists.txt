@@ -14,10 +14,9 @@ if(!MSVC)
   add_executable(KaHyParDE kahypar_dist_evo.cc)
   target_link_libraries(KaHyParDE ${Boost_LIBRARIES})
   target_link_libraries(KaHyParDE ${MPI_LIBRARIES})
+  set_property(TARGET KaHyParDE PROPERTY CXX_STANDARD 14)
+  set_property(TARGET KaHyParDE PROPERTY CXX_STANDARD_REQUIRED ON)
 endif()
-
-set_property(TARGET KaHyParDE PROPERTY CXX_STANDARD 14)
-set_property(TARGET KaHyParDE PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if(ENABLE_PROFILE MATCHES ON) 
   target_link_libraries(KaHyPar ${PROFILE_FLAGS})
