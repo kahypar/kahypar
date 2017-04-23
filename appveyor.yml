@@ -15,7 +15,6 @@ before_build:
 - echo %path%
 - msiexec.exe /i "C:\projects\msmpisdk.msi" /quiet /qn /log "C:\projects\msmpisdk.log"
 - type C:\projects\msmpisdk.log
-- set MSMPI
         
 - cmd: >-
     echo Getting submodules
