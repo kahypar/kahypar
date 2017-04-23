@@ -170,7 +170,7 @@ class MurmurHash {
 };
 
 // based on: https://github.com/llvm-mirror/libcxx/blob/9dcbb46826fd4d29b1485f25e8986d36019a6dca/include/support/win32/support.h#L106-L182
-#if defined(_MSC_VER)
+#if !defined(__GNUC__) && !defined(__clang__)
 KAHYPAR__ALWAYS_INLINE int __builtin_ctzll(unsigned long long mask) {
   unsigned long where;
 // Search from LSB to MSB for first set bit.
