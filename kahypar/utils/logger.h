@@ -25,6 +25,8 @@
 #include <sstream>
 #include <string>
 
+#include "kahypar/meta/pack_expand.h"
+
 namespace kahypar {
 class Logger {
  public:
@@ -37,8 +39,7 @@ class Logger {
     _newline(newline),
     _oss() {
     _oss << "[" << std::forward<Arg>(arg);
-    using expander = int[];
-    (void)expander { 0, (void(_oss << ":" << std::forward<Args>(args)), 0) ... };
+    meta::expandPack((_oss << ":" << std::forward<Args>(args)) ...);
     _oss << "]: ";
   }
 
