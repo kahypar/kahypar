@@ -45,6 +45,10 @@ matrix:
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COMPILER_FLAGS=""
       os: osx
 
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update         ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install openmpi; fi
+
 before_script:
   # print out some version numbers
   - $CMAKE_CXX --version
