@@ -26,6 +26,9 @@ option(KAHYPAR_USE_MINIMAL_BOOST
 option(KAHYPAR_USE_GCOV
   "Compile and run tests with gcov for coverage analysis." OFF)
 
+option(KAHYPAR_DIST_EVO
+  "Use MPI for distributed evolutionary hypergraph partitioning" ON)
+
 if(KAHYPAR_USE_GCOV)
   # find programs
   find_program(GENHTML genhtml)
@@ -124,6 +127,16 @@ ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.in
 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
+
+# MPI for distributed evolutionary KaHyPar
+if(KAHYPAR_DIST_EVO)
+  find_package(MPI REQUIRED)
+
+  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+
+  message(STATUS "MPI Include: ${MPI_INCLUDE_PATH}")
+  message(STATUS "MPI Libraries: ${MPI_LIBRARIES}")
+endif(KAHYPAR_DIST_EVO)
 
 find_package(Git)
 
