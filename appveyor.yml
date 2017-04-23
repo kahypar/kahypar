@@ -35,7 +35,7 @@ before_build:
     cd build
 
 
-    cmake -G "Visual Studio 14 Win64" -DBoost_USE_STATIC_LIBS="ON" -DBoost_USE_STATIC_RUNTIME="ON" ..
+    cmake -G "Visual Studio 14 Win64" -DKAHYPAR_DIST_EVO="OFF" -DBoost_USE_STATIC_LIBS="ON" -DBoost_USE_STATIC_RUNTIME="ON" ..
 build:
   project: C:\projects\kahypar-vr7q9\build\KaHyPar.sln
   parallel: true
