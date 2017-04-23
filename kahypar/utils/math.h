@@ -169,8 +169,47 @@ class MurmurHash {
   uint32_t _seed;
 };
 
-static inline uint8_t digits(const uint64_t x) {
-  return x > 9 ? std::floor(std::log10(std::llabs(x))) + 1 : 1;
+// based on: https://github.com/llvm-mirror/libcxx/blob/9dcbb46826fd4d29b1485f25e8986d36019a6dca/include/support/win32/support.h#L106-L182
+#if defined(_MSC_VER)
+KAHYPAR__ALWAYS_INLINE int __builtin_ctzll(unsigned long long mask) {
+  unsigned long where;
+// Search from LSB to MSB for first set bit.
+// Returns zero if no set bit is found.
+  if (_BitScanForward64(&where, mask)) {
+    return static_cast<int>(where);
+  }
+  return 64;
+}
+#endif
+
+
+// see: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
+static const uint64_t powers_of_10[] = {
+  0,
+  10,
+  100,
+  1000,
+  10000,
+  100000,
+  1000000,
+  10000000,
+  100000000,
+  1000000000,
+  10000000000,
+  100000000000,
+  1000000000000,
+  10000000000000,
+  100000000000000,
+  1000000000000000,
+  10000000000000000,
+  100000000000000000,
+  1000000000000000000,
+  10000000000000000000U
+};
+
+static inline uint64_t digits(const uint64_t x) {
+  uint64_t t = (64 - __builtin_clzll(x | 1)) * 1233 >> 12;
+  return t - (x < powers_of_10[t]) + 1;
 }
 }  // namespace math
 }  // namespace kahypar
