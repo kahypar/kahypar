@@ -13,7 +13,8 @@ before_build:
 - C:\projects\MSMpiSetup.exe -unattend -minimal
 - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 - echo %path%
-- msiexec.exe /quiet /qn /i C:\projects\msmpisdk.msi
+- msiexec.exe /i "C:\projects\msmpisdk.msi" /quiet /qn /log "C:\projects\msmpisdk.log"
+- type C:\projects\msmpisdk.log
 - set MSMPI
         
 - cmd: >-
