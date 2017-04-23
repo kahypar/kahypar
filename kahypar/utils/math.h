@@ -207,9 +207,9 @@ static const uint64_t powers_of_10[] = {
   10000000000000000000U
 };
 
-static inline uint64_t digits(const uint64_t x) {
+static inline uint8_t digits(const uint64_t x) {
   uint64_t t = (64 - __builtin_clzll(x | 1)) * 1233 >> 12;
-  return t - (x < powers_of_10[t]) + 1;
+  return static_cast<uint8_t>(t - (x < powers_of_10[t]) + 1);
 }
 }  // namespace math
 }  // namespace kahypar
