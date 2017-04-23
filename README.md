@@ -20,6 +20,8 @@ net. By summing the (λ − 1)-values of all nets, one accurately models the tot
 volume of parallel sparse matrix-vector multiplication and once more gets a metric that reverts
 to edge-cut for plain graphs.
 
+<img src="https://cloud.githubusercontent.com/assets/484403/25314222/3a3bdbda-2840-11e7-9961-3bbc59b59177.png" alt="alt text" width="50%" height="50%"><img src="https://cloud.githubusercontent.com/assets/484403/25314225/3e061e42-2840-11e7-860c-028a345d1641.png" alt="alt text" width="50%" height="50%">
+
 What is KaHyPar?
 -----------
 KaHyPar is a multilevel hypergraph partitioning framework for optimizing the cut- and the
@@ -100,8 +102,9 @@ KaHyPar is free software provided under the GNU General Public License (GPLv3).
 For more information see the [COPYING file][CF].
 
 We distribute this framework freely to foster the use and development of hypergraph partitioning tools. 
-If you use KaHyPar-R in an academic setting please cite the following paper:
+If you use KaHyPar in an academic setting please cite the appropriate paper:
     
+    // KaHyPar-R
     @inproceedings{shhmss2016alenex,
      author    = {Sebastian Schlag and
                   Vitali Henne and
@@ -115,11 +118,8 @@ If you use KaHyPar-R in an academic setting please cite the following paper:
      pages     = {53--67},
      year      = {2016},
     }
-
-A preliminary version is available [here on arxiv][ALENEX16PAPER].
-
-If you use KaHyPar-K in an academic setting please cite the following paper:
-
+    
+    // KaHyPar-K
     @inproceedings{ahss2017alenex,
      author    = {Yaroslav Akhremtsev and
                   Tobias Heuer and
@@ -130,6 +130,18 @@ If you use KaHyPar-K in an academic setting please cite the following paper:
      pages     = {28--42},
      year      = {2017},
     }
+    
+    // KaHyPar-CA
+    @inproceedings{hs2017sea,
+     author    = {Tobias Heuer and
+                  Sebastian Schlag},
+     title     = {Improving Coarsening Schemes for Hypergraph Partitioning by Exploiting Community Structure},
+     booktitle = {16th International Symposium on Experimental Algorithms, (SEA 2017)},
+     pages     = {50:1--50:19},
+     year      = {2017},
+    }
+
+A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
 
 Contributing:
 ------------
