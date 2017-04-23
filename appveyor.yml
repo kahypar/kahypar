@@ -7,10 +7,14 @@ before_build:
 - ps: (new-object net.webclient).DownloadFile(
         "https://download.microsoft.com/download/D/7/B/D7BBA00F-71B7-436B-80BC-4D22F2EE9862/MSMpiSetup.exe",
         "C:\projects\MSMpiSetup.exe")
+- ps: (new-object net.webclient).DownloadFile(
+        "https://download.microsoft.com/download/D/7/B/D7BBA00F-71B7-436B-80BC-4D22F2EE9862/msmpisdk.msi",
+        "C:\projects\msmpisdk.msi")
 - C:\projects\MSMpiSetup.exe -unattend -minimal
 - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 - echo %path%
-- SetEnvMPI.cmd
+- msiexec.exe /quiet /qn /i C:\projects\msmpisdk.msi
+- set MSMPI
         
 - cmd: >-
     echo Getting submodules
