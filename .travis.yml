@@ -24,6 +24,7 @@ matrix:
             - g++-6
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
+            - libopenmpi-dev
         sonarqube:
           organization: "sebastianschlag-github"
 
