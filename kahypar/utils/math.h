@@ -169,14 +169,14 @@ class MurmurHash {
   uint32_t _seed;
 };
 
-// based on: https://github.com/llvm-mirror/libcxx/blob/9dcbb46826fd4d29b1485f25e8986d36019a6dca/include/support/win32/support.h#L106-L182
+// based on: https://github.com/llvm-mirror/libcxx/blob/9dcbb46826fd4d29b1485f25e8986d36019a6dca/include/support/win32/support.h#L149-L167
 #if !defined(__GNUC__) && !defined(__clang__)
-KAHYPAR__ALWAYS_INLINE int __builtin_ctzll(unsigned long long mask) {
+static inline int __builtin_clzll(unsigned long long mask) {
   unsigned long where;
-// Search from LSB to MSB for first set bit.
-// Returns zero if no set bit is found.
-  if (_BitScanForward64(&where, mask)) {
-    return static_cast<int>(where);
+  // BitScanReverse scans from MSB to LSB for first set bit.
+  // Returns 0 if no set bit is found.
+  if (_BitScanReverse64(&where, mask)) {
+    return static_cast<int>(63 - where);
   }
   return 64;
 }
