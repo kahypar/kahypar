@@ -10,7 +10,7 @@ before_build:
 - C:\projects\MSMpiSetup.exe -unattend -minimal
 - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 - echo %path%
-- dir C:\Program Files\Microsoft MPI\Bin
+- dir C:\Program Files\
         
 - cmd: >-
     echo Getting submodules
