@@ -10,7 +10,7 @@ before_build:
 - C:\projects\MSMpiSetup.exe -unattend -minimal
 - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 - echo %path%
-- cd C:\Program Files\Microsoft MPI\Bin
+- cd C:\Program Files\Microsoft MPI\
 - dir
         
 - cmd: >-
