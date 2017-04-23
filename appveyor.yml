@@ -4,6 +4,12 @@ environment:
   BOOST_ROOT: C:\Libraries\boost_1_59_0
   BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib64-msvc-14.0
 before_build:
+- ps: (new-object net.webclient).DownloadFile(
+        "https://download.microsoft.com/download/D/7/B/D7BBA00F-71B7-436B-80BC-4D22F2EE9862/MSMpiSetup.exe",
+        "C:\projects\MSMpiSetup.exe")
+- C:\projects\MSMpiSetup.exe -unattend -minimal
+- set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
+        
 - cmd: >-
     echo Getting submodules
 
