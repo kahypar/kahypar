@@ -45,6 +45,7 @@ add_gmock_test(bookshelf_to_hgr_converter_test bookshelf_to_hgr_converter_test.c
 add_gmock_test(mtx_to_hgr_converter_test mtx_to_hgr_converter_test.cc mtx_to_hgr_conversion.cc)
 add_gmock_test(cnf_to_hgr_converter_test cnf_to_hgr_converter_test.cc)
 add_gmock_test(hgr_to_edge_list_conversion_test hgr_to_edge_list_conversion_test.cc)
+add_gmock_test(repeats_to_hgr_conversion_test repeats_to_hgr_conversion_test.cc)
 
 
 #set_source_files_properties(hmetis_lib_test.cc PROPERTIES COMPILE_FLAGS -m32)
