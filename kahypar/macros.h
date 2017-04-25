@@ -121,9 +121,9 @@ debug output will disappear.
 // ! Line-based versions that do not print a newline on destruction.
 #define LLOG0 LOGCC(false, false)
 #define LLOG LOGCC(true, false)
-#define LDBG  DBGCC(debug, true, false)
-#define LDBG0 DBGCC(false, true, false)
-#define LDBG1 DBGCC(true, true, false)
+#define LDBG  DBGCC(debug, false)
+#define LDBG0 DBGCC(false, false)
+#define LDBG1 DBGCC(true, false)
 
 // ! Allow DBG to take an additional condition
 #define DBGC(condition) DBGCC(debug && (condition), true)
