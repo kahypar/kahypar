@@ -32,7 +32,7 @@
 
 namespace kahypar {
 namespace phylo {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 using Hyperedges = std::vector<std::vector<HypernodeID> >;
 
@@ -58,7 +58,6 @@ static inline void convertToHypergraph(std::ifstream& repeats,
     for (HypernodeID i = 1; i <= num_nodes; ++i) {
       line_stream >> identifier;
       DBG << identifier;
-      ALWAYS_ASSERT(identifier != 0, V(identifier));
       max_identifier = std::max(identifier, max_identifier);
       tree_node_induced_hes.emplace(identifier, i);
     }
