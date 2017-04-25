@@ -18,7 +18,6 @@
  *
  ******************************************************************************/
 
-#include <cctype>
 #include <chrono>
 #include <iostream>
 #include <memory>

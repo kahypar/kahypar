@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #endif
 
+#include <cctype>
 #include <limits>
 #include <string>
 
