@@ -250,5 +250,17 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
     LOG << "# HEs with λ=" << i << ": " << connectivity_stats[i];
   }
 }
+
+static inline void printBanner() {
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+  LOG << R"(+                    _  __     _   _       ____                               +)";
+  LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
+  LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
+  LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
+  LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
+  LOG << R"(+                                    |___/                                    +)";
+  LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+}
 }  // namespace io
 }  // namespace kahypar
