@@ -276,6 +276,8 @@ struct PartitioningParameters {
 
   bool verbose_output = false;
   bool collect_stats = false;
+  bool quiet_mode = false;
+  bool sp_process_output = false;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };

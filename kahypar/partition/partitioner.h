@@ -499,7 +499,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Configuration& config
 
 inline void Partitioner::partitionInternal(Hypergraph& hypergraph, Configuration& config) {
   setupConfig(hypergraph, config);
-  if (config.type == ConfigType::main) {
+  if (config.type == ConfigType::main && !config.partition.quiet_mode) {
     LOG << config;
     if (config.partition.verbose_output) {
       LOG << "\n********************************************************************************";

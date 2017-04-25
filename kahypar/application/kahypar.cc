@@ -176,6 +176,18 @@ void sanityCheck(Configuration& config) {
   }
 }
 
+void printBanner() {
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+  LOG << R"(+                    _  __     _   _       ____                               +)";
+  LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
+  LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
+  LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
+  LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
+  LOG << R"(+                                    |___/                                    +)";
+  LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
+  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+}
+
 
 void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   const int num_columns = getTerminalWidth();
@@ -186,7 +198,12 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("verbose,v", po::value<bool>(&config.partition.verbose_output)->value_name("<bool>"),
     "Verbose main partitioning output")
     ("vip", po::value<bool>(&config.initial_partitioning.verbose_output)->value_name("<bool>"),
-    "Verbose initial partitioning output");
+    "Verbose initial partitioning output")
+    ("quiet,q", po::value<bool>(&config.partition.quiet_mode)->value_name("<bool>"),
+    "Quiet Mode: Completely suppress console output")
+    ("sp-process,s", po::value<bool>(&config.partition.sp_process_output)->value_name("<bool>"),
+    "Summarize partitioning results in RESULT line compatible with sqlplottools "
+    "(https://github.com/bingmann/sqlplottools)");
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
@@ -502,8 +519,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   // placing vm.count("help") here prevents required attributes raising an
   // error if only help was supplied
-  if (cmd_vm.count("help") != 0) {
-    std::cout << cmd_line_options << "n";
+  if (cmd_vm.count("help") != 0 || argc == 1) {
+    printBanner();
+    LOG << cmd_line_options;
     exit(0);
   }
 
@@ -542,21 +560,14 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
-  LOG << R"(+                    _  __     _   _       ____                               +)";
-  LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
-  LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
-  LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
-  LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
-  LOG << R"(+                                    |___/                                    +)";
-  LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
-  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
-
-
   Configuration config;
 
   processCommandLineInput(config, argc, argv);
   sanityCheck(config);
+
+  if (!config.partition.quiet_mode) {
+    printBanner();
+  }
 
   if (config.partition.global_search_iterations != 0) {
     std::cerr << "Coarsened does not check if HNs are in same part." << std::endl;
@@ -583,11 +594,15 @@ int main(int argc, char* argv[]) {
   kahypar::io::printPartitioningStatistics();
 #endif
 
-  kahypar::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
+  if (!config.partition.quiet_mode) {
+    kahypar::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
+    LOG << "";
+  }
   kahypar::io::writePartitionFile(hypergraph,
                                   config.partition.graph_partition_filename);
 
-  LOG << "";
-  kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
+  if (config.partition.sp_process_output) {
+    kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
+  }
   return 0;
 }
