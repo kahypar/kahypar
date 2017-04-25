@@ -21,6 +21,7 @@
 #pragma once
 
 #include <array>
+#include <cctype>
 #include <cstdint>
 #include <iomanip>
 #include <limits>
