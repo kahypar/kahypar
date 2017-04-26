@@ -34,6 +34,8 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
 
+static constexpr bool debug = false;
+
 namespace kahypar {
 template <class QualityMeasure = Mandatory,
           bool RandomizeNodes = true>
@@ -74,15 +76,15 @@ class Louvain {
     int cur_idx = 0;
 
     do {
-      LOG << "Graph Number Nodes:" << _graph_hierarchy[cur_idx].numNodes();
-      LOG << "Graph Number Edges:" << _graph_hierarchy[cur_idx].numEdges();
+      DBG << "Graph Number Nodes:" << _graph_hierarchy[cur_idx].numNodes();
+      DBG << "Graph Number Edges:" << _graph_hierarchy[cur_idx].numEdges();
       QualityMeasure quality(_graph_hierarchy[cur_idx]);
       if (iteration == 0) {
         cur_quality = quality.quality();
       }
 
       ++iteration;
-      LOG << "######## Starting Louvain-Pass #" << iteration << "########";
+      DBG << "######## Starting Louvain-Pass #" << iteration << "########";
 
       // Checks if quality of the coarse graph is equal with the quality of next level finer graph
       ASSERT([&]() {
@@ -100,26 +102,26 @@ class Louvain {
       cur_quality = louvain_pass(_graph_hierarchy[cur_idx], quality);
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
-      LOG << "Louvain-Pass #" << iteration << "Time:" << elapsed_seconds.count() << "s";
+      DBG << "Louvain-Pass #" << iteration << "Time:" << elapsed_seconds.count() << "s";
       improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement;
 
-      LOG << "Louvain-Pass #" << iteration << "improved quality from" << old_quality
+      DBG << "Louvain-Pass #" << iteration << "improved quality from" << old_quality
           << "to" << cur_quality;
 
       if (improvement) {
         cur_quality = quality.quality();
-        LOG << "Starting Contraction of communities...";
+        DBG << "Starting Contraction of communities...";
         start = std::chrono::high_resolution_clock::now();
         auto contraction = _graph_hierarchy[cur_idx++].contractClusters();
         end = std::chrono::high_resolution_clock::now();
         elapsed_seconds = end - start;
-        LOG << "Contraction Time:" << elapsed_seconds.count() << "s";
+        DBG << "Contraction Time:" << elapsed_seconds.count() << "s";
         _graph_hierarchy.push_back(std::move(contraction.first));
         mapping_stack.push_back(std::move(contraction.second));
-        LOG << "Current number of communities:" << _graph_hierarchy[cur_idx].numCommunities();
+        DBG << "Current number of communities:" << _graph_hierarchy[cur_idx].numCommunities();
       }
 
-      LOG << "";
+      DBG << "";
     } while (improvement && iteration < max_passes);
 
     ASSERT((mapping_stack.size() + 1) == _graph_hierarchy.size());
@@ -183,7 +185,8 @@ class Louvain {
     }
 
     do {
-      LOG << "######## Starting Louvain-Pass-Iteration #" << ++iterations << "########";
+      ++iterations;
+      DBG << "######## Starting Louvain-Pass-Iteration #" << iterations << "########";
       node_moves = 0;
       for (const NodeID& node : _random_node_order) {
         const ClusterID cur_cid = graph.clusterID(node);
@@ -238,7 +241,7 @@ class Louvain {
         }
       }
 
-      LOG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
+      DBG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
     } while (node_moves > 0 &&
              iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
 
@@ -259,7 +262,7 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   const EdgeWeight quality = louvain.run();
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  LOG << "Louvain-Time:" << elapsed_seconds.count() << "s";
+  DBG << "Louvain-Time:" << elapsed_seconds.count() << "s";
   Stats::instance().addToTotal(config, "louvainTime", elapsed_seconds.count());
   Stats::instance().addToTotal(config, "communities", louvain.numCommunities());
   Stats::instance().addToTotal(config, "modularity", quality);
