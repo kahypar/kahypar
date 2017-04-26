@@ -81,7 +81,16 @@ class HeavyEdgeRater {
     _comm(),
     _already_matched(_hg.initialNumNodes()) {
     if (_config.preprocessing.enable_louvain_community_detection) {
+      const bool verbose_output = (_config.type == ConfigType::main &&
+                                   _config.partition.verbose_output);
+      if (verbose_output) {
+        LOG << "Performing community detection:";
+      }
       _comm = detectCommunities(_hg, _config);
+      if (verbose_output) {
+        LOG << "  # communities = " << Stats::instance().get(_config, "Communities");
+        LOG << "  modularity    = " << Stats::instance().get(_config, "Modularity");
+      }
     } else {
       _comm.resize(_hg.initialNumNodes(), 0);
     }

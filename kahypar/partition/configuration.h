@@ -218,7 +218,9 @@ class InitialPartitioningParameters {
     pool_type(1975),
     lp_max_iteration(100),
     lp_assign_vertex_to_part(5),
-    refinement(true) {
+    refinement(true),
+    verbose_output(false),
+    collect_stats(false) {
     // Specifically tuned for IP
     coarsening.contraction_limit_multiplier = 150;
     coarsening.max_allowed_weight_multiplier = 2.5;
@@ -248,16 +250,17 @@ class InitialPartitioningParameters {
   PartitionID unassigned_part;
   // Is used to get a tighter balance constraint for initial partitioning.
   // Before initial partitioning epsilon is set to init_alpha*epsilon.
-  double init_alpha = 1.0;
+  double init_alpha;
   // If pool initial partitioner is used, the first 12 bits of this number decides
   // which algorithms are used.
-  unsigned int pool_type = 1975;
+  unsigned int pool_type;
   // Maximum iterations of the Label Propagation IP over all hypernodes
-  int lp_max_iteration = 100;
+  int lp_max_iteration;
   // Amount of hypernodes which are assigned around each start vertex (LP)
-  int lp_assign_vertex_to_part = 5;
-  bool refinement = true;
-  bool verbose_output = false;
+  int lp_assign_vertex_to_part;
+  bool refinement;
+  bool verbose_output;
+  bool collect_stats;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningParameters& params) {

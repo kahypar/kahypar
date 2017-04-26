@@ -87,7 +87,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     po::value<PartitionID>(&config.partition.k)->value_name("<int>")->required()->notifier(
       [&](const PartitionID) {
       config.partition.rb_lower_k = 0;
-      config.partition.rb_upper_k = config.partition.k - 1;
+      config.partition.rb_upper_k = 0;
     }),
     "Number of blocks")
     ("epsilon,e",
@@ -318,7 +318,11 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
       }
     }),
     "Max. # local search repetitions on each level \n"
-    "(default:1, no limit:-1)");
+    "(default:1, no limit:-1)")
+    ("i-stats",
+    po::value<bool>(&config.initial_partitioning.collect_stats)->value_name("<bool>"),
+    "# Collect statistics for initial partitioning \n"
+    "(default: false)");
 
   po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()
@@ -429,5 +433,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     + ".seed"
     + std::to_string(config.partition.seed)
     + ".KaHyPar";
+
+  if (config.partition.verbose_output || config.initial_partitioning.verbose_output) {
+    config.partition.collect_stats = true;
+  }
 }
 }  // namespace kahypar

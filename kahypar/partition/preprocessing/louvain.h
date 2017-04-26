@@ -263,9 +263,9 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
   DBG << "Louvain-Time:" << elapsed_seconds.count() << "s";
-  Stats::instance().addToTotal(config, "louvainTime", elapsed_seconds.count());
-  Stats::instance().addToTotal(config, "communities", louvain.numCommunities());
-  Stats::instance().addToTotal(config, "modularity", quality);
+  Stats::instance().addToTotal(config, "CommunityDetectionTime", elapsed_seconds.count());
+  Stats::instance().addToTotal(config, "Communities", louvain.numCommunities());
+  Stats::instance().addToTotal(config, "Modularity", quality);
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
   for (const HypernodeID& hn : hypergraph.nodes()) {

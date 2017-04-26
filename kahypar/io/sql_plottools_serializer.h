@@ -149,13 +149,24 @@ static inline void serialize(const Configuration& config, const Hypergraph& hype
       << " absorption=" << metrics::absorption(hypergraph)
       << " imbalance=" << metrics::imbalance(hypergraph, config)
       << " totalPartitionTime=" << elapsed_seconds.count()
-      << " initialParallelHEremovalTime=" << Stats::instance().get("InitialParallelHEremoval")
-      << " initialLargeHEremovalTime=" << Stats::instance().get("InitialLargeHEremoval")
-      << " coarseningTime=" << Stats::instance().get("Coarsening")
-      << " initialPartitionTime=" << Stats::instance().get("InitialPartitioning")
-      << " uncoarseningRefinementTime=" << Stats::instance().get("UncoarseningRefinement")
-      << " initialParallelHErestoreTime=" << Stats::instance().get("InitialParallelHErestore")
-      << " initialLargeHErestoreTime=" << Stats::instance().get("InitialLargeHErestore")
+      << " initialParallelHEremovalTime="
+      << Stats::instance().get(config, "InitialParallelHEremovalTime")
+      << " initialLargeHEremovalTime="
+      << Stats::instance().get(config, "InitialLargeHEremovalTime")
+      << " communityDetectionTime="
+      << Stats::instance().get(config, "CommunityDetectionTime")
+      << " coarseningTime="
+      << Stats::instance().get(config, "CoarseningTime")
+      << " minHashSparsifierTime="
+      << Stats::instance().get(config, "MinHashSparsifierTime")
+      << " initialPartitionTime="
+      << Stats::instance().get(config, "InitialPartitioningTime")
+      << " uncoarseningRefinementTime="
+      << Stats::instance().get(config, "UncoarseningRefinementTime")
+      << " initialParallelHErestoreTime="
+      << Stats::instance().get(config, "InitialParallelHErestoreTime")
+      << " initialLargeHErestoreTime="
+      << Stats::instance().get(config, "InitialLargeHErestoreTime")
       << Stats::instance().toString()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;

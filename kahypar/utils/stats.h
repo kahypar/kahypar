@@ -44,21 +44,15 @@ class Stats {
 
   void add(const Configuration& config, const std::string& key, double value) {
     if (config.partition.collect_stats) {
-      _stats["v" + std::to_string(config.partition.current_v_cycle)
-             + "_lk_" + std::to_string(config.partition.rb_lower_k)
-             + "_uk_" + std::to_string(config.partition.rb_upper_k)
-             + "_" + key] += value;
-    }
-  }
-
-  void addToTotal(bool collect_stats, const std::string& key, double value) {
-    if (collect_stats) {
-      _stats[key] += value;
+      _stats[internalKey(config, key)] += value;
     }
   }
 
   void addToTotal(const Configuration& config, const std::string& key, double value) {
-    addToTotal(config.partition.collect_stats, key, value);
+    if (config.partition.collect_stats) {
+      _stats[internalKey(config, key)] += value;
+      _stats[key] += value;
+    }
   }
 
   double get(const std::string& key) const {
@@ -67,6 +61,28 @@ class Stats {
       return it->second;
     }
     return 0;
+  }
+
+  // TODO(schlag): This is a rather hacky workaround.
+  // In recursive bisection mode, we want to sum the timings of all coarsening,
+  // IP, and local search phases to get the overall timings for each phase.
+  // However, for direct k-way partitioning, we want to differentiate between
+  // the time the main coarsening, IP, and local search phases took and the time
+  // for those phases during initial partitioning.
+  double get(const Configuration& config, const std::string& key) const {
+    double value = 0.0;
+    if (config.partition.mode == Mode::direct_kway) {
+      const auto& it = _stats.find(internalKey(config, key));
+      if (it != _stats.cend()) {
+        value = it->second;
+      }
+    } else {
+      const auto& it = _stats.find(key);
+      if (it != _stats.cend()) {
+        value = it->second;
+      }
+    }
+    return value;
   }
 
   std::string toString() const {
@@ -91,6 +107,13 @@ class Stats {
   }
 
  private:
+  std::string internalKey(const Configuration& config, const std::string& key) const {
+    return "v" + std::to_string(config.partition.current_v_cycle)
+           + "_lk_" + std::to_string(config.partition.rb_lower_k)
+           + "_uk_" + std::to_string(config.partition.rb_upper_k)
+           + "_" + key;
+  }
+
   Stats() :
     _stats() { }
   StatsMap _stats;

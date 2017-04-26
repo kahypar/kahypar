@@ -260,7 +260,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Configuration&
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.removeLargeHyperedges(hypergraph, config);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    Stats::instance().addToTotal(config, "InitialLargeHEremoval",
+    Stats::instance().addToTotal(config, "InitialLargeHEremovalTime",
                                  std::chrono::duration<double>(end - start).count());
   }
 }
@@ -273,7 +273,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   sparse_hypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, config);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "MinHashSparsifier",
+  Stats::instance().addToTotal(config, "MinHashSparsifierTime",
                                std::chrono::duration<double>(end - start).count());
 
   if (config.partition.verbose_output) {
@@ -287,7 +287,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Configuration
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.restoreLargeHyperedges(hypergraph);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    Stats::instance().addToTotal(config, "InitialLargeHErestore",
+    Stats::instance().addToTotal(config, "InitialLargeHErestoreTime",
                                  std::chrono::duration<double>(end - start).count());
   }
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
@@ -300,7 +300,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   _pin_sparsifier.applyPartition(sparse_hypergraph, hypergraph);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "MinHashSparsifier",
+  Stats::instance().addToTotal(config, "MinHashSparsifierPostprocessTime",
                                std::chrono::duration<double>(end - start).count());
   postprocess(hypergraph, config);
 }
@@ -371,18 +371,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Config
     hg.setNodePart(mapping[hn], part);
   }
 
-  switch (config.partition.objective) {
-    case Objective::cut:
-      Stats::instance().addToTotal(config, "initialCut", metrics::hyperedgeCut(hg));
-      break;
-    case Objective::km1:
-      Stats::instance().addToTotal(config, "initialKm1", metrics::km1(hg));
-      break;
-    default:
-      // do nothing
-      break;
-  }
-  Stats::instance().addToTotal(config, "initialImbalance", metrics::imbalance(hg, config));
+  // Stats of initial partitioning are added in doUncoarsen
 }
 
 inline Configuration Partitioner::createConfigurationForInitialPartitioning(const Hypergraph& hg,
@@ -398,7 +387,12 @@ inline Configuration Partitioner::createConfigurationForInitialPartitioning(cons
   }
 
   config.partition.epsilon = init_alpha * original_config.partition.epsilon;
-  config.partition.collect_stats = false;
+  if (config.initial_partitioning.verbose_output || config.initial_partitioning.collect_stats) {
+    config.partition.collect_stats = true;
+  } else {
+    config.partition.collect_stats = false;
+  }
+
   config.partition.global_search_iterations = 0;
 
   config.initial_partitioning.k = config.partition.k;
@@ -545,7 +539,7 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(config.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "Coarsening",
+  Stats::instance().addToTotal(config, "CoarseningTime",
                                std::chrono::duration<double>(end - start).count());
 
   gatherCoarseningStats(config, hypergraph);
@@ -562,7 +556,7 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, config);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "InitialPartitioning",
+  Stats::instance().addToTotal(config, "InitialPartitioningTime",
                                std::chrono::duration<double>(end - start).count());
 
   hypergraph.initializeNumCutHyperedges();
@@ -588,7 +582,7 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(config, "UncoarseningRefinement",
+  Stats::instance().addToTotal(config, "UncoarseningRefinementTime",
                                std::chrono::duration<double>(end - start).count());
   if (config.partition.verbose_output && config.type == ConfigType::main) {
     LOG << "Local Search Result:";
@@ -800,7 +794,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                    R"(========================================)";
           }
         }
-        break;
+                                             break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
@@ -812,7 +806,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                       delete_hypergraph),
                                         RBHypergraphState::unpartitioned, k1, k1 + km - 1);
         }
-        break;
+                                                            break;
       default:
         LOG << "Illegal recursive bisection state";
         break;
