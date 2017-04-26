@@ -218,10 +218,8 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
       << Stats::instance().get(config, "InitialLargeHEremovalTime") << "s";
   LOG << "  | min hash sparsifier          ="
       << Stats::instance().get(config, "MinHashSparsifierTime") << "s";
-  if (config.preprocessing.enable_louvain_community_detection) {
-    LOG << "  | community detection          ="
-        << Stats::instance().get(config, "CommunityDetectionTime") << "s";
-  }
+  LOG << "  | community detection          ="
+      << Stats::instance().get(config, "CommunityDetectionTime") << "s";
   LOG << "  | coarsening                   ="
       << Stats::instance().get(config, "CoarseningTime") << "s";
   LOG << "  | initial partitioning         ="
@@ -232,7 +230,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
       << Stats::instance().get(config, "InitialLargeHErestoreTime") << "s";
   LOG << "  | initial parallel HE restore  ="
       << Stats::instance().get(config, "InitialParallelHErestoreTime")
-      << " s [currently not implemented]";
+      << "s [currently not implemented]";
   if (config.partition.global_search_iterations > 0) {
     LOG << " | v-cycle coarsening              = "
         << Stats::instance().get(config, "VCycleCoarseningTime") << "s";
