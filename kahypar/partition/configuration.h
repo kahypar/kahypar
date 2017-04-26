@@ -134,9 +134,29 @@ inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& 
   str << "  Algorithm:                          " << toString(params.algorithm) << std::endl;
   str << "  max-allowed-weight-multiplier:      " << params.max_allowed_weight_multiplier << std::endl;
   str << "  contraction-limit-multiplier:       " << params.contraction_limit_multiplier << std::endl;
-  str << "  hypernode weight fraction:          " << params.hypernode_weight_fraction << std::endl;
-  str << "  max. allowed hypernode weight:      " << params.max_allowed_node_weight << std::endl;
-  str << "  contraction limit:                  " << params.contraction_limit << std::endl;
+  str << "  hypernode weight fraction:          ";
+  // For the coarsening algorithm of the initial partitioning phase
+  // these parameters are only known after main coarsening.
+  if (params.hypernode_weight_fraction == 0) {
+    str << "determined before IP";
+  } else {
+    str << params.hypernode_weight_fraction;
+  }
+  str << std::endl;
+  str << "  max. allowed hypernode weight:      ";
+  if (params.max_allowed_node_weight == 0) {
+    str << "determined before IP";
+  } else {
+    str << params.max_allowed_node_weight;
+  }
+  str << std::endl;
+  str << "  contraction limit:                  ";
+  if (params.contraction_limit == 0) {
+    str << "determined before IP";
+  } else {
+    str << params.contraction_limit;
+  }
+  str << std::endl;
   return str;
 }
 
