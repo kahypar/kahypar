@@ -76,7 +76,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
 }
 
 TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
-  doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, config);
+  doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, context);
 }
 
 // accesses private coarsener internals and therefore cannot be extracted easily
@@ -96,9 +96,9 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
   Hypergraph hypergraph(3, 1, HyperedgeIndexVector { 0,  /*sentinel*/ 2 },
                         HyperedgeVector { 0, 1 });
 
-  Configuration config;
-  config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
+  Context context;
+  context.coarsening.max_allowed_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
 
   coarsener.coarsen(1);
 
@@ -110,15 +110,15 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
 TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   HyperedgeIndexVector index_vector;
   HyperedgeVector edge_vector;
-  Configuration config;
-  config.coarsening.max_allowed_node_weight = 3;
-  kahypar::Randomize::instance().setSeed(config.partition.seed);
+  Context context;
+  context.coarsening.max_allowed_node_weight = 3;
+  kahypar::Randomize::instance().setSeed(context.partition.seed);
   std::string graph_file("../../../../special_instances/bad_for_ec.hgr");
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   io::readHypergraphFile(graph_file, num_hypernodes, num_hyperedges, index_vector, edge_vector);
   Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
-  CoarsenerType coarsener(hypergraph, config, 1);
+  CoarsenerType coarsener(hypergraph, context, 1);
   coarsener.coarsen(5);
   hypergraph.printGraphState();
   // nodes 5 and 6 correspond to nodes 'E' and 'F' in

@@ -105,7 +105,7 @@ class FMGainComputationPolicy {
 
   template <typename PQ>
   static inline void deltaGainUpdateForUnassignedFromPart(Hypergraph& hg,
-                                                          const Configuration& config,
+                                                          const Context& context,
                                                           PQ& pq,
                                                           const HypernodeID hn,
                                                           const PartitionID to) {
@@ -122,7 +122,7 @@ class FMGainComputationPolicy {
                 if (node == hn) {
                   continue;
                 }
-                for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+                for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
                   if (i != to && pq.contains(node, i)) {
                     pq.updateKeyBy(node, i, -he_weight);
                   }
@@ -136,7 +136,7 @@ class FMGainComputationPolicy {
                 if (node == hn) {
                   continue;
                 }
-                for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+                for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
                   if (pq.contains(node, i) && (i == to || hg.pinCountInPart(he, i) == 0)) {
                     pq.updateKeyBy(node, i, he_weight);
                   }
@@ -166,7 +166,7 @@ class FMGainComputationPolicy {
 
   template <typename PQ>
   static inline void deltaGainUpdateforAssignedPart(Hypergraph& hg,
-                                                    const Configuration& config,
+                                                    const Context& context,
                                                     PQ& pq,
                                                     const HypernodeID hn,
                                                     const PartitionID from,
@@ -185,7 +185,7 @@ class FMGainComputationPolicy {
           if (node == hn) {
             continue;
           }
-          for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+          for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
             if (i != to && pq.contains(node, i)) {
               pq.updateKeyBy(node, i, -he_weight);
             }
@@ -199,7 +199,7 @@ class FMGainComputationPolicy {
           if (node == hn) {
             continue;
           }
-          for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+          for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
             if (i != from && pq.contains(node, i)) {
               pq.updateKeyBy(node, i, he_weight);
             }
@@ -248,21 +248,21 @@ class FMGainComputationPolicy {
   }
 
   template <typename PQ>
-  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration& config,
+  static inline void deltaGainUpdate(Hypergraph& hg, const Context& context,
                                      PQ& pq, const HypernodeID hn,
                                      const PartitionID from, const PartitionID to,
                                      const ds::FastResetFlagArray<>& foo) {
     ONLYDEBUG(foo);
     if (from == -1) {
-      deltaGainUpdateForUnassignedFromPart(hg, config, pq, hn, to);
+      deltaGainUpdateForUnassignedFromPart(hg, context, pq, hn, to);
     } else {
-      deltaGainUpdateforAssignedPart(hg, config, pq, hn, from, to);
+      deltaGainUpdateforAssignedPart(hg, context, pq, hn, from, to);
     }
     ASSERT([&]() {
         for (const HyperedgeID& he : hg.incidentEdges(hn)) {
           for (const HypernodeID& node : hg.pins(he)) {
             if (node != hn) {
-              for (PartitionID i = 0; i < config.initial_partitioning.k; ++i) {
+              for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
                 if (pq.contains(node, i)) {
                   const Gain gain = calculateGain(hg, node, i, foo);
                   if (pq.key(node, i) != gain) {
@@ -311,7 +311,7 @@ class MaxPinGainComputationPolicy {
   }
 
   template <typename PQ>
-  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration&,
+  static inline void deltaGainUpdate(Hypergraph& hg, const Context&,
                                      PQ& pq,
                                      const HypernodeID hn,
                                      const PartitionID from,
@@ -365,7 +365,7 @@ class MaxNetGainComputationPolicy {
   }
 
   template <typename PQ>
-  static inline void deltaGainUpdate(Hypergraph& hg, const Configuration&,
+  static inline void deltaGainUpdate(Hypergraph& hg, const Context&,
                                      PQ& pq,
                                      const HypernodeID hn, const PartitionID from,
                                      const PartitionID to,

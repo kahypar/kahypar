@@ -27,7 +27,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
@@ -40,37 +40,37 @@ using ::testing::Eq;
 using ::testing::Test;
 
 namespace kahypar {
-void initializeConfiguration(Hypergraph& hg, Configuration& config,
-                             PartitionID k) {
-  config.initial_partitioning.k = k;
-  config.partition.k = k;
-  config.initial_partitioning.epsilon = 0.05;
-  config.partition.epsilon = 0.05;
-  config.initial_partitioning.unassigned_part = 1;
-  config.initial_partitioning.nruns = 1;
-  config.initial_partitioning.refinement = false;
-  config.initial_partitioning.upper_allowed_partition_weight.resize(
-    config.initial_partitioning.k);
-  config.initial_partitioning.perfect_balance_partition_weight.resize(
-    config.initial_partitioning.k);
-  for (int i = 0; i < config.initial_partitioning.k; i++) {
-    config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
+void initializeContext(Hypergraph& hg, Context& context,
+                       PartitionID k) {
+  context.initial_partitioning.k = k;
+  context.partition.k = k;
+  context.initial_partitioning.epsilon = 0.05;
+  context.partition.epsilon = 0.05;
+  context.initial_partitioning.unassigned_part = 1;
+  context.initial_partitioning.nruns = 1;
+  context.initial_partitioning.refinement = false;
+  context.initial_partitioning.upper_allowed_partition_weight.resize(
+    context.initial_partitioning.k);
+  context.initial_partitioning.perfect_balance_partition_weight.resize(
+    context.initial_partitioning.k);
+  for (int i = 0; i < context.initial_partitioning.k; i++) {
+    context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hg.totalWeight()
-      / static_cast<double>(config.initial_partitioning.k));
-    config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
+      / static_cast<double>(context.initial_partitioning.k));
+    context.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
       hg.totalWeight()
-      / static_cast<double>(config.initial_partitioning.k))
-                                                                    * (1.0 + config.partition.epsilon);
+      / static_cast<double>(context.initial_partitioning.k))
+                                                                     * (1.0 + context.partition.epsilon);
   }
-  config.partition.perfect_balance_part_weights[0] =
-    config.initial_partitioning.perfect_balance_partition_weight[0];
-  config.partition.perfect_balance_part_weights[1] =
-    config.initial_partitioning.perfect_balance_partition_weight[1];
-  config.partition.max_part_weights[0] =
-    config.initial_partitioning.upper_allowed_partition_weight[0];
-  config.partition.max_part_weights[1] =
-    config.initial_partitioning.upper_allowed_partition_weight[1];
-  Randomize::instance().setSeed(config.partition.seed);
+  context.partition.perfect_balance_part_weights[0] =
+    context.initial_partitioning.perfect_balance_partition_weight[0];
+  context.partition.perfect_balance_part_weights[1] =
+    context.initial_partitioning.perfect_balance_partition_weight[1];
+  context.partition.max_part_weights[0] =
+    context.initial_partitioning.upper_allowed_partition_weight[0];
+  context.partition.max_part_weights[1] =
+    context.initial_partitioning.upper_allowed_partition_weight[1];
+  Randomize::instance().setSeed(context.partition.seed);
 }
 
 template <typename StartNodeSelection, typename GainComputation,
@@ -87,7 +87,7 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
   AKWayGreedyHypergraphGrowingPartitionerTest() :
     ghg(nullptr),
     hypergraph(nullptr),
-    config() {
+    context() {
     std::string hypergraph_filename = "test_instances/test_instance.hgr";
     PartitionID k = 4;
     HypernodeID num_hypernodes;
@@ -104,17 +104,17 @@ class AKWayGreedyHypergraphGrowingPartitionerTest : public Test {
                                               &hypernode_weights);
 
 
-    initializeConfiguration(*hypergraph, config, k);
+    initializeContext(*hypergraph, context, k);
 
     ghg = std::make_shared<GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
                                                                      typename T::Type2, typename T::Type3> >
-            (*hypergraph, config);
+            (*hypergraph, context);
   }
 
   std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<typename T::Type1,
                                                             typename T::Type2, typename T::Type3> > ghg;
   std::shared_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
 };
 
 typedef ::testing::Types<
@@ -141,16 +141,16 @@ TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,
                 GreedyTestTemplates);
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasValidImbalance) {
-  this->ghg->partition(*(this->hypergraph), this->config);
-  ASSERT_LE(metrics::imbalance(*(this->hypergraph), this->config), this->config.partition.epsilon);
+  this->ghg->partition(*(this->hypergraph), this->context);
+  ASSERT_LE(metrics::imbalance(*(this->hypergraph), this->context), this->context.partition.epsilon);
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowPartitionWeights) {
-  this->ghg->partition(*(this->hypergraph), this->config);
+  this->ghg->partition(*(this->hypergraph), this->context);
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
-  for (PartitionID k = 0; k < this->config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < this->context.initial_partitioning.k; k++) {
     if (heaviest_part < this->hypergraph->partWeight(k)) {
       heaviest_part = this->hypergraph->partWeight(k);
     }
@@ -159,13 +159,13 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowParti
   // No partition weight should fall below under "lower_bound_factor"
   // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
-  for (PartitionID k = 0; k < this->config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < this->context.initial_partitioning.k; k++) {
     ASSERT_GE(this->hypergraph->partWeight(k), (lower_bound_factor / 100.0) * heaviest_part);
   }
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassigned) {
-  this->ghg->partition(*(this->hypergraph), this->config);
+  this->ghg->partition(*(this->hypergraph), this->context);
 
   for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
@@ -173,7 +173,7 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
-  this->config.initial_partitioning.nruns = 3;
-  this->ghg->partition(*(this->hypergraph), this->config);
+  this->context.initial_partitioning.nruns = 3;
+  this->ghg->partition(*(this->hypergraph), this->context);
 }
 }  // namespace kahypar

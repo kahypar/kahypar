@@ -32,7 +32,7 @@ namespace kahypar {
 template <bool UseRandomStartHypernode = true>
 class BFSStartNodeSelectionPolicy {
  public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Configuration& config,
+  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Context& context,
                                          const Hypergraph& hg, const PartitionID k) {
     HypernodeID start_hn = 0;
     if (UseRandomStartHypernode) {
@@ -58,7 +58,7 @@ class BFSStartNodeSelectionPolicy {
         visited_nodes++;
         for (const HyperedgeID& he : hg.incidentEdges(lastHypernode)) {
           if (!hyperedge_in_queue[he]) {
-            if (hg.edgeSize(he) <= config.partition.hyperedge_size_threshold) {
+            if (hg.edgeSize(he) <= context.partition.hyperedge_size_threshold) {
               for (const HypernodeID& pin : hg.pins(he)) {
                 if (!in_queue[pin]) {
                   bfs.push(pin);
@@ -87,7 +87,7 @@ class BFSStartNodeSelectionPolicy {
 
 class RandomStartNodeSelectionPolicy {
  public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Configuration&,
+  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Context&,
                                          const Hypergraph& hg, const PartitionID k) {
     if (k == 2) {
       startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));

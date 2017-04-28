@@ -44,14 +44,14 @@ class AGainComputationPolicy : public Test {
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
+    context(),
     visit(hypergraph.initialNumNodes()) {
     HypernodeWeight hypergraph_weight = 0;
     for (const HypernodeID& hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
     pq.initialize(hypergraph.initialNumNodes());
-    initializeConfiguration(hypergraph_weight);
+    initializeContext(hypergraph_weight);
   }
 
   template <class GainComputationPolicy>
@@ -76,24 +76,24 @@ class AGainComputationPolicy : public Test {
     }
   }
 
-  void initializeConfiguration(HypernodeWeight hypergraph_weight) {
-    config.initial_partitioning.k = 2;
-    config.partition.k = 2;
-    config.initial_partitioning.epsilon = 0.05;
-    config.partition.epsilon = 0.05;
-    config.initial_partitioning.upper_allowed_partition_weight.resize(2);
-    config.initial_partitioning.perfect_balance_partition_weight.resize(2);
-    for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-      config.initial_partitioning.perfect_balance_partition_weight[i] =
+  void initializeContext(HypernodeWeight hypergraph_weight) {
+    context.initial_partitioning.k = 2;
+    context.partition.k = 2;
+    context.initial_partitioning.epsilon = 0.05;
+    context.partition.epsilon = 0.05;
+    context.initial_partitioning.upper_allowed_partition_weight.resize(2);
+    context.initial_partitioning.perfect_balance_partition_weight.resize(2);
+    for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
+      context.initial_partitioning.perfect_balance_partition_weight[i] =
         ceil(
           hypergraph_weight
-          / static_cast<double>(config.initial_partitioning.k));
+          / static_cast<double>(context.initial_partitioning.k));
     }
   }
 
   KWayRefinementPQ pq;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
   ds::FastResetFlagArray<> visit;
 };
 
@@ -114,7 +114,7 @@ TEST_F(AGainComputationPolicy, PerformsCorrectFMDeltaGainUpdates) {
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
   ds::FastResetFlagArray<> visit(hypergraph.initialNumNodes());
-  FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1, 0,
+  FMGainComputationPolicy::deltaGainUpdate(hypergraph, context, pq, 3, 1, 0,
                                            visit);
   ASSERT_EQ(pq.key(0, 1), -1);
   ASSERT_EQ(pq.key(1, 1), 0);
@@ -138,7 +138,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
   hypergraph.setNodePart(0, 1);
   pq.remove(0, 1);
-  FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 0, -1, 1,
+  FMGainComputationPolicy::deltaGainUpdate(hypergraph, context, pq, 0, -1, 1,
                                            visit);
 
   // Test correct gain values after delta gain
@@ -151,7 +151,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectFMGainsAfterDeltaGainUpdateOnUnass
 
   hypergraph.setNodePart(4, 0);
   pq.remove(4, 0);
-  FMGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 4, -1, 0,
+  FMGainComputationPolicy::deltaGainUpdate(hypergraph, context, pq, 4, -1, 0,
                                            visit);
 
   // Test correct gain values after delta gain
@@ -184,7 +184,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxPinDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
+  MaxPinGainComputationPolicy::deltaGainUpdate(hypergraph, context, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);
   ASSERT_EQ(pq.key(1, 1), 1);
@@ -210,7 +210,7 @@ TEST_F(AGainComputationPolicy, ComputesCorrectMaxNetDeltaGains) {
   hypergraph.initializeNumCutHyperedges();
   hypergraph.changeNodePart(3, 1, 0);
   pq.remove(3, 0);
-  MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph, config, pq, 3, 1,
+  MaxNetGainComputationPolicy::deltaGainUpdate(hypergraph, context, pq, 3, 1,
                                                0, visit);
   ASSERT_EQ(pq.key(0, 1), 1);
   ASSERT_EQ(pq.key(1, 1), 1);

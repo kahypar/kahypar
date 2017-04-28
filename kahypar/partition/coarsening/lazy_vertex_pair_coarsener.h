@@ -43,10 +43,10 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  LazyVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  LazyVertexPairCoarsener(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
-    Base(hypergraph, config, weight_of_heaviest_node),
-    _rater(_hg, _config),
+    Base(hypergraph, context, weight_of_heaviest_node),
+    _rater(_hg, _context),
     _outdated_rating(hypergraph.initialNumNodes()),
     _target(_hg.initialNumNodes()) { }
 
@@ -132,14 +132,14 @@ class LazyVertexPairCoarsener final : public ICoarsener,
           << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.";
 #ifdef GATHER_STATS
-      Stats::instance().add(_config, "numHNsWithoutValidContractionPartner", 1);
+      Stats::instance().add(_context, "numHNsWithoutValidContractionPartner", 1);
 #endif
     }
   }
 
   using Base::_pq;
   using Base::_hg;
-  using Base::_config;
+  using Base::_context;
   using Base::_history;
   Rater _rater;
   ds::FastResetFlagArray<> _outdated_rating;

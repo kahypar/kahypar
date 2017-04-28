@@ -32,9 +32,9 @@ namespace kahypar {
 class RandomInitialPartitioner : public IInitialPartitioner,
                                  private InitialPartitionerBase {
  public:
-  RandomInitialPartitioner(Hypergraph& hypergraph, Configuration& config) :
-    InitialPartitionerBase(hypergraph, config),
-    _already_tried_to_assign_hn_to_part(config.initial_partitioning.k) { }
+  RandomInitialPartitioner(Hypergraph& hypergraph, Context& context) :
+    InitialPartitionerBase(hypergraph, context),
+    _already_tried_to_assign_hn_to_part(context.initial_partitioning.k) { }
 
   ~RandomInitialPartitioner() override = default;
 
@@ -46,8 +46,8 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
-    const PartitionID unassigned_part = _config.initial_partitioning.unassigned_part;
-    _config.initial_partitioning.unassigned_part = -1;
+    const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
+    _context.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
     for (const HypernodeID& hn : _hg.nodes()) {
       PartitionID p = -1;
@@ -61,21 +61,21 @@ class RandomInitialPartitioner : public IInitialPartitioner,
           // (partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
           // him to a part which violates the imbalance definition
           if (partition_sum
-              == (_config.initial_partitioning.k
-                  * (_config.initial_partitioning.k + 1))
+              == (_context.initial_partitioning.k
+                  * (_context.initial_partitioning.k + 1))
               / 2) {
             _hg.setNodePart(hn, p);
             break;
           }
         }
-        p = Randomize::instance().getRandomInt(0, _config.initial_partitioning.k - 1);
+        p = Randomize::instance().getRandomInt(0, _context.initial_partitioning.k - 1);
       } while (!assignHypernodeToPartition(hn, p));
 
       ASSERT(_hg.partID(hn) == p, "Hypernode" << hn << "should be in part" << p
                                               << ", but is actually in" << _hg.partID(hn) << ".");
     }
     _hg.initializeNumCutHyperedges();
-    _config.initial_partitioning.unassigned_part = unassigned_part;
+    _context.initial_partitioning.unassigned_part = unassigned_part;
 
     ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
@@ -90,7 +90,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
   }
 
   using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_config;
+  using InitialPartitionerBase::_context;
   ds::FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace kahypar

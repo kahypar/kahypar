@@ -35,35 +35,35 @@ class InitialPartitionerBaseTest : public Test {
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
+    context() {
     HypernodeWeight hypergraph_weight = 0;
     for (const HypernodeID& hn : hypergraph.nodes()) {
       hypergraph_weight += hypergraph.nodeWeight(hn);
     }
 
-    initializeConfiguration(hypergraph_weight);
-    partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, config);
-    partitioner->recalculateBalanceConstraints(config.initial_partitioning.epsilon);
+    initializeContext(hypergraph_weight);
+    partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, context);
+    partitioner->recalculateBalanceConstraints(context.initial_partitioning.epsilon);
   }
 
-  void initializeConfiguration(HypernodeWeight hypergraph_weight) {
-    config.initial_partitioning.k = 2;
-    config.partition.k = 2;
-    config.initial_partitioning.epsilon = 0.05;
-    config.partition.epsilon = 0.05;
-    config.initial_partitioning.upper_allowed_partition_weight.resize(2);
-    config.initial_partitioning.perfect_balance_partition_weight.resize(2);
-    for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-      config.initial_partitioning.perfect_balance_partition_weight[i] =
+  void initializeContext(HypernodeWeight hypergraph_weight) {
+    context.initial_partitioning.k = 2;
+    context.partition.k = 2;
+    context.initial_partitioning.epsilon = 0.05;
+    context.partition.epsilon = 0.05;
+    context.initial_partitioning.upper_allowed_partition_weight.resize(2);
+    context.initial_partitioning.perfect_balance_partition_weight.resize(2);
+    for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
+      context.initial_partitioning.perfect_balance_partition_weight[i] =
         ceil(
           hypergraph_weight
-          / static_cast<double>(config.initial_partitioning.k));
+          / static_cast<double>(context.initial_partitioning.k));
     }
   }
 
   std::shared_ptr<InitialPartitionerBase> partitioner;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
 };
 
 TEST_F(InitialPartitionerBaseTest, AssignHypernodesToPartition) {
@@ -101,7 +101,7 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToMinusOne) {
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 1);
 
-  config.initial_partitioning.unassigned_part = -1;
+  context.initial_partitioning.unassigned_part = -1;
   partitioner->resetPartitioning();
   for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_EQ(hypergraph.partID(hn), -1);
@@ -117,7 +117,7 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
   hypergraph.setNodePart(5, 1);
   hypergraph.setNodePart(6, 1);
 
-  config.initial_partitioning.unassigned_part = 0;
+  context.initial_partitioning.unassigned_part = 0;
   partitioner->resetPartitioning();
   for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_EQ(hypergraph.partID(hn), 0);

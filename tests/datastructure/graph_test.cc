@@ -38,15 +38,15 @@ class ABipartiteGraph : public Test {
  public:
   ABipartiteGraph() :
     graph(nullptr),
-    config(),
+    context(),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) {
-    config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
-    graph = std::make_shared<Graph>(hypergraph, config);
+    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    graph = std::make_shared<Graph>(hypergraph, context);
   }
 
   std::shared_ptr<Graph> graph;
-  Configuration config;
+  Context context;
   Hypergraph hypergraph;
 };
 

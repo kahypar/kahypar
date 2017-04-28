@@ -24,7 +24,7 @@
 #include <string>
 
 namespace kahypar {
-enum class ConfigType : bool {
+enum class ContextType : bool {
   main,
   initial_partitioning
 };

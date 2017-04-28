@@ -37,33 +37,33 @@ using ::testing::Test;
 namespace kahypar {
 using TestStartNodeSelectionPolicy = BFSStartNodeSelectionPolicy<false>;
 
-void initializeConfiguration(Configuration& config, PartitionID k,
-                             HypernodeWeight hypergraph_weight) {
-  config.initial_partitioning.k = k;
-  config.partition.k = k;
-  config.initial_partitioning.epsilon = 0.05;
-  config.partition.epsilon = 0.05;
-  config.initial_partitioning.unassigned_part = 1;
-  config.initial_partitioning.refinement = false;
-  config.initial_partitioning.upper_allowed_partition_weight.resize(
-    config.initial_partitioning.k);
-  config.initial_partitioning.perfect_balance_partition_weight.resize(
-    config.initial_partitioning.k);
-  for (int i = 0; i < config.initial_partitioning.k; i++) {
-    config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
+void initializeContext(Context& context, PartitionID k,
+                       HypernodeWeight hypergraph_weight) {
+  context.initial_partitioning.k = k;
+  context.partition.k = k;
+  context.initial_partitioning.epsilon = 0.05;
+  context.partition.epsilon = 0.05;
+  context.initial_partitioning.unassigned_part = 1;
+  context.initial_partitioning.refinement = false;
+  context.initial_partitioning.upper_allowed_partition_weight.resize(
+    context.initial_partitioning.k);
+  context.initial_partitioning.perfect_balance_partition_weight.resize(
+    context.initial_partitioning.k);
+  for (int i = 0; i < context.initial_partitioning.k; i++) {
+    context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k));
-    config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
+      / static_cast<double>(context.initial_partitioning.k));
+    context.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k))
-                                                                    * (1.0 + config.partition.epsilon);
+      / static_cast<double>(context.initial_partitioning.k))
+                                                                     * (1.0 + context.partition.epsilon);
   }
-  config.partition.perfect_balance_part_weights[0] =
-    config.initial_partitioning.perfect_balance_partition_weight[0];
-  config.partition.perfect_balance_part_weights[1] =
-    config.initial_partitioning.perfect_balance_partition_weight[1];
-  config.partition.max_part_weights[0] = config.initial_partitioning.upper_allowed_partition_weight[0];
-  config.partition.max_part_weights[1] = config.initial_partitioning.upper_allowed_partition_weight[1];
+  context.partition.perfect_balance_part_weights[0] =
+    context.initial_partitioning.perfect_balance_partition_weight[0];
+  context.partition.perfect_balance_part_weights[1] =
+    context.initial_partitioning.perfect_balance_partition_weight[1];
+  context.partition.max_part_weights[0] = context.initial_partitioning.upper_allowed_partition_weight[0];
+  context.partition.max_part_weights[1] = context.initial_partitioning.upper_allowed_partition_weight[1];
 }
 
 class ABFSBisectionInitialPartioner : public Test {
@@ -72,17 +72,17 @@ class ABFSBisectionInitialPartioner : public Test {
     partitioner(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
+    context() {
     PartitionID k = 2;
-    initializeConfiguration(config, k, 7);
+    initializeContext(context, k, 7);
 
     partitioner = std::make_shared<BFSInitialPartitioner<TestStartNodeSelectionPolicy> >(
-      hypergraph, config);
+      hypergraph, context);
   }
 
   std::shared_ptr<BFSInitialPartitioner<TestStartNodeSelectionPolicy> > partitioner;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
 };
 
 class AKWayBFSInitialPartitioner : public Test {
@@ -90,7 +90,7 @@ class AKWayBFSInitialPartitioner : public Test {
   AKWayBFSInitialPartitioner() :
     partitioner(nullptr),
     hypergraph(nullptr),
-    config() {
+    context() {
     std::string coarse_graph_filename =
       "test_instances/test_instance.hgr";
 
@@ -114,20 +114,20 @@ class AKWayBFSInitialPartitioner : public Test {
     for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
-    initializeConfiguration(config, k, hypergraph_weight);
+    initializeContext(context, k, hypergraph_weight);
 
     partitioner = std::make_shared<BFSInitialPartitioner<TestStartNodeSelectionPolicy> >(
-      *hypergraph, config);
+      *hypergraph, context);
   }
 
   std::shared_ptr<BFSInitialPartitioner<TestStartNodeSelectionPolicy> > partitioner;
   std::shared_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
 };
 
 
 TEST_F(ABFSBisectionInitialPartioner, ChecksCorrectBisectionCut) {
-  partitioner->partition(hypergraph, config);
+  partitioner->partition(hypergraph, context);
   std::vector<HypernodeID> partition_zero { 0, 1, 2, 3 };
   std::vector<HypernodeID> partition_one { 4, 5, 6 };
   for (unsigned int i = 0; i < partition_zero.size(); i++) {
@@ -140,7 +140,7 @@ TEST_F(ABFSBisectionInitialPartioner, ChecksCorrectBisectionCut) {
 
 
 TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(hypergraph, config);
+  partitioner->partition(hypergraph, context);
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_NE(hypergraph.partID(hn), -1);
@@ -153,7 +153,7 @@ TEST_F(ABFSBisectionInitialPartioner,
   partitioner->_hypernode_in_queue.set(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
-  config.initial_partitioning.unassigned_part = -1;
+  context.initial_partitioning.unassigned_part = -1;
   partitioner->pushIncidentHypernodesIntoQueue(q, 0);
   for (HypernodeID hn = 0; hn < 5; hn++) {
     ASSERT_TRUE(partitioner->_hypernode_in_queue[hn]);
@@ -168,7 +168,7 @@ TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingInc
   partitioner->_hypernode_in_queue.set(0, true);
   q.push(0);
   hypergraph.setNodePart(0, 0);
-  config.initial_partitioning.unassigned_part = -1;
+  context.initial_partitioning.unassigned_part = -1;
   partitioner->pushIncidentHypernodesIntoQueue(q, 0);
   std::vector<HypernodeID> expected_in_queue { 0, 2, 1, 3, 4 };
   for (unsigned int i = 0; i < expected_in_queue.size(); i++) {
@@ -181,17 +181,17 @@ TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingInc
 }
 
 TEST_F(AKWayBFSInitialPartitioner, HasValidImbalance) {
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
-  ASSERT_LE(metrics::imbalance(*hypergraph, config), config.partition.epsilon);
+  ASSERT_LE(metrics::imbalance(*hypergraph, context), context.partition.epsilon);
 }
 
 TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
-  for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < context.initial_partitioning.k; k++) {
     if (heaviest_part < hypergraph->partWeight(k)) {
       heaviest_part = hypergraph->partWeight(k);
     }
@@ -200,13 +200,13 @@ TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
   // No partition weight should fall below under "lower_bound_factor"
   // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
-  for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < context.initial_partitioning.k; k++) {
     ASSERT_GE(hypergraph->partWeight(k), (lower_bound_factor / 100.0) * heaviest_part);
   }
 }
 
 TEST_F(AKWayBFSInitialPartitioner, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
@@ -214,8 +214,8 @@ TEST_F(AKWayBFSInitialPartitioner, LeavesNoHypernodeUnassigned) {
 }
 
 TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
-  config.initial_partitioning.unassigned_part = -1;
-  partitioner->partition(*hypergraph, config);
+  context.initial_partitioning.unassigned_part = -1;
+  partitioner->partition(*hypergraph, context);
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);

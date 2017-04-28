@@ -35,34 +35,34 @@ using ::testing::Eq;
 using ::testing::Test;
 
 namespace kahypar {
-void initializeConfiguration(Configuration& config, PartitionID k,
-                             HypernodeWeight hypergraph_weight) {
-  config.initial_partitioning.k = k;
-  config.partition.k = k;
-  config.initial_partitioning.epsilon = 0.05;
-  config.partition.epsilon = 0.05;
-  config.initial_partitioning.refinement = false;
-  config.initial_partitioning.upper_allowed_partition_weight.resize(
-    config.initial_partitioning.k);
-  config.initial_partitioning.perfect_balance_partition_weight.resize(
-    config.initial_partitioning.k);
-  for (int i = 0; i < config.initial_partitioning.k; i++) {
-    config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
+void initializeContext(Context& context, PartitionID k,
+                       HypernodeWeight hypergraph_weight) {
+  context.initial_partitioning.k = k;
+  context.partition.k = k;
+  context.initial_partitioning.epsilon = 0.05;
+  context.partition.epsilon = 0.05;
+  context.initial_partitioning.refinement = false;
+  context.initial_partitioning.upper_allowed_partition_weight.resize(
+    context.initial_partitioning.k);
+  context.initial_partitioning.perfect_balance_partition_weight.resize(
+    context.initial_partitioning.k);
+  for (int i = 0; i < context.initial_partitioning.k; i++) {
+    context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k));
-    config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
+      / static_cast<double>(context.initial_partitioning.k));
+    context.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k))
-                                                                    * (1.0 + config.partition.epsilon);
+      / static_cast<double>(context.initial_partitioning.k))
+                                                                     * (1.0 + context.partition.epsilon);
   }
-  config.partition.perfect_balance_part_weights[0] =
-    config.initial_partitioning.perfect_balance_partition_weight[0];
-  config.partition.perfect_balance_part_weights[1] =
-    config.initial_partitioning.perfect_balance_partition_weight[1];
-  config.partition.max_part_weights[0] =
-    config.initial_partitioning.upper_allowed_partition_weight[0];
-  config.partition.max_part_weights[1] =
-    config.initial_partitioning.upper_allowed_partition_weight[1];
+  context.partition.perfect_balance_part_weights[0] =
+    context.initial_partitioning.perfect_balance_partition_weight[0];
+  context.partition.perfect_balance_part_weights[1] =
+    context.initial_partitioning.perfect_balance_partition_weight[1];
+  context.partition.max_part_weights[0] =
+    context.initial_partitioning.upper_allowed_partition_weight[0];
+  context.partition.max_part_weights[1] =
+    context.initial_partitioning.upper_allowed_partition_weight[1];
 }
 
 class ARandomBisectionInitialPartitionerTest : public Test {
@@ -70,7 +70,7 @@ class ARandomBisectionInitialPartitionerTest : public Test {
   ARandomBisectionInitialPartitionerTest() :
     partitioner(nullptr),
     hypergraph(nullptr),
-    config() {
+    context() {
     std::string coarse_graph_filename = "test_instances/test_instance.hgr";
 
     HypernodeID num_hypernodes;
@@ -92,14 +92,14 @@ class ARandomBisectionInitialPartitionerTest : public Test {
     for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
-    initializeConfiguration(config, k, hypergraph_weight);
+    initializeContext(context, k, hypergraph_weight);
 
-    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, config);
+    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, context);
   }
 
   std::shared_ptr<RandomInitialPartitioner> partitioner;
   std::shared_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
 };
 
 class AKWayRandomInitialPartitionerTest : public Test {
@@ -107,7 +107,7 @@ class AKWayRandomInitialPartitionerTest : public Test {
   AKWayRandomInitialPartitionerTest() :
     partitioner(nullptr),
     hypergraph(nullptr),
-    config() { }
+    context() { }
 
   void initializePartitioning(PartitionID k) {
     std::string coarse_graph_filename = "test_instances/test_instance.hgr";
@@ -130,25 +130,25 @@ class AKWayRandomInitialPartitionerTest : public Test {
     for (const HypernodeID& hn : hypergraph->nodes()) {
       hypergraph_weight += hypergraph->nodeWeight(hn);
     }
-    initializeConfiguration(config, k, hypergraph_weight);
+    initializeContext(context, k, hypergraph_weight);
 
-    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, config);
+    partitioner = std::make_shared<RandomInitialPartitioner>(*hypergraph, context);
   }
 
   std::shared_ptr<RandomInitialPartitioner> partitioner;
   std::shared_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
 };
 
 TEST_F(ARandomBisectionInitialPartitionerTest, HasValidImbalance) {
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
-  ASSERT_LE(metrics::imbalance(*hypergraph, config),
-            config.partition.epsilon);
+  ASSERT_LE(metrics::imbalance(*hypergraph, context),
+            context.partition.epsilon);
 }
 
 TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
@@ -158,20 +158,20 @@ TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
-  ASSERT_LE(metrics::imbalance(*hypergraph, config),
-            config.partition.epsilon);
+  ASSERT_LE(metrics::imbalance(*hypergraph, context),
+            context.partition.epsilon);
 }
 
 TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
-  for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < context.initial_partitioning.k; k++) {
     if (heaviest_part < hypergraph->partWeight(k)) {
       heaviest_part = hypergraph->partWeight(k);
     }
@@ -180,7 +180,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
   // No partition weight should fall below under "lower_bound_factor"
   // percent of the heaviest partition weight.
   double lower_bound_factor = 50.0;
-  for (PartitionID k = 0; k < config.initial_partitioning.k; k++) {
+  for (PartitionID k = 0; k < context.initial_partitioning.k; k++) {
     ASSERT_GE(hypergraph->partWeight(k),
               (lower_bound_factor / 100.0) * heaviest_part);
   }
@@ -189,7 +189,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, config);
+  partitioner->partition(*hypergraph, context);
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);

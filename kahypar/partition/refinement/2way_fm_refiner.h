@@ -36,7 +36,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/meta/template_parameter_to_string.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/2way_fm_gain_cache.h"
 #include "kahypar/partition/refinement/fm_refiner_base.h"
@@ -60,8 +60,8 @@ class TwoWayFMRefiner final : public IRefiner,
   using Base = FMRefinerBase<HypernodeID>;
 
  public:
-  TwoWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
-    FMRefinerBase(hypergraph, config),
+  TwoWayFMRefiner(Hypergraph& hypergraph, const Context& context) :
+    FMRefinerBase(hypergraph, context),
     _rebalance_pqs({ RebalancePQ(_hg.initialNumNodes()), RebalancePQ(_hg.initialNumNodes()) }),
     _he_fully_active(_hg.initialNumEdges()),
     _hns_in_activation_vector(_hg.initialNumNodes()),
@@ -70,7 +70,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache(_hg.initialNumNodes()),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy() {
-    ASSERT(config.partition.k == 2);
+    ASSERT(context.partition.k == 2);
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
   }
 
@@ -170,8 +170,8 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg, _config))),
-           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+             FloatingPoint<double>(metrics::imbalance(_hg, _context))),
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
     reset();
     _he_fully_active.reset();
@@ -202,7 +202,7 @@ class TwoWayFMRefiner final : public IRefiner,
       // because k!=2^x or we intend to further partition the hypergraph into unequal number of
       // blocks, then it might not be possible to activate all refinement nodes, because a
       // part could be overweight regarding Lmax.
-      ASSERT((_config.partition.max_part_weights[0] != _config.partition.max_part_weights[1]) ||
+      ASSERT((_context.partition.max_part_weights[0] != _context.partition.max_part_weights[1]) ||
              (!_hg.isBorderNode(hn) || _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
@@ -220,7 +220,7 @@ class TwoWayFMRefiner final : public IRefiner,
     const double beta = log(_hg.currentNumNodes());
     while (!_pq.empty() &&
            !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
-                                              _config, beta, best_metrics.cut, current_cut)) {
+                                              _context, beta, best_metrics.cut, current_cut)) {
       ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1));
 
       Gain max_gain = kInvalidGain;
@@ -271,7 +271,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
-      current_imbalance = metrics::imbalance(_hg, _config);
+      current_imbalance = metrics::imbalance(_hg, _context);
 
       current_cut -= max_gain;
       _stopping_policy.updateStatistics(max_gain);
@@ -292,8 +292,8 @@ class TwoWayFMRefiner final : public IRefiner,
       _performed_moves.push_back(max_gain_node);
 
       if (UseGlobalRebalancing()) {
-        const bool part_0_imbalanced = _hg.partWeight(0) > _config.partition.max_part_weights[0];
-        const bool part_1_imbalanced = _hg.partWeight(1) > _config.partition.max_part_weights[1];
+        const bool part_0_imbalanced = _hg.partWeight(0) > _context.partition.max_part_weights[0];
+        const bool part_1_imbalanced = _hg.partWeight(1) > _context.partition.max_part_weights[1];
         if (current_cut < best_metrics.cut && (part_0_imbalanced || part_1_imbalanced)) {
           performRebalancing(part_0_imbalanced, current_cut, current_imbalance,
                              max_allowed_part_weights);
@@ -303,9 +303,9 @@ class TwoWayFMRefiner final : public IRefiner,
       // right now, we do not allow a decrease in cut in favor of an increase in balance
       const bool improved_cut_within_balance = (current_cut < best_metrics.cut) &&
                                                (_hg.partWeight(0)
-                                                <= _config.partition.max_part_weights[0]) &&
+                                                <= _context.partition.max_part_weights[0]) &&
                                                (_hg.partWeight(1)
-                                                <= _config.partition.max_part_weights[1]);
+                                                <= _context.partition.max_part_weights[1]);
       const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
                                                    (current_cut <= best_metrics.cut);
       const bool move_is_feasible = (_hg.partSize(from_part) > 0) &&
@@ -328,7 +328,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     DBG << "KWayFM performed" << _performed_moves.size()
         << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
+        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _context, beta,
                                           best_metrics.cut, current_cut)
         == true ? "policy" : "empty queue");
 
@@ -352,18 +352,18 @@ class TwoWayFMRefiner final : public IRefiner,
 
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
     ASSERT(best_metrics.cut <= initial_cut, V(initial_cut) << V(best_metrics.cut));
-    ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _config),
-           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+    ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     // This currently cannot be guaranteed in case k!=2^x, because initial partitioner might create
     // a bipartition which is balanced regarding epsilon, but not regarding the targeted block
     // weights Lmax0, Lmax1.
-    // ASSERT(_hg.partWeight(0) <= _config.partition.max_part_weights[0], "Block 0 imbalanced");
-    // ASSERT(_hg.partWeight(1) <= _config.partition.max_part_weights[1], "Block 1 imbalanced");
+    // ASSERT(_hg.partWeight(0) <= _context.partition.max_part_weights[0], "Block 0 imbalanced");
+    // ASSERT(_hg.partWeight(1) <= _context.partition.max_part_weights[1], "Block 1 imbalanced");
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
-                                                 initial_imbalance, _config.partition.epsilon);
+                                                 initial_imbalance, _context.partition.epsilon);
   }
 
 
@@ -383,7 +383,7 @@ class TwoWayFMRefiner final : public IRefiner,
       const HypernodeID max_gain_node = _rebalance_pqs[rebalance_to_part].top();
 
       if (_hg.partWeight(rebalance_to_part) + _hg.nodeWeight(max_gain_node)
-          > _config.partition.max_part_weights[rebalance_to_part] ||
+          > _context.partition.max_part_weights[rebalance_to_part] ||
           rebalance_gain < 0) {
         break;
       }
@@ -419,7 +419,7 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
 
-      current_imbalance = metrics::imbalance(_hg, _config);
+      current_imbalance = metrics::imbalance(_hg, _context);
       imbalance_after_move = current_imbalance;
 
       updateNeighboursAfterRebalaceMove(max_gain_node, imbalanced_part, rebalance_to_part,
@@ -963,7 +963,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   using Base::_hg;
-  using Base::_config;
+  using Base::_context;
   using Base::_pq;
   using Base::_performed_moves;
   using Base::_hns_to_activate;

@@ -42,36 +42,36 @@ using ::testing::Eq;
 using ::testing::Test;
 
 namespace kahypar {
-void initializeConfiguration(Hypergraph& hg, Configuration& config,
-                             PartitionID k) {
-  config.initial_partitioning.k = k;
-  config.partition.k = k;
-  config.initial_partitioning.epsilon = 0.05;
-  config.partition.epsilon = 0.05;
-  config.initial_partitioning.unassigned_part = 1;
-  config.initial_partitioning.refinement = false;
-  config.initial_partitioning.upper_allowed_partition_weight.resize(
-    config.initial_partitioning.k);
-  config.initial_partitioning.perfect_balance_partition_weight.resize(
-    config.initial_partitioning.k);
-  for (int i = 0; i < config.initial_partitioning.k; i++) {
-    config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
+void initializeContext(Hypergraph& hg, Context& context,
+                       PartitionID k) {
+  context.initial_partitioning.k = k;
+  context.partition.k = k;
+  context.initial_partitioning.epsilon = 0.05;
+  context.partition.epsilon = 0.05;
+  context.initial_partitioning.unassigned_part = 1;
+  context.initial_partitioning.refinement = false;
+  context.initial_partitioning.upper_allowed_partition_weight.resize(
+    context.initial_partitioning.k);
+  context.initial_partitioning.perfect_balance_partition_weight.resize(
+    context.initial_partitioning.k);
+  for (int i = 0; i < context.initial_partitioning.k; i++) {
+    context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hg.totalWeight()
-      / static_cast<double>(config.initial_partitioning.k));
-    config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
+      / static_cast<double>(context.initial_partitioning.k));
+    context.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
       hg.totalWeight()
-      / static_cast<double>(config.initial_partitioning.k))
-                                                                    * (1.0 + config.partition.epsilon);
+      / static_cast<double>(context.initial_partitioning.k))
+                                                                     * (1.0 + context.partition.epsilon);
   }
-  config.partition.perfect_balance_part_weights[0] =
-    config.initial_partitioning.perfect_balance_partition_weight[0];
-  config.partition.perfect_balance_part_weights[1] =
-    config.initial_partitioning.perfect_balance_partition_weight[1];
-  config.partition.max_part_weights[0] =
-    config.initial_partitioning.upper_allowed_partition_weight[0];
-  config.partition.max_part_weights[1] =
-    config.initial_partitioning.upper_allowed_partition_weight[1];
-  Randomize::instance().setSeed(config.partition.seed);
+  context.partition.perfect_balance_part_weights[0] =
+    context.initial_partitioning.perfect_balance_partition_weight[0];
+  context.partition.perfect_balance_part_weights[1] =
+    context.initial_partitioning.perfect_balance_partition_weight[1];
+  context.partition.max_part_weights[0] =
+    context.initial_partitioning.upper_allowed_partition_weight[0];
+  context.partition.max_part_weights[1] =
+    context.initial_partitioning.upper_allowed_partition_weight[1];
+  Randomize::instance().setSeed(context.partition.seed);
 }
 
 class AGreedyHypergraphGrowingFunctionalityTest : public Test {
@@ -80,9 +80,9 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
     ghg(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
+    context() {
     PartitionID k = 2;
-    initializeConfiguration(hypergraph, config, k);
+    initializeContext(hypergraph, context, k);
 
     for (const HypernodeID& hn : hypergraph.nodes()) {
       if (hn != 0) {
@@ -94,14 +94,14 @@ class AGreedyHypergraphGrowingFunctionalityTest : public Test {
 
     ghg = std::make_shared<GreedyHypergraphGrowingInitialPartitioner<
                              BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy,
-                             GlobalQueueSelectionPolicy> >(hypergraph, config);
+                             GlobalQueueSelectionPolicy> >(hypergraph, context);
   }
 
   std::shared_ptr<GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                                             FMGainComputationPolicy,
                                                             GlobalQueueSelectionPolicy> > ghg;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
 };
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, InsertionOfAHypernodeIntoPQ) {
@@ -127,7 +127,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpdatePriorityQueue) {
   hypergraph.initializeNumCutHyperedges();
-  config.initial_partitioning.unassigned_part = 0;
+  context.initial_partitioning.unassigned_part = 0;
   ghg->insertNodeIntoPQ(0, 1, true);
   ASSERT_EQ(ghg->_pq.max(1), 0);
   ASSERT_EQ(ghg->_pq.maxKey(1), 2);
@@ -141,7 +141,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectGainValueAfterUpd
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfterDeltaGainUpdate) {
   hypergraph.initializeNumCutHyperedges();
-  ghg->_pq.disablePart(config.initial_partitioning.unassigned_part);
+  ghg->_pq.disablePart(context.initial_partitioning.unassigned_part);
   ghg->insertNodeIntoPQ(2, 0, false);
   ghg->insertNodeIntoPQ(4, 0, false);
   ghg->insertNodeIntoPQ(6, 0, false);
@@ -158,7 +158,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectMaxGainValueAfter
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGainValuesInPQAfterAMove) {
   hypergraph.initializeNumCutHyperedges();
-  ghg->_pq.disablePart(config.initial_partitioning.unassigned_part);
+  ghg->_pq.disablePart(context.initial_partitioning.unassigned_part);
 
   hypergraph.changeNodePart(0, 0, 1);
   ghg->insertNodeIntoPQ(0, 0);
@@ -183,7 +183,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, ChecksCorrectHypernodesAndGain
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
        ChecksCorrectMaxGainValueAfterDeltaGainUpdateWithUnassignedPartMinusOne) {
   hypergraph.resetPartitioning();
-  config.initial_partitioning.unassigned_part = -1;
+  context.initial_partitioning.unassigned_part = -1;
   ghg->insertNodeIntoPQ(2, 0);
   ghg->insertNodeIntoPQ(3, 0);
   ghg->insertNodeIntoPQ(4, 0);
@@ -229,7 +229,7 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
 /*TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
       CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
   hypergraph.resetPartitioning();
-  config.initial_partitioning.unassigned_part = -1;
+  context.initial_partitioning.unassigned_part = -1;
 
   ghg->insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
   ASSERT_EQ(ghg->_pq.size(), 2);

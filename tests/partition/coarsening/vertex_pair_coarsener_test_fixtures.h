@@ -27,7 +27,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
@@ -42,27 +42,27 @@ template <class CoarsenerType>
 class ACoarsenerBase : public Test {
  public:
   explicit ACoarsenerBase(Hypergraph* graph =
-                            new Hypergraph (7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-                                            HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
+                            new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
+                                           HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })) :
     hypergraph(graph),
-    config(),
-    coarsener(*hypergraph, config,  /* heaviest_node_weight */ 1),
+    context(),
+    coarsener(*hypergraph, context,  /* heaviest_node_weight */ 1),
     refiner(new DoNothingRefiner()) {
     refiner->initialize(999999);
 
-    config.partition.epsilon = 0.3;
-    config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-    config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                           * config.partition.perfect_balance_part_weights[0];
-    config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
-                                           * config.partition.perfect_balance_part_weights[1];
-    kahypar::Randomize::instance().setSeed(config.partition.seed);
-    config.coarsening.max_allowed_node_weight = 5;
+    context.partition.epsilon = 0.3;
+    context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+    context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[0];
+    context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[1];
+    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.coarsening.max_allowed_node_weight = 5;
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
   CoarsenerType coarsener;
   std::unique_ptr<IRefiner> refiner;
 };
@@ -186,17 +186,17 @@ void restoresParallelHyperedgesInReverseOrder() {
                         HyperedgeVector { 0, 1, 0, 1, 0, 2, 1, 2 }, 2, &edge_weights,
                         &node_weights);
 
-  Configuration config;
-  config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(52.0 / 2);
-  config.partition.perfect_balance_part_weights[1] = ceil(52.0 / 2);
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[1];
+  Context context;
+  context.partition.epsilon = 1.0;
+  context.partition.perfect_balance_part_weights[0] = ceil(52.0 / 2);
+  context.partition.perfect_balance_part_weights[1] = ceil(52.0 / 2);
+  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                          * context.partition.perfect_balance_part_weights[0];
+  context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
+                                          * context.partition.perfect_balance_part_weights[1];
 
-  config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
+  context.coarsening.max_allowed_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
   refiner->initialize(999999);
 
@@ -228,16 +228,16 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
                         HyperedgeVector { 0, 1, 0, 1, 0, 1, 0, 2 }, 2, &edge_weights,
                         &node_weights);
 
-  Configuration config;
-  config.partition.epsilon = 1.0;
-  config.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-  config.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-  config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[0];
-  config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
-                                         * config.partition.perfect_balance_part_weights[1];
-  config.coarsening.max_allowed_node_weight = 4;
-  CoarsenerType coarsener(hypergraph, config,  /* heaviest_node_weight */ 1);
+  Context context;
+  context.partition.epsilon = 1.0;
+  context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
+  context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
+  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                          * context.partition.perfect_balance_part_weights[0];
+  context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
+                                          * context.partition.perfect_balance_part_weights[1];
+  context.coarsening.max_allowed_node_weight = 4;
+  CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());
   refiner->initialize(999999);
 
@@ -258,9 +258,9 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   coarsener.uncoarsen(*refiner);
 }
 
-template <class Coarsener, class HypergraphT, class Config>
-void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Config& config) {
-  config.coarsening.max_allowed_node_weight = 3;
+template <class Coarsener, class HypergraphT, class Context>
+void doesNotCoarsenUntilCoarseningLimit(Coarsener& coarsener, HypergraphT& hypergraph, Context& context) {
+  context.coarsening.max_allowed_node_weight = 3;
   coarsener.coarsen(2);
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_THAT(hypergraph->nodeWeight(hn), Le(3));

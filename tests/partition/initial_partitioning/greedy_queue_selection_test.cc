@@ -44,7 +44,7 @@ class AGreedyQueueSelectionTest : public Test {
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config(),
+    context(),
     current_id(0),
     current_hn(-1),
     current_gain(-1),
@@ -52,7 +52,7 @@ class AGreedyQueueSelectionTest : public Test {
     visit(hypergraph.initialNumNodes()) {
     PartitionID k = 4;
     pq.initialize(hypergraph.initialNumNodes());
-    initializeConfiguration(k);
+    initializeContext(k);
   }
 
   template <class GainComputationPolicy>
@@ -90,29 +90,29 @@ class AGreedyQueueSelectionTest : public Test {
     }
   }
 
-  void initializeConfiguration(PartitionID k) {
-    config.initial_partitioning.k = k;
-    config.partition.k = k;
-    config.initial_partitioning.epsilon = 0.05;
-    config.partition.epsilon = 0.05;
-    config.initial_partitioning.upper_allowed_partition_weight.resize(k);
-    config.initial_partitioning.perfect_balance_partition_weight.resize(k);
-    for (PartitionID i = 0; i < config.initial_partitioning.k; i++) {
-      config.initial_partitioning.perfect_balance_partition_weight[i] =
+  void initializeContext(PartitionID k) {
+    context.initial_partitioning.k = k;
+    context.partition.k = k;
+    context.initial_partitioning.epsilon = 0.05;
+    context.partition.epsilon = 0.05;
+    context.initial_partitioning.upper_allowed_partition_weight.resize(k);
+    context.initial_partitioning.perfect_balance_partition_weight.resize(k);
+    for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
+      context.initial_partitioning.perfect_balance_partition_weight[i] =
         ceil(
           hypergraph.totalWeight()
-          / static_cast<double>(config.initial_partitioning.k));
-      config.initial_partitioning.upper_allowed_partition_weight[i] =
+          / static_cast<double>(context.initial_partitioning.k));
+      context.initial_partitioning.upper_allowed_partition_weight[i] =
         ceil(
           hypergraph.totalWeight()
-          / static_cast<double>(config.initial_partitioning.k))
-        * (1.0 + config.partition.epsilon);
+          / static_cast<double>(context.initial_partitioning.k))
+        * (1.0 + context.partition.epsilon);
     }
   }
 
   KWayRefinementPQ pq;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
   PartitionID current_id;
   HypernodeID current_hn;
   Gain current_gain;
@@ -126,25 +126,25 @@ TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueID) {
   }
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
   ASSERT_EQ(current_hn, 1);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
   ASSERT_EQ(current_hn, 2);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 3);
   ASSERT_EQ(current_hn, 3);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -157,19 +157,19 @@ TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisab
   }
   ASSERT_EQ(current_id, 0);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
   ASSERT_EQ(current_hn, 1);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
   ASSERT_EQ(current_hn, 0);
   ASSERT_TRUE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 2);
@@ -178,19 +178,19 @@ TEST_F(AGreedyQueueSelectionTest, ChecksRoundRobinNextQueueIDIfSomePartsAreDisab
 
 TEST_F(AGreedyQueueSelectionTest, ChecksIfRoundRobinReturnsFalseIfEveryPartIsDisabled) {
   ASSERT_FALSE(
-    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    RoundRobinQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueID) {
-  initializeConfiguration(2);
+  initializeContext(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
   current_id = 1;
   ASSERT_TRUE(
-    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                             current_hn, current_gain, current_id,
                                             is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -198,13 +198,13 @@ TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueID) {
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled) {
-  initializeConfiguration(2);
+  initializeContext(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
 
   current_id = 1;
   ASSERT_TRUE(
-    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                             current_hn, current_gain, current_id,
                                             is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -214,7 +214,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled)
 
   pq.disablePart(0);
   ASSERT_TRUE(
-    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                             current_hn, current_gain, current_id,
                                             is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
@@ -222,29 +222,29 @@ TEST_F(AGreedyQueueSelectionTest, ChecksGlobalNextQueueIDIfSomePartsAreDisabled)
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksIfGlobalReturnsFalseIfEveryPartIsDisabled) {
-  initializeConfiguration(2);
+  initializeContext(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
 
   pq.disablePart(0);
   pq.disablePart(1);
   ASSERT_FALSE(
-    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    GlobalQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                             current_hn, current_gain, current_id,
                                             is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
-  initializeConfiguration(2);
-  config.initial_partitioning.unassigned_part = -1;
+  initializeContext(2);
+  context.initial_partitioning.unassigned_part = -1;
   std::vector<HypernodeID> nodes = { 0, 1, 2, 3, 4, 5, 6 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes, false);
-  config.initial_partitioning.upper_allowed_partition_weight[0] = 2;
-  config.initial_partitioning.upper_allowed_partition_weight[1] = 2;
+  context.initial_partitioning.upper_allowed_partition_weight[0] = 2;
+  context.initial_partitioning.upper_allowed_partition_weight[1] = 2;
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -253,7 +253,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
   hypergraph.setNodePart(3, 0);
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -262,7 +262,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
   hypergraph.setNodePart(5, 0);
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 1);
@@ -271,15 +271,15 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueID) {
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartPlusOne) {
-  initializeConfiguration(2);
-  config.initial_partitioning.unassigned_part = 1;
+  initializeContext(2);
+  context.initial_partitioning.unassigned_part = 1;
   std::vector<HypernodeID> nodes = { 0, 1, 2, 3, 4, 5, 6 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes, false);
-  config.initial_partitioning.upper_allowed_partition_weight[0] = 2;
-  config.initial_partitioning.upper_allowed_partition_weight[1] = 2;
+  context.initial_partitioning.upper_allowed_partition_weight[0] = 2;
+  context.initial_partitioning.upper_allowed_partition_weight[1] = 2;
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -288,7 +288,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartP
   hypergraph.setNodePart(3, 0);
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);
@@ -297,21 +297,21 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartP
   hypergraph.setNodePart(5, 0);
 
   ASSERT_FALSE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, -1);
 }
 
 TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDBehaviourIfUpperBoundIsReleased) {
-  initializeConfiguration(2);
+  initializeContext(2);
   std::vector<HypernodeID> nodes = { 0, 2, 5 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes);
   is_upper_bound_released = true;
   current_id = 1;
 
   ASSERT_TRUE(
-    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, config, pq,
+    SequentialQueueSelectionPolicy::nextQueueID(hypergraph, context, pq,
                                                 current_hn, current_gain, current_id,
                                                 is_upper_bound_released));
   ASSERT_EQ(current_id, 0);

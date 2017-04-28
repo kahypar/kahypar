@@ -35,7 +35,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/mandatory.h"
 #include "kahypar/meta/template_parameter_to_string.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/fm_refiner_base.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -57,13 +57,13 @@ class KWayFMRefiner final : public IRefiner,
   using Base = FMRefinerBase<RollbackInfo>;
 
  public:
-  KWayFMRefiner(Hypergraph& hypergraph, const Configuration& config) :
-    FMRefinerBase(hypergraph, config),
+  KWayFMRefiner(Hypergraph& hypergraph, const Context& context) :
+    FMRefinerBase(hypergraph, context),
     _he_fully_active(_hg.initialNumEdges()),
-    _tmp_gains(_config.partition.k, 0),
+    _tmp_gains(_context.partition.k, 0),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
-    _gain_cache(_hg.initialNumNodes(), _config.partition.k),
+    _gain_cache(_hg.initialNumNodes(), _context.partition.k),
     _stopping_policy() { }
 
   ~KWayFMRefiner() override = default;
@@ -100,8 +100,8 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg, _config))),
-           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+             FloatingPoint<double>(metrics::imbalance(_hg, _context))),
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
     reset();
     _he_fully_active.reset();
@@ -130,7 +130,7 @@ class KWayFMRefiner final : public IRefiner,
     const double beta = log(_hg.currentNumNodes());
     while (!_pq.empty() &&
            !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
-                                              _config, beta, best_metrics.cut, current_cut)) {
+                                              _context, beta, best_metrics.cut, current_cut)) {
       Gain max_gain = kInvalidGain;
       HypernodeID max_gain_node = kInvalidHN;
       PartitionID to_part = Hypergraph::kInvalidPartition;
@@ -164,7 +164,7 @@ class KWayFMRefiner final : public IRefiner,
         _pq.remove(max_gain_node, part);
       }
       ASSERT([&]() {
-          for (PartitionID part = 0; part < _config.partition.k; ++part) {
+          for (PartitionID part = 0; part < _context.partition.k; ++part) {
             if (_pq.contains(max_gain_node, part)) {
               return false;
             }
@@ -178,10 +178,10 @@ class KWayFMRefiner final : public IRefiner,
       if (moveIsFeasible(max_gain_node, from_part, to_part)) {
         moveHypernode(max_gain_node, from_part, to_part);
 
-        if (_hg.partWeight(to_part) >= _config.partition.max_part_weights[0]) {
+        if (_hg.partWeight(to_part) >= _context.partition.max_part_weights[0]) {
           _pq.disablePart(to_part);
         }
-        if (_hg.partWeight(from_part) < _config.partition.max_part_weights[0]) {
+        if (_hg.partWeight(from_part) < _context.partition.max_part_weights[0]) {
           _pq.enablePart(from_part);
         }
 
@@ -189,25 +189,25 @@ class KWayFMRefiner final : public IRefiner,
                                             from_part, to_part);
 
         current_imbalance = static_cast<double>(heaviest_part_weight) /
-                            ceil(static_cast<double>(_config.partition.total_graph_weight) /
-                                 _config.partition.k) - 1.0;
+                            ceil(static_cast<double>(_context.partition.total_graph_weight) /
+                                 _context.partition.k) - 1.0;
 
         current_cut -= max_gain;
         _stopping_policy.updateStatistics(max_gain);
 
         ASSERT(current_cut == metrics::hyperedgeCut(_hg),
                V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-        ASSERT(current_imbalance == metrics::imbalance(_hg, _config),
-               V(current_imbalance) << V(metrics::imbalance(_hg, _config)));
+        ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
+               V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
 
         updateNeighbours(max_gain_node, from_part, to_part);
 
         // right now, we do not allow a decrease in cut in favor of an increase in balance
-        const bool improved_cut_within_balance = (current_imbalance <= _config.partition.epsilon) &&
+        const bool improved_cut_within_balance = (current_imbalance <= _context.partition.epsilon) &&
                                                  (current_cut < best_metrics.cut);
         const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
                                                      (current_cut <= best_metrics.cut);
-        // if (current_cut < best_metrics.cut && current_imbalance > _config.partition.epsilon) {
+        // if (current_cut < best_metrics.cut && current_imbalance > _context.partition.epsilon) {
         //   LOG << V(current_cut) << V(best_metrics.cut) << V(current_imbalance);
         // }
 
@@ -228,7 +228,7 @@ class KWayFMRefiner final : public IRefiner,
     }
     DBG << "KWayFM performed" << _performed_moves.size()
         << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _config, beta,
+        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _context, beta,
                                           best_metrics.cut, current_cut)
         == true ? "policy" : "empty queue");
 
@@ -241,7 +241,7 @@ class KWayFMRefiner final : public IRefiner,
 
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
-                                                 initial_imbalance, _config.partition.epsilon);
+                                                 initial_imbalance, _context.partition.epsilon);
   }
 
   std::string policyStringImpl() const override final {
@@ -263,7 +263,7 @@ class KWayFMRefiner final : public IRefiner,
         _pq.remove(hn, part);
       }
       ASSERT([&]() {
-          for (PartitionID part = 0; part < _config.partition.k; ++part) {
+          for (PartitionID part = 0; part < _context.partition.k; ++part) {
             if (_pq.contains(hn, part)) {
               return false;
             }
@@ -407,7 +407,7 @@ class KWayFMRefiner final : public IRefiner,
       // LOG << "normal connectivity increase for" << pin << V(to_part);
       _pq.insert(pin, to_part, gain);
       _already_processed_part.set(pin, to_part);
-      if (_hg.partWeight(to_part) < _config.partition.max_part_weights[0]) {
+      if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
         _pq.enablePart(to_part);
       }
     }
@@ -658,7 +658,7 @@ class KWayFMRefiner final : public IRefiner,
             ++count;
           }
           if (!_hg.isBorderNode(pin)) {
-            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            for (PartitionID part = 0; part < _context.partition.k; ++part) {
               if (_pq.contains(pin, part)) {
                 return false;
               }
@@ -781,7 +781,7 @@ class KWayFMRefiner final : public IRefiner,
             if (!_hg.isBorderNode(pin)) {
               // The pin is an internal HN
               // there should not be any move of this HN in the PQ.
-              for (PartitionID part = 0; part < _config.partition.k; ++part) {
+              for (PartitionID part = 0; part < _context.partition.k; ++part) {
                 valid = (_pq.contains(pin, part) == false);
                 if (!valid) {
                   LOG << "HN" << pin << "should not be contained in PQ";
@@ -807,14 +807,14 @@ class KWayFMRefiner final : public IRefiner,
                     LOG << "_locked_hes[" << he << "]=" << _locked_hes.get(he);
                     return false;
                   }
-                  if (_hg.partWeight(part) < _config.partition.max_part_weights[0] &&
+                  if (_hg.partWeight(part) < _context.partition.max_part_weights[0] &&
                       !_pq.isEnabled(part)) {
                     LOG << V(pin);
                     LOG << "key=" << expected_gain;
                     LOG << "Part" << part << "should be enabled as target part";
                     return false;
                   }
-                  if (_hg.partWeight(part) >= _config.partition.max_part_weights[0] &&
+                  if (_hg.partWeight(part) >= _context.partition.max_part_weights[0] &&
                       _pq.isEnabled(part)) {
                     LOG << V(pin);
                     LOG << "key=" << expected_gain;
@@ -837,7 +837,7 @@ class KWayFMRefiner final : public IRefiner,
                   if (_hg.marked(pin)) {
                     // If the pin is already marked as moved, then all moves concerning this pin
                     // should have been removed from the PQ.
-                    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+                    for (PartitionID part = 0; part < _context.partition.k; ++part) {
                       if (_pq.contains(pin, part)) {
                         LOG << "HN" << pin << "should not be contained in PQ,"
                             << "because it is already marked";
@@ -851,7 +851,7 @@ class KWayFMRefiner final : public IRefiner,
             // Staleness check. If the PQ contains a move of pin to part, there
             // has to be at least one HE that connects to that part. Otherwise the
             // move is stale and should have been removed from the PQ.
-            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            for (PartitionID part = 0; part < _context.partition.k; ++part) {
               bool connected = false;
               for (const HyperedgeID& incident_he : _hg.incidentEdges(pin)) {
                 if (_hg.pinCountInPart(incident_he, part) > 0) {
@@ -879,7 +879,7 @@ class KWayFMRefiner final : public IRefiner,
         for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.active(hn)) {
             bool valid = _hg.marked(hn) || !_hg.isBorderNode(hn);
-            for (PartitionID part = 0; part < _config.partition.k; ++part) {
+            for (PartitionID part = 0; part < _context.partition.k; ++part) {
               if (_pq.contains(hn, part)) {
                 valid = true;
                 break;
@@ -904,7 +904,7 @@ class KWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.marked(pin));
       ASSERT(_hg.active(pin));
       ASSERT(_hg.isBorderNode(pin));
-      ASSERT((_hg.partWeight(part) < _config.partition.max_part_weights[0] ?
+      ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
               _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
       // Assert that we only perform delta-gain updates on moves that are not stale!
       ASSERT([&]() {
@@ -928,7 +928,7 @@ class KWayFMRefiner final : public IRefiner,
   void activate(const HypernodeID hn) {
     ASSERT(!_hg.active(hn), V(hn));
     ASSERT([&]() {
-        for (PartitionID part = 0; part < _config.partition.k; ++part) {
+        for (PartitionID part = 0; part < _context.partition.k; ++part) {
           if (_pq.contains(hn, part)) {
             return false;
           }
@@ -1031,7 +1031,7 @@ class KWayFMRefiner final : public IRefiner,
       DBGC(hn == hn_to_debug) << "inserting" << V(hn) << V(part)
                               << V(_gain_cache.entry(hn, part));
       _pq.insert(hn, part, _gain_cache.entry(hn, part));
-      if (_hg.partWeight(part) < _config.partition.max_part_weights[0]) {
+      if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
         _pq.enablePart(part);
       }
     }
@@ -1049,8 +1049,8 @@ class KWayFMRefiner final : public IRefiner,
   // TODO(schlag): Some of these assertions could easily be converted
   // into unit tests.
   void ASSERT_THAT_CACHE_IS_VALID_FOR_HN(const HypernodeID hn) const {
-    std::vector<bool> adjacent_parts(_config.partition.k, false);
-    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+    std::vector<bool> adjacent_parts(_context.partition.k, false);
+    for (PartitionID part = 0; part < _context.partition.k; ++part) {
       if (hypernodeIsConnectedToPart(hn, part)) {
         adjacent_parts[part] = true;
       }
@@ -1076,7 +1076,7 @@ class KWayFMRefiner final : public IRefiner,
   }
 
   using Base::_hg;
-  using Base::_config;
+  using Base::_context;
   using Base::_pq;
   using Base::_performed_moves;
   using Base::_hns_to_activate;

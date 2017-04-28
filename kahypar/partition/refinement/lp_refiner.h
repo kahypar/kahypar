@@ -30,7 +30,7 @@
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/lp_gain_cache.h"
@@ -48,22 +48,22 @@ class LPRefiner final : public IRefiner {
   using FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased;
 
  public:
-  LPRefiner(Hypergraph& hg, const Configuration& configuration) :
+  LPRefiner(Hypergraph& hg, const Context& contexturation) :
     _hg(hg),
-    _config(configuration),
+    _context(contexturation),
     _cur_queue(),
     _next_queue(),
     _contained_cur_queue(hg.initialNumNodes()),
     _contained_next_queue(hg.initialNumNodes()),
     _max_score(),
-    _tmp_connectivity_decrease(configuration.partition.k, std::numeric_limits<PartitionID>::min()),
-    _tmp_gains(configuration.partition.k, { 0, 0 }),
-    _gain_cache(_hg.initialNumNodes(), _config.partition.k),
+    _tmp_connectivity_decrease(contexturation.partition.k, std::numeric_limits<PartitionID>::min()),
+    _tmp_gains(contexturation.partition.k, { 0, 0 }),
+    _gain_cache(_hg.initialNumNodes(), _context.partition.k),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition) {
-    ASSERT(_config.partition.mode != Mode::direct_kway ||
-           (_config.partition.max_part_weights[0] == _config.partition.max_part_weights[1]),
+    ASSERT(_context.partition.mode != Mode::direct_kway ||
+           (_context.partition.max_part_weights[0] == _context.partition.max_part_weights[1]),
            "Lmax values should be equal for k-way partitioning");
-    _max_score.reserve(configuration.partition.k);
+    _max_score.reserve(contexturation.partition.k);
   }
 
   ~LPRefiner() override = default;
@@ -81,8 +81,8 @@ class LPRefiner final : public IRefiner {
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg, _config))),
-           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+             FloatingPoint<double>(metrics::imbalance(_hg, _context))),
+           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
     _cur_queue.clear();
     _next_queue.clear();
@@ -101,9 +101,9 @@ class LPRefiner final : public IRefiner {
       initializeGainCacheFor(cur_node);
       if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
         ASSERT(_hg.partWeight(_hg.partID(cur_node))
-               <= _config.partition.max_part_weights[_hg.partID(cur_node) % 2],
+               <= _context.partition.max_part_weights[_hg.partID(cur_node) % 2],
                V(_hg.partWeight(_hg.partID(cur_node)))
-               << V(_config.partition.max_part_weights[_hg.partID(cur_node) % 2]));
+               << V(_context.partition.max_part_weights[_hg.partID(cur_node) % 2]));
         _cur_queue.push_back(cur_node);
         _contained_cur_queue.set(cur_node, true);
       }
@@ -113,7 +113,7 @@ class LPRefiner final : public IRefiner {
 
     for (int i = 0;
          (i == 0 || best_metrics.cut < current_cut || best_metrics.imbalance < current_imbalance) &&
-         !_cur_queue.empty() && i < _config.local_search.sclap.max_number_iterations; ++i) {
+         !_cur_queue.empty() && i < _context.local_search.sclap.max_number_iterations; ++i) {
       current_cut = best_metrics.cut;
       current_imbalance = best_metrics.imbalance;
 
@@ -134,17 +134,17 @@ class LPRefiner final : public IRefiner {
 
           best_metrics.cut -= gain_pair.first;
           best_metrics.imbalance = static_cast<double>(heaviest_part_weight) /
-                                   ceil(static_cast<double>(_config.partition.total_graph_weight) /
-                                        _config.partition.k) - 1.0;
+                                   ceil(static_cast<double>(_context.partition.total_graph_weight) /
+                                        _context.partition.k) - 1.0;
 
           ASSERT(_hg.partWeight(gain_pair.second)
-                 <= _config.partition.max_part_weights[gain_pair.second % 2],
+                 <= _context.partition.max_part_weights[gain_pair.second % 2],
                  V(_hg.partWeight(gain_pair.second)));
           ASSERT(best_metrics.cut <= initial_cut, V(best_metrics.cut) << V(initial_cut));
           ASSERT(gain_pair.first >= 0, V(gain_pair.first));
           ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg), V(best_metrics.cut));
-          ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _config),
-                 V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _config)));
+          ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
+                 V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
           _already_processed_part.resetUsedEntries();
           bool moved_hn_remains_conntected_to_from_part = false;
@@ -203,18 +203,18 @@ class LPRefiner final : public IRefiner {
 
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
-                                                 initial_imbalance, _config.partition.epsilon);
+                                                 initial_imbalance, _context.partition.epsilon);
   }
 
   std::string policyStringImpl() const override final {
     return " lp_refiner_max_iterations=" +
-           std::to_string(_config.local_search.sclap.max_number_iterations);
+           std::to_string(_context.local_search.sclap.max_number_iterations);
   }
 
  private:
   PartitionID heaviestPart() const {
     PartitionID heaviest_part = 0;
-    for (PartitionID part = 1; part < _config.partition.k; ++part) {
+    for (PartitionID part = 1; part < _context.partition.k; ++part) {
       if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
         heaviest_part = part;
       }
@@ -236,7 +236,7 @@ class LPRefiner final : public IRefiner {
     ASSERT([&]() {
         PartitionID heaviest = 0;
         HypernodeWeight max_weight = _hg.partWeight(heaviest);
-        for (PartitionID part = 1; part < _config.partition.k; ++part) {
+        for (PartitionID part = 1; part < _context.partition.k; ++part) {
           if (_hg.partWeight(part) > max_weight) {
             heaviest = part;
             max_weight = _hg.partWeight(heaviest);
@@ -492,8 +492,8 @@ class LPRefiner final : public IRefiner {
   }
 
   void ASSERT_THAT_CACHE_IS_VALID_FOR_HN(const HypernodeID hn) const {
-    std::vector<bool> adjacent_parts(_config.partition.k, false);
-    for (PartitionID part = 0; part < _config.partition.k; ++part) {
+    std::vector<bool> adjacent_parts(_context.partition.k, false);
+    for (PartitionID part = 0; part < _context.partition.k; ++part) {
       if (hypernodeIsConnectedToPart(hn, part)) {
         adjacent_parts[part] = true;
       }
@@ -536,7 +536,7 @@ class LPRefiner final : public IRefiner {
     Gain max_connectivity_decrease = 0;
     const HypernodeWeight node_weight = _hg.nodeWeight(hn);
     const bool source_part_imbalanced = _hg.partWeight(source_part) >
-                                        _config.partition.max_part_weights[source_part % 2];
+                                        _context.partition.max_part_weights[source_part % 2];
 
 
     _max_score.push_back(source_part);
@@ -553,7 +553,7 @@ class LPRefiner final : public IRefiner {
       const Gain target_part_connectivity_decrease = _gain_cache.entry(hn, target_part).km1;
       const HypernodeWeight target_part_weight = _hg.partWeight(target_part);
 
-      if (target_part_weight + node_weight <= _config.partition.max_part_weights[target_part % 2]) {
+      if (target_part_weight + node_weight <= _context.partition.max_part_weights[target_part % 2]) {
         if (target_part_gain == max_gain) {
           if (target_part_connectivity_decrease > max_connectivity_decrease) {
             max_connectivity_decrease = target_part_connectivity_decrease;
@@ -586,7 +586,7 @@ class LPRefiner final : public IRefiner {
     }
 
     ASSERT(_hg.partWeight(to_part) + _hg.nodeWeight(hn)
-           <= _config.partition.max_part_weights[to_part % 2]);
+           <= _context.partition.max_part_weights[to_part % 2]);
 
     if (_hg.partSize(from_part) == 1) {
       // this would result in an extermination of a block
@@ -598,7 +598,7 @@ class LPRefiner final : public IRefiner {
   }
 
   Hypergraph& _hg;
-  const Configuration& _config;
+  const Context& _context;
   std::vector<HypernodeID> _cur_queue;
   std::vector<HypernodeID> _next_queue;
   ds::FastResetFlagArray<> _contained_cur_queue;

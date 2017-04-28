@@ -27,7 +27,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -42,9 +42,9 @@ class InitialPartitionerBase {
   static constexpr HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
 
  public:
-  InitialPartitionerBase(Hypergraph& hypergraph, Configuration& config) :
+  InitialPartitionerBase(Hypergraph& hypergraph, Context& context) :
     _hg(hypergraph),
-    _config(config),
+    _context(context),
     _unassigned_nodes(),
     _unassigned_node_bound(std::numeric_limits<PartitionID>::max()),
     _max_hypernode_weight(hypergraph.weightOfHeaviestNode()) {
@@ -63,22 +63,22 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() = default;
 
   void recalculateBalanceConstraints(const double epsilon) {
-    for (int i = 0; i < _config.initial_partitioning.k; ++i) {
-      _config.initial_partitioning.upper_allowed_partition_weight[i] =
-        _config.initial_partitioning.perfect_balance_partition_weight[i]
+    for (int i = 0; i < _context.initial_partitioning.k; ++i) {
+      _context.initial_partitioning.upper_allowed_partition_weight[i] =
+        _context.initial_partitioning.perfect_balance_partition_weight[i]
         * (1.0 + epsilon);
     }
-    _config.partition.max_part_weights[0] =
-      _config.initial_partitioning.upper_allowed_partition_weight[0];
-    _config.partition.max_part_weights[1] =
-      _config.initial_partitioning.upper_allowed_partition_weight[1];
+    _context.partition.max_part_weights[0] =
+      _context.initial_partitioning.upper_allowed_partition_weight[0];
+    _context.partition.max_part_weights[1] =
+      _context.initial_partitioning.upper_allowed_partition_weight[1];
   }
 
   void resetPartitioning() {
     _hg.resetPartitioning();
-    if (_config.initial_partitioning.unassigned_part != -1) {
+    if (_context.initial_partitioning.unassigned_part != -1) {
       for (const HypernodeID& hn : _hg.nodes()) {
-        _hg.setNodePart(hn, _config.initial_partitioning.unassigned_part);
+        _hg.setNodePart(hn, _context.initial_partitioning.unassigned_part);
       }
       _hg.initializeNumCutHyperedges();
     }
@@ -86,18 +86,18 @@ class InitialPartitionerBase {
   }
 
   void performFMRefinement() {
-    if (_config.initial_partitioning.refinement) {
+    if (_context.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;
-      if (_config.local_search.algorithm == RefinementAlgorithm::twoway_fm &&
-          _config.initial_partitioning.k > 2) {
+      if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm &&
+          _context.initial_partitioning.k > 2) {
         refiner = (RefinerFactory::getInstance().createObject(
                      RefinementAlgorithm::kway_fm,
-                     _hg, _config));
+                     _hg, _context));
         LOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.";
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
-                     _config.local_search.algorithm,
-                     _hg, _config));
+                     _context.local_search.algorithm,
+                     _hg, _context));
       }
 
 #ifdef USE_BUCKET_QUEUE
@@ -119,7 +119,7 @@ class InitialPartitionerBase {
       std::vector<HypernodeID> refinement_nodes;
       Metrics current_metrics = { metrics::hyperedgeCut(_hg),
                                   metrics::km1(_hg),
-                                  metrics::imbalance(_hg, _config) };
+                                  metrics::imbalance(_hg, _context) };
 
 #ifndef NDEBUG
       HyperedgeWeight old_cut = current_metrics.cut;
@@ -145,9 +145,9 @@ class InitialPartitionerBase {
         }
         improvement_found =
           refiner->refine(refinement_nodes,
-                          { _config.initial_partitioning.upper_allowed_partition_weight[0]
+                          { _context.initial_partitioning.upper_allowed_partition_weight[0]
                             + _max_hypernode_weight,
-                            _config.initial_partitioning.upper_allowed_partition_weight[1]
+                            _context.initial_partitioning.upper_allowed_partition_weight[1]
                             + _max_hypernode_weight }, changes, current_metrics);
         ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
         ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
@@ -155,7 +155,7 @@ class InitialPartitionerBase {
         old_cut = current_metrics.cut;
 #endif
         ++iteration;
-      } while (iteration < _config.initial_partitioning.local_search.iterations_per_level &&
+      } while (iteration < _context.initial_partitioning.local_search.iterations_per_level &&
                improvement_found);
     }
   }
@@ -163,7 +163,7 @@ class InitialPartitionerBase {
 
   bool assignHypernodeToPartition(const HypernodeID hn, const PartitionID target_part) {
     if (_hg.partWeight(target_part) + _hg.nodeWeight(hn)
-        <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) {
+        <= _context.initial_partitioning.upper_allowed_partition_weight[target_part]) {
       if (_hg.partID(hn) == -1) {
         _hg.setNodePart(hn, target_part);
       } else {
@@ -187,7 +187,7 @@ class InitialPartitionerBase {
     HypernodeID unassigned_node = kInvalidNode;
     for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];
-      if (_hg.partID(hn) == _config.initial_partitioning.unassigned_part) {
+      if (_hg.partID(hn) == _context.initial_partitioning.unassigned_part) {
         unassigned_node = hn;
         break;
       } else {
@@ -203,7 +203,7 @@ class InitialPartitionerBase {
 
  protected:
   Hypergraph& _hg;
-  Configuration& _config;
+  Context& _context;
 
  private:
   std::vector<HypernodeID> _unassigned_nodes;

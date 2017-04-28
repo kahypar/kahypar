@@ -27,7 +27,7 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/io/partitioning_output.h"
 #include "kahypar/macros.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 
 using namespace kahypar;
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     hypergraph.setNodePart(index, partition[index]);
   }
 
-  Configuration config;
-  config.partition.k = max_part + 1;
+  Context context;
+  context.partition.k = max_part + 1;
 
   std::cout << "***********************" << hypergraph.k()
             << "-way Partition Result************************" << std::endl;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
   std::cout << "soed=" << metrics::soed(hypergraph) << std::endl;
   std::cout << "km1= " << metrics::km1(hypergraph) << std::endl;
   std::cout << "absorption= " << metrics::absorption(hypergraph) << std::endl;
-  std::cout << "imbalance= " << imb(hypergraph, config.partition.k)
+  std::cout << "imbalance= " << imb(hypergraph, context.partition.k)
             << std::endl;
   return 0;
 }

@@ -33,33 +33,33 @@ using KWayFMRefinerSimpleStopping = KWayFMRefiner<NumberOfFruitlessMovesStopsSea
 class AKwayFMRefiner : public Test {
  public:
   AKwayFMRefiner() :
-    config(),
+    context(),
     hypergraph(new Hypergraph(2, 2, HyperedgeIndexVector { 0, 2,  /*sentinel*/ 3 },
                               HyperedgeVector { 0, 1, 0 }, 2)),
     refiner() {
-    config.local_search.fm.max_number_of_fruitless_moves = 50;
-    config.partition.total_graph_weight = 2;
-    config.partition.k = 2;
-    config.partition.rb_lower_k = 0;
-    config.partition.rb_upper_k = config.partition.k - 1;
-    config.partition.epsilon = 1.0;
-    config.partition.perfect_balance_part_weights[0] = ceil(config.partition.total_graph_weight /
-                                                            static_cast<double>(config.partition.k));
-    config.partition.perfect_balance_part_weights[1] = ceil(config.partition.total_graph_weight /
-                                                            static_cast<double>(config.partition.k));
+    context.local_search.fm.max_number_of_fruitless_moves = 50;
+    context.partition.total_graph_weight = 2;
+    context.partition.k = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = context.partition.k - 1;
+    context.partition.epsilon = 1.0;
+    context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
+                                                             static_cast<double>(context.partition.k));
+    context.partition.perfect_balance_part_weights[1] = ceil(context.partition.total_graph_weight /
+                                                             static_cast<double>(context.partition.k));
 
-    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                           * config.partition.perfect_balance_part_weights[0];
-    config.partition.max_part_weights[1] = config.partition.max_part_weights[0];
+    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[0];
+    context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
 
     hypergraph->setNodePart(0, 0);
     hypergraph->setNodePart(1, 1);
     hypergraph->initializeNumCutHyperedges();
 
-    refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
+    refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, context);
   }
 
-  Configuration config;
+  Context context;
   std::unique_ptr<Hypergraph> hypergraph;
   std::unique_ptr<KWayFMRefinerSimpleStopping> refiner;
 };
@@ -82,7 +82,7 @@ TEST_F(AKwayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   hypergraph->setNodePart(2, 0);
   hypergraph->initializeNumCutHyperedges();
 
-  refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, config);
+  refiner = std::make_unique<KWayFMRefinerSimpleStopping>(*hypergraph, context);
   refiner->initialize(100);
   refiner->_hg.activate(0);
   hypergraph->changeNodePart(0, 0, 1);

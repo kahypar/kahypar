@@ -30,7 +30,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/git_revision.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/stats.h"
@@ -194,7 +194,7 @@ inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
 }
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
-                                     const Configuration& config,
+                                     const Context& context,
                                      const std::chrono::duration<double>& elapsed_seconds) {
   LOG << "********************************************************************************";
   LOG << "*                             Partitioning Result                              *";
@@ -204,7 +204,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   LOG << "SOED           (minimize) =" << metrics::soed(hypergraph);
   LOG << "(k-1)          (minimize) =" << metrics::km1(hypergraph);
   LOG << "Absorption     (maximize) =" << metrics::absorption(hypergraph);
-  LOG << "Imbalance                 =" << metrics::imbalance(hypergraph, config);
+  LOG << "Imbalance                 =" << metrics::imbalance(hypergraph, context);
 
   LOG << "\nPartition sizes and weights: ";
   printPartSizesAndWeights(hypergraph);
@@ -212,30 +212,30 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   LOG << "\nTimings:";
   LOG << "Partition time                   =" << elapsed_seconds.count() << "s";
   LOG << "  | initial parallel HE removal  ="
-      << Stats::instance().get(config, "InitialParallelHEremovalTime")
+      << Stats::instance().get(context, "InitialParallelHEremovalTime")
       << "s [currently not implemented]";
   LOG << "  | initial large HE removal     ="
-      << Stats::instance().get(config, "InitialLargeHEremovalTime") << "s";
+      << Stats::instance().get(context, "InitialLargeHEremovalTime") << "s";
   LOG << "  | min hash sparsifier          ="
-      << Stats::instance().get(config, "MinHashSparsifierTime") << "s";
+      << Stats::instance().get(context, "MinHashSparsifierTime") << "s";
   LOG << "  | community detection          ="
-      << Stats::instance().get(config, "CommunityDetectionTime") << "s";
+      << Stats::instance().get(context, "CommunityDetectionTime") << "s";
   LOG << "  | coarsening                   ="
-      << Stats::instance().get(config, "CoarseningTime") << "s";
+      << Stats::instance().get(context, "CoarseningTime") << "s";
   LOG << "  | initial partitioning         ="
-      << Stats::instance().get(config, "InitialPartitioningTime") << "s";
+      << Stats::instance().get(context, "InitialPartitioningTime") << "s";
   LOG << "  | uncoarsening/refinement      ="
-      << Stats::instance().get(config, "UncoarseningRefinementTime") << "s";
+      << Stats::instance().get(context, "UncoarseningRefinementTime") << "s";
   LOG << "  | initial large HE restore     ="
-      << Stats::instance().get(config, "InitialLargeHErestoreTime") << "s";
+      << Stats::instance().get(context, "InitialLargeHErestoreTime") << "s";
   LOG << "  | initial parallel HE restore  ="
-      << Stats::instance().get(config, "InitialParallelHErestoreTime")
+      << Stats::instance().get(context, "InitialParallelHErestoreTime")
       << "s [currently not implemented]";
-  if (config.partition.global_search_iterations > 0) {
+  if (context.partition.global_search_iterations > 0) {
     LOG << " | v-cycle coarsening              = "
-        << Stats::instance().get(config, "VCycleCoarseningTime") << "s";
+        << Stats::instance().get(context, "VCycleCoarseningTime") << "s";
     LOG << " | v-cycle uncoarsening/refinement ="
-        << Stats::instance().get(config, "VCycleUnCoarseningRefinementTime") << "s";
+        << Stats::instance().get(context, "VCycleUnCoarseningRefinementTime") << "s";
   }
 }
 

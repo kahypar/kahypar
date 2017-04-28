@@ -23,7 +23,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/utils/float_compare.h"
 
 namespace kahypar {
@@ -35,9 +35,9 @@ class StoppingPolicy : public meta::PolicyBase {
 
 class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  public:
-  bool searchShouldStop(const int num_moves, const Configuration& config,
+  bool searchShouldStop(const int num_moves, const Context& context,
                         const double, const HyperedgeWeight, const HyperedgeWeight) {
-    return num_moves >= config.local_search.fm.max_number_of_fruitless_moves;
+    return num_moves >= context.local_search.fm.max_number_of_fruitless_moves;
   }
 
   void resetStatistics() {
@@ -91,9 +91,9 @@ class RandomWalkModel {
 class AdvancedRandomWalkModelStopsSearch : public StoppingPolicy,
                                            private RandomWalkModel {
  public:
-  bool searchShouldStop(const int, const Configuration& config, const double beta,
+  bool searchShouldStop(const int, const Context& context, const double beta,
                         const HyperedgeWeight, const HyperedgeWeight) {
-    static double factor = (config.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
+    static double factor = (context.local_search.fm.adaptive_stopping_alpha / 2.0) - 0.25;
     DBG << V(_num_steps) << "(" << _variance << "/" << "(" << 4 << "*" << _Mk << "^2)) * "
         << factor << "=" << ((_variance / (_Mk * _Mk)) * factor);
     const bool ret = (_num_steps > beta) &&

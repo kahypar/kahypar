@@ -329,28 +329,28 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 }
 
 
-struct Configuration {
+struct Context {
   PartitioningParameters partition { };
   PreprocessingParameters preprocessing { };
   CoarseningParameters coarsening { };
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
-  ConfigType type = ConfigType::main;
+  ContextType type = ContextType::main;
 };
 
-inline std::ostream& operator<< (std::ostream& str, const Configuration& config) {
+inline std::ostream& operator<< (std::ostream& str, const Context& context) {
   str << "*******************************************************************************\n"
-      << "*                         Partitioning Configuration                          *\n"
+      << "*                         Partitioning Context                          *\n"
       << "*******************************************************************************\n"
-      << config.partition
+      << context.partition
       << "-------------------------------------------------------------------------------"
       << std::endl
-      << config.preprocessing
+      << context.preprocessing
       << "-------------------------------------------------------------------------------"
       << std::endl
-      << config.coarsening
-      << config.initial_partitioning
-      << config.local_search
+      << context.coarsening
+      << context.initial_partitioning
+      << context.local_search
       << "-------------------------------------------------------------------------------";
   return str;
 }
@@ -392,18 +392,18 @@ void checkDirectKwayMode(RefinementAlgorithm& algo) {
   }
 }
 
-static inline void sanityCheck(Configuration& config) {
-  switch (config.partition.mode) {
+static inline void sanityCheck(Context& context) {
+  switch (context.partition.mode) {
     case Mode::recursive_bisection:
-      // Prevent configurations that currently don't make sense.
+      // Prevent contexturations that currently don't make sense.
       // If KaHyPar operates in recursive bisection mode, than the
       // initial partitioning algorithm is called on the coarsest graph to
       // create a bipartition (i.e. it is only called for k=2).
       // Therefore, the initial partitioning algorithm
       // should run in direct mode and not in recursive bisection mode (since there
       // is nothing left to bisect).
-      ALWAYS_ASSERT(config.initial_partitioning.mode == Mode::direct_kway,
-                    toString(config.initial_partitioning.mode));
+      ALWAYS_ASSERT(context.initial_partitioning.mode == Mode::direct_kway,
+                    toString(context.initial_partitioning.mode));
       // Furthermore, the IP algorithm should not use the multilevel technique itself,
       // because the hypergraph is already coarse enough for initial partitioning.
       // Therefore we prevent further coarsening by enforcing flat rather than multilevel.
@@ -411,36 +411,36 @@ static inline void sanityCheck(Configuration& config) {
       // multilevel as initial partitioning technique, because in this case KaHyPar
       // could just do the additional multilevel coarsening and then call the initial
       // partitioning algorithm as a flat algorithm.
-      ALWAYS_ASSERT(config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
-                    toString(config.initial_partitioning.technique));
-      checkRecursiveBisectionMode(config.local_search.algorithm);
+      ALWAYS_ASSERT(context.initial_partitioning.technique == InitialPartitioningTechnique::flat,
+                    toString(context.initial_partitioning.technique));
+      checkRecursiveBisectionMode(context.local_search.algorithm);
       break;
     case Mode::direct_kway:
       // When KaHyPar runs in direct k-way mode, it makes no sense to use the initial
       // partitioner in direct multilevel mode, because we could essentially get the same
       // behavior if we would just use a smaller contraction limit in the main partitioner.
       // Since the contraction limits for main and initial partitioner are specifically tuned,
-      // we currently forbid this configuration.
-      ALWAYS_ASSERT(config.initial_partitioning.mode != Mode::direct_kway ||
-                    config.initial_partitioning.technique == InitialPartitioningTechnique::flat,
-                    toString(config.initial_partitioning.mode)
-                    << toString(config.initial_partitioning.technique));
-      checkDirectKwayMode(config.local_search.algorithm);
+      // we currently forbid this contexturation.
+      ALWAYS_ASSERT(context.initial_partitioning.mode != Mode::direct_kway ||
+                    context.initial_partitioning.technique == InitialPartitioningTechnique::flat,
+                    toString(context.initial_partitioning.mode)
+                    << toString(context.initial_partitioning.technique));
+      checkDirectKwayMode(context.local_search.algorithm);
       break;
     default:
       // should never happen, because partitioning is either done via RB or directly
       break;
   }
-  switch (config.initial_partitioning.mode) {
+  switch (context.initial_partitioning.mode) {
     case Mode::recursive_bisection:
-      checkRecursiveBisectionMode(config.initial_partitioning.local_search.algorithm);
+      checkRecursiveBisectionMode(context.initial_partitioning.local_search.algorithm);
       break;
     case Mode::direct_kway:
       // If the main partitioner runs in recursive bisection mode, then the initial
       // partitioner running in direct mode can use two-way FM as a local search
       // algorithm because we only perform bisections.
-      if (config.partition.mode != Mode::recursive_bisection) {
-        checkDirectKwayMode(config.initial_partitioning.local_search.algorithm);
+      if (context.partition.mode != Mode::recursive_bisection) {
+        checkDirectKwayMode(context.initial_partitioning.local_search.algorithm);
       }
       break;
     default:

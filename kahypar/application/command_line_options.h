@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -62,43 +62,43 @@ int getProcessID() {
 }
 }  // namespace platform
 
-void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
+void processCommandLineInput(Context& context, int argc, char* argv[]) {
   const int num_columns = platform::getTerminalWidth();
 
   po::options_description generic_options("Generic Options", num_columns);
   generic_options.add_options()
     ("help", "show help message")
-    ("verbose,v", po::value<bool>(&config.partition.verbose_output)->value_name("<bool>"),
+    ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
     "Verbose main partitioning output")
-    ("vip", po::value<bool>(&config.initial_partitioning.verbose_output)->value_name("<bool>"),
+    ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
     "Verbose initial partitioning output")
-    ("quiet,q", po::value<bool>(&config.partition.quiet_mode)->value_name("<bool>"),
+    ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
     "Quiet Mode: Completely suppress console output")
-    ("sp-process,s", po::value<bool>(&config.partition.sp_process_output)->value_name("<bool>"),
+    ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)");
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
     ("hypergraph,h",
-    po::value<std::string>(&config.partition.graph_filename)->value_name("<string>")->required(),
+    po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
     "Hypergraph filename")
     ("blocks,k",
-    po::value<PartitionID>(&config.partition.k)->value_name("<int>")->required()->notifier(
+    po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
       [&](const PartitionID) {
-      config.partition.rb_lower_k = 0;
-      config.partition.rb_upper_k = 0;
+      context.partition.rb_lower_k = 0;
+      context.partition.rb_upper_k = 0;
     }),
     "Number of blocks")
     ("epsilon,e",
-    po::value<double>(&config.partition.epsilon)->value_name("<double>")->required(),
+    po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
     "Imbalance parameter epsilon")
     ("objective,o",
     po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
       if (s == "cut") {
-        config.partition.objective = Objective::cut;
+        context.partition.objective = Objective::cut;
       } else if (s == "km1") {
-        config.partition.objective = Objective::km1;
+        context.partition.objective = Objective::km1;
       }
     }),
     "Objective: \n"
@@ -107,17 +107,17 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("mode,m",
     po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
-      config.partition.mode = kahypar::modeFromString(mode);
+      context.partition.mode = kahypar::modeFromString(mode);
     }),
     "Partitioning mode: \n"
     " - (recursive) bisection \n"
     " - (direct) k-way");
 
-  std::string config_path;
+  std::string context_path;
   po::options_description preset_options("Preset Options", num_columns);
   preset_options.add_options()
-    ("preset,p", po::value<std::string>(&config_path)->value_name("<string>"),
-    "Configuration Presets:\n"
+    ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
+    "Context Presets:\n"
     " - direct_kway_km1_alenex17\n"
     " - rb_cut_alenex16\n"
     " - <path-to-custom-ini-file>");
@@ -125,77 +125,77 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::options_description general_options("General Options", num_columns);
   general_options.add_options()
     ("seed",
-    po::value<int>(&config.partition.seed)->value_name("<int>"),
+    po::value<int>(&context.partition.seed)->value_name("<int>"),
     "Seed for random number generator \n"
     "(default: -1)")
     ("cmaxnet",
-    po::value<HyperedgeID>(&config.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
+    po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
-      if (config.partition.hyperedge_size_threshold == -1) {
-        config.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+      if (context.partition.hyperedge_size_threshold == -1) {
+        context.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
       }
     }),
     "Hyperedges larger than cmaxnet are ignored during partitioning process. \n"
     "(default: -1, disabled)")
     ("vcycles",
-    po::value<int>(&config.partition.global_search_iterations)->value_name("<int>"),
+    po::value<int>(&context.partition.global_search_iterations)->value_name("<int>"),
     "# V-cycle iterations for direct k-way partitioning \n"
     "(default: 0)");
 
   po::options_description preprocessing_options("Preprocessing Options", num_columns);
   preprocessing_options.add_options()
     ("p-use-sparsifier",
-    po::value<bool>(&config.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning \n"
     "(default: false)")
     ("p-sparsifier-min-median-he-size",
-    po::value<HypernodeID>(&config.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
+    po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
     "Minimum median hyperedge size necessary for sparsifier application \n"
     "(default: 28)")
     ("p-sparsifier-max-hyperedge-size",
-    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
     "Max hyperedge size allowed considered by sparsifier")
     ("p-sparsifier-max-cluster-size",
-    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
     "Max cluster size which is built by sparsifier")
     ("p-sparsifier-min-cluster-size",
-    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
     "Min cluster size which is built by sparsifier")
     ("p-sparsifier-num-hash-func",
-    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
     "Number of hash functions")
     ("p-sparsifier-combined-num-hash-func",
-    po::value<uint32_t>(&config.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
     "Number of combined hash functions")
     ("p-parallel-net-removal",
-    po::value<bool>(&config.preprocessing.remove_parallel_hes)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.remove_parallel_hes)->value_name("<bool>"),
     "Remove parallel hyperedges before partitioning \n"
     "(default: false)")
     ("p-large-net-removal",
-    po::value<bool>(&config.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
     "Remove hyperedges that will always be cut because"
     " of the weight of their pins \n"
     "(default: false)")
     ("p-use-louvain",
-    po::value<bool>(&config.preprocessing.enable_louvain_community_detection)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.enable_louvain_community_detection)->value_name("<bool>"),
     "Using louvain community detection for coarsening\n"
     "(default: false)")
     ("p-use-louvain-in-ip",
-    po::value<bool>(&config.preprocessing.louvain_community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.louvain_community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
     "Using louvain community detection for coarsening during initial partitioning\n"
     "(default: false)")
     ("p-max-louvain-pass-iterations",
-    po::value<int>(&config.preprocessing.louvain_community_detection.max_pass_iterations)->value_name("<int>"),
+    po::value<int>(&context.preprocessing.louvain_community_detection.max_pass_iterations)->value_name("<int>"),
     "Maximum number of iterations over all nodes of one louvain pass\n"
     "(default: 100)")
     ("p-min-eps-improvement",
-    po::value<long double>(&config.preprocessing.louvain_community_detection.min_eps_improvement)->value_name("<long double>"),
+    po::value<long double>(&context.preprocessing.louvain_community_detection.min_eps_improvement)->value_name("<long double>"),
     "Minimum improvement of quality during a louvain pass which leads to further passes\n"
     "(default: 0.001)")
     ("p-louvain-edge-weight",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ptype) {
-      config.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
+      context.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
     }),
     "Weights:\n"
     " - hybrid \n"
@@ -204,7 +204,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - degree \n"
     "(default: hybrid)")
     ("p-louvain-use-bipartite-graph",
-    po::value<bool>(&config.preprocessing.louvain_community_detection.use_bipartite_graph)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.louvain_community_detection.use_bipartite_graph)->value_name("<bool>"),
     "If true, hypergraph is transformed into bipartite graph. If false, hypergraph is transformed into clique graph.\n"
     "(default: true)");
 
@@ -213,7 +213,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ctype) {
-      config.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+      context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
     }),
     "Algorithm:\n"
     " - ml_style\n"
@@ -221,12 +221,12 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - heavy_lazy \n"
     "(default: ml_style)")
     ("c-s",
-    po::value<double>(&config.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    po::value<double>(&context.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
     "(s * w(H)) / (t * k)\n"
     "(default: 1)")
     ("c-t",
-    po::value<HypernodeID>(&config.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
     "Coarsening stops when there are no more than t * k hypernodes left\n"
     "(default: 160)");
 
@@ -236,7 +236,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-mode",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_mode) {
-      config.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
+      context.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
     }),
     "IP mode: \n"
     " - (recursive) bisection  \n"
@@ -245,7 +245,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-technique",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
-      config.initial_partitioning.technique =
+      context.initial_partitioning.technique =
         kahypar::inititalPartitioningTechniqueFromString(ip_technique);
     }),
     "IP Technique:\n"
@@ -255,14 +255,14 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-algo",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_algo) {
-      config.initial_partitioning.algo =
+      context.initial_partitioning.algo =
         kahypar::initialPartitioningAlgorithmFromString(ip_algo);
     }),
     "Algorithm used to create initial partition: pool (default)")
     ("i-c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_ctype) {
-      config.initial_partitioning.coarsening.algorithm =
+      context.initial_partitioning.coarsening.algorithm =
         kahypar::coarseningAlgorithmFromString(ip_ctype);
     }),
     "IP Coarsening Algorithm:\n"
@@ -271,22 +271,22 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - heavy_lazy \n"
     "(default: ml_style)")
     ("i-c-s",
-    po::value<double>(&config.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    po::value<double>(&context.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
     "(i-c-s * w(H)) / (i-c-t * k)\n"
     "(default: 1)")
     ("i-c-t",
-    po::value<HypernodeID>(&config.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
     "IP coarsening stops when there are no more than i-c-t * k hypernodes left \n"
     "(default: 150)")
     ("i-runs",
-    po::value<int>(&config.initial_partitioning.nruns)->value_name("<int>"),
+    po::value<int>(&context.initial_partitioning.nruns)->value_name("<int>"),
     "# initial partition trials \n"
     "(default: 20)")
     ("i-r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_rtype) {
-      config.initial_partitioning.local_search.algorithm =
+      context.initial_partitioning.local_search.algorithm =
         kahypar::refinementAlgorithmFromString(ip_rtype);
     }),
     "IP Local Search Algorithm:\n"
@@ -298,7 +298,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("i-r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_stopfm) {
-      config.initial_partitioning.local_search.fm.stopping_rule =
+      context.initial_partitioning.local_search.fm.stopping_rule =
         kahypar::stoppingRuleFromString(ip_stopfm);
     }),
     "Stopping Rule for IP Local Search: \n"
@@ -306,21 +306,21 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - simple:       ALENEX'16 threshold based on i-r-i\n"
     "(default: simple)")
     ("i-r-fm-stop-i",
-    po::value<int>(&config.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    po::value<int>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
     "Max. # fruitless moves before stopping local search \n"
     "(default: 50)")
     ("i-r-runs",
-    po::value<int>(&config.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
+    po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
-      if (config.initial_partitioning.local_search.iterations_per_level == -1) {
-        config.initial_partitioning.local_search.iterations_per_level =
+      if (context.initial_partitioning.local_search.iterations_per_level == -1) {
+        context.initial_partitioning.local_search.iterations_per_level =
           std::numeric_limits<int>::max();
       }
     }),
     "Max. # local search repetitions on each level \n"
     "(default:1, no limit:-1)")
     ("i-stats",
-    po::value<bool>(&config.initial_partitioning.collect_stats)->value_name("<bool>"),
+    po::value<bool>(&context.initial_partitioning.collect_stats)->value_name("<bool>"),
     "# Collect statistics for initial partitioning \n"
     "(default: false)");
 
@@ -329,7 +329,7 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     ("r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rtype) {
-      config.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
+      context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
     }),
     "Local Search Algorithm:\n"
     " - twoway_fm   : 2-way FM algorithm\n"
@@ -338,22 +338,22 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - sclap       : Size-constrained Label Propagation \n"
     "(default: twoway_fm)")
     ("r-runs",
-    po::value<int>(&config.local_search.iterations_per_level)->value_name("<int>")->notifier(
+    po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
-      if (config.local_search.iterations_per_level == -1) {
-        config.local_search.iterations_per_level = std::numeric_limits<int>::max();
+      if (context.local_search.iterations_per_level == -1) {
+        context.local_search.iterations_per_level = std::numeric_limits<int>::max();
       }
     }),
     "Max. # local search repetitions on each level\n"
     "(default:1, no limit:-1)")
     ("r-sclap-runs",
-    po::value<int>(&config.local_search.sclap.max_number_iterations)->value_name("<int>"),
+    po::value<int>(&context.local_search.sclap.max_number_iterations)->value_name("<int>"),
     "Maximum # iterations for ScLaP-based refinement \n"
     "(default: -1 infinite)")
     ("r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& stopfm) {
-      config.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
+      context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
     }),
     "Stopping Rule for Local Search: \n"
     " - adaptive_opt: ALENEX'17 stopping rule \n"
@@ -362,20 +362,20 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
     " - simple:       threshold based on r-fm-stop-i \n"
     "(default: simple)")
     ("r-fm-stop-i",
-    po::value<int>(&config.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    po::value<int>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
     "Max. # fruitless moves before stopping local search using simple stopping rule \n"
     "(default: 250)")
     ("r-fm-stop-alpha",
-    po::value<double>(&config.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
+    po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rules \n"
     "(default: 1,infinity: -1)")
     ("r-fm-global-rebalancing",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool global_rebalancing) {
       if (global_rebalancing) {
-        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
+        context.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
       } else {
-        config.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
+        context.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
       }
     }),
     "Use global rebalancing PQs in twoway_fm \n"
@@ -404,9 +404,9 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
 
   po::notify(cmd_vm);
 
-  std::ifstream file(config_path.c_str());
+  std::ifstream file(context_path.c_str());
   if (!file) {
-    std::cerr << "Could not load config file at: " << config_path << std::endl;
+    std::cerr << "Could not load context file at: " << context_path << std::endl;
     std::exit(-1);
   }
 
@@ -421,21 +421,21 @@ void processCommandLineInput(Configuration& config, int argc, char* argv[]) {
   po::notify(cmd_vm);
 
 
-  std::string epsilon_str = std::to_string(config.partition.epsilon);
+  std::string epsilon_str = std::to_string(context.partition.epsilon);
   epsilon_str.erase(epsilon_str.find_last_not_of('0') + 1, std::string::npos);
 
-  config.partition.graph_partition_filename =
-    config.partition.graph_filename
+  context.partition.graph_partition_filename =
+    context.partition.graph_filename
     + ".part"
-    + std::to_string(config.partition.k)
+    + std::to_string(context.partition.k)
     + ".epsilon"
     + epsilon_str
     + ".seed"
-    + std::to_string(config.partition.seed)
+    + std::to_string(context.partition.seed)
     + ".KaHyPar";
 
-  if (config.partition.verbose_output || config.initial_partitioning.verbose_output) {
-    config.partition.collect_stats = true;
+  if (context.partition.verbose_output || context.initial_partitioning.verbose_output) {
+    context.partition.collect_stats = true;
   }
 }
 }  // namespace kahypar

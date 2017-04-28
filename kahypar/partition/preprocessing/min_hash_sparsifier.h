@@ -97,8 +97,8 @@ class MinHashSparsifier {
   MinHashSparsifier() :
     _clusters() { }
 
-  Hypergraph buildSparsifiedHypergraph(const Hypergraph& hypergraph, const Configuration& config) {
-    AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(hypergraph, config);
+  Hypergraph buildSparsifiedHypergraph(const Hypergraph& hypergraph, const Context& context) {
+    AdaptiveLSHWithConnectedComponents<LSHCombinedHashPolicy> sparsifier(hypergraph, context);
 
     _clusters = sparsifier.build();
 
@@ -186,7 +186,7 @@ class MinHashSparsifier {
     }
 
     return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
-                      config.partition.k, &edge_weights, &vertex_weights);
+                      context.partition.k, &edge_weights, &vertex_weights);
   }
 
   void applyPartition(const Hypergraph& coarsaned_graph, Hypergraph& original_graph) {

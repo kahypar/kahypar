@@ -47,9 +47,9 @@ class AdaptiveLSHWithConnectedComponents {
 
  public:
   explicit AdaptiveLSHWithConnectedComponents(const Hypergraph& hypergraph,
-                                              const Configuration& config) :
+                                              const Context& context) :
     _hypergraph(hypergraph),
-    _config(config),
+    _context(context),
     _bfs_neighbours(),
     _vertices(),
     _new_hashes(),
@@ -62,14 +62,14 @@ class AdaptiveLSHWithConnectedComponents {
     _visited(_hypergraph.currentNumNodes()) {
     _buckets.reserve(_hypergraph.currentNumNodes());
     _new_buckets.reserve(_hypergraph.currentNumNodes());
-    _bfs_neighbours.reserve(_config.preprocessing.min_hash_sparsifier.max_hyperedge_size);
-    _hash_set.reserve(_config.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
+    _bfs_neighbours.reserve(_context.preprocessing.min_hash_sparsifier.max_hyperedge_size);
+    _hash_set.reserve(_context.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
     _base_hash_policy.reserveHashFunctions(
-      _config.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
+      _context.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
   }
 
   std::vector<HypernodeID> build() {
-    std::default_random_engine eng(_config.partition.seed);
+    std::default_random_engine eng(_context.partition.seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
     MyHashSet main_hash_set(0, _hypergraph.currentNumNodes());
@@ -94,7 +94,7 @@ class AdaptiveLSHWithConnectedComponents {
     active_vertices_set.reserve(num_active_vertices);
 
     while (num_active_vertices > 0 && main_hash_set.getHashNum() <
-           _config.preprocessing.min_hash_sparsifier.num_hash_functions) {
+           _context.preprocessing.min_hash_sparsifier.num_hash_functions) {
       main_hash_set.addHashVector();
       active_vertices_set.clear();
 
@@ -109,7 +109,7 @@ class AdaptiveLSHWithConnectedComponents {
       auto start = std::chrono::high_resolution_clock::now();
       incrementalParametersEstimation(active_vertices_set, rnd(eng), main_hash_set, hash_num);
       auto end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_config,
+      Stats::instance().addToTotal(_context,
                                    "adaptive_lsh_incremental_parameter_estimation",
                                    std::chrono::duration<double>(end - start).count());
 
@@ -118,7 +118,7 @@ class AdaptiveLSHWithConnectedComponents {
       calculateOneDimBucket(_hypergraph.currentNumNodes(),
                             active_clusters_bool_set, clusters, main_hash_set, hash_num);
       end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_config,
+      Stats::instance().addToTotal(_context,
                                    "adaptive_lsh_construction_of_buckets",
                                    std::chrono::duration<double>(end - start).count());
 
@@ -127,7 +127,7 @@ class AdaptiveLSHWithConnectedComponents {
                                      clusters, cluster_size,
                                      main_hash_set, hash_num, inactive_clusters);
       end = std::chrono::high_resolution_clock::now();
-      Stats::instance().addToTotal(_config,
+      Stats::instance().addToTotal(_context,
                                    "adaptive_lsh_construction_of_clustering",
                                    std::chrono::duration<double>(end - start).count());
 
@@ -184,8 +184,8 @@ class AdaptiveLSHWithConnectedComponents {
     // empirically best value
     const uint32_t min_hash_num = 10;
 
-    const uint32_t max_bucket_size = _config.preprocessing.min_hash_sparsifier.max_cluster_size;
-    ASSERT(min_hash_num <= _config.preprocessing.min_hash_sparsifier.combined_num_hash_functions,
+    const uint32_t max_bucket_size = _context.preprocessing.min_hash_sparsifier.max_cluster_size;
+    ASSERT(min_hash_num <= _context.preprocessing.min_hash_sparsifier.combined_num_hash_functions,
            "# min combined hash funcs should be <= # max combined hash funcs");
 
     for (size_t i = 0; i + 1 < min_hash_num; ++i) {
@@ -259,7 +259,7 @@ class AdaptiveLSHWithConnectedComponents {
           const HypernodeID bucket_size = new_end - new_begin;
           if ((bucket_size <= max_bucket_size && _hash_set.getHashNum() >= min_hash_num) ||
               _hash_set.getHashNum() >=
-              _config.preprocessing.min_hash_sparsifier.combined_num_hash_functions
+              _context.preprocessing.min_hash_sparsifier.combined_num_hash_functions
               ) {
             remained_vertices -= bucket_size;
           } else {
@@ -333,9 +333,9 @@ class AdaptiveLSHWithConnectedComponents {
       if (active_clusters_bool_set[neighbour_cluster]) {
         const HypernodeWeight weight = _hypergraph.nodeWeight(neighbour);
         if (cluster_size[cur_cluster] + weight >
-            _config.preprocessing.min_hash_sparsifier.max_cluster_size) {
+            _context.preprocessing.min_hash_sparsifier.max_cluster_size) {
           ASSERT(cluster_size[cur_cluster] <=
-                 _config.preprocessing.min_hash_sparsifier.max_cluster_size,
+                 _context.preprocessing.min_hash_sparsifier.max_cluster_size,
                  "Cluster is overflowed");
           break;
         }
@@ -345,7 +345,7 @@ class AdaptiveLSHWithConnectedComponents {
         cluster_size[cur_cluster] += weight;
 
         if (cluster_size[cur_cluster] >=
-            _config.preprocessing.min_hash_sparsifier.min_cluster_size) {
+            _context.preprocessing.min_hash_sparsifier.min_cluster_size) {
           inactive_clusters.push_back(cur_cluster);
           active_clusters_bool_set[cur_cluster] = false;
         }
@@ -361,7 +361,7 @@ class AdaptiveLSHWithConnectedComponents {
   }
 
   const Hypergraph& _hypergraph;
-  const Configuration& _config;
+  const Context& _context;
   std::vector<HypernodeID> _bfs_neighbours;
   std::vector<HypernodeID> _vertices;
   std::vector<Pair> _new_hashes;

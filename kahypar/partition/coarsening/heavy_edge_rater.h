@@ -30,7 +30,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/utils/stats.h"
 
@@ -74,22 +74,22 @@ class HeavyEdgeRater {
   using RatingType = _RatingType;
   using Rating = HeavyEdgeRating;
 
-  HeavyEdgeRater(Hypergraph& hypergraph, const Configuration& config) :
+  HeavyEdgeRater(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
-    _config(config),
+    _context(context),
     _tmp_ratings(_hg.initialNumNodes()),
     _comm(),
     _already_matched(_hg.initialNumNodes()) {
-    if (_config.preprocessing.enable_louvain_community_detection) {
-      const bool verbose_output = (_config.type == ConfigType::main &&
-                                   _config.partition.verbose_output);
+    if (_context.preprocessing.enable_louvain_community_detection) {
+      const bool verbose_output = (_context.type == ContextType::main &&
+                                   _context.partition.verbose_output);
       if (verbose_output) {
         LOG << "Performing community detection:";
       }
-      _comm = detectCommunities(_hg, _config);
+      _comm = detectCommunities(_hg, _context);
       if (verbose_output) {
-        LOG << "  # communities = " << Stats::instance().get(_config, "Communities");
-        LOG << "  modularity    = " << Stats::instance().get(_config, "Modularity");
+        LOG << "  # communities = " << Stats::instance().get(_context, "Communities");
+        LOG << "  modularity    = " << Stats::instance().get(_context, "Modularity");
       }
     } else {
       _comm.resize(_hg.initialNumNodes(), 0);
@@ -165,17 +165,17 @@ class HeavyEdgeRater {
   }
 
   HypernodeWeight thresholdNodeWeight() const {
-    return _config.coarsening.max_allowed_node_weight;
+    return _context.coarsening.max_allowed_node_weight;
   }
 
  private:
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
                                 const HypernodeWeight weight_v) const {
-    return weight_v + weight_u <= _config.coarsening.max_allowed_node_weight;
+    return weight_v + weight_u <= _context.coarsening.max_allowed_node_weight;
   }
 
   Hypergraph& _hg;
-  const Configuration& _config;
+  const Context& _context;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   std::vector<ClusterID> _comm;
   ds::FastResetFlagArray<> _already_matched;

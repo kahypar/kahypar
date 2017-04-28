@@ -36,7 +36,7 @@
 
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
@@ -96,9 +96,9 @@ class Graph {
   using EdgeIterator = std::vector<Edge>::const_iterator;
   using IncidentClusterWeightIterator = std::vector<IncidentClusterWeight>::const_iterator;
 
-  Graph(const Hypergraph& hypergraph, const Configuration& config) :
+  Graph(const Hypergraph& hypergraph, const Context& context) :
     _num_nodes(hypergraph.currentNumNodes() +
-               (config.preprocessing.louvain_community_detection.use_bipartite_graph ?
+               (context.preprocessing.louvain_community_detection.use_bipartite_graph ?
                 hypergraph.currentNumEdges() : 0)),
     _num_communities(_num_nodes),
     _total_weight(0.0L),
@@ -112,8 +112,8 @@ class Graph {
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
-    if (config.preprocessing.louvain_community_detection.use_bipartite_graph) {
-      switch (config.preprocessing.louvain_community_detection.edge_weight) {
+    if (context.preprocessing.louvain_community_detection.use_bipartite_graph) {
+      switch (context.preprocessing.louvain_community_detection.edge_weight) {
         case LouvainEdgeWeight::degree:
           constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
                                                   const HyperedgeID he,

@@ -29,7 +29,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/preprocessing/modularity.h"
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
@@ -46,19 +46,19 @@ class Louvain {
 
  public:
   Louvain(const Hypergraph& hypergraph,
-          const Configuration& config) :
+          const Context& context) :
     _graph_hierarchy(),
     _random_node_order(),
-    _config(config) {
-    _graph_hierarchy.emplace_back(hypergraph, config);
+    _context(context) {
+    _graph_hierarchy.emplace_back(hypergraph, context);
   }
 
   Louvain(const std::vector<NodeID>& adj_array,
           const std::vector<Edge>& edges,
-          const Configuration& config) :
+          const Context& context) :
     _graph_hierarchy(),
     _random_node_order(),
-    _config(config) {
+    _context(context) {
     _graph_hierarchy.emplace_back(adj_array, edges);
   }
 
@@ -103,7 +103,7 @@ class Louvain {
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
       DBG << "Louvain-Pass #" << iteration << "Time:" << elapsed_seconds.count() << "s";
-      improvement = cur_quality - old_quality > _config.preprocessing.louvain_community_detection.min_eps_improvement;
+      improvement = cur_quality - old_quality > _context.preprocessing.louvain_community_detection.min_eps_improvement;
 
       DBG << "Louvain-Pass #" << iteration << "improved quality from" << old_quality
           << "to" << cur_quality;
@@ -243,7 +243,7 @@ class Louvain {
 
       DBG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
     } while (node_moves > 0 &&
-             iterations < _config.preprocessing.louvain_community_detection.max_pass_iterations);
+             iterations < _context.preprocessing.louvain_community_detection.max_pass_iterations);
 
 
     return quality.quality();
@@ -251,21 +251,21 @@ class Louvain {
 
   std::vector<Graph> _graph_hierarchy;
   std::vector<NodeID> _random_node_order;
-  const Configuration& _config;
+  const Context& _context;
 };
 
 
 inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
-                                                const Configuration& config) {
-  Louvain<Modularity> louvain(hypergraph, config);
+                                                const Context& context) {
+  Louvain<Modularity> louvain(hypergraph, context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   const EdgeWeight quality = louvain.run();
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
   DBG << "Louvain-Time:" << elapsed_seconds.count() << "s";
-  Stats::instance().addToTotal(config, "CommunityDetectionTime", elapsed_seconds.count());
-  Stats::instance().addToTotal(config, "Communities", louvain.numCommunities());
-  Stats::instance().addToTotal(config, "Modularity", quality);
+  Stats::instance().addToTotal(context, "CommunityDetectionTime", elapsed_seconds.count());
+  Stats::instance().addToTotal(context, "Communities", louvain.numCommunities());
+  Stats::instance().addToTotal(context, "Modularity", quality);
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
   for (const HypernodeID& hn : hypergraph.nodes()) {

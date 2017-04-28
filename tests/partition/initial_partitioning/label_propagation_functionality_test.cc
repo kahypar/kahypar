@@ -36,25 +36,25 @@ using ::testing::Eq;
 using ::testing::Test;
 
 namespace kahypar {
-void initializeConfiguration(Configuration& config, PartitionID k,
-                             HypernodeWeight hypergraph_weight) {
-  config.initial_partitioning.k = k;
-  config.partition.k = k;
-  config.initial_partitioning.epsilon = 1.0;
-  config.partition.epsilon = 1.0;
-  config.initial_partitioning.refinement = false;
-  config.initial_partitioning.upper_allowed_partition_weight.resize(
-    config.initial_partitioning.k);
-  config.initial_partitioning.perfect_balance_partition_weight.resize(
-    config.initial_partitioning.k);
-  for (int i = 0; i < config.initial_partitioning.k; i++) {
-    config.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
+void initializeContext(Context& context, PartitionID k,
+                       HypernodeWeight hypergraph_weight) {
+  context.initial_partitioning.k = k;
+  context.partition.k = k;
+  context.initial_partitioning.epsilon = 1.0;
+  context.partition.epsilon = 1.0;
+  context.initial_partitioning.refinement = false;
+  context.initial_partitioning.upper_allowed_partition_weight.resize(
+    context.initial_partitioning.k);
+  context.initial_partitioning.perfect_balance_partition_weight.resize(
+    context.initial_partitioning.k);
+  for (int i = 0; i < context.initial_partitioning.k; i++) {
+    context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k));
-    config.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
+      / static_cast<double>(context.initial_partitioning.k));
+    context.initial_partitioning.upper_allowed_partition_weight[i] = ceil(
       hypergraph_weight
-      / static_cast<double>(config.initial_partitioning.k))
-                                                                    * (1.0 + config.partition.epsilon);
+      / static_cast<double>(context.initial_partitioning.k))
+                                                                     * (1.0 + context.partition.epsilon);
   }
 }
 
@@ -64,19 +64,19 @@ class ALabelPropagationMaxGainMoveTest : public Test {
     partitioner(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
+    context() {
     PartitionID k = 2;
-    initializeConfiguration(config, k, 7);
+    initializeContext(context, k, 7);
 
     partitioner = std::make_shared<LabelPropagationInitialPartitioner<
                                      BFSStartNodeSelectionPolicy<>, FMGainComputationPolicy> >(
-      hypergraph, config);
+      hypergraph, context);
   }
 
   std::shared_ptr<LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                                      FMGainComputationPolicy> > partitioner;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
 };
 
 TEST_F(ALabelPropagationMaxGainMoveTest,

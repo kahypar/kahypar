@@ -25,7 +25,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -46,34 +46,34 @@ class APartitioner : public Test {
   APartitioner() :
     hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
-    config(),
+    context(),
     partitioner(),
-    coarsener(new FirstWinsCoarsener(*hypergraph, config,  /* heaviest_node_weight */ 1)),
-    refiner(new Refiner(*hypergraph, config)) {
-    config.coarsening.contraction_limit = 2;
-    config.local_search.algorithm = RefinementAlgorithm::twoway_fm;
-    config.coarsening.max_allowed_node_weight = 5;
-    config.partition.graph_filename = "PartitionerTest.hgr";
-    config.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
-    config.partition.epsilon = 0.15;
-    config.partition.k = 2;
-    config.partition.rb_lower_k = 0;
-    config.partition.rb_upper_k = config.partition.k - 1;
-    config.partition.total_graph_weight = 7;
-    config.partition.perfect_balance_part_weights[0] = ceil(
-      7 / static_cast<double>(config.partition.k));
-    config.partition.perfect_balance_part_weights[1] = ceil(
-      7 / static_cast<double>(config.partition.k));
+    coarsener(new FirstWinsCoarsener(*hypergraph, context,  /* heaviest_node_weight */ 1)),
+    refiner(new Refiner(*hypergraph, context)) {
+    context.coarsening.contraction_limit = 2;
+    context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    context.coarsening.max_allowed_node_weight = 5;
+    context.partition.graph_filename = "PartitionerTest.hgr";
+    context.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
+    context.partition.epsilon = 0.15;
+    context.partition.k = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = context.partition.k - 1;
+    context.partition.total_graph_weight = 7;
+    context.partition.perfect_balance_part_weights[0] = ceil(
+      7 / static_cast<double>(context.partition.k));
+    context.partition.perfect_balance_part_weights[1] = ceil(
+      7 / static_cast<double>(context.partition.k));
 
-    config.partition.max_part_weights[0] = (1 + config.partition.epsilon)
-                                           * config.partition.perfect_balance_part_weights[0];
-    config.partition.max_part_weights[1] = (1 + config.partition.epsilon)
-                                           * config.partition.perfect_balance_part_weights[1];
-    kahypar::Randomize::instance().setSeed(config.partition.seed);
+    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[0];
+    context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[1];
+    kahypar::Randomize::instance().setSeed(context.partition.seed);
   }
 
   std::unique_ptr<Hypergraph> hypergraph;
-  Configuration config;
+  Context context;
   Partitioner partitioner;
   std::unique_ptr<ICoarsener> coarsener;
   std::unique_ptr<IRefiner> refiner;
@@ -83,18 +83,18 @@ class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
  public:
   APartitionerWithHyperedgeSizeThreshold() :
     APartitioner() {
-    config.partition.hyperedge_size_threshold = 3;
+    context.partition.hyperedge_size_threshold = 3;
   }
 };
 
 TEST_F(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph) {
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
   ASSERT_THAT(hypergraph->partID(3), Eq(0));
 }
 
 TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
   hypergraph->printGraphState();
   ASSERT_THAT(hypergraph->partID(0), Eq(1));
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
@@ -110,7 +110,7 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
@@ -119,9 +119,9 @@ TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
 
 TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
-  config.partition.global_search_iterations = 2;
+  context.partition.global_search_iterations = 2;
   DBG1 << metrics::hyperedgeCut(*hypergraph);
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, config);
+  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
   hypergraph->printGraphState();
   DBG1 << metrics::hyperedgeCut(*hypergraph);
   metrics::hyperedgeCut(*hypergraph);

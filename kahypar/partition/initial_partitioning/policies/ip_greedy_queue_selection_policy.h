@@ -39,19 +39,19 @@ class RoundRobinQueueSelectionPolicy {
   }
 
   template <typename PQ>
-  static inline bool nextQueueID(Hypergraph&, Configuration& config,
+  static inline bool nextQueueID(Hypergraph&, Context& context,
                                  PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool) {
-    current_id = ((current_id + 1) % config.initial_partitioning.k);
+    current_id = ((current_id + 1) % context.initial_partitioning.k);
     current_hn = invalid_node;
     current_gain = invalid_gain;
     PartitionID counter = 1;
     while (!_pq.isEnabled(current_id)) {
-      if (counter++ == config.initial_partitioning.k) {
+      if (counter++ == context.initial_partitioning.k) {
         current_id = invalid_part;
         return false;
       }
-      current_id = ((current_id + 1) % config.initial_partitioning.k);
+      current_id = ((current_id + 1) % context.initial_partitioning.k);
     }
     if (current_id != -1) {
       _pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
@@ -75,14 +75,14 @@ class GlobalQueueSelectionPolicy {
   }
 
   template <typename PQ>
-  static inline bool nextQueueID(Hypergraph&, Configuration& config,
+  static inline bool nextQueueID(Hypergraph&, Context& context,
                                  PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool) {
     current_id = invalid_part;
     current_hn = invalid_node;
     current_gain = invalid_gain;
     bool exist_enabled_pq = false;
-    for (PartitionID part = 0; part < config.initial_partitioning.k; ++part) {
+    for (PartitionID part = 0; part < context.initial_partitioning.k; ++part) {
       if (_pq.isEnabled(part)) {
         exist_enabled_pq = true;
         break;
@@ -95,7 +95,7 @@ class GlobalQueueSelectionPolicy {
 
     ASSERT([&]() {
         if (current_id != -1) {
-          for (PartitionID part = 0; part < config.initial_partitioning.k; ++part) {
+          for (PartitionID part = 0; part < context.initial_partitioning.k; ++part) {
             if (_pq.isEnabled(part) && _pq.maxKey(part) > current_gain) {
               return false;
             }
@@ -124,17 +124,17 @@ class SequentialQueueSelectionPolicy {
   }
 
   template <typename PQ>
-  static inline bool nextQueueID(Hypergraph& hg, Configuration& config,
+  static inline bool nextQueueID(Hypergraph& hg, Context& context,
                                  PQ& _pq, HypernodeID& current_hn, Gain& current_gain,
                                  PartitionID& current_id, bool is_upper_bound_released) {
     if (!is_upper_bound_released) {
       bool next_part = false;
       if (hg.partWeight(current_id)
-          < config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+          < context.initial_partitioning.upper_allowed_partition_weight[current_id]) {
         _pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
 
         if (hg.partWeight(current_id) + hg.nodeWeight(current_hn)
-            > config.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+            > context.initial_partitioning.upper_allowed_partition_weight[current_id]) {
           _pq.insert(current_hn, current_id, current_gain);
           next_part = true;
         }
@@ -144,10 +144,10 @@ class SequentialQueueSelectionPolicy {
 
       if (next_part) {
         current_id++;
-        if (current_id == config.initial_partitioning.unassigned_part) {
+        if (current_id == context.initial_partitioning.unassigned_part) {
           current_id++;
         }
-        if (current_id != config.initial_partitioning.k) {
+        if (current_id != context.initial_partitioning.k) {
           ASSERT(_pq.isEnabled(current_id),
                  "PQ" << current_id << "should be enabled!");
           _pq.deleteMaxFromPartition(current_hn, current_gain,
@@ -159,7 +159,7 @@ class SequentialQueueSelectionPolicy {
         }
       }
     } else {
-      GlobalQueueSelectionPolicy::nextQueueID(hg, config, _pq, current_hn, current_gain,
+      GlobalQueueSelectionPolicy::nextQueueID(hg, context, _pq, current_hn, current_gain,
                                               current_id, is_upper_bound_released);
     }
 

@@ -35,33 +35,33 @@
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
-using kahypar::Configuration;
+using kahypar::Context;
 
 int main(int argc, char* argv[]) {
-  Configuration config;
+  Context context;
 
-  kahypar::processCommandLineInput(config, argc, argv);
-  kahypar::sanityCheck(config);
+  kahypar::processCommandLineInput(context, argc, argv);
+  kahypar::sanityCheck(context);
 
-  if (!config.partition.quiet_mode) {
+  if (!context.partition.quiet_mode) {
     kahypar::io::printBanner();
   }
 
-  if (config.partition.global_search_iterations != 0) {
+  if (context.partition.global_search_iterations != 0) {
     std::cerr << "Coarsened does not check if HNs are in same part." << std::endl;
     std::cerr << "Therefore v-cycles are currently disabled." << std::endl;
     std::exit(-1);
   }
 
-  kahypar::Randomize::instance().setSeed(config.partition.seed);
+  kahypar::Randomize::instance().setSeed(context.partition.seed);
 
   kahypar::Hypergraph hypergraph(
-    kahypar::io::createHypergraphFromFile(config.partition.graph_filename,
-                                          config.partition.k));
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  partitioner.partition(hypergraph, config);
+  partitioner.partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
 
@@ -72,15 +72,15 @@ int main(int argc, char* argv[]) {
   kahypar::io::printPartitioningStatistics();
 #endif
 
-  if (!config.partition.quiet_mode) {
-    kahypar::io::printPartitioningResults(hypergraph, config, elapsed_seconds);
+  if (!context.partition.quiet_mode) {
+    kahypar::io::printPartitioningResults(hypergraph, context, elapsed_seconds);
     LOG << "";
   }
   kahypar::io::writePartitionFile(hypergraph,
-                                  config.partition.graph_partition_filename);
+                                  context.partition.graph_partition_filename);
 
-  if (config.partition.sp_process_output) {
-    kahypar::io::serializer::serialize(config, hypergraph, partitioner, elapsed_seconds);
+  if (context.partition.sp_process_output) {
+    kahypar::io::serializer::serialize(context, hypergraph, partitioner, elapsed_seconds);
   }
   return 0;
 }

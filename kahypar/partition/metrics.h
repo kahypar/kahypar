@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 struct Metrics {
@@ -95,21 +95,21 @@ inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
 }
 }  // namespace internal
 
-static inline double imbalance(const Hypergraph& hypergraph, const Configuration& config) {
-  ASSERT(config.partition.k == 2 ||
-         config.partition.perfect_balance_part_weights[0]
-         == config.partition.perfect_balance_part_weights[1],
+static inline double imbalance(const Hypergraph& hypergraph, const Context& context) {
+  ASSERT(context.partition.k == 2 ||
+         context.partition.perfect_balance_part_weights[0]
+         == context.partition.perfect_balance_part_weights[1],
          "Imbalance cannot be calculated correctly");
 
   double max_balance = (hypergraph.partWeight(0) /
-                        static_cast<double>(config.partition.perfect_balance_part_weights[0]));
-  for (PartitionID i = 1; i != config.partition.k; ++i) {
+                        static_cast<double>(context.partition.perfect_balance_part_weights[0]));
+  for (PartitionID i = 1; i != context.partition.k; ++i) {
     // If k > 2, then perfect_balance_part_weights[0] ==
     // perfect_balance_part_weights[1] == perfect_balance_part_weights[i], because then we
     // to direct k-way partitioning and each part has the same perfect_balance weight and Lmax
     const double balance_i =
       (hypergraph.partWeight(i) /
-       static_cast<double>(config.partition.perfect_balance_part_weights[1]));
+       static_cast<double>(context.partition.perfect_balance_part_weights[1]));
     max_balance = std::max(max_balance, balance_i);
   }
 
@@ -117,11 +117,11 @@ static inline double imbalance(const Hypergraph& hypergraph, const Configuration
   // an equal number of blocks, the old, natural imbalance definition does not hold.
   // However if k=2^x or we do partition into an equal number of blocks, this imbalance
   // calculation should give the same result as the old one.
-  ASSERT(config.partition.perfect_balance_part_weights[0]
-         != config.partition.perfect_balance_part_weights[1] ||
-         max_balance - 1.0 == internal::imbalance(hypergraph, config.partition.k),
+  ASSERT(context.partition.perfect_balance_part_weights[0]
+         != context.partition.perfect_balance_part_weights[1] ||
+         max_balance - 1.0 == internal::imbalance(hypergraph, context.partition.k),
          "Incorrect Imbalance:" << (max_balance - 1.0) << "!="
-                                << V(internal::imbalance(hypergraph, config.partition.k)));
+                                << V(internal::imbalance(hypergraph, context.partition.k)));
   return max_balance - 1.0;
 }
 

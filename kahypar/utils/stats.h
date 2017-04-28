@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration.h"
+#include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 
 namespace kahypar {
@@ -42,15 +42,15 @@ class Stats {
 
   ~Stats() = default;
 
-  void add(const Configuration& config, const std::string& key, double value) {
-    if (config.partition.collect_stats) {
-      _stats[internalKey(config, key)] += value;
+  void add(const Context& context, const std::string& key, double value) {
+    if (context.partition.collect_stats) {
+      _stats[internalKey(context, key)] += value;
     }
   }
 
-  void addToTotal(const Configuration& config, const std::string& key, double value) {
-    if (config.partition.collect_stats) {
-      _stats[internalKey(config, key)] += value;
+  void addToTotal(const Context& context, const std::string& key, double value) {
+    if (context.partition.collect_stats) {
+      _stats[internalKey(context, key)] += value;
       _stats[key] += value;
     }
   }
@@ -69,10 +69,10 @@ class Stats {
   // However, for direct k-way partitioning, we want to differentiate between
   // the time the main coarsening, IP, and local search phases took and the time
   // for those phases during initial partitioning.
-  double get(const Configuration& config, const std::string& key) const {
+  double get(const Context& context, const std::string& key) const {
     double value = 0.0;
-    if (config.partition.mode == Mode::direct_kway) {
-      const auto& it = _stats.find(internalKey(config, key));
+    if (context.partition.mode == Mode::direct_kway) {
+      const auto& it = _stats.find(internalKey(context, key));
       if (it != _stats.cend()) {
         value = it->second;
       }
@@ -107,10 +107,10 @@ class Stats {
   }
 
  private:
-  std::string internalKey(const Configuration& config, const std::string& key) const {
-    return "v" + std::to_string(config.partition.current_v_cycle)
-           + "_lk_" + std::to_string(config.partition.rb_lower_k)
-           + "_uk_" + std::to_string(config.partition.rb_upper_k)
+  std::string internalKey(const Context& context, const std::string& key) const {
+    return "v" + std::to_string(context.partition.current_v_cycle)
+           + "_lk_" + std::to_string(context.partition.rb_lower_k)
+           + "_uk_" + std::to_string(context.partition.rb_upper_k)
            + "_" + key;
   }
 
@@ -121,7 +121,7 @@ class Stats {
 
 #ifdef GATHER_STATS
 
-static inline void gatherCoarseningStats(const Configuration& config,
+static inline void gatherCoarseningStats(const Context& context,
                                          const Hypergraph& hypergraph) {
   std::map<HyperedgeID, HypernodeID> node_degree_map;
   std::multimap<HypernodeWeight, HypernodeID> node_weight_map;
@@ -141,7 +141,7 @@ static inline void gatherCoarseningStats(const Configuration& config,
   // LOG << "Hypernode weights:";
   // for (auto& entry : node_weight_map) {
   //   std::cout << "w(" << std::setw(10) << std::left << entry.second << "):";
-  //   HypernodeWeight percent = ceil(entry.first * 100.0 / _config.coarsening.max_allowed_node_weight);
+  //   HypernodeWeight percent = ceil(entry.first * 100.0 / _context.coarsening.max_allowed_node_weight);
   //   for (HypernodeWeight i = 0; i < percent; ++i) {
   //     std::cout << "#";
   //   }
@@ -183,38 +183,38 @@ static inline void gatherCoarseningStats(const Configuration& config,
   //   }
   //   std::cout << " " << entry.second << std::endl;
   // }
-  Stats::instance().add(config, "numCoarseHNs", hypergraph.currentNumNodes());
-  Stats::instance().add(config, "numCoarseHEs", hypergraph.currentNumEdges());
-  Stats::instance().add(config, "sumExposedHEWeight", sum_exposed_he_weight);
-  Stats::instance().add(config, "numHNsToInitialNumHNsRATIO",
+  Stats::instance().add(context, "numCoarseHNs", hypergraph.currentNumNodes());
+  Stats::instance().add(context, "numCoarseHEs", hypergraph.currentNumEdges());
+  Stats::instance().add(context, "sumExposedHEWeight", sum_exposed_he_weight);
+  Stats::instance().add(context, "numHNsToInitialNumHNsRATIO",
                         static_cast<double>(hypergraph.currentNumNodes()) /
                         hypergraph.initialNumNodes());
-  Stats::instance().add(config, "numHEsToInitialNumHEsRATIO",
+  Stats::instance().add(context, "numHEsToInitialNumHEsRATIO",
                         static_cast<double>(hypergraph.currentNumEdges()) /
                         hypergraph.initialNumEdges());
-  Stats::instance().add(config, "exposedHEWeightToInitialExposedHEWeightRATIO",
+  Stats::instance().add(context, "exposedHEWeightToInitialExposedHEWeightRATIO",
                         static_cast<double>(sum_exposed_he_weight) / hypergraph.initialNumEdges());
-  Stats::instance().add(config, "HEsizeMIN",
+  Stats::instance().add(context, "HEsizeMIN",
                         (edge_size_map.size() > 0 ? edge_size_map.begin()->first : 0));
-  Stats::instance().add(config, "HEsizeMAX",
+  Stats::instance().add(context, "HEsizeMAX",
                         (edge_size_map.size() > 0 ? edge_size_map.rbegin()->first : 0));
-  Stats::instance().add(config, "HEsizeAVG",
+  Stats::instance().add(context, "HEsizeAVG",
                         metrics::avgHyperedgeDegree(hypergraph));
-  Stats::instance().add(config, "HNdegreeMIN",
+  Stats::instance().add(context, "HNdegreeMIN",
                         (node_degree_map.size() > 0 ? node_degree_map.begin()->first : 0));
-  Stats::instance().add(config, "HNdegreeMAX",
+  Stats::instance().add(context, "HNdegreeMAX",
                         (node_degree_map.size() > 0 ? node_degree_map.rbegin()->first : 0));
-  Stats::instance().add(config, "HNdegreeAVG",
+  Stats::instance().add(context, "HNdegreeAVG",
                         metrics::avgHypernodeDegree(hypergraph));
-  Stats::instance().add(config, "HNweightMIN",
+  Stats::instance().add(context, "HNweightMIN",
                         (node_weight_map.size() > 0 ? node_weight_map.begin()->first : 0));
-  Stats::instance().add(config, "HNweightMAX",
+  Stats::instance().add(context, "HNweightMAX",
                         (node_weight_map.size() > 0 ? node_weight_map.rbegin()->first : 0));
 }
 
 #else
 
-static inline void gatherCoarseningStats(const Configuration&, const Hypergraph&) { }
+static inline void gatherCoarseningStats(const Context&, const Hypergraph&) { }
 
 #endif
 }  // namespace kahypar

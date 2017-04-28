@@ -36,15 +36,15 @@
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
-                                       ICoarsener* (*)(Hypergraph&, const Configuration&,
+                                       ICoarsener* (*)(Hypergraph&, const Context&,
                                                        const HypernodeWeight)>;
 
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
-                                     IRefiner* (*)(Hypergraph&, const Configuration&)>;
+                                     IRefiner* (*)(Hypergraph&, const Context&)>;
 
 using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
-                                                 IInitialPartitioner* (*)(Hypergraph&, Configuration&)>;
+                                                 IInitialPartitioner* (*)(Hypergraph&, Context&)>;
 
 using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
                                                                    IRefiner,

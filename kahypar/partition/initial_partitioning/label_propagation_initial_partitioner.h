@@ -47,11 +47,11 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
  public:
   LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
-                                     Configuration& config) :
-    InitialPartitionerBase(hypergraph, config),
-    _valid_parts(config.initial_partitioning.k),
+                                     Context& context) :
+    InitialPartitionerBase(hypergraph, context),
+    _valid_parts(context.initial_partitioning.k),
     _in_queue(hypergraph.initialNumNodes()),
-    _tmp_scores(_config.initial_partitioning.k, 0) {
+    _tmp_scores(_context.initial_partitioning.k, 0) {
     static_assert(std::is_same<GainComputation, FMGainComputationPolicy>::value,
                   "ScLaP-IP only supports FM gain");
   }
@@ -66,8 +66,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
   void partitionImpl() override final {
     PartitionID unassigned_part =
-      _config.initial_partitioning.unassigned_part;
-    _config.initial_partitioning.unassigned_part = -1;
+      _context.initial_partitioning.unassigned_part;
+    _context.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
 
     std::vector<HypernodeID> nodes;
@@ -77,20 +77,20 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       }
     }
 
-    int connected_nodes = std::max(std::min(_config.initial_partitioning.lp_assign_vertex_to_part,
+    int connected_nodes = std::max(std::min(_context.initial_partitioning.lp_assign_vertex_to_part,
                                             static_cast<int>(_hg.initialNumNodes()
-                                                             / _config.initial_partitioning.k)), 1);
+                                                             / _context.initial_partitioning.k)), 1);
 
     std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _config, _hg,
-                                            _config.initial_partitioning.k);
+    StartNodeSelection::calculateStartNodes(startNodes, _context, _hg,
+                                            _context.initial_partitioning.k);
 
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+    for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
     }
 
     ASSERT([&]() {
-        for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+        for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
           if (static_cast<int>(_hg.partSize(i)) != connected_nodes) {
             return false;
           }
@@ -102,7 +102,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     size_t iterations = 0;
 
     while (!converged &&
-           iterations < static_cast<size_t>(_config.initial_partitioning.lp_max_iteration)) {
+           iterations < static_cast<size_t>(_context.initial_partitioning.lp_max_iteration)) {
       converged = true;
 
       int unvisited_pos = nodes.size();
@@ -165,7 +165,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       // Label Propagation.
 
       if (converged && getUnassignedNode() != kInvalidNode) {
-        for (auto i = 0; i < _config.initial_partitioning.lp_assign_vertex_to_part; ++i) {
+        for (auto i = 0; i < _context.initial_partitioning.lp_assign_vertex_to_part; ++i) {
           HypernodeID hn = getUnassignedNode();
           if (hn == kInvalidNode) {
             break;
@@ -182,7 +182,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       assignHypernodeToPartWithMinimumPartWeight(hn);
     }
 
-    _config.initial_partitioning.unassigned_part = unassigned_part;
+    _context.initial_partitioning.unassigned_part = unassigned_part;
 
     ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
@@ -232,7 +232,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     const HypernodeWeight hn_weight = _hg.nodeWeight(hn);
     PartitionID max_part = -1;
     Gain max_score = std::numeric_limits<Gain>::min();
-    for (PartitionID target_part = 0; target_part < _config.initial_partitioning.k; ++target_part) {
+    for (PartitionID target_part = 0; target_part < _context.initial_partitioning.k; ++target_part) {
       if (_valid_parts[target_part]) {
         _tmp_scores[target_part] -= internal_weight;
 
@@ -255,7 +255,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 
 
         if ((_hg.partWeight(target_part) + hn_weight
-             <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
+             <= _context.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
             _tmp_scores[target_part] > max_score) {
           max_score = _tmp_scores[target_part];
           max_part = target_part;
@@ -303,7 +303,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     PartitionID max_part = source_part;
     Gain max_score = 0;
     _valid_parts.set(source_part, false);
-    for (PartitionID target_part = 0; target_part < _config.initial_partitioning.k; ++target_part) {
+    for (PartitionID target_part = 0; target_part < _context.initial_partitioning.k; ++target_part) {
       if (_valid_parts[target_part]) {
         ASSERT(target_part != source_part, V(target_part));
         _tmp_scores[target_part] -= internal_weight;
@@ -326,7 +326,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           } (), "Calculated gain is invalid");
 
         if ((_hg.partWeight(target_part) + hn_weight
-             <= _config.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
+             <= _context.initial_partitioning.upper_allowed_partition_weight[target_part]) &&
             _tmp_scores[target_part] > max_score) {
           max_score = _tmp_scores[target_part];
           max_part = target_part;
@@ -360,7 +360,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         _hg.setNodePart(node, p);
         ++assigned_nodes;
         for (const HyperedgeID& he : _hg.incidentEdges(node)) {
-          if (_hg.edgeSize(he) <= _config.partition.hyperedge_size_threshold) {
+          if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
             for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == -1 && !_in_queue[pin]) {
                 _bfs_queue.push(pin);
@@ -387,7 +387,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   void assignHypernodeToPartWithMinimumPartWeight(const HypernodeID hn) {
     PartitionID p = kInvalidPart;
     HypernodeWeight min_part_weight = std::numeric_limits<HypernodeWeight>::max();
-    for (PartitionID i = 0; i < _config.initial_partitioning.k; ++i) {
+    for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
       p = (_hg.partWeight(i) < min_part_weight ? i : p);
       min_part_weight = std::min(_hg.partWeight(i), min_part_weight);
     }
@@ -396,7 +396,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   }
 
   using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_config;
+  using InitialPartitionerBase::_context;
   using InitialPartitionerBase::kInvalidNode;
   using InitialPartitionerBase::kInvalidPart;
 

@@ -42,14 +42,14 @@ class LargeHyperedgeRemover {
 
   ~LargeHyperedgeRemover() = default;
 
-  void removeLargeHyperedges(Hypergraph& hypergraph, const Configuration& config) {
+  void removeLargeHyperedges(Hypergraph& hypergraph, const Context& context) {
     // Hyperedges with |he| > max(Lmax0,Lmax1) will always be cut edges, we therefore
     // remove them from the graph, to make subsequent partitioning easier.
     // In case of direct k-way partitioning, Lmaxi=Lmax0=Lmax1 for all i in (0..k-1).
     // In case of rb-based k-way partitioning however, Lmax0 might be different than Lmax1,
     // depending on how block 0 and block1 will be partitioned further.
     const HypernodeWeight max_part_weight =
-      std::max(config.partition.max_part_weights[0], config.partition.max_part_weights[1]);
+      std::max(context.partition.max_part_weights[0], context.partition.max_part_weights[1]);
     if (hypergraph.type() == Hypergraph::Type::Unweighted) {
       for (const HyperedgeID& he : hypergraph.edges()) {
         if (hypergraph.edgeSize(he) > max_part_weight) {
@@ -74,9 +74,9 @@ class LargeHyperedgeRemover {
         }
       }
     }
-    Stats::instance().add(config, "numInitiallyRemovedLargeHEs", _removed_hes.size());
+    Stats::instance().add(context, "numInitiallyRemovedLargeHEs", _removed_hes.size());
     LOG << "removed" << _removed_hes.size() << "HEs that had more than "
-        << config.partition.hyperedge_size_threshold
+        << context.partition.hyperedge_size_threshold
         << "pins or weight of pins was greater than Lmax=" << max_part_weight;
   }
 

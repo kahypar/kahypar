@@ -44,10 +44,10 @@ class FullVertexPairCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  FullVertexPairCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  FullVertexPairCoarsener(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
-    VertexPairCoarsenerBase(hypergraph, config, weight_of_heaviest_node),
-    _rater(_hg, _config),
+    VertexPairCoarsenerBase(hypergraph, context, weight_of_heaviest_node),
+    _rater(_hg, _context),
     _target(hypergraph.initialNumNodes()) { }
 
   ~FullVertexPairCoarsener() override = default;
@@ -148,14 +148,14 @@ class FullVertexPairCoarsener final : public ICoarsener,
           << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.";
 #ifdef GATHER_STATS
-      Stats::instance().add(_config, "numHNsWithoutValidContractionPartner", 1);
+      Stats::instance().add(_context, "numHNsWithoutValidContractionPartner", 1);
 #endif
     }
   }
 
   using Base::_pq;
   using Base::_hg;
-  using Base::_config;
+  using Base::_context;
   using Base::_history;
   using Base::_hypergraph_pruner;
   Rater _rater;

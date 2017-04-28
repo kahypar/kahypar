@@ -51,10 +51,10 @@ class MLCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  MLCoarsener(Hypergraph& hypergraph, const Configuration& config,
+  MLCoarsener(Hypergraph& hypergraph, const Context& context,
               const HypernodeWeight weight_of_heaviest_node) :
-    Base(hypergraph, config, weight_of_heaviest_node),
-    _rater(_hg, _config) { }
+    Base(hypergraph, context, weight_of_heaviest_node),
+    _rater(_hg, _context) { }
 
   ~MLCoarsener() override = default;
 
@@ -113,7 +113,7 @@ class MLCoarsener final : public ICoarsener,
       }
       ++pass_nr;
     }
-    Stats::instance().addToTotal(_config, "hns_after_coarsening", _hg.currentNumNodes());
+    Stats::instance().addToTotal(_context, "hns_after_coarsening", _hg.currentNumNodes());
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {
@@ -126,7 +126,7 @@ class MLCoarsener final : public ICoarsener,
 
   using Base::_pq;
   using Base::_hg;
-  using Base::_config;
+  using Base::_context;
   using Base::_history;
   Rater _rater;
 };

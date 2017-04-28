@@ -43,31 +43,31 @@ class ALouvainAlgorithm : public Test {
     louvain(nullptr),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    config() {
-    config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
-    louvain = std::make_shared<Louvain<Modularity> >(hypergraph, config);
+    context() {
+    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    louvain = std::make_shared<Louvain<Modularity> >(hypergraph, context);
   }
 
   std::shared_ptr<Louvain<Modularity> > louvain;
   Hypergraph hypergraph;
-  Configuration config;
+  Context context;
 };
 
 class AModularityMeasure : public Test {
  public:
   AModularityMeasure() :
     modularity(nullptr),
-    config(),
+    context(),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     graph(nullptr) {
-    config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
-    graph = std::make_shared<Graph>(hypergraph, config);
+    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    graph = std::make_shared<Graph>(hypergraph, context);
     modularity = std::make_shared<Modularity>(*graph);
   }
 
   std::shared_ptr<Modularity> modularity;
-  Configuration config;
+  Context context;
   Hypergraph hypergraph;
   std::shared_ptr<Graph> graph;
 };
@@ -144,7 +144,7 @@ TEST_F(AModularityMeasure, CalculatesCorrectGainValuesForIsolatedNode) {
 }
 
 TEST_F(ALouvainAlgorithm, DoesOneLouvainPass) {
-  Graph graph(hypergraph, config);
+  Graph graph(hypergraph, context);
   Modularity modularity(graph);
   EdgeWeight quality_before = modularity.quality();
   EdgeWeight quality_after = louvain->louvain_pass(graph, modularity);
@@ -152,7 +152,7 @@ TEST_F(ALouvainAlgorithm, DoesOneLouvainPass) {
 }
 
 TEST_F(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph) {
-  Graph graph(hypergraph, config);
+  Graph graph(hypergraph, context);
   Modularity modularity(graph);
   louvain->louvain_pass(graph, modularity);
   auto contraction = graph.contractClusters();
@@ -200,11 +200,11 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
       edges.push_back(e);
     }
   }
-  Configuration config;
+  Context context;
 
-  config.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+  context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
   Graph graph(adj_array, edges);
-  Louvain<Modularity, false> louvain(adj_array, edges, config);
+  Louvain<Modularity, false> louvain(adj_array, edges, context);
 
   louvain.run();
   std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,
