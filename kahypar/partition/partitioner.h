@@ -48,7 +48,6 @@
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/utils/randomize.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 // Workaround for bug in gtest
@@ -260,8 +259,12 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.removeLargeHyperedges(hypergraph, context);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    Stats::instance().addToTotal(context, "InitialLargeHEremovalTime",
-                                 std::chrono::duration<double>(end - start).count());
+    context.stats->preprocessing("LargeHEremovalTime") +=
+      std::chrono::duration<double>(end - start).count();
+    if (context.isMainRecursiveBisection()) {
+      context.stats->topLevel().preprocessing("LargeHEremovalTime") +=
+        std::chrono::duration<double>(end - start).count();
+    }
   }
 }
 
@@ -273,8 +276,13 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   sparse_hypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "MinHashSparsifierTime",
-                               std::chrono::duration<double>(end - start).count());
+
+  context.stats->preprocessing("MinHashSparsifierTime") +=
+    std::chrono::duration<double>(end - start).count();
+  if (context.isMainRecursiveBisection()) {
+    context.stats->topLevel().preprocessing("MinHashSparsifierTime") +=
+      std::chrono::duration<double>(end - start).count();
+  }
 
   if (context.partition.verbose_output) {
     LOG << "After sparsification:";
@@ -287,8 +295,12 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& cont
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.restoreLargeHyperedges(hypergraph);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    Stats::instance().addToTotal(context, "InitialLargeHErestoreTime",
-                                 std::chrono::duration<double>(end - start).count());
+    context.stats->postprocessing("LargeHErestoreTime") +=
+      std::chrono::duration<double>(end - start).count();
+    if (context.isMainRecursiveBisection()) {
+      context.stats->topLevel().postprocessing("LargeHErestoreTime") +=
+        std::chrono::duration<double>(end - start).count();
+    }
   }
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
 }
@@ -300,8 +312,12 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   _pin_sparsifier.applyPartition(sparse_hypergraph, hypergraph);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "MinHashSparsifierPostprocessTime",
-                               std::chrono::duration<double>(end - start).count());
+  context.stats->postprocessing("MinHashSparsifierTime") +=
+    std::chrono::duration<double>(end - start).count();
+  if (context.isMainRecursiveBisection()) {
+    context.stats->topLevel().postprocessing("MinHashSparsifierTime") +=
+      std::chrono::duration<double>(end - start).count();
+  }
   postprocess(hypergraph, context);
 }
 
@@ -539,10 +555,11 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "CoarseningTime",
-                               std::chrono::duration<double>(end - start).count());
-
-  gatherCoarseningStats(context, hypergraph);
+  context.stats->coarsening("Time") += std::chrono::duration<double>(end - start).count();
+  if (context.isMainRecursiveBisection()) {
+    context.stats->topLevel().coarsening("Time") +=
+      std::chrono::duration<double>(end - start).count();
+  }
 
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
@@ -556,8 +573,11 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, context);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "InitialPartitioningTime",
-                               std::chrono::duration<double>(end - start).count());
+  context.stats->initialPartitioning("Time") += std::chrono::duration<double>(end - start).count();
+  if (context.isMainRecursiveBisection()) {
+    context.stats->topLevel().initialPartitioning("Time") +=
+      std::chrono::duration<double>(end - start).count();
+  }
 
   hypergraph.initializeNumCutHyperedges();
   if (context.partition.verbose_output && context.type == ContextType::main) {
@@ -582,8 +602,12 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "UncoarseningRefinementTime",
-                               std::chrono::duration<double>(end - start).count());
+  context.stats->localSearch("Time") += std::chrono::duration<double>(end - start).count();
+  if (context.isMainRecursiveBisection()) {
+    context.stats->topLevel().localSearch("Time") +=
+      std::chrono::duration<double>(end - start).count();
+  }
+
   if (context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "Local Search Result:";
     LOG << "Final" << toString(context.partition.objective) << "      ="
@@ -601,18 +625,14 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "VCycleCoarsening",
-                               std::chrono::duration<double>(end - start).count());
-
-  gatherCoarseningStats(context, hypergraph);
+  context.stats->coarsening("Time") += std::chrono::duration<double>(end - start).count();
 
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  Stats::instance().addToTotal(context, "VCycleUnCoarseningRefinement",
-                               std::chrono::duration<double>(end - start).count());
+  context.stats->localSearch("Time") += std::chrono::duration<double>(end - start).count();
   return found_improved_cut;
 }
 

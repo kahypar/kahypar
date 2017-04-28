@@ -113,7 +113,7 @@ class MLCoarsener final : public ICoarsener,
       }
       ++pass_nr;
     }
-    Stats::instance().addToTotal(_context, "hns_after_coarsening", _hg.currentNumNodes());
+    _context.stats->coarsening("HnsAfterCoarsening") = _hg.currentNumNodes();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {

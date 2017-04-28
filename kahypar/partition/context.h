@@ -30,6 +30,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
+#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 struct MinHashSparsifierParameters {
@@ -329,13 +330,36 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 }
 
 
-struct Context {
+class Context {
+ public:
+  using PartitioningStats = Stats<Context>;
+
   PartitioningParameters partition { };
   PreprocessingParameters preprocessing { };
   CoarseningParameters coarsening { };
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   ContextType type = ContextType::main;
+  std::ostringstream oss;
+  std::unique_ptr<PartitioningStats> stats = nullptr;
+
+  Context() :
+    oss(),
+    stats(std::make_unique<PartitioningStats>(*this, oss)) { }
+
+  Context(const Context& other) :
+    partition(other.partition),
+    preprocessing(other.preprocessing),
+    coarsening(other.coarsening),
+    initial_partitioning(other.initial_partitioning),
+    local_search(other.local_search),
+    type(other.type),
+    oss(),
+    stats(other.stats->addChild(*this)) { }
+
+  bool isMainRecursiveBisection() const {
+    return partition.mode == Mode::recursive_bisection && type == ContextType::main;
+  }
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {

@@ -33,7 +33,6 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 namespace io {
@@ -212,30 +211,30 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   LOG << "\nTimings:";
   LOG << "Partition time                   =" << elapsed_seconds.count() << "s";
   LOG << "  | initial parallel HE removal  ="
-      << Stats::instance().get(context, "InitialParallelHEremovalTime")
+      << context.stats->preprocessing("ParallelHEremovalTime")
       << "s [currently not implemented]";
   LOG << "  | initial large HE removal     ="
-      << Stats::instance().get(context, "InitialLargeHEremovalTime") << "s";
+      << context.stats->preprocessing("LargeHEremovalTime") << "s";
   LOG << "  | min hash sparsifier          ="
-      << Stats::instance().get(context, "MinHashSparsifierTime") << "s";
+      << context.stats->preprocessing("MinHashSparsifierTime") << "s";
   LOG << "  | community detection          ="
-      << Stats::instance().get(context, "CommunityDetectionTime") << "s";
+      << context.stats->preprocessing("CommunityDetectionTime") << "s";
   LOG << "  | coarsening                   ="
-      << Stats::instance().get(context, "CoarseningTime") << "s";
+      << context.stats->coarsening("Time") << "s";
   LOG << "  | initial partitioning         ="
-      << Stats::instance().get(context, "InitialPartitioningTime") << "s";
+      << context.stats->initialPartitioning("Time") << "s";
   LOG << "  | uncoarsening/refinement      ="
-      << Stats::instance().get(context, "UncoarseningRefinementTime") << "s";
+      << context.stats->localSearch("Time") << "s";
   LOG << "  | initial large HE restore     ="
-      << Stats::instance().get(context, "InitialLargeHErestoreTime") << "s";
+      << context.stats->postprocessing("LargeHErestoreTime") << "s";
   LOG << "  | initial parallel HE restore  ="
-      << Stats::instance().get(context, "InitialParallelHErestoreTime")
+      << context.stats->postprocessing("ParallelHErestoreTime")
       << "s [currently not implemented]";
   if (context.partition.global_search_iterations > 0) {
     LOG << " | v-cycle coarsening              = "
-        << Stats::instance().get(context, "VCycleCoarseningTime") << "s";
+        << context.stats->coarsening("VcycleTime") << "s";
     LOG << " | v-cycle uncoarsening/refinement ="
-        << Stats::instance().get(context, "VCycleUnCoarseningRefinementTime") << "s";
+        << context.stats->localSearch("vcycletime") << "s";
   }
 }
 
@@ -244,7 +243,7 @@ inline void printPartitioningStatistics() {
   LOG << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE.";
   LOG << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
       << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights";
-  LOG << Stats::instance().toConsoleString();
+  // LOG << Stats::instance().toConsoleString();
 }
 
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {

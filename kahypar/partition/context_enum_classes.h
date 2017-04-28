@@ -104,6 +104,14 @@ static std::string toString(const Mode& mode) {
   }
 }
 
+static std::string toString(const ContextType& type) {
+  if (type == ContextType::main) {
+    return "main";
+  } else {
+    return "ip";
+  }
+}
+
 static std::string toString(const Objective& objective) {
   switch (objective) {
     case Objective::cut:

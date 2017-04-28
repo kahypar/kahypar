@@ -82,5 +82,6 @@ int main(int argc, char* argv[]) {
   if (context.partition.sp_process_output) {
     kahypar::io::serializer::serialize(context, hypergraph, partitioner, elapsed_seconds);
   }
+
   return 0;
 }

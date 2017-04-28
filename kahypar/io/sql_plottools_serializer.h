@@ -150,24 +150,24 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " imbalance=" << metrics::imbalance(hypergraph, context)
       << " totalPartitionTime=" << elapsed_seconds.count()
       << " initialParallelHEremovalTime="
-      << Stats::instance().get(context, "InitialParallelHEremovalTime")
+      << context.stats->preprocessing("ParallelHEremovalTime")
       << " initialLargeHEremovalTime="
-      << Stats::instance().get(context, "InitialLargeHEremovalTime")
-      << " communityDetectionTime="
-      << Stats::instance().get(context, "CommunityDetectionTime")
-      << " coarseningTime="
-      << Stats::instance().get(context, "CoarseningTime")
+      << context.stats->preprocessing("LargeHEremovalTime")
       << " minHashSparsifierTime="
-      << Stats::instance().get(context, "MinHashSparsifierTime")
+      << context.stats->preprocessing("MinHashSparsifierTime")
+      << " communityDetectionTime="
+      << context.stats->preprocessing("CommunityDetectionTime")
+      << " coarseningTime="
+      << context.stats->coarsening("Time")
       << " initialPartitionTime="
-      << Stats::instance().get(context, "InitialPartitioningTime")
+      << context.stats->initialPartitioning("Time")
       << " uncoarseningRefinementTime="
-      << Stats::instance().get(context, "UncoarseningRefinementTime")
+      << context.stats->localSearch("Time")
       << " initialParallelHErestoreTime="
-      << Stats::instance().get(context, "InitialParallelHErestoreTime")
+      << context.stats->postprocessing("ParallelHErestoreTime")
       << " initialLargeHErestoreTime="
-      << Stats::instance().get(context, "InitialLargeHErestoreTime")
-      << Stats::instance().toString()
+      << context.stats->postprocessing("LargeHErestoreTime") << " "
+      << context.stats->serialize().str()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;
 

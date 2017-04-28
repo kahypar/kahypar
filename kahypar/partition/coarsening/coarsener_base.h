@@ -35,7 +35,6 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 class CoarsenerBase {
@@ -83,13 +82,13 @@ class CoarsenerBase {
   void removeSingleNodeHyperedges() {
     const HyperedgeWeight removed_he_weight =
       _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
-    Stats::instance().add(_context, "removedSingleNodeHEWeight", removed_he_weight);
+    _context.stats->coarsening("removedSingleNodeHEWeight") += removed_he_weight;
   }
 
   void removeParallelHyperedges() {
     const HyperedgeID removed_parallel_hes =
       _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
-    Stats::instance().add(_context, "numRemovedParalellHEs", removed_parallel_hes);
+    _context.stats->coarsening("numRemovedParalellHEs") += removed_parallel_hes;
   }
 
   void restoreParallelHyperedges() {
