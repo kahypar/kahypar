@@ -29,7 +29,7 @@
 #include <string>
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/configuration_enum_classes.h"
+#include "kahypar/partition/context_enum_classes.h"
 
 namespace kahypar {
 struct MinHashSparsifierParameters {
