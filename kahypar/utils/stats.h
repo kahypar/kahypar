@@ -32,9 +32,9 @@ class Stats {
   using Log = std::map<std::string, double>;
 
  public:
-  Stats(const Context& context, std::ostringstream& oss) :
+  Stats(const Context& context) :
     _context(context),
-    _oss(oss),
+    _oss(),
     _parent(nullptr),
     _preprocessing_logs(),
     _coarsening_logs(),
@@ -44,7 +44,7 @@ class Stats {
 
   Stats(const Context& context, Stats* parent) :
     _context(context),
-    _oss(parent->oss()),
+    _oss(),
     _parent(parent),
     _preprocessing_logs(),
     _coarsening_logs(),
@@ -54,7 +54,7 @@ class Stats {
 
   ~Stats() {
     if (_parent != nullptr) {
-      serialize();
+      serializeToParent();
     }
   }
 
@@ -96,23 +96,31 @@ class Stats {
     return _parent;
   }
 
-  std::ostringstream & serialize() {
-    serialize(_preprocessing_logs, prefix("preprocessing"));
-    serialize(_coarsening_logs, prefix("coarsening"));
-    serialize(_ip_logs, prefix("ip"));
-    serialize(_local_search_logs, prefix("local_search"));
-    serialize(_postprocessing_logs, prefix("postprocessing"));
+  std::ostringstream & parentOutputStream() {
+    if (_parent) {
+      return _parent->parentOutputStream();
+    }
     return _oss;
   }
 
-  std::ostringstream & oss() {
+  std::ostringstream & serialize() {
+    serializeToParent();
     return _oss;
   }
 
  private:
-  void serialize(const Log& log, const std::string& prefix) {
+  void serializeToParent() {
+    std::ostringstream& oss = parentOutputStream();
+    serialize(_preprocessing_logs, prefix("preprocessing"), oss);
+    serialize(_coarsening_logs, prefix("coarsening"), oss);
+    serialize(_ip_logs, prefix("ip"), oss);
+    serialize(_local_search_logs, prefix("local_search"), oss);
+    serialize(_postprocessing_logs, prefix("postprocessing"), oss);
+  }
+
+  void serialize(const Log& log, const std::string& prefix, std::ostringstream& oss) {
     for (auto it = log.cbegin(); it != log.cend(); ++it) {
-      _oss << prefix << it->first << "=" << it->second << " ";
+      oss << prefix << it->first << "=" << it->second << " ";
     }
   }
 
@@ -126,7 +134,7 @@ class Stats {
 
 
   const Context& _context;
-  std::ostringstream& _oss;
+  std::ostringstream _oss;
   Stats* _parent;
   Log _preprocessing_logs;
   Log _coarsening_logs;
