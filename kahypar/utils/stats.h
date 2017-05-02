@@ -61,6 +61,12 @@ class Stats {
     }
   }
 
+  Stats(const Stats&) = delete;
+  Stats& operator= (const Stats&) = delete;
+
+  Stats(Stats&&) = delete;
+  Stats& operator= (Stats&&) = delete;
+
   double & preprocessing(const std::string& key) {
     return _preprocessing_logs[key];
   }

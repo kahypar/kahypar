@@ -341,7 +341,7 @@ class Context {
   LocalSearchParameters local_search { };
   ContextType type = ContextType::main;
   std::ostringstream oss;
-  std::unique_ptr<PartitioningStats> stats = nullptr;
+  std::unique_ptr<PartitioningStats> stats;
 
   Context() :
     oss(),
