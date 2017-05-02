@@ -36,7 +36,6 @@ class Stats {
     _context(context),
     _oss(oss),
     _parent(nullptr),
-    _child_loggers(),
     _preprocessing_logs(),
     _coarsening_logs(),
     _ip_logs(),
@@ -47,7 +46,6 @@ class Stats {
     _context(context),
     _oss(parent->oss()),
     _parent(parent),
-    _child_loggers(),
     _preprocessing_logs(),
     _coarsening_logs(),
     _ip_logs(),
@@ -57,7 +55,6 @@ class Stats {
   ~Stats() {
     if (_parent != nullptr) {
       serialize();
-      _parent->unregister(this);
     }
   }
 
@@ -99,34 +96,17 @@ class Stats {
     return _parent;
   }
 
-  void unregister(Stats* ptr) {
-    auto it = std::find(_child_loggers.begin(),
-                        _child_loggers.end(),
-                        ptr);
-    ASSERT(it != _child_loggers.end());
-    std::swap(*it, _child_loggers.back());
-    _child_loggers.pop_back();
-  }
-
   std::ostringstream & serialize() {
     serialize(_preprocessing_logs, prefix("preprocessing"));
     serialize(_coarsening_logs, prefix("coarsening"));
     serialize(_ip_logs, prefix("ip"));
     serialize(_local_search_logs, prefix("local_search"));
     serialize(_postprocessing_logs, prefix("postprocessing"));
-    for (const auto& child_logger : _child_loggers) {
-      child_logger->serialize();
-    }
     return _oss;
   }
 
   std::ostringstream & oss() {
     return _oss;
-  }
-
-  Stats* addChild(const Context& context) {
-    _child_loggers.emplace_back(new Stats(context, this));
-    return _child_loggers.back();
   }
 
  private:
@@ -148,7 +128,6 @@ class Stats {
   const Context& _context;
   std::ostringstream& _oss;
   Stats* _parent;
-  std::vector<Stats*> _child_loggers;
   Log _preprocessing_logs;
   Log _coarsening_logs;
   Log _ip_logs;

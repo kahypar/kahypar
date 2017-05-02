@@ -88,8 +88,8 @@ class HeavyEdgeRater {
       }
       _comm = detectCommunities(_hg, _context);
       if (verbose_output) {
-        LOG << "  # communities = " << context.stats->preprocessing("Communities");
-        LOG << "  modularity    = " << context.stats->preprocessing("Modularity");
+        LOG << "  # communities = " << context.stats.preprocessing("Communities");
+        LOG << "  modularity    = " << context.stats.preprocessing("Modularity");
       }
     } else {
       _comm.resize(_hg.initialNumNodes(), 0);

@@ -150,24 +150,24 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " imbalance=" << metrics::imbalance(hypergraph, context)
       << " totalPartitionTime=" << elapsed_seconds.count()
       << " initialParallelHEremovalTime="
-      << context.stats->preprocessing("ParallelHEremovalTime")
+      << context.stats.preprocessing("ParallelHEremovalTime")
       << " initialLargeHEremovalTime="
-      << context.stats->preprocessing("LargeHEremovalTime")
+      << context.stats.preprocessing("LargeHEremovalTime")
       << " minHashSparsifierTime="
-      << context.stats->preprocessing("MinHashSparsifierTime")
+      << context.stats.preprocessing("MinHashSparsifierTime")
       << " communityDetectionTime="
-      << context.stats->preprocessing("CommunityDetectionTime")
+      << context.stats.preprocessing("CommunityDetectionTime")
       << " coarseningTime="
-      << context.stats->coarsening("Time")
+      << context.stats.coarsening("Time")
       << " initialPartitionTime="
-      << context.stats->initialPartitioning("Time")
+      << context.stats.initialPartitioning("Time")
       << " uncoarseningRefinementTime="
-      << context.stats->localSearch("Time")
+      << context.stats.localSearch("Time")
       << " initialParallelHErestoreTime="
-      << context.stats->postprocessing("ParallelHErestoreTime")
+      << context.stats.postprocessing("ParallelHErestoreTime")
       << " initialLargeHErestoreTime="
-      << context.stats->postprocessing("LargeHErestoreTime") << " "
-      << context.stats->serialize().str()
+      << context.stats.postprocessing("LargeHErestoreTime") << " "
+      << context.stats.serialize().str()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;
 

@@ -341,11 +341,11 @@ class Context {
   LocalSearchParameters local_search { };
   ContextType type = ContextType::main;
   std::ostringstream oss;
-  std::unique_ptr<PartitioningStats> stats;
+  mutable PartitioningStats stats;
 
   Context() :
     oss(),
-    stats(std::make_unique<PartitioningStats>(*this, oss)) { }
+    stats(*this, oss) { }
 
   Context(const Context& other) :
     partition(other.partition),
@@ -355,7 +355,7 @@ class Context {
     local_search(other.local_search),
     type(other.type),
     oss(),
-    stats(other.stats->addChild(*this)) { }
+    stats(*this, &other.stats) { }
 
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;

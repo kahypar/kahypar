@@ -74,7 +74,7 @@ class LargeHyperedgeRemover {
         }
       }
     }
-    context.stats->preprocessing("numInitiallyRemovedLargeHEs") = _removed_hes.size();
+    context.stats.preprocessing("numInitiallyRemovedLargeHEs") = _removed_hes.size();
     LOG << "removed" << _removed_hes.size() << "HEs that had more than "
         << context.partition.hyperedge_size_threshold
         << "pins or weight of pins was greater than Lmax=" << max_part_weight;

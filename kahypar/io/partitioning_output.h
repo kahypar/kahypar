@@ -211,30 +211,30 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   LOG << "\nTimings:";
   LOG << "Partition time                   =" << elapsed_seconds.count() << "s";
   LOG << "  | initial parallel HE removal  ="
-      << context.stats->preprocessing("ParallelHEremovalTime")
+      << context.stats.preprocessing("ParallelHEremovalTime")
       << "s [currently not implemented]";
   LOG << "  | initial large HE removal     ="
-      << context.stats->preprocessing("LargeHEremovalTime") << "s";
+      << context.stats.preprocessing("LargeHEremovalTime") << "s";
   LOG << "  | min hash sparsifier          ="
-      << context.stats->preprocessing("MinHashSparsifierTime") << "s";
+      << context.stats.preprocessing("MinHashSparsifierTime") << "s";
   LOG << "  | community detection          ="
-      << context.stats->preprocessing("CommunityDetectionTime") << "s";
+      << context.stats.preprocessing("CommunityDetectionTime") << "s";
   LOG << "  | coarsening                   ="
-      << context.stats->coarsening("Time") << "s";
+      << context.stats.coarsening("Time") << "s";
   LOG << "  | initial partitioning         ="
-      << context.stats->initialPartitioning("Time") << "s";
+      << context.stats.initialPartitioning("Time") << "s";
   LOG << "  | uncoarsening/refinement      ="
-      << context.stats->localSearch("Time") << "s";
+      << context.stats.localSearch("Time") << "s";
   LOG << "  | initial large HE restore     ="
-      << context.stats->postprocessing("LargeHErestoreTime") << "s";
+      << context.stats.postprocessing("LargeHErestoreTime") << "s";
   LOG << "  | initial parallel HE restore  ="
-      << context.stats->postprocessing("ParallelHErestoreTime")
+      << context.stats.postprocessing("ParallelHErestoreTime")
       << "s [currently not implemented]";
   if (context.partition.global_search_iterations > 0) {
     LOG << " | v-cycle coarsening              = "
-        << context.stats->coarsening("VcycleTime") << "s";
+        << context.stats.coarsening("VcycleTime") << "s";
     LOG << " | v-cycle uncoarsening/refinement ="
-        << context.stats->localSearch("vcycletime") << "s";
+        << context.stats.localSearch("vcycletime") << "s";
   }
 }
 

@@ -74,18 +74,18 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     switch (_context.partition.objective) {
       case Objective::cut:
         initial_objective = current_metrics.cut;
-        _context.stats->initialPartitioning("inititalCut") = initial_objective;
+        _context.stats.initialPartitioning("inititalCut") = initial_objective;
         break;
       case Objective::km1:
         initial_objective = current_metrics.km1;
-        _context.stats->initialPartitioning("inititalKm1") = initial_objective;
+        _context.stats.initialPartitioning("inititalKm1") = initial_objective;
         break;
       default:
         LOG << "Unknown Objective";
         exit(-1);
     }
 
-    _context.stats->initialPartitioning("initialImbalance") = current_metrics.imbalance;
+    _context.stats.initialPartitioning("initialImbalance") = current_metrics.imbalance;
 
     initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
@@ -126,12 +126,12 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     // ASSERT(current_imbalance <= _context.partition.epsilon,
     //        "balance_constraint is violated after uncontraction:" << metrics::imbalance(_hg, _context)
     //        << ">" << __context.partition.epsilon);
-    _context.stats->localSearch("finalImbalance") = current_metrics.imbalance;
+    _context.stats.localSearch("finalImbalance") = current_metrics.imbalance;
 
     bool improvement_found = false;
     switch (_context.partition.objective) {
       case Objective::cut:
-        _context.stats->localSearch("finalCut") = current_metrics.cut;
+        _context.stats.localSearch("finalCut") = current_metrics.cut;
         improvement_found = current_metrics.cut < initial_objective;
         break;
       case Objective::km1:
@@ -144,7 +144,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
           // we explicitly calculated the metric after uncoarsening.
           current_metrics.km1 = metrics::km1(_hg);
         }
-        _context.stats->localSearch("finalKm1") = current_metrics.km1;
+        _context.stats.localSearch("finalKm1") = current_metrics.km1;
         improvement_found = current_metrics.km1 < initial_objective;
         break;
       default:

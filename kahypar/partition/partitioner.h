@@ -259,10 +259,10 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.removeLargeHyperedges(hypergraph, context);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    context.stats->preprocessing("LargeHEremovalTime") +=
+    context.stats.preprocessing("LargeHEremovalTime") +=
       std::chrono::duration<double>(end - start).count();
     if (context.isMainRecursiveBisection()) {
-      context.stats->topLevel().preprocessing("LargeHEremovalTime") +=
+      context.stats.topLevel().preprocessing("LargeHEremovalTime") +=
         std::chrono::duration<double>(end - start).count();
     }
   }
@@ -277,10 +277,10 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
   sparse_hypergraph = _pin_sparsifier.buildSparsifiedHypergraph(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 
-  context.stats->preprocessing("MinHashSparsifierTime") +=
+  context.stats.preprocessing("MinHashSparsifierTime") +=
     std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().preprocessing("MinHashSparsifierTime") +=
+    context.stats.topLevel().preprocessing("MinHashSparsifierTime") +=
       std::chrono::duration<double>(end - start).count();
   }
 
@@ -295,10 +295,10 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& cont
     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     _large_he_remover.restoreLargeHyperedges(hypergraph);
     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    context.stats->postprocessing("LargeHErestoreTime") +=
+    context.stats.postprocessing("LargeHErestoreTime") +=
       std::chrono::duration<double>(end - start).count();
     if (context.isMainRecursiveBisection()) {
-      context.stats->topLevel().postprocessing("LargeHErestoreTime") +=
+      context.stats.topLevel().postprocessing("LargeHErestoreTime") +=
         std::chrono::duration<double>(end - start).count();
     }
   }
@@ -312,10 +312,10 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   _pin_sparsifier.applyPartition(sparse_hypergraph, hypergraph);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats->postprocessing("MinHashSparsifierTime") +=
+  context.stats.postprocessing("MinHashSparsifierTime") +=
     std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().postprocessing("MinHashSparsifierTime") +=
+    context.stats.topLevel().postprocessing("MinHashSparsifierTime") +=
       std::chrono::duration<double>(end - start).count();
   }
   postprocess(hypergraph, context);
@@ -555,9 +555,9 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats->coarsening("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.coarsening("Time") += std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().coarsening("Time") +=
+    context.stats.topLevel().coarsening("Time") +=
       std::chrono::duration<double>(end - start).count();
   }
 
@@ -573,9 +573,9 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   performInitialPartitioning(hypergraph, context);
   end = std::chrono::high_resolution_clock::now();
-  context.stats->initialPartitioning("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.initialPartitioning("Time") += std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().initialPartitioning("Time") +=
+    context.stats.topLevel().initialPartitioning("Time") +=
       std::chrono::duration<double>(end - start).count();
   }
 
@@ -602,9 +602,9 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  context.stats->localSearch("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.localSearch("Time") += std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().localSearch("Time") +=
+    context.stats.topLevel().localSearch("Time") +=
       std::chrono::duration<double>(end - start).count();
   }
 
@@ -625,14 +625,14 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats->coarsening("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.coarsening("Time") += std::chrono::duration<double>(end - start).count();
 
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  context.stats->localSearch("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.localSearch("Time") += std::chrono::duration<double>(end - start).count();
   return found_improved_cut;
 }
 

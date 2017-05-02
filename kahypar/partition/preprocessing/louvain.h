@@ -263,12 +263,12 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
   DBG << "Louvain-Time:" << elapsed_seconds.count() << "s";
-  context.stats->preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
+  context.stats.preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
   if (context.isMainRecursiveBisection()) {
-    context.stats->topLevel().preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
+    context.stats.topLevel().preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
   }
-  context.stats->preprocessing("Communities") += louvain.numCommunities();
-  context.stats->preprocessing("Modularity") += quality;
+  context.stats.preprocessing("Communities") += louvain.numCommunities();
+  context.stats.preprocessing("Modularity") += quality;
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
   for (const HypernodeID& hn : hypergraph.nodes()) {
