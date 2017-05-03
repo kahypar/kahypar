@@ -21,8 +21,8 @@
 
 #include <algorithm>
 #include <map>
+#include <sstream>
 #include <string>
-#include <vector>
 
 #include "kahypar/partition/context_enum_classes.h"
 
@@ -32,7 +32,7 @@ class Stats {
   using Log = std::map<std::string, double>;
 
  public:
-  Stats(const Context& context) :
+  explicit Stats(const Context& context) :
     _context(context),
     _oss(),
     _parent(nullptr),
@@ -92,10 +92,12 @@ class Stats {
     return *ptr;
   }
 
-  Stats* parent() {
-    return _parent;
+  std::ostringstream & serialize() {
+    serializeToParent();
+    return _oss;
   }
 
+ private:
   std::ostringstream & parentOutputStream() {
     if (_parent) {
       return _parent->parentOutputStream();
@@ -103,12 +105,10 @@ class Stats {
     return _oss;
   }
 
-  std::ostringstream & serialize() {
-    serializeToParent();
-    return _oss;
+  Stats* parent() {
+    return _parent;
   }
 
- private:
   void serializeToParent() {
     std::ostringstream& oss = parentOutputStream();
     serialize(_preprocessing_logs, prefix("preprocessing"), oss);
