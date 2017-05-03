@@ -85,11 +85,10 @@ class Stats {
   }
 
   Stats & topLevel() {
-    Stats* ptr = this;
-    while (ptr->parent() != nullptr) {
-      ptr = ptr->parent();
+    if (_parent != nullptr) {
+      return *_parent;
     }
-    return *ptr;
+    return *this;
   }
 
   std::ostringstream & serialize() {
@@ -103,10 +102,6 @@ class Stats {
       return _parent->parentOutputStream();
     }
     return _oss;
-  }
-
-  Stats* parent() {
-    return _parent;
   }
 
   void serializeToParent() {

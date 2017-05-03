@@ -352,7 +352,7 @@ class Context {
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
     type(other.type),
-    stats(*this, &other.stats) { }
+    stats(*this, &other.stats.topLevel()) { }
 
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
