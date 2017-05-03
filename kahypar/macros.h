@@ -190,3 +190,7 @@ void unused(T&&) {
 #else
 #define KAHYPAR_ATTRIBUTE_ALWAYS_INLINE
 #endif
+
+#if (defined(_M_AMD64) || defined(__x86_64__))
+#define KAHYPAR_HAS_BITSCAN64
+#endif

@@ -175,9 +175,21 @@ static inline int __builtin_clzll(unsigned long long mask) {
   unsigned long where;
   // BitScanReverse scans from MSB to LSB for first set bit.
   // Returns 0 if no set bit is found.
+
+#if defined(KAHYPAR_HAS_BITSCAN64)
   if (_BitScanReverse64(&where, mask)) {
     return static_cast<int>(63 - where);
   }
+#else
+  // Scan the high 32 bits.
+  if (_BitScanReverse(&where, static_cast<unsigned long>(mask >> 32))) {
+    return static_cast<int>(63 - (where + 32));  // Create a bit offset from the MSB.
+  }
+  // Scan the low 32 bits.
+  if (_BitScanReverse(&where, static_cast<unsigned long>(mask))) {
+    return static_cast<int>(63 - where);
+  }
+#endif
   return 64;
 }
 #endif
