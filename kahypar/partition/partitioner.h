@@ -70,7 +70,11 @@ class Partitioner {
   static constexpr bool debug = false;
 
  public:
-  Partitioner() = default;
+  Partitioner() :
+    _single_node_he_remover(),
+    _large_he_remover(),
+    _pin_sparsifier(),
+    _internals() { }
 
   Partitioner(const Partitioner&) = delete;
   Partitioner& operator= (const Partitioner&) = delete;
