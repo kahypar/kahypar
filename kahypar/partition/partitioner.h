@@ -61,7 +61,6 @@ namespace metrics {
 class APartitionedHypergraph;
 }  // namespace metrics
 
-
 class Partitioner {
  private:
   static constexpr bool debug = false;
@@ -133,52 +132,49 @@ class Partitioner {
   friend class io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
   friend class metrics::APartitionedHypergraph;
 
-  inline void setupContext(const Hypergraph& hypergraph, Context& context) const;
-
-  inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context) const;
-
   inline void preprocess(Hypergraph& hypergraph, const Context& context);
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                          const Context& context);
 
-  inline void partitionInternal(Hypergraph& hypergraph, Context& context);
   inline void performPartitioning(Hypergraph& hypergraph, const Context& context);
 
-  inline void performDirectKwayPartitioning(Hypergraph& hypergraph,
-                                            const Context& context);
-
-  inline void performRecursiveBisectionPartitioning(Hypergraph& input_hypergraph,
-                                                    const Context& original_context);
-  inline HypernodeID originalHypernode(HypernodeID hn,
-                                       const MappingStack& mapping_stack) const;
-
-  inline double calculateRelaxedEpsilon(HypernodeWeight original_hypergraph_weight,
-                                        HypernodeWeight current_hypergraph_weight,
-                                        PartitionID k,
-                                        const Context& original_context) const;
-
-  inline Context createContextForCurrentBisection(const Context& original_context,
-                                                  const Hypergraph& original_hypergraph,
-                                                  const Hypergraph& current_hypergraph,
-                                                  PartitionID current_k,
-                                                  PartitionID k0,
-                                                  PartitionID k1) const;
-
-  inline void performPartitioning(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
+  inline void partitionDirect(Hypergraph& hypergraph, const Context& context);
+  inline void partitionRecursive(Hypergraph& input_hypergraph, const Context& original_context);
+  inline void partitionMultilevel(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
                                   const Context& context);
-
-  inline void performInitialPartitioning(Hypergraph& hg, const Context& context);
-  inline Context createContextForInitialPartitioning(const Hypergraph& hg,
-                                                     const Context& original_context,
-                                                     double init_alpha) const;
+  inline void partitionInitially(Hypergraph& hg, const Context& context);
 
   inline void postprocess(Hypergraph& hypergraph, const Context& context);
   inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                           const Context& context);
 
-
   inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener, IRefiner& refiner,
                               const Context& context);
+
+  static inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context);
+
+  static inline void setupContext(const Hypergraph& hypergraph, Context& context);
+
+
+  static inline Context createCurrentBisectionContext(const Context& original_context,
+                                                      const Hypergraph& original_hypergraph,
+                                                      const Hypergraph& current_hypergraph,
+                                                      PartitionID current_k,
+                                                      PartitionID k0,
+                                                      PartitionID k1);
+
+  static inline Context createInitialPartitioningContext(const Hypergraph& hg,
+                                                         const Context& original_context,
+                                                         double init_alpha);
+
+
+  static inline double calculateRelaxedEpsilon(HypernodeWeight original_hypergraph_weight,
+                                               HypernodeWeight current_hypergraph_weight,
+                                               PartitionID k,
+                                               const Context& original_context);
+
+  static inline HypernodeID originalHypernode(HypernodeID hn,
+                                              const MappingStack& mapping_stack);
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
   LargeHyperedgeRemover _large_he_remover;
@@ -187,7 +183,7 @@ class Partitioner {
 };
 
 inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
-                                                 Context& context) const {
+                                                Context& context) {
   if (context.preprocessing.enable_min_hash_sparsifier) {
     // determine whether or not to apply the sparsifier
     std::vector<HypernodeID> he_sizes;
@@ -214,7 +210,7 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
   }
 }
 
-inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& context) const {
+inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& context) {
   context.partition.total_graph_weight = hypergraph.totalWeight();
 
   context.coarsening.contraction_limit =
@@ -321,7 +317,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
   postprocess(hypergraph, context);
 }
 
-inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Context& context) {
+inline void Partitioner::partitionInitially(Hypergraph& hg, const Context& context) {
   auto extracted_init_hypergraph = ds::reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
@@ -332,7 +328,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Contex
 
   do {
     extracted_init_hypergraph.first->resetPartitioning();
-    Context init_context = Partitioner::createContextForInitialPartitioning(
+    Context init_context = Partitioner::createInitialPartitioningContext(
       *extracted_init_hypergraph.first, context, init_alpha);
 
 
@@ -390,10 +386,9 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Contex
   // Stats of initial partitioning are added in doUncoarsen
 }
 
-inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph& hg,
-                                                                const Context&
-                                                                original_context,
-                                                                double init_alpha) const {
+inline Context Partitioner::createInitialPartitioningContext(const Hypergraph& hg,
+                                                             const Context& original_context,
+                                                             double init_alpha) {
   Context context(original_context);
 
   context.type = ContextType::initial_partitioning;
@@ -487,7 +482,7 @@ inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph
           std::exit(-1);
       }
   }
-  // We are now in initial partitioning mode, i.e. the next call to performInitialPartitioning
+  // We are now in initial partitioning mode, i.e. the next call to partitionInitially
   // will actually trigger the computation of an initial partition of the hypergraph.
   // Computing an actual initial partition is always flat, since the graph has been coarsened
   // before in case of multilevel initial partitioning, or should not be coarsened in case
@@ -503,11 +498,7 @@ inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   configurePreprocessing(hypergraph, context);
-  partitionInternal(hypergraph, context);
-}
 
-
-inline void Partitioner::partitionInternal(Hypergraph& hypergraph, Context& context) {
   setupContext(hypergraph, context);
   if (context.type == ContextType::main && !context.partition.quiet_mode) {
     LOG << context;
@@ -534,16 +525,16 @@ inline void Partitioner::partitionInternal(Hypergraph& hypergraph, Context& cont
 inline void Partitioner::performPartitioning(Hypergraph& hypergraph, const Context& context) {
   switch (context.partition.mode) {
     case Mode::recursive_bisection:
-      performRecursiveBisectionPartitioning(hypergraph, context);
+      partitionRecursive(hypergraph, context);
       break;
     case Mode::direct_kway:
-      performDirectKwayPartitioning(hypergraph, context);
+      partitionDirect(hypergraph, context);
       break;
   }
 }
 
 
-inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
+inline void Partitioner::partitionMultilevel(Hypergraph& hypergraph,
                                              ICoarsener& coarsener,
                                              IRefiner& refiner,
                                              const Context& context) {
@@ -571,7 +562,7 @@ inline void Partitioner::performPartitioning(Hypergraph& hypergraph,
     LOG << "********************************************************************************";
   }
   start = std::chrono::high_resolution_clock::now();
-  performInitialPartitioning(hypergraph, context);
+  partitionInitially(hypergraph, context);
   end = std::chrono::high_resolution_clock::now();
   context.stats.initialPartitioning("Time") += std::chrono::duration<double>(end - start).count();
   if (context.isMainRecursiveBisection()) {
@@ -637,7 +628,7 @@ inline bool Partitioner::partitionVCycle(Hypergraph& hypergraph, ICoarsener& coa
 }
 
 inline HypernodeID Partitioner::originalHypernode(const HypernodeID hn,
-                                                  const MappingStack& mapping_stack) const {
+                                                  const MappingStack& mapping_stack) {
   HypernodeID node = hn;
   for (auto it = mapping_stack.crbegin(); it != mapping_stack.crend(); ++it) {
     node = (*it)[node];
@@ -648,19 +639,19 @@ inline HypernodeID Partitioner::originalHypernode(const HypernodeID hn,
 inline double Partitioner::calculateRelaxedEpsilon(const HypernodeWeight original_hypergraph_weight,
                                                    const HypernodeWeight current_hypergraph_weight,
                                                    const PartitionID k,
-                                                   const Context& original_context) const {
+                                                   const Context& original_context) {
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_context.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_context.partition.epsilon);
   return std::min(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0, 0.99);
 }
 
-inline Context Partitioner::createContextForCurrentBisection(const Context& original_context,
-                                                             const Hypergraph& original_hypergraph,
-                                                             const Hypergraph& current_hypergraph,
-                                                             const PartitionID current_k,
-                                                             const PartitionID k0,
-                                                             const PartitionID k1) const {
+inline Context Partitioner::createCurrentBisectionContext(const Context& original_context,
+                                                          const Hypergraph& original_hypergraph,
+                                                          const Hypergraph& current_hypergraph,
+                                                          const PartitionID current_k,
+                                                          const PartitionID k0,
+                                                          const PartitionID k1) {
   Context current_context(original_context);
   current_context.partition.k = 2;
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -698,8 +689,8 @@ inline Context Partitioner::createContextForCurrentBisection(const Context& orig
   return current_context;
 }
 
-inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input_hypergraph,
-                                                               const Context& original_context) {
+inline void Partitioner::partitionRecursive(Hypergraph& input_hypergraph,
+                                            const Context& original_context) {
   // Custom deleters for Hypergraphs stored in hypergraph_stack. The top-level
   // hypergraph is the input hypergraph, which is not supposed to be deleted.
   // All extracted hypergraphs however can be deleted as soon as they are not needed
@@ -756,9 +747,8 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
         break;
       case RBHypergraphState::unpartitioned: {
           Context current_context =
-            createContextForCurrentBisection(original_context,
-                                             input_hypergraph, current_hypergraph, k, km,
-                                             k - km);
+            createCurrentBisectionContext(original_context, input_hypergraph,
+                                          current_hypergraph, k, km, k - km);
           current_context.partition.rb_lower_k = k1;
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;
@@ -794,9 +784,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
             _internals.append(coarsener->policyString() + " " + refiner->policyString());
           }
 
-          // TODO(schlag): we could integrate v-cycles in a similar fashion as is
-          // performDirectKwayPartitioning
-          performPartitioning(current_hypergraph, *coarsener, *refiner, current_context);
+          partitionMultilevel(current_hypergraph, *coarsener, *refiner, current_context);
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1,
@@ -814,7 +802,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                    R"(========================================)";
           }
         }
-        break;
+                                             break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
@@ -826,7 +814,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
                                                       delete_hypergraph),
                                         RBHypergraphState::unpartitioned, k1, k1 + km - 1);
         }
-        break;
+                                                            break;
       default:
         LOG << "Illegal recursive bisection state";
         break;
@@ -834,8 +822,7 @@ inline void Partitioner::performRecursiveBisectionPartitioning(Hypergraph& input
   }
 }
 
-inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
-                                                       const Context& context) {
+inline void Partitioner::partitionDirect(Hypergraph& hypergraph, const Context& context) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
       context.coarsening.algorithm, hypergraph, context,
@@ -848,7 +835,7 @@ inline void Partitioner::performDirectKwayPartitioning(Hypergraph& hypergraph,
   // TODO(schlag): find better solution
   _internals.append(coarsener->policyString() + " " + refiner->policyString());
 
-  performPartitioning(hypergraph, *coarsener, *refiner, context);
+  partitionMultilevel(hypergraph, *coarsener, *refiner, context);
 
   DBG << "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph);
 #ifndef NDEBUG
