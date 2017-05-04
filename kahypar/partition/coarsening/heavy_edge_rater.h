@@ -140,7 +140,6 @@ class HeavyEdgeRater {
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
-      ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
