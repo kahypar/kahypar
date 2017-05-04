@@ -226,8 +226,8 @@ static inline void partition(Hypergraph& input_hypergraph,
             LOG << R"(========================================)"
                    R"(========================================)";
           }
+          break;
         }
-                                             break;
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
@@ -238,8 +238,8 @@ static inline void partition(Hypergraph& input_hypergraph,
           hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_0.first.release(),
                                                       delete_hypergraph),
                                         RBHypergraphState::unpartitioned, k1, k1 + km - 1);
+          break;
         }
-                                                            break;
       default:
         LOG << "Illegal recursive bisection state";
         break;
