@@ -354,7 +354,7 @@ inline void Partitioner::performInitialPartitioning(Hypergraph& hg, const Contex
       partitioner->partition(*extracted_init_hypergraph.first,
                              init_context);
     } else {
-      // ... we call the partitioner again with the new contexturation.
+      // ... we call the partitioner again with the new configuration.
       performPartitioning(*extracted_init_hypergraph.first, init_context);
     }
 
@@ -439,8 +439,8 @@ inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
                                                     * context.partition.total_graph_weight);
 
-  // Recontexturing the partitioner to act as an initial partitioner
-  // on the next partition call using the new contexturation
+  // Reconfiguring the partitioner to act as an initial partitioner
+  // on the next partition call using the new configuration
   // based on the initial partitioning settings provided by the
   // original_context.
   switch (original_context.initial_partitioning.technique) {
@@ -451,7 +451,7 @@ inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph
           context.partition.mode = Mode::recursive_bisection;
           break;
         case Mode::direct_kway:
-          // Currently a bad contexturation (see KaHyPar.cc). The same behaviour as this
+          // Currently a bad configuration (see KaHyPar.cc). The same behaviour as this
           // initial partitioning method is achieved, if we use a smaller contraction limit
           // in the main partitioner. But the currently used contraction limit is optimized in
           // several experiments => It makes no sense to further coarsen the hypergraph after
