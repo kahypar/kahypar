@@ -30,7 +30,7 @@
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
-#include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/multilevel.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
@@ -216,7 +216,6 @@ class APartitionOfAHypergraph : public Test {
     _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _context(),
-    _partitioner(),
     _coarsener(new FirstWinsCoarsener(_hypergraph, _context,  /* heaviest_node_weight */ 1)),
     _refiner(new Refiner(_hypergraph, _context)) {
     _context.partition.k = 2;
@@ -242,7 +241,6 @@ class APartitionOfAHypergraph : public Test {
 
   Hypergraph _hypergraph;
   Context _context;
-  Partitioner _partitioner;
   std::unique_ptr<ICoarsener> _coarsener;
   std::unique_ptr<IRefiner> _refiner;
 };

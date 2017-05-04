@@ -26,7 +26,7 @@
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/multilevel.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
@@ -39,15 +39,14 @@ using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
 using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
-class APartitioner : public Test {
+class MultilevelPartitioning : public Test {
  public:
   static constexpr bool debug = false;
 
-  APartitioner() :
+  MultilevelPartitioning() :
     hypergraph(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     context(),
-    partitioner(),
     coarsener(new FirstWinsCoarsener(*hypergraph, context,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(*hypergraph, context)) {
     context.coarsening.contraction_limit = 2;
@@ -74,27 +73,18 @@ class APartitioner : public Test {
 
   std::unique_ptr<Hypergraph> hypergraph;
   Context context;
-  Partitioner partitioner;
   std::unique_ptr<ICoarsener> coarsener;
   std::unique_ptr<IRefiner> refiner;
 };
 
-class APartitionerWithHyperedgeSizeThreshold : public APartitioner {
- public:
-  APartitionerWithHyperedgeSizeThreshold() :
-    APartitioner() {
-    context.partition.hyperedge_size_threshold = 3;
-  }
-};
-
-TEST_F(APartitioner, UsesKaHyParPartitioningOnCoarsestHypergraph) {
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
+TEST_F(MultilevelPartitioning, UsesKaHyParPartitioningOnCoarsestHypergraph) {
+  multilevel::partition(*hypergraph, *coarsener, *refiner, context);
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
   ASSERT_THAT(hypergraph->partID(3), Eq(0));
 }
 
-TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
+TEST_F(MultilevelPartitioning, UncoarsensTheInitiallyPartitionedHypergraph) {
+  multilevel::partition(*hypergraph, *coarsener, *refiner, context);
   hypergraph->printGraphState();
   ASSERT_THAT(hypergraph->partID(0), Eq(1));
   ASSERT_THAT(hypergraph->partID(1), Eq(1));
@@ -105,23 +95,23 @@ TEST_F(APartitioner, UncoarsensTheInitiallyPartitionedHypergraph) {
   ASSERT_THAT(hypergraph->partID(6), Eq(0));
 }
 
-TEST_F(APartitioner, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
+TEST_F(MultilevelPartitioning, CalculatesPinCountsOfAHyperedgesAfterInitialPartitioning) {
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
+  multilevel::partition(*hypergraph, *coarsener, *refiner, context);
   ASSERT_THAT(hypergraph->pinCountInPart(0, 0), Eq(0));
   ASSERT_THAT(hypergraph->pinCountInPart(0, 1), Eq(2));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 0), Eq(3));
   ASSERT_THAT(hypergraph->pinCountInPart(2, 1), Eq(0));
 }
 
-TEST_F(APartitioner, CanUseVcyclesAsGlobalSearchStrategy) {
+TEST_F(MultilevelPartitioning, CanUseVcyclesAsGlobalSearchStrategy) {
   // simulate the first vcycle by explicitly setting a partitioning
   context.partition.global_search_iterations = 2;
   DBG1 << metrics::hyperedgeCut(*hypergraph);
-  partitioner.performPartitioning(*hypergraph, *coarsener, *refiner, context);
+  multilevel::partition(*hypergraph, *coarsener, *refiner, context);
   hypergraph->printGraphState();
   DBG1 << metrics::hyperedgeCut(*hypergraph);
   metrics::hyperedgeCut(*hypergraph);

@@ -27,7 +27,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/multilevel.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
@@ -63,7 +63,6 @@ class APartitionedHypergraph : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     context(),
-    partitioner(),
     coarsener(new FirstWinsCoarsener(hypergraph, context,  /* heaviest_node_weight */ 1)),
     refiner(new Refiner(hypergraph, context)) {
     context.partition.k = 2;
@@ -80,7 +79,7 @@ class APartitionedHypergraph : public Test {
                                             * context.partition.perfect_balance_part_weights[0];
     context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
                                             * context.partition.perfect_balance_part_weights[1];
-    partitioner.performPartitioning(hypergraph, *coarsener, *refiner, context);
+    multilevel::partition(hypergraph, *coarsener, *refiner, context);
   }
 
   Hypergraph hypergraph;
