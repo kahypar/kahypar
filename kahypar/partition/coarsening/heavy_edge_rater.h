@@ -110,11 +110,13 @@ class HeavyEdgeRater {
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
-      const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
-      for (const HypernodeID& v : _hg.pins(he)) {
-        if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
-            (part_u == _hg.partID(v))) {
-          _tmp_ratings[v] += score;
+      if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
+        const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
+        for (const HypernodeID& v : _hg.pins(he)) {
+          if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
+              (part_u == _hg.partID(v))) {
+            _tmp_ratings[v] += score;
+          }
         }
       }
     }
@@ -135,23 +137,17 @@ class HeavyEdgeRater {
       }
     }
 
-    _tmp_ratings.clear();
     HeavyEdgeRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
+      ASSERT(_tmp_ratings[target] == max_rating, V(target));
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
       ASSERT(_comm[u] == _comm[ret.target]);
     }
-    ASSERT([&]() {
-        bool flag = true;
-        if (ret.valid && (_hg.partID(u) != _hg.partID(ret.target))) {
-          flag = false;
-        }
-        return flag;
-      } (), "Representative" << u << "& contraction target" << ret.target
-                             << "are in different parts!");
+    ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
+    _tmp_ratings.clear();
     DBG << "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")";
     return ret;
   }
