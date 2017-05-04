@@ -135,7 +135,7 @@ class Partitioner {
 
   inline void setupContext(const Hypergraph& hypergraph, Context& context) const;
 
-  inline void contexturePreprocessing(const Hypergraph& hypergraph, Context& context) const;
+  inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context) const;
 
   inline void preprocess(Hypergraph& hypergraph, const Context& context);
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
@@ -186,7 +186,7 @@ class Partitioner {
   std::string _internals;
 };
 
-inline void Partitioner::contexturePreprocessing(const Hypergraph& hypergraph,
+inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
                                                  Context& context) const {
   if (context.preprocessing.enable_min_hash_sparsifier) {
     // determine whether or not to apply the sparsifier
@@ -502,7 +502,7 @@ inline Context Partitioner::createContextForInitialPartitioning(const Hypergraph
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
-  contexturePreprocessing(hypergraph, context);
+  configurePreprocessing(hypergraph, context);
   partitionInternal(hypergraph, context);
 }
 
