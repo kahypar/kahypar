@@ -241,18 +241,6 @@ class MaxGainNodeKWayFMRefiner final : public IRefiner,
                                                  initial_imbalance, _context.partition.epsilon);
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string(" RefinerStoppingPolicy=" + meta::templateToString<StoppingPolicy>() +
-                       " RefinerUsesBucketQueue=" +
-#ifdef USE_BUCKET_PQ
-                       "true"
-#else
-                       "false"
-#endif
-                       );
-  }
-
-
   void updateNeighbours(const HypernodeID moved_hn,
                         const HypernodeWeight max_allowed_part_weight) {
     _just_updated.reset();

@@ -120,10 +120,6 @@ class MLCoarsener final : public ICoarsener,
     return doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string("");
-  }
-
   using Base::_pq;
   using Base::_hg;
   using Base::_context;

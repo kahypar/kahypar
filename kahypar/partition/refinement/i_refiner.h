@@ -52,10 +52,6 @@ class IRefiner {
     initializeImpl(max_gain);
   }
 
-  std::string policyString() const {
-    return policyStringImpl();
-  }
-
   virtual ~IRefiner() = default;
 
  protected:
@@ -69,7 +65,5 @@ class IRefiner {
                           Metrics& best_metrics) = 0;
 
   virtual void initializeImpl(HyperedgeWeight) = 0;
-
-  virtual std::string policyStringImpl() const = 0;
 };
 }  // namespace kahypar

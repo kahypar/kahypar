@@ -35,7 +35,6 @@ namespace kahypar {
 namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
-                             const Partitioner& partitioner,
                              const std::chrono::duration<double>& elapsed_seconds) {
   std::ostringstream oss;
   oss << "RESULT"
@@ -136,7 +135,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     oss << " local_search_sclap_max_number_iterations="
         << context.local_search.sclap.max_number_iterations;
   }
-  oss << partitioner.internals();
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " partSize" << i << "=" << hypergraph.partSize(i);
   }

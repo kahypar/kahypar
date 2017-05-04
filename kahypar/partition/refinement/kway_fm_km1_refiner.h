@@ -264,17 +264,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                  _context.partition.epsilon);
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string(" RefinerStoppingPolicy=" + meta::templateToString<StoppingPolicy>() +
-                       " RefinerUsesBucketQueue=" +
-#ifdef USE_BUCKET_PQ
-                       "true"
-#else
-                       "false"
-#endif
-                       );
-  }
-
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);

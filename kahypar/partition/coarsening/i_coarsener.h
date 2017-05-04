@@ -43,10 +43,6 @@ class ICoarsener {
     return uncoarsenImpl(refiner);
   }
 
-  std::string policyString() const {
-    return policyStringImpl();
-  }
-
   virtual ~ICoarsener() = default;
 
  protected:
@@ -55,6 +51,5 @@ class ICoarsener {
  private:
   virtual void coarsenImpl(HypernodeID limit) = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
-  virtual std::string policyStringImpl() const = 0;
 };
 }  // namespace kahypar

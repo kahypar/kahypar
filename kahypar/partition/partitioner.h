@@ -73,8 +73,7 @@ class Partitioner {
   Partitioner() :
     _single_node_he_remover(),
     _large_he_remover(),
-    _pin_sparsifier(),
-    _internals() { }
+    _pin_sparsifier() { }
 
   Partitioner(const Partitioner&) = delete;
   Partitioner& operator= (const Partitioner&) = delete;
@@ -85,10 +84,6 @@ class Partitioner {
   ~Partitioner() = default;
 
   inline void partition(Hypergraph& hypergraph, Context& context);
-
-  const std::string internals() const {
-    return _internals;
-  }
 
  private:
   FRIEND_TEST(APartitionerWithHyperedgeSizeThreshold, RemovesHyperedgesExceedingThreshold);
@@ -125,7 +120,6 @@ class Partitioner {
   SingleNodeHyperedgeRemover _single_node_he_remover;
   LargeHyperedgeRemover _large_he_remover;
   MinHashSparsifier _pin_sparsifier;
-  std::string _internals;
 };
 
 inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,

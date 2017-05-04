@@ -206,11 +206,6 @@ class LPRefiner final : public IRefiner {
                                                  initial_imbalance, _context.partition.epsilon);
   }
 
-  std::string policyStringImpl() const override final {
-    return " lp_refiner_max_iterations=" +
-           std::to_string(_context.local_search.sclap.max_number_iterations);
-  }
-
  private:
   PartitionID heaviestPart() const {
     PartitionID heaviest_part = 0;

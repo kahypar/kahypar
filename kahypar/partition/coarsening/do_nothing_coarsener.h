@@ -40,6 +40,5 @@ class DoNothingCoarsener final : public ICoarsener {
  private:
   void coarsenImpl(const HypernodeID) override { }
   bool uncoarsenImpl(IRefiner&) override { return false; }
-  std::string policyStringImpl() const override { return std::string(""); }
 };
 }  // namespace kahypar

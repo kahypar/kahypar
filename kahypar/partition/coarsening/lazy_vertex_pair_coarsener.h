@@ -104,10 +104,6 @@ class LazyVertexPairCoarsener final : public ICoarsener,
     return Base::doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string(" ratingFunction=" + meta::templateToString<Rater>());
-  }
-
   void invalidateAffectedHypernodes(const HypernodeID rep_node) {
     for (const HyperedgeID& he : _hg.incidentEdges(rep_node)) {
       for (const HypernodeID& pin : _hg.pins(he)) {

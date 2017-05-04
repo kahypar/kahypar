@@ -889,17 +889,6 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string(" RefinerStoppingPolicy=" + meta::templateToString<StoppingPolicy>() +
-                       " RefinerGlobalRebalacing=" + meta::templateToString<UseGlobalRebalancing>() +
-                       " RefinerUsesBucketQueue=" +
-#ifdef USE_BUCKET_PQ
-                       "true");
-#else
-                       "false");
-#endif
-  }
-
   void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     const PartitionID target_part = 1 - _hg.partID(pin);
     ASSERT(_hg.active(pin), V(pin) << V(target_part));

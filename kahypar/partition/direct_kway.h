@@ -60,9 +60,6 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
     RefinerFactory::getInstance().createObject(
       context.local_search.algorithm, hypergraph, context));
 
-  // TODO(schlag): find better solution
-  // _internals.append(coarsener->policyString() + " " + refiner->policyString());
-
   multilevel::partition(hypergraph, *coarsener, *refiner, context);
 
   DBG << "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph);

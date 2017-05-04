@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
                                   context.partition.graph_partition_filename);
 
   if (context.partition.sp_process_output) {
-    kahypar::io::serializer::serialize(context, hypergraph, partitioner, elapsed_seconds);
+    kahypar::io::serializer::serialize(context, hypergraph, elapsed_seconds);
   }
 
   return 0;

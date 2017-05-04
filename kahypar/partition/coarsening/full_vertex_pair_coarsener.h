@@ -107,11 +107,6 @@ class FullVertexPairCoarsener final : public ICoarsener,
     return doUncoarsen(refiner);
   }
 
-  std::string policyStringImpl() const override final {
-    return std::string(" ratingFunction=" + meta::templateToString<Rater>());
-  }
-
-
   void reRateAffectedHypernodes(const HypernodeID rep_node,
                                 ds::FastResetFlagArray<>& rerated_hypernodes,
                                 ds::FastResetFlagArray<>& invalid_hypernodes) {

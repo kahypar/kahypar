@@ -49,8 +49,6 @@ class DoNothingRefiner final : public IRefiner {
     _is_initialized = true;
   }
 
-  std::string policyStringImpl() const override final { return std::string(""); }
-
   using IRefiner::_is_initialized;
 };
 }  // namespace kahypar

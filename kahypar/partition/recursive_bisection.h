@@ -209,11 +209,6 @@ static inline void partition(Hypergraph& input_hypergraph,
           ASSERT(coarsener.get() != nullptr, "coarsener not found");
           ASSERT(refiner.get() != nullptr, "refiner not found");
 
-          // TODO(schlag): find better solution ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          // if (_internals.empty()) {
-          //   _internals.append(coarsener->policyString() + " " + refiner->policyString());
-          // }
-
           multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
