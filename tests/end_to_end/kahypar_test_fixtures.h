@@ -20,11 +20,45 @@
 
 #pragma once
 
+#include <limits>
+
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
+class KaHyParCA : public ::testing::Test {
+ public:
+  KaHyParCA() :
+    context() {
+    context.partition.mode = Mode::direct_kway;
+    context.partition.objective = Objective::cut;
+    context.partition.seed = 2;
+    context.preprocessing.enable_louvain_community_detection = true;
+    context.preprocessing.enable_min_hash_sparsifier = true;
+    context.preprocessing.louvain_community_detection.enable_in_initial_partitioning = true;
+    context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+    context.coarsening.max_allowed_weight_multiplier = 1;
+    context.coarsening.contraction_limit_multiplier = 160;
+    context.initial_partitioning.mode = Mode::recursive_bisection;
+    context.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
+    context.initial_partitioning.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+    context.initial_partitioning.coarsening.max_allowed_weight_multiplier = 1;
+    context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+    context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    context.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    context.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
+    context.local_search.fm.adaptive_stopping_alpha = 1;
+    context.partition.graph_filename = "test_instances/ISPD98_ibm01.hgr";
+
+    kahypar::Randomize::instance().setSeed(context.partition.seed);
+  }
+
+  Context context;
+};
+
 
 class KaHyParK : public ::testing::Test {
  public:
@@ -82,5 +116,4 @@ class KaHyParR : public ::testing::Test {
 
   Context context;
 };
-
-} // namespace kahypar
+}  // namespace kahypar

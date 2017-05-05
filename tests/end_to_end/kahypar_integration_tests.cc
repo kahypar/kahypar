@@ -134,4 +134,31 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
   ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
   ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
+
+TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
+  context.partition.k = 8;
+  context.partition.epsilon = 0.03;
+  context.partition.objective = Objective::km1;
+  context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  Partitioner partitioner;
+  partitioner.partition(hypergraph, context);
+  kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
+}
 }  // namespace kahypar

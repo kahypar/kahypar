@@ -30,7 +30,6 @@
 #include "tests/end_to_end/kahypar_test_fixtures.h"
 
 namespace kahypar {
-
 void test(const std::string& filename, const Hypergraph& hypergraph, const Context& context) {
   std::ifstream previous_commit_results(filename.c_str());
   HyperedgeWeight cut = -1;
@@ -121,5 +120,26 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
   test("kahypar-r-km1.results", hypergraph, context);
+}
+
+TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
+  context.partition.k = 8;
+  context.partition.epsilon = 0.03;
+  context.partition.objective = Objective::km1;
+  context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  Partitioner partitioner;
+  partitioner.partition(hypergraph, context);
+  kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  test("kahypar-ca-km1.results", hypergraph, context);
 }
 }  // namespace kahypar
