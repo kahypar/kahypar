@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <Windows.h>
 #include <process.h>
+#include <Windows.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -202,11 +202,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - uniform\n"
     " - non_uniform\n"
     " - degree \n"
-    "(default: hybrid)")
-    ("p-louvain-use-bipartite-graph",
-    po::value<bool>(&context.preprocessing.louvain_community_detection.use_bipartite_graph)->value_name("<bool>"),
-    "If true, hypergraph is transformed into bipartite graph. If false, hypergraph is transformed into clique graph.\n"
-    "(default: true)");
+    "(default: hybrid)");
 
   po::options_description coarsening_options("Coarsening Options", num_columns);
   coarsening_options.add_options()

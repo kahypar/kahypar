@@ -46,7 +46,6 @@ struct MinHashSparsifierParameters {
 struct LouvainCommunityDetection {
   bool enable_in_initial_partitioning = false;
   LouvainEdgeWeight edge_weight = LouvainEdgeWeight::hybrid;
-  bool use_bipartite_graph = true;
   int max_pass_iterations = 100;
   long double min_eps_improvement = 0.0001;
 };
@@ -83,8 +82,6 @@ inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetect
   str << "Community Detection Parameters:" << std::endl;
   str << "  use louvain in IP:                  " << std::boolalpha
       << params.enable_in_initial_partitioning << std::endl;
-  str << "  use bipartite graph representation: " << std::boolalpha
-      << params.use_bipartite_graph << std::endl;
   str << "  maximum louvain-pass iterations:    "
       << params.max_pass_iterations << std::endl;
   str << "  minimum quality improvement:        "

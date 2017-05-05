@@ -97,9 +97,7 @@ class Graph {
   using IncidentClusterWeightIterator = std::vector<IncidentClusterWeight>::const_iterator;
 
   Graph(const Hypergraph& hypergraph, const Context& context) :
-    _num_nodes(hypergraph.currentNumNodes() +
-               (context.preprocessing.louvain_community_detection.use_bipartite_graph ?
-                hypergraph.currentNumEdges() : 0)),
+    _num_nodes(hypergraph.currentNumNodes() + hypergraph.currentNumEdges()),
     _num_communities(_num_nodes),
     _total_weight(0.0L),
     _adj_array(_num_nodes + 1),
@@ -112,41 +110,39 @@ class Graph {
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
-    if (context.preprocessing.louvain_community_detection.use_bipartite_graph) {
-      switch (context.preprocessing.louvain_community_detection.edge_weight) {
-        case LouvainEdgeWeight::degree:
-          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
-                                                  const HyperedgeID he,
-                                                  const HypernodeID hn) {
-              return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
-                      static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
-              static_cast<EdgeWeight>(hg.edgeSize(he));
-            });
-          break;
-        case LouvainEdgeWeight::non_uniform:
-          constructBipartiteGraph(hypergraph,
-                                  [&](const Hypergraph& hg,
-                                      const HyperedgeID he,
-                                      const HypernodeID) {
-              return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
-              static_cast<EdgeWeight>(hg.edgeSize(he));
-            });
+    switch (context.preprocessing.louvain_community_detection.edge_weight) {
+      case LouvainEdgeWeight::degree:
+        constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                const HyperedgeID he,
+                                                const HypernodeID hn) {
+            return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
+                    static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
+            static_cast<EdgeWeight>(hg.edgeSize(he));
+          });
+        break;
+      case LouvainEdgeWeight::non_uniform:
+        constructBipartiteGraph(hypergraph,
+                                [&](const Hypergraph& hg,
+                                    const HyperedgeID he,
+                                    const HypernodeID) {
+            return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
+            static_cast<EdgeWeight>(hg.edgeSize(he));
+          });
 
-          break;
-        case LouvainEdgeWeight::uniform:
-          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
-                                                  const HyperedgeID he,
-                                                  const HypernodeID) {
-              return static_cast<EdgeWeight>(hg.edgeWeight(he));
-            });
-          break;
-        case LouvainEdgeWeight::hybrid:
-          LOG << "Only uniform/non-uniform/degree edge weight is allowed at graph construction.";
-          std::exit(-1);
-        default:
-          LOG << "Unknown edge weight for bipartite graph.";
-          std::exit(-1);
-      }
+        break;
+      case LouvainEdgeWeight::uniform:
+        constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                const HyperedgeID he,
+                                                const HypernodeID) {
+            return static_cast<EdgeWeight>(hg.edgeWeight(he));
+          });
+        break;
+      case LouvainEdgeWeight::hybrid:
+        LOG << "Only uniform/non-uniform/degree edge weight is allowed at graph construction.";
+        std::exit(-1);
+      default:
+        LOG << "Unknown edge weight for bipartite graph.";
+        std::exit(-1);
     }
   }
 
