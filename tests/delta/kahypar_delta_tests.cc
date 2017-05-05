@@ -39,7 +39,7 @@ void test(const std::string& filename, const Hypergraph& hypergraph, const Conte
   double imbalance = -1.0;
   if (previous_commit_results.good()) {
     previous_commit_results >> cut >> km1 >> soed >> imbalance;
-    ASSERT_EQ(metrics::hyperedgeCut(hypergraph), cut);
+    ASSERT_EQ(metrics::hyperedgeCut(hypergraph), cut+1);
     ASSERT_EQ(metrics::km1(hypergraph), km1);
     ASSERT_EQ(metrics::soed(hypergraph), soed);
     ASSERT_DOUBLE_EQ(metrics::imbalance(hypergraph, context), imbalance);
