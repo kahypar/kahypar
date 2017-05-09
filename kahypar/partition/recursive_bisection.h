@@ -33,6 +33,8 @@
 
 namespace kahypar {
 namespace recursive_bisection {
+static constexpr bool debug = false;
+
 using HypergraphPtr = std::unique_ptr<Hypergraph, void (*)(Hypergraph*)>;
 using MappingStack = std::vector<std::vector<HypernodeID> >;
 

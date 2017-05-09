@@ -33,6 +33,8 @@
 
 namespace kahypar {
 namespace direct_kway {
+static constexpr bool debug = false;
+
 static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
                                    IRefiner& refiner, const Context& context) {
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();

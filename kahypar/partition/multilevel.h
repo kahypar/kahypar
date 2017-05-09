@@ -30,6 +30,8 @@
 
 namespace kahypar {
 namespace multilevel {
+static constexpr bool debug = false;
+
 static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
