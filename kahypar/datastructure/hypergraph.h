@@ -1373,6 +1373,15 @@ class GenericHypergraph {
     }
   }
 
+  // ! Changes the target number of blocks to k. This resizes
+  // internal data structures accordingly.
+  void changeK(const PartitionID k) {
+    _k = k;
+    _pins_in_part.resize(_num_hyperedges * k, 0);
+    _part_info.resize(k, PartInfo());
+    _connectivity_sets.resize(_num_hyperedges, k);
+  }
+
   void setType(const Type type) {
     _type = type;
   }

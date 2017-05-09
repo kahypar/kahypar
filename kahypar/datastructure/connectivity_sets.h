@@ -147,6 +147,9 @@ class ConnectivitySets final {
     }
   }
 
+  void resize(const HyperedgeID num_hyperedges, const PartitionID k) {
+    initialize(num_hyperedges, k);
+  }
 
   const ConnectivitySet& operator[] (const HyperedgeID he) const {
     return *get(he);
