@@ -103,6 +103,9 @@ class GenericHypergraph {
   // forward declaration
   enum class ContractionType : size_t;
 
+  // seed for edge hashes used for parallel net detection
+  static constexpr size_t kEdgeHashSeed = 42;
+
  private:
   /*!
    * Hypernode traits defining the data types
@@ -128,7 +131,7 @@ class GenericHypergraph {
     // ! i.e., number of blocks net \f$e\f$ is connected to
     PartitionID connectivity = 0;
     // ! Fingerprint that will be used for parallel net detection
-    size_t hash = 42;
+    size_t hash = kEdgeHashSeed;
     // ! Type of contraction operation that was performed when
     // ! the net was last touched.
     ContractionType contraction_type = ContractionType::Initial;
@@ -1340,6 +1343,7 @@ class GenericHypergraph {
   void resetPartitioning() {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       hypernode(i).part_id = kInvalidPartition;
+      hypernode(i).num_incident_cut_hes = 0;
     }
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
@@ -1347,8 +1351,17 @@ class GenericHypergraph {
       hyperedge(i).connectivity = 0;
       _connectivity_sets[i].clear();
     }
-    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      hypernode(i).num_incident_cut_hes = 0;
+  }
+
+  // ! Resets the hypergraph to initial state after construction
+  void reset() {
+    resetPartitioning();
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      hyperedge(i).hash = kEdgeHashSeed;
+      for (const HypernodeID& pin : pins(i)) {
+        hyperedge(i).hash += math::hash(pin);
+        hyperedge(i).contraction_type = ContractionType::Initial;
+      }
     }
   }
 

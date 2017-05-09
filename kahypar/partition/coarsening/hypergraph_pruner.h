@@ -255,7 +255,7 @@ class HypergraphPruner {
       }
       hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
-          size_t correct_hash = 42;
+          size_t correct_hash = Hypergraph::kEdgeHashSeed;
           for (const HypernodeID& pin : hypergraph.pins(he)) {
             correct_hash += math::hash(pin);
           }
