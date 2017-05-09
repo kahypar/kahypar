@@ -23,6 +23,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "kahypar/macros.h"
 #include "kahypar/meta/function_traits.h"
 #include "kahypar/meta/mandatory.h"
 
@@ -61,7 +62,7 @@ class Factory {
     if (creator != _callbacks.end()) {
       return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
-    std::cout << "Invalid identifier" << std::endl;
+    LOG << "Invalid object identifier";
     std::exit(-1);
   }
 

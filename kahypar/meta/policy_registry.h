@@ -24,6 +24,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "kahypar/macros.h"
+
 namespace kahypar {
 namespace meta {
 class PolicyBase {
@@ -61,7 +63,7 @@ class PolicyRegistry {
     if (it != _policies.end()) {
       return *(it->second.get());
     }
-    std::cout << "Invalid identifier" << std::endl;
+    LOG << "Invalid policy identifier";
     std::exit(-1);
   }
 
