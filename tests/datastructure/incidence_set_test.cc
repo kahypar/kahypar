@@ -155,7 +155,7 @@ TEST_F(AnIncidenceSet, AllowsUndoOperationsForReuseDuringUncontraction) {
 
 TEST(AnSmallIncidenceSet, GrowsAutomatically) {
   IncidenceSet<HypernodeID> sparse_map(2);
-  ASSERT_THAT(sparse_map.capacity(), Eq(4));
+  ASSERT_THAT(sparse_map.capacity(), Eq(2));
 
   sparse_map.add(6);
   sparse_map.add(1);

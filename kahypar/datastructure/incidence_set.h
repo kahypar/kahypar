@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 #include <utility>
 
 #include "kahypar/macros.h"
@@ -29,78 +30,71 @@
 
 namespace kahypar {
 namespace ds {
-template <typename T, size_t InitialSizeFactor = 2,
+template <typename T,
           T empty = std::numeric_limits<T>::max(),
           T deleted = std::numeric_limits<T>::max() - 1>
 class IncidenceSet {
  private:
   using Element = std::pair<T, T>;
   using Position = T;
+  using Byte = char;
+
+  static constexpr bool debug = false;
 
  public:
   explicit IncidenceSet(const T max_size) :
-    _dense(nullptr),
+    _begin(nullptr),
     _end(nullptr),
-    _sparse(nullptr),
     _size(0),
-    _max_sparse_size(0) {
-    const size_t internal_size = math::nextPowerOfTwoCeiled(max_size + 1);
-    _max_sparse_size = InitialSizeFactor * internal_size;
+    _capacity(max_size),
+    _hash_table(nullptr),
+    _bitmask(0) {
+    const size_t hash_table_size = math::nextPowerOfTwoCeiled(max_size) << 1;
+    _bitmask = hash_table_size - 1;
+
+    DBG << V(_capacity) << V(hash_table_size);
 
     static_assert(std::is_pod<T>::value, "T is not a POD");
-    _dense = static_cast<T*>(malloc(sizeOfDense(internal_size) + sizeOfSparse()));
-    _end = _dense;
+    _begin = std::make_unique<T[]>(_capacity +  /*sentinel for peek */ 1 + 2 * hash_table_size);
+    _end = _begin.get();
 
-    for (T i = 0; i < internal_size; ++i) {
-      new(_dense + i)T(std::numeric_limits<T>::max());
+    // initialize iteration area [begin, begin + max_size)
+    for (T i = 0; i < max_size; ++i) {
+      new(_begin.get() + i)T(std::numeric_limits<T>::max());
     }
     // sentinel for peek() operation of incidence set
-    new(_dense + internal_size)T(std::numeric_limits<T>::max());
+    new(_begin.get() + max_size)T(std::numeric_limits<T>::max());
 
-    _sparse = reinterpret_cast<Element*>(_dense + internal_size + 1);
-    for (T i = 0; i < _max_sparse_size; ++i) {
-      new (_sparse + i)Element(empty, empty);
+    // hash table comes afterwards
+    _hash_table = reinterpret_cast<Element*>(_begin.get() + max_size + 1);
+    for (T i = 0; i < hash_table_size; ++i) {
+      new (_hash_table + i)Element(empty, empty);
     }
   }
 
   IncidenceSet() :
-    IncidenceSet(5) { }
+    IncidenceSet(10) { }
 
-  ~IncidenceSet() {
-    free(_dense);
-  }
+  ~IncidenceSet() = default;
 
   IncidenceSet(const IncidenceSet& other) = delete;
   IncidenceSet& operator= (const IncidenceSet&) = delete;
 
-  IncidenceSet& operator= (IncidenceSet&&) = delete;
-
-  IncidenceSet(IncidenceSet&& other) :
-    _dense(other._dense),
-    _end(other._end),
-    _sparse(other._sparse),
-    _size(other._size),
-    _max_sparse_size(other._max_sparse_size) {
-    other._end = nullptr;
-    other._sparse = nullptr;
-    other._dense = nullptr;
-  }
+  IncidenceSet& operator= (IncidenceSet&& other) = default;
+  IncidenceSet(IncidenceSet&& other) = default;
 
   void add(const T element) {
+    DBG << V(element) << V(_size) << V(_capacity);
     ASSERT(!contains(element), V(element));
-    if (_end == reinterpret_cast<T*>(_sparse)) {
-      resize();
-    }
-
     insert(element, _size);
-    *_end = element;
-    ++_end;
-    ++_size;
+    handleAdd(element);
   }
 
   void insertIfNotContained(const T element) {
-    if (!contains(element)) {
-      add(element);
+    const Position pos = contains(element);
+    if (!pos) {
+      _hash_table[pos] = { element, _size };
+      handleAdd(element);
     }
   }
 
@@ -116,9 +110,9 @@ class IncidenceSet {
     ASSERT(contains(v), V(v));
 
     // swap v with element at end
-    Element& sparse_v = _sparse[find(v)];
-    swap(_dense[sparse_v.second], *(_end - 1));
-    update(_dense[sparse_v.second], sparse_v.second);
+    Element& sparse_v = _hash_table[find(v)];
+    swap(_begin[sparse_v.second], *(_end - 1));
+    update(_begin[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
@@ -132,9 +126,9 @@ class IncidenceSet {
     ASSERT(contains(v), V(v));
 
     // swap v with element at end
-    Element& sparse_v = _sparse[find(v)];
-    swap(_dense[sparse_v.second], *(_end - 1));
-    update(_dense[sparse_v.second], sparse_v.second);
+    Element& sparse_v = _hash_table[find(v)];
+    swap(_begin[sparse_v.second], *(_end - 1));
+    update(_begin[sparse_v.second], sparse_v.second);
 
     // delete v
     sparse_v.first = deleted;
@@ -155,26 +149,17 @@ class IncidenceSet {
     ASSERT(contains(u), V(u));
 
     // remove u
-    Element& sparse_u = _sparse[find(u)];
+    Element& sparse_u = _hash_table[find(u)];
     sparse_u.first = deleted;
 
     // replace u with v in dense
     insert(v, sparse_u.second);
-    _dense[sparse_u.second] = v;
+    _begin[sparse_u.second] = v;
   }
 
-  void swap(IncidenceSet& other) {
-    using std::swap;
-    swap(_dense, other._dense);
-    swap(_end, other._end);
-    swap(_sparse, other._sparse);
-    swap(_size, other._size);
-    swap(_max_sparse_size, other._max_sparse_size);
-  }
-
-  bool contains(const T key) {
+  Position contains(const T key) {
     const Position start_position = startPosition(key);
-    const T occupying_key = _sparse[start_position].first;
+    const T occupying_key = _hash_table[start_position].first;
     if (occupying_key == key) {
       return true;
     } else {
@@ -182,24 +167,23 @@ class IncidenceSet {
       // circular linear probing search. The sentinel is necessary,
       // because we cannot ensure that there always is at least one
       // empty slot. All 'unused' slots can potentially be marked as deleted.
-      _sparse[start_position].first = key;
-      Position position = nextPosition(start_position);
-      for ( ; ; ) {
-        if (_sparse[position].first == key) {
-          _sparse[start_position].first = occupying_key;
+      _hash_table[start_position].first = key;
+      for (Position position = nextSlot(start_position); ; position = nextSlot(position)) {
+        if (_hash_table[position].first == key) {
+          _hash_table[start_position].first = occupying_key;
           if (position != start_position) {
-            return true;
+            return position;
           } else {
-            return false;
+            return 0;
           }
         }
-        if (_sparse[position].first == empty) {
-          _sparse[start_position].first = occupying_key;
-          return false;
+        if (_hash_table[position].first == empty) {
+          _hash_table[start_position].first = occupying_key;
+          return 0;
         }
-        position = nextPosition(position);
       }
     }
+    return 0;
   }
 
   T size() const {
@@ -207,7 +191,7 @@ class IncidenceSet {
   }
 
   const T* begin() const {
-    return _dense;
+    return _begin.get();
   }
 
   const T* end() const {
@@ -215,7 +199,7 @@ class IncidenceSet {
   }
 
   T capacity() const {
-    return reinterpret_cast<T*>(_sparse) - _dense - 1;
+    return _capacity;
   }
 
   void printAll() const {
@@ -225,73 +209,72 @@ class IncidenceSet {
   }
 
  private:
+  void handleAdd(const T element) {
+    *_end = element;
+    ++_end;
+    if (++_size == _capacity) {
+      resize();
+    }
+  }
+
   void insert(const T key, const T value) {
     ASSERT(!contains(key), V(key));
-    _sparse[nextFreeSlot(key)] = { key, value };
+    _hash_table[nextFreeSlot(key)] = { key, value };
   }
 
   void update(const T key, const T value) {
     ASSERT(contains(key), V(key));
-    ASSERT(_sparse[find(key)].first == key, V(key));
-    _sparse[find(key)].second = value;
+    ASSERT(_hash_table[find(key)].first == key, V(key));
+    _hash_table[find(key)].second = value;
   }
-
 
   Position find(const T key) {
     ASSERT(contains(key), V(key));
     Position position = startPosition(key);
-    for ( ; ; ) {
-      if (_sparse[position].first == key) {
+    for ( ; ; position = nextSlot(position)) {
+      if (_hash_table[position].first == key) {
         return position;
       }
-      position = nextPosition(position);
     }
+    return -1;
   }
 
   Position nextFreeSlot(const T key) const {
     Position position = startPosition(key);
     for ( ; ; ) {
-      if (_sparse[position].first >= deleted) {
-        ASSERT(_sparse[position].first == empty || _sparse[position].first == deleted,
+      if (_hash_table[position].first >= deleted) {
+        ASSERT(_hash_table[position].first == empty || _hash_table[position].first == deleted,
                V(position));
         return position;
       }
-      position = nextPosition(position);
+      position = nextSlot(position);
     }
+    return -1;
   }
 
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Position nextPosition(const Position position) const {
-    return (position + 1) & (_max_sparse_size - 1);
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Position nextSlot(const Position position) const {
+    return (position + 1) & _bitmask;
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE Position startPosition(const T key) const {
-    ASSERT((_max_sparse_size & (_max_sparse_size - 1)) == 0,
-           V(_max_sparse_size) << "is no power of 2");
-    return math::identity(key) & (_max_sparse_size - 1);
+    return math::identity(key) & _bitmask;
   }
-
-  size_t sizeOfDense(const size_t max_size) const {
-    return (max_size + 1  /*sentinel for peek */) * sizeof(T);
-  }
-
-  constexpr size_t sizeOfSparse() const {
-    return _max_sparse_size * sizeof(Element);
-  }
-
 
   void resize() {
-    IncidenceSet new_set((_max_sparse_size / 2) + 1);
+    DBG << "resizing to capacity: " << (capacity() << 1);
+    IncidenceSet new_set(capacity() << 1);
     for (const auto& e : *this) {
       new_set.add(e);
     }
-    swap(new_set);
+    *this = std::move(new_set);
   }
 
-  T* _dense;
+  std::unique_ptr<T[]> _begin;
   T* _end;
-  Element* _sparse;
   T _size;
-  T _max_sparse_size;
+  T _capacity;
+  Element* _hash_table;
+  T _bitmask;
 };
 }  // namespace ds
 }  // namespace kahypar
