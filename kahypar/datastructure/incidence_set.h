@@ -91,10 +91,8 @@ class IncidenceSet {
   }
 
   void insertIfNotContained(const T element) {
-    const Position pos = contains(element);
-    if (!pos) {
-      _hash_table[pos] = { element, _size };
-      handleAdd(element);
+    if (!contains(element)) {
+      add(element);
     }
   }
 
@@ -157,7 +155,7 @@ class IncidenceSet {
     _begin[sparse_u.second] = v;
   }
 
-  Position contains(const T key) {
+  bool contains(const T key) {
     const Position start_position = startPosition(key);
     const T occupying_key = _hash_table[start_position].first;
     if (occupying_key == key) {
@@ -172,18 +170,18 @@ class IncidenceSet {
         if (_hash_table[position].first == key) {
           _hash_table[start_position].first = occupying_key;
           if (position != start_position) {
-            return position;
+            return true;
           } else {
-            return 0;
+            return false;
           }
         }
         if (_hash_table[position].first == empty) {
           _hash_table[start_position].first = occupying_key;
-          return 0;
+          return false;
         }
       }
     }
-    return 0;
+    return false;
   }
 
   T size() const {
