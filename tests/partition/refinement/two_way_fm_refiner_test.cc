@@ -30,8 +30,7 @@ using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                                      GlobalRebalancing>;
+using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class ATwoWayFMRefiner : public Test {
  public:
@@ -143,8 +142,8 @@ TEST_F(ATwoWayFMRefiner, UpdatesPartitionWeightsOnRollBack) {
   refiner->initialize(100);
   refiner->refine(refinement_nodes, { 42, 42 }, changes, old_metrics);
 
-  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(3));
-  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(0), Eq(4));
+  ASSERT_THAT(refiner->_hg.partWeight(1), Eq(3));
 }
 
 TEST_F(ATwoWayFMRefiner, PerformsCompleteRollBackIfNoImprovementCouldBeFound) {
@@ -192,10 +191,6 @@ TEST_F(AGainUpdateMethod, RespectsPositiveGainUpdateSpecialCaseForHyperedgesOfSi
   // bypassing activate since neither 0 nor 1 is actually a border node
   refiner._hg.activate(0);
   refiner._hg.activate(1);
-  refiner._rebalance_pqs[1].remove(0);
-  refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].remove(1);
-  refiner._disabled_rebalance_hns.add(1);
   refiner._gain_cache.setValue(0, refiner.computeGain(0));
   refiner._gain_cache.setValue(1, refiner.computeGain(1));
   refiner._pq.insert(0, 1, refiner._gain_cache.value(0));
@@ -254,14 +249,6 @@ TEST_F(AGainUpdateMethod, HandlesCase0To1) {
   refiner._hg.activate(1);
   refiner._hg.activate(2);
   refiner._hg.activate(3);
-  refiner._rebalance_pqs[1].remove(0);
-  refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].remove(1);
-  refiner._disabled_rebalance_hns.add(1);
-  refiner._rebalance_pqs[1].remove(2);
-  refiner._disabled_rebalance_hns.add(2);
-  refiner._rebalance_pqs[1].remove(3);
-  refiner._disabled_rebalance_hns.add(3);
   refiner._gain_cache.setValue(0, refiner.computeGain(0));
   refiner._gain_cache.setValue(1, refiner.computeGain(1));
   refiner._gain_cache.setValue(2, refiner.computeGain(2));
@@ -450,10 +437,6 @@ TEST_F(AGainUpdateMethod, ActivatesUnmarkedNeighbors) {
   refiner._pq.insert(1, 1, refiner._gain_cache.value(1));
   refiner._hg.activate(0);
   refiner._hg.activate(1);
-  refiner._rebalance_pqs[1].remove(0);
-  refiner._disabled_rebalance_hns.add(0);
-  refiner._rebalance_pqs[1].remove(1);
-  refiner._disabled_rebalance_hns.add(1);
   refiner._pq.enablePart(1);
   ASSERT_THAT(refiner._pq.key(0, 1), Eq(-1));
   ASSERT_THAT(refiner._pq.key(1, 1), Eq(-1));
@@ -486,8 +469,6 @@ TEST_F(AGainUpdateMethod, DoesNotDeleteJustActivatedNodes) {
   refiner._pq.insert(2, 1, refiner.computeGain(2));
   refiner._gain_cache.setValue(2, refiner.computeGain(2));
   refiner._hg.activate(2);
-  refiner._rebalance_pqs[1].remove(2);
-  refiner._disabled_rebalance_hns.add(2);
   refiner._pq.enablePart(1);
   refiner.moveHypernode(2, 0, 1);
   refiner._hg.mark(2);
@@ -563,8 +544,6 @@ TEST_F(ATwoWayFMRefiner, KnowsIfAHyperedgeIsFullyActive) {
   refiner->initialize(100);
 
   refiner->_hg.activate(0);
-  refiner->_rebalance_pqs[1].remove(0);
-  refiner->_disabled_rebalance_hns.add(0);
   hypergraph->changeNodePart(0, 0, 1);
   refiner->_hg.mark(0);
   refiner->fullUpdate(0, 1, 0);

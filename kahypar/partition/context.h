@@ -163,7 +163,6 @@ struct LocalSearchParameters {
     int max_number_of_fruitless_moves = 350;
     double adaptive_stopping_alpha = 1.0;
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::simple;
-    GlobalRebalancingMode global_rebalancing = GlobalRebalancingMode::off;
   };
 
   struct Sclap {
@@ -189,7 +188,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     } else {
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
-    str << "  use global rebalancing:             " << toString(params.fm.global_rebalancing) << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
@@ -226,10 +224,6 @@ class InitialPartitioningParameters {
     local_search.algorithm = RefinementAlgorithm::twoway_fm;
     local_search.fm.max_number_of_fruitless_moves = 50;
     local_search.fm.stopping_rule = RefinementStoppingRule::simple;
-    // Since initial partitioning starts local search with all HNs, global
-    // rebalancing doesn't do anything is this case and just induces additional
-    // overhead.
-    local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
   }
 
   Mode mode;

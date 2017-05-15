@@ -83,11 +83,6 @@ enum class RefinementStoppingRule : uint8_t {
   adaptive_opt,
 };
 
-enum class GlobalRebalancingMode : bool {
-  off,
-  on
-};
-
 enum class Objective : uint8_t {
   cut,
   km1
@@ -222,17 +217,6 @@ static std::string toString(const RefinementStoppingRule& algo) {
       return std::string("simple");
     case RefinementStoppingRule::adaptive_opt:
       return std::string("adaptive_opt");
-    default:
-      return std::string("UNDEFINED");
-  }
-}
-
-static std::string toString(const GlobalRebalancingMode& state) {
-  switch (state) {
-    case GlobalRebalancingMode::off:
-      return std::string("off");
-    case GlobalRebalancingMode::on:
-      return std::string("on");
     default:
       return std::string("UNDEFINED");
   }

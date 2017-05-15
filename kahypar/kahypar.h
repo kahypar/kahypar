@@ -161,10 +161,6 @@ REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
                 NumberOfFruitlessMovesStopsSearch);
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
-REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::on,
-                GlobalRebalancing);
-REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::off,
-                NoGlobalRebalancing);
 
 ////////////////////////////////////////////////////////////////////////////////
 //                           Local Search Algorithms
@@ -172,9 +168,7 @@ REGISTER_POLICY(GlobalRebalancingMode, GlobalRebalancingMode::off,
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
                             TwoWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                              context.local_search.fm.stopping_rule),
-                            meta::PolicyRegistry<GlobalRebalancingMode>::getInstance().getPolicy(
-                              context.local_search.fm.global_rebalancing));
+                              context.local_search.fm.stopping_rule));
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
                             KWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(

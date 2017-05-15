@@ -364,18 +364,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("r-fm-stop-alpha",
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rules \n"
-    "(default: 1,infinity: -1)")
-    ("r-fm-global-rebalancing",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](const bool global_rebalancing) {
-      if (global_rebalancing) {
-        context.local_search.fm.global_rebalancing = GlobalRebalancingMode::on;
-      } else {
-        context.local_search.fm.global_rebalancing = GlobalRebalancingMode::off;
-      }
-    }),
-    "Use global rebalancing PQs in twoway_fm \n"
-    "(default: false)");
+    "(default: 1,infinity: -1)");
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)

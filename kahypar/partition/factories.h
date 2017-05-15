@@ -48,8 +48,7 @@ using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
 
 using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
                                                                    IRefiner,
-                                                                   meta::Typelist<StoppingPolicyClasses,
-                                                                                  RebalancingPolicyClasses> >;
+                                                                   meta::Typelist<StoppingPolicyClasses> >;
 
 using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
                                                                  IRefiner,

@@ -108,8 +108,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << toString(context.initial_partitioning.local_search.fm.stopping_rule)
         << " IP_local_search_fm_max_number_of_fruitless_moves="
         << context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves
-        << " IP_local_search_fm_global_rebalancing="
-        << toString(context.initial_partitioning.local_search.fm.global_rebalancing)
         << " IP_local_search_fm_adaptive_stopping_alpha="
         << context.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
@@ -126,7 +124,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     oss << " local_search_fm_stopping_rule=" << toString(context.local_search.fm.stopping_rule)
         << " local_search_fm_max_number_of_fruitless_moves="
         << context.local_search.fm.max_number_of_fruitless_moves
-        << " local_search_fm_global_rebalancing=" << toString(context.local_search.fm.global_rebalancing)
         << " local_search_fm_adaptive_stopping_alpha=" << context.local_search.fm.adaptive_stopping_alpha;
   }
   if (context.local_search.algorithm == RefinementAlgorithm::label_propagation) {
