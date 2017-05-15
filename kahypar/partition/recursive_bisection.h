@@ -197,6 +197,24 @@ static inline void partition(Hypergraph& input_hypergraph,
             LOG << R"(========================================)"
                    R"(========================================)";
           }
+          // TODO(schlag): This is probably the right point to handle recursive bisection mode
+          // as well
+          if (current_context.type == ContextType::initial_partitioning) {
+            if (current_context.preprocessing.enable_louvain_community_detection) {
+              const bool verbose_output = (current_context.type == ContextType::main &&
+                                           current_context.partition.verbose_output);
+              if (verbose_output) {
+                LOG << "Performing community detection:";
+              }
+              current_hypergraph.setCommunities(detectCommunities(current_hypergraph,
+                                                                  current_context));
+              if (verbose_output) {
+                LOG << "  # communities = " << current_context.stats.preprocessing("Communities");
+                LOG << "  modularity    = " << current_context.stats.preprocessing("Modularity");
+              }
+            }
+          }
+
           std::unique_ptr<ICoarsener> coarsener(
             CoarsenerFactory::getInstance().createObject(
               current_context.coarsening.algorithm,

@@ -1654,6 +1654,10 @@ class GenericHypergraph {
     _communities = std::move(communities);
   }
 
+  void resetCommunities() {
+    std::fill(_communities.begin(), _communities.end(), 0);
+  }
+
 
   // ! Returns the sum of the weights of all hypernodes in a block
   HypernodeWeight partWeight(const PartitionID id) const {

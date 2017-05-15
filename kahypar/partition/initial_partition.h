@@ -155,7 +155,6 @@ static inline Context createContext(const Hypergraph& hg,
 static inline void partition(Hypergraph& hg, const Context& context) {
   auto extracted_init_hypergraph = ds::reindex(hg);
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
-
   double init_alpha = context.initial_partitioning.init_alpha;
   double best_imbalance = std::numeric_limits<double>::max();
   std::vector<PartitionID> best_imbalanced_partition(
@@ -163,6 +162,8 @@ static inline void partition(Hypergraph& hg, const Context& context) {
 
   do {
     extracted_init_hypergraph.first->resetPartitioning();
+    // we do not want to use the community structure used during coarsening in initial partitioning
+    extracted_init_hypergraph.first->resetCommunities();
     Context init_context = createContext(*extracted_init_hypergraph.first, context, init_alpha);
 
     if (context.initial_partitioning.verbose_output) {

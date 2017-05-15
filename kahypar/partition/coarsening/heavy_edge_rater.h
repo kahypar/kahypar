@@ -78,20 +78,7 @@ class HeavyEdgeRater {
     _hg(hypergraph),
     _context(context),
     _tmp_ratings(_hg.initialNumNodes()),
-    _already_matched(_hg.initialNumNodes()) {
-    if (_context.preprocessing.enable_louvain_community_detection) {
-      const bool verbose_output = (_context.type == ContextType::main &&
-                                   _context.partition.verbose_output);
-      if (verbose_output) {
-        LOG << "Performing community detection:";
-      }
-      hypergraph.setCommunities(detectCommunities(_hg, _context));
-      if (verbose_output) {
-        LOG << "  # communities = " << context.stats.preprocessing("Communities");
-        LOG << "  modularity    = " << context.stats.preprocessing("Modularity");
-      }
-    }
-  }
+    _already_matched(_hg.initialNumNodes()) { }
 
   HeavyEdgeRater(const HeavyEdgeRater&) = delete;
   HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
