@@ -2125,7 +2125,6 @@ std::pair<std::unique_ptr<Hypergraph>,
 reindex(const Hypergraph& hypergraph) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
-  using PartitionID = typename Hypergraph::PartitionID;
 
   std::unordered_map<HypernodeID, HypernodeID> original_to_reindexed;
   std::vector<HypernodeID> reindexed_to_original;
@@ -2148,7 +2147,7 @@ reindex(const Hypergraph& hypergraph) {
     }
     ASSERT(std::none_of(reindexed_hypergraph->_communities.cbegin(),
                         reindexed_hypergraph->_communities.cend(),
-                        [](PartitionID i) {
+                        [](typename Hypergraph::PartitionID i) {
           return i == -1;
         }));
   }
@@ -2220,7 +2219,6 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const bool split_nets = false) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
-  using PartitionID = typename Hypergraph::PartitionID;
 
   std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
   std::vector<HypernodeID> subhypergraph_to_hypergraph;
@@ -2247,7 +2245,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       }
       ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
                           subhypergraph->_communities.cend(),
-                          [](PartitionID i) {
+                          [](typename Hypergraph::PartitionID i) {
             return i == -1;
           }));
     }
