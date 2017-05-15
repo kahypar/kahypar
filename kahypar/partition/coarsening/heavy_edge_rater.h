@@ -78,7 +78,6 @@ class HeavyEdgeRater {
     _hg(hypergraph),
     _context(context),
     _tmp_ratings(_hg.initialNumNodes()),
-    _comm(),
     _already_matched(_hg.initialNumNodes()) {
     if (_context.preprocessing.enable_louvain_community_detection) {
       const bool verbose_output = (_context.type == ContextType::main &&
@@ -86,13 +85,11 @@ class HeavyEdgeRater {
       if (verbose_output) {
         LOG << "Performing community detection:";
       }
-      _comm = detectCommunities(_hg, _context);
+      hypergraph.setCommunities(detectCommunities(_hg, _context));
       if (verbose_output) {
         LOG << "  # communities = " << context.stats.preprocessing("Communities");
         LOG << "  modularity    = " << context.stats.preprocessing("Modularity");
       }
-    } else {
-      _comm.resize(_hg.initialNumNodes(), 0);
     }
   }
 
@@ -123,13 +120,14 @@ class HeavyEdgeRater {
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
+    const std::vector<PartitionID>& communities = _hg.communities();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value /
                                     NodeWeightPenalty::penalty(weight_u,
                                                                _hg.nodeWeight(tmp_target));
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
-      if (_comm[u] == _comm[tmp_target] &&
+      if (communities[u] == communities[tmp_target] &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
                                          target, tmp_target, _already_matched)) {
         max_rating = tmp_rating;
@@ -143,7 +141,7 @@ class HeavyEdgeRater {
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
-      ASSERT(_comm[u] == _comm[ret.target]);
+      ASSERT(communities[u] == communities[ret.target]);
     }
     ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
     _tmp_ratings.clear();
@@ -172,7 +170,6 @@ class HeavyEdgeRater {
   Hypergraph& _hg;
   const Context& _context;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
-  std::vector<ClusterID> _comm;
   ds::FastResetFlagArray<> _already_matched;
 };
 }  // namespace kahypar

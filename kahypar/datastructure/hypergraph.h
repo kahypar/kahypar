@@ -518,6 +518,7 @@ class GenericHypergraph {
     _hypernodes(_num_hypernodes, Hypernode(0, 0, 1)),
     _hyperedges(_num_hyperedges, Hyperedge(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
+    _communities(_num_hypernodes, 0),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
@@ -594,6 +595,7 @@ class GenericHypergraph {
     _hypernodes(),
     _hyperedges(),
     _incidence_array(),
+    _communities(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(),
@@ -1356,6 +1358,7 @@ class GenericHypergraph {
   // ! Resets the hypergraph to initial state after construction
   void reset() {
     resetPartitioning();
+    std::fill(_communities.begin(), _communities.end(), 0);
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).hash = kEdgeHashSeed;
       for (const HypernodeID& pin : pins(i)) {
@@ -1639,6 +1642,18 @@ class GenericHypergraph {
   HypernodeWeight totalWeight() const {
     return _total_weight;
   }
+
+  // ! Returns the community structure of the hypergraph
+  const std::vector<PartitionID> & communities() const {
+    return _communities;
+  }
+
+  // ! Sets the community structure of the hypergraph
+  void setCommunities(std::vector<PartitionID>&& communities) {
+    ASSERT(communities.size() == _current_num_hypernodes);
+    _communities = std::move(communities);
+  }
+
 
   // ! Returns the sum of the weights of all hypernodes in a block
   HypernodeWeight partWeight(const PartitionID id) const {
@@ -1971,6 +1986,9 @@ class GenericHypergraph {
   // ! Incidence structure containing the ids of of pins of all hyperedges
   // ! and the ids of the incident edges of all hypernodes.
   std::vector<VertexID> _incidence_array;
+  // ! Stores the community structure revealed by community detection algorithms.
+  // ! If community detection is disabled, all HNs are in the same community.
+  std::vector<PartitionID> _communities;
 
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
@@ -2026,6 +2044,7 @@ bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hyp
          V(expected._current_num_pins) << V(actual._current_num_pins));
   ASSERT(expected._hypernodes == actual._hypernodes, "Error!");
   ASSERT(expected._hyperedges == actual._hyperedges, "Error!");
+  ASSERT(expected._communities == actual._communities, "Error!");
 
   std::vector<unsigned int> expected_incidence_array(expected._incidence_array);
   std::vector<unsigned int> actual_incidence_array(actual._incidence_array);
@@ -2045,6 +2064,7 @@ bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected, const Hyp
          expected._current_num_pins == actual._current_num_pins &&
          expected._hypernodes == actual._hypernodes &&
          expected._hyperedges == actual._hyperedges &&
+         expected._communities == actual._communities &&
          expected_incidence_array == actual_incidence_array;
 }
 
@@ -2055,6 +2075,7 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
 
   ASSERT(expected._part_info == actual._part_info, "Error");
   ASSERT(expected._pins_in_part == actual._pins_in_part, "Error");
+  ASSERT(expected._communities == actual._communities, "Error");
 
   bool connectivity_sets_valid = true;
   for (const HyperedgeID& he : actual.edges()) {
@@ -2071,12 +2092,17 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
   }
 
   bool num_incident_cut_hes_valid = true;
+  bool community_structure_valid = true;
   for (const HypernodeID& hn : actual.nodes()) {
-    ASSERT(expected.hypernode(hn).num_incident_cut_hes == actual.hypernode(hn).num_incident_cut_hes
-           , V(hn));
+    ASSERT(expected.hypernode(hn).num_incident_cut_hes == actual.hypernode(hn).num_incident_cut_hes,
+           V(hn));
+    ASSERT(expected._communities[hn] == actual._communities[hn], V(hn));
     if (expected.hypernode(hn).num_incident_cut_hes != actual.hypernode(hn).num_incident_cut_hes) {
       num_incident_cut_hes_valid = false;
       break;
+    }
+    if (expected._communities[hn] != actual._communities[hn]) {
+      community_structure_valid = false;
     }
   }
 
@@ -2084,6 +2110,7 @@ bool verifyEquivalenceWithPartitionInfo(const Hypergraph& expected, const Hyperg
          expected._part_info == actual._part_info &&
          expected._pins_in_part == actual._pins_in_part &&
          num_incident_cut_hes_valid &&
+         community_structure_valid &&
          connectivity_sets_valid;
 }
 
@@ -2094,6 +2121,7 @@ std::pair<std::unique_ptr<Hypergraph>,
 reindex(const Hypergraph& hypergraph) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
 
   std::unordered_map<HypernodeID, HypernodeID> original_to_reindexed;
   std::vector<HypernodeID> reindexed_to_original;
@@ -2106,6 +2134,19 @@ reindex(const Hypergraph& hypergraph) {
     original_to_reindexed[hn] = reindexed_to_original.size();
     reindexed_to_original.push_back(hn);
     ++num_hypernodes;
+  }
+
+  if (!hypergraph._communities.empty()) {
+    reindexed_hypergraph->_communities.resize(num_hypernodes, -1);
+    for (const HypernodeID& hn : hypergraph.nodes()) {
+      const HypernodeID reindexed_hn = original_to_reindexed[hn];
+      reindexed_hypergraph->_communities[reindexed_hn] = hypergraph._communities[hn];
+    }
+    ASSERT(std::none_of(reindexed_hypergraph->_communities.cbegin(),
+                        reindexed_hypergraph->_communities.cend(),
+                        [](PartitionID i) {
+          return i == -1;
+        }));
   }
 
   reindexed_hypergraph->_hypernodes.resize(num_hypernodes);
@@ -2175,6 +2216,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const bool split_nets = false) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
 
   std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
   std::vector<HypernodeID> subhypergraph_to_hypergraph;
@@ -2192,6 +2234,19 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
   if (num_hypernodes > 0) {
     subhypergraph->_hypernodes.resize(num_hypernodes);
     subhypergraph->_num_hypernodes = num_hypernodes;
+
+    if (!hypergraph._communities.empty()) {
+      subhypergraph->_communities.resize(num_hypernodes, -1);
+      for (const HypernodeID& subhypergraph_hn : subhypergraph->nodes()) {
+        const HypernodeID original_hn = subhypergraph_to_hypergraph[subhypergraph_hn];
+        subhypergraph->_communities[subhypergraph_hn] = hypergraph._communities[original_hn];
+      }
+      ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
+                          subhypergraph->_communities.cend(),
+                          [](PartitionID i) {
+            return i == -1;
+          }));
+    }
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
