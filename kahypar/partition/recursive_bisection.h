@@ -185,10 +185,13 @@ static inline void partition(Hypergraph& input_hypergraph,
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;
 
-          const bool verbose_output = (current_context.type == ContextType::main &&
-                                       current_context.partition.verbose_output) ||
-                                      (current_context.type == ContextType::initial_partitioning &&
-                                       current_context.initial_partitioning.verbose_output);
+          const bool direct_kway_verbose =
+            current_context.type == ContextType::initial_partitioning &&
+            current_context.initial_partitioning.verbose_output;
+          const bool recursive_bisection_verbose =
+            current_context.type == ContextType::main &&
+            current_context.partition.verbose_output;
+          const bool verbose_output = direct_kway_verbose || recursive_bisection_verbose;
 
           if (verbose_output) {
             LOG << "Recursive Bisection No." << bisection_counter << ": Computing blocks ("
@@ -197,6 +200,38 @@ static inline void partition(Hypergraph& input_hypergraph,
             LOG << R"(========================================)"
                    R"(========================================)";
           }
+
+          if (current_context.preprocessing.enable_louvain_community_detection) {
+            if (recursive_bisection_verbose) {
+              LOG << "******************************************"
+                     "**************************************";
+              LOG << "*                               Preprocessing..."
+                     "                               *";
+              LOG << "*********************************************"
+                     "***********************************";
+            }
+
+            // For both recursive bisection and direct k-way partitioning mode, we allow to reuse
+            // community structure information. Direct k-way partitioning uses recursive bisection
+            // as initial partitioning mode. Using the reuse_communities flag, we can therefore
+            // decide whether or not the community structure found before the first bisection
+            // (which corresponds to the community structure of the input hypergraph for recursive
+            // bisection based partitioning and to the community structure of the coarse hypergraph
+            // for direct k-way partitioning) should be reused in subsequent bisections. Note that
+            // the community structure computed in the top level preprocessing phase of direct k-way
+            // partitioning is not used here, because we clear the communities vector before calling
+            // the initial partitioner (see initial_partition.h).
+            const bool detect_communities =
+              !current_context.preprocessing.louvain_community_detection.reuse_communities ||
+              bisection_counter == 1;
+            if (detect_communities) {
+              detectCommunities(current_hypergraph, current_context);
+            } else if (verbose_output) {
+              LOG << "Reusing community structure computed in first bisection";
+            }
+          }
+
+
           std::unique_ptr<ICoarsener> coarsener(
             CoarsenerFactory::getInstance().createObject(
               current_context.coarsening.algorithm,

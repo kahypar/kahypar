@@ -254,7 +254,7 @@ class Louvain {
   const Context& _context;
 };
 
-
+namespace internal {
 inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
                                                 const Context& context) {
   Louvain<Modularity> louvain(hypergraph, context);
@@ -276,8 +276,24 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   }
   ASSERT(std::none_of(communities.cbegin(), communities.cend(),
                       [](ClusterID i) {
-      return i == -1;
-    }));
+        return i == -1;
+      }));
   return communities;
+}
+}  // namespace internal
+
+inline void detectCommunities(Hypergraph& hypergraph, const Context& context) {
+  const bool verbose_output = (context.type == ContextType::main &&
+                               context.partition.verbose_output) ||
+                              (context.type == ContextType::initial_partitioning &&
+                               context.initial_partitioning.verbose_output);
+  if (verbose_output) {
+    LOG << "Performing community detection:";
+  }
+  hypergraph.setCommunities(internal::detectCommunities(hypergraph, context));
+  if (verbose_output) {
+    LOG << "  # communities =" << context.stats.preprocessing("Communities");
+    LOG << "  modularity    =" << context.stats.preprocessing("Modularity");
+  }
 }
 }  // namespace kahypar

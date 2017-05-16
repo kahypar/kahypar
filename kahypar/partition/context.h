@@ -45,6 +45,7 @@ struct MinHashSparsifierParameters {
 
 struct LouvainCommunityDetection {
   bool enable_in_initial_partitioning = false;
+  bool reuse_communities = false;
   LouvainEdgeWeight edge_weight = LouvainEdgeWeight::hybrid;
   int max_pass_iterations = 100;
   long double min_eps_improvement = 0.0001;
@@ -88,6 +89,8 @@ inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetect
       << params.min_eps_improvement << std::endl;
   str << "  graph edge weight:                  "
       << toString(params.edge_weight) << std::endl;
+  str << "  reuse community structure:          " << std::boolalpha
+      << params.reuse_communities << std::endl;
   return str;
 }
 
@@ -110,7 +113,7 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   if (params.enable_louvain_community_detection) {
     str << "-------------------------------------------------------------------------------"
         << std::endl;
-    str << params.louvain_community_detection << std::endl;
+    str << params.louvain_community_detection;
   }
 
   return str;

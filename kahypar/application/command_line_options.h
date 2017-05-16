@@ -202,7 +202,11 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - uniform\n"
     " - non_uniform\n"
     " - degree \n"
-    "(default: hybrid)");
+    "(default: hybrid)")
+    ("p-reuse-communities",
+    po::value<bool>(&context.preprocessing.louvain_community_detection.reuse_communities)->value_name("<bool>"),
+    "Reuse the community structure identified in the first bisection for all other bisections.\n"
+    "(default: false)");
 
   po::options_description coarsening_options("Coarsening Options", num_columns);
   coarsening_options.add_options()
