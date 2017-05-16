@@ -185,10 +185,13 @@ static inline void partition(Hypergraph& input_hypergraph,
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;
 
-          const bool verbose_output = (current_context.type == ContextType::main &&
-                                       current_context.partition.verbose_output) ||
-                                      (current_context.type == ContextType::initial_partitioning &&
-                                       current_context.initial_partitioning.verbose_output);
+          const bool direct_kway_verbose =
+            current_context.type == ContextType::initial_partitioning &&
+            current_context.initial_partitioning.verbose_output;
+          const bool recursive_bisection_verbose =
+            current_context.type == ContextType::main &&
+            current_context.partition.verbose_output;
+          const bool verbose_output = direct_kway_verbose || recursive_bisection_verbose;
 
           if (verbose_output) {
             LOG << "Recursive Bisection No." << bisection_counter << ": Computing blocks ("
@@ -199,8 +202,7 @@ static inline void partition(Hypergraph& input_hypergraph,
           }
 
           if (current_context.preprocessing.enable_louvain_community_detection) {
-            if (current_context.type == ContextType::main &&
-                current_context.partition.verbose_output) {
+            if (recursive_bisection_verbose) {
               LOG << "******************************************"
                      "**************************************";
               LOG << "*                               Preprocessing..."
@@ -208,7 +210,17 @@ static inline void partition(Hypergraph& input_hypergraph,
               LOG << "*********************************************"
                      "***********************************";
             }
-            detectCommunities(current_hypergraph, current_context);
+
+            // In recursive bisection mode, we want to be able to reuse the community
+            // structure computed as preprocessing before the first bisection for the subsequent
+            // bisections. This is made sure using the following implication:
+            // RB-Mode ==> first bisection OR always compute community structure
+            if (current_context.type != ContextType::main || bisection_counter == 1 ||
+                !current_context.preprocessing.louvain_community_detection.reuse_communities) {
+              detectCommunities(current_hypergraph, current_context);
+            } else if (recursive_bisection_verbose) {
+              LOG << "Reusing community structure of first bisection";
+            }
           }
 
 
