@@ -180,7 +180,7 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
   if (context.partition.verbose_output) {
     LOG << "\n********************************************************************************";
-    LOG << "*                               Preprocessing...                               *";
+    LOG << "*                          Top Level Preprocessing..                           *";
     LOG << "********************************************************************************";
   }
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
@@ -202,17 +202,12 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
         std::chrono::duration<double>(end - start).count();
     }
   }
-  if (context.preprocessing.enable_louvain_community_detection) {
-    const bool verbose_output = (context.type == ContextType::main &&
-                                 context.partition.verbose_output);
-    if (verbose_output) {
-      LOG << "Performing community detection:";
-    }
-    hypergraph.setCommunities(detectCommunities(hypergraph, context));
-    if (verbose_output) {
-      LOG << "  # communities = " << context.stats.preprocessing("Communities");
-      LOG << "  modularity    = " << context.stats.preprocessing("Modularity");
-    }
+
+  // In recursive bisection mode, we perform community detection before each
+  // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
+  if (context.partition.mode != Mode::recursive_bisection &&
+      context.preprocessing.enable_louvain_community_detection) {
+    detectCommunities(hypergraph, context);
   }
 }
 
