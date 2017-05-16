@@ -292,8 +292,8 @@ inline void detectCommunities(Hypergraph& hypergraph, const Context& context) {
   }
   hypergraph.setCommunities(internal::detectCommunities(hypergraph, context));
   if (verbose_output) {
-    LOG << "  # communities = " << context.stats.preprocessing("Communities");
-    LOG << "  modularity    = " << context.stats.preprocessing("Modularity");
+    LOG << "  # communities =" << context.stats.preprocessing("Communities");
+    LOG << "  modularity    =" << context.stats.preprocessing("Modularity");
   }
 }
 }  // namespace kahypar
