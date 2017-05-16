@@ -89,6 +89,8 @@ inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetect
       << params.min_eps_improvement << std::endl;
   str << "  graph edge weight:                  "
       << toString(params.edge_weight) << std::endl;
+  str << "  reuse community structure:          " << std::boolalpha
+      << params.reuse_communities << std::endl;
   return str;
 }
 
@@ -111,7 +113,7 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   if (params.enable_louvain_community_detection) {
     str << "-------------------------------------------------------------------------------"
         << std::endl;
-    str << params.louvain_community_detection << std::endl;
+    str << params.louvain_community_detection;
   }
 
   return str;
