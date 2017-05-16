@@ -662,6 +662,14 @@ TEST_F(AHypergraph, MaintainsItsTotalWeight) {
 }
 
 TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
+  hypergraph._communities[0] = 0;
+  hypergraph._communities[1] = 2;
+  hypergraph._communities[2] = 4;
+  hypergraph._communities[3] = 6;
+  hypergraph._communities[4] = 8;
+  hypergraph._communities[5] = 10;
+  hypergraph._communities[6] = 12;
+
   auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
   auto extr_part1 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 1);
   Hypergraph& part0_hypergraph = *extr_part0.first;
@@ -681,6 +689,9 @@ TEST_F(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs) {
 
   ASSERT_THAT(mapping_0, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 4 }));
   ASSERT_THAT(mapping_1, ContainerEq(std::vector<HypernodeID>{ 2, 5, 6 }));
+
+  ASSERT_THAT(part0_hypergraph._communities, ContainerEq(std::vector<PartitionID>{ 0, 2, 6, 8 }));
+  ASSERT_THAT(part1_hypergraph._communities, ContainerEq(std::vector<PartitionID>{ 4, 10, 12 }));
 }
 
 TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartitionRelatedInfos) {
@@ -691,6 +702,15 @@ TEST_F(AHypergraph, WithOnePartitionEqualsTheExtractedHypergraphExceptForPartiti
   hypergraph.setNodePart(4, 0);
   hypergraph.setNodePart(5, 0);
   hypergraph.setNodePart(6, 0);
+
+  hypergraph._communities[0] = 0;
+  hypergraph._communities[1] = 2;
+  hypergraph._communities[2] = 4;
+  hypergraph._communities[3] = 6;
+  hypergraph._communities[4] = 8;
+  hypergraph._communities[5] = 10;
+  hypergraph._communities[6] = 12;
+
   auto extr_part0 = extractPartAsUnpartitionedHypergraphForBisection(hypergraph, 0);
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, *extr_part0.first), Eq(true));
 }

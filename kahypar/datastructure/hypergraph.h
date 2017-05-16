@@ -1699,6 +1699,9 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, ExtractedFromAPartitionedHypergraphHasInitializedPartitionInformation);
   FRIEND_TEST(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation);
   FRIEND_TEST(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes);
+  FRIEND_TEST(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs);
+  FRIEND_TEST(AHypergraph,
+              WithOnePartitionEqualsTheExtractedHypergraphExceptForPartitionRelatedInfos);
 
   /*!
    * Returns true if hypernode is a border-node.
