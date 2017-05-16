@@ -1700,6 +1700,7 @@ class GenericHypergraph {
   FRIEND_TEST(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation);
   FRIEND_TEST(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes);
   FRIEND_TEST(APartitionedHypergraph, CanBeDecomposedIntoHypergraphs);
+  FRIEND_TEST(AHypergraph, WithContractedHypernodesCanBeReindexed);
   FRIEND_TEST(AHypergraph,
               WithOnePartitionEqualsTheExtractedHypergraphExceptForPartitionRelatedInfos);
 

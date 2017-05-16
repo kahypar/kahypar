@@ -801,12 +801,22 @@ TEST_F(AHypergraph, WithContractedHypernodesCanBeReindexed) {
   hypergraph.contract(0, 2);
   hypergraph.removeEdge(1);
 
+  hypergraph._communities[0] = 0;
+  hypergraph._communities[1] = 2;
+  hypergraph._communities[2] = 4;
+  hypergraph._communities[3] = 6;
+  hypergraph._communities[4] = 8;
+  hypergraph._communities[5] = 10;
+  hypergraph._communities[6] = 12;
+
   auto reindexed = reindex(hypergraph);
 
   ASSERT_THAT(reindexed.first->initialNumNodes(), Eq(5));
   ASSERT_THAT(reindexed.first->currentNumEdges(), Eq(3));
   ASSERT_THAT(reindexed.second.size(), Eq(5));
   ASSERT_THAT(reindexed.second, ContainerEq(std::vector<HypernodeID>{ 0, 1, 3, 5, 6 }));
+  ASSERT_THAT(reindexed.first->_communities,
+              ContainerEq(std::vector<PartitionID>{ 0, 2, 6, 10, 12 }));
 }
 
 TEST_F(APartitionedHypergraph, CanBeResetToUnpartitionedState) {
