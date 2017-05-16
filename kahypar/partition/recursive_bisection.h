@@ -211,15 +211,23 @@ static inline void partition(Hypergraph& input_hypergraph,
                      "***********************************";
             }
 
-            // In recursive bisection mode, we want to be able to reuse the community
-            // structure computed as preprocessing before the first bisection for the subsequent
-            // bisections. This is made sure using the following implication:
-            // RB-Mode ==> first bisection OR always compute community structure
-            if (current_context.type != ContextType::main || bisection_counter == 1 ||
-                !current_context.preprocessing.louvain_community_detection.reuse_communities) {
+            // For both recursive bisection and direct k-way partitioning mode, we allow to reuse
+            // community structure information. Direct k-way partitioning uses recursive bisection
+            // as initial partitioning mode. Using the reuse_communities flag, we can therefore
+            // decide whether or not the community structure found before the first bisection
+            // (which corresponds to the community structure of the input hypergraph for recursive
+            // bisection based partitioning and to the community structure of the coarse hypergraph
+            // for direct k-way partitioning) should be reused in subsequent bisections. Note that
+            // the community structure computed in the top level preprocessing phase of direct k-way
+            // partitioning is not used here, because we clear the communities vector before calling
+            // the initial partitioner (see initial_partition.h).
+            const bool detect_communities =
+              !current_context.preprocessing.louvain_community_detection.reuse_communities ||
+              bisection_counter == 1;
+            if (detect_communities) {
               detectCommunities(current_hypergraph, current_context);
-            } else if (recursive_bisection_verbose) {
-              LOG << "Reusing community structure of first bisection";
+            } else if (verbose_output) {
+              LOG << "Reusing community structure computed in first bisection";
             }
           }
 

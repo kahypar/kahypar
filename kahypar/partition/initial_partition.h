@@ -137,7 +137,7 @@ static inline Context createContext(const Hypergraph& hg,
       LOG << "Invalid IP technique";
       std::exit(-1);
   }
-  // We are now in initial partitioning mode, i.e. the next call to partitionInitially
+  // We are now in initial partitioning mode, i.e. the next call to partition
   // will actually trigger the computation of an initial partition of the hypergraph.
   // Computing an actual initial partition is always flat, since the graph has been coarsened
   // before in case of multilevel initial partitioning, or should not be coarsened in case
