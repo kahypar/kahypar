@@ -29,6 +29,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/preprocessing/louvain.h"
@@ -38,12 +39,14 @@ namespace kahypar {
 template <typename _RatingType,
           class _TieBreakingPolicy,
           class _AcceptancePolicy = BestRatingWithRandomTieBreaking<_TieBreakingPolicy>,
-          class _NodeWeightPenalty = MultiplicativePenalty>
+          class _NodeWeightPenalty = MultiplicativePenalty,
+          class _CommunityPolicy = UseCommunityStructure>
 class HeavyEdgeRater {
  private:
   static constexpr bool debug = false;
   using AcceptancePolicy = _AcceptancePolicy;
   using NodeWeightPenalty = _NodeWeightPenalty;
+  using CommunityPolicy = _CommunityPolicy;
 
   class HeavyEdgeRating {
  public:
@@ -107,14 +110,13 @@ class HeavyEdgeRater {
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
-    const std::vector<PartitionID>& communities = _hg.communities();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value /
                                     NodeWeightPenalty::penalty(weight_u,
                                                                _hg.nodeWeight(tmp_target));
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
-      if (communities[u] == communities[tmp_target] &&
+      if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
                                          target, tmp_target, _already_matched)) {
         max_rating = tmp_rating;
