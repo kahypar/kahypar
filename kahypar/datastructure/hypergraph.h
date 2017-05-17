@@ -2018,7 +2018,7 @@ class GenericHypergraph {
   friend std ::pair<std::unique_ptr<Hypergraph>,
                     std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                                                                                      typename Hypergraph::PartitionID part,
-                                                                                                                     bool split_nets);
+                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2220,7 +2220,7 @@ std::pair<std::unique_ptr<Hypergraph>,
           std::vector<typename Hypergraph::HypernodeID> >
 extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const typename Hypergraph::PartitionID part,
-                                                 const bool split_nets = false) {
+                                                 const Objective& objective) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
@@ -2256,7 +2256,7 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
-    if (split_nets) {
+    if (objective == Objective::km1) {
       // Cut-Net Splitting is used to optimize connectivity-1 metric.
       for (const HyperedgeID& he : hypergraph.edges()) {
         ASSERT(hypergraph.edgeSize(he) > 1, V(he));

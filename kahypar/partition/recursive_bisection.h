@@ -249,8 +249,7 @@ static inline void partition(Hypergraph& input_hypergraph,
           multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
-            current_hypergraph, 1,
-            current_context.partition.objective == Objective::km1 ? true : false);
+            current_hypergraph, 1, current_context.partition.objective);
           mapping_stack.emplace_back(std::move(extractedHypergraph_1.second));
 
           hypergraph_stack.back().state =
@@ -268,8 +267,7 @@ static inline void partition(Hypergraph& input_hypergraph,
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 0,
-              original_context.partition.objective == Objective::km1 ? true : false);
+              current_hypergraph, 0, original_context.partition.objective);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_0.first.release(),
