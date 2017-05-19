@@ -27,7 +27,7 @@
 
 namespace kahypar {
 template <class TieBreakingPolicy = RandomRatingWins>
-class BestRatingWithRandomTieBreaking final : public meta::PolicyBase {
+class BestRatingWithTieBreaking final : public meta::PolicyBase {
  public:
   static inline bool acceptRating(const RatingType tmp, const RatingType max_rating,
                                   const HypernodeID, const HypernodeID,
@@ -53,6 +53,6 @@ class BestRatingPreferringUnmatched final : public meta::PolicyBase {
   }
 };
 
-using AcceptancePolicies = meta::Typelist<BestRatingWithRandomTieBreaking<>,
+using AcceptancePolicies = meta::Typelist<BestRatingWithTieBreaking<>,
                                           BestRatingPreferringUnmatched<> >;
 }  // namespace kahypar

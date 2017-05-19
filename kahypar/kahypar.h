@@ -24,7 +24,6 @@
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/coarsening/do_nothing_coarsener.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
@@ -32,6 +31,7 @@
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioning.h"
@@ -91,7 +91,7 @@ namespace kahypar {
 ////////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
 ////////////////////////////////////////////////////////////////////////////////
-using RandomWinsRaterHeavyEdgeRater = HeavyEdgeRater<>;
+using RandomWinsRaterHeavyEdgeRater = VertexPairRater<>;
 
 ////////////////////////////////////////////////////////////////////////////////
 //                       Coarsening / Rating Policies
@@ -111,7 +111,7 @@ REGISTER_POLICY(RatingFunction, RatingFunction::heavy_edge,
 REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
                 EdgeFrequencyScore);
 
-using RandomTieBreaking = BestRatingWithRandomTieBreaking<>;
+using RandomTieBreaking = BestRatingWithTieBreaking<>;
 using PreferUnmatched = BestRatingPreferringUnmatched<>;
 
 REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::random_tie_breaking,

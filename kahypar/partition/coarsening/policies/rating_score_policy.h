@@ -21,6 +21,7 @@
 #pragma once
 
 #include "kahypar/definitions.h"
+#include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
 
 namespace kahypar {

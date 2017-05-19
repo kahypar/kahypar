@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -262,7 +262,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& crit) {
       context.coarsening.rating.acceptance_policy =
-        kahypar::tiebreakingCriterionFromString(crit);
+        kahypar::acceptanceCriterionFromString(crit);
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random (default)"
@@ -330,9 +330,11 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](bool use_communities) {
       if (use_communities) {
-        context.initial_partitioning.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+        context.initial_partitioning.coarsening.rating.community_policy =
+            CommunityPolicy::use_communities;
       } else {
-        context.initial_partitioning.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
+        context.initial_partitioning.coarsening.rating.community_policy =
+            CommunityPolicy::ignore_communities;
       }
     }),
     "Use community information during rating. If c-rating-use-communities=true (default),\n"
@@ -350,7 +352,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& crit) {
       context.initial_partitioning.coarsening.rating.acceptance_policy =
-        kahypar::tiebreakingCriterionFromString(crit);
+        kahypar::acceptanceCriterionFromString(crit);
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random (default)"

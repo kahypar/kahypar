@@ -90,6 +90,10 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " coarsening_hypernode_weight_fraction=" << context.coarsening.hypernode_weight_fraction
       << " coarsening_max_allowed_node_weight=" << context.coarsening.max_allowed_node_weight
       << " coarsening_contraction_limit=" << context.coarsening.contraction_limit
+      << " coarsening_rating_function=" << toString(context.coarsening.rating.rating_function)
+      << " coarsening_rating_use_communities=" << toString(context.coarsening.rating.community_policy)
+      << " coarsening_rating_heavy_node_penalty=" << toString(context.coarsening.rating.heavy_node_penalty_policy)
+      << " coarsening_rating_acceptance_policy=" << toString(context.coarsening.rating.acceptance_policy)
       << " IP_mode=" << toString(context.initial_partitioning.mode)
       << " IP_technique=" << toString(context.initial_partitioning.technique)
       << " IP_algorithm=" << toString(context.initial_partitioning.algo)
@@ -100,6 +104,10 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.initial_partitioning.coarsening.max_allowed_weight_multiplier
       << " IP_coarsening_contraction_limit_multiplier="
       << context.initial_partitioning.coarsening.contraction_limit_multiplier
+      << " IP_coarsening_rating_function=" << toString(context.initial_partitioning.coarsening.rating.rating_function)
+      << " IP_coarsening_rating_use_communities=" << toString(context.initial_partitioning.coarsening.rating.community_policy)
+      << " IP_coarsening_rating_heavy_node_penalty=" << toString(context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy)
+      << " IP_coarsening_rating_acceptance_policy=" << toString(context.initial_partitioning.coarsening.rating.acceptance_policy)
       << " IP_local_search_algorithm=" << toString(context.initial_partitioning.local_search.algorithm)
       << " IP_local_search_iterations_per_level="
       << context.initial_partitioning.local_search.iterations_per_level;

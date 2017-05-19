@@ -284,13 +284,13 @@ static std::string toString(const RefinementStoppingRule& algo) {
   }
 }
 
-static AcceptancePolicy tiebreakingCriterionFromString(const std::string& crit) {
+static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   if (crit == "random") {
     return AcceptancePolicy::random_tie_breaking;
   } else if (crit == "prefer_unmatched") {
     return AcceptancePolicy::prefer_unmatched;
   }
-  std::cout << "No valid tie breaking criterion for rating." << std::endl;
+  std::cout << "No valid acceptance criterion for rating." << std::endl;
   exit(0);
 }
 

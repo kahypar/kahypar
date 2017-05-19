@@ -23,8 +23,8 @@
 #include "kahypar/definitions.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/multilevel.h"
@@ -38,8 +38,11 @@ using ::testing::DoubleEq;
 
 namespace kahypar {
 namespace metrics {
-using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
+                                                   MultiplicativePenalty,
+                                                   UseCommunityStructure,
+                                                   BestRatingWithTieBreaking<FirstRatingWins>,
+                                                   RatingType>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {

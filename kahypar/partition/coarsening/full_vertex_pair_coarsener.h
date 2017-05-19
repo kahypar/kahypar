@@ -35,20 +35,20 @@
 
 namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
-          class NodeWeightPenalty = MultiplicativePenalty,
+          class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
-          class AcceptancePolicy = BestRatingWithRandomTieBreaking<>,
+          class AcceptancePolicy = BestRatingWithTieBreaking<>,
           typename RatingType = RatingType>
 class FullVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
  private:
   static constexpr bool debug = false;
 
-  using Rater = HeavyEdgeRater<ScorePolicy,
-                               NodeWeightPenalty,
-                               CommunityPolicy,
-                               AcceptancePolicy,
-                               RatingType>;
+  using Rater = VertexPairRater<ScorePolicy,
+                                HeavyNodePenaltyPolicy,
+                                CommunityPolicy,
+                                AcceptancePolicy,
+                                RatingType>;
 
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;

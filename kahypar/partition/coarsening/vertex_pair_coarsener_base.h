@@ -31,7 +31,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
 #include "kahypar/partition/coarsening/coarsener_base.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"

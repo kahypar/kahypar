@@ -127,11 +127,12 @@ struct RatingParameters {
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
-  str << "Rating Parameters:" << std::endl;
-  str << "  Rating Function:                    " << toString(params.rating_function) << std::endl;
-  str << "  Use Community Structure:            " << toString(params.community_policy) << std::endl;
-  str << "  Heavy Node Penalty:                 " << toString(params.heavy_node_penalty_policy) << std::endl;
-  str << "  Tiebreaking Policy:                 " << toString(params.acceptance_policy) << std::endl;
+  str << "  Rating Parameters:" << std::endl;
+  str << "    Rating Function:                  " << toString(params.rating_function) << std::endl;
+  str << "    Use Community Structure:          " << toString(params.community_policy) << std::endl;
+  str << "    Heavy Node Penalty:               " << toString(params.heavy_node_penalty_policy) << std::endl;
+  str << "    Acceptance Policy:                " << toString(params.acceptance_policy) << std::endl;
+  return str;
 }
 
 
