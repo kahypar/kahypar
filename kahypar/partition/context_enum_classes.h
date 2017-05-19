@@ -309,11 +309,12 @@ static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& pena
 static RatingFunction ratingFunctionFromString(const std::string& function) {
   if (function == "heavy_edge") {
     return RatingFunction::heavy_edge;
-  } else if (function == "no_penalty") {
+  } else if (function == "edge_frequency") {
     return RatingFunction::edge_frequency;
   }
   std::cout << "No valid rating function for rating." << std::endl;
   exit(0);
+  return RatingFunction::heavy_edge;
 }
 
 static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
