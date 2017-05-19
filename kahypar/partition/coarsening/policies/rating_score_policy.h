@@ -21,25 +21,23 @@
 #pragma once
 
 #include "kahypar/definitions.h"
-#include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
 
-
 namespace kahypar {
-class MultiplicativePenalty final : public meta::PolicyBase {
+class HeavyEdgeScore final : public meta::PolicyBase {
  public:
-  static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {
-    return weight_u * weight_v;
+  static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
+    return static_cast<RatingType>(hypergraph.edgeWeight(he)) / (hypergraph.edgeSize(he) - 1);
   }
 };
 
-class NoWeightPenalty final : public meta::PolicyBase {
+class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
-  static inline HypernodeWeight penalty(const HypernodeWeight, const HypernodeWeight) {
+  // TODO(andre): implement edge frequency rating here
+  static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
     return 1;
   }
 };
 
-using HeavyNodePenaltyPolicies = meta::Typelist<MultiplicativePenalty,
-                                                NoWeightPenalty>;
+using RatingScorePolicies = meta::Typelist<HeavyEdgeScore, EdgeFrequencyScore>;
 }  // namespace kahypar

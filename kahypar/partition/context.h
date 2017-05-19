@@ -119,9 +119,25 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   return str;
 }
 
+struct RatingParameters {
+  RatingFunction rating_function = RatingFunction::heavy_edge;
+  CommunityPolicy community_policy = CommunityPolicy::use_communities;
+  HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::multiplicative_penalty;
+  AcceptancePolicy acceptance_policy = AcceptancePolicy::random_tie_breaking;
+};
+
+inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
+  str << "Rating Parameters:" << std::endl;
+  str << "  Rating Function:                    " << toString(params.rating_function) << std::endl;
+  str << "  Use Community Structure:            " << toString(params.community_policy) << std::endl;
+  str << "  Heavy Node Penalty:                 " << toString(params.heavy_node_penalty_policy) << std::endl;
+  str << "  Tiebreaking Policy:                 " << toString(params.acceptance_policy) << std::endl;
+}
+
 
 struct CoarseningParameters {
   CoarseningAlgorithm algorithm = CoarseningAlgorithm::heavy_lazy;
+  RatingParameters rating = { };
   HypernodeID contraction_limit_multiplier = 160;
   double max_allowed_weight_multiplier = 3.25;
 
@@ -157,7 +173,7 @@ inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& 
   } else {
     str << params.contraction_limit;
   }
-  str << std::endl;
+  str << std::endl << params.rating;
   return str;
 }
 

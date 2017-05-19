@@ -31,22 +31,20 @@
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-template <typename _RatingType,
-          class _TieBreakingPolicy,
-          class _AcceptancePolicy = BestRatingWithRandomTieBreaking<_TieBreakingPolicy>,
-          class _NodeWeightPenalty = MultiplicativePenalty,
-          class _CommunityPolicy = UseCommunityStructure>
+template <class ScorePolicy = HeavyEdgeScore,
+          class NodeWeightPenalty = MultiplicativePenalty,
+          class CommunityPolicy = UseCommunityStructure,
+          class AcceptancePolicy = BestRatingWithRandomTieBreaking<>,
+          typename RatingType = RatingType>
 class HeavyEdgeRater {
  private:
   static constexpr bool debug = false;
-  using AcceptancePolicy = _AcceptancePolicy;
-  using NodeWeightPenalty = _NodeWeightPenalty;
-  using CommunityPolicy = _CommunityPolicy;
 
   class HeavyEdgeRating {
  public:
@@ -74,7 +72,6 @@ class HeavyEdgeRater {
   };
 
  public:
-  using RatingType = _RatingType;
   using Rating = HeavyEdgeRating;
 
   HeavyEdgeRater(Hypergraph& hypergraph, const Context& context) :
@@ -98,7 +95,7 @@ class HeavyEdgeRater {
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
-        const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
+        const RatingType score = ScorePolicy::score(_hg, he);
         for (const HypernodeID& v : _hg.pins(he)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               (part_u == _hg.partID(v))) {

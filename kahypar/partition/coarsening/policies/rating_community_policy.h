@@ -22,38 +22,26 @@
 
 #include <vector>
 
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/typelist.h"
+
 namespace kahypar {
-class UseCommunityStructure {
+class UseCommunityStructure final : public meta::PolicyBase {
  public:
-  static bool sameCommunity(const std::vector<PartitionID>& communities,
-                            const HypernodeID u, const HypernodeID v) {
+  static inline bool sameCommunity(const std::vector<PartitionID>& communities,
+                                   const HypernodeID u, const HypernodeID v) {
     return communities[u] == communities[v];
   }
-
-  UseCommunityStructure(const UseCommunityStructure&) = delete;
-  UseCommunityStructure& operator= (const UseCommunityStructure&) = delete;
-
-  UseCommunityStructure(UseCommunityStructure&&) = delete;
-  UseCommunityStructure& operator= (UseCommunityStructure&&) = delete;
-
- protected:
-  ~UseCommunityStructure() = default;
 };
 
-class IgnoreCommunityStructure {
+class IgnoreCommunityStructure final : public meta::PolicyBase {
  public:
-  static bool sameCommunity(const std::vector<PartitionID>&,
-                            const HypernodeID, const HypernodeID) {
+  static inline bool sameCommunity(const std::vector<PartitionID>&,
+                                   const HypernodeID, const HypernodeID) {
     return true;
   }
-
-  IgnoreCommunityStructure(const IgnoreCommunityStructure&) = delete;
-  IgnoreCommunityStructure& operator= (const IgnoreCommunityStructure&) = delete;
-
-  IgnoreCommunityStructure(IgnoreCommunityStructure&&) = delete;
-  IgnoreCommunityStructure& operator= (IgnoreCommunityStructure&&) = delete;
-
- protected:
-  ~IgnoreCommunityStructure() = default;
 };
+
+using CommunityPolicies = meta::Typelist<UseCommunityStructure,
+                                         IgnoreCommunityStructure>;
 }  // namespace kahypar

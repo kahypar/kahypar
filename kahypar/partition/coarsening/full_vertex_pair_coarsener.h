@@ -34,11 +34,21 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-template <class Rater = Mandatory>
+template <class ScorePolicy = HeavyEdgeScore,
+          class NodeWeightPenalty = MultiplicativePenalty,
+          class CommunityPolicy = UseCommunityStructure,
+          class AcceptancePolicy = BestRatingWithRandomTieBreaking<>,
+          typename RatingType = RatingType>
 class FullVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
  private:
   static constexpr bool debug = false;
+
+  using Rater = HeavyEdgeRater<ScorePolicy,
+                               NodeWeightPenalty,
+                               CommunityPolicy,
+                               AcceptancePolicy,
+                               RatingType>;
 
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;

@@ -39,6 +39,26 @@ enum class InitialPartitioningTechnique : uint8_t {
   flat
 };
 
+enum class RatingFunction : uint8_t {
+  heavy_edge,
+  edge_frequency
+};
+
+enum class CommunityPolicy : uint8_t {
+  use_communities,
+  ignore_communities
+};
+
+enum class HeavyNodePenaltyPolicy : uint8_t {
+  no_penalty,
+  multiplicative_penalty
+};
+
+enum class AcceptancePolicy : uint8_t {
+  random_tie_breaking,
+  prefer_unmatched
+};
+
 enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
@@ -104,6 +124,48 @@ static std::string toString(const ContextType& type) {
     return "main";
   } else {
     return "ip";
+  }
+}
+
+static std::string toString(const CommunityPolicy& comm_policy) {
+  if (comm_policy == CommunityPolicy::use_communities) {
+    return "true";
+  } else {
+    return "false";
+  }
+}
+
+static std::string toString(const HeavyNodePenaltyPolicy& heavy_hn_policy) {
+  switch (heavy_hn_policy) {
+    case HeavyNodePenaltyPolicy::multiplicative_penalty:
+      return std::string("multiplicative");
+    case HeavyNodePenaltyPolicy::no_penalty:
+      return std::string("no_penalty");
+    default:
+      return std::string("UNDEFINED");
+  }
+}
+
+static std::string toString(const AcceptancePolicy& tie_breaking_policy) {
+  switch (tie_breaking_policy) {
+    case AcceptancePolicy::random_tie_breaking:
+      return std::string("random");
+    case AcceptancePolicy::prefer_unmatched:
+      return std::string("prefer_unmatched");
+    default:
+      return std::string("UNDEFINED");
+  }
+}
+
+
+static std::string toString(const RatingFunction& func) {
+  switch (func) {
+    case RatingFunction::heavy_edge:
+      return std::string("heavy_edge");
+    case RatingFunction::edge_frequency:
+      return std::string("edge_frequency");
+    default:
+      return std::string("UNDEFINED");
   }
 }
 
@@ -220,6 +282,38 @@ static std::string toString(const RefinementStoppingRule& algo) {
     default:
       return std::string("UNDEFINED");
   }
+}
+
+static AcceptancePolicy tiebreakingCriterionFromString(const std::string& crit) {
+  if (crit == "random") {
+    return AcceptancePolicy::random_tie_breaking;
+  } else if (crit == "prefer_unmatched") {
+    return AcceptancePolicy::prefer_unmatched;
+  }
+  std::cout << "No valid tie breaking criterion for rating." << std::endl;
+  exit(0);
+}
+
+
+static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& penalty) {
+  if (penalty == "multiplicative") {
+    return HeavyNodePenaltyPolicy::multiplicative_penalty;
+  } else if (penalty == "no_penalty") {
+    return HeavyNodePenaltyPolicy::no_penalty;
+  }
+  std::cout << "No valid edge penalty policy for rating." << std::endl;
+  exit(0);
+  return HeavyNodePenaltyPolicy::multiplicative_penalty;
+}
+
+static RatingFunction ratingFunctionFromString(const std::string& function) {
+  if (function == "heavy_edge") {
+    return RatingFunction::heavy_edge;
+  } else if (function == "no_penalty") {
+    return RatingFunction::edge_frequency;
+  }
+  std::cout << "No valid rating function for rating." << std::endl;
+  exit(0);
 }
 
 static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {

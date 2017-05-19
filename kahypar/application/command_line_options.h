@@ -228,7 +228,45 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("c-t",
     po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
     "Coarsening stops when there are no more than t * k hypernodes left\n"
-    "(default: 160)");
+    "(default: 160)")
+    ("c-rating-score",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& rating_score) {
+      context.coarsening.rating.rating_function =
+        kahypar::ratingFunctionFromString(rating_score);
+    }),
+    "Rating function used to calculate scores for vertex pairs:\n"
+    "heavy_edge (default)"
+    "edge_frequency")
+    ("c-rating-use-communities",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](bool use_communities) {
+      if (use_communities) {
+        context.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+      } else {
+        context.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
+      }
+    }),
+    "Use community information during rating. If c-rating-use-communities=true (default),\n"
+    "only neighbors belonging to the same community will be considered as contraction partner.")
+    ("c-rating-heavy_node_penalty",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& penalty) {
+      context.coarsening.rating.heavy_node_penalty_policy =
+        kahypar::heavyNodePenaltyFromString(penalty);
+    }),
+    "Penalty function to discourage heavy vertices:\n"
+    "multiplicative (default)"
+    "no_penalty")
+    ("c-rating-acceptance-criterion",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& crit) {
+      context.coarsening.rating.acceptance_policy =
+        kahypar::tiebreakingCriterionFromString(crit);
+    }),
+    "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
+    "random (default)"
+    "prefer_unmatched");
 
 
   po::options_description ip_options("Initial Partitioning Options", num_columns);
@@ -279,6 +317,44 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
     "IP coarsening stops when there are no more than i-c-t * k hypernodes left \n"
     "(default: 150)")
+    ("i-c-rating-score",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& rating_score) {
+      context.initial_partitioning.coarsening.rating.rating_function =
+        kahypar::ratingFunctionFromString(rating_score);
+    }),
+    "Rating function used to calculate scores for vertex pairs:\n"
+    "heavy_edge (default)"
+    "edge_frequency")
+    ("i-c-rating-use-communities",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](bool use_communities) {
+      if (use_communities) {
+        context.initial_partitioning.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+      } else {
+        context.initial_partitioning.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
+      }
+    }),
+    "Use community information during rating. If c-rating-use-communities=true (default),\n"
+    "only neighbors belonging to the same community will be considered as contraction partner.")
+    ("i-c-rating-heavy_node_penalty",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& penalty) {
+      context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy =
+        kahypar::heavyNodePenaltyFromString(penalty);
+    }),
+    "Penalty function to discourage heavy vertices:\n"
+    "multiplicative (default)"
+    "no_penalty")
+    ("i-c-rating-acceptance-criterion",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& crit) {
+      context.initial_partitioning.coarsening.rating.acceptance_policy =
+        kahypar::tiebreakingCriterionFromString(crit);
+    }),
+    "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
+    "random (default)"
+    "prefer_unmatched")
     ("i-runs",
     po::value<int>(&context.initial_partitioning.nruns)->value_name("<int>"),
     "# initial partition trials \n"
