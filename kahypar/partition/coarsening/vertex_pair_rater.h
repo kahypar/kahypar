@@ -127,7 +127,7 @@ class VertexPairRater {
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
-      ASSERT(communities[u] == communities[ret.target]);
+      ASSERT(_hg.communities()[u] == _hg.communities()[ret.target]);
     }
     ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
     _tmp_ratings.clear();
