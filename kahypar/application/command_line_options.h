@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <Windows.h>
 #include <process.h>
+#include <Windows.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -331,10 +331,10 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       [&](bool use_communities) {
       if (use_communities) {
         context.initial_partitioning.coarsening.rating.community_policy =
-            CommunityPolicy::use_communities;
+          CommunityPolicy::use_communities;
       } else {
         context.initial_partitioning.coarsening.rating.community_policy =
-            CommunityPolicy::ignore_communities;
+          CommunityPolicy::ignore_communities;
       }
     }),
     "Use community information during rating. If c-rating-use-communities=true (default),\n"

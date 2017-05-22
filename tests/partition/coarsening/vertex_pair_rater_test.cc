@@ -23,12 +23,12 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
 using ::testing::Test;
 using ::testing::Eq;
@@ -42,15 +42,15 @@ using FirstWinsRater = VertexPairRater<HeavyEdgeScore,
                                        BestRatingWithTieBreaking<FirstRatingWins>,
                                        RatingType>;
 using LastWinsRater = VertexPairRater<HeavyEdgeScore,
-                                       MultiplicativePenalty,
-                                       UseCommunityStructure,
-                                       BestRatingWithTieBreaking<LastRatingWins>,
-                                       RatingType>;
+                                      MultiplicativePenalty,
+                                      UseCommunityStructure,
+                                      BestRatingWithTieBreaking<LastRatingWins>,
+                                      RatingType>;
 using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
-                                       MultiplicativePenalty,
-                                       UseCommunityStructure,
-                                       BestRatingWithTieBreaking<RandomRatingWins>,
-                                       RatingType>;
+                                        MultiplicativePenalty,
+                                        UseCommunityStructure,
+                                        BestRatingWithTieBreaking<RandomRatingWins>,
+                                        RatingType>;
 
 class ARater : public Test {
  public:
