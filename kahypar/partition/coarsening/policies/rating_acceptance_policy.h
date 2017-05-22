@@ -29,9 +29,11 @@ namespace kahypar {
 template <class TieBreakingPolicy = RandomRatingWins>
 class BestRatingWithTieBreaking final : public meta::PolicyBase {
  public:
-  static inline bool acceptRating(const RatingType tmp, const RatingType max_rating,
-                                  const HypernodeID, const HypernodeID,
-                                  const ds::FastResetFlagArray<>&) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,
+                                                                  const RatingType max_rating,
+                                                                  const HypernodeID,
+                                                                  const HypernodeID,
+                                                                  const ds::FastResetFlagArray<>&) {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
 };
@@ -40,9 +42,11 @@ class BestRatingWithTieBreaking final : public meta::PolicyBase {
 template <class TieBreakingPolicy = RandomRatingWins>
 class BestRatingPreferringUnmatched final : public meta::PolicyBase {
  public:
-  static inline bool acceptRating(const RatingType tmp, const RatingType max_rating,
-                                  const HypernodeID old_target, const HypernodeID new_target,
-                                  const ds::FastResetFlagArray<>& already_matched) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,
+                                                                  const RatingType max_rating,
+                                                                  const HypernodeID old_target,
+                                                                  const HypernodeID new_target,
+                                                                  const ds::FastResetFlagArray<>& already_matched) {
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||

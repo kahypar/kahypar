@@ -29,16 +29,16 @@
 namespace kahypar {
 class UseCommunityStructure final : public meta::PolicyBase {
  public:
-  static inline bool sameCommunity(const std::vector<PartitionID>& communities,
-                                   const HypernodeID u, const HypernodeID v) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool sameCommunity(const std::vector<PartitionID>& communities,
+                                                                   const HypernodeID u, const HypernodeID v) {
     return communities[u] == communities[v];
   }
 };
 
 class IgnoreCommunityStructure final : public meta::PolicyBase {
  public:
-  static inline bool sameCommunity(const std::vector<PartitionID>&,
-                                   const HypernodeID, const HypernodeID) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool sameCommunity(const std::vector<PartitionID>&,
+                                                                   const HypernodeID, const HypernodeID) {
     return true;
   }
 };

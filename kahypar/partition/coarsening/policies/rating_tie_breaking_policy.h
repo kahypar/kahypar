@@ -25,7 +25,7 @@
 namespace kahypar {
 class LastRatingWins {
  public:
-  static bool acceptEqual() {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static bool acceptEqual() {
     return true;
   }
 
@@ -41,7 +41,7 @@ class LastRatingWins {
 
 class FirstRatingWins {
  public:
-  static bool acceptEqual() {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static bool acceptEqual() {
     return false;
   }
 
@@ -57,7 +57,7 @@ class FirstRatingWins {
 
 class RandomRatingWins {
  public:
-  static bool acceptEqual() {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static bool acceptEqual() {
     return Randomize::instance().flipCoin();
   }
 
