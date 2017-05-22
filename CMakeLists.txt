@@ -201,6 +201,8 @@ elseif(MSVC)
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
 
 
+  # https://msdn.microsoft.com/en-us/library/ms173499.aspx
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
   ### disable verbose warnings:
   # warning C4589: Constructor of abstract class '...' ignores initializer for
